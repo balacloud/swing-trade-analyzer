@@ -1,305 +1,571 @@
 """
-Swing Trade Analyzer - Backend API v1.0
-Day 1: Real data integration via yfinance (Yahoo Finance wrapper)
-Note: This will be replaced with Defeat Beta API in future iterations
+Swing Trade Analyzer Backend - v2.1
+Flask API server with yfinance (prices) + Defeat Beta (fundamentals)
+
+Day 6: Fixed numpy type serialization issues
+- VIX endpoint: bool() and float() conversions
+- Fundamentals endpoint: DataFrame value conversions
 """
 
 from flask import Flask, jsonify
 from flask_cors import CORS
-from datetime import datetime, timedelta
 import yfinance as yf
-import pandas as pd
+from datetime import datetime, timedelta
+import traceback
+
+# Try to import defeatbeta - graceful fallback if not installed
+try:
+    import defeatbeta_api
+    from defeatbeta_api.data.ticker import Ticker as DBTicker
+    DEFEATBETA_AVAILABLE = True
+    print("✅ Defeat Beta loaded successfully")
+except ImportError:
+    DEFEATBETA_AVAILABLE = False
+    print("⚠️  Defeat Beta not installed - using yfinance fallback for fundamentals")
+    print("   Install with: pip install defeatbeta-api")
 
 app = Flask(__name__)
 CORS(app)
 
-def fetch_stock_data(ticker, period="1y"):
-    """
-    Fetch stock data using yfinance library
-    
-    Args:
-        ticker: Stock symbol (e.g., AAPL)
-        period: Time period (1y, 2y, etc.)
-        
-    Returns:
-        yfinance Ticker object or None
-    """
+# ============================================
+# HELPER FUNCTIONS
+# ============================================
+
+def safe_float(value, default=None):
+    """Safely convert numpy/pandas types to Python float"""
     try:
-        stock = yf.Ticker(ticker)
-        
-        # Test if ticker is valid by trying to fetch info
-        info = stock.info
-        if not info or 'symbol' not in info:
-            print(f"❌ Invalid ticker: {ticker}")
+        if value is None:
+            return default
+        # Handle pandas/numpy types
+        if hasattr(value, 'item'):
+            return float(value.item())
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def safe_int(value, default=None):
+    """Safely convert numpy/pandas types to Python int"""
+    try:
+        if value is None:
+            return default
+        if hasattr(value, 'item'):
+            return int(value.item())
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def safe_bool(value, default=False):
+    """Safely convert numpy bool to Python bool"""
+    try:
+        if value is None:
+            return default
+        if hasattr(value, 'item'):
+            return bool(value.item())
+        return bool(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def safe_get(data, key, default=None):
+    """Safely get a value from a dictionary"""
+    try:
+        value = data.get(key, default)
+        if value is None:
+            return default
+        return value
+    except:
+        return default
+
+
+def calculate_growth_rate(current, previous):
+    """Calculate percentage growth rate"""
+    try:
+        if previous is None or previous == 0:
             return None
-            
-        print(f"✅ Successfully connected to {ticker}")
-        return stock
-        
-    except Exception as e:
-        print(f"❌ Error fetching {ticker}: {str(e)}")
+        current = safe_float(current)
+        previous = safe_float(previous)
+        if current is None or previous is None or previous == 0:
+            return None
+        return ((current - previous) / abs(previous)) * 100
+    except:
         return None
 
-def get_price_history(stock, period="1y"):
-    """
-    Get historical price data
-    
-    Args:
-        stock: yfinance Ticker object
-        period: Time period
-        
-    Returns:
-        pandas DataFrame with price history
-    """
-    try:
-        hist = stock.history(period=period)
-        
-        if hist.empty:
-            print(f"❌ No price history available")
-            return None
-        
-        print(f"✅ Fetched {len(hist)} days of price data")
-        return hist
-        
-    except Exception as e:
-        print(f"❌ Error getting price history: {str(e)}")
-        return None
 
-def get_fundamentals(stock):
+def get_fundamentals_defeatbeta(ticker_symbol):
     """
-    Extract fundamental data from stock info
+    Get rich fundamental data from Defeat Beta
+    Returns ROE, ROIC, ROA, EPS growth, revenue growth, etc.
+    """
+    if not DEFEATBETA_AVAILABLE:
+        return None
     
-    Args:
-        stock: yfinance Ticker object
-        
-    Returns:
-        Dictionary of fundamental data
-    """
     try:
-        info = stock.info
+        ticker = DBTicker(ticker_symbol)
         
-        fundamentals = {
-            'marketCap': info.get('marketCap', 0),
-            'trailingPE': info.get('trailingPE', 0),
-            'forwardPE': info.get('forwardPE', 0),
-            'epsTrailing': info.get('trailingEps', 0),
-            'epsForward': info.get('forwardEps', 0),
-            'bookValue': info.get('bookValue', 0),
-            'priceToBook': info.get('priceToBook', 0),
-            'dividendYield': (info.get('dividendYield', 0) * 100) if info.get('dividendYield') else 0,
-            'fiftyTwoWeekHigh': info.get('fiftyTwoWeekHigh', 0),
-            'fiftyTwoWeekLow': info.get('fiftyTwoWeekLow', 0),
-            'averageVolume': info.get('averageVolume', 0),
-            'beta': info.get('beta', 0),
-            'profitMargins': (info.get('profitMargins', 0) * 100) if info.get('profitMargins') else 0,
-            'revenueGrowth': (info.get('revenueGrowth', 0) * 100) if info.get('revenueGrowth') else 0,
-            # Placeholders for Defeat Beta integration later
-            'epsGrowth': 0,
-            'roe': 0,
-            'roic': 0,
-            'debtToEquity': 0
+        # Initialize result
+        result = {
+            'source': 'defeatbeta',
+            'roe': None,
+            'roic': None,
+            'roa': None,
+            'epsGrowth': None,
+            'revenueGrowth': None,
+            'debtToEquity': None,
+            'profitMargin': None,
+            'operatingMargin': None,
+            'pegRatio': None
         }
         
-        print(f"✅ Extracted fundamentals")
-        return fundamentals
+        # Track data we've collected
+        net_income = None
+        total_equity = None
+        total_assets = None
+        total_debt = None
+        
+        # Try to get annual income statement for growth calculations
+        try:
+            annual_income = ticker.annual_income_statement()
+            if hasattr(annual_income, 'to_df'):
+                annual_df = annual_income.to_df()
+                
+                if annual_df is not None and len(annual_df.columns) >= 2:
+                    cols = list(annual_df.columns)
+                    current_year = cols[0]  # Most recent
+                    prev_year = cols[1]     # Previous year
+                    
+                    # Calculate EPS Growth (YoY)
+                    for idx in annual_df.index:
+                        idx_str = str(idx)
+                        if 'Diluted EPS' in idx_str or 'Basic EPS' in idx_str:
+                            try:
+                                current_eps = safe_float(annual_df.loc[idx, current_year])
+                                prev_eps = safe_float(annual_df.loc[idx, prev_year])
+                                if current_eps is not None and prev_eps is not None and prev_eps != 0:
+                                    result['epsGrowth'] = round(((current_eps - prev_eps) / abs(prev_eps)) * 100, 2)
+                            except:
+                                pass
+                            break
+                    
+                    # Calculate Revenue Growth
+                    for idx in annual_df.index:
+                        idx_str = str(idx)
+                        if 'Total Revenue' in idx_str or 'Operating Revenue' in idx_str:
+                            try:
+                                current_rev = safe_float(annual_df.loc[idx, current_year])
+                                prev_rev = safe_float(annual_df.loc[idx, prev_year])
+                                if current_rev is not None and prev_rev is not None and prev_rev != 0:
+                                    result['revenueGrowth'] = round(((current_rev - prev_rev) / abs(prev_rev)) * 100, 2)
+                            except:
+                                pass
+                            break
+                    
+                    # Get Net Income for ROE/ROA calculations
+                    for idx in annual_df.index:
+                        idx_str = str(idx)
+                        if 'Net Income' in idx_str and 'Non' not in idx_str:
+                            try:
+                                net_income = safe_float(annual_df.loc[idx, current_year])
+                            except:
+                                pass
+                            break
+                    
+                    # Calculate Profit Margin
+                    for idx in annual_df.index:
+                        if 'Total Revenue' in str(idx):
+                            try:
+                                revenue = safe_float(annual_df.loc[idx, current_year])
+                                if net_income is not None and revenue is not None and revenue != 0:
+                                    result['profitMargin'] = round((net_income / revenue) * 100, 2)
+                            except:
+                                pass
+                            break
+                            
+        except Exception as e:
+            print(f"Error getting annual income: {e}")
+        
+        # Try to get balance sheet for ROE, ROIC, Debt/Equity
+        try:
+            annual_balance = ticker.annual_balance_sheet()
+            if hasattr(annual_balance, 'to_df'):
+                balance_df = annual_balance.to_df()
+                
+                if balance_df is not None and len(balance_df.columns) >= 1:
+                    current_col = list(balance_df.columns)[0]
+                    
+                    for idx in balance_df.index:
+                        idx_str = str(idx)
+                        try:
+                            if 'Stockholder' in idx_str and 'Equity' in idx_str:
+                                total_equity = safe_float(balance_df.loc[idx, current_col])
+                            elif 'Total Assets' in idx_str and total_assets is None:
+                                total_assets = safe_float(balance_df.loc[idx, current_col])
+                            elif 'Total Debt' in idx_str:
+                                total_debt = safe_float(balance_df.loc[idx, current_col])
+                        except:
+                            pass
+                    
+                    # Calculate Debt to Equity
+                    if total_equity and total_equity != 0 and total_debt:
+                        result['debtToEquity'] = round(total_debt / total_equity, 2)
+                    
+                    # Calculate ROE = Net Income / Shareholders Equity
+                    if net_income and total_equity and total_equity != 0:
+                        result['roe'] = round((net_income / total_equity) * 100, 2)
+                    
+                    # Calculate ROA = Net Income / Total Assets
+                    if net_income and total_assets and total_assets != 0:
+                        result['roa'] = round((net_income / total_assets) * 100, 2)
+                    
+                    # Calculate ROIC (simplified) = Net Income / (Equity + Debt)
+                    invested_capital = (total_equity or 0) + (total_debt or 0)
+                    if net_income and invested_capital != 0:
+                        result['roic'] = round((net_income / invested_capital) * 100, 2)
+                        
+        except Exception as e:
+            print(f"Error getting balance sheet: {e}")
+        
+        return result
         
     except Exception as e:
-        print(f"⚠️  Error extracting fundamentals: {str(e)}")
-        return {}
+        print(f"Error in get_fundamentals_defeatbeta: {e}")
+        traceback.print_exc()
+        return None
+
+
+def get_fundamentals_yfinance(ticker_symbol):
+    """
+    Fallback: Get basic fundamental data from yfinance
+    Limited data but always available
+    """
+    try:
+        stock = yf.Ticker(ticker_symbol)
+        info = stock.info
+        
+        # Get financials for growth calculations
+        rev_growth = None
+        net_income = None
+        try:
+            financials = stock.quarterly_financials
+            if financials is not None and len(financials.columns) >= 2:
+                if 'Total Revenue' in financials.index:
+                    current_rev = safe_float(financials.loc['Total Revenue'].iloc[0])
+                    prev_rev = safe_float(financials.loc['Total Revenue'].iloc[1])
+                    if current_rev and prev_rev and prev_rev != 0:
+                        rev_growth = round(((current_rev - prev_rev) / abs(prev_rev)) * 100, 2)
+                        
+                if 'Net Income' in financials.index:
+                    net_income = safe_float(financials.loc['Net Income'].iloc[0])
+        except:
+            pass
+        
+        # Get balance sheet for ROE calculation
+        roe = None
+        roa = None
+        debt_to_equity = None
+        try:
+            balance = stock.quarterly_balance_sheet
+            if balance is not None and len(balance.columns) >= 1:
+                equity = None
+                total_assets = None
+                total_debt = None
+                
+                if 'Stockholders Equity' in balance.index:
+                    equity = safe_float(balance.loc['Stockholders Equity'].iloc[0])
+                elif 'Total Stockholder Equity' in balance.index:
+                    equity = safe_float(balance.loc['Total Stockholder Equity'].iloc[0])
+                    
+                if 'Total Assets' in balance.index:
+                    total_assets = safe_float(balance.loc['Total Assets'].iloc[0])
+                    
+                if 'Total Debt' in balance.index:
+                    total_debt = safe_float(balance.loc['Total Debt'].iloc[0])
+                
+                # Calculate metrics
+                if net_income and equity and equity != 0:
+                    roe = round((net_income / equity) * 100, 2)
+                if net_income and total_assets and total_assets != 0:
+                    roa = round((net_income / total_assets) * 100, 2)
+                if total_debt and equity and equity != 0:
+                    debt_to_equity = round(total_debt / equity, 2)
+        except:
+            pass
+        
+        return {
+            'source': 'yfinance',
+            'pe': safe_float(safe_get(info, 'trailingPE')),
+            'forwardPe': safe_float(safe_get(info, 'forwardPE')),
+            'pegRatio': safe_float(safe_get(info, 'pegRatio')),
+            'marketCap': safe_int(safe_get(info, 'marketCap')),
+            'roe': roe or safe_float(safe_get(info, 'returnOnEquity')),
+            'roa': roa or safe_float(safe_get(info, 'returnOnAssets')),
+            'roic': None,
+            'epsGrowth': safe_float(safe_get(info, 'earningsGrowth')),
+            'revenueGrowth': rev_growth or safe_float(safe_get(info, 'revenueGrowth')),
+            'debtToEquity': debt_to_equity or safe_float(safe_get(info, 'debtToEquity')),
+            'profitMargin': safe_float(safe_get(info, 'profitMargins')),
+            'operatingMargin': safe_float(safe_get(info, 'operatingMargins')),
+            'beta': safe_float(safe_get(info, 'beta')),
+            'dividendYield': safe_float(safe_get(info, 'dividendYield')),
+        }
+        
+    except Exception as e:
+        print(f"Error in get_fundamentals_yfinance: {e}")
+        return None
+
+
+# ============================================
+# API ROUTES
+# ============================================
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
     return jsonify({
-        "status": "healthy",
-        "service": "Swing Trade Analyzer API v1.0",
-        "timestamp": datetime.now().isoformat(),
-        "data_source": "yfinance (Yahoo Finance)",
-        "note": "Will be upgraded to Defeat Beta API",
-        "version": "1.0.0"
+        'status': 'healthy',
+        'timestamp': datetime.now().isoformat(),
+        'version': '2.1',
+        'defeatbeta_available': DEFEATBETA_AVAILABLE
     })
 
+
 @app.route('/api/stock/<ticker>', methods=['GET'])
-def get_stock(ticker):
+def get_stock_data(ticker):
     """
-    Fetch complete stock data for analysis
-    
-    Args:
-        ticker: Stock symbol (e.g., AAPL, NVDA)
-        
-    Returns:
-        JSON with price history, fundamentals, and metadata
+    Get stock data for analysis
+    Uses yfinance for price data (real-time)
     """
     try:
-        ticker = ticker.upper().strip()
+        ticker = ticker.upper()
+        stock = yf.Ticker(ticker)
         
-        # Validate ticker format
-        if not ticker or len(ticker) > 10:
-            return jsonify({
-                "error": "Invalid ticker format",
-                "message": "Ticker must be 1-10 characters"
-            }), 400
+        # Get historical data (260 trading days for 52-week calculations)
+        hist = stock.history(period='2y')
         
-        print(f"\n{'='*60}")
-        print(f"📊 Processing request for {ticker}")
-        print(f"{'='*60}")
+        if hist.empty:
+            return jsonify({'error': f'No data found for {ticker}'}), 404
         
-        # Fetch stock data
-        stock = fetch_stock_data(ticker, period="1y")
+        # FIXED: Get last 260 days (covers full 52 weeks of trading)
+        hist_data = hist.tail(260)
         
-        if stock is None:
-            return jsonify({
-                "error": f"Unable to fetch data for {ticker}",
-                "message": "Ticker may be invalid or data temporarily unavailable",
-                "ticker": ticker
-            }), 404
+        # Get stock info
+        info = stock.info
         
-        # Get price history
-        hist = get_price_history(stock, period="1y")
+        # Prepare price history
+        price_history = []
+        for date, row in hist_data.iterrows():
+            price_history.append({
+                'date': date.strftime('%Y-%m-%d'),
+                'open': round(float(row['Open']), 2),
+                'high': round(float(row['High']), 2),
+                'low': round(float(row['Low']), 2),
+                'close': round(float(row['Close']), 2),
+                'volume': int(row['Volume'])
+            })
         
-        if hist is None or len(hist) < 50:
-            return jsonify({
-                "error": f"Insufficient data for {ticker}",
-                "message": f"Need at least 50 days of data",
-                "ticker": ticker
-            }), 404
+        # Get 52-week ago price (approximately 252 trading days)
+        price_52w_ago = None
+        if len(hist_data) >= 252:
+            price_52w_ago = round(float(hist_data.iloc[-252]['Close']), 2)
+        elif len(hist_data) > 200:
+            price_52w_ago = round(float(hist_data.iloc[0]['Close']), 2)
         
-        # Get fundamentals
-        fundamentals = get_fundamentals(stock)
+        # Get 13-week ago price (approximately 63 trading days)
+        price_13w_ago = None
+        if len(hist_data) >= 63:
+            price_13w_ago = round(float(hist_data.iloc[-63]['Close']), 2)
         
-        # Prepare data for response
-        current_price = float(hist['Close'].iloc[-1])
+        # Current price
+        current_price = round(float(hist_data.iloc[-1]['Close']), 2)
         
-        # Get last 200 days
-        hist_200 = hist.tail(200)
-        
-        response = {
-            "ticker": ticker,
-            "currentPrice": round(current_price, 2),
-            "priceHistory": [round(float(x), 2) for x in hist_200['Close'].tolist()],
-            "highs": [round(float(x), 2) for x in hist_200['High'].tolist()],
-            "lows": [round(float(x), 2) for x in hist_200['Low'].tolist()],
-            "volumes": [int(x) for x in hist_200['Volume'].tolist()],
-            "dates": hist_200.index.strftime('%Y-%m-%d').tolist(),
-            "fundamentals": fundamentals,
-            "avgVolume": int(hist_200['Volume'].mean()),
-            "dataPoints": len(hist_200),
-            "dataSource": "yfinance",
-            "lastUpdated": datetime.now().isoformat()
+        # Basic fundamentals from yfinance (for backward compatibility)
+        fundamentals = {
+            'pe': safe_float(safe_get(info, 'trailingPE')),
+            'forwardPe': safe_float(safe_get(info, 'forwardPE')),
+            'marketCap': safe_int(safe_get(info, 'marketCap')),
+            'beta': safe_float(safe_get(info, 'beta')),
+            'dividendYield': safe_float(safe_get(info, 'dividendYield')),
+            'epsGrowth': 0,
+            'revenueGrowth': 0,
+            'roe': 0,
+            'roic': 0,
+            'debtToEquity': 0
         }
         
-        print(f"✅ Successfully prepared response for {ticker}")
-        print(f"   Current Price: ${current_price:.2f}")
-        print(f"   Data Points: {len(hist_200)}")
-        print(f"   Market Cap: ${fundamentals.get('marketCap', 0):,.0f}")
+        response = {
+            'ticker': ticker,
+            'name': safe_get(info, 'shortName', ticker),
+            'sector': safe_get(info, 'sector', 'Unknown'),
+            'industry': safe_get(info, 'industry', 'Unknown'),
+            'currentPrice': current_price,
+            'price52wAgo': price_52w_ago,
+            'price13wAgo': price_13w_ago,
+            'fiftyTwoWeekHigh': safe_float(safe_get(info, 'fiftyTwoWeekHigh')),
+            'fiftyTwoWeekLow': safe_float(safe_get(info, 'fiftyTwoWeekLow')),
+            'avgVolume': safe_int(safe_get(info, 'averageVolume')),
+            'avgVolume10d': safe_int(safe_get(info, 'averageVolume10days')),
+            'priceHistory': price_history,
+            'fundamentals': fundamentals,
+            'dataPoints': len(price_history),
+            'oldestDate': price_history[0]['date'] if price_history else None,
+            'newestDate': price_history[-1]['date'] if price_history else None
+        }
         
         return jsonify(response)
         
     except Exception as e:
-        print(f"❌ Error processing {ticker}: {str(e)}")
-        return jsonify({
-            "error": "Internal server error",
-            "message": str(e),
-            "ticker": ticker
-        }), 500
+        print(f"Error fetching {ticker}: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/fundamentals/<ticker>', methods=['GET'])
+def get_fundamentals(ticker):
+    """
+    Get rich fundamental data for scoring
+    Tries Defeat Beta first, falls back to yfinance
+    """
+    try:
+        ticker = ticker.upper()
+        
+        # Try Defeat Beta first (richer data)
+        fundamentals = None
+        if DEFEATBETA_AVAILABLE:
+            fundamentals = get_fundamentals_defeatbeta(ticker)
+        
+        # Fallback to yfinance
+        if fundamentals is None:
+            fundamentals = get_fundamentals_yfinance(ticker)
+        
+        if fundamentals is None:
+            return jsonify({'error': f'Could not get fundamentals for {ticker}'}), 404
+        
+        # Add ticker to response
+        fundamentals['ticker'] = ticker
+        fundamentals['timestamp'] = datetime.now().isoformat()
+        
+        return jsonify(fundamentals)
+        
+    except Exception as e:
+        print(f"Error fetching fundamentals for {ticker}: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
 
 @app.route('/api/market/spy', methods=['GET'])
 def get_spy_data():
     """
-    Fetch S&P 500 (SPY) data for Relative Strength calculation
-    
-    Returns:
-        JSON with current price, 52-week ago price, and 13-week ago price
+    Get SPY (S&P 500 ETF) data for relative strength calculations
     """
     try:
-        print(f"\n{'='*60}")
-        print(f"📊 Fetching SPY data for RS calculation")
-        print(f"{'='*60}")
+        spy = yf.Ticker('SPY')
+        hist = spy.history(period='2y')
         
-        # Fetch SPY data
-        spy = fetch_stock_data('SPY', period="2y")
+        if hist.empty:
+            return jsonify({'error': 'No SPY data found'}), 404
         
-        if spy is None:
-            return jsonify({
-                "error": "Unable to fetch SPY data",
-                "message": "S&P 500 data temporarily unavailable"
-            }), 503
+        # Get last 260 days
+        hist_data = hist.tail(260)
         
-        # Get price history
-        hist = get_price_history(spy, period="2y")
+        # Current price - ensure Python float
+        current_price = round(float(hist_data.iloc[-1]['Close']), 2)
         
-        if hist is None or len(hist) < 260:
-            return jsonify({
-                "error": "Insufficient SPY data",
-                "message": f"Need at least 260 days, got {len(hist) if hist is not None else 0}"
-            }), 503
+        # 52-week ago price
+        price_52w_ago = None
+        if len(hist_data) >= 252:
+            price_52w_ago = round(float(hist_data.iloc[-252]['Close']), 2)
+        elif len(hist_data) > 200:
+            price_52w_ago = round(float(hist_data.iloc[0]['Close']), 2)
         
-        # Extract prices
-        current_price = float(hist['Close'].iloc[-1])
+        # 13-week ago price
+        price_13w_ago = None
+        if len(hist_data) >= 63:
+            price_13w_ago = round(float(hist_data.iloc[-63]['Close']), 2)
         
-        # 52 weeks ago (approximately 252 trading days)
-        try:
-            price_52w_ago = float(hist['Close'].iloc[-252])
-        except:
-            price_52w_ago = float(hist['Close'].iloc[0])
+        # Prepare price history
+        price_history = []
+        for date, row in hist_data.iterrows():
+            price_history.append({
+                'date': date.strftime('%Y-%m-%d'),
+                'close': round(float(row['Close']), 2),
+                'volume': int(row['Volume'])
+            })
         
-        # 13 weeks ago (approximately 65 trading days)
-        try:
-            price_13w_ago = float(hist['Close'].iloc[-65])
-        except:
-            price_13w_ago = current_price
+        # Calculate 200 SMA for market regime
+        sma_200 = round(float(hist_data['Close'].tail(200).mean()), 2)
         
         response = {
-            "ticker": "SPY",
-            "currentPrice": round(current_price, 2),
-            "price52wAgo": round(price_52w_ago, 2),
-            "price13wAgo": round(price_13w_ago, 2),
-            "dataPoints": len(hist),
-            "lastUpdated": datetime.now().isoformat()
+            'ticker': 'SPY',
+            'currentPrice': current_price,
+            'price52wAgo': price_52w_ago,
+            'price13wAgo': price_13w_ago,
+            'sma200': sma_200,
+            'aboveSma200': bool(current_price > sma_200),  # FIX: Convert to Python bool
+            'priceHistory': price_history,
+            'dataPoints': len(price_history)
         }
-        
-        print(f"✅ SPY data fetched successfully")
-        print(f"   Current: ${current_price:.2f}")
-        print(f"   52w ago: ${price_52w_ago:.2f}")
-        print(f"   13w ago: ${price_13w_ago:.2f}")
         
         return jsonify(response)
         
     except Exception as e:
-        print(f"❌ Error fetching SPY: {str(e)}")
+        print(f"Error fetching SPY: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/market/vix', methods=['GET'])
+def get_vix_data():
+    """
+    Get VIX (Volatility Index) data for risk assessment
+    """
+    try:
+        vix = yf.Ticker('^VIX')
+        hist = vix.history(period='1mo')
+        
+        if hist.empty:
+            return jsonify({'error': 'No VIX data found'}), 404
+        
+        # FIX: Convert numpy float to Python float
+        current_vix = float(hist.iloc[-1]['Close'])
+        current_vix = round(current_vix, 2)
+        
+        # VIX levels interpretation
+        if current_vix < 15:
+            regime = 'low_volatility'
+        elif current_vix < 20:
+            regime = 'normal'
+        elif current_vix < 25:
+            regime = 'elevated'
+        elif current_vix < 30:
+            regime = 'high'
+        else:
+            regime = 'extreme'
+        
         return jsonify({
-            "error": "Internal server error",
-            "message": str(e)
-        }), 500
+            'ticker': 'VIX',
+            'current': current_vix,
+            'regime': regime,
+            # FIX: Convert numpy.bool_ to Python bool
+            'isRisky': bool(current_vix > 30)
+        })
+        
+    except Exception as e:
+        print(f"Error fetching VIX: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
 
-@app.errorhandler(404)
-def not_found(error):
-    """Handle 404 errors"""
-    return jsonify({
-        "error": "Endpoint not found",
-        "message": "The requested endpoint does not exist"
-    }), 404
 
-@app.errorhandler(500)
-def internal_error(error):
-    """Handle 500 errors"""
-    return jsonify({
-        "error": "Internal server error",
-        "message": "An unexpected error occurred"
-    }), 500
+# ============================================
+# MAIN
+# ============================================
 
 if __name__ == '__main__':
-    print("\n" + "="*60)
-    print("🚀 SWING TRADE ANALYZER API v1.0 - Day 1")
-    print("="*60)
-    print("Server: http://localhost:5001")
-    print("\n📡 Available endpoints:")
-    print("  GET  /api/health          - Health check")
-    print("  GET  /api/stock/<ticker>  - Get stock data")
-    print("  GET  /api/market/spy      - Get S&P 500 data")
-    print("\n💡 Current data source: yfinance (Yahoo Finance)")
-    print("📝 Next: Will integrate Defeat Beta API for enhanced data")
-    print("\n⌨️  Press Ctrl+C to stop")
-    print("="*60 + "\n")
+    print("\n" + "="*50)
+    print("🚀 Swing Trade Analyzer Backend v2.1")
+    print("="*50)
+    print(f"Defeat Beta: {'✅ Available' if DEFEATBETA_AVAILABLE else '❌ Not installed'}")
+    print("Starting server on port 5001...")
+    print("="*50 + "\n")
     
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    app.run(debug=True, port=5001)
