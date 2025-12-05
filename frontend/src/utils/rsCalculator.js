@@ -7,6 +7,10 @@
  * Formula: RS = (Stock % Change) / (SPY % Change)
  * - RS > 1.0 = Outperforming the market
  * - RS < 1.0 = Underperforming the market
+ * 
+ * Day 7 FIX: Corrected field names to match api.js
+ * - price52WeeksAgo → price52wAgo
+ * - price13WeeksAgo → price13wAgo
  */
 
 /**
@@ -18,18 +22,38 @@
  */
 export function calculateRelativeStrength(stockData, spyData) {
   try {
-    // Extract prices
-    const stockCurrent = stockData.currentPrice;
-    const stock52wAgo = stockData.price52WeeksAgo;
-    const stock13wAgo = stockData.price13WeeksAgo;
+    // DEBUG: Log incoming data to verify structure
+    console.log('=== RS CALCULATOR DEBUG ===');
+    console.log('stockData received:', {
+      ticker: stockData?.ticker,
+      currentPrice: stockData?.currentPrice,
+      price52wAgo: stockData?.price52wAgo,
+      price13wAgo: stockData?.price13wAgo
+    });
+    console.log('spyData received:', {
+      ticker: spyData?.ticker,
+      currentPrice: spyData?.currentPrice,
+      price52wAgo: spyData?.price52wAgo,
+      price13wAgo: spyData?.price13wAgo
+    });
     
-    const spyCurrent = spyData.currentPrice;
-    const spy52wAgo = spyData.price52WeeksAgo;
-    const spy13wAgo = spyData.price13WeeksAgo;
+    // Extract prices - FIXED: Use correct field names matching api.js
+    const stockCurrent = stockData?.currentPrice;
+    const stock52wAgo = stockData?.price52wAgo;      // FIXED: was price52WeeksAgo
+    const stock13wAgo = stockData?.price13wAgo;      // FIXED: was price13WeeksAgo
+    
+    const spyCurrent = spyData?.currentPrice;
+    const spy52wAgo = spyData?.price52wAgo;          // FIXED: was price52WeeksAgo
+    const spy13wAgo = spyData?.price13wAgo;          // FIXED: was price13WeeksAgo
     
     // Validate we have all required data
     if (!stockCurrent || !stock52wAgo || !spyCurrent || !spy52wAgo) {
-      console.error('Missing price data for RS calculation');
+      console.error('Missing price data for RS calculation:', {
+        stockCurrent,
+        stock52wAgo,
+        spyCurrent,
+        spy52wAgo
+      });
       return {
         rs52Week: null,
         rs13Week: null,
@@ -44,6 +68,12 @@ export function calculateRelativeStrength(stockData, spyData) {
     const stockReturn52w = stockCurrent / stock52wAgo;
     const spyReturn52w = spyCurrent / spy52wAgo;
     const rs52Week = stockReturn52w / spyReturn52w;
+    
+    console.log('RS Calculation:', {
+      stockReturn52w: stockReturn52w.toFixed(3),
+      spyReturn52w: spyReturn52w.toFixed(3),
+      rs52Week: rs52Week.toFixed(3)
+    });
     
     // Calculate 13-week RS (short-term momentum)
     let rs13Week = null;
@@ -79,6 +109,16 @@ export function calculateRelativeStrength(stockData, spyData) {
       stockPctChange13w = ((stockCurrent / stock13wAgo) - 1) * 100;
       spyPctChange13w = ((spyCurrent / spy13wAgo) - 1) * 100;
     }
+    
+    console.log('RS Result:', {
+      rs52Week: rs52Week.toFixed(3),
+      rs13Week: rs13Week?.toFixed(3),
+      rsRating,
+      rsTrend,
+      stockPctChange52w: stockPctChange52w.toFixed(2) + '%',
+      spyPctChange52w: spyPctChange52w.toFixed(2) + '%'
+    });
+    console.log('=== END RS DEBUG ===');
     
     return {
       // Core RS values

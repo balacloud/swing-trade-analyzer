@@ -93,10 +93,15 @@ def calculate_growth_rate(current, previous):
         return None
 
 
+
 def get_fundamentals_defeatbeta(ticker_symbol):
     """
     Get rich fundamental data from Defeat Beta
     Returns ROE, ROIC, ROA, EPS growth, revenue growth, etc.
+    
+    Day 8 FIX: Use .data attribute instead of .to_df()
+    DataFrame structure: Columns = ['Breakdown', '2024-10-31', '2023-10-31', ...]
+    Values are in rows with labels in 'Breakdown' column
     """
     if not DEFEATBETA_AVAILABLE:
         return None
@@ -123,108 +128,139 @@ def get_fundamentals_defeatbeta(ticker_symbol):
         total_equity = None
         total_assets = None
         total_debt = None
+        total_revenue = None
         
         # Try to get annual income statement for growth calculations
         try:
             annual_income = ticker.annual_income_statement()
-            if hasattr(annual_income, 'to_df'):
-                annual_df = annual_income.to_df()
+            
+            # DAY 8 FIX: Use .data instead of .to_df()
+            if hasattr(annual_income, 'data'):
+                annual_df = annual_income.data
                 
-                if annual_df is not None and len(annual_df.columns) >= 2:
-                    cols = list(annual_df.columns)
-                    current_year = cols[0]  # Most recent
-                    prev_year = cols[1]     # Previous year
+                if annual_df is not None and 'Breakdown' in annual_df.columns:
+                    # Get date columns (exclude 'Breakdown')
+                    date_cols = [c for c in annual_df.columns if c != 'Breakdown']
                     
-                    # Calculate EPS Growth (YoY)
-                    for idx in annual_df.index:
-                        idx_str = str(idx)
-                        if 'Diluted EPS' in idx_str or 'Basic EPS' in idx_str:
-                            try:
-                                current_eps = safe_float(annual_df.loc[idx, current_year])
-                                prev_eps = safe_float(annual_df.loc[idx, prev_year])
-                                if current_eps is not None and prev_eps is not None and prev_eps != 0:
-                                    result['epsGrowth'] = round(((current_eps - prev_eps) / abs(prev_eps)) * 100, 2)
-                            except:
-                                pass
-                            break
-                    
-                    # Calculate Revenue Growth
-                    for idx in annual_df.index:
-                        idx_str = str(idx)
-                        if 'Total Revenue' in idx_str or 'Operating Revenue' in idx_str:
-                            try:
-                                current_rev = safe_float(annual_df.loc[idx, current_year])
-                                prev_rev = safe_float(annual_df.loc[idx, prev_year])
-                                if current_rev is not None and prev_rev is not None and prev_rev != 0:
-                                    result['revenueGrowth'] = round(((current_rev - prev_rev) / abs(prev_rev)) * 100, 2)
-                            except:
-                                pass
-                            break
-                    
-                    # Get Net Income for ROE/ROA calculations
-                    for idx in annual_df.index:
-                        idx_str = str(idx)
-                        if 'Net Income' in idx_str and 'Non' not in idx_str:
-                            try:
-                                net_income = safe_float(annual_df.loc[idx, current_year])
-                            except:
-                                pass
-                            break
-                    
-                    # Calculate Profit Margin
-                    for idx in annual_df.index:
-                        if 'Total Revenue' in str(idx):
-                            try:
-                                revenue = safe_float(annual_df.loc[idx, current_year])
-                                if net_income is not None and revenue is not None and revenue != 0:
-                                    result['profitMargin'] = round((net_income / revenue) * 100, 2)
-                            except:
-                                pass
-                            break
+                    if len(date_cols) >= 2:
+                        current_year = date_cols[0]  # Most recent (e.g., '2024-10-31')
+                        prev_year = date_cols[1]     # Previous year (e.g., '2023-10-31')
+                        
+                        # Iterate through rows to find values
+                        for _, row in annual_df.iterrows():
+                            breakdown = str(row.get('Breakdown', ''))
+                            
+                            # Get Diluted EPS for EPS Growth
+                            if breakdown == 'Diluted EPS':
+                                try:
+                                    current_eps = safe_float(row.get(current_year))
+                                    prev_eps = safe_float(row.get(prev_year))
+                                    if current_eps is not None and prev_eps is not None and prev_eps != 0:
+                                        result['epsGrowth'] = round(((current_eps - prev_eps) / abs(prev_eps)) * 100, 2)
+                                except:
+                                    pass
+                            
+                            # Get Total Revenue for Revenue Growth
+                            if breakdown == 'Total Revenue':
+                                try:
+                                    current_rev = safe_float(row.get(current_year))
+                                    prev_rev = safe_float(row.get(prev_year))
+                                    total_revenue = current_rev  # Save for profit margin
+                                    if current_rev is not None and prev_rev is not None and prev_rev != 0:
+                                        result['revenueGrowth'] = round(((current_rev - prev_rev) / abs(prev_rev)) * 100, 2)
+                                except:
+                                    pass
+                            
+                            # Get Net Income Common Stockholders for ROE/ROA
+                            if breakdown == 'Net Income Common Stockholders':
+                                try:
+                                    net_income = safe_float(row.get(current_year))
+                                except:
+                                    pass
+                            
+                            # Get Operating Income for Operating Margin
+                            if breakdown == 'Operating Income':
+                                try:
+                                    operating_income = safe_float(row.get(current_year))
+                                    if operating_income is not None and total_revenue is not None and total_revenue != 0:
+                                        result['operatingMargin'] = round((operating_income / total_revenue) * 100, 2)
+                                except:
+                                    pass
+                        
+                        # Calculate Profit Margin
+                        if net_income is not None and total_revenue is not None and total_revenue != 0:
+                            result['profitMargin'] = round((net_income / total_revenue) * 100, 2)
                             
         except Exception as e:
             print(f"Error getting annual income: {e}")
+            traceback.print_exc()
         
         # Try to get balance sheet for ROE, ROIC, Debt/Equity
         try:
             annual_balance = ticker.annual_balance_sheet()
-            if hasattr(annual_balance, 'to_df'):
-                balance_df = annual_balance.to_df()
+            
+            # DAY 8 FIX: Use .data instead of .to_df()
+            if hasattr(annual_balance, 'data'):
+                balance_df = annual_balance.data
                 
-                if balance_df is not None and len(balance_df.columns) >= 1:
-                    current_col = list(balance_df.columns)[0]
+                if balance_df is not None and 'Breakdown' in balance_df.columns:
+                    # Get date columns (exclude 'Breakdown')
+                    date_cols = [c for c in balance_df.columns if c != 'Breakdown']
                     
-                    for idx in balance_df.index:
-                        idx_str = str(idx)
-                        try:
-                            if 'Stockholder' in idx_str and 'Equity' in idx_str:
-                                total_equity = safe_float(balance_df.loc[idx, current_col])
-                            elif 'Total Assets' in idx_str and total_assets is None:
-                                total_assets = safe_float(balance_df.loc[idx, current_col])
-                            elif 'Total Debt' in idx_str:
-                                total_debt = safe_float(balance_df.loc[idx, current_col])
-                        except:
-                            pass
-                    
-                    # Calculate Debt to Equity
-                    if total_equity and total_equity != 0 and total_debt:
-                        result['debtToEquity'] = round(total_debt / total_equity, 2)
-                    
-                    # Calculate ROE = Net Income / Shareholders Equity
-                    if net_income and total_equity and total_equity != 0:
-                        result['roe'] = round((net_income / total_equity) * 100, 2)
-                    
-                    # Calculate ROA = Net Income / Total Assets
-                    if net_income and total_assets and total_assets != 0:
-                        result['roa'] = round((net_income / total_assets) * 100, 2)
-                    
-                    # Calculate ROIC (simplified) = Net Income / (Equity + Debt)
-                    invested_capital = (total_equity or 0) + (total_debt or 0)
-                    if net_income and invested_capital != 0:
-                        result['roic'] = round((net_income / invested_capital) * 100, 2)
+                    if len(date_cols) >= 1:
+                        current_col = date_cols[0]  # Most recent
+                        
+                        # Iterate through rows to find values
+                        for _, row in balance_df.iterrows():
+                            breakdown = str(row.get('Breakdown', ''))
+                            
+                            # Get Total Assets
+                            if breakdown == 'Total Assets':
+                                try:
+                                    total_assets = safe_float(row.get(current_col))
+                                except:
+                                    pass
+                            
+                            # Get Stockholders' Equity
+                            if breakdown == "Stockholders' Equity":
+                                try:
+                                    total_equity = safe_float(row.get(current_col))
+                                except:
+                                    pass
+                            
+                            # Get Total Debt
+                            if breakdown == 'Total Debt':
+                                try:
+                                    total_debt = safe_float(row.get(current_col))
+                                except:
+                                    pass
+                        
+                        # Calculate Debt to Equity
+                        if total_equity and total_equity != 0 and total_debt:
+                            result['debtToEquity'] = round(total_debt / total_equity, 2)
+                        
+                        # Calculate ROE = Net Income / Shareholders Equity
+                        if net_income and total_equity and total_equity != 0:
+                            result['roe'] = round((net_income / total_equity) * 100, 2)
+                        
+                        # Calculate ROA = Net Income / Total Assets
+                        if net_income and total_assets and total_assets != 0:
+                            result['roa'] = round((net_income / total_assets) * 100, 2)
+                        
+                        # Calculate ROIC (simplified) = Net Income / (Equity + Debt)
+                        invested_capital = (total_equity or 0) + (total_debt or 0)
+                        if net_income and invested_capital != 0:
+                            result['roic'] = round((net_income / invested_capital) * 100, 2)
                         
         except Exception as e:
             print(f"Error getting balance sheet: {e}")
+            traceback.print_exc()
+        
+        # Debug output
+        print(f"📊 Defeat Beta fundamentals for {ticker_symbol}:")
+        print(f"   ROE: {result['roe']}%, ROA: {result['roa']}%, ROIC: {result['roic']}%")
+        print(f"   EPS Growth: {result['epsGrowth']}%, Revenue Growth: {result['revenueGrowth']}%")
+        print(f"   Debt/Equity: {result['debtToEquity']}, Profit Margin: {result['profitMargin']}%")
         
         return result
         

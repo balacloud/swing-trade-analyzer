@@ -16,7 +16,7 @@ function App() {
   const [analysisResult, setAnalysisResult] = useState(null);
 
   // Quick picks for testing
-  const quickPicks = ['AVGO', 'NVDA', 'AAPL', 'META', 'MSFT', 'NFLX', 'PLTR'];
+  const quickPicks = ['AVGO', 'NVDA', 'AAPL', 'META', 'MSFT', 'NFLX', 'PLTR']; 
 
   // Check backend health on mount
   useEffect(() => {
@@ -238,14 +238,18 @@ function App() {
                     </div>
                   </div>
                   <div>
-                    <div className="text-gray-400 text-sm">Stock vs SPY</div>
+                    <div className="text-gray-400 text-sm">Stock vs SPY (52w)</div>
                     <div className="text-sm mt-1">
-                      <span className={analysisResult.rsData.stockReturn >= 0 ? 'text-green-400' : 'text-red-400'}>
-                        {formatPercent(analysisResult.rsData.stockReturn)}
+                      <span className={analysisResult.rsData.stockReturn52w >= 0 ? 'text-green-400' : 'text-red-400'}>
+                        {analysisResult.rsData.stockReturn52w !== null && analysisResult.rsData.stockReturn52w !== undefined 
+                          ? `${analysisResult.rsData.stockReturn52w >= 0 ? '+' : ''}${analysisResult.rsData.stockReturn52w}%` 
+                          : 'N/A'}
                       </span>
                       <span className="text-gray-500"> vs </span>
-                      <span className={analysisResult.rsData.spyReturn >= 0 ? 'text-green-400' : 'text-red-400'}>
-                        {formatPercent(analysisResult.rsData.spyReturn)}
+                      <span className={analysisResult.rsData.spyReturn52w >= 0 ? 'text-green-400' : 'text-red-400'}>
+                        {analysisResult.rsData.spyReturn52w !== null && analysisResult.rsData.spyReturn52w !== undefined 
+                          ? `${analysisResult.rsData.spyReturn52w >= 0 ? '+' : ''}${analysisResult.rsData.spyReturn52w}%` 
+                          : 'N/A'}
                       </span>
                     </div>
                   </div>
