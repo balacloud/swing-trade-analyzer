@@ -1,13 +1,13 @@
 """
-Swing Trade Analyzer Backend - v2.1
-Flask API server with yfinance (prices) + Defeat Beta (fundamentals)
+Swing Trade Analyzer Backend - v2.4
+Flask API server with yfinance (prices) + Defeat Beta (fundamentals) + TradingView Screener (scanning)
 
 Day 6: Fixed numpy type serialization issues
-- VIX endpoint: bool() and float() conversions
-- Fundamentals endpoint: DataFrame value conversions
+Day 8: Fixed Defeat Beta .data attribute usage
+Day 11: Added TradingView screener integration for batch scanning
 """
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import yfinance as yf
 from datetime import datetime, timedelta
@@ -23,6 +23,16 @@ except ImportError:
     DEFEATBETA_AVAILABLE = False
     print("⚠️  Defeat Beta not installed - using yfinance fallback for fundamentals")
     print("   Install with: pip install defeatbeta-api")
+
+# Try to import tradingview-screener - graceful fallback if not installed
+try:
+    from tradingview_screener import Query, col
+    TRADINGVIEW_AVAILABLE = True
+    print("✅ TradingView Screener loaded successfully")
+except ImportError:
+    TRADINGVIEW_AVAILABLE = False
+    print("⚠️  TradingView Screener not installed - batch scanning unavailable")
+    print("   Install with: pip install tradingview-screener")
 
 app = Flask(__name__)
 CORS(app)
@@ -361,8 +371,9 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
-        'version': '2.1',
-        'defeatbeta_available': DEFEATBETA_AVAILABLE
+        'version': '2.4',
+        'defeatbeta_available': DEFEATBETA_AVAILABLE,
+        'tradingview_available': TRADINGVIEW_AVAILABLE
     })
 
 
@@ -593,14 +604,284 @@ def get_vix_data():
 
 
 # ============================================
+# TRADINGVIEW SCREENER ENDPOINTS (Day 11)
+# ============================================
+
+@app.route('/api/scan/tradingview', methods=['GET'])
+def scan_tradingview():
+    """
+    Scan for swing trade candidates using TradingView screener
+    
+    Query Parameters:
+    - strategy: 'reddit' (default), 'minervini', 'momentum', 'value'
+    - limit: max results (default 50, max 100)
+    
+    Reddit Strategy Filters (from r/swingtrading):
+    - Price > $5 (avoid penny stocks)
+    - Market Cap > $300M (liquidity)
+    - Average Volume > 500K (tradeable)
+    - Price > 50 SMA (uptrend)
+    - Price > 200 SMA (long-term uptrend)
+    - Relative Volume > 1.0 (activity)
+    
+    Returns pre-filtered candidates for further analysis
+    """
+    if not TRADINGVIEW_AVAILABLE:
+        return jsonify({
+            'error': 'TradingView Screener not installed',
+            'message': 'Install with: pip install tradingview-screener'
+        }), 503
+    
+    try:
+        # Get query parameters
+        strategy = request.args.get('strategy', 'reddit').lower()
+        limit = min(int(request.args.get('limit', 50)), 100)  # Cap at 100
+        
+        print(f"🔍 TradingView Scan: strategy={strategy}, limit={limit}")
+        
+        # Build query based on strategy
+        if strategy == 'reddit':
+            # Reddit r/swingtrading strategy - REFINED
+            # Focus: Liquid, institutional-quality uptrending stocks
+            query = (
+                Query()
+                .select(
+                    'name', 'close', 'volume', 'market_cap_basic',
+                    'relative_volume_10d_calc', 'price_52_week_high',
+                    'SMA50', 'SMA200', 'EMA20', 'RSI', 'change',
+                    'average_volume_10d_calc', 'sector', 'industry'
+                )
+                .where(
+                    col('close') > 10,                        # Price > $10 (no penny stocks)
+                    col('market_cap_basic') > 2_000_000_000,  # Market cap > $2B (mid-cap+)
+                    col('volume') > 500_000,                  # Volume > 500K
+                    col('average_volume_10d_calc') > 500_000, # Avg volume > 500K (consistent liquidity)
+                    col('close') > col('SMA50'),             # Price > 50 SMA (uptrend)
+                    col('close') > col('SMA200'),            # Price > 200 SMA (long-term)
+                    col('SMA50') > col('SMA200'),            # 50 > 200 (Stage 2 confirmed)
+                    col('relative_volume_10d_calc') > 1.0,   # Relative volume > 1x
+                    col('RSI') > 40,                          # Not oversold
+                    col('RSI') < 75,                          # Not overbought (avoid chasing)
+                    col('exchange').isin(['NASDAQ', 'NYSE', 'AMEX']),  # Major exchanges only
+                    col('is_primary') == True,
+                    col('type') == 'stock',
+                )
+                .order_by('relative_volume_10d_calc', ascending=False)
+                .limit(limit)
+            )
+            
+        elif strategy == 'minervini':
+            # Mark Minervini SEPA-style filters - REFINED
+            # Focus: Stage 2 leaders near 52-week highs, institutional quality
+            query = (
+                Query()
+                .select(
+                    'name', 'close', 'volume', 'market_cap_basic',
+                    'relative_volume_10d_calc', 'price_52_week_high',
+                    'SMA50', 'SMA200', 'EMA20', 'RSI', 'change',
+                    'Perf.1M', 'Perf.3M', 'average_volume_10d_calc',
+                    'sector', 'industry'
+                )
+                .where(
+                    col('close') > 15,                        # Price > $15
+                    col('market_cap_basic') > 5_000_000_000,  # Market cap > $5B (large-cap)
+                    col('volume') > 500_000,
+                    col('average_volume_10d_calc') > 500_000,
+                    col('close') > col('SMA50'),             # Price > 50 SMA
+                    col('SMA50') > col('SMA200'),            # 50 > 200 (Stage 2)
+                    col('close') > col('SMA200'),            # Price > 200 SMA
+                    col('RSI') > 50,                          # RSI > 50 (momentum)
+                    col('RSI') < 75,                          # RSI < 75 (not overbought)
+                    col('exchange').isin(['NASDAQ', 'NYSE']), # Major exchanges only
+                    col('is_primary') == True,
+                    col('type') == 'stock',
+                )
+                .order_by('Perf.1M', ascending=False)  # Best recent performers
+                .limit(limit)
+            )
+            
+        elif strategy == 'momentum':
+            # Pure momentum - REFINED
+            # Focus: Strong but sustainable momentum, not moonshots
+            query = (
+                Query()
+                .select(
+                    'name', 'close', 'volume', 'market_cap_basic',
+                    'relative_volume_10d_calc', 'price_52_week_high',
+                    'SMA50', 'SMA200', 'EMA20', 'RSI', 'change',
+                    'Perf.W', 'Perf.1M', 'Perf.3M',
+                    'average_volume_10d_calc', 'sector', 'industry'
+                )
+                .where(
+                    col('close') > 15,
+                    col('market_cap_basic') > 5_000_000_000,   # $5B+ (institutional)
+                    col('volume') > 500_000,
+                    col('average_volume_10d_calc') > 500_000,
+                    col('close') > col('SMA50'),
+                    col('close') > col('SMA200'),
+                    col('SMA50') > col('SMA200'),              # Stage 2
+                    col('RSI') > 50,
+                    col('RSI') < 70,                           # Tighter RSI cap
+                    col('Perf.1M') > 5,                        # Up at least 5% in month
+                    col('Perf.1M') < 50,                       # But not moonshots (< 50%)
+                    col('exchange').isin(['NASDAQ', 'NYSE']),
+                    col('is_primary') == True,
+                    col('type') == 'stock',
+                )
+                .order_by('Perf.1M', ascending=False)
+                .limit(limit)
+            )
+            
+        elif strategy == 'value':
+            # Value + momentum combo - REFINED
+            # Focus: Quality companies at reasonable valuations, in uptrends
+            query = (
+                Query()
+                .select(
+                    'name', 'close', 'volume', 'market_cap_basic',
+                    'relative_volume_10d_calc', 'price_52_week_high',
+                    'SMA50', 'SMA200', 'EMA20', 'RSI', 'change',
+                    'price_earnings_ttm', 'price_sales_ratio',
+                    'average_volume_10d_calc', 'sector', 'industry'
+                )
+                .where(
+                    col('close') > 15,
+                    col('market_cap_basic') > 10_000_000_000,  # $10B+ (large-cap)
+                    col('volume') > 500_000,
+                    col('average_volume_10d_calc') > 1_000_000, # High liquidity
+                    col('close') > col('SMA50'),
+                    col('close') > col('SMA200'),
+                    col('SMA50') > col('SMA200'),              # Stage 2
+                    col('price_earnings_ttm') > 5,             # P/E > 5 (avoid distressed)
+                    col('price_earnings_ttm') < 25,            # P/E < 25 (reasonable)
+                    col('RSI') > 45,
+                    col('RSI') < 70,
+                    col('exchange').isin(['NASDAQ', 'NYSE']),
+                    col('is_primary') == True,
+                    col('type') == 'stock',
+                )
+                .order_by('market_cap_basic', ascending=False)  # Largest first
+                .limit(limit)
+            )
+            
+        else:
+            return jsonify({
+                'error': f'Unknown strategy: {strategy}',
+                'available': ['reddit', 'minervini', 'momentum', 'value']
+            }), 400
+        
+        # Execute query
+        count, results_df = query.get_scanner_data()
+        
+        print(f"📊 Found {count} total matches, returning {len(results_df)} results")
+        
+        # Convert to list of dicts
+        candidates = []
+        for _, row in results_df.iterrows():
+            candidate = {
+                'ticker': row.get('ticker', '').replace('NASDAQ:', '').replace('NYSE:', '').replace('AMEX:', ''),
+                'name': row.get('name', ''),
+                'price': safe_float(row.get('close')),
+                'volume': safe_int(row.get('volume')),
+                'marketCap': safe_int(row.get('market_cap_basic')),
+                'relativeVolume': safe_float(row.get('relative_volume_10d_calc')),
+                'high52w': safe_float(row.get('price_52_week_high')),
+                'sma50': safe_float(row.get('SMA50')),
+                'sma200': safe_float(row.get('SMA200')),
+                'ema20': safe_float(row.get('EMA20')),
+                'rsi': safe_float(row.get('RSI')),
+                'changePercent': safe_float(row.get('change')),
+                'sector': row.get('sector', ''),
+                'industry': row.get('industry', ''),
+            }
+            
+            # Add performance metrics if available (momentum strategy)
+            if 'Perf.W' in row:
+                candidate['perfWeek'] = safe_float(row.get('Perf.W'))
+            if 'Perf.1M' in row:
+                candidate['perf1Month'] = safe_float(row.get('Perf.1M'))
+            if 'Perf.3M' in row:
+                candidate['perf3Month'] = safe_float(row.get('Perf.3M'))
+            
+            # Add valuation metrics if available (value strategy)
+            if 'price_earnings_ttm' in row:
+                candidate['pe'] = safe_float(row.get('price_earnings_ttm'))
+            if 'price_sales_ratio' in row:
+                candidate['ps'] = safe_float(row.get('price_sales_ratio'))
+            
+            # Calculate % from 52-week high
+            if candidate['price'] and candidate['high52w']:
+                candidate['pctFrom52wHigh'] = round(
+                    ((candidate['price'] - candidate['high52w']) / candidate['high52w']) * 100, 2
+                )
+            
+            candidates.append(candidate)
+        
+        return jsonify({
+            'strategy': strategy,
+            'totalMatches': count,
+            'returned': len(candidates),
+            'limit': limit,
+            'timestamp': datetime.now().isoformat(),
+            'candidates': candidates
+        })
+        
+    except Exception as e:
+        print(f"Error in TradingView scan: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/scan/strategies', methods=['GET'])
+def get_scan_strategies():
+    """
+    List available scanning strategies and their descriptions
+    """
+    strategies = {
+        'reddit': {
+            'name': 'Reddit Swing Trading (Refined)',
+            'description': 'Price>$10, MarketCap>$2B, Stage 2 uptrend (50>200 SMA), RSI 40-75, RelVolume>1x, Major exchanges only',
+            'focus': 'Liquid mid-cap+ stocks in confirmed uptrends with unusual activity',
+            'typical_results': '20-60 candidates'
+        },
+        'minervini': {
+            'name': 'Minervini SEPA Style',
+            'description': 'Price>$15, MarketCap>$5B, Stage 2 (50>200 SMA), RSI 50-75, sorted by 1-month performance',
+            'focus': 'Large-cap momentum leaders in Stage 2 uptrends',
+            'typical_results': '15-40 candidates'
+        },
+        'momentum': {
+            'name': 'Sustainable Momentum',
+            'description': 'MarketCap>$5B, Stage 2 uptrend, RSI 50-70, 1-month gain 5-50% (no moonshots)',
+            'focus': 'Strong but sustainable momentum, avoiding overbought/parabolic moves',
+            'typical_results': '10-30 candidates'
+        },
+        'value': {
+            'name': 'Value + Momentum',
+            'description': 'MarketCap>$10B, Stage 2 uptrend, P/E 5-25, RSI 45-70, high liquidity',
+            'focus': 'Large-cap quality companies at reasonable valuations in uptrends',
+            'typical_results': '20-50 candidates'
+        }
+    }
+    
+    return jsonify({
+        'tradingview_available': TRADINGVIEW_AVAILABLE,
+        'strategies': strategies,
+        'usage': 'GET /api/scan/tradingview?strategy=reddit&limit=50',
+        'notes': 'All strategies filter for NYSE/NASDAQ only (no OTC), require Stage 2 uptrend, and cap RSI to avoid chasing'
+    })
+
+
+# ============================================
 # MAIN
 # ============================================
 
 if __name__ == '__main__':
     print("\n" + "="*50)
-    print("🚀 Swing Trade Analyzer Backend v2.1")
+    print("🚀 Swing Trade Analyzer Backend v2.4")
     print("="*50)
     print(f"Defeat Beta: {'✅ Available' if DEFEATBETA_AVAILABLE else '❌ Not installed'}")
+    print(f"TradingView: {'✅ Available' if TRADINGVIEW_AVAILABLE else '❌ Not installed'}")
     print("Starting server on port 5001...")
     print("="*50 + "\n")
     
