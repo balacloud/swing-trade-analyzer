@@ -3,6 +3,7 @@
  * Connects to Flask backend on port 5001
  * 
  * v2.0: Added fundamentals endpoint for rich fundamental data
+ * v2.1: Added TradingView screener endpoints for batch scanning
  */
 
 const API_BASE_URL = 'http://localhost:5001/api';
@@ -177,6 +178,7 @@ export async function checkBackendHealth() {
       healthy: data.status === 'healthy',
       version: data.version,
       defeatbetaAvailable: data.defeatbeta_available,
+      tradingviewAvailable: data.tradingview_available,
       timestamp: data.timestamp
     };
     
@@ -219,6 +221,72 @@ export async function fetchAnalysisData(ticker) {
     
   } catch (error) {
     console.error('Error fetching analysis data:', error);
+    throw error;
+  }
+}
+
+// ============================================
+// TRADINGVIEW SCREENER ENDPOINTS (Day 11/12)
+// ============================================
+
+/**
+ * Fetch available scanning strategies
+ * Returns list of strategies with descriptions
+ */
+export async function fetchScanStrategies() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/scan/strategies`);
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch scan strategies');
+    }
+    
+    const data = await response.json();
+    
+    return {
+      tradingviewAvailable: data.tradingview_available,
+      strategies: data.strategies,
+      notes: data.notes
+    };
+    
+  } catch (error) {
+    console.error('Error fetching scan strategies:', error);
+    throw error;
+  }
+}
+
+/**
+ * Scan for swing trade candidates using TradingView screener
+ * 
+ * @param {string} strategy - 'reddit', 'minervini', 'momentum', 'value'
+ * @param {number} limit - max results (default 50, max 100)
+ * @returns {object} - { strategy, totalMatches, returned, candidates[] }
+ */
+export async function fetchScanResults(strategy = 'reddit', limit = 50) {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/scan/tradingview?strategy=${strategy}&limit=${limit}`
+    );
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to scan for candidates');
+    }
+    
+    const data = await response.json();
+    
+    return {
+      strategy: data.strategy,
+      totalMatches: data.totalMatches,
+      returned: data.returned,
+      limit: data.limit,
+      timestamp: data.timestamp,
+      candidates: data.candidates || []
+    };
+    
+  } catch (error) {
+    console.error('Error scanning for candidates:', error);
     throw error;
   }
 }

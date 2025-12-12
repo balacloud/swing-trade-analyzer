@@ -1,5 +1,20 @@
-flask==3.0.0
-flask-cors==4.0.0
-pandas==2.1.0
-requests==2.31.0
-python-dateutil==2.8.2tradingview-screener==3.0.0
+# Swing Trade Analyzer - Backend Dependencies
+# Last Updated: Day 12 (December 12, 2025)
+
+# Core Framework
+flask>=2.0.0
+flask-cors>=3.0.0
+
+# Data Sources
+yfinance>=0.2.0
+defeatbeta-api>=0.1.0
+
+# TradingView Screener (Day 11)
+tradingview-screener==3.0.0
+
+# Data Processing
+pandas>=1.5.0
+numpy>=1.21.0
+
+# Utilities
+requests>=2.28.0
