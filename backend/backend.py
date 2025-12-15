@@ -1,10 +1,11 @@
 """
-Swing Trade Analyzer Backend - v2.4
-Flask API server with yfinance (prices) + Defeat Beta (fundamentals) + TradingView Screener (scanning)
+Swing Trade Analyzer Backend - v2.5
+Flask API server with yfinance (prices) + Defeat Beta (fundamentals) + TradingView Screener (scanning) + S&R Engine
 
 Day 6: Fixed numpy type serialization issues
 Day 8: Fixed Defeat Beta .data attribute usage
 Day 11: Added TradingView screener integration for batch scanning
+Day 13: Added Support & Resistance engine endpoint
 """
 
 from flask import Flask, jsonify, request
@@ -12,6 +13,8 @@ from flask_cors import CORS
 import yfinance as yf
 from datetime import datetime, timedelta
 import traceback
+import pandas as pd
+import numpy as np
 
 # Try to import defeatbeta - graceful fallback if not installed
 try:
@@ -33,6 +36,15 @@ except ImportError:
     TRADINGVIEW_AVAILABLE = False
     print("⚠️  TradingView Screener not installed - batch scanning unavailable")
     print("   Install with: pip install tradingview-screener")
+
+# Try to import support_resistance engine - graceful fallback
+try:
+    from support_resistance import compute_sr_levels, SRConfig, SRFailure
+    SR_ENGINE_AVAILABLE = True
+    print("✅ Support & Resistance Engine loaded successfully")
+except ImportError:
+    SR_ENGINE_AVAILABLE = False
+    print("⚠️  S&R Engine not available - place support_resistance.py in backend folder")
 
 app = Flask(__name__)
 CORS(app)
@@ -371,9 +383,10 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
-        'version': '2.4',
+        'version': '2.5',
         'defeatbeta_available': DEFEATBETA_AVAILABLE,
-        'tradingview_available': TRADINGVIEW_AVAILABLE
+        'tradingview_available': TRADINGVIEW_AVAILABLE,
+        'sr_engine_available': SR_ENGINE_AVAILABLE
     })
 
 
@@ -599,6 +612,137 @@ def get_vix_data():
         
     except Exception as e:
         print(f"Error fetching VIX: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+# ============================================
+# SUPPORT & RESISTANCE ENDPOINT (Day 13)
+# ============================================
+
+@app.route('/api/sr/<ticker>', methods=['GET'])
+def get_support_resistance(ticker):
+    """
+    Get Support & Resistance levels for a ticker
+    
+    Uses multi-method approach with failover:
+    1. Pivot-based (primary) - Local highs/lows
+    2. KMeans clustering (secondary) - Price bands
+    3. Volume Profile (tertiary) - High-volume zones
+    
+    Returns:
+    - support: List of support levels (below current price)
+    - resistance: List of resistance levels (above current price)
+    - method: Which method was used (pivot/kmeans/volume_profile)
+    - currentPrice: Current stock price
+    - suggestedEntry: Nearest support level (potential entry)
+    - suggestedStop: Below nearest support (stop loss)
+    - suggestedTarget: Nearest resistance (profit target)
+    """
+    if not SR_ENGINE_AVAILABLE:
+        return jsonify({
+            'error': 'S&R Engine not available',
+            'message': 'Place support_resistance.py in backend folder and install scikit-learn'
+        }), 503
+    
+    try:
+        ticker = ticker.upper()
+        print(f"🎯 Computing S&R levels for {ticker}...")
+        
+        # Fetch price data from yfinance
+        stock = yf.Ticker(ticker)
+        hist = stock.history(period='2y')
+        
+        if hist.empty:
+            return jsonify({'error': f'No data found for {ticker}'}), 404
+        
+        # Get last 260 days (enough for S&R calculation)
+        hist_data = hist.tail(260)
+        
+        if len(hist_data) < 150:
+            return jsonify({
+                'error': f'Insufficient data for {ticker}',
+                'message': f'Need at least 150 bars, got {len(hist_data)}'
+            }), 400
+        
+        # Prepare DataFrame for S&R engine (lowercase columns required)
+        df = pd.DataFrame({
+            'open': hist_data['Open'].values,
+            'high': hist_data['High'].values,
+            'low': hist_data['Low'].values,
+            'close': hist_data['Close'].values,
+            'volume': hist_data['Volume'].values
+        })
+        
+        # Compute S&R levels
+        sr_levels = compute_sr_levels(df)
+        
+        # Get current price
+        current_price = float(df['close'].iloc[-1])
+        
+        # Calculate suggested trade levels
+        suggested_entry = None
+        suggested_stop = None
+        suggested_target = None
+        
+        # Entry: Nearest support below current price
+        if sr_levels.support:
+            supports_below = [s for s in sr_levels.support if s < current_price]
+            if supports_below:
+                suggested_entry = round(max(supports_below), 2)  # Nearest support
+                # Stop: 2-3% below entry or next lower support
+                suggested_stop = round(suggested_entry * 0.97, 2)  # 3% below entry
+        
+        # Target: Nearest resistance above current price
+        if sr_levels.resistance:
+            resistances_above = [r for r in sr_levels.resistance if r > current_price]
+            if resistances_above:
+                suggested_target = round(min(resistances_above), 2)  # Nearest resistance
+        
+        # Calculate risk/reward if we have all levels
+        risk_reward = None
+        if suggested_entry and suggested_stop and suggested_target:
+            risk = suggested_entry - suggested_stop
+            reward = suggested_target - suggested_entry
+            if risk > 0:
+                risk_reward = round(reward / risk, 2)
+        
+        # Round all levels to 2 decimal places
+        support_levels = [round(s, 2) for s in sr_levels.support]
+        resistance_levels = [round(r, 2) for r in sr_levels.resistance]
+        
+        response = {
+            'ticker': ticker,
+            'currentPrice': round(current_price, 2),
+            'method': sr_levels.method,
+            'support': support_levels,
+            'resistance': resistance_levels,
+            'suggestedEntry': suggested_entry,
+            'suggestedStop': suggested_stop,
+            'suggestedTarget': suggested_target,
+            'riskReward': risk_reward,
+            'dataPoints': len(df),
+            'timestamp': datetime.now().isoformat(),
+            'meta': {
+                'methodUsed': sr_levels.method,
+                'supportCount': len(support_levels),
+                'resistanceCount': len(resistance_levels)
+            }
+        }
+        
+        print(f"✅ S&R for {ticker}: {sr_levels.method} method")
+        print(f"   Support: {support_levels}")
+        print(f"   Resistance: {resistance_levels}")
+        print(f"   Entry: {suggested_entry}, Stop: {suggested_stop}, Target: {suggested_target}")
+        
+        return jsonify(response)
+        
+    except SRFailure as e:
+        print(f"S&R calculation failed for {ticker}: {e}")
+        return jsonify({'error': str(e)}), 400
+        
+    except Exception as e:
+        print(f"Error computing S&R for {ticker}: {e}")
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
@@ -866,6 +1010,7 @@ def get_scan_strategies():
     
     return jsonify({
         'tradingview_available': TRADINGVIEW_AVAILABLE,
+        'sr_engine_available': SR_ENGINE_AVAILABLE,
         'strategies': strategies,
         'usage': 'GET /api/scan/tradingview?strategy=reddit&limit=50',
         'notes': 'All strategies filter for NYSE/NASDAQ only (no OTC), require Stage 2 uptrend, and cap RSI to avoid chasing'
@@ -878,10 +1023,11 @@ def get_scan_strategies():
 
 if __name__ == '__main__':
     print("\n" + "="*50)
-    print("🚀 Swing Trade Analyzer Backend v2.4")
+    print("🚀 Swing Trade Analyzer Backend v2.5")
     print("="*50)
     print(f"Defeat Beta: {'✅ Available' if DEFEATBETA_AVAILABLE else '❌ Not installed'}")
     print(f"TradingView: {'✅ Available' if TRADINGVIEW_AVAILABLE else '❌ Not installed'}")
+    print(f"S&R Engine:  {'✅ Available' if SR_ENGINE_AVAILABLE else '❌ Not installed'}")
     print("Starting server on port 5001...")
     print("="*50 + "\n")
     
