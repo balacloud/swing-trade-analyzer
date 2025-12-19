@@ -2,10 +2,11 @@
  * Swing Trade Analyzer - Main App Component
  * v2.0: Integrated with Defeat Beta for rich fundamentals
  * v2.1: Added TradingView screener scan tab (Day 12)
+ * v2.2: Added Support & Resistance Trade Setup display (Day 14)
  */
 
 import React, { useState, useEffect } from 'react';
-import { fetchAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults } from './services/api';
+import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults } from './services/api';
 import { calculateScore } from './utils/scoringEngine';
 import { calculateRelativeStrength } from './utils/rsCalculator';
 
@@ -19,6 +20,7 @@ function App() {
   const [error, setError] = useState(null);
   const [backendStatus, setBackendStatus] = useState({ healthy: false });
   const [analysisResult, setAnalysisResult] = useState(null);
+  const [srData, setSrData] = useState(null);  // S&R data state
 
   // Scan state
   const [scanLoading, setScanLoading] = useState(false);
@@ -49,11 +51,12 @@ function App() {
     setLoading(true);
     setError(null);
     setAnalysisResult(null);
+    setSrData(null);  // Reset S&R data
     setActiveTab('analyze'); // Switch to analyze tab
 
     try {
-      // Fetch all data (stock, fundamentals, SPY, VIX)
-      const data = await fetchAnalysisData(targetTicker);
+      // Fetch all data including S&R
+      const data = await fetchFullAnalysisData(targetTicker);
       
       // Calculate score using enriched data
       const result = calculateScore(data.stock, data.spy, data.vix);
@@ -63,6 +66,7 @@ function App() {
       result.rsData = rsData;
       
       setAnalysisResult(result);
+      setSrData(data.sr);  // Store S&R data
       setTicker(targetTicker);
       
     } catch (err) {
@@ -151,6 +155,7 @@ function App() {
               Backend {backendStatus.healthy ? 'Connected' : 'Disconnected'}
               {backendStatus.defeatbetaAvailable && ' • Defeat Beta ✓'}
               {backendStatus.tradingviewAvailable && ' • TradingView ✓'}
+              {backendStatus.srEngineAvailable && ' • S&R ✓'}
             </span>
           </div>
         </div>
@@ -237,6 +242,102 @@ function App() {
                   <div className="text-xl mt-2">{analysisResult.ticker} - {analysisResult.name}</div>
                   <div className="mt-2 opacity-90">{analysisResult.verdict?.reason}</div>
                 </div>
+
+                {/* S&R Trade Setup - NEW in v2.2 */}
+                {srData && (
+                  <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-lg p-6 border border-blue-500/30">
+                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                      🎯 Trade Setup
+                      <span className="text-sm font-normal text-gray-400">
+                        (Method: {srData.method})
+                        {srData.meta?.resistanceProjected && (
+                          <span className="text-yellow-400 ml-2">⚠️ Projected R</span>
+                        )}
+                      </span>
+                    </h2>
+                    
+                    {/* Entry / Stop / Target */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                      <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                        <div className="text-gray-400 text-sm">Current Price</div>
+                        <div className="text-2xl font-bold text-white">
+                          {formatCurrency(srData.currentPrice)}
+                        </div>
+                      </div>
+                      <div className="bg-green-900/30 rounded-lg p-4 text-center border border-green-500/30">
+                        <div className="text-green-400 text-sm">📥 Entry</div>
+                        <div className="text-2xl font-bold text-green-400">
+                          {srData.suggestedEntry ? formatCurrency(srData.suggestedEntry) : 'N/A'}
+                        </div>
+                      </div>
+                      <div className="bg-red-900/30 rounded-lg p-4 text-center border border-red-500/30">
+                        <div className="text-red-400 text-sm">🛑 Stop Loss</div>
+                        <div className="text-2xl font-bold text-red-400">
+                          {srData.suggestedStop ? formatCurrency(srData.suggestedStop) : 'N/A'}
+                        </div>
+                      </div>
+                      <div className="bg-blue-900/30 rounded-lg p-4 text-center border border-blue-500/30">
+                        <div className="text-blue-400 text-sm">🎯 Target</div>
+                        <div className="text-2xl font-bold text-blue-400">
+                          {srData.suggestedTarget ? formatCurrency(srData.suggestedTarget) : 'N/A'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Risk/Reward */}
+                    {srData.riskReward && (
+                      <div className="flex justify-center mb-4">
+                        <div className={`px-6 py-2 rounded-full font-bold ${
+                          srData.riskReward >= 3 ? 'bg-green-600' :
+                          srData.riskReward >= 2 ? 'bg-green-500' :
+                          srData.riskReward >= 1.5 ? 'bg-yellow-500' : 'bg-red-500'
+                        }`}>
+                          Risk/Reward: {srData.riskReward}:1
+                          {srData.riskReward >= 3 && ' 🌟 Excellent'}
+                          {srData.riskReward >= 2 && srData.riskReward < 3 && ' ✓ Good'}
+                          {srData.riskReward < 1.5 && ' ⚠️ Poor'}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Support & Resistance Levels */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-sm text-gray-400 mb-2">Support Levels</div>
+                        <div className="flex flex-wrap gap-2">
+                          {srData.support?.length > 0 ? (
+                            srData.support.map((level, i) => (
+                              <span key={i} className="bg-green-900/40 text-green-400 px-3 py-1 rounded text-sm">
+                                {formatCurrency(level)}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-gray-500">None found</span>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-400 mb-2">
+                          Resistance Levels
+                          {srData.meta?.resistanceProjected && (
+                            <span className="text-yellow-400 ml-1">(ATR projected)</span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {srData.resistance?.length > 0 ? (
+                            srData.resistance.map((level, i) => (
+                              <span key={i} className="bg-red-900/40 text-red-400 px-3 py-1 rounded text-sm">
+                                {formatCurrency(level)}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-gray-500">None found</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Score Overview */}
                 <div className="bg-gray-800 rounded-lg p-6">
@@ -585,7 +686,7 @@ function App() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>Day 12 - TradingView Screener Integration | 75-Point Scoring System</p>
+          <p>Day 14 - S&R Engine Integration | 75-Point Scoring System</p>
           <p className="mt-1">Based on Mark Minervini SEPA + William O'Neil CAN SLIM</p>
         </div>
       </div>

@@ -164,6 +164,7 @@ export async function fetchVIXData() {
 /**
  * Check backend health
  */
+
 export async function checkBackendHealth() {
   try {
     const response = await fetch(`${API_BASE_URL}/health`);
@@ -179,6 +180,7 @@ export async function checkBackendHealth() {
       version: data.version,
       defeatbetaAvailable: data.defeatbeta_available,
       tradingviewAvailable: data.tradingview_available,
+      srEngineAvailable: data.sr_engine_available,  // <-- ADD THIS LINE
       timestamp: data.timestamp
     };
     
@@ -287,6 +289,93 @@ export async function fetchScanResults(strategy = 'reddit', limit = 50) {
     
   } catch (error) {
     console.error('Error scanning for candidates:', error);
+    throw error;
+  }
+}
+
+// ============================================ 
+// SUPPORT & RESISTANCE ENDPOINT (Day 14)
+// Add this section to the END of api.js
+// ============================================
+
+/**
+ * Fetch Support & Resistance levels for a ticker
+ * 
+ * Returns:
+ * - support: Array of support price levels
+ * - resistance: Array of resistance price levels  
+ * - method: 'pivot', 'kmeans', or 'volume_profile'
+ * - suggestedEntry: Nearest support (entry point)
+ * - suggestedStop: Stop loss level (3% below entry)
+ * - suggestedTarget: Nearest resistance (profit target)
+ * - riskReward: Risk/Reward ratio
+ * - meta: Additional info (ATR, projection flags)
+ */
+export async function fetchSupportResistance(ticker) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/sr/${ticker.toUpperCase()}`);
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || `Failed to fetch S&R for ${ticker}`);
+    }
+    
+    const data = await response.json();
+    
+    return {
+      ticker: data.ticker,
+      currentPrice: data.currentPrice,
+      method: data.method,
+      support: data.support || [],
+      resistance: data.resistance || [],
+      suggestedEntry: data.suggestedEntry,
+      suggestedStop: data.suggestedStop,
+      suggestedTarget: data.suggestedTarget,
+      riskReward: data.riskReward,
+      dataPoints: data.dataPoints,
+      timestamp: data.timestamp,
+      meta: data.meta || {}
+    };
+    
+  } catch (error) {
+    console.error('Error fetching S&R:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetch analysis data WITH Support & Resistance
+ * Enhanced version that includes S&R levels in parallel
+ */
+export async function fetchFullAnalysisData(ticker) {
+  try {
+    const [stockData, fundamentals, spyData, vixData, srData] = await Promise.all([
+      fetchStockData(ticker),
+      fetchFundamentals(ticker),
+      fetchSPYData(),
+      fetchVIXData(),
+      fetchSupportResistance(ticker)
+    ]);
+    
+    if (fundamentals) {
+      stockData.fundamentals = {
+        ...stockData.fundamentals,
+        ...fundamentals,
+        enriched: true,
+        enrichedSource: fundamentals.source
+      };
+    }
+    
+    return {
+      stock: stockData,
+      spy: spyData,
+      vix: vixData,
+      fundamentals: fundamentals,
+      sr: srData
+    };
+    
+  } catch (error) {
+    console.error('Error fetching full analysis data:', error);
     throw error;
   }
 }

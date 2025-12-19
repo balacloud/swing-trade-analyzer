@@ -8,6 +8,7 @@ Methods:
 3. Volume Profile (Tertiary) - High-volume zones as magnets
 
 Day 13: Integrated into Swing Trade Analyzer backend
+Day 14: Fixed ATH edge case - project resistance when price > all historical levels
 """
 
 from __future__ import annotations
@@ -40,6 +41,8 @@ class SRConfig:
     volatility_window: int = 3
     volatility_threshold: float = 0.08  # 8% avg move over window
     volume_bins: int = 40
+    atr_period: int = 14  # ATR period for projection
+    atr_multipliers: Tuple[float, ...] = (1.0, 1.5, 2.0)  # Multipliers for projected levels
 
 
 @dataclass
@@ -68,6 +71,96 @@ def _check_data_integrity(df: pd.DataFrame, cfg: SRConfig) -> None:
         logger.warning("Found %d null OHLC values; forward-filling.", nulls)
         # FIX: Use ffill() instead of deprecated fillna(method="ffill")
         df[["open", "high", "low", "close"]] = df[["open", "high", "low", "close"]].ffill()
+
+
+def _calculate_atr(df: pd.DataFrame, period: int = 14) -> float:
+    """
+    Calculate Average True Range (ATR) for volatility-based projections.
+    
+    ATR = Average of True Range over N periods
+    True Range = max(high - low, abs(high - prev_close), abs(low - prev_close))
+    """
+    try:
+        high = df["high"].values
+        low = df["low"].values
+        close = df["close"].values
+        
+        # Calculate True Range
+        tr1 = high - low
+        tr2 = np.abs(high[1:] - close[:-1])
+        tr3 = np.abs(low[1:] - close[:-1])
+        
+        # True Range is max of the three
+        tr = np.zeros(len(df))
+        tr[0] = high[0] - low[0]  # First bar: just high - low
+        tr[1:] = np.maximum(np.maximum(tr1[1:], tr2), tr3)
+        
+        # ATR is the rolling average of True Range
+        atr = np.mean(tr[-period:])
+        
+        return float(atr)
+    except Exception as exc:
+        logger.warning("ATR calculation failed: %s", exc)
+        # Fallback: use 2% of current price
+        return float(df["close"].iloc[-1] * 0.02)
+
+
+def _project_resistance_levels(
+    current_price: float, 
+    atr: float, 
+    multipliers: Tuple[float, ...] = (1.0, 1.5, 2.0)
+) -> List[float]:
+    """
+    Project resistance levels above current price using ATR.
+    
+    Used when stock is at/near ATH and no historical resistance exists.
+    
+    Parameters
+    ----------
+    current_price : float
+        Current stock price
+    atr : float
+        Average True Range
+    multipliers : tuple
+        ATR multipliers for projection (default: 1x, 1.5x, 2x)
+    
+    Returns
+    -------
+    List[float]
+        Projected resistance levels
+    """
+    projected = [round(current_price + (m * atr), 2) for m in multipliers]
+    return projected
+
+
+def _project_support_levels(
+    current_price: float, 
+    atr: float, 
+    multipliers: Tuple[float, ...] = (1.0, 1.5, 2.0)
+) -> List[float]:
+    """
+    Project support levels below current price using ATR.
+    
+    Used when stock is at/near 52-week low and no historical support exists.
+    
+    Parameters
+    ----------
+    current_price : float
+        Current stock price
+    atr : float
+        Average True Range
+    multipliers : tuple
+        ATR multipliers for projection (default: 1x, 1.5x, 2x)
+    
+    Returns
+    -------
+    List[float]
+        Projected support levels
+    """
+    projected = [round(current_price - (m * atr), 2) for m in multipliers]
+    # Filter out negative values
+    projected = [p for p in projected if p > 0]
+    return sorted(projected)
 
 
 def _is_high_volatility(df: pd.DataFrame, cfg: SRConfig) -> bool:
@@ -150,7 +243,24 @@ def _kmeans_sr(df: pd.DataFrame, cfg: SRConfig) -> Optional[Tuple[List[float], L
         # split into support/resistance around last close
         last = float(df["close"].iloc[-1])
         support = [c for c in centers if c <= last]
-        resistance = [c for c in centers if c >= last]
+        resistance = [c for c in centers if c > last]  # Changed >= to > to avoid duplicates
+
+        # Handle empty resistance or support (ATH/ATL edge case)
+        atr = _calculate_atr(df, cfg.atr_period)
+        resistance_projected = False
+        support_projected = False
+        
+        if not resistance:
+            # Stock at ATH - project resistance above current price
+            logger.info("No historical resistance found (ATH edge case). Projecting levels using ATR.")
+            resistance = _project_resistance_levels(last, atr, cfg.atr_multipliers)
+            resistance_projected = True
+        
+        if not support:
+            # Stock at ATL - project support below current price
+            logger.info("No historical support found (ATL edge case). Projecting levels using ATR.")
+            support = _project_support_levels(last, atr, cfg.atr_multipliers)
+            support_projected = True
 
         if not support and not resistance:
             return None
@@ -159,6 +269,9 @@ def _kmeans_sr(df: pd.DataFrame, cfg: SRConfig) -> Optional[Tuple[List[float], L
             "cluster_centers": centers,
             "type": "kmeans",
             "inertia": float(km.inertia_),
+            "atr": round(atr, 2),
+            "resistance_projected": resistance_projected,
+            "support_projected": support_projected,
         }
         return support, resistance, meta
 
@@ -185,20 +298,48 @@ def _volume_profile_sr(df: pd.DataFrame, cfg: SRConfig) -> Tuple[List[float], Li
 
         last = float(df["close"].iloc[-1])
         support = [c for c in centers if c <= last]
-        resistance = [c for c in centers if c >= last]
+        resistance = [c for c in centers if c > last]  # Changed >= to > to avoid duplicates
+
+        # Handle empty resistance or support (ATH/ATL edge case)
+        atr = _calculate_atr(df, cfg.atr_period)
+        resistance_projected = False
+        support_projected = False
+        
+        if not resistance:
+            # Stock at ATH - project resistance above current price
+            logger.info("Volume profile: No resistance found (ATH). Projecting using ATR.")
+            resistance = _project_resistance_levels(last, atr, cfg.atr_multipliers)
+            resistance_projected = True
+        
+        if not support:
+            # Stock at ATL - project support below current price  
+            logger.info("Volume profile: No support found (ATL). Projecting using ATR.")
+            support = _project_support_levels(last, atr, cfg.atr_multipliers)
+            support_projected = True
 
         meta = {
             "volume_histogram": hist.tolist(),
             "edges": edges.tolist(),
             "type": "volume_profile",
+            "atr": round(atr, 2),
+            "resistance_projected": resistance_projected,
+            "support_projected": support_projected,
         }
         return support, resistance, meta
 
     except Exception as exc:
         logger.exception("Volume profile S/R computation failed: %s", exc)
-        # ultimate fallback: last close as "magnet" level
+        # ultimate fallback: project levels using ATR
         last = float(df["close"].iloc[-1])
-        return [last], [last], {"type": "volume_profile_fallback"}
+        atr = _calculate_atr(df, cfg.atr_period)
+        support = _project_support_levels(last, atr, cfg.atr_multipliers)
+        resistance = _project_resistance_levels(last, atr, cfg.atr_multipliers)
+        return support, resistance, {
+            "type": "volume_profile_fallback",
+            "atr": round(atr, 2),
+            "resistance_projected": True,
+            "support_projected": True,
+        }
 
 
 def compute_sr_levels(df: pd.DataFrame, cfg: Optional[SRConfig] = None) -> SRLevels:
@@ -209,6 +350,11 @@ def compute_sr_levels(df: pd.DataFrame, cfg: Optional[SRConfig] = None) -> SRLev
     1. Pivot-based
     2. KMeans clustering
     3. Volume profile (always returns something)
+    
+    Day 14 Enhancement:
+    - When stock is at ATH and no historical resistance exists,
+      projects resistance levels using ATR (1x, 1.5x, 2x ATR above current)
+    - Same logic for support when stock is at ATL
 
     Parameters
     ----------
@@ -240,10 +386,35 @@ def compute_sr_levels(df: pd.DataFrame, cfg: Optional[SRConfig] = None) -> SRLev
         pivot_result = _pivot_sr(df, cfg)
         if pivot_result is not None:
             highs, lows, meta = pivot_result
+            
+            # Split into support/resistance around current price
+            last = float(df["close"].iloc[-1])
+            support = [l for l in lows if l <= last]
+            resistance = [h for h in highs if h > last]
+            
+            # Handle ATH/ATL edge cases for pivot method too
+            atr = _calculate_atr(df, cfg.atr_period)
+            
+            if not resistance:
+                logger.info("Pivot: No resistance found (ATH). Projecting using ATR.")
+                resistance = _project_resistance_levels(last, atr, cfg.atr_multipliers)
+                meta["resistance_projected"] = True
+                meta["atr"] = round(atr, 2)
+            else:
+                meta["resistance_projected"] = False
+                
+            if not support:
+                logger.info("Pivot: No support found (ATL). Projecting using ATR.")
+                support = _project_support_levels(last, atr, cfg.atr_multipliers)
+                meta["support_projected"] = True
+                meta["atr"] = round(atr, 2)
+            else:
+                meta["support_projected"] = False
+            
             return SRLevels(
                 method="pivot",
-                support=lows,
-                resistance=highs,
+                support=support,
+                resistance=resistance,
                 meta=meta,
             )
 
@@ -298,6 +469,7 @@ def example_usage():
     print("Method:", levels.method)
     print("Support:", levels.support)
     print("Resistance:", levels.resistance)
+    print("Meta:", levels.meta)
 
 
 if __name__ == "__main__":

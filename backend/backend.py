@@ -8,6 +8,7 @@ Day 11: Added TradingView screener integration for batch scanning
 Day 13: Added Support & Resistance engine endpoint
 """
 
+import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import yfinance as yf
@@ -15,6 +16,17 @@ from datetime import datetime, timedelta
 import traceback
 import pandas as pd
 import numpy as np
+import sys
+
+sys.path.insert(0, os.path.dirname(__file__))
+
+try:
+    from validation import ValidationEngine, ForwardTestTracker, SignalType
+    VALIDATION_AVAILABLE = True
+    print("✅ Validation Engine loaded successfully")
+except ImportError as e:
+    VALIDATION_AVAILABLE = False
+    print(f"⚠️ Validation Engine not available: {e}")
 
 # Try to import defeatbeta - graceful fallback if not installed
 try:
@@ -383,10 +395,11 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
-        'version': '2.5',
+        'version': '2.6',
         'defeatbeta_available': DEFEATBETA_AVAILABLE,
         'tradingview_available': TRADINGVIEW_AVAILABLE,
-        'sr_engine_available': SR_ENGINE_AVAILABLE
+        'sr_engine_available': SR_ENGINE_AVAILABLE,
+        'validation_available': VALIDATION_AVAILABLE
     })
 
 
@@ -618,6 +631,7 @@ def get_vix_data():
 
 # ============================================
 # SUPPORT & RESISTANCE ENDPOINT (Day 13)
+# Day 15 Fix: Added proximity filter for actionable levels
 # ============================================
 
 @app.route('/api/sr/<ticker>', methods=['GET'])
@@ -630,14 +644,19 @@ def get_support_resistance(ticker):
     2. KMeans clustering (secondary) - Price bands
     3. Volume Profile (tertiary) - High-volume zones
     
+    Day 15 Enhancement: Proximity filter ensures only actionable levels
+    are used for trade setup (within 20% for support, 30% for resistance)
+    
     Returns:
-    - support: List of support levels (below current price)
-    - resistance: List of resistance levels (above current price)
+    - support: List of ACTIONABLE support levels (within range)
+    - resistance: List of ACTIONABLE resistance levels (within range)
+    - allSupport: All historical support levels (for reference)
+    - allResistance: All historical resistance levels (for reference)
     - method: Which method was used (pivot/kmeans/volume_profile)
     - currentPrice: Current stock price
-    - suggestedEntry: Nearest support level (potential entry)
+    - suggestedEntry: Nearest actionable support (potential entry)
     - suggestedStop: Below nearest support (stop loss)
-    - suggestedTarget: Nearest resistance (profit target)
+    - suggestedTarget: Nearest actionable resistance (profit target)
     """
     if not SR_ENGINE_AVAILABLE:
         return jsonify({
@@ -680,24 +699,40 @@ def get_support_resistance(ticker):
         # Get current price
         current_price = float(df['close'].iloc[-1])
         
-        # Calculate suggested trade levels
+        # ============================================
+        # PROXIMITY FILTER (Day 15 Fix)
+        # Filter S&R levels to actionable range for swing trading
+        # Support: within 20% below current price
+        # Resistance: within 30% above current price
+        # This fixes the bug where ancient support levels (e.g., $85 on $256 stock)
+        # were being suggested as entry points
+        # ============================================
+        SUPPORT_PROXIMITY_PCT = 0.20    # 20% below current price max
+        RESISTANCE_PROXIMITY_PCT = 0.30  # 30% above current price max
+        
+        support_floor = current_price * (1 - SUPPORT_PROXIMITY_PCT)
+        resistance_ceiling = current_price * (1 + RESISTANCE_PROXIMITY_PCT)
+        
+        # Filter support levels to actionable range
+        actionable_support = [s for s in sr_levels.support if s >= support_floor and s < current_price]
+        
+        # Filter resistance levels to actionable range  
+        actionable_resistance = [r for r in sr_levels.resistance if r > current_price and r <= resistance_ceiling]
+        
+        # Calculate suggested trade levels using ACTIONABLE levels only
         suggested_entry = None
         suggested_stop = None
         suggested_target = None
         
-        # Entry: Nearest support below current price
-        if sr_levels.support:
-            supports_below = [s for s in sr_levels.support if s < current_price]
-            if supports_below:
-                suggested_entry = round(max(supports_below), 2)  # Nearest support
-                # Stop: 2-3% below entry or next lower support
-                suggested_stop = round(suggested_entry * 0.97, 2)  # 3% below entry
+        # Entry: Nearest ACTIONABLE support below current price
+        if actionable_support:
+            suggested_entry = round(max(actionable_support), 2)  # Nearest support
+            # Stop: 3% below entry
+            suggested_stop = round(suggested_entry * 0.97, 2)
         
-        # Target: Nearest resistance above current price
-        if sr_levels.resistance:
-            resistances_above = [r for r in sr_levels.resistance if r > current_price]
-            if resistances_above:
-                suggested_target = round(min(resistances_above), 2)  # Nearest resistance
+        # Target: Nearest ACTIONABLE resistance above current price
+        if actionable_resistance:
+            suggested_target = round(min(actionable_resistance), 2)  # Nearest resistance
         
         # Calculate risk/reward if we have all levels
         risk_reward = None
@@ -708,15 +743,20 @@ def get_support_resistance(ticker):
                 risk_reward = round(reward / risk, 2)
         
         # Round all levels to 2 decimal places
-        support_levels = [round(s, 2) for s in sr_levels.support]
-        resistance_levels = [round(r, 2) for r in sr_levels.resistance]
+        # Return ALL levels for display, but mark which are actionable
+        all_support_levels = [round(s, 2) for s in sr_levels.support]
+        all_resistance_levels = [round(r, 2) for r in sr_levels.resistance]
+        actionable_support_levels = [round(s, 2) for s in actionable_support]
+        actionable_resistance_levels = [round(r, 2) for r in actionable_resistance]
         
         response = {
             'ticker': ticker,
             'currentPrice': round(current_price, 2),
             'method': sr_levels.method,
-            'support': support_levels,
-            'resistance': resistance_levels,
+            'support': actionable_support_levels,        # Only actionable levels
+            'resistance': actionable_resistance_levels,  # Only actionable levels
+            'allSupport': all_support_levels,            # All historical levels (for reference)
+            'allResistance': all_resistance_levels,      # All historical levels (for reference)
             'suggestedEntry': suggested_entry,
             'suggestedStop': suggested_stop,
             'suggestedTarget': suggested_target,
@@ -725,15 +765,32 @@ def get_support_resistance(ticker):
             'timestamp': datetime.now().isoformat(),
             'meta': {
                 'methodUsed': sr_levels.method,
-                'supportCount': len(support_levels),
-                'resistanceCount': len(resistance_levels)
+                'supportCount': len(actionable_support_levels),
+                'resistanceCount': len(actionable_resistance_levels),
+                'allSupportCount': len(all_support_levels),
+                'allResistanceCount': len(all_resistance_levels),
+                'atr': sr_levels.meta.get('atr'),
+                'resistanceProjected': sr_levels.meta.get('resistance_projected', False),
+                'supportProjected': sr_levels.meta.get('support_projected', False),
+                'proximityFilter': {
+                    'supportFloor': round(support_floor, 2),
+                    'resistanceCeiling': round(resistance_ceiling, 2),
+                    'supportPct': SUPPORT_PROXIMITY_PCT,
+                    'resistancePct': RESISTANCE_PROXIMITY_PCT
+                }
             }
         }
         
         print(f"✅ S&R for {ticker}: {sr_levels.method} method")
-        print(f"   Support: {support_levels}")
-        print(f"   Resistance: {resistance_levels}")
+        print(f"   All Support: {all_support_levels} | Actionable: {actionable_support_levels}")
+        print(f"   All Resistance: {all_resistance_levels} | Actionable: {actionable_resistance_levels}")
         print(f"   Entry: {suggested_entry}, Stop: {suggested_stop}, Target: {suggested_target}")
+        if not actionable_support_levels:
+            print(f"   ⚠️ No actionable support within {SUPPORT_PROXIMITY_PCT*100}% of current price")
+        if not actionable_resistance_levels:
+            print(f"   ⚠️ No actionable resistance within {RESISTANCE_PROXIMITY_PCT*100}% of current price")
+        if sr_levels.meta.get('resistance_projected'):
+            print(f"   ⚠️ Resistance levels are PROJECTED (ATR-based)")
         
         return jsonify(response)
         
@@ -745,6 +802,790 @@ def get_support_resistance(ticker):
         print(f"Error computing S&R for {ticker}: {e}")
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
+
+# ============================================
+# VALIDATION ENGINE ENDPOINTS (Day 15)
+# Add these to backend.py after the S&R endpoint
+# ============================================
+
+# Add this import at the top of backend.py:
+# import sys
+# sys.path.insert(0, os.path.dirname(__file__))
+# 
+# try:
+#     from validation import ValidationEngine, ForwardTestTracker, SignalType
+#     VALIDATION_AVAILABLE = True
+#     print("✅ Validation Engine loaded successfully")
+# except ImportError as e:
+#     VALIDATION_AVAILABLE = False
+#     print(f"⚠️ Validation Engine not available: {e}")
+
+# Also add to health check:
+# 'validation_available': VALIDATION_AVAILABLE,
+
+
+@app.route('/api/validation/run', methods=['POST'])
+def run_validation():
+    """
+    Run validation suite for specified tickers.
+    
+    Request body (optional):
+    {
+        "tickers": ["AAPL", "NVDA", "JPM", "MU", "COST"]
+    }
+    
+    Returns validation report with pass/fail results.
+    """
+    if not VALIDATION_AVAILABLE:
+        return jsonify({
+            'error': 'Validation Engine not available',
+            'message': 'Place validation/ folder in backend directory'
+        }), 503
+    
+    try:
+        # Get tickers from request or use defaults
+        data = request.get_json() or {}
+        tickers = data.get('tickers', ['AAPL', 'NVDA', 'JPM', 'MU', 'COST'])
+        
+        print(f"🔍 Running validation for: {tickers}")
+        
+        # Run validation
+        engine = ValidationEngine(tickers=tickers)
+        report = engine.run_validation()
+        
+        # Convert to JSON-serializable format
+        result = {
+            'run_id': report.run_id,
+            'timestamp': report.timestamp,
+            'tickers': report.tickers,
+            'overall_pass_rate': report.overall_pass_rate,
+            'summary': report.summary,
+            'ticker_results': []
+        }
+        
+        for tv in report.ticker_results:
+            tv_dict = {
+                'ticker': tv.ticker,
+                'overall_status': tv.overall_status.value,
+                'pass_count': tv.pass_count,
+                'fail_count': tv.fail_count,
+                'warning_count': tv.warning_count,
+                'results': []
+            }
+            for r in tv.results:
+                tv_dict['results'].append({
+                    'metric': r.metric,
+                    'our_value': r.our_value,
+                    'external_value': r.external_value,
+                    'external_source': r.external_source,
+                    'variance_pct': r.variance_pct,
+                    'tolerance_pct': r.tolerance_pct,
+                    'status': r.status.value,
+                    'notes': r.notes
+                })
+            result['ticker_results'].append(tv_dict)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        print(f"❌ Validation error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/validation/results', methods=['GET'])
+def get_validation_results():
+    """
+    Get the latest validation results.
+    
+    Query params:
+    - run_id: Specific run ID (optional, returns latest if not specified)
+    
+    Returns validation report.
+    """
+    if not VALIDATION_AVAILABLE:
+        return jsonify({
+            'error': 'Validation Engine not available'
+        }), 503
+    
+    try:
+        results_dir = os.path.join(os.path.dirname(__file__), 'validation_results')
+        
+        run_id = request.args.get('run_id')
+        
+        if run_id:
+            # Get specific run
+            filepath = os.path.join(results_dir, f'validation_{run_id}.json')
+        else:
+            # Get latest run
+            if not os.path.exists(results_dir):
+                return jsonify({'error': 'No validation results found'}), 404
+            
+            files = [f for f in os.listdir(results_dir) if f.startswith('validation_') and f.endswith('.json')]
+            if not files:
+                return jsonify({'error': 'No validation results found'}), 404
+            
+            files.sort(reverse=True)
+            filepath = os.path.join(results_dir, files[0])
+        
+        if not os.path.exists(filepath):
+            return jsonify({'error': 'Validation results not found'}), 404
+        
+        with open(filepath, 'r') as f:
+            results = json.load(f)
+        
+        return jsonify(results)
+        
+    except Exception as e:
+        print(f"❌ Error fetching validation results: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/validation/history', methods=['GET'])
+def get_validation_history():
+    """
+    Get list of all validation runs.
+    
+    Query params:
+    - limit: Max number of runs to return (default 10)
+    
+    Returns list of run summaries.
+    """
+    if not VALIDATION_AVAILABLE:
+        return jsonify({
+            'error': 'Validation Engine not available'
+        }), 503
+    
+    try:
+        results_dir = os.path.join(os.path.dirname(__file__), 'validation_results')
+        
+        if not os.path.exists(results_dir):
+            return jsonify({'runs': []})
+        
+        limit = int(request.args.get('limit', 10))
+        
+        files = [f for f in os.listdir(results_dir) if f.startswith('validation_') and f.endswith('.json')]
+        files.sort(reverse=True)
+        files = files[:limit]
+        
+        runs = []
+        for filename in files:
+            filepath = os.path.join(results_dir, filename)
+            with open(filepath, 'r') as f:
+                data = json.load(f)
+                runs.append({
+                    'run_id': data['run_id'],
+                    'timestamp': data['timestamp'],
+                    'overall_pass_rate': data['overall_pass_rate'],
+                    'summary': data['summary']
+                })
+        
+        return jsonify({'runs': runs})
+        
+    except Exception as e:
+        print(f"❌ Error fetching validation history: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+# ============================================
+# FORWARD TEST ENDPOINTS (Day 15)
+# ============================================
+
+@app.route('/api/forward-test/record', methods=['POST'])
+def record_forward_test_signal():
+    """
+    Record a trading signal for forward testing.
+    
+    Request body:
+    {
+        "ticker": "AAPL",
+        "signal_type": "BUY",  // BUY, HOLD, AVOID
+        "score": 65,
+        "price_at_signal": 250.00,
+        "entry_price": 245.00,
+        "stop_price": 238.00,
+        "target_price": 270.00,
+        "risk_reward": 3.57,
+        "verdict_reason": "Strong score with good RS",
+        "notes": "Optional notes"
+    }
+    
+    Returns signal ID.
+    """
+    if not VALIDATION_AVAILABLE:
+        return jsonify({
+            'error': 'Forward Test Tracker not available'
+        }), 503
+    
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request body required'}), 400
+        
+        required_fields = ['ticker', 'signal_type', 'score', 'price_at_signal']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+        
+        # Map signal type string to enum
+        signal_type_map = {
+            'BUY': SignalType.BUY,
+            'HOLD': SignalType.HOLD,
+            'AVOID': SignalType.AVOID
+        }
+        signal_type = signal_type_map.get(data['signal_type'].upper())
+        if not signal_type:
+            return jsonify({'error': f'Invalid signal_type: {data["signal_type"]}'}), 400
+        
+        tracker = ForwardTestTracker()
+        signal_id = tracker.record_signal(
+            ticker=data['ticker'].upper(),
+            signal_type=signal_type,
+            score=data['score'],
+            price_at_signal=data['price_at_signal'],
+            entry_price=data.get('entry_price'),
+            stop_price=data.get('stop_price'),
+            target_price=data.get('target_price'),
+            risk_reward=data.get('risk_reward'),
+            verdict_reason=data.get('verdict_reason', ''),
+            notes=data.get('notes', '')
+        )
+        
+        return jsonify({
+            'success': True,
+            'signal_id': signal_id,
+            'message': f'Recorded {signal_type.value} signal for {data["ticker"]}'
+        })
+        
+    except Exception as e:
+        print(f"❌ Error recording signal: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/forward-test/signals', methods=['GET'])
+def get_forward_test_signals():
+    """
+    Get recent forward test signals.
+    
+    Query params:
+    - days: Number of days to look back (default 30)
+    - ticker: Filter by ticker (optional)
+    - limit: Max signals to return (default 50)
+    
+    Returns list of signals.
+    """
+    if not VALIDATION_AVAILABLE:
+        return jsonify({
+            'error': 'Forward Test Tracker not available'
+        }), 503
+    
+    try:
+        days = int(request.args.get('days', 30))
+        limit = int(request.args.get('limit', 50))
+        ticker = request.args.get('ticker')
+        
+        tracker = ForwardTestTracker()
+        
+        if ticker:
+            signals = tracker.get_signal_by_ticker(ticker.upper())
+        else:
+            signals = tracker.get_recent_signals(days=days, limit=limit)
+        
+        return jsonify({
+            'count': len(signals),
+            'signals': signals
+        })
+        
+    except Exception as e:
+        print(f"❌ Error fetching signals: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/forward-test/performance', methods=['GET'])
+def get_forward_test_performance():
+    """
+    Get forward test performance summary.
+    
+    Returns win rate, average P&L, etc.
+    """
+    if not VALIDATION_AVAILABLE:
+        return jsonify({
+            'error': 'Forward Test Tracker not available'
+        }), 503
+    
+    try:
+        tracker = ForwardTestTracker()
+        summary = tracker.get_performance_summary()
+        
+        return jsonify(summary)
+        
+    except Exception as e:
+        print(f"❌ Error fetching performance: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/forward-test/check-outcomes', methods=['POST'])
+def check_forward_test_outcomes():
+    """
+    Check open signals against current prices and update outcomes.
+    
+    This should be called periodically (e.g., daily) to track
+    whether signals hit their targets/stops.
+    
+    Request body:
+    {
+        "prices": {
+            "AAPL": {"price": 255.00, "high": 256.50, "low": 253.20},
+            "NVDA": {"price": 180.00, "high": 182.00, "low": 178.50}
+        }
+    }
+    
+    Or call without body to auto-fetch prices from our API.
+    """
+    if not VALIDATION_AVAILABLE:
+        return jsonify({
+            'error': 'Forward Test Tracker not available'
+        }), 503
+    
+    try:
+        data = request.get_json() or {}
+        prices = data.get('prices')
+        
+        tracker = ForwardTestTracker()
+        
+        # If no prices provided, fetch from our API
+        if not prices:
+            # Get all open signal tickers
+            open_signals = tracker.get_recent_signals(days=60)
+            tickers = set(s['ticker'] for s in open_signals if s['outcome'] == 'open')
+            
+            prices = {}
+            for ticker in tickers:
+                try:
+                    resp = requests.get(f'http://localhost:5001/api/stock/{ticker}', timeout=10)
+                    if resp.ok:
+                        stock_data = resp.json()
+                        prices[ticker] = {
+                            'price': stock_data.get('currentPrice'),
+                            'high': stock_data.get('currentPrice'),  # Would need intraday data for actual high/low
+                            'low': stock_data.get('currentPrice')
+                        }
+                except:
+                    pass
+        
+        # Check outcomes
+        closed = tracker.check_open_signals(prices)
+        
+        return jsonify({
+            'checked_tickers': list(prices.keys()),
+            'closed_signals': closed,
+            'closed_count': len(closed)
+        })
+        
+    except Exception as e:
+        print(f"❌ Error checking outcomes: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+# ============================================
+# VALIDATION ENGINE ENDPOINTS (Day 15)
+# Add these to backend.py after the S&R endpoint
+# ============================================
+
+# Add this import at the top of backend.py:
+# import sys
+# sys.path.insert(0, os.path.dirname(__file__))
+# 
+# try:
+#     from validation import ValidationEngine, ForwardTestTracker, SignalType
+#     VALIDATION_AVAILABLE = True
+#     print("✅ Validation Engine loaded successfully")
+# except ImportError as e:
+#     VALIDATION_AVAILABLE = False
+#     print(f"⚠️ Validation Engine not available: {e}")
+
+# Also add to health check:
+# 'validation_available': VALIDATION_AVAILABLE,
+
+
+@app.route('/api/validation/run', methods=['POST'])
+def run_validation():
+    """
+    Run validation suite for specified tickers.
+    
+    Request body (optional):
+    {
+        "tickers": ["AAPL", "NVDA", "JPM", "MU", "COST"]
+    }
+    
+    Returns validation report with pass/fail results.
+    """
+    if not VALIDATION_AVAILABLE:
+        return jsonify({
+            'error': 'Validation Engine not available',
+            'message': 'Place validation/ folder in backend directory'
+        }), 503
+    
+    try:
+        # Get tickers from request or use defaults
+        data = request.get_json() or {}
+        tickers = data.get('tickers', ['AAPL', 'NVDA', 'JPM', 'MU', 'COST'])
+        
+        print(f"🔍 Running validation for: {tickers}")
+        
+        # Run validation
+        engine = ValidationEngine(tickers=tickers)
+        report = engine.run_validation()
+        
+        # Convert to JSON-serializable format
+        result = {
+            'run_id': report.run_id,
+            'timestamp': report.timestamp,
+            'tickers': report.tickers,
+            'overall_pass_rate': report.overall_pass_rate,
+            'summary': report.summary,
+            'ticker_results': []
+        }
+        
+        for tv in report.ticker_results:
+            tv_dict = {
+                'ticker': tv.ticker,
+                'overall_status': tv.overall_status.value,
+                'pass_count': tv.pass_count,
+                'fail_count': tv.fail_count,
+                'warning_count': tv.warning_count,
+                'results': []
+            }
+            for r in tv.results:
+                tv_dict['results'].append({
+                    'metric': r.metric,
+                    'our_value': r.our_value,
+                    'external_value': r.external_value,
+                    'external_source': r.external_source,
+                    'variance_pct': r.variance_pct,
+                    'tolerance_pct': r.tolerance_pct,
+                    'status': r.status.value,
+                    'notes': r.notes
+                })
+            result['ticker_results'].append(tv_dict)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        print(f"❌ Validation error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/validation/results', methods=['GET'])
+def get_validation_results():
+    """
+    Get the latest validation results.
+    
+    Query params:
+    - run_id: Specific run ID (optional, returns latest if not specified)
+    
+    Returns validation report.
+    """
+    if not VALIDATION_AVAILABLE:
+        return jsonify({
+            'error': 'Validation Engine not available'
+        }), 503
+    
+    try:
+        results_dir = os.path.join(os.path.dirname(__file__), 'validation_results')
+        
+        run_id = request.args.get('run_id')
+        
+        if run_id:
+            # Get specific run
+            filepath = os.path.join(results_dir, f'validation_{run_id}.json')
+        else:
+            # Get latest run
+            if not os.path.exists(results_dir):
+                return jsonify({'error': 'No validation results found'}), 404
+            
+            files = [f for f in os.listdir(results_dir) if f.startswith('validation_') and f.endswith('.json')]
+            if not files:
+                return jsonify({'error': 'No validation results found'}), 404
+            
+            files.sort(reverse=True)
+            filepath = os.path.join(results_dir, files[0])
+        
+        if not os.path.exists(filepath):
+            return jsonify({'error': 'Validation results not found'}), 404
+        
+        with open(filepath, 'r') as f:
+            results = json.load(f)
+        
+        return jsonify(results)
+        
+    except Exception as e:
+        print(f"❌ Error fetching validation results: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/validation/history', methods=['GET'])
+def get_validation_history():
+    """
+    Get list of all validation runs.
+    
+    Query params:
+    - limit: Max number of runs to return (default 10)
+    
+    Returns list of run summaries.
+    """
+    if not VALIDATION_AVAILABLE:
+        return jsonify({
+            'error': 'Validation Engine not available'
+        }), 503
+    
+    try:
+        results_dir = os.path.join(os.path.dirname(__file__), 'validation_results')
+        
+        if not os.path.exists(results_dir):
+            return jsonify({'runs': []})
+        
+        limit = int(request.args.get('limit', 10))
+        
+        files = [f for f in os.listdir(results_dir) if f.startswith('validation_') and f.endswith('.json')]
+        files.sort(reverse=True)
+        files = files[:limit]
+        
+        runs = []
+        for filename in files:
+            filepath = os.path.join(results_dir, filename)
+            with open(filepath, 'r') as f:
+                data = json.load(f)
+                runs.append({
+                    'run_id': data['run_id'],
+                    'timestamp': data['timestamp'],
+                    'overall_pass_rate': data['overall_pass_rate'],
+                    'summary': data['summary']
+                })
+        
+        return jsonify({'runs': runs})
+        
+    except Exception as e:
+        print(f"❌ Error fetching validation history: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+# ============================================
+# FORWARD TEST ENDPOINTS (Day 15)
+# ============================================
+
+@app.route('/api/forward-test/record', methods=['POST'])
+def record_forward_test_signal():
+    """
+    Record a trading signal for forward testing.
+    
+    Request body:
+    {
+        "ticker": "AAPL",
+        "signal_type": "BUY",  // BUY, HOLD, AVOID
+        "score": 65,
+        "price_at_signal": 250.00,
+        "entry_price": 245.00,
+        "stop_price": 238.00,
+        "target_price": 270.00,
+        "risk_reward": 3.57,
+        "verdict_reason": "Strong score with good RS",
+        "notes": "Optional notes"
+    }
+    
+    Returns signal ID.
+    """
+    if not VALIDATION_AVAILABLE:
+        return jsonify({
+            'error': 'Forward Test Tracker not available'
+        }), 503
+    
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request body required'}), 400
+        
+        required_fields = ['ticker', 'signal_type', 'score', 'price_at_signal']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+        
+        # Map signal type string to enum
+        signal_type_map = {
+            'BUY': SignalType.BUY,
+            'HOLD': SignalType.HOLD,
+            'AVOID': SignalType.AVOID
+        }
+        signal_type = signal_type_map.get(data['signal_type'].upper())
+        if not signal_type:
+            return jsonify({'error': f'Invalid signal_type: {data["signal_type"]}'}), 400
+        
+        tracker = ForwardTestTracker()
+        signal_id = tracker.record_signal(
+            ticker=data['ticker'].upper(),
+            signal_type=signal_type,
+            score=data['score'],
+            price_at_signal=data['price_at_signal'],
+            entry_price=data.get('entry_price'),
+            stop_price=data.get('stop_price'),
+            target_price=data.get('target_price'),
+            risk_reward=data.get('risk_reward'),
+            verdict_reason=data.get('verdict_reason', ''),
+            notes=data.get('notes', '')
+        )
+        
+        return jsonify({
+            'success': True,
+            'signal_id': signal_id,
+            'message': f'Recorded {signal_type.value} signal for {data["ticker"]}'
+        })
+        
+    except Exception as e:
+        print(f"❌ Error recording signal: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/forward-test/signals', methods=['GET'])
+def get_forward_test_signals():
+    """
+    Get recent forward test signals.
+    
+    Query params:
+    - days: Number of days to look back (default 30)
+    - ticker: Filter by ticker (optional)
+    - limit: Max signals to return (default 50)
+    
+    Returns list of signals.
+    """
+    if not VALIDATION_AVAILABLE:
+        return jsonify({
+            'error': 'Forward Test Tracker not available'
+        }), 503
+    
+    try:
+        days = int(request.args.get('days', 30))
+        limit = int(request.args.get('limit', 50))
+        ticker = request.args.get('ticker')
+        
+        tracker = ForwardTestTracker()
+        
+        if ticker:
+            signals = tracker.get_signal_by_ticker(ticker.upper())
+        else:
+            signals = tracker.get_recent_signals(days=days, limit=limit)
+        
+        return jsonify({
+            'count': len(signals),
+            'signals': signals
+        })
+        
+    except Exception as e:
+        print(f"❌ Error fetching signals: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/forward-test/performance', methods=['GET'])
+def get_forward_test_performance():
+    """
+    Get forward test performance summary.
+    
+    Returns win rate, average P&L, etc.
+    """
+    if not VALIDATION_AVAILABLE:
+        return jsonify({
+            'error': 'Forward Test Tracker not available'
+        }), 503
+    
+    try:
+        tracker = ForwardTestTracker()
+        summary = tracker.get_performance_summary()
+        
+        return jsonify(summary)
+        
+    except Exception as e:
+        print(f"❌ Error fetching performance: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/forward-test/check-outcomes', methods=['POST'])
+def check_forward_test_outcomes():
+    """
+    Check open signals against current prices and update outcomes.
+    
+    This should be called periodically (e.g., daily) to track
+    whether signals hit their targets/stops.
+    
+    Request body:
+    {
+        "prices": {
+            "AAPL": {"price": 255.00, "high": 256.50, "low": 253.20},
+            "NVDA": {"price": 180.00, "high": 182.00, "low": 178.50}
+        }
+    }
+    
+    Or call without body to auto-fetch prices from our API.
+    """
+    if not VALIDATION_AVAILABLE:
+        return jsonify({
+            'error': 'Forward Test Tracker not available'
+        }), 503
+    
+    try:
+        data = request.get_json() or {}
+        prices = data.get('prices')
+        
+        tracker = ForwardTestTracker()
+        
+        # If no prices provided, fetch from our API
+        if not prices:
+            # Get all open signal tickers
+            open_signals = tracker.get_recent_signals(days=60)
+            tickers = set(s['ticker'] for s in open_signals if s['outcome'] == 'open')
+            
+            prices = {}
+            for ticker in tickers:
+                try:
+                    resp = requests.get(f'http://localhost:5001/api/stock/{ticker}', timeout=10)
+                    if resp.ok:
+                        stock_data = resp.json()
+                        prices[ticker] = {
+                            'price': stock_data.get('currentPrice'),
+                            'high': stock_data.get('currentPrice'),  # Would need intraday data for actual high/low
+                            'low': stock_data.get('currentPrice')
+                        }
+                except:
+                    pass
+        
+        # Check outcomes
+        closed = tracker.check_open_signals(prices)
+        
+        return jsonify({
+            'checked_tickers': list(prices.keys()),
+            'closed_signals': closed,
+            'closed_count': len(closed)
+        })
+        
+    except Exception as e:
+        print(f"❌ Error checking outcomes: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # ============================================
@@ -1016,6 +1857,257 @@ def get_scan_strategies():
         'notes': 'All strategies filter for NYSE/NASDAQ only (no OTC), require Stage 2 uptrend, and cap RSI to avoid chasing'
     })
 
+# ============================================
+# VALIDATION ENGINE ENDPOINTS (Day 15)
+# 
+# HOW TO USE:
+# Copy everything below and paste into backend.py 
+# AFTER the /api/scan/strategies endpoint
+# BEFORE the # MAIN section
+# ============================================
+
+@app.route('/api/validation/run', methods=['POST'])
+def run_validation():
+    """
+    Run validation suite for specified tickers.
+    
+    Request body (optional):
+    {
+        "tickers": ["AAPL", "NVDA", "JPM", "MU", "COST"]
+    }
+    """
+    if not VALIDATION_AVAILABLE:
+        return jsonify({
+            'error': 'Validation Engine not available',
+            'message': 'Ensure validation/ folder exists with all required files'
+        }), 503
+    
+    try:
+        data = request.get_json() or {}
+        tickers = data.get('tickers', ['AAPL', 'NVDA', 'JPM', 'MU', 'COST'])
+        
+        print(f"🔍 Running validation for: {tickers}")
+        
+        engine = ValidationEngine(tickers=tickers)
+        report = engine.run_validation()
+        
+        result = {
+            'run_id': report.run_id,
+            'timestamp': report.timestamp,
+            'tickers': report.tickers,
+            'overall_pass_rate': report.overall_pass_rate,
+            'summary': report.summary,
+            'ticker_results': []
+        }
+        
+        for tv in report.ticker_results:
+            tv_dict = {
+                'ticker': tv.ticker,
+                'overall_status': tv.overall_status.value,
+                'pass_count': tv.pass_count,
+                'fail_count': tv.fail_count,
+                'warning_count': tv.warning_count,
+                'results': []
+            }
+            for r in tv.results:
+                tv_dict['results'].append({
+                    'metric': r.metric,
+                    'our_value': r.our_value,
+                    'external_value': r.external_value,
+                    'external_source': r.external_source,
+                    'variance_pct': r.variance_pct,
+                    'tolerance_pct': r.tolerance_pct,
+                    'status': r.status.value,
+                    'notes': r.notes
+                })
+            result['ticker_results'].append(tv_dict)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        print(f"❌ Validation error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/validation/results', methods=['GET'])
+def get_validation_results():
+    """Get the latest validation results."""
+    if not VALIDATION_AVAILABLE:
+        return jsonify({'error': 'Validation Engine not available'}), 503
+    
+    try:
+        results_dir = os.path.join(os.path.dirname(__file__), 'validation_results')
+        run_id = request.args.get('run_id')
+        
+        if run_id:
+            filepath = os.path.join(results_dir, f'validation_{run_id}.json')
+        else:
+            if not os.path.exists(results_dir):
+                return jsonify({'error': 'No validation results found'}), 404
+            
+            files = [f for f in os.listdir(results_dir) if f.startswith('validation_') and f.endswith('.json')]
+            if not files:
+                return jsonify({'error': 'No validation results found'}), 404
+            
+            files.sort(reverse=True)
+            filepath = os.path.join(results_dir, files[0])
+        
+        if not os.path.exists(filepath):
+            return jsonify({'error': 'Validation results not found'}), 404
+        
+        with open(filepath, 'r') as f:
+            results = json.load(f)
+        
+        return jsonify(results)
+        
+    except Exception as e:
+        print(f"❌ Error fetching validation results: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/validation/history', methods=['GET'])
+def get_validation_history():
+    """Get list of all validation runs."""
+    if not VALIDATION_AVAILABLE:
+        return jsonify({'error': 'Validation Engine not available'}), 503
+    
+    try:
+        results_dir = os.path.join(os.path.dirname(__file__), 'validation_results')
+        
+        if not os.path.exists(results_dir):
+            return jsonify({'runs': []})
+        
+        limit = int(request.args.get('limit', 10))
+        
+        files = [f for f in os.listdir(results_dir) if f.startswith('validation_') and f.endswith('.json')]
+        files.sort(reverse=True)
+        files = files[:limit]
+        
+        runs = []
+        for filename in files:
+            filepath = os.path.join(results_dir, filename)
+            with open(filepath, 'r') as f:
+                data = json.load(f)
+                runs.append({
+                    'run_id': data['run_id'],
+                    'timestamp': data['timestamp'],
+                    'overall_pass_rate': data['overall_pass_rate'],
+                    'summary': data['summary']
+                })
+        
+        return jsonify({'runs': runs})
+        
+    except Exception as e:
+        print(f"❌ Error fetching validation history: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+# ============================================
+# FORWARD TEST ENDPOINTS
+# ============================================
+
+@app.route('/api/forward-test/record', methods=['POST'])
+def record_forward_test_signal():
+    """
+    Record a trading signal for forward testing.
+    
+    Request body:
+    {
+        "ticker": "AAPL",
+        "signal_type": "BUY",
+        "score": 65,
+        "price_at_signal": 250.00,
+        "entry_price": 245.00,
+        "stop_price": 238.00,
+        "target_price": 270.00,
+        "risk_reward": 3.57,
+        "verdict_reason": "Strong score with good RS"
+    }
+    """
+    if not VALIDATION_AVAILABLE:
+        return jsonify({'error': 'Forward Test Tracker not available'}), 503
+    
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request body required'}), 400
+        
+        required = ['ticker', 'signal_type', 'score', 'price_at_signal']
+        for field in required:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+        
+        signal_map = {'BUY': SignalType.BUY, 'HOLD': SignalType.HOLD, 'AVOID': SignalType.AVOID}
+        signal_type = signal_map.get(data['signal_type'].upper())
+        if not signal_type:
+            return jsonify({'error': f'Invalid signal_type: {data["signal_type"]}'}), 400
+        
+        tracker = ForwardTestTracker()
+        signal_id = tracker.record_signal(
+            ticker=data['ticker'].upper(),
+            signal_type=signal_type,
+            score=data['score'],
+            price_at_signal=data['price_at_signal'],
+            entry_price=data.get('entry_price'),
+            stop_price=data.get('stop_price'),
+            target_price=data.get('target_price'),
+            risk_reward=data.get('risk_reward'),
+            verdict_reason=data.get('verdict_reason', ''),
+            notes=data.get('notes', '')
+        )
+        
+        return jsonify({
+            'success': True,
+            'signal_id': signal_id,
+            'message': f'Recorded {signal_type.value} signal for {data["ticker"]}'
+        })
+        
+    except Exception as e:
+        print(f"❌ Error recording signal: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/forward-test/signals', methods=['GET'])
+def get_forward_test_signals():
+    """Get recent forward test signals."""
+    if not VALIDATION_AVAILABLE:
+        return jsonify({'error': 'Forward Test Tracker not available'}), 503
+    
+    try:
+        days = int(request.args.get('days', 30))
+        limit = int(request.args.get('limit', 50))
+        ticker = request.args.get('ticker')
+        
+        tracker = ForwardTestTracker()
+        
+        if ticker:
+            signals = tracker.get_signal_by_ticker(ticker.upper())
+        else:
+            signals = tracker.get_recent_signals(days=days, limit=limit)
+        
+        return jsonify({'count': len(signals), 'signals': signals})
+        
+    except Exception as e:
+        print(f"❌ Error fetching signals: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/forward-test/performance', methods=['GET'])
+def get_forward_test_performance():
+    """Get forward test performance summary (win rate, avg P&L, etc.)."""
+    if not VALIDATION_AVAILABLE:
+        return jsonify({'error': 'Forward Test Tracker not available'}), 503
+    
+    try:
+        tracker = ForwardTestTracker()
+        summary = tracker.get_performance_summary()
+        return jsonify(summary)
+        
+    except Exception as e:
+        print(f"❌ Error fetching performance: {e}")
+        return jsonify({'error': str(e)}), 500
 
 # ============================================
 # MAIN
