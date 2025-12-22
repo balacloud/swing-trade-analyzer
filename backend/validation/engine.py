@@ -1,14 +1,15 @@
 """
 Validation Engine for Swing Trade Analyzer
 Day 15: Data Validation + Forward Testing Framework
+Day 16: Fixed pass rate calculation, replaced Yahoo with StockAnalysis
 
 This module validates our API data against external sources
 and tracks forward test signals for backtesting.
 
 Sources:
 - Our API: localhost:5001
-- Yahoo Finance: Scraped for validation
-- Finviz: Scraped for fundamental cross-check
+- StockAnalysis: Primary source for price/52-week data (Day 16)
+- Finviz: Scraped for fundamental cross-check (ROE, D/E)
 """
 
 import requests
@@ -20,17 +21,10 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 import sqlite3
 
-# Import scrapers (will be in separate file)
-from .scrapers import YahooFinanceScraper, FinvizScraper
-from .comparators import DataComparator
+# Import scrapers
+from .scrapers import YahooFinanceScraper, FinvizScraper, StockAnalysisScraperWrapper
+from .comparators import DataComparator, ValidationStatus
 from .report_generator import HTMLReportGenerator
-
-
-class ValidationStatus(Enum):
-    PASS = "pass"
-    FAIL = "fail"
-    WARNING = "warning"
-    SKIP = "skip"
 
 
 @dataclass
@@ -57,6 +51,7 @@ class TickerValidation:
     pass_count: int
     fail_count: int
     warning_count: int
+    skip_count: int  # Track skipped validations
     results: List[ValidationResult]
 
 
@@ -67,6 +62,8 @@ class ValidationReport:
     timestamp: str
     tickers: List[str]
     overall_pass_rate: float
+    coverage_rate: float  # What % of checks had data
+    accuracy_rate: float  # Of checks with data, what % passed
     ticker_results: List[TickerValidation]
     summary: Dict
 
@@ -112,7 +109,9 @@ class ValidationEngine:
         os.makedirs(self.results_dir, exist_ok=True)
         
         # Initialize scrapers
-        self.yahoo_scraper = YahooFinanceScraper()
+        # Day 16: Using StockAnalysis as primary (Yahoo is broken)
+        self.stockanalysis_scraper = StockAnalysisScraperWrapper()
+        self.yahoo_scraper = YahooFinanceScraper()  # Kept as fallback
         self.finviz_scraper = FinvizScraper()
         
         # Initialize comparator
@@ -145,6 +144,7 @@ class ValidationEngine:
         total_pass = 0
         total_fail = 0
         total_warning = 0
+        total_skip = 0
         
         for ticker in self.tickers:
             print(f"\n📊 Validating {ticker}...")
@@ -154,6 +154,7 @@ class ValidationEngine:
             total_pass += ticker_validation.pass_count
             total_fail += ticker_validation.fail_count
             total_warning += ticker_validation.warning_count
+            total_skip += ticker_validation.skip_count
             
             # Print summary for this ticker
             status_emoji = {
@@ -164,11 +165,26 @@ class ValidationEngine:
             print(f"   {status_emoji.get(ticker_validation.overall_status, '❓')} "
                   f"{ticker}: {ticker_validation.pass_count} pass, "
                   f"{ticker_validation.fail_count} fail, "
-                  f"{ticker_validation.warning_count} warning")
+                  f"{ticker_validation.warning_count} warning, "
+                  f"{ticker_validation.skip_count} skip")
         
-        # Calculate overall pass rate
-        total_checks = total_pass + total_fail + total_warning
-        overall_pass_rate = (total_pass / total_checks * 100) if total_checks > 0 else 0
+        # =============================================
+        # Proper metric calculations (Day 16 fix)
+        # =============================================
+        total_checks = total_pass + total_fail + total_warning + total_skip
+        total_validated = total_pass + total_fail + total_warning
+        
+        # Coverage: What % of checks actually had data to compare
+        coverage_rate = (total_validated / total_checks * 100) if total_checks > 0 else 0
+        
+        # Accuracy: Of checks WITH data, what % passed
+        accuracy_rate = (total_pass / total_validated * 100) if total_validated > 0 else 0
+        
+        # Overall Quality: Coverage × Accuracy (the TRUE health metric)
+        overall_quality = (coverage_rate * accuracy_rate) / 100
+        
+        # Legacy pass_rate for backward compatibility
+        overall_pass_rate = accuracy_rate
         
         # Create report
         report = ValidationReport(
@@ -176,13 +192,20 @@ class ValidationEngine:
             timestamp=timestamp,
             tickers=self.tickers,
             overall_pass_rate=round(overall_pass_rate, 1),
+            coverage_rate=round(coverage_rate, 1),
+            accuracy_rate=round(accuracy_rate, 1),
             ticker_results=ticker_results,
             summary={
                 'total_checks': total_checks,
+                'validated': total_validated,
+                'skipped': total_skip,
                 'passed': total_pass,
                 'failed': total_fail,
                 'warnings': total_warning,
-                'pass_rate': round(overall_pass_rate, 1)
+                'coverage_rate': round(coverage_rate, 1),
+                'accuracy_rate': round(accuracy_rate, 1),
+                'quality_score': round(overall_quality, 1),
+                'pass_rate': round(accuracy_rate, 1)
             }
         )
         
@@ -192,15 +215,38 @@ class ValidationEngine:
         # Generate HTML report
         html_path = self.report_generator.generate(report, self.results_dir)
         
+        # Close StockAnalysis scraper (releases Chrome)
+        self._cleanup()
+        
         print(f"\n{'='*60}")
         print(f"📋 VALIDATION COMPLETE")
         print(f"{'='*60}")
-        print(f"Overall Pass Rate: {overall_pass_rate:.1f}%")
+        print(f"Total Checks: {total_checks}")
+        print(f"  └─ Validated: {total_validated} ({coverage_rate:.1f}% coverage)")
+        print(f"  └─ Skipped:   {total_skip} (missing external data)")
+        print(f"")
+        print(f"Of Validated Checks:")
+        print(f"  └─ Passed:   {total_pass}")
+        print(f"  └─ Failed:   {total_fail}")
+        print(f"  └─ Warnings: {total_warning}")
+        print(f"")
+        print(f"📊 METRICS:")
+        print(f"  └─ Coverage Rate: {coverage_rate:.1f}% (data availability)")
+        print(f"  └─ Accuracy Rate: {accuracy_rate:.1f}% (of validated)")
+        print(f"  └─ Quality Score: {overall_quality:.1f}% (coverage × accuracy)")
+        print(f"")
         print(f"Results saved to: {self.results_dir}")
         print(f"HTML Report: {html_path}")
         print(f"{'='*60}\n")
         
         return report
+    
+    def _cleanup(self):
+        """Clean up resources (close browser, etc.)."""
+        try:
+            self.stockanalysis_scraper.close()
+        except:
+            pass
     
     def _validate_ticker(self, ticker: str) -> TickerValidation:
         """
@@ -225,22 +271,24 @@ class ValidationEngine:
                 pass_count=0,
                 fail_count=0,
                 warning_count=0,
+                skip_count=1,
                 results=[]
             )
         
         # Fetch external data
-        yahoo_data = self.yahoo_scraper.scrape(ticker)
+        # Day 16: Using StockAnalysis instead of Yahoo (Yahoo is broken)
+        stockanalysis_data = self.stockanalysis_scraper.scrape(ticker)
         finviz_data = self.finviz_scraper.scrape(ticker)
         
-        # === PRICE VALIDATIONS ===
-        if yahoo_data:
+        # === PRICE VALIDATIONS (using StockAnalysis) ===
+        if stockanalysis_data:
             # Current price
             results.append(self.comparator.compare(
                 ticker=ticker,
                 metric='current_price',
                 our_value=our_data.get('currentPrice'),
-                external_value=yahoo_data.get('price'),
-                external_source='Yahoo Finance',
+                external_value=stockanalysis_data.get('price'),
+                external_source='StockAnalysis',
                 tolerance_key='price'
             ))
             
@@ -249,8 +297,8 @@ class ValidationEngine:
                 ticker=ticker,
                 metric='52w_high',
                 our_value=our_data.get('fiftyTwoWeekHigh'),
-                external_value=yahoo_data.get('52w_high'),
-                external_source='Yahoo Finance',
+                external_value=stockanalysis_data.get('52w_high'),
+                external_source='StockAnalysis',
                 tolerance_key='52w_high'
             ))
             
@@ -259,35 +307,34 @@ class ValidationEngine:
                 ticker=ticker,
                 metric='52w_low',
                 our_value=our_data.get('fiftyTwoWeekLow'),
-                external_value=yahoo_data.get('52w_low'),
-                external_source='Yahoo Finance',
+                external_value=stockanalysis_data.get('52w_low'),
+                external_source='StockAnalysis',
                 tolerance_key='52w_low'
             ))
-        
-        # === FUNDAMENTAL VALIDATIONS ===
-        fundamentals = our_data.get('fundamentals', {})
-        
-        # Validate against Yahoo
-        if yahoo_data:
+            
+            # P/E Ratio from StockAnalysis
             results.append(self.comparator.compare(
                 ticker=ticker,
                 metric='pe_ratio',
-                our_value=fundamentals.get('pe'),
-                external_value=yahoo_data.get('pe_ratio'),
-                external_source='Yahoo Finance',
+                our_value=our_data.get('fundamentals', {}).get('pe'),
+                external_value=stockanalysis_data.get('pe_ratio'),
+                external_source='StockAnalysis',
                 tolerance_key='pe_ratio'
             ))
             
+            # EPS from StockAnalysis
             results.append(self.comparator.compare(
                 ticker=ticker,
                 metric='eps',
-                our_value=fundamentals.get('eps'),
-                external_value=yahoo_data.get('eps'),
-                external_source='Yahoo Finance',
+                our_value=our_data.get('fundamentals', {}).get('eps'),
+                external_value=stockanalysis_data.get('eps'),
+                external_source='StockAnalysis',
                 tolerance_key='price'  # Use price tolerance for EPS
             ))
         
-        # Validate against Finviz
+        # === FUNDAMENTAL VALIDATIONS (using Finviz) ===
+        fundamentals = our_data.get('fundamentals', {})
+        
         if finviz_data:
             results.append(self.comparator.compare(
                 ticker=ticker,
@@ -324,15 +371,18 @@ class ValidationEngine:
         # Filter out None results
         results = [r for r in results if r is not None]
         
-        # Calculate summary
+        # Count ALL statuses including SKIP
         pass_count = sum(1 for r in results if r.status == ValidationStatus.PASS)
         fail_count = sum(1 for r in results if r.status == ValidationStatus.FAIL)
         warning_count = sum(1 for r in results if r.status == ValidationStatus.WARNING)
+        skip_count = sum(1 for r in results if r.status == ValidationStatus.SKIP)
         
         # Determine overall status
         if fail_count > 0:
             overall_status = ValidationStatus.FAIL
         elif warning_count > 0:
+            overall_status = ValidationStatus.WARNING
+        elif skip_count > pass_count:
             overall_status = ValidationStatus.WARNING
         else:
             overall_status = ValidationStatus.PASS
@@ -344,6 +394,7 @@ class ValidationEngine:
             pass_count=pass_count,
             fail_count=fail_count,
             warning_count=warning_count,
+            skip_count=skip_count,
             results=results
         )
     
@@ -423,7 +474,7 @@ class ValidationEngine:
                 notes=f"Stop ${stop:.2f} {'<' if stop_valid else '>='} Entry ${entry:.2f}"
             ))
         
-        # Check 5: Risk/Reward should be reasonable (1-15 range)
+        # Check 5: Risk/Reward should be reasonable (0.5-15 range)
         rr = sr_data.get('riskReward')
         if rr is not None:
             rr_valid = 0.5 <= rr <= 15
@@ -485,6 +536,8 @@ class ValidationEngine:
             'timestamp': report.timestamp,
             'tickers': report.tickers,
             'overall_pass_rate': report.overall_pass_rate,
+            'coverage_rate': report.coverage_rate,
+            'accuracy_rate': report.accuracy_rate,
             'summary': report.summary,
             'ticker_results': []
         }
@@ -497,6 +550,7 @@ class ValidationEngine:
                 'pass_count': tv.pass_count,
                 'fail_count': tv.fail_count,
                 'warning_count': tv.warning_count,
+                'skip_count': tv.skip_count,
                 'results': []
             }
             for r in tv.results:

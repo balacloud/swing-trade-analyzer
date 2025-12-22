@@ -1,8 +1,9 @@
 """
 Web Scrapers for Validation Engine
-Scrapes Yahoo Finance and Finviz for validation data
+Scrapes StockAnalysis, Yahoo Finance, and Finviz for validation data
 
-Day 15: Data validation scrapers
+Day 15: Initial scrapers (Yahoo + Finviz)
+Day 16: Added StockAnalysis scraper to replace broken Yahoo
 """
 
 import requests
@@ -11,6 +12,14 @@ import re
 import time
 from typing import Dict, Optional
 import random
+
+# Try to import stockanalysis-scraper package
+try:
+    from stockanalysis_scraper.scraper.scraper import StockAnalysis as StockAnalysisScraper
+    STOCKANALYSIS_AVAILABLE = True
+except ImportError:
+    STOCKANALYSIS_AVAILABLE = False
+    print("⚠️ stockanalysis-scraper not installed. Run: pip install stockanalysis-scraper")
 
 
 class BaseScraper:
@@ -76,10 +85,11 @@ class BaseScraper:
         Returns:
             Parsed float or None
         """
-        if not text or text.strip() in ['N/A', '-', '--', '']:
+        if not text or text.strip() in ['N/A', '-', '--', '', 'None']:
             return None
         
-        text = text.strip().replace(',', '')
+        # Convert to string if not already
+        text = str(text).strip().replace(',', '').replace('$', '')
         
         # Handle percentages
         if '%' in text:
@@ -112,9 +122,107 @@ class BaseScraper:
             return None
 
 
+class StockAnalysisScraperWrapper(BaseScraper):
+    """
+    Wrapper for stockanalysis-scraper package.
+    
+    Extracts: price, market cap, revenue, EPS, P/E ratio, 52-week range
+    This replaces the broken Yahoo Finance scraper.
+    
+    Day 16: Added as primary price/fundamental source
+    
+    NOTE: This uses Selenium/Chrome under the hood, so it's slower
+    but more reliable than direct scraping.
+    """
+    
+    def __init__(self):
+        super().__init__()
+        self.scraper = None  # Lazy init to avoid Chrome startup on import
+    
+    def _get_scraper(self):
+        """Lazy initialize the scraper (opens Chrome)."""
+        if self.scraper is None and STOCKANALYSIS_AVAILABLE:
+            try:
+                self.scraper = StockAnalysisScraper()
+            except Exception as e:
+                print(f"   ⚠️ Failed to initialize StockAnalysis scraper: {e}")
+        return self.scraper
+    
+    def scrape(self, ticker: str) -> Optional[Dict]:
+        """
+        Scrape StockAnalysis.com for a ticker.
+        
+        Args:
+            ticker: Stock ticker symbol
+            
+        Returns:
+            Dict with scraped data or None on failure
+        """
+        if not STOCKANALYSIS_AVAILABLE:
+            print(f"   ⚠️ StockAnalysis scraper not available")
+            return None
+        
+        data = {
+            'ticker': ticker,
+            'source': 'StockAnalysis',
+            'price': None,
+            '52w_high': None,
+            '52w_low': None,
+            'pe_ratio': None,
+            'eps': None,
+            'market_cap': None,
+            'revenue': None,
+        }
+        
+        try:
+            scraper = self._get_scraper()
+            if not scraper:
+                return None
+            
+            # Get stock data using the package
+            stock_data = scraper.scrape_stock_data(ticker)
+            
+            if stock_data:
+                # Parse price
+                data['price'] = self._parse_number(stock_data.get('price'))
+                
+                # Parse overview section
+                overview = stock_data.get('overview', {})
+                data['market_cap'] = self._parse_number(overview.get('Market Cap'))
+                data['revenue'] = self._parse_number(overview.get('Revenue (ttm)'))
+                data['eps'] = self._parse_number(overview.get('EPS (ttm)'))
+                data['pe_ratio'] = self._parse_number(overview.get('PE Ratio'))
+                
+                # Parse 52-week range
+                range_52w = overview.get('52-Week Range', '')
+                if ' - ' in range_52w:
+                    parts = range_52w.split(' - ')
+                    if len(parts) == 2:
+                        data['52w_low'] = self._parse_number(parts[0])
+                        data['52w_high'] = self._parse_number(parts[1])
+                
+            return data
+            
+        except Exception as e:
+            print(f"   ⚠️ Error scraping StockAnalysis for {ticker}: {e}")
+            return None
+    
+    def close(self):
+        """Close the browser/scraper."""
+        if self.scraper:
+            try:
+                self.scraper.close()
+            except:
+                pass
+            self.scraper = None
+
+
 class YahooFinanceScraper(BaseScraper):
     """
     Scraper for Yahoo Finance.
+    
+    NOTE: Yahoo frequently changes their HTML structure, causing this scraper
+    to break. Consider using StockAnalysis scraper as primary source.
     
     Extracts: price, 52-week high/low, P/E ratio, EPS, market cap
     """
@@ -249,6 +357,8 @@ class FinvizScraper(BaseScraper):
     
     Extracts: ROE, Debt/Equity, Sales Growth, EPS Growth, P/E
     Finviz has a cleaner table structure that's easier to scrape.
+    
+    STATUS: WORKING (Day 16 verified)
     """
     
     BASE_URL = "https://finviz.com/quote.ashx"
@@ -345,12 +455,39 @@ class FinvizScraper(BaseScraper):
 
 # Test scrapers directly
 if __name__ == '__main__':
-    print("Testing Yahoo Finance Scraper...")
-    yahoo = YahooFinanceScraper()
-    yahoo_data = yahoo.scrape('AAPL')
-    print(f"Yahoo AAPL: {yahoo_data}")
+    print("="*50)
+    print("SCRAPER TEST SUITE")
+    print("="*50)
     
-    print("\nTesting Finviz Scraper...")
+    ticker = 'AAPL'
+    sa = None
+    sa_data = None
+    
+    print(f"\n1. Testing StockAnalysis Scraper for {ticker}...")
+    if STOCKANALYSIS_AVAILABLE:
+        sa = StockAnalysisScraperWrapper()
+        sa_data = sa.scrape(ticker)
+        print(f"   StockAnalysis: {sa_data}")
+    else:
+        print("   ⚠️ StockAnalysis scraper not available")
+    
+    print(f"\n2. Testing Yahoo Finance Scraper for {ticker}...")
+    yahoo = YahooFinanceScraper()
+    yahoo_data = yahoo.scrape(ticker)
+    print(f"   Yahoo: {yahoo_data}")
+    
+    print(f"\n3. Testing Finviz Scraper for {ticker}...")
     finviz = FinvizScraper()
-    finviz_data = finviz.scrape('AAPL')
-    print(f"Finviz AAPL: {finviz_data}")
+    finviz_data = finviz.scrape(ticker)
+    print(f"   Finviz: {finviz_data}")
+    
+    # Close StockAnalysis scraper (releases Chrome)
+    if sa:
+        sa.close()
+    
+    print("\n" + "="*50)
+    print("SUMMARY")
+    print("="*50)
+    print(f"StockAnalysis: {'✅ Working' if sa_data and sa_data.get('price') else '❌ Failed'}")
+    print(f"Yahoo Finance: {'✅ Working' if yahoo_data and yahoo_data.get('price') else '❌ Failed'}")
+    print(f"Finviz:        {'✅ Working' if finviz_data and finviz_data.get('roe') else '❌ Failed'}")
