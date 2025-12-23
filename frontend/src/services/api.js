@@ -4,6 +4,8 @@
  * 
  * v2.0: Added fundamentals endpoint for rich fundamental data
  * v2.1: Added TradingView screener endpoints for batch scanning
+ * v2.2: Added Support & Resistance endpoint
+ * v2.3: Added Validation Engine endpoints (Day 17)
  */
 
 const API_BASE_URL = 'http://localhost:5001/api';
@@ -164,7 +166,6 @@ export async function fetchVIXData() {
 /**
  * Check backend health
  */
-
 export async function checkBackendHealth() {
   try {
     const response = await fetch(`${API_BASE_URL}/health`);
@@ -180,7 +181,8 @@ export async function checkBackendHealth() {
       version: data.version,
       defeatbetaAvailable: data.defeatbeta_available,
       tradingviewAvailable: data.tradingview_available,
-      srEngineAvailable: data.sr_engine_available,  // <-- ADD THIS LINE
+      srEngineAvailable: data.sr_engine_available,
+      validationAvailable: data.validation_available,
       timestamp: data.timestamp
     };
     
@@ -295,7 +297,6 @@ export async function fetchScanResults(strategy = 'reddit', limit = 50) {
 
 // ============================================ 
 // SUPPORT & RESISTANCE ENDPOINT (Day 14)
-// Add this section to the END of api.js
 // ============================================
 
 /**
@@ -377,5 +378,96 @@ export async function fetchFullAnalysisData(ticker) {
   } catch (error) {
     console.error('Error fetching full analysis data:', error);
     throw error;
+  }
+}
+
+// ============================================ 
+// VALIDATION ENGINE ENDPOINTS (Day 17)
+// ============================================
+
+/**
+ * Run validation for specified tickers
+ * Compares our data against external sources (StockAnalysis, Finviz)
+ * 
+ * @param {string[]} tickers - Array of ticker symbols to validate
+ * @returns {object} - Validation report with metrics and results
+ */
+export async function runValidation(tickers) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/validation/run`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ tickers })
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to run validation');
+    }
+    
+    const data = await response.json();
+    
+    return {
+      runId: data.run_id,
+      timestamp: data.timestamp,
+      tickers: data.tickers,
+      overallPassRate: data.overall_pass_rate,
+      summary: {
+        totalChecks: data.summary.total_checks,
+        validated: data.summary.validated,
+        skipped: data.summary.skipped,
+        passed: data.summary.passed,
+        failed: data.summary.failed,
+        warnings: data.summary.warnings,
+        coverageRate: data.summary.coverage_rate,
+        accuracyRate: data.summary.accuracy_rate,
+        qualityScore: data.summary.quality_score
+      },
+      tickerResults: data.ticker_results.map(tr => ({
+        ticker: tr.ticker,
+        overallStatus: tr.overall_status,
+        passCount: tr.pass_count,
+        failCount: tr.fail_count,
+        warningCount: tr.warning_count,
+        skipCount: tr.skip_count,
+        results: tr.results.map(r => ({
+          metric: r.metric,
+          ourValue: r.our_value,
+          externalValue: r.external_value,
+          externalSource: r.external_source,
+          variancePct: r.variance_pct,
+          tolerancePct: r.tolerance_pct,
+          status: r.status,
+          notes: r.notes
+        }))
+      }))
+    };
+    
+  } catch (error) {
+    console.error('Error running validation:', error);
+    throw error;
+  }
+}
+
+/**
+ * Fetch validation history (list of past runs)
+ * @returns {object[]} - Array of past validation runs
+ */
+export async function fetchValidationHistory() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/validation/history`);
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch validation history');
+    }
+    
+    return await response.json();
+    
+  } catch (error) {
+    console.error('Error fetching validation history:', error);
+    return [];
   }
 }

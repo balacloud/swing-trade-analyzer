@@ -83,9 +83,9 @@ class ValidationEngine:
     # Validation tolerances (as decimal, e.g., 0.05 = 5%)
     TOLERANCES = {
         'price': 0.02,           # 2% for prices (delayed data)
-        'roe': 0.10,             # 10% for ROE (calculation differences)
+        'roe': 0.15,             # 15% (was 10%) - Defeat Beta weekly lag
         'eps_growth': 0.15,      # 15% for EPS growth (timing differences)
-        'revenue_growth': 0.10,  # 10% for revenue growth
+        'revenue_growth': 0.25,  # 25% (was 10%) - Q/Q vs TTM differences
         'pe_ratio': 0.10,        # 10% for P/E ratio
         'debt_equity': 0.15,     # 15% for D/E ratio
         '52w_high': 0.01,        # 1% for 52-week high
@@ -504,9 +504,18 @@ class ValidationEngine:
             stock_data = stock_resp.json()
             
             # Fetch fundamentals
+            # fund_resp = requests.get(f"{self.API_BASE}/fundamentals/{ticker}", timeout=30)
+            #if fund_resp.ok:
+            #   stock_data['fundamentals'] = fund_resp.json()
+
+            # Fetch fundamentals from Defeat Beta and MERGE with yfinance fundamentals
             fund_resp = requests.get(f"{self.API_BASE}/fundamentals/{ticker}", timeout=30)
             if fund_resp.ok:
-                stock_data['fundamentals'] = fund_resp.json()
+                defeatbeta_funds = fund_resp.json()
+            # Merge: Defeat Beta values override yfinance, but keep yfinance values not in Defeat Beta
+            yfinance_funds = stock_data.get('fundamentals', {})
+            merged_funds = {**yfinance_funds, **defeatbeta_funds}
+            stock_data['fundamentals'] = merged_funds    
             
             return stock_data
             

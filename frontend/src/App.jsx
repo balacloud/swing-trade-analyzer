@@ -3,16 +3,17 @@
  * v2.0: Integrated with Defeat Beta for rich fundamentals
  * v2.1: Added TradingView screener scan tab (Day 12)
  * v2.2: Added Support & Resistance Trade Setup display (Day 14)
+ * v2.3: Added Validation tab for data quality monitoring (Day 17)
  */
 
 import React, { useState, useEffect } from 'react';
-import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults } from './services/api';
+import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation } from './services/api';
 import { calculateScore } from './utils/scoringEngine';
 import { calculateRelativeStrength } from './utils/rsCalculator';
 
 function App() {
   // Tab state
-  const [activeTab, setActiveTab] = useState('analyze'); // 'analyze' or 'scan'
+  const [activeTab, setActiveTab] = useState('analyze'); // 'analyze', 'scan', or 'validate'
   
   // Analysis state
   const [ticker, setTicker] = useState('');
@@ -20,7 +21,7 @@ function App() {
   const [error, setError] = useState(null);
   const [backendStatus, setBackendStatus] = useState({ healthy: false });
   const [analysisResult, setAnalysisResult] = useState(null);
-  const [srData, setSrData] = useState(null);  // S&R data state
+  const [srData, setSrData] = useState(null);
 
   // Scan state
   const [scanLoading, setScanLoading] = useState(false);
@@ -28,6 +29,12 @@ function App() {
   const [scanResults, setScanResults] = useState(null);
   const [selectedStrategy, setSelectedStrategy] = useState('reddit');
   const [strategies, setStrategies] = useState(null);
+
+  // Validation state (Day 17)
+  const [validationLoading, setValidationLoading] = useState(false);
+  const [validationError, setValidationError] = useState(null);
+  const [validationResults, setValidationResults] = useState(null);
+  const [validationTickers, setValidationTickers] = useState('AAPL, NVDA, MSFT');
 
   // Quick picks for testing
   const quickPicks = ['AVGO', 'NVDA', 'AAPL', 'META', 'MSFT', 'NFLX', 'PLTR']; 
@@ -51,22 +58,17 @@ function App() {
     setLoading(true);
     setError(null);
     setAnalysisResult(null);
-    setSrData(null);  // Reset S&R data
-    setActiveTab('analyze'); // Switch to analyze tab
+    setSrData(null);
+    setActiveTab('analyze');
 
     try {
-      // Fetch all data including S&R
       const data = await fetchFullAnalysisData(targetTicker);
-      
-      // Calculate score using enriched data
       const result = calculateScore(data.stock, data.spy, data.vix);
-      
-      // Add RS data (already calculated in scoring engine, but add for display)
       const rsData = calculateRelativeStrength(data.stock, data.spy);
       result.rsData = rsData;
       
       setAnalysisResult(result);
-      setSrData(data.sr);  // Store S&R data
+      setSrData(data.sr);
       setTicker(targetTicker);
       
     } catch (err) {
@@ -89,6 +91,32 @@ function App() {
       setScanError(err.message || 'Failed to scan for candidates');
     } finally {
       setScanLoading(false);
+    }
+  };
+
+  // Run validation (Day 17)
+  const handleRunValidation = async () => {
+    const tickers = validationTickers
+      .split(',')
+      .map(t => t.trim().toUpperCase())
+      .filter(t => t.length > 0);
+
+    if (tickers.length === 0) {
+      setValidationError('Please enter at least one ticker');
+      return;
+    }
+
+    setValidationLoading(true);
+    setValidationError(null);
+    setValidationResults(null);
+
+    try {
+      const results = await runValidation(tickers);
+      setValidationResults(results);
+    } catch (err) {
+      setValidationError(err.message || 'Failed to run validation');
+    } finally {
+      setValidationLoading(false);
     }
   };
 
@@ -134,10 +162,29 @@ function App() {
 
   // Get RSI color
   const getRsiColor = (rsi) => {
-    if (rsi >= 70) return 'text-red-400';  // Overbought
-    if (rsi <= 30) return 'text-green-400'; // Oversold
-    if (rsi >= 50) return 'text-green-300'; // Bullish
+    if (rsi >= 70) return 'text-red-400';
+    if (rsi <= 30) return 'text-green-400';
+    if (rsi >= 50) return 'text-green-300';
     return 'text-yellow-400';
+  };
+
+  // Get validation status color
+  const getValidationStatusColor = (status) => {
+    switch (status) {
+      case 'pass': return 'text-green-400 bg-green-900/30';
+      case 'fail': return 'text-red-400 bg-red-900/30';
+      case 'warning': return 'text-yellow-400 bg-yellow-900/30';
+      case 'skip': return 'text-gray-400 bg-gray-700/30';
+      default: return 'text-gray-400';
+    }
+  };
+
+  // Get quality score color
+  const getQualityColor = (score) => {
+    if (score >= 90) return 'text-green-400';
+    if (score >= 75) return 'text-green-300';
+    if (score >= 60) return 'text-yellow-400';
+    return 'text-red-400';
   };
 
   return (
@@ -156,6 +203,7 @@ function App() {
               {backendStatus.defeatbetaAvailable && ' • Defeat Beta ✓'}
               {backendStatus.tradingviewAvailable && ' • TradingView ✓'}
               {backendStatus.srEngineAvailable && ' • S&R ✓'}
+              {backendStatus.validationAvailable && ' • Validation ✓'}
             </span>
           </div>
         </div>
@@ -183,6 +231,16 @@ function App() {
             >
               🔍 Scan Market
             </button>
+            <button
+              onClick={() => setActiveTab('validate')}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'validate'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              ✅ Validate Data
+            </button>
           </div>
         </div>
 
@@ -197,311 +255,209 @@ function App() {
                   value={ticker}
                   onChange={(e) => setTicker(e.target.value.toUpperCase())}
                   onKeyPress={(e) => e.key === 'Enter' && analyzeStock()}
-                  placeholder="Enter ticker (e.g., AVGO)"
+                  placeholder="Enter ticker symbol (e.g., AAPL)"
                   className="flex-1 bg-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <button
                   onClick={() => analyzeStock()}
                   disabled={loading}
-                  className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-semibold disabled:opacity-50"
+                  className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg font-semibold disabled:opacity-50"
                 >
                   {loading ? 'Analyzing...' : 'Analyze'}
                 </button>
               </div>
-
+              
               {/* Quick Picks */}
               <div className="mt-4 flex flex-wrap gap-2">
-                {quickPicks.map((pick) => (
+                <span className="text-gray-400 text-sm">Quick picks:</span>
+                {quickPicks.map((t) => (
                   <button
-                    key={pick}
-                    onClick={() => {
-                      setTicker(pick);
-                      analyzeStock(pick);
-                    }}
+                    key={t}
+                    onClick={() => analyzeStock(t)}
                     className="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm"
                   >
-                    {pick}
+                    {t}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Error Message */}
+            {/* Error Display */}
             {error && (
               <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-6 text-red-200">
                 {error}
               </div>
             )}
 
+            {/* Loading State */}
+            {loading && (
+              <div className="bg-gray-800 rounded-lg p-12 text-center">
+                <div className="text-4xl mb-4">⏳</div>
+                <p className="text-gray-400">Analyzing {ticker}...</p>
+              </div>
+            )}
+
             {/* Analysis Results */}
-            {analysisResult && (
+            {analysisResult && !loading && (
               <div className="space-y-6">
                 {/* Verdict Card */}
-                <div className={`${getVerdictColor(analysisResult.verdict)} rounded-lg p-6 text-center`}>
-                  <div className="text-4xl font-bold">{analysisResult.verdict?.verdict}</div>
-                  <div className="text-xl mt-2">{analysisResult.ticker} - {analysisResult.name}</div>
-                  <div className="mt-2 opacity-90">{analysisResult.verdict?.reason}</div>
+                <div className={`rounded-lg p-6 ${getVerdictColor(analysisResult.verdict)}`}>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h2 className="text-2xl font-bold">{analysisResult.ticker} - {analysisResult.name}</h2>
+                      <p className="text-white/80">{analysisResult.sector} • {analysisResult.industry}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-4xl font-bold">{analysisResult.verdict?.verdict || 'N/A'}</div>
+                      <div className="text-xl">{analysisResult.totalScore}/75 points</div>
+                    </div>
+                  </div>
                 </div>
 
-                {/* S&R Trade Setup - NEW in v2.2 */}
+                {/* Price & RS Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Price Card */}
+                  <div className="bg-gray-800 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold mb-4 text-blue-400">💰 Price Data</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Current Price:</span>
+                        <span className="font-bold">{formatCurrency(analysisResult.currentPrice)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">52-Week High:</span>
+                        <span>{formatCurrency(analysisResult.fiftyTwoWeekHigh)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">52-Week Low:</span>
+                        <span>{formatCurrency(analysisResult.fiftyTwoWeekLow)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">% from High:</span>
+                        <span className={analysisResult.pctFromHigh >= -10 ? 'text-green-400' : 'text-yellow-400'}>
+                          {formatPercent(analysisResult.pctFromHigh)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* RS Card */}
+                  <div className="bg-gray-800 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold mb-4 text-blue-400">📈 Relative Strength</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">RS vs S&P 500:</span>
+                        <span className={`font-bold ${analysisResult.rsData?.rsRatio >= 1.2 ? 'text-green-400' : analysisResult.rsData?.rsRatio >= 1.0 ? 'text-yellow-400' : 'text-red-400'}`}>
+                          {analysisResult.rsData?.rsRatio?.toFixed(2) || 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Stock 52W Return:</span>
+                        <span className={analysisResult.rsData?.stock52wReturn >= 0 ? 'text-green-400' : 'text-red-400'}>
+                          {formatPercent(analysisResult.rsData?.stock52wReturn)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">S&P 52W Return:</span>
+                        <span>{formatPercent(analysisResult.rsData?.spy52wReturn)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">RS Rating:</span>
+                        <span className={`font-bold ${analysisResult.rsData?.rsRating === 'Strong' ? 'text-green-400' : analysisResult.rsData?.rsRating === 'Moderate' ? 'text-yellow-400' : 'text-red-400'}`}>
+                          {analysisResult.rsData?.rsRating || 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Trade Setup Card (S&R) */}
                 {srData && (
-                  <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-lg p-6 border border-blue-500/30">
-                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                      🎯 Trade Setup
-                      <span className="text-sm font-normal text-gray-400">
-                        (Method: {srData.method})
-                        {srData.meta?.resistanceProjected && (
-                          <span className="text-yellow-400 ml-2">⚠️ Projected R</span>
-                        )}
-                      </span>
-                    </h2>
-                    
-                    {/* Entry / Stop / Target */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div className="bg-gray-800 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold mb-4 text-blue-400">🎯 Trade Setup</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="bg-gray-700/50 rounded-lg p-4 text-center">
-                        <div className="text-gray-400 text-sm">Current Price</div>
-                        <div className="text-2xl font-bold text-white">
-                          {formatCurrency(srData.currentPrice)}
-                        </div>
+                        <div className="text-gray-400 text-sm mb-1">Entry</div>
+                        <div className="text-xl font-bold text-green-400">{formatCurrency(srData.suggestedEntry)}</div>
                       </div>
-                      <div className="bg-green-900/30 rounded-lg p-4 text-center border border-green-500/30">
-                        <div className="text-green-400 text-sm">📥 Entry</div>
-                        <div className="text-2xl font-bold text-green-400">
-                          {srData.suggestedEntry ? formatCurrency(srData.suggestedEntry) : 'N/A'}
-                        </div>
+                      <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                        <div className="text-gray-400 text-sm mb-1">Stop Loss</div>
+                        <div className="text-xl font-bold text-red-400">{formatCurrency(srData.suggestedStop)}</div>
                       </div>
-                      <div className="bg-red-900/30 rounded-lg p-4 text-center border border-red-500/30">
-                        <div className="text-red-400 text-sm">🛑 Stop Loss</div>
-                        <div className="text-2xl font-bold text-red-400">
-                          {srData.suggestedStop ? formatCurrency(srData.suggestedStop) : 'N/A'}
-                        </div>
+                      <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                        <div className="text-gray-400 text-sm mb-1">Target</div>
+                        <div className="text-xl font-bold text-blue-400">{formatCurrency(srData.suggestedTarget)}</div>
                       </div>
-                      <div className="bg-blue-900/30 rounded-lg p-4 text-center border border-blue-500/30">
-                        <div className="text-blue-400 text-sm">🎯 Target</div>
-                        <div className="text-2xl font-bold text-blue-400">
-                          {srData.suggestedTarget ? formatCurrency(srData.suggestedTarget) : 'N/A'}
+                      <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                        <div className="text-gray-400 text-sm mb-1">Risk/Reward</div>
+                        <div className={`text-xl font-bold ${srData.riskReward >= 2 ? 'text-green-400' : srData.riskReward >= 1.5 ? 'text-yellow-400' : 'text-red-400'}`}>
+                          {srData.riskReward?.toFixed(2)}:1
                         </div>
                       </div>
                     </div>
-
-                    {/* Risk/Reward */}
-                    {srData.riskReward && (
-                      <div className="flex justify-center mb-4">
-                        <div className={`px-6 py-2 rounded-full font-bold ${
-                          srData.riskReward >= 3 ? 'bg-green-600' :
-                          srData.riskReward >= 2 ? 'bg-green-500' :
-                          srData.riskReward >= 1.5 ? 'bg-yellow-500' : 'bg-red-500'
-                        }`}>
-                          Risk/Reward: {srData.riskReward}:1
-                          {srData.riskReward >= 3 && ' 🌟 Excellent'}
-                          {srData.riskReward >= 2 && srData.riskReward < 3 && ' ✓ Good'}
-                          {srData.riskReward < 1.5 && ' ⚠️ Poor'}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Support & Resistance Levels */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <div className="text-sm text-gray-400 mb-2">Support Levels</div>
-                        <div className="flex flex-wrap gap-2">
-                          {srData.support?.length > 0 ? (
-                            srData.support.map((level, i) => (
-                              <span key={i} className="bg-green-900/40 text-green-400 px-3 py-1 rounded text-sm">
-                                {formatCurrency(level)}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-gray-500">None found</span>
-                          )}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-400 mb-2">
-                          Resistance Levels
-                          {srData.meta?.resistanceProjected && (
-                            <span className="text-yellow-400 ml-1">(ATR projected)</span>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {srData.resistance?.length > 0 ? (
-                            srData.resistance.map((level, i) => (
-                              <span key={i} className="bg-red-900/40 text-red-400 px-3 py-1 rounded text-sm">
-                                {formatCurrency(level)}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-gray-500">None found</span>
-                          )}
-                        </div>
-                      </div>
+                    <div className="mt-4 text-xs text-gray-500 text-center">
+                      Method: {srData.method} • Support levels: {srData.support?.length || 0} • Resistance levels: {srData.resistance?.length || 0}
                     </div>
                   </div>
                 )}
 
-                {/* Score Overview */}
+                {/* Score Breakdown */}
                 <div className="bg-gray-800 rounded-lg p-6">
-                  <h2 className="text-xl font-bold mb-4">Score: {analysisResult.totalScore}/75</h2>
-                  
-                  {/* Score Bar */}
-                  <div className="w-full bg-gray-700 rounded-full h-4 mb-6">
-                    <div
-                      className={`h-4 rounded-full ${
-                        analysisResult.totalScore >= 60 ? 'bg-green-500' :
-                        analysisResult.totalScore >= 40 ? 'bg-yellow-500' : 'bg-red-500'
-                      }`}
-                      style={{ width: `${(analysisResult.totalScore / 75) * 100}%` }}
-                    ></div>
-                  </div>
-
-                  {/* Score Breakdown */}
+                  <h3 className="text-lg font-semibold mb-4 text-blue-400">📊 Score Breakdown</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-gray-700 rounded-lg p-4 text-center">
+                    <div className="bg-gray-700/50 rounded-lg p-4">
                       <div className="text-gray-400 text-sm">Technical</div>
-                      <div className={`text-2xl font-bold ${getScoreColor(analysisResult.breakdown?.technical?.score, 40)}`}>
-                        {analysisResult.breakdown?.technical?.score}/40
+                      <div className={`text-2xl font-bold ${getScoreColor(analysisResult.scores?.technical || 0, 40)}`}>
+                        {analysisResult.scores?.technical || 0}/40
                       </div>
                     </div>
-                    <div className="bg-gray-700 rounded-lg p-4 text-center">
-                      <div className="text-gray-400 text-sm">
-                        Fundamental
-                        {analysisResult.breakdown?.fundamental?.dataQuality === 'rich' && (
-                          <span className="text-green-400 ml-1">★</span>
-                        )}
-                      </div>
-                      <div className={`text-2xl font-bold ${getScoreColor(analysisResult.breakdown?.fundamental?.score, 20)}`}>
-                        {analysisResult.breakdown?.fundamental?.score}/20
+                    <div className="bg-gray-700/50 rounded-lg p-4">
+                      <div className="text-gray-400 text-sm">Fundamental</div>
+                      <div className={`text-2xl font-bold ${getScoreColor(analysisResult.scores?.fundamental || 0, 20)}`}>
+                        {analysisResult.scores?.fundamental || 0}/20
                       </div>
                     </div>
-                    <div className="bg-gray-700 rounded-lg p-4 text-center">
+                    <div className="bg-gray-700/50 rounded-lg p-4">
                       <div className="text-gray-400 text-sm">Sentiment</div>
-                      <div className={`text-2xl font-bold ${getScoreColor(analysisResult.breakdown?.sentiment?.score, 10)}`}>
-                        {analysisResult.breakdown?.sentiment?.score}/10
+                      <div className={`text-2xl font-bold ${getScoreColor(analysisResult.scores?.sentiment || 0, 10)}`}>
+                        {analysisResult.scores?.sentiment || 0}/10
                       </div>
                     </div>
-                    <div className="bg-gray-700 rounded-lg p-4 text-center">
+                    <div className="bg-gray-700/50 rounded-lg p-4">
                       <div className="text-gray-400 text-sm">Risk/Macro</div>
-                      <div className={`text-2xl font-bold ${getScoreColor(analysisResult.breakdown?.risk?.score, 5)}`}>
-                        {analysisResult.breakdown?.risk?.score}/5
+                      <div className={`text-2xl font-bold ${getScoreColor(analysisResult.scores?.risk || 0, 5)}`}>
+                        {analysisResult.scores?.risk || 0}/5
                       </div>
                     </div>
                   </div>
                 </div>
-
-                {/* Relative Strength */}
-                {analysisResult.rsData && (
-                  <div className="bg-gray-800 rounded-lg p-6">
-                    <h2 className="text-xl font-bold mb-4">📊 Relative Strength</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div>
-                        <div className="text-gray-400 text-sm">52-Week RS</div>
-                        <div className={`text-2xl font-bold ${
-                          analysisResult.rsData.rs52Week >= 1.2 ? 'text-green-400' :
-                          analysisResult.rsData.rs52Week >= 1.0 ? 'text-green-300' :
-                          analysisResult.rsData.rs52Week >= 0.8 ? 'text-yellow-400' : 'text-red-400'
-                        }`}>
-                          {analysisResult.rsData.rs52Week?.toFixed(2) || 'N/A'}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-gray-400 text-sm">13-Week RS</div>
-                        <div className={`text-2xl font-bold ${
-                          analysisResult.rsData.rs13Week >= 1.0 ? 'text-green-400' :
-                          analysisResult.rsData.rs13Week >= 0.8 ? 'text-yellow-400' : 'text-red-400'
-                        }`}>
-                          {analysisResult.rsData.rs13Week?.toFixed(2) || 'N/A'}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-gray-400 text-sm">RS Rating</div>
-                        <div className="text-2xl font-bold text-blue-400">
-                          {analysisResult.rsData.rsRating || 'N/A'}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-gray-400 text-sm">Stock vs SPY (52w)</div>
-                        <div className="text-sm mt-1">
-                          <span className={analysisResult.rsData.stockReturn52w >= 0 ? 'text-green-400' : 'text-red-400'}>
-                            {analysisResult.rsData.stockReturn52w !== null && analysisResult.rsData.stockReturn52w !== undefined 
-                              ? `${analysisResult.rsData.stockReturn52w >= 0 ? '+' : ''}${analysisResult.rsData.stockReturn52w}%` 
-                              : 'N/A'}
-                          </span>
-                          <span className="text-gray-500"> vs </span>
-                          <span className={analysisResult.rsData.spyReturn52w >= 0 ? 'text-green-400' : 'text-red-400'}>
-                            {analysisResult.rsData.spyReturn52w !== null && analysisResult.rsData.spyReturn52w !== undefined 
-                              ? `${analysisResult.rsData.spyReturn52w >= 0 ? '+' : ''}${analysisResult.rsData.spyReturn52w}%` 
-                              : 'N/A'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Fundamental Details */}
-                {analysisResult.breakdown?.fundamental && (
-                  <div className="bg-gray-800 rounded-lg p-6">
-                    <h2 className="text-xl font-bold mb-4">
-                      💰 Fundamentals
-                      <span className="text-sm font-normal text-gray-400 ml-2">
-                        (Source: {analysisResult.breakdown.fundamental.dataSource})
-                      </span>
-                    </h2>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                      {Object.entries(analysisResult.breakdown.fundamental.details || {}).map(([key, data]) => (
-                        <div key={key} className="text-center">
-                          <div className="text-gray-400 text-sm capitalize">{key.replace(/([A-Z])/g, ' $1')}</div>
-                          <div className={`text-lg font-bold ${getScoreColor(data.score, data.max)}`}>
-                            {data.score}/{data.max}
-                          </div>
-                          {data.value !== undefined && data.value !== null && (
-                            <div className="text-xs text-gray-500">
-                              {typeof data.value === 'number' ? 
-                                (key.includes('Growth') || key === 'roe' ? formatPercent(data.value) : data.value.toFixed(2)) 
-                                : 'N/A'}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Quality Gates */}
-                {analysisResult.qualityGates && (
-                  <div className="bg-gray-800 rounded-lg p-6">
-                    <h2 className="text-xl font-bold mb-4">
-                      🚦 Quality Gates
-                      <span className={`ml-2 text-sm ${
-                        analysisResult.qualityGates.passed ? 'text-green-400' : 'text-red-400'
-                      }`}>
-                        {analysisResult.qualityGates.passed ? '✓ All Passed' : `✗ ${analysisResult.qualityGates.criticalFails} Failed`}
-                      </span>
-                    </h2>
-                    
-                    {analysisResult.qualityGates.gates?.length > 0 ? (
-                      <div className="space-y-2">
-                        {analysisResult.qualityGates.gates.map((gate, i) => (
-                          <div key={i} className="flex items-center justify-between bg-red-900/30 rounded p-3">
-                            <span className="text-red-400">✗ {gate.name}</span>
-                            <span className="text-gray-400">{gate.value} (need {gate.threshold})</span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-green-400">✓ All quality checks passed</div>
-                    )}
-                  </div>
-                )}
 
                 {/* Technical Indicators */}
                 {analysisResult.indicators && (
                   <div className="bg-gray-800 rounded-lg p-6">
-                    <h2 className="text-xl font-bold mb-4">📈 Technical Indicators</h2>
+                    <h3 className="text-lg font-semibold mb-4 text-blue-400">📉 Technical Indicators</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
-                        <span className="text-gray-400">Price:</span>
-                        <span className="ml-2">{formatCurrency(analysisResult.currentPrice)}</span>
+                        <span className="text-gray-400">RSI (14):</span>
+                        <span className={`ml-2 ${getRsiColor(analysisResult.indicators.rsi)}`}>
+                          {analysisResult.indicators.rsi?.toFixed(1) || 'N/A'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">8 EMA:</span>
+                        <span className={`ml-2 ${
+                          analysisResult.currentPrice > analysisResult.indicators.ema8 ? 'text-green-400' : 'text-red-400'
+                        }`}>
+                          {formatCurrency(analysisResult.indicators.ema8)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">21 EMA:</span>
+                        <span className={`ml-2 ${
+                          analysisResult.currentPrice > analysisResult.indicators.ema21 ? 'text-green-400' : 'text-red-400'
+                        }`}>
+                          {formatCurrency(analysisResult.indicators.ema21)}
+                        </span>
                       </div>
                       <div>
                         <span className="text-gray-400">50 SMA:</span>
@@ -663,7 +619,6 @@ function App() {
                 {/* Scan Notes */}
                 <div className="mt-4 text-xs text-gray-500">
                   <p>💡 Click any row to run full 75-point analysis. All candidates are in Stage 2 uptrends (50 SMA &gt; 200 SMA).</p>
-                  {strategies?.notes && <p className="mt-1">{strategies.notes}</p>}
                 </div>
               </div>
             )}
@@ -676,8 +631,191 @@ function App() {
                 <p className="text-gray-500 mb-4">
                   Select a strategy and click "Scan for Opportunities" to find swing trade candidates.
                 </p>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ==================== VALIDATE TAB (Day 17) ==================== */}
+        {activeTab === 'validate' && (
+          <>
+            {/* Validation Controls */}
+            <div className="bg-gray-800 rounded-lg p-6 mb-6">
+              <h2 className="text-xl font-bold mb-4 text-blue-400">✅ Data Validation Engine</h2>
+              <p className="text-gray-400 text-sm mb-4">
+                Compare our data against external sources (StockAnalysis, Finviz) to ensure accuracy.
+              </p>
+              
+              <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
+                <div className="flex-1">
+                  <label className="block text-gray-400 text-sm mb-2">Tickers to Validate (comma-separated)</label>
+                  <input
+                    type="text"
+                    value={validationTickers}
+                    onChange={(e) => setValidationTickers(e.target.value.toUpperCase())}
+                    placeholder="AAPL, NVDA, MSFT"
+                    className="w-full bg-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <button
+                  onClick={handleRunValidation}
+                  disabled={validationLoading}
+                  className="bg-purple-600 hover:bg-purple-700 px-8 py-3 rounded-lg font-semibold disabled:opacity-50 whitespace-nowrap"
+                >
+                  {validationLoading ? '⏳ Validating...' : '✅ Run Validation'}
+                </button>
+              </div>
+
+              <div className="mt-3 text-xs text-gray-500">
+                ⚠️ Note: Validation uses web scraping which takes ~10-15 seconds per ticker.
+              </div>
+            </div>
+
+            {/* Validation Error */}
+            {validationError && (
+              <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-6 text-red-200">
+                {validationError}
+              </div>
+            )}
+
+            {/* Loading State */}
+            {validationLoading && (
+              <div className="bg-gray-800 rounded-lg p-12 text-center">
+                <div className="text-4xl mb-4">⏳</div>
+                <p className="text-gray-400">Running validation... This may take 10-30 seconds.</p>
+                <p className="text-gray-500 text-sm mt-2">Fetching data from StockAnalysis and Finviz...</p>
+              </div>
+            )}
+
+            {/* Validation Results */}
+            {validationResults && !validationLoading && (
+              <div className="space-y-6">
+                {/* Summary Card */}
+                <div className="bg-gray-800 rounded-lg p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-blue-400">📊 Validation Summary</h3>
+                      <p className="text-xs text-gray-500">Run ID: {validationResults.runId}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className={`text-3xl font-bold ${getQualityColor(validationResults.summary.qualityScore)}`}>
+                        {validationResults.summary.qualityScore}%
+                      </div>
+                      <div className="text-sm text-gray-400">Quality Score</div>
+                    </div>
+                  </div>
+
+                  {/* Metrics Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-blue-400">{validationResults.summary.totalChecks}</div>
+                      <div className="text-xs text-gray-400">Total Checks</div>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-green-400">{validationResults.summary.coverageRate}%</div>
+                      <div className="text-xs text-gray-400">Coverage Rate</div>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-green-400">{validationResults.summary.accuracyRate}%</div>
+                      <div className="text-xs text-gray-400">Accuracy Rate</div>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                      <div className="flex justify-center gap-2 text-lg font-bold">
+                        <span className="text-green-400">{validationResults.summary.passed}✓</span>
+                        <span className="text-red-400">{validationResults.summary.failed}✗</span>
+                        <span className="text-yellow-400">{validationResults.summary.warnings}⚠</span>
+                      </div>
+                      <div className="text-xs text-gray-400">Pass / Fail / Warn</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Per-Ticker Results */}
+                {validationResults.tickerResults.map((tickerResult) => (
+                  <div key={tickerResult.ticker} className="bg-gray-800 rounded-lg p-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold">
+                        <span className="text-blue-400">{tickerResult.ticker}</span>
+                        <span className={`ml-3 px-2 py-1 rounded text-xs ${
+                          tickerResult.overallStatus === 'pass' ? 'bg-green-900/50 text-green-400' :
+                          tickerResult.overallStatus === 'fail' ? 'bg-red-900/50 text-red-400' :
+                          'bg-yellow-900/50 text-yellow-400'
+                        }`}>
+                          {tickerResult.overallStatus.toUpperCase()}
+                        </span>
+                      </h3>
+                      <div className="text-sm text-gray-400">
+                        {tickerResult.passCount}✓ {tickerResult.failCount}✗ {tickerResult.warningCount}⚠ {tickerResult.skipCount}⊘
+                      </div>
+                    </div>
+
+                    {/* Results Table */}
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="text-gray-400 border-b border-gray-700 text-xs">
+                            <th className="text-left py-2 px-2">Metric</th>
+                            <th className="text-right py-2 px-2">Our Value</th>
+                            <th className="text-right py-2 px-2">External</th>
+                            <th className="text-left py-2 px-2">Source</th>
+                            <th className="text-right py-2 px-2">Variance</th>
+                            <th className="text-center py-2 px-2">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {tickerResult.results.map((result, idx) => (
+                            <tr key={idx} className="border-b border-gray-700/30 hover:bg-gray-700/20">
+                              <td className="py-2 px-2 text-gray-300">{result.metric}</td>
+                              <td className="py-2 px-2 text-right font-mono">
+                                {result.ourValue !== null ? 
+                                  (typeof result.ourValue === 'number' ? result.ourValue.toFixed(2) : result.ourValue) 
+                                  : <span className="text-gray-500">null</span>}
+                              </td>
+                              <td className="py-2 px-2 text-right font-mono">
+                                {result.externalValue !== null ? 
+                                  (typeof result.externalValue === 'number' ? result.externalValue.toFixed(2) : result.externalValue) 
+                                  : <span className="text-gray-500">null</span>}
+                              </td>
+                              <td className="py-2 px-2 text-gray-400 text-xs">{result.externalSource}</td>
+                              <td className="py-2 px-2 text-right">
+                                {result.variancePct !== null ? 
+                                  <span className={result.variancePct > result.tolerancePct ? 'text-red-400' : 'text-gray-400'}>
+                                    {result.variancePct.toFixed(1)}%
+                                  </span> 
+                                  : '-'}
+                              </td>
+                              <td className="py-2 px-2 text-center">
+                                <span className={`px-2 py-0.5 rounded text-xs ${getValidationStatusColor(result.status)}`}>
+                                  {result.status.toUpperCase()}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Info Note */}
+                <div className="bg-gray-800/50 rounded-lg p-4 text-xs text-gray-500">
+                  <p><strong>Quality Score</strong> = Coverage × Accuracy. This is the TRUE system health metric.</p>
+                  <p className="mt-1"><strong>Coverage</strong> = % of checks with external data available.</p>
+                  <p className="mt-1"><strong>Accuracy</strong> = % of validated checks that passed.</p>
+                </div>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!validationResults && !validationLoading && !validationError && (
+              <div className="bg-gray-800 rounded-lg p-12 text-center">
+                <div className="text-6xl mb-4">✅</div>
+                <h3 className="text-xl font-bold text-gray-300 mb-2">Data Validation</h3>
+                <p className="text-gray-500 mb-4">
+                  Enter tickers and click "Run Validation" to verify data accuracy against external sources.
+                </p>
                 <p className="text-gray-600 text-sm">
-                  All strategies filter for NYSE/NASDAQ stocks in Stage 2 uptrends with institutional-quality criteria.
+                  Sources: StockAnalysis (prices, P/E, EPS) • Finviz (ROE, D/E, Revenue Growth)
                 </p>
               </div>
             )}
@@ -686,7 +824,7 @@ function App() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>Day 14 - S&R Engine Integration | 75-Point Scoring System</p>
+          <p>Day 17 - Validation Engine UI | 75-Point Scoring System</p>
           <p className="mt-1">Based on Mark Minervini SEPA + William O'Neil CAN SLIM</p>
         </div>
       </div>
