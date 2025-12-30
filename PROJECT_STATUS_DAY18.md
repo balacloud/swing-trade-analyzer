@@ -247,12 +247,27 @@ git push origin main
 
 ---
 
-## ⚠️ Known Issues
+## ⚠️ Known Issues (Updated End of Day 18)
 
-1. **RSI shows N/A** - technicalIndicators.js doesn't export calculateRSI
-2. **ATR shows N/A** - May need similar fix
-3. **NVDA validation FAILs** - debt_equity and revenue_growth have high variance vs Finviz (data source difference)
-4. **EPS Warning** - yfinance doesn't provide EPS in fundamentals (acceptable)
+### High Priority
+1. **Scan Market BROKEN** - TradingView API returns HTML instead of JSON ("Unexpected token '<'")
+2. **AVGO Entry/Stop = N/A** - S&R pivot method found 0 support levels, breaks trade setup
+3. **S&R Engine inconsistent** - Pivot method fails for some stocks (AVGO), kmeans works (VOO, NVDA)
+
+### Medium Priority
+4. **RSI always N/A** - technicalIndicators.js doesn't export calculateRSI function
+5. **ATR always N/A** - Calculation not reaching UI (may be same root cause as RSI)
+
+### Low Priority / Expected Behavior
+6. **ETF Fundamental = 0/20** - Expected, ETFs don't have EPS/Revenue/ROE
+7. **ETF Sector = "Unknown"** - yfinance doesn't return sector/industry for ETFs
+8. **NVDA validation FAILs** - debt_equity and revenue_growth variance vs Finviz (data source difference)
+9. **EPS Warning in validation** - yfinance doesn't provide EPS field (acceptable)
+
+### Testing Required (Day 19)
+- Test 10 different stocks to ensure Analyze Stock tab works broadly
+- Investigate why TradingView screener stopped working
+- Determine if S&R pivot vs kmeans method selection needs improvement
 
 ---
 
