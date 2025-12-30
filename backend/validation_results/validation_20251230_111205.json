@@ -1,0 +1,165 @@
+{
+  "run_id": "20251230_111205",
+  "timestamp": "2025-12-30T11:12:05.567243",
+  "tickers": [
+    "NVDA"
+  ],
+  "overall_pass_rate": 76.9,
+  "coverage_rate": 100.0,
+  "accuracy_rate": 76.9,
+  "summary": {
+    "total_checks": 13,
+    "validated": 13,
+    "skipped": 0,
+    "passed": 10,
+    "failed": 2,
+    "warnings": 1,
+    "coverage_rate": 100.0,
+    "accuracy_rate": 76.9,
+    "quality_score": 76.9,
+    "pass_rate": 76.9
+  },
+  "ticker_results": [
+    {
+      "ticker": "NVDA",
+      "timestamp": "2025-12-30T11:12:05.567381",
+      "overall_status": "fail",
+      "pass_count": 10,
+      "fail_count": 2,
+      "warning_count": 1,
+      "skip_count": 0,
+      "results": [
+        {
+          "metric": "current_price",
+          "our_value": 187.91,
+          "external_value": 187.92,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.01,
+          "tolerance_pct": 2.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 2.0%)"
+        },
+        {
+          "metric": "52w_high",
+          "our_value": 212.19,
+          "external_value": 212.19,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 1.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 1.0%)"
+        },
+        {
+          "metric": "52w_low",
+          "our_value": 86.62,
+          "external_value": 86.62,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 1.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 1.0%)"
+        },
+        {
+          "metric": "pe_ratio",
+          "our_value": 46.4,
+          "external_value": 46.48,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.17,
+          "tolerance_pct": 10.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.2% <= 10.0%)"
+        },
+        {
+          "metric": "eps",
+          "our_value": null,
+          "external_value": 4.04,
+          "external_source": "StockAnalysis",
+          "variance_pct": null,
+          "tolerance_pct": 2.0,
+          "status": "warning",
+          "notes": "Our value missing"
+        },
+        {
+          "metric": "roe",
+          "our_value": 91.87,
+          "external_value": 107.36,
+          "external_source": "Finviz",
+          "variance_pct": 14.43,
+          "tolerance_pct": 15.0,
+          "status": "pass",
+          "notes": "Within tolerance (14.4% <= 15.0%)"
+        },
+        {
+          "metric": "debt_equity",
+          "our_value": 0.13,
+          "external_value": 0.09,
+          "external_source": "Finviz",
+          "variance_pct": 44.44,
+          "tolerance_pct": 15.0,
+          "status": "fail",
+          "notes": "Exceeds tolerance (44.4% > 15.0%)"
+        },
+        {
+          "metric": "revenue_growth",
+          "our_value": 114.2,
+          "external_value": 62.49,
+          "external_source": "Finviz",
+          "variance_pct": 82.75,
+          "tolerance_pct": 25.0,
+          "status": "fail",
+          "notes": "Exceeds tolerance (82.7% > 25.0%)"
+        },
+        {
+          "metric": "sr_entry_below_price",
+          "our_value": 179.74,
+          "external_value": 187.93,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Entry $179.74 < Current $187.93"
+        },
+        {
+          "metric": "sr_entry_proximity",
+          "our_value": 4.4,
+          "external_value": 20.0,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 20.0,
+          "status": "pass",
+          "notes": "Entry is 4.4% below current (max 20%)"
+        },
+        {
+          "metric": "sr_target_above_price",
+          "our_value": 194.79,
+          "external_value": 187.93,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Target $194.79 > Current $187.93"
+        },
+        {
+          "metric": "sr_stop_below_entry",
+          "our_value": 174.35,
+          "external_value": 179.74,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Stop $174.35 < Entry $179.74"
+        },
+        {
+          "metric": "sr_risk_reward_reasonable",
+          "our_value": 2.79,
+          "external_value": null,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "R:R 2.79:1 in reasonable range (0.5-15)"
+        }
+      ]
+    }
+  ]
+}

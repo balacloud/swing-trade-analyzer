@@ -3,6 +3,7 @@
  * 75-point scoring system based on Minervini SEPA + CAN SLIM
  * 
  * v2.0: Enhanced fundamental scoring with Defeat Beta data
+ * v2.1: Fixed API structure - clean consumer-facing return object (Day 18)
  * 
  * Scoring Breakdown:
  * - Technical: 40 points
@@ -28,6 +29,7 @@ function getIndicators(prices, volumes) {
     ema8: calculateEMA(prices, 8),
     ema21: calculateEMA(prices, 21),
     atr: calculateATR(prices, 14),
+    rsi: null, // RSI calculation not available in technicalIndicators.js yet
     avgVolume50: volumes.slice(-50).reduce((a, b) => a + b, 0) / 50
   };
 }
@@ -386,6 +388,8 @@ function determineVerdict(totalScore, qualityGates, rsData) {
 /**
  * Main scoring function
  * Calculates complete analysis for a stock
+ * 
+ * v2.1: Returns a clean, consumer-facing API structure
  */
 export function calculateScore(stockData, spyData, vixData) {
   // Calculate individual scores
@@ -404,8 +408,19 @@ export function calculateScore(stockData, spyData, vixData) {
   // Verdict
   const verdict = determineVerdict(totalScore, qualityGates, technicalAnalysis.rsData);
   
+  // Get RS data for clean API
+  const rsData = technicalAnalysis.rsData || {};
+  
+  // Calculate % from 52-week high
+  const fiftyTwoWeekHigh = stockData.fiftyTwoWeekHigh;
+  const fiftyTwoWeekLow = stockData.fiftyTwoWeekLow;
+  const currentPrice = stockData.currentPrice;
+  const pctFromHigh = fiftyTwoWeekHigh ? 
+    ((currentPrice - fiftyTwoWeekHigh) / fiftyTwoWeekHigh) * 100 : null;
+  
   // Debug logging
   console.log('=== SCORING ENGINE DEBUG ===');
+  console.log('rsData being returned:', rsData);
   console.log('Stock:', stockData.ticker);
   console.log('Technical Score:', technicalAnalysis.score, '/', technicalAnalysis.maxScore);
   console.log('Technical Details:', technicalAnalysis.details);
@@ -419,23 +434,66 @@ export function calculateScore(stockData, spyData, vixData) {
   console.log('Quality Gates:', qualityGates);
   console.log('Verdict:', verdict);
   console.log('============================');
-  
+  console.log('Mapped rsData for UI:', {
+  stock52wReturn: rsData.stockReturn52w,
+  spy52wReturn: rsData.spyReturn52w
+}); 
+  // =========================================================
+  // CLEAN API RETURN STRUCTURE (v2.1)
+  // UI can consume this directly without knowing internals
+  // =========================================================
   return {
+    // Basic info
     ticker: stockData.ticker,
     name: stockData.name,
-    currentPrice: stockData.currentPrice,
+    sector: stockData.sector,
+    industry: stockData.industry,
+    
+    // Price data (for UI display)
+    currentPrice: currentPrice,
+    fiftyTwoWeekHigh: fiftyTwoWeekHigh,
+    fiftyTwoWeekLow: fiftyTwoWeekLow,
+    pctFromHigh: pctFromHigh,
+    
+    // Scores - FLAT structure for easy UI consumption
     totalScore: totalScore,
     maxScore: 75,
+    scores: {
+      technical: technicalAnalysis.score,
+      fundamental: fundamentalAnalysis.score,
+      sentiment: sentimentAnalysis.score,
+      risk: riskAnalysis.score
+    },
+    
+    // Verdict
     verdict: verdict,
     qualityGates: qualityGates,
+    
+    // RS Data - Normalized field names for UI
+    rsData: {
+      rsRatio: rsData.rs52Week,              // UI expects rsRatio
+      rs52Week: rsData.rs52Week,
+      rs13Week: rsData.rs13Week,
+      rsRating: rsData.rsRating,
+      rsTrend: rsData.rsTrend,
+      stock52wReturn: rsData.stockReturn52w,  // UI expects stock52wReturn
+      spy52wReturn: rsData.spyReturn52w,      // UI expects spy52wReturn
+      interpretation: rsData.interpretation,
+      passesQualityGate: rsData.passesQualityGate
+    },
+    
+    // Technical indicators
+    indicators: technicalAnalysis.indicators,
+    
+    // Detailed breakdown (for debugging/advanced UI)
     breakdown: {
       technical: technicalAnalysis,
       fundamental: fundamentalAnalysis,
       sentiment: sentimentAnalysis,
       risk: riskAnalysis
     },
-    rsData: technicalAnalysis.rsData,
-    indicators: technicalAnalysis.indicators,
+    
+    // Metadata
     timestamp: new Date().toISOString()
   };
 }

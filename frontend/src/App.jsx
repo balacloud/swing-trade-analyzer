@@ -9,7 +9,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation } from './services/api';
 import { calculateScore } from './utils/scoringEngine';
-import { calculateRelativeStrength } from './utils/rsCalculator';
+//import { calculateRelativeStrength } from './utils/rsCalculator';
 
 function App() {
   // Tab state
@@ -64,8 +64,8 @@ function App() {
     try {
       const data = await fetchFullAnalysisData(targetTicker);
       const result = calculateScore(data.stock, data.spy, data.vix);
-      const rsData = calculateRelativeStrength(data.stock, data.spy);
-      result.rsData = rsData;
+      //const rsData = calculateRelativeStrength(data.stock, data.spy);
+      //result.rsData = rsData;
       
       setAnalysisResult(result);
       setSrData(data.sr);
@@ -348,7 +348,7 @@ function App() {
                       <div className="flex justify-between">
                         <span className="text-gray-400">RS vs S&P 500:</span>
                         <span className={`font-bold ${analysisResult.rsData?.rsRatio >= 1.2 ? 'text-green-400' : analysisResult.rsData?.rsRatio >= 1.0 ? 'text-yellow-400' : 'text-red-400'}`}>
-                          {analysisResult.rsData?.rsRatio?.toFixed(2) || 'N/A'}
+                          {analysisResult.rsData?.rs52Week?.toFixed(2) || analysisResult.rsData?.rsRatio?.toFixed(2) || 'N/A'}
                         </span>
                       </div>
                       <div className="flex justify-between">
