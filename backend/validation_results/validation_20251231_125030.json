@@ -1,0 +1,1212 @@
+{
+  "run_id": "20251231_125030",
+  "timestamp": "2025-12-31T12:50:30.335974",
+  "tickers": [
+    "NFLX",
+    "CRM",
+    "UNH",
+    "V",
+    "HD",
+    "LLY",
+    "COIN",
+    "SMCI",
+    "F",
+    "SQ"
+  ],
+  "overall_pass_rate": 77.6,
+  "coverage_rate": 99.1,
+  "accuracy_rate": 77.6,
+  "summary": {
+    "total_checks": 108,
+    "validated": 107,
+    "skipped": 1,
+    "passed": 83,
+    "failed": 11,
+    "warnings": 13,
+    "coverage_rate": 99.1,
+    "accuracy_rate": 77.6,
+    "quality_score": 76.9,
+    "pass_rate": 77.6
+  },
+  "ticker_results": [
+    {
+      "ticker": "NFLX",
+      "timestamp": "2025-12-31T12:50:30.336023",
+      "overall_status": "warning",
+      "pass_count": 9,
+      "fail_count": 0,
+      "warning_count": 2,
+      "skip_count": 0,
+      "results": [
+        {
+          "metric": "current_price",
+          "our_value": 94.06,
+          "external_value": 94.06,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 2.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 2.0%)"
+        },
+        {
+          "metric": "52w_high",
+          "our_value": 134.115,
+          "external_value": 134.12,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 1.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 1.0%)"
+        },
+        {
+          "metric": "52w_low",
+          "our_value": 82.11,
+          "external_value": 82.11,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 1.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 1.0%)"
+        },
+        {
+          "metric": "pe_ratio",
+          "our_value": 39.3536,
+          "external_value": 39.32,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.09,
+          "tolerance_pct": 10.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.1% <= 10.0%)"
+        },
+        {
+          "metric": "eps",
+          "our_value": null,
+          "external_value": 2.39,
+          "external_source": "StockAnalysis",
+          "variance_pct": null,
+          "tolerance_pct": 2.0,
+          "status": "warning",
+          "notes": "Our value missing"
+        },
+        {
+          "metric": "roe",
+          "our_value": 35.21,
+          "external_value": 42.86,
+          "external_source": "Finviz",
+          "variance_pct": 17.85,
+          "tolerance_pct": 15.0,
+          "status": "warning",
+          "notes": "Near tolerance (17.8% vs 15.0%)"
+        },
+        {
+          "metric": "debt_equity",
+          "our_value": 0.63,
+          "external_value": 0.66,
+          "external_source": "Finviz",
+          "variance_pct": 4.55,
+          "tolerance_pct": 15.0,
+          "status": "pass",
+          "notes": "Within tolerance (4.5% <= 15.0%)"
+        },
+        {
+          "metric": "revenue_growth",
+          "our_value": 15.65,
+          "external_value": 19.06,
+          "external_source": "Finviz",
+          "variance_pct": 17.89,
+          "tolerance_pct": 25.0,
+          "status": "pass",
+          "notes": "Within tolerance (17.9% <= 25.0%)"
+        },
+        {
+          "metric": "sr_entry_below_price",
+          "our_value": 92.35,
+          "external_value": 94.06,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Entry $92.35 < Current $94.06"
+        },
+        {
+          "metric": "sr_entry_proximity",
+          "our_value": 1.8,
+          "external_value": 20.0,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 20.0,
+          "status": "pass",
+          "notes": "Entry is 1.8% below current (max 20%)"
+        },
+        {
+          "metric": "sr_stop_below_entry",
+          "our_value": 89.58,
+          "external_value": 92.35,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Stop $89.58 < Entry $92.35"
+        }
+      ]
+    },
+    {
+      "ticker": "CRM",
+      "timestamp": "2025-12-31T12:50:48.508120",
+      "overall_status": "warning",
+      "pass_count": 11,
+      "fail_count": 0,
+      "warning_count": 2,
+      "skip_count": 0,
+      "results": [
+        {
+          "metric": "current_price",
+          "our_value": 264.81,
+          "external_value": 264.89,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.03,
+          "tolerance_pct": 2.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 2.0%)"
+        },
+        {
+          "metric": "52w_high",
+          "our_value": 367.09,
+          "external_value": 367.09,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 1.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 1.0%)"
+        },
+        {
+          "metric": "52w_low",
+          "our_value": 221.96,
+          "external_value": 221.96,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 1.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 1.0%)"
+        },
+        {
+          "metric": "pe_ratio",
+          "our_value": 35.308,
+          "external_value": 35.35,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.12,
+          "tolerance_pct": 10.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.1% <= 10.0%)"
+        },
+        {
+          "metric": "eps",
+          "our_value": null,
+          "external_value": 7.49,
+          "external_source": "StockAnalysis",
+          "variance_pct": null,
+          "tolerance_pct": 2.0,
+          "status": "warning",
+          "notes": "Our value missing"
+        },
+        {
+          "metric": "roe",
+          "our_value": 10.13,
+          "external_value": 12.18,
+          "external_source": "Finviz",
+          "variance_pct": 16.83,
+          "tolerance_pct": 15.0,
+          "status": "warning",
+          "notes": "Near tolerance (16.8% vs 15.0%)"
+        },
+        {
+          "metric": "debt_equity",
+          "our_value": 0.19,
+          "external_value": 0.19,
+          "external_source": "Finviz",
+          "variance_pct": 0.0,
+          "tolerance_pct": 15.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 15.0%)"
+        },
+        {
+          "metric": "revenue_growth",
+          "our_value": 8.72,
+          "external_value": 8.63,
+          "external_source": "Finviz",
+          "variance_pct": 1.04,
+          "tolerance_pct": 25.0,
+          "status": "pass",
+          "notes": "Within tolerance (1.0% <= 25.0%)"
+        },
+        {
+          "metric": "sr_entry_below_price",
+          "our_value": 233.13,
+          "external_value": 264.83,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Entry $233.13 < Current $264.83"
+        },
+        {
+          "metric": "sr_entry_proximity",
+          "our_value": 12.0,
+          "external_value": 20.0,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 20.0,
+          "status": "pass",
+          "notes": "Entry is 12.0% below current (max 20%)"
+        },
+        {
+          "metric": "sr_target_above_price",
+          "our_value": 273.55,
+          "external_value": 264.83,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Target $273.55 > Current $264.83"
+        },
+        {
+          "metric": "sr_stop_below_entry",
+          "our_value": 226.14,
+          "external_value": 233.13,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Stop $226.14 < Entry $233.13"
+        },
+        {
+          "metric": "sr_risk_reward_reasonable",
+          "our_value": 5.78,
+          "external_value": null,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "R:R 5.78:1 in reasonable range (0.5-15)"
+        }
+      ]
+    },
+    {
+      "ticker": "UNH",
+      "timestamp": "2025-12-31T12:51:02.638868",
+      "overall_status": "warning",
+      "pass_count": 10,
+      "fail_count": 0,
+      "warning_count": 3,
+      "skip_count": 0,
+      "results": [
+        {
+          "metric": "current_price",
+          "our_value": 330.93,
+          "external_value": 331.03,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.03,
+          "tolerance_pct": 2.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 2.0%)"
+        },
+        {
+          "metric": "52w_high",
+          "our_value": 606.36,
+          "external_value": 606.36,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 1.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 1.0%)"
+        },
+        {
+          "metric": "52w_low",
+          "our_value": 234.6,
+          "external_value": 234.6,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 1.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 1.0%)"
+        },
+        {
+          "metric": "pe_ratio",
+          "our_value": 17.2354,
+          "external_value": 17.23,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.03,
+          "tolerance_pct": 10.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 10.0%)"
+        },
+        {
+          "metric": "eps",
+          "our_value": null,
+          "external_value": 19.22,
+          "external_source": "StockAnalysis",
+          "variance_pct": null,
+          "tolerance_pct": 2.0,
+          "status": "warning",
+          "notes": "Our value missing"
+        },
+        {
+          "metric": "roe",
+          "our_value": 15.55,
+          "external_value": 18.48,
+          "external_source": "Finviz",
+          "variance_pct": 15.85,
+          "tolerance_pct": 15.0,
+          "status": "warning",
+          "notes": "Near tolerance (15.9% vs 15.0%)"
+        },
+        {
+          "metric": "debt_equity",
+          "our_value": 0.83,
+          "external_value": 0.84,
+          "external_source": "Finviz",
+          "variance_pct": 1.19,
+          "tolerance_pct": 15.0,
+          "status": "pass",
+          "notes": "Within tolerance (1.2% <= 15.0%)"
+        },
+        {
+          "metric": "revenue_growth",
+          "our_value": 7.71,
+          "external_value": 12.24,
+          "external_source": "Finviz",
+          "variance_pct": 37.01,
+          "tolerance_pct": 25.0,
+          "status": "warning",
+          "notes": "Near tolerance (37.0% vs 25.0%)"
+        },
+        {
+          "metric": "sr_entry_below_price",
+          "our_value": 290.4,
+          "external_value": 331.0,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Entry $290.40 < Current $331.00"
+        },
+        {
+          "metric": "sr_entry_proximity",
+          "our_value": 12.3,
+          "external_value": 20.0,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 20.0,
+          "status": "pass",
+          "notes": "Entry is 12.3% below current (max 20%)"
+        },
+        {
+          "metric": "sr_target_above_price",
+          "our_value": 373.71,
+          "external_value": 331.0,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Target $373.71 > Current $331.00"
+        },
+        {
+          "metric": "sr_stop_below_entry",
+          "our_value": 281.69,
+          "external_value": 290.4,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Stop $281.69 < Entry $290.40"
+        },
+        {
+          "metric": "sr_risk_reward_reasonable",
+          "our_value": 9.56,
+          "external_value": null,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "R:R 9.56:1 in reasonable range (0.5-15)"
+        }
+      ]
+    },
+    {
+      "ticker": "V",
+      "timestamp": "2025-12-31T12:51:16.052917",
+      "overall_status": "warning",
+      "pass_count": 12,
+      "fail_count": 0,
+      "warning_count": 1,
+      "skip_count": 0,
+      "results": [
+        {
+          "metric": "current_price",
+          "our_value": 352.21,
+          "external_value": 352.24,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.01,
+          "tolerance_pct": 2.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 2.0%)"
+        },
+        {
+          "metric": "52w_high",
+          "our_value": 375.51,
+          "external_value": 375.51,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 1.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 1.0%)"
+        },
+        {
+          "metric": "52w_low",
+          "our_value": 299.0,
+          "external_value": 299.0,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 1.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 1.0%)"
+        },
+        {
+          "metric": "pe_ratio",
+          "our_value": 34.5982,
+          "external_value": 34.53,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.2,
+          "tolerance_pct": 10.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.2% <= 10.0%)"
+        },
+        {
+          "metric": "eps",
+          "our_value": null,
+          "external_value": 10.2,
+          "external_source": "StockAnalysis",
+          "variance_pct": null,
+          "tolerance_pct": 2.0,
+          "status": "warning",
+          "notes": "Our value missing"
+        },
+        {
+          "metric": "roe",
+          "our_value": 52.37,
+          "external_value": 51.54,
+          "external_source": "Finviz",
+          "variance_pct": 1.61,
+          "tolerance_pct": 15.0,
+          "status": "pass",
+          "notes": "Within tolerance (1.6% <= 15.0%)"
+        },
+        {
+          "metric": "debt_equity",
+          "our_value": 0.66,
+          "external_value": 0.69,
+          "external_source": "Finviz",
+          "variance_pct": 4.35,
+          "tolerance_pct": 15.0,
+          "status": "pass",
+          "notes": "Within tolerance (4.3% <= 15.0%)"
+        },
+        {
+          "metric": "revenue_growth",
+          "our_value": 11.34,
+          "external_value": 11.51,
+          "external_source": "Finviz",
+          "variance_pct": 1.48,
+          "tolerance_pct": 25.0,
+          "status": "pass",
+          "notes": "Within tolerance (1.5% <= 25.0%)"
+        },
+        {
+          "metric": "sr_entry_below_price",
+          "our_value": 324.28,
+          "external_value": 352.26,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Entry $324.28 < Current $352.26"
+        },
+        {
+          "metric": "sr_entry_proximity",
+          "our_value": 7.9,
+          "external_value": 20.0,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 20.0,
+          "status": "pass",
+          "notes": "Entry is 7.9% below current (max 20%)"
+        },
+        {
+          "metric": "sr_target_above_price",
+          "our_value": 356.98,
+          "external_value": 352.26,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Target $356.98 > Current $352.26"
+        },
+        {
+          "metric": "sr_stop_below_entry",
+          "our_value": 314.55,
+          "external_value": 324.28,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Stop $314.55 < Entry $324.28"
+        },
+        {
+          "metric": "sr_risk_reward_reasonable",
+          "our_value": 3.36,
+          "external_value": null,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "R:R 3.36:1 in reasonable range (0.5-15)"
+        }
+      ]
+    },
+    {
+      "ticker": "HD",
+      "timestamp": "2025-12-31T12:51:29.613991",
+      "overall_status": "fail",
+      "pass_count": 9,
+      "fail_count": 3,
+      "warning_count": 1,
+      "skip_count": 0,
+      "results": [
+        {
+          "metric": "current_price",
+          "our_value": 345.88,
+          "external_value": 345.77,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.03,
+          "tolerance_pct": 2.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 2.0%)"
+        },
+        {
+          "metric": "52w_high",
+          "our_value": 426.75,
+          "external_value": 426.75,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 1.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 1.0%)"
+        },
+        {
+          "metric": "52w_low",
+          "our_value": 326.31,
+          "external_value": 326.31,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 1.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 1.0%)"
+        },
+        {
+          "metric": "pe_ratio",
+          "our_value": 23.6092,
+          "external_value": 23.58,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.12,
+          "tolerance_pct": 10.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.1% <= 10.0%)"
+        },
+        {
+          "metric": "eps",
+          "our_value": null,
+          "external_value": 14.66,
+          "external_source": "StockAnalysis",
+          "variance_pct": null,
+          "tolerance_pct": 2.0,
+          "status": "warning",
+          "notes": "Our value missing"
+        },
+        {
+          "metric": "roe",
+          "our_value": 222.98,
+          "external_value": 162.91,
+          "external_source": "Finviz",
+          "variance_pct": 36.87,
+          "tolerance_pct": 15.0,
+          "status": "fail",
+          "notes": "Exceeds tolerance (36.9% > 15.0%)"
+        },
+        {
+          "metric": "debt_equity",
+          "our_value": 9.38,
+          "external_value": 5.4,
+          "external_source": "Finviz",
+          "variance_pct": 73.7,
+          "tolerance_pct": 15.0,
+          "status": "fail",
+          "notes": "Exceeds tolerance (73.7% > 15.0%)"
+        },
+        {
+          "metric": "revenue_growth",
+          "our_value": 4.48,
+          "external_value": 2.82,
+          "external_source": "Finviz",
+          "variance_pct": 58.87,
+          "tolerance_pct": 25.0,
+          "status": "fail",
+          "notes": "Exceeds tolerance (58.9% > 25.0%)"
+        },
+        {
+          "metric": "sr_entry_below_price",
+          "our_value": 343.82,
+          "external_value": 345.84,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Entry $343.82 < Current $345.84"
+        },
+        {
+          "metric": "sr_entry_proximity",
+          "our_value": 0.6,
+          "external_value": 20.0,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 20.0,
+          "status": "pass",
+          "notes": "Entry is 0.6% below current (max 20%)"
+        },
+        {
+          "metric": "sr_target_above_price",
+          "our_value": 356.93,
+          "external_value": 345.84,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Target $356.93 > Current $345.84"
+        },
+        {
+          "metric": "sr_stop_below_entry",
+          "our_value": 333.51,
+          "external_value": 343.82,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Stop $333.51 < Entry $343.82"
+        },
+        {
+          "metric": "sr_risk_reward_reasonable",
+          "our_value": 1.27,
+          "external_value": null,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "R:R 1.27:1 in reasonable range (0.5-15)"
+        }
+      ]
+    },
+    {
+      "ticker": "LLY",
+      "timestamp": "2025-12-31T12:51:43.178178",
+      "overall_status": "fail",
+      "pass_count": 9,
+      "fail_count": 3,
+      "warning_count": 1,
+      "skip_count": 0,
+      "results": [
+        {
+          "metric": "current_price",
+          "our_value": 1079.4,
+          "external_value": 1079.18,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.02,
+          "tolerance_pct": 2.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 2.0%)"
+        },
+        {
+          "metric": "52w_high",
+          "our_value": 1111.99,
+          "external_value": 1111.99,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 1.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 1.0%)"
+        },
+        {
+          "metric": "52w_low",
+          "our_value": 623.78,
+          "external_value": 623.78,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 1.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 1.0%)"
+        },
+        {
+          "metric": "pe_ratio",
+          "our_value": 52.8858,
+          "external_value": 52.79,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.18,
+          "tolerance_pct": 10.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.2% <= 10.0%)"
+        },
+        {
+          "metric": "eps",
+          "our_value": null,
+          "external_value": 20.44,
+          "external_source": "StockAnalysis",
+          "variance_pct": null,
+          "tolerance_pct": 2.0,
+          "status": "warning",
+          "notes": "Our value missing"
+        },
+        {
+          "metric": "roe",
+          "our_value": 74.62,
+          "external_value": 96.82,
+          "external_source": "Finviz",
+          "variance_pct": 22.93,
+          "tolerance_pct": 15.0,
+          "status": "fail",
+          "notes": "Exceeds tolerance (22.9% > 15.0%)"
+        },
+        {
+          "metric": "debt_equity",
+          "our_value": 2.37,
+          "external_value": 1.79,
+          "external_source": "Finviz",
+          "variance_pct": 32.4,
+          "tolerance_pct": 15.0,
+          "status": "fail",
+          "notes": "Exceeds tolerance (32.4% > 15.0%)"
+        },
+        {
+          "metric": "revenue_growth",
+          "our_value": 32.0,
+          "external_value": 53.87,
+          "external_source": "Finviz",
+          "variance_pct": 40.6,
+          "tolerance_pct": 25.0,
+          "status": "fail",
+          "notes": "Exceeds tolerance (40.6% > 25.0%)"
+        },
+        {
+          "metric": "sr_entry_below_price",
+          "our_value": 1045.4,
+          "external_value": 1079.4,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Entry $1045.40 < Current $1079.40"
+        },
+        {
+          "metric": "sr_entry_proximity",
+          "our_value": 3.1,
+          "external_value": 20.0,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 20.0,
+          "status": "pass",
+          "notes": "Entry is 3.1% below current (max 20%)"
+        },
+        {
+          "metric": "sr_target_above_price",
+          "our_value": 1102.74,
+          "external_value": 1079.4,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Target $1102.74 > Current $1079.40"
+        },
+        {
+          "metric": "sr_stop_below_entry",
+          "our_value": 1014.04,
+          "external_value": 1045.4,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Stop $1014.04 < Entry $1045.40"
+        },
+        {
+          "metric": "sr_risk_reward_reasonable",
+          "our_value": 1.83,
+          "external_value": null,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "R:R 1.83:1 in reasonable range (0.5-15)"
+        }
+      ]
+    },
+    {
+      "ticker": "COIN",
+      "timestamp": "2025-12-31T12:51:57.011542",
+      "overall_status": "fail",
+      "pass_count": 9,
+      "fail_count": 1,
+      "warning_count": 1,
+      "skip_count": 0,
+      "results": [
+        {
+          "metric": "current_price",
+          "our_value": 228.14,
+          "external_value": 228.09,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.02,
+          "tolerance_pct": 2.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 2.0%)"
+        },
+        {
+          "metric": "52w_high",
+          "our_value": 444.65,
+          "external_value": 444.65,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 1.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 1.0%)"
+        },
+        {
+          "metric": "52w_low",
+          "our_value": 142.58,
+          "external_value": 142.58,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 1.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 1.0%)"
+        },
+        {
+          "metric": "pe_ratio",
+          "our_value": 19.7012,
+          "external_value": 19.9,
+          "external_source": "StockAnalysis",
+          "variance_pct": 1.0,
+          "tolerance_pct": 10.0,
+          "status": "pass",
+          "notes": "Within tolerance (1.0% <= 10.0%)"
+        },
+        {
+          "metric": "eps",
+          "our_value": null,
+          "external_value": 11.48,
+          "external_source": "StockAnalysis",
+          "variance_pct": null,
+          "tolerance_pct": 2.0,
+          "status": "warning",
+          "notes": "Our value missing"
+        },
+        {
+          "metric": "roe",
+          "our_value": 25.08,
+          "external_value": 26.0,
+          "external_source": "Finviz",
+          "variance_pct": 3.54,
+          "tolerance_pct": 15.0,
+          "status": "pass",
+          "notes": "Within tolerance (3.5% <= 15.0%)"
+        },
+        {
+          "metric": "debt_equity",
+          "our_value": 0.42,
+          "external_value": 0.48,
+          "external_source": "Finviz",
+          "variance_pct": 12.5,
+          "tolerance_pct": 15.0,
+          "status": "pass",
+          "notes": "Within tolerance (12.5% <= 15.0%)"
+        },
+        {
+          "metric": "revenue_growth",
+          "our_value": 111.17,
+          "external_value": 21.84,
+          "external_source": "Finviz",
+          "variance_pct": 409.02,
+          "tolerance_pct": 25.0,
+          "status": "fail",
+          "notes": "Exceeds tolerance (409.0% > 25.0%)"
+        },
+        {
+          "metric": "sr_entry_below_price",
+          "our_value": 193.34,
+          "external_value": 228.09,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Entry $193.34 < Current $228.09"
+        },
+        {
+          "metric": "sr_entry_proximity",
+          "our_value": 15.2,
+          "external_value": 20.0,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 20.0,
+          "status": "pass",
+          "notes": "Entry is 15.2% below current (max 20%)"
+        },
+        {
+          "metric": "sr_stop_below_entry",
+          "our_value": 187.54,
+          "external_value": 193.34,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Stop $187.54 < Entry $193.34"
+        }
+      ]
+    },
+    {
+      "ticker": "SMCI",
+      "timestamp": "2025-12-31T12:52:10.413423",
+      "overall_status": "fail",
+      "pass_count": 8,
+      "fail_count": 2,
+      "warning_count": 1,
+      "skip_count": 0,
+      "results": [
+        {
+          "metric": "current_price",
+          "our_value": 29.12,
+          "external_value": 29.12,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 2.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 2.0%)"
+        },
+        {
+          "metric": "52w_high",
+          "our_value": 66.44,
+          "external_value": 66.44,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 1.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 1.0%)"
+        },
+        {
+          "metric": "52w_low",
+          "our_value": 25.71,
+          "external_value": 25.71,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 1.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 1.0%)"
+        },
+        {
+          "metric": "pe_ratio",
+          "our_value": 22.9302,
+          "external_value": 23.17,
+          "external_source": "StockAnalysis",
+          "variance_pct": 1.04,
+          "tolerance_pct": 10.0,
+          "status": "pass",
+          "notes": "Within tolerance (1.0% <= 10.0%)"
+        },
+        {
+          "metric": "eps",
+          "our_value": null,
+          "external_value": 1.26,
+          "external_source": "StockAnalysis",
+          "variance_pct": null,
+          "tolerance_pct": 2.0,
+          "status": "warning",
+          "notes": "Our value missing"
+        },
+        {
+          "metric": "roe",
+          "our_value": 16.64,
+          "external_value": 12.79,
+          "external_source": "Finviz",
+          "variance_pct": 30.1,
+          "tolerance_pct": 15.0,
+          "status": "fail",
+          "notes": "Exceeds tolerance (30.1% > 15.0%)"
+        },
+        {
+          "metric": "debt_equity",
+          "our_value": 0.76,
+          "external_value": 0.74,
+          "external_source": "Finviz",
+          "variance_pct": 2.7,
+          "tolerance_pct": 15.0,
+          "status": "pass",
+          "notes": "Within tolerance (2.7% <= 15.0%)"
+        },
+        {
+          "metric": "revenue_growth",
+          "our_value": 46.59,
+          "external_value": -15.49,
+          "external_source": "Finviz",
+          "variance_pct": 400.77,
+          "tolerance_pct": 25.0,
+          "status": "fail",
+          "notes": "Exceeds tolerance (400.8% > 25.0%)"
+        },
+        {
+          "metric": "sr_entry_below_price",
+          "our_value": 29.01,
+          "external_value": 29.12,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Entry $29.01 < Current $29.12"
+        },
+        {
+          "metric": "sr_entry_proximity",
+          "our_value": 0.4,
+          "external_value": 20.0,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 20.0,
+          "status": "pass",
+          "notes": "Entry is 0.4% below current (max 20%)"
+        },
+        {
+          "metric": "sr_stop_below_entry",
+          "our_value": 28.14,
+          "external_value": 29.01,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Stop $28.14 < Entry $29.01"
+        }
+      ]
+    },
+    {
+      "ticker": "F",
+      "timestamp": "2025-12-31T12:52:23.648065",
+      "overall_status": "fail",
+      "pass_count": 6,
+      "fail_count": 2,
+      "warning_count": 1,
+      "skip_count": 0,
+      "results": [
+        {
+          "metric": "current_price",
+          "our_value": 13.18,
+          "external_value": 13.17,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.08,
+          "tolerance_pct": 2.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.1% <= 2.0%)"
+        },
+        {
+          "metric": "52w_high",
+          "our_value": 13.99,
+          "external_value": 13.99,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 1.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 1.0%)"
+        },
+        {
+          "metric": "52w_low",
+          "our_value": 8.44,
+          "external_value": 8.44,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.0,
+          "tolerance_pct": 1.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 1.0%)"
+        },
+        {
+          "metric": "pe_ratio",
+          "our_value": 11.2607,
+          "external_value": 11.26,
+          "external_source": "StockAnalysis",
+          "variance_pct": 0.01,
+          "tolerance_pct": 10.0,
+          "status": "pass",
+          "notes": "Within tolerance (0.0% <= 10.0%)"
+        },
+        {
+          "metric": "eps",
+          "our_value": null,
+          "external_value": 1.17,
+          "external_source": "StockAnalysis",
+          "variance_pct": null,
+          "tolerance_pct": 2.0,
+          "status": "warning",
+          "notes": "Our value missing"
+        },
+        {
+          "metric": "roe",
+          "our_value": 13.11,
+          "external_value": 10.26,
+          "external_source": "Finviz",
+          "variance_pct": 27.78,
+          "tolerance_pct": 15.0,
+          "status": "fail",
+          "notes": "Exceeds tolerance (27.8% > 15.0%)"
+        },
+        {
+          "metric": "debt_equity",
+          "our_value": 3.59,
+          "external_value": 3.47,
+          "external_source": "Finviz",
+          "variance_pct": 3.46,
+          "tolerance_pct": 15.0,
+          "status": "pass",
+          "notes": "Within tolerance (3.5% <= 15.0%)"
+        },
+        {
+          "metric": "revenue_growth",
+          "our_value": 5.0,
+          "external_value": 9.39,
+          "external_source": "Finviz",
+          "variance_pct": 46.75,
+          "tolerance_pct": 25.0,
+          "status": "fail",
+          "notes": "Exceeds tolerance (46.8% > 25.0%)"
+        },
+        {
+          "metric": "sr_target_above_price",
+          "our_value": 13.39,
+          "external_value": 13.17,
+          "external_source": "Logic Check",
+          "variance_pct": null,
+          "tolerance_pct": 0,
+          "status": "pass",
+          "notes": "Target $13.39 > Current $13.17"
+        }
+      ]
+    },
+    {
+      "ticker": "SQ",
+      "timestamp": "2025-12-31T12:52:37.602863",
+      "overall_status": "skip",
+      "pass_count": 0,
+      "fail_count": 0,
+      "warning_count": 0,
+      "skip_count": 1,
+      "results": []
+    }
+  ]
+}
