@@ -392,14 +392,15 @@ def compute_sr_levels(df: pd.DataFrame, cfg: Optional[SRConfig] = None) -> SRLev
             support = [l for l in lows if l <= last]
             resistance = [h for h in highs if h > last]
             
-            # Handle ATH/ATL edge cases for pivot method too
+            # ALWAYS calculate ATR for pivot method (Day 20 fix)
             atr = _calculate_atr(df, cfg.atr_period)
+            meta["atr"] = round(atr, 2)
             
+            # Handle ATH/ATL edge cases for pivot method too
             if not resistance:
                 logger.info("Pivot: No resistance found (ATH). Projecting using ATR.")
                 resistance = _project_resistance_levels(last, atr, cfg.atr_multipliers)
                 meta["resistance_projected"] = True
-                meta["atr"] = round(atr, 2)
             else:
                 meta["resistance_projected"] = False
                 
@@ -407,7 +408,6 @@ def compute_sr_levels(df: pd.DataFrame, cfg: Optional[SRConfig] = None) -> SRLev
                 logger.info("Pivot: No support found (ATL). Projecting using ATR.")
                 support = _project_support_levels(last, atr, cfg.atr_multipliers)
                 meta["support_projected"] = True
-                meta["atr"] = round(atr, 2)
             else:
                 meta["support_projected"] = False
             

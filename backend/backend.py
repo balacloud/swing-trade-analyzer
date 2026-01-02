@@ -6,6 +6,7 @@ Day 6: Fixed numpy type serialization issues
 Day 8: Fixed Defeat Beta .data attribute usage
 Day 11: Added TradingView screener integration for batch scanning
 Day 13: Added Support & Resistance engine endpoint
+Day 20: Added TradingView scan endpoint, fixed API syntax for tradingview-screener library
 """
 
 import os
@@ -804,17 +805,166 @@ def get_support_resistance(ticker):
         return jsonify({'error': str(e)}), 500
 
 # ============================================
-# VALIDATION ENGINE ENDPOINTS (Day 15)
-# Add these to backend.py after the S&R endpoint
+# TRADINGVIEW SCREENER ENDPOINT (Day 11 / Fixed Day 20)
+# Batch scanning for trading opportunities
 # ============================================
+
+@app.route('/api/scan/tradingview', methods=['GET'])
+def scan_tradingview():
+    """
+    Scan for trading opportunities using TradingView screener.
+    
+    Day 20 Fix v3: Filter by exchange to exclude OTC stocks
+    """
+    if not TRADINGVIEW_AVAILABLE:
+        return jsonify({
+            'error': 'TradingView Screener not available',
+            'message': 'Install with: pip install tradingview-screener'
+        }), 503
+    
+    try:
+        strategy = request.args.get('strategy', 'reddit').lower()
+        limit = int(request.args.get('limit', 50))
+        
+        print(f"🔍 TradingView Scan: strategy={strategy}, limit={limit}")
+        
+        # Build query
+        query = (Query()
+            .set_markets('america')
+            .select('name', 'close', 'volume', 'market_cap_basic',
+                    'price_52_week_high', 'price_52_week_low',
+                    'SMA50', 'SMA200', 'RSI', 'relative_volume_10d_calc',
+                    'sector', 'change', 'exchange')
+        )
+        
+        # CRITICAL: Filter to major exchanges only (exclude OTC)
+        query = query.where(
+            col('exchange').isin(['NYSE', 'NASDAQ', 'AMEX'])
+        )
+        
+        # Strategy-specific filters
+        if strategy == 'reddit':
+            query = query.where(
+                col('market_cap_basic') >= 2_000_000_000,
+                col('relative_volume_10d_calc') >= 1.5,
+                col('close') > col('SMA50'),
+                col('SMA50') > col('SMA200')
+            )
+        elif strategy == 'minervini':
+            query = query.where(
+                col('market_cap_basic') >= 10_000_000_000,
+                col('close') > col('SMA50'),
+                col('SMA50') > col('SMA200'),
+                col('change|1W') >= 0,
+                col('change|1M') >= 0
+            )
+        elif strategy == 'momentum':
+            query = query.where(
+                col('market_cap_basic') >= 1_000_000_000,
+                col('close') > col('SMA50'),
+                col('SMA50') > col('SMA200'),
+                col('RSI') >= 50,
+                col('RSI') <= 75
+            )
+        elif strategy == 'value':
+            query = query.where(
+                col('market_cap_basic') >= 5_000_000_000,
+                col('close') > col('SMA200'),
+                col('RSI') <= 60
+            )
+        else:
+            return jsonify({'error': f'Unknown strategy: {strategy}'}), 400
+        
+        query = query.order_by('relative_volume_10d_calc', ascending=False)
+        query = query.limit(limit)
+        
+        # Execute
+        count, results = query.get_scanner_data()
+        
+        # Format results
+        candidates = []
+        for _, row in results.iterrows():
+            try:
+                ticker = row.get('ticker', '')
+                if ':' in str(ticker):
+                    ticker = str(ticker).split(':')[-1]
+                
+                current = row.get('close')
+                high52w = row.get('price_52_week_high')
+                pct_from_high = None
+                if current and high52w and high52w > 0:
+                    pct_from_high = round(((current - high52w) / high52w) * 100, 1)
+                
+                candidates.append({
+                    'ticker': ticker,
+                    'name': row.get('name', ''),
+                    'price': safe_float(row.get('close')),
+                    'volume': safe_int(row.get('volume')),
+                    'marketCap': safe_int(row.get('market_cap_basic')),
+                    'high52w': safe_float(row.get('price_52_week_high')),
+                    'low52w': safe_float(row.get('price_52_week_low')),
+                    'sma50': safe_float(row.get('SMA50')),
+                    'sma200': safe_float(row.get('SMA200')),
+                    'rsi': safe_float(row.get('RSI')),
+                    'relativeVolume': safe_float(row.get('relative_volume_10d_calc')),
+                    'sector': row.get('sector', 'N/A'),
+                    'pctFromHigh': pct_from_high,
+                    'exchange': row.get('exchange', 'N/A')
+                })
+            except Exception as e:
+                print(f"Error parsing row: {e}")
+                continue
+        
+        print(f"✅ TradingView Scan complete: {len(candidates)} candidates from {count} matches")
+        
+        return jsonify({
+            'strategy': strategy,
+            'totalMatches': count,
+            'returned': len(candidates),
+            'candidates': candidates,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        print(f"❌ TradingView scan error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+
+@app.route('/api/scan/strategies', methods=['GET'])
+def get_scan_strategies():
+    """Return available scan strategies."""
+    return jsonify({
+        'strategies': [
+            {
+                'id': 'reddit',
+                'name': 'Reddit Style',
+                'description': 'Mid-cap+, high relative volume, momentum stocks'
+            },
+            {
+                'id': 'minervini',
+                'name': 'Minervini SEPA',
+                'description': 'Large-cap momentum leaders in Stage 2 uptrend'
+            },
+            {
+                'id': 'momentum',
+                'name': 'Momentum',
+                'description': 'Sustainable gains, RSI 50-75 (not overbought)'
+            },
+            {
+                'id': 'value',
+                'name': 'Value',
+                'description': 'Quality stocks above 200 SMA at fair RSI levels'
+            }
+        ]
+    })
+
+
+
 
 # ============================================
 # VALIDATION ENGINE ENDPOINTS (Day 15)
-# 
-# HOW TO USE:
-# Copy everything below and paste into backend.py 
-# AFTER the /api/scan/strategies endpoint
-# BEFORE the # MAIN section
 # ============================================
 
 @app.route('/api/validation/run', methods=['POST'])
