@@ -67,6 +67,49 @@ export function calculateATR(highs, lows, closes, period = 14) {
 }
 
 /**
+ * Calculate Relative Strength Index (RSI)
+ * RSI = 100 - (100 / (1 + RS))
+ * RS = Average Gain / Average Loss over period
+ * 
+ * @param {number[]} prices - Array of closing prices
+ * @param {number} period - RSI period (default 14)
+ * @returns {number|null} RSI value (0-100)
+ */
+export function calculateRSI(prices, period = 14) {
+  if (!prices || prices.length < period + 1) return null;
+  
+  // Calculate price changes
+  const changes = [];
+  for (let i = 1; i < prices.length; i++) {
+    changes.push(prices[i] - prices[i - 1]);
+  }
+  
+  // Separate gains and losses
+  const gains = changes.map(c => c > 0 ? c : 0);
+  const losses = changes.map(c => c < 0 ? Math.abs(c) : 0);
+  
+  // Calculate initial average gain and loss (SMA for first period)
+  let avgGain = gains.slice(0, period).reduce((sum, g) => sum + g, 0) / period;
+  let avgLoss = losses.slice(0, period).reduce((sum, l) => sum + l, 0) / period;
+  
+  // Use Wilder's smoothing method for subsequent values
+  for (let i = period; i < changes.length; i++) {
+    avgGain = (avgGain * (period - 1) + gains[i]) / period;
+    avgLoss = (avgLoss * (period - 1) + losses[i]) / period;
+  }
+  
+  // Calculate RS and RSI
+  if (avgLoss === 0) {
+    return 100; // No losses = RSI is 100
+  }
+  
+  const rs = avgGain / avgLoss;
+  const rsi = 100 - (100 / (1 + rs));
+  
+  return parseFloat(rsi.toFixed(2));
+}
+
+/**
  * Analyze Trend Structure (40 points max)
  * This is THE core technical analysis
  * 

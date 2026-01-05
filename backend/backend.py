@@ -837,14 +837,14 @@ def scan_tradingview():
                     'sector', 'change', 'exchange')
         )
         
-        # CRITICAL: Filter to major exchanges only (exclude OTC)
-        query = query.where(
-            col('exchange').isin(['NYSE', 'NASDAQ', 'AMEX'])
-        )
+        # Day 21 Fix: Consolidate ALL filters into single .where() call
+        # Multiple .where() calls may replace filters instead of appending in v3.0.0
+        # This was causing the exchange filter to be lost, returning OTC stocks
         
-        # Strategy-specific filters
+        # Strategy-specific filters - ALL filters in ONE .where() call
         if strategy == 'reddit':
             query = query.where(
+                col('exchange').isin(['NYSE', 'NASDAQ', 'AMEX']),
                 col('market_cap_basic') >= 2_000_000_000,
                 col('relative_volume_10d_calc') >= 1.5,
                 col('close') > col('SMA50'),
@@ -852,6 +852,7 @@ def scan_tradingview():
             )
         elif strategy == 'minervini':
             query = query.where(
+                col('exchange').isin(['NYSE', 'NASDAQ', 'AMEX']),
                 col('market_cap_basic') >= 10_000_000_000,
                 col('close') > col('SMA50'),
                 col('SMA50') > col('SMA200'),
@@ -860,6 +861,7 @@ def scan_tradingview():
             )
         elif strategy == 'momentum':
             query = query.where(
+                col('exchange').isin(['NYSE', 'NASDAQ', 'AMEX']),
                 col('market_cap_basic') >= 1_000_000_000,
                 col('close') > col('SMA50'),
                 col('SMA50') > col('SMA200'),
@@ -868,6 +870,7 @@ def scan_tradingview():
             )
         elif strategy == 'value':
             query = query.where(
+                col('exchange').isin(['NYSE', 'NASDAQ', 'AMEX']),
                 col('market_cap_basic') >= 5_000_000_000,
                 col('close') > col('SMA200'),
                 col('RSI') <= 60
