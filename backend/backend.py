@@ -773,6 +773,7 @@ def get_support_resistance(ticker):
                 'atr': sr_levels.meta.get('atr'),
                 'resistanceProjected': sr_levels.meta.get('resistance_projected', False),
                 'supportProjected': sr_levels.meta.get('support_projected', False),
+                'tradeViability': sr_levels.meta.get('trade_viability'),
                 'proximityFilter': {
                     'supportFloor': round(support_floor, 2),
                     'resistanceCeiling': round(resistance_ceiling, 2),

@@ -4,6 +4,9 @@
  * v2.1: Added TradingView screener scan tab (Day 12)
  * v2.2: Added Support & Resistance Trade Setup display (Day 14)
  * v2.3: Added Validation tab for data quality monitoring (Day 17)
+ * v2.4: Fixed rsData overwrite bug (Day 18)
+ * v2.5: Added Trade Viability display - Option D (Day 22)
+ * v2.6: Added expandable Score Breakdown with explanations (Day 23)
  */
 
 import React, { useState, useEffect } from 'react';
@@ -35,6 +38,9 @@ function App() {
   const [validationError, setValidationError] = useState(null);
   const [validationResults, setValidationResults] = useState(null);
   const [validationTickers, setValidationTickers] = useState('AAPL, NVDA, MSFT');
+
+  // Score breakdown expanded state (Day 23)
+  const [expandedScore, setExpandedScore] = useState(null); // 'technical', 'fundamental', 'sentiment', 'risk'
 
   // Quick picks for testing
   const quickPicks = ['AVGO', 'NVDA', 'AAPL', 'META', 'MSFT', 'NFLX', 'PLTR']; 
@@ -185,6 +191,98 @@ function App() {
     if (score >= 75) return 'text-green-300';
     if (score >= 60) return 'text-yellow-400';
     return 'text-red-400';
+  };
+
+  // Get trade viability color and icon (Day 22)
+  const getViabilityStyle = (viable) => {
+    switch (viable) {
+      case 'YES': return { 
+        bg: 'bg-green-600', 
+        text: 'text-white', 
+        icon: '✅',
+        label: 'VIABLE'
+      };
+      case 'CAUTION': return { 
+        bg: 'bg-yellow-500', 
+        text: 'text-black', 
+        icon: '⚠️',
+        label: 'CAUTION'
+      };
+      case 'NO': return { 
+        bg: 'bg-red-600', 
+        text: 'text-white', 
+        icon: '🚫',
+        label: 'NOT VIABLE'
+      };
+      default: return { 
+        bg: 'bg-gray-600', 
+        text: 'text-white', 
+        icon: '❓',
+        label: 'UNKNOWN'
+      };
+    }
+  };
+
+  // Generate plain English explanation for scores (Day 23)
+  const generateScoreExplanation = (analysisResult) => {
+    if (!analysisResult) return null;
+    
+    const tech = analysisResult.breakdown?.technical;
+    const techScore = analysisResult.scores?.technical || 0;
+    const fundScore = analysisResult.scores?.fundamental || 0;
+    const totalScore = analysisResult.totalScore || 0;
+    const currentPrice = analysisResult.currentPrice;
+    const indicators = analysisResult.indicators;
+    
+    const reasons = [];
+    
+    // Technical explanation
+    if (techScore < 20) {
+      if (tech?.details?.trendStructure?.score === 0) {
+        reasons.push(`Price ($${currentPrice?.toFixed(2)}) is below the 50 SMA ($${indicators?.sma50?.toFixed(2)}) - not in a Stage 2 uptrend`);
+      }
+      if (tech?.details?.shortTermTrend?.score === 0) {
+        reasons.push(`Short-term momentum is weak - price below 8 EMA ($${indicators?.ema8?.toFixed(2)})`);
+      }
+    } else if (techScore >= 30) {
+      reasons.push(`Strong technical setup with price above key moving averages`);
+    }
+    
+    // Fundamental explanation
+    if (fundScore >= 15) {
+      reasons.push(`Solid fundamentals with good growth metrics`);
+    } else if (fundScore < 10) {
+      reasons.push(`Weak fundamentals - review EPS/Revenue growth`);
+    }
+    
+    // Overall verdict context
+    if (totalScore >= 60) {
+      return { type: 'positive', reasons, summary: 'This stock meets most Minervini criteria for a swing trade.' };
+    } else if (totalScore >= 40) {
+      return { type: 'neutral', reasons, summary: 'Mixed signals - some criteria met, but not ideal setup.' };
+    } else {
+      return { type: 'negative', reasons, summary: 'Does not meet swing trade criteria. Wait for better setup.' };
+    }
+  };
+
+  // Get sub-score label and description (Day 23)
+  const getSubScoreInfo = (category, key, details) => {
+    const labels = {
+      technical: {
+        trendStructure: { label: 'Trend Structure', desc: 'Price > 50 SMA > 200 SMA', icon: '📈' },
+        shortTermTrend: { label: 'Short-term Trend', desc: 'Price > 8 EMA > 21 EMA', icon: '⚡' },
+        volume: { label: 'Volume', desc: '≥1.5x 50-day average', icon: '📊' },
+        relativeStrength: { label: 'Relative Strength', desc: 'Outperforming S&P 500', icon: '💪' }
+      },
+      fundamental: {
+        epsGrowth: { label: 'EPS Growth', desc: 'Target ≥25%', icon: '💰' },
+        revenueGrowth: { label: 'Revenue Growth', desc: 'Target ≥20%', icon: '📈' },
+        roe: { label: 'ROE', desc: 'Target ≥15%', icon: '🎯' },
+        debtToEquity: { label: 'Debt/Equity', desc: 'Target <0.5', icon: '⚖️' },
+        forwardPe: { label: 'Forward P/E', desc: 'Target <20', icon: '📉' }
+      }
+    };
+    return labels[category]?.[key] || { label: key, desc: '', icon: '•' };
   };
 
   return (
@@ -371,10 +469,54 @@ function App() {
                   </div>
                 </div>
 
-                {/* Trade Setup Card (S&R) */}
+                {/* Trade Setup Card (S&R) - Day 22: Enhanced with Viability */}
                 {srData && (
                   <div className="bg-gray-800 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-4 text-blue-400">🎯 Trade Setup</h3>
+                    {/* Header with Viability Badge */}
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold text-blue-400">🎯 Trade Setup</h3>
+                      {srData.meta?.tradeViability && (
+                        <div className={`px-3 py-1 rounded-full text-sm font-bold ${getViabilityStyle(srData.meta.tradeViability.viable).bg} ${getViabilityStyle(srData.meta.tradeViability.viable).text}`}>
+                          {getViabilityStyle(srData.meta.tradeViability.viable).icon} {getViabilityStyle(srData.meta.tradeViability.viable).label}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Viability Advice Banner (Day 22) */}
+                    {srData.meta?.tradeViability && (
+                      <div className={`mb-4 p-3 rounded-lg text-sm ${
+                        srData.meta.tradeViability.viable === 'YES' ? 'bg-green-900/30 border border-green-700 text-green-300' :
+                        srData.meta.tradeViability.viable === 'CAUTION' ? 'bg-yellow-900/30 border border-yellow-700 text-yellow-300' :
+                        srData.meta.tradeViability.viable === 'NO' ? 'bg-red-900/30 border border-red-700 text-red-300' :
+                        'bg-gray-700/30 border border-gray-600 text-gray-300'
+                      }`}>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <span className="font-semibold">
+                              {srData.meta.tradeViability.viable === 'YES' && '✅ '}
+                              {srData.meta.tradeViability.viable === 'CAUTION' && '⚠️ '}
+                              {srData.meta.tradeViability.viable === 'NO' && '🚫 '}
+                              {srData.meta.tradeViability.advice}
+                            </span>
+                            {srData.meta.tradeViability.position_size_advice && (
+                              <div className="mt-1 text-xs opacity-80">
+                                Position Size: {srData.meta.tradeViability.position_size_advice}
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-right text-xs">
+                            {srData.meta.tradeViability.support_distance_pct !== null && (
+                              <div>Support: {srData.meta.tradeViability.support_distance_pct}% away</div>
+                            )}
+                            {srData.meta.tradeViability.risk_reward_context && (
+                              <div>R:R Context: {srData.meta.tradeViability.risk_reward_context}</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Trade Levels Grid */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="bg-gray-700/50 rounded-lg p-4 text-center">
                         <div className="text-gray-400 text-sm mb-1">Entry</div>
@@ -383,6 +525,11 @@ function App() {
                       <div className="bg-gray-700/50 rounded-lg p-4 text-center">
                         <div className="text-gray-400 text-sm mb-1">Stop Loss</div>
                         <div className="text-xl font-bold text-red-400">{formatCurrency(srData.suggestedStop)}</div>
+                        {srData.meta?.tradeViability?.stop_suggestion && srData.suggestedStop !== srData.meta.tradeViability.stop_suggestion && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Alt: {formatCurrency(srData.meta.tradeViability.stop_suggestion)}
+                          </div>
+                        )}
                       </div>
                       <div className="bg-gray-700/50 rounded-lg p-4 text-center">
                         <div className="text-gray-400 text-sm mb-1">Target</div>
@@ -397,91 +544,250 @@ function App() {
                     </div>
                     <div className="mt-4 text-xs text-gray-500 text-center">
                       Method: {srData.method} • Support levels: {srData.support?.length || 0} • Resistance levels: {srData.resistance?.length || 0}
+                      {srData.meta?.atr && ` • ATR: $${srData.meta.atr.toFixed(2)}`}
                     </div>
                   </div>
                 )}
 
-                {/* Score Breakdown */}
+                {/* Score Breakdown - Enhanced with expandable details (Day 23) */}
                 <div className="bg-gray-800 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold mb-4 text-blue-400">📊 Score Breakdown</h3>
+                  <h3 className="text-lg font-semibold mb-4 text-blue-400">📊 Score Breakdown <span className="text-xs text-gray-500 font-normal ml-2">Click to expand</span></h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-gray-700/50 rounded-lg p-4">
-                      <div className="text-gray-400 text-sm">Technical</div>
+                    {/* Technical Card */}
+                    <div 
+                      className={`bg-gray-700/50 rounded-lg p-4 cursor-pointer transition-all hover:bg-gray-700 ${expandedScore === 'technical' ? 'ring-2 ring-blue-500' : ''}`}
+                      onClick={() => setExpandedScore(expandedScore === 'technical' ? null : 'technical')}
+                    >
+                      <div className="flex justify-between items-center">
+                        <div className="text-gray-400 text-sm">Technical</div>
+                        <span className="text-gray-500 text-xs">{expandedScore === 'technical' ? '▼' : '▶'}</span>
+                      </div>
                       <div className={`text-2xl font-bold ${getScoreColor(analysisResult.scores?.technical || 0, 40)}`}>
                         {analysisResult.scores?.technical || 0}/40
                       </div>
                     </div>
-                    <div className="bg-gray-700/50 rounded-lg p-4">
-                      <div className="text-gray-400 text-sm">Fundamental</div>
+                    {/* Fundamental Card */}
+                    <div 
+                      className={`bg-gray-700/50 rounded-lg p-4 cursor-pointer transition-all hover:bg-gray-700 ${expandedScore === 'fundamental' ? 'ring-2 ring-blue-500' : ''}`}
+                      onClick={() => setExpandedScore(expandedScore === 'fundamental' ? null : 'fundamental')}
+                    >
+                      <div className="flex justify-between items-center">
+                        <div className="text-gray-400 text-sm">Fundamental</div>
+                        <span className="text-gray-500 text-xs">{expandedScore === 'fundamental' ? '▼' : '▶'}</span>
+                      </div>
                       <div className={`text-2xl font-bold ${getScoreColor(analysisResult.scores?.fundamental || 0, 20)}`}>
                         {analysisResult.scores?.fundamental || 0}/20
                       </div>
                     </div>
-                    <div className="bg-gray-700/50 rounded-lg p-4">
-                      <div className="text-gray-400 text-sm">Sentiment</div>
+                    {/* Sentiment Card */}
+                    <div 
+                      className={`bg-gray-700/50 rounded-lg p-4 cursor-pointer transition-all hover:bg-gray-700 ${expandedScore === 'sentiment' ? 'ring-2 ring-blue-500' : ''}`}
+                      onClick={() => setExpandedScore(expandedScore === 'sentiment' ? null : 'sentiment')}
+                    >
+                      <div className="flex justify-between items-center">
+                        <div className="text-gray-400 text-sm">Sentiment</div>
+                        <span className="text-gray-500 text-xs">{expandedScore === 'sentiment' ? '▼' : '▶'}</span>
+                      </div>
                       <div className={`text-2xl font-bold ${getScoreColor(analysisResult.scores?.sentiment || 0, 10)}`}>
                         {analysisResult.scores?.sentiment || 0}/10
                       </div>
                     </div>
-                    <div className="bg-gray-700/50 rounded-lg p-4">
-                      <div className="text-gray-400 text-sm">Risk/Macro</div>
+                    {/* Risk/Macro Card */}
+                    <div 
+                      className={`bg-gray-700/50 rounded-lg p-4 cursor-pointer transition-all hover:bg-gray-700 ${expandedScore === 'risk' ? 'ring-2 ring-blue-500' : ''}`}
+                      onClick={() => setExpandedScore(expandedScore === 'risk' ? null : 'risk')}
+                    >
+                      <div className="flex justify-between items-center">
+                        <div className="text-gray-400 text-sm">Risk/Macro</div>
+                        <span className="text-gray-500 text-xs">{expandedScore === 'risk' ? '▼' : '▶'}</span>
+                      </div>
                       <div className={`text-2xl font-bold ${getScoreColor(analysisResult.scores?.risk || 0, 5)}`}>
                         {analysisResult.scores?.risk || 0}/5
                       </div>
                     </div>
                   </div>
+
+                  {/* Expanded Details Panel */}
+                  {expandedScore && (
+                    <div className="mt-4 bg-gray-700/30 rounded-lg p-4 border border-gray-600">
+                      {expandedScore === 'technical' && analysisResult.breakdown?.technical?.details && (
+                        <div className="space-y-3">
+                          <div className="text-sm font-semibold text-blue-300 mb-3">📈 Technical Breakdown</div>
+                          {Object.entries(analysisResult.breakdown.technical.details).map(([key, data]) => {
+                            const info = getSubScoreInfo('technical', key, data);
+                            const pct = (data.score / data.max) * 100;
+                            return (
+                              <div key={key} className="flex items-center gap-3">
+                                <span className="text-lg">{info.icon}</span>
+                                <div className="flex-1">
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-gray-300">{info.label}</span>
+                                    <span className={`font-mono ${data.score === data.max ? 'text-green-400' : data.score === 0 ? 'text-red-400' : 'text-yellow-400'}`}>
+                                      {data.score}/{data.max}
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-gray-600 rounded-full h-2 mt-1">
+                                    <div 
+                                      className={`h-2 rounded-full ${pct >= 80 ? 'bg-green-500' : pct >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                                      style={{ width: `${pct}%` }}
+                                    ></div>
+                                  </div>
+                                  <div className="text-xs text-gray-500 mt-1">{info.desc}</div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {expandedScore === 'fundamental' && analysisResult.breakdown?.fundamental?.details && (
+                        <div className="space-y-3">
+                          <div className="text-sm font-semibold text-blue-300 mb-3">💼 Fundamental Breakdown</div>
+                          {Object.entries(analysisResult.breakdown.fundamental.details).map(([key, data]) => {
+                            const info = getSubScoreInfo('fundamental', key, data);
+                            const pct = (data.score / data.max) * 100;
+                            return (
+                              <div key={key} className="flex items-center gap-3">
+                                <span className="text-lg">{info.icon}</span>
+                                <div className="flex-1">
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-gray-300">{info.label}</span>
+                                    <span className="text-gray-400 text-xs">
+                                      {data.value !== null && data.value !== undefined ? 
+                                        (typeof data.value === 'number' ? data.value.toFixed(1) : data.value) : 'N/A'}
+                                    </span>
+                                    <span className={`font-mono ${data.score === data.max ? 'text-green-400' : data.score === 0 ? 'text-red-400' : 'text-yellow-400'}`}>
+                                      {data.score}/{data.max}
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-gray-600 rounded-full h-2 mt-1">
+                                    <div 
+                                      className={`h-2 rounded-full ${pct >= 80 ? 'bg-green-500' : pct >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                                      style={{ width: `${pct}%` }}
+                                    ></div>
+                                  </div>
+                                  <div className="text-xs text-gray-500 mt-1">{info.desc}</div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          <div className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-600">
+                            Data: {analysisResult.breakdown.fundamental.dataSource || 'yfinance'} • Quality: {analysisResult.breakdown.fundamental.dataQuality || 'unknown'}
+                          </div>
+                        </div>
+                      )}
+                      {expandedScore === 'sentiment' && (
+                        <div className="space-y-3">
+                          <div className="text-sm font-semibold text-blue-300 mb-3">📰 Sentiment Breakdown</div>
+                          <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-3 text-sm text-yellow-300">
+                            ⚠️ Sentiment is currently a placeholder (5/10 default). Real news/social sentiment analysis coming in a future update.
+                          </div>
+                        </div>
+                      )}
+                      {expandedScore === 'risk' && (
+                        <div className="space-y-3">
+                          <div className="text-sm font-semibold text-blue-300 mb-3">⚡ Risk/Macro Breakdown</div>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="text-gray-400">VIX Level:</span>
+                              <span className="ml-2 text-gray-200">{analysisResult.breakdown?.risk?.details?.vixLevel || 'N/A'}</span>
+                              <span className="ml-2 text-xs text-gray-500">(Low VIX = bullish)</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">S&P Regime:</span>
+                              <span className="ml-2 text-gray-200">{analysisResult.breakdown?.risk?.details?.spyRegime || 'N/A'}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Plain English Summary */}
+                  {generateScoreExplanation(analysisResult) && (
+                    <div className={`mt-4 p-4 rounded-lg text-sm ${
+                      generateScoreExplanation(analysisResult).type === 'positive' ? 'bg-green-900/20 border border-green-800' :
+                      generateScoreExplanation(analysisResult).type === 'negative' ? 'bg-red-900/20 border border-red-800' :
+                      'bg-yellow-900/20 border border-yellow-800'
+                    }`}>
+                      <div className="font-semibold mb-2 text-gray-200">
+                        💡 Why This Score?
+                      </div>
+                      <ul className="list-disc list-inside space-y-1 text-gray-400">
+                        {generateScoreExplanation(analysisResult).reasons.map((reason, idx) => (
+                          <li key={idx}>{reason}</li>
+                        ))}
+                      </ul>
+                      <div className="mt-2 text-gray-300 font-medium">
+                        {generateScoreExplanation(analysisResult).summary}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Technical Indicators */}
-                {analysisResult.indicators && (
+                <div className="bg-gray-800 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold mb-4 text-blue-400">📉 Technical Indicators</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-400">RSI (14): </span>
+                      <span className={getRsiColor(analysisResult.indicators?.rsi)}>
+                        {analysisResult.indicators?.rsi?.toFixed(1) || 'N/A'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">8 EMA: </span>
+                      <span className="text-green-400">{formatCurrency(analysisResult.indicators?.ema8)}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">21 EMA: </span>
+                      <span className="text-green-400">{formatCurrency(analysisResult.indicators?.ema21)}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">50 SMA: </span>
+                      <span className="text-green-400">{formatCurrency(analysisResult.indicators?.sma50)}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">200 SMA: </span>
+                      <span className="text-green-400">{formatCurrency(analysisResult.indicators?.sma200)}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">ATR: </span>
+                      <span className="text-yellow-400">
+                        {analysisResult.indicators?.atr ? formatCurrency(analysisResult.indicators.atr) : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quality Gates */}
+                {analysisResult.qualityGates && analysisResult.qualityGates.gates?.length > 0 && (
                   <div className="bg-gray-800 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-4 text-blue-400">📉 Technical Indicators</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-400">RSI (14):</span>
-                        <span className={`ml-2 ${getRsiColor(analysisResult.indicators.rsi)}`}>
-                          {analysisResult.indicators.rsi?.toFixed(1) || 'N/A'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">8 EMA:</span>
-                        <span className={`ml-2 ${
-                          analysisResult.currentPrice > analysisResult.indicators.ema8 ? 'text-green-400' : 'text-red-400'
-                        }`}>
-                          {formatCurrency(analysisResult.indicators.ema8)}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">21 EMA:</span>
-                        <span className={`ml-2 ${
-                          analysisResult.currentPrice > analysisResult.indicators.ema21 ? 'text-green-400' : 'text-red-400'
-                        }`}>
-                          {formatCurrency(analysisResult.indicators.ema21)}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">50 SMA:</span>
-                        <span className={`ml-2 ${
-                          analysisResult.currentPrice > analysisResult.indicators.sma50 ? 'text-green-400' : 'text-red-400'
-                        }`}>
-                          {formatCurrency(analysisResult.indicators.sma50)}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">200 SMA:</span>
-                        <span className={`ml-2 ${
-                          analysisResult.currentPrice > analysisResult.indicators.sma200 ? 'text-green-400' : 'text-red-400'
-                        }`}>
-                          {formatCurrency(analysisResult.indicators.sma200)}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">ATR:</span>
-                        <span className="ml-2">{formatCurrency(analysisResult.indicators.atr)}</span>
-                      </div>
+                    <h3 className="text-lg font-semibold mb-4 text-red-400">⚠️ Quality Gate Warnings</h3>
+                    <div className="space-y-2">
+                      {analysisResult.qualityGates.gates.map((gate, idx) => (
+                        <div key={idx} className="bg-red-900/30 rounded p-3 text-sm">
+                          <span className="font-semibold text-red-400">{gate.name}:</span>{' '}
+                          <span className="text-gray-300">{gate.value}</span>
+                          <span className="text-gray-500"> (threshold: {gate.threshold})</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!analysisResult && !loading && !error && (
+              <div className="bg-gray-800 rounded-lg p-12 text-center">
+                <div className="text-6xl mb-4">📊</div>
+                <h3 className="text-xl font-bold text-gray-300 mb-2">Analyze a Stock</h3>
+                <p className="text-gray-500 mb-4">
+                  Enter a ticker symbol or click a quick pick to analyze a stock.
+                </p>
+                <p className="text-gray-600 text-sm">
+                  75-point scoring system • Minervini SEPA + CAN SLIM methodology
+                </p>
               </div>
             )}
           </>
@@ -490,46 +796,35 @@ function App() {
         {/* ==================== SCAN TAB ==================== */}
         {activeTab === 'scan' && (
           <>
-            {/* Scan Controls */}
+            {/* Strategy Selector */}
             <div className="bg-gray-800 rounded-lg p-6 mb-6">
-              <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
-                {/* Strategy Selector */}
-                <div className="flex-1">
-                  <label className="block text-gray-400 text-sm mb-2">Scanning Strategy</label>
-                  <select
-                    value={selectedStrategy}
-                    onChange={(e) => setSelectedStrategy(e.target.value)}
-                    className="w-full bg-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="reddit">🔥 Reddit Swing Trading (Mid-cap+, High Volume)</option>
-                    <option value="minervini">📈 Minervini SEPA (Large-cap Momentum)</option>
-                    <option value="momentum">🚀 Sustainable Momentum (5-50% gains)</option>
-                    <option value="value">💎 Value + Momentum (Quality at Fair Price)</option>
-                  </select>
-                </div>
-                
-                {/* Scan Button */}
+              <div className="flex gap-4 items-center">
+                <select
+                  value={selectedStrategy}
+                  onChange={(e) => setSelectedStrategy(e.target.value)}
+                  className="flex-1 bg-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {strategies ? (
+                    (strategies.strategies || []).map((strategy) => (
+                      <option key={strategy.id} value={strategy.id}>{strategy.name}: {strategy.description}</option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="reddit">Reddit - Popular momentum</option>
+                      <option value="minervini">Minervini - Stage 2 leaders</option>
+                      <option value="momentum">Momentum - Strong 52w</option>
+                      <option value="value">Value - Quality discounts</option>
+                    </>
+                  )}
+                </select>
                 <button
                   onClick={runScan}
                   disabled={scanLoading}
-                  className="bg-green-600 hover:bg-green-700 px-8 py-3 rounded-lg font-semibold disabled:opacity-50 whitespace-nowrap"
+                  className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg font-semibold disabled:opacity-50"
                 >
-                  {scanLoading ? '🔍 Scanning...' : '🔍 Scan for Opportunities'}
+                  {scanLoading ? '⏳ Scanning...' : '🔍 Scan'}
                 </button>
               </div>
-
-              {/* Strategy Description */}
-              {strategies?.strategies?.[selectedStrategy] && (
-                <div className="mt-4 p-3 bg-gray-700/50 rounded-lg">
-                  <div className="text-sm text-gray-300">
-                    <strong>{strategies.strategies[selectedStrategy].name}:</strong>{' '}
-                    {strategies.strategies[selectedStrategy].description}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Focus: {strategies.strategies[selectedStrategy].focus}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Scan Error */}
@@ -540,17 +835,14 @@ function App() {
             )}
 
             {/* Scan Results */}
-            {scanResults && (
+            {scanResults && !scanLoading && (
               <div className="bg-gray-800 rounded-lg p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-bold">
-                    📋 Scan Results
-                    <span className="text-sm font-normal text-gray-400 ml-2">
-                      ({scanResults.returned} of {scanResults.totalMatches} matches)
-                    </span>
-                  </h2>
-                  <span className="text-xs text-gray-500">
-                    {new Date(scanResults.timestamp).toLocaleTimeString()}
+                  <h3 className="text-lg font-semibold text-blue-400">
+                    📋 Scan Results: {scanResults.strategy}
+                  </h3>
+                  <span className="text-gray-400 text-sm">
+                    {scanResults.returned} of {scanResults.totalMatches} matches
                   </span>
                 </div>
 
@@ -562,49 +854,28 @@ function App() {
                         <th className="text-left py-3 px-2">Ticker</th>
                         <th className="text-left py-3 px-2">Name</th>
                         <th className="text-right py-3 px-2">Price</th>
-                        <th className="text-right py-3 px-2">Mkt Cap</th>
-                        <th className="text-right py-3 px-2">RSI</th>
-                        <th className="text-right py-3 px-2">RelVol</th>
-                        <th className="text-right py-3 px-2">% from High</th>
-                        <th className="text-left py-3 px-2">Sector</th>
+                        <th className="text-right py-3 px-2">Change</th>
+                        <th className="text-right py-3 px-2">Volume</th>
+                        <th className="text-right py-3 px-2">Market Cap</th>
                         <th className="text-center py-3 px-2">Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {scanResults.candidates.map((candidate, idx) => (
-                        <tr 
-                          key={candidate.ticker}
-                          className={`border-b border-gray-700/50 hover:bg-gray-700/30 cursor-pointer ${
-                            idx % 2 === 0 ? 'bg-gray-800/50' : ''
-                          }`}
-                          onClick={() => analyzeStock(candidate.ticker)}
-                        >
-                          <td className="py-3 px-2 font-bold text-blue-400">{candidate.ticker}</td>
-                          <td className="py-3 px-2 text-gray-300 max-w-[150px] truncate">{candidate.name}</td>
-                          <td className="py-3 px-2 text-right">{formatCurrency(candidate.price)}</td>
-                          <td className="py-3 px-2 text-right text-gray-400">{formatMarketCap(candidate.marketCap)}</td>
-                          <td className={`py-3 px-2 text-right ${getRsiColor(candidate.rsi)}`}>
-                            {candidate.rsi?.toFixed(0) || 'N/A'}
+                      {scanResults.candidates?.map((stock) => (
+                        <tr key={stock.ticker} className="border-b border-gray-700/50 hover:bg-gray-700/30">
+                          <td className="py-3 px-2 font-bold text-blue-400">{stock.ticker}</td>
+                          <td className="py-3 px-2 text-gray-300">{stock.name?.slice(0, 30)}</td>
+                          <td className="py-3 px-2 text-right font-mono">{formatCurrency(stock.close)}</td>
+                          <td className={`py-3 px-2 text-right ${stock.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                            {formatPercent(stock.change)}
                           </td>
-                          <td className={`py-3 px-2 text-right ${
-                            candidate.relativeVolume >= 2 ? 'text-green-400' :
-                            candidate.relativeVolume >= 1.5 ? 'text-green-300' : 'text-gray-400'
-                          }`}>
-                            {candidate.relativeVolume?.toFixed(1)}x
+                          <td className="py-3 px-2 text-right text-gray-400">
+                            {stock.volume ? (stock.volume / 1e6).toFixed(1) + 'M' : 'N/A'}
                           </td>
-                          <td className={`py-3 px-2 text-right ${
-                            candidate.pctFrom52wHigh >= -5 ? 'text-green-400' :
-                            candidate.pctFrom52wHigh >= -15 ? 'text-yellow-400' : 'text-gray-400'
-                          }`}>
-                            {formatPercent(candidate.pctFrom52wHigh, 1)}
-                          </td>
-                          <td className="py-3 px-2 text-gray-400 text-xs max-w-[100px] truncate">{candidate.sector}</td>
+                          <td className="py-3 px-2 text-right text-gray-400">{formatMarketCap(stock.marketCap)}</td>
                           <td className="py-3 px-2 text-center">
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                analyzeStock(candidate.ticker);
-                              }}
+                              onClick={() => analyzeStock(stock.ticker)}
                               className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs"
                             >
                               Analyze
@@ -615,11 +886,14 @@ function App() {
                     </tbody>
                   </table>
                 </div>
+              </div>
+            )}
 
-                {/* Scan Notes */}
-                <div className="mt-4 text-xs text-gray-500">
-                  <p>💡 Click any row to run full 75-point analysis. All candidates are in Stage 2 uptrends (50 SMA &gt; 200 SMA).</p>
-                </div>
+            {/* Loading State */}
+            {scanLoading && (
+              <div className="bg-gray-800 rounded-lg p-12 text-center">
+                <div className="text-4xl mb-4">🔍</div>
+                <p className="text-gray-400">Scanning market for {selectedStrategy} candidates...</p>
               </div>
             )}
 
@@ -627,28 +901,25 @@ function App() {
             {!scanResults && !scanLoading && !scanError && (
               <div className="bg-gray-800 rounded-lg p-12 text-center">
                 <div className="text-6xl mb-4">🔍</div>
-                <h3 className="text-xl font-bold text-gray-300 mb-2">Ready to Scan</h3>
+                <h3 className="text-xl font-bold text-gray-300 mb-2">Market Scanner</h3>
                 <p className="text-gray-500 mb-4">
-                  Select a strategy and click "Scan for Opportunities" to find swing trade candidates.
+                  Select a strategy and click "Scan" to find trading opportunities.
+                </p>
+                <p className="text-gray-600 text-sm">
+                  Powered by TradingView Screener • S&P 500 + TSX 60 Universe
                 </p>
               </div>
             )}
           </>
         )}
 
-        {/* ==================== VALIDATE TAB (Day 17) ==================== */}
+        {/* ==================== VALIDATE TAB ==================== */}
         {activeTab === 'validate' && (
           <>
-            {/* Validation Controls */}
+            {/* Validation Input */}
             <div className="bg-gray-800 rounded-lg p-6 mb-6">
-              <h2 className="text-xl font-bold mb-4 text-blue-400">✅ Data Validation Engine</h2>
-              <p className="text-gray-400 text-sm mb-4">
-                Compare our data against external sources (StockAnalysis, Finviz) to ensure accuracy.
-              </p>
-              
-              <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
+              <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="block text-gray-400 text-sm mb-2">Tickers to Validate (comma-separated)</label>
                   <input
                     type="text"
                     value={validationTickers}
@@ -824,7 +1095,7 @@ function App() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>Day 17 - Validation Engine UI | 75-Point Scoring System</p>
+          <p>Day 23 - Score Breakdown UX | 75-Point Scoring System</p>
           <p className="mt-1">Based on Mark Minervini SEPA + William O'Neil CAN SLIM</p>
         </div>
       </div>

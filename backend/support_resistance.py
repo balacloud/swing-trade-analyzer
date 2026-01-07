@@ -9,6 +9,8 @@ Methods:
 
 Day 13: Integrated into Swing Trade Analyzer backend
 Day 14: Fixed ATH edge case - project resistance when price > all historical levels
+Day 20: Fixed ATR always calculated for pivot method
+Day 22: Added Option D trade viability assessment (Minervini-aligned)
 """
 
 from __future__ import annotations
@@ -161,6 +163,99 @@ def _project_support_levels(
     # Filter out negative values
     projected = [p for p in projected if p > 0]
     return sorted(projected)
+
+
+def assess_trade_viability(
+    current_price: float,
+    nearest_support: Optional[float],
+    nearest_resistance: Optional[float],
+    atr: float
+) -> Dict[str, Any]:
+    """
+    Assess trade viability based on Minervini's entry criteria (Option D).
+    
+    Minervini prefers entries where stop can be placed 8-10% below entry.
+    Stocks extended >20% from support are not ideal setups.
+    
+    Viability Outcomes:
+    - YES: Support within 10% - tight stop, full position
+    - CAUTION: Support 10-20% away - wide stop, reduce size
+    - NO: Support >20% away - too extended, wait for pullback
+    
+    Parameters
+    ----------
+    current_price : float
+        Current stock price
+    nearest_support : float or None
+        Nearest support level below current price
+    nearest_resistance : float or None
+        Nearest resistance level above current price
+    atr : float
+        Average True Range for context
+        
+    Returns
+    -------
+    dict
+        Viability assessment with actionable advice
+    """
+    result = {
+        "viable": None,
+        "support_distance_pct": None,
+        "resistance_distance_pct": None,
+        "risk_reward_context": None,
+        "advice": None,
+        "stop_suggestion": None,
+        "position_size_advice": None
+    }
+    
+    # Calculate distances
+    if nearest_support and nearest_support > 0:
+        support_dist_pct = ((current_price - nearest_support) / current_price) * 100
+        result["support_distance_pct"] = round(support_dist_pct, 1)
+    else:
+        support_dist_pct = None
+        
+    if nearest_resistance and nearest_resistance > current_price:
+        resistance_dist_pct = ((nearest_resistance - current_price) / current_price) * 100
+        result["resistance_distance_pct"] = round(resistance_dist_pct, 1)
+    else:
+        resistance_dist_pct = None
+    
+    # Assess viability based on support distance (Minervini-aligned thresholds)
+    if support_dist_pct is None:
+        result["viable"] = "UNKNOWN"
+        result["advice"] = "No support level found - use ATR-based stop"
+        result["stop_suggestion"] = round(current_price - (1.5 * atr), 2)
+        result["position_size_advice"] = "REDUCED - no clear support"
+        
+    elif support_dist_pct <= 10:
+        # Ideal Minervini setup - tight base
+        result["viable"] = "YES"
+        result["advice"] = "Good setup - tight stop placement possible"
+        result["stop_suggestion"] = round(nearest_support * 0.98, 2)  # 2% below support
+        result["position_size_advice"] = "FULL - low risk entry"
+        
+    elif support_dist_pct <= 20:
+        # Acceptable but requires caution
+        result["viable"] = "CAUTION"
+        result["advice"] = "Wide stop required - consider reducing position size or waiting for pullback"
+        result["stop_suggestion"] = round(nearest_support * 0.98, 2)
+        result["position_size_advice"] = "HALF - wide stop increases risk"
+        
+    else:
+        # Extended - Minervini would not enter here
+        result["viable"] = "NO"
+        result["advice"] = f"Extended {support_dist_pct:.0f}% from support - wait for pullback before entering"
+        result["stop_suggestion"] = None  # Don't suggest a stop for non-viable trades
+        result["position_size_advice"] = "NONE - do not enter"
+    
+    # Add R:R context if we have both levels
+    if support_dist_pct and resistance_dist_pct and support_dist_pct > 0:
+        # Potential reward vs risk
+        rr_ratio = resistance_dist_pct / support_dist_pct
+        result["risk_reward_context"] = round(rr_ratio, 2)
+    
+    return result
 
 
 def _is_high_volatility(df: pd.DataFrame, cfg: SRConfig) -> bool:
@@ -355,6 +450,11 @@ def compute_sr_levels(df: pd.DataFrame, cfg: Optional[SRConfig] = None) -> SRLev
     - When stock is at ATH and no historical resistance exists,
       projects resistance levels using ATR (1x, 1.5x, 2x ATR above current)
     - Same logic for support when stock is at ATL
+    
+    Day 22 Enhancement (Option D):
+    - Added trade viability assessment based on Minervini's entry criteria
+    - Viability included in meta: YES / CAUTION / NO
+    - Actionable advice for position sizing and stop placement
 
     Parameters
     ----------
@@ -380,6 +480,9 @@ def compute_sr_levels(df: pd.DataFrame, cfg: Optional[SRConfig] = None) -> SRLev
 
     high_vol = _is_high_volatility(df, cfg)
     logger.info("High volatility regime: %s", high_vol)
+    
+    current_price = float(df["close"].iloc[-1])
+    atr = _calculate_atr(df, cfg.atr_period)
 
     # 1) Pivot-based (skip if volatility extreme)
     if not high_vol:
@@ -388,28 +491,32 @@ def compute_sr_levels(df: pd.DataFrame, cfg: Optional[SRConfig] = None) -> SRLev
             highs, lows, meta = pivot_result
             
             # Split into support/resistance around current price
-            last = float(df["close"].iloc[-1])
-            support = [l for l in lows if l <= last]
-            resistance = [h for h in highs if h > last]
+            support = [l for l in lows if l <= current_price]
+            resistance = [h for h in highs if h > current_price]
             
             # ALWAYS calculate ATR for pivot method (Day 20 fix)
-            atr = _calculate_atr(df, cfg.atr_period)
             meta["atr"] = round(atr, 2)
             
             # Handle ATH/ATL edge cases for pivot method too
             if not resistance:
                 logger.info("Pivot: No resistance found (ATH). Projecting using ATR.")
-                resistance = _project_resistance_levels(last, atr, cfg.atr_multipliers)
+                resistance = _project_resistance_levels(current_price, atr, cfg.atr_multipliers)
                 meta["resistance_projected"] = True
             else:
                 meta["resistance_projected"] = False
                 
             if not support:
                 logger.info("Pivot: No support found (ATL). Projecting using ATR.")
-                support = _project_support_levels(last, atr, cfg.atr_multipliers)
+                support = _project_support_levels(current_price, atr, cfg.atr_multipliers)
                 meta["support_projected"] = True
             else:
                 meta["support_projected"] = False
+            
+            # Day 22: Add trade viability assessment
+            nearest_support = max(support) if support else None
+            nearest_resistance = min(resistance) if resistance else None
+            viability = assess_trade_viability(current_price, nearest_support, nearest_resistance, atr)
+            meta["trade_viability"] = viability
             
             return SRLevels(
                 method="pivot",
@@ -422,6 +529,13 @@ def compute_sr_levels(df: pd.DataFrame, cfg: Optional[SRConfig] = None) -> SRLev
     km_result = _kmeans_sr(df, cfg)
     if km_result is not None:
         support, resistance, meta = km_result
+        
+        # Day 22: Add trade viability assessment
+        nearest_support = max(support) if support else None
+        nearest_resistance = min(resistance) if resistance else None
+        viability = assess_trade_viability(current_price, nearest_support, nearest_resistance, atr)
+        meta["trade_viability"] = viability
+        
         return SRLevels(
             method="kmeans",
             support=support,
@@ -431,6 +545,13 @@ def compute_sr_levels(df: pd.DataFrame, cfg: Optional[SRConfig] = None) -> SRLev
 
     # 3) Volume profile (guaranteed)
     sup, res, meta = _volume_profile_sr(df, cfg)
+    
+    # Day 22: Add trade viability assessment
+    nearest_support = max(sup) if sup else None
+    nearest_resistance = min(res) if res else None
+    viability = assess_trade_viability(current_price, nearest_support, nearest_resistance, atr)
+    meta["trade_viability"] = viability
+    
     return SRLevels(
         method="volume_profile",
         support=sup,
@@ -470,6 +591,13 @@ def example_usage():
     print("Support:", levels.support)
     print("Resistance:", levels.resistance)
     print("Meta:", levels.meta)
+    print("\n=== Trade Viability ===")
+    viability = levels.meta.get("trade_viability", {})
+    print(f"Viable: {viability.get('viable')}")
+    print(f"Support Distance: {viability.get('support_distance_pct')}%")
+    print(f"Advice: {viability.get('advice')}")
+    print(f"Stop Suggestion: ${viability.get('stop_suggestion')}")
+    print(f"Position Size: {viability.get('position_size_advice')}")
 
 
 if __name__ == "__main__":

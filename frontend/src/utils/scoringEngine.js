@@ -12,7 +12,7 @@
  * - Risk/Macro: 5 points
  */
 
-import { calculateSMA, calculateEMA, calculateATR } from './technicalIndicators';
+import { calculateSMA, calculateEMA, calculateATR, calculateRSI } from './technicalIndicators';
 import { calculateRelativeStrength } from './rsCalculator';
 
 /**
@@ -29,7 +29,7 @@ function getIndicators(prices, volumes) {
     ema8: calculateEMA(prices, 8),
     ema21: calculateEMA(prices, 21),
     atr: calculateATR(prices, 14),
-    rsi: null, // RSI calculation not available in technicalIndicators.js yet
+    rsi: calculateRSI(prices, 14),
     avgVolume50: volumes.slice(-50).reduce((a, b) => a + b, 0) / 50
   };
 }

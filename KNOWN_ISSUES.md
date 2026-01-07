@@ -2,18 +2,18 @@
 
 > **Purpose:** Comprehensive issue tracking with status  
 > **Location:** Claude Project (not daily file)  
-> **Last Updated:** Day 21 (January 4, 2026)
+> **Last Updated:** Day 22 (January 6, 2026)
 
 ---
 
 ## 📊 ISSUE SUMMARY
 
-| Priority | Open | Fixed | Total |
-|----------|------|-------|-------|
-| Critical | 1 | 1 | 2 |
-| High | 3 | 2 | 5 |
-| Medium | 1 | 2 | 3 |
-| Low | 4 | 0 | 4 |
+| Priority | Open | Fixed | Mitigated | Total |
+|----------|------|-------|-----------|-------|
+| Critical | 1 | 1 | 0 | 2 |
+| High | 1 | 2 | 2 | 5 |
+| Medium | 2 | 2 | 0 | 4 |
+| Low | 4 | 0 | 0 | 4 |
 
 ---
 
@@ -27,13 +27,14 @@
 | Since | Day 1 |
 | Root Cause | No backtest or forward test ever run |
 | Impact | Cannot validate 60-70% win rate claim |
-| Fix Plan | v2.1 - Backtesting Framework |
-| Blocked By | Forward Testing UI (v1.4) needed first |
+| Fix Plan | v1.4 - Forward Testing UI (NEXT PRIORITY) |
+| Blocked By | Nothing - ready to build |
 
 **Notes:**
 - Perplexity review flagged this as CRITICAL gap
 - System is "well-documented hypothesis" not proven edge
 - Must complete before any live trading
+- Day 22: Perplexity analysis reinforced this - 22 days ≠ 10 years experience
 
 ---
 
@@ -46,63 +47,35 @@
 | Root Cause | Multiple `.where()` calls replace filters in v3.0.0 |
 | Fix | Consolidated all filters into single `.where()` call per strategy |
 
-**What Was Wrong:**
-```python
-# BROKEN: Second .where() replaced the first
-query = query.where(col('exchange').isin(['NYSE', 'NASDAQ', 'AMEX']))
-query = query.where(col('market_cap_basic') >= 2_000_000_000, ...)  # Overwrites!
-```
-
-**Fix Applied (Day 21):**
-```python
-# FIXED: All filters in ONE .where() call
-query = query.where(
-    col('exchange').isin(['NYSE', 'NASDAQ', 'AMEX']),
-    col('market_cap_basic') >= 2_000_000_000,
-    ...
-)
-```
-
 ---
 
 ## 🟠 HIGH PRIORITY
 
-### HIGH-1: S&R Returns 0 Support (Extended Stocks)
+### HIGH-1: S&R Returns 0 Support (Extended Stocks) 🟢 MITIGATED
 | Field | Value |
 |-------|-------|
-| Status | 🔴 OPEN |
+| Status | 🟢 MITIGATED Day 22 (Option D) |
 | Affected | 5/30 stocks (17%): AVGO, TSLA, GOOGL, AMD, F |
 | Since | Day 19 |
 | Root Cause | 20% proximity filter too strict for extended stocks |
-| Impact | Entry/Stop = null, trade setup breaks |
+| Mitigation | Option D now shows "NOT VIABLE - wait for pullback" instead of N/A confusion |
+| Full Fix | Not needed - Option D handles this correctly |
 
-**Example:**
-| Ticker | Current | 20% Floor | Highest Support | Gap |
-|--------|---------|-----------|-----------------|-----|
-| AVGO | $346 | $276.80 | $217.54 | 21% below floor |
-| TSLA | $455 | $363.86 | $288.77 | 21% below floor |
-| GOOGL | $314 | $251.14 | $161.75 | 36% below floor |
-
-**Fix Plan:** S&R Option C Enhancement (design ready)
+**Option D Behavior:**
+- Stock >20% from support → Viability = "NO"
+- Advice: "Extended X% from support - wait for pullback before entering"
+- Entry/Stop show N/A (correct - don't trade extended stocks)
 
 ---
 
-### HIGH-2: S&R Returns 0 Resistance (Beaten-Down Stocks)
+### HIGH-2: S&R Returns 0 Resistance (Beaten-Down Stocks) 🟢 MITIGATED
 | Field | Value |
 |-------|-------|
-| Status | 🔴 OPEN |
+| Status | 🟢 MITIGATED Day 22 (Option D) |
 | Affected | 3/30 stocks (10%): NFLX, COIN, SMCI |
 | Since | Day 19 |
 | Root Cause | 30% proximity filter too strict for beaten-down stocks |
-| Impact | Target = null, R:R cannot be calculated |
-
-**Example:**
-| Ticker | Current | 30% Ceiling | Lowest Resistance | Gap |
-|--------|---------|-------------|-------------------|-----|
-| NFLX | $94 | $122.27 | $124.86 | 2% above ceiling |
-| COIN | $228 | $296.89 | $351.89 | 19% above ceiling |
-
-**Fix Plan:** S&R Option C Enhancement (design ready)
+| Mitigation | Option D still shows viability based on support distance |
 
 ---
 
@@ -135,11 +108,11 @@ query = query.where(
 ### HIGH-5: RSI Always N/A ✅ FIXED
 | Field | Value |
 |-------|-------|
-| Status | ✅ FIXED Day 20 |
+| Status | ✅ FIXED Day 22 |
 | Affected | All stocks |
-| Root Cause | calculateRSI function didn't exist |
-| Fix | Added calculateRSI to technicalIndicators.js |
-| Note | Needs testing to verify it works end-to-end |
+| Root Cause | calculateRSI existed but wasn't imported/called in scoringEngine |
+| Fix | Added import and call: `rsi: calculateRSI(prices, 14)` |
+| Verified | RSI now shows values (e.g., AAPL: 36.8, NFLX: 28.7) |
 
 ---
 
@@ -152,10 +125,6 @@ query = query.where(
 | Affected | ~30% of stocks |
 | Root Cause | Defeat Beta vs Finviz use different methodologies |
 | Impact | Validation shows FAILs for D/E, Revenue Growth |
-
-**Examples:**
-- NVDA debt_equity: Defeat Beta 0.13 vs Finviz 0.09 (44% variance)
-- NVDA revenue_growth: Defeat Beta 114% vs Finviz 62% (83% variance)
 
 **Resolution:** Acceptable variance - different data sources calculate differently
 
@@ -179,6 +148,17 @@ query = query.where(
 | Root Cause | Not implemented |
 | Impact | Will inflate backtest returns |
 | Fix Plan | v2.1 - Add to backtesting framework |
+
+---
+
+### MED-4: ATR N/A in Analyze Stock UI 🆕
+| Field | Value |
+|-------|-------|
+| Status | 🟡 NEW Day 22 |
+| Affected | Analyze Stock tab → Technical Indicators section |
+| Root Cause | Unknown - frontend calculateATR may have issue |
+| Note | Backend S&R ATR works fine (fixed Day 20) |
+| Impact | Low - ATR shows in Trade Setup via S&R |
 
 ---
 
@@ -223,9 +203,9 @@ query = query.where(
 
 ---
 
-## 📊 30-STOCK TEST RESULTS (Day 19)
+## 📊 30-STOCK TEST RESULTS
 
-### Summary
+### Day 19 Validation Summary
 | Metric | Value |
 |--------|-------|
 | Quality Score | 78.6% |
@@ -233,49 +213,41 @@ query = query.where(
 | Coverage Rate | 98.0% |
 | Stocks Tested | 30 |
 
-### S&R Status Breakdown
-| Status | Count | % | Tickers |
-|--------|-------|---|---------|
-| ✅ Fully Working | 18 | 60% | AAPL, NVDA, MSFT, META, JPM, XOM, PLTR, VOO, AMZN, INTC, DIS, KO, PEP, COST, WMT, HD, LLY, BA |
-| ⚠️ ATR null | 4 | 13% | CRM, UNH, V + others → **FIXED** |
-| ⚠️ No Resistance | 3 | 10% | NFLX, COIN, SMCI |
-| ❌ No Support | 5 | 17% | AVGO, TSLA, GOOGL, AMD, F |
-| ❌ API Error | 1 | 3% | SQ |
-
-### Stocks Tested
-- **Batch 1:** AAPL, NVDA, AVGO, MSFT, META, TSLA, JPM, XOM, PLTR, VOO
-- **Batch 2:** GOOGL, AMZN, AMD, INTC, BA, DIS, KO, PEP, COST, WMT
-- **Batch 3:** NFLX, CRM, UNH, V, HD, LLY, COIN, SMCI, F, SQ
+### Day 22 Option D Viability Test
+| Viability | Count | % | Stocks |
+|-----------|-------|---|--------|
+| YES | 21 | 70% | AAPL, NVDA, MSFT, META, JPM, PLTR, VOO, AMZN, INTC, DIS, KO, PEP, COST, WMT, NFLX, CRM, V, HD, LLY, COIN, SMCI |
+| CAUTION | 2 | 7% | XOM, UNH |
+| NO | 6 | 20% | AVGO, TSLA, GOOGL, AMD, BA, F |
+| ERROR | 1 | 3% | SQ |
 
 ---
 
-## 🏗️ S&R OPTION C DESIGN (Ready to Implement)
+## 🗂 OPTION D IMPLEMENTATION (Day 22)
 
-### Problem
-20% proximity filter works correctly but creates poor UX for edge cases.
+### What It Does
+Simple Minervini-aligned trade viability assessment:
+- **YES** (≤10% from support): Good setup, tight stop, FULL position
+- **CAUTION** (10-20% from support): Wide stop, HALF position
+- **NO** (>20% from support): Extended, do NOT enter
 
-### Solution: Context-Aware S&R
-```python
-STOCK_STATES = {
-    "TIGHT_BASE": support_dist <= 8%,      # Ideal entry
-    "NORMAL_PULLBACK": support_dist <= 15%, # Good setup
-    "EXTENDED": support_dist <= 25%,        # Wait for pullback
-    "VERY_EXTENDED": support_dist <= 40%,   # High risk
-    "PARABOLIC": support_dist > 40%,        # No valid entry
-    "BEATEN_DOWN": resistance_dist > 30%    # Potential value, high risk
+### Files Changed
+| File | Change |
+|------|--------|
+| `support_resistance.py` | Added `assess_trade_viability()` function |
+| `backend.py` | Added `tradeViability` to meta (line 776) |
+| `App.jsx` | Added viability badge + advice banner |
+
+### API Response
+```json
+"tradeViability": {
+  "viable": "YES" | "CAUTION" | "NO",
+  "support_distance_pct": 5.3,
+  "advice": "Good setup - tight stop placement possible",
+  "position_size_advice": "FULL - low risk entry",
+  "stop_suggestion": 246.28
 }
 ```
-
-### Key Changes
-1. Always return nearest S&R (no filter initially)
-2. Add `stockState` classification
-3. Add `tradeAdvice` human-readable guidance
-4. Add `entryViable` flag (True/False/WAIT)
-
-### Benefits
-- No more N/A - Always shows nearest levels with context
-- Educational - Explains WHY entry isn't recommended
-- Works for all stock states
 
 ---
 

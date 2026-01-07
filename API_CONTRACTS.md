@@ -2,7 +2,7 @@
 
 > **Purpose:** Stable reference for all API contracts  
 > **Location:** Claude Project (not daily file)  
-> **Last Updated:** Day 21 (January 3, 2026)  
+> **Last Updated:** Day 22 (January 6, 2026)  
 > **Total API Routes:** 14 (verify with `grep -n "@app.route" backend.py`)
 
 ---
@@ -22,13 +22,13 @@
 
 ---
 
-## 📁 PROJECT STRUCTURE
+## 📂 PROJECT STRUCTURE
 
 ```
 /Users/balajik/projects/swing-trade-analyzer/
 ├── backend/
 │   ├── backend.py                  # Flask API server
-│   ├── support_resistance.py       # S&R calculation
+│   ├── support_resistance.py       # S&R calculation + Option D viability
 │   ├── validation/
 │   │   ├── __init__.py
 │   │   ├── engine.py               # Validation engine
@@ -41,12 +41,12 @@
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx                 # Main React component
+│   │   ├── App.jsx                 # Main React component (v2.5)
 │   │   ├── services/api.js         # API client
 │   │   └── utils/
-│   │       ├── scoringEngine.js    # 75-point scoring
+│   │       ├── scoringEngine.js    # 75-point scoring (v2.2 - RSI working)
 │   │       ├── rsCalculator.js     # Relative Strength
-│   │       └── technicalIndicators.js
+│   │       └── technicalIndicators.js  # SMA, EMA, ATR, RSI
 │   └── package.json
 │
 ├── test_script.sh                  # Batch test scripts
@@ -55,7 +55,7 @@
 
 ---
 
-## 🔌 BACKEND API ENDPOINTS
+## 📌 BACKEND API ENDPOINTS
 
 ### Health & Basic
 | Endpoint | Method | Description |
@@ -73,35 +73,79 @@
 ### Support & Resistance
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/sr/<ticker>` | GET | S&R levels + trade setup |
+| `/api/sr/<ticker>` | GET | S&R levels + trade setup + viability |
 
-**S&R Response Structure:**
+**S&R Response Structure (Day 22 - with Option D):**
 ```json
 {
   "ticker": "AAPL",
-  "method": "pivot|kmeans",
-  "supports": [245.50, 238.20, 230.00],
-  "resistances": [260.00, 275.50, 290.00],
+  "currentPrice": 263.73,
+  "method": "pivot|kmeans|volume_profile",
+  "support": [251.31, 232.16, 211.95],
+  "resistance": [273.06],
+  "allSupport": [211.95, 232.16, 251.31],
+  "allResistance": [273.06],
+  "suggestedEntry": 251.31,
+  "suggestedStop": 243.77,
+  "suggestedTarget": 273.06,
+  "riskReward": 2.88,
+  "dataPoints": 260,
+  "timestamp": "2026-01-06T10:00:55.316712",
   "meta": {
-    "atr": 4.52,
-    "currentPrice": 252.30
-  },
-  "tradeSetup": {
-    "entry": 245.50,
-    "stop": 240.98,
-    "targets": [260.00, 275.50],
-    "riskReward": 2.5
+    "methodUsed": "kmeans",
+    "supportCount": 3,
+    "resistanceCount": 1,
+    "allSupportCount": 4,
+    "allResistanceCount": 1,
+    "atr": 3.89,
+    "resistanceProjected": false,
+    "supportProjected": false,
+    "proximityFilter": {
+      "supportFloor": 211.66,
+      "resistanceCeiling": 343.94,
+      "supportPct": 0.2,
+      "resistancePct": 0.3
+    },
+    "tradeViability": {
+      "viable": "YES|CAUTION|NO|UNKNOWN",
+      "support_distance_pct": 5.3,
+      "resistance_distance_pct": 2.9,
+      "risk_reward_context": 0.55,
+      "advice": "Good setup - tight stop placement possible",
+      "stop_suggestion": 246.28,
+      "position_size_advice": "FULL - low risk entry"
+    }
   }
 }
 ```
 
+### Trade Viability Values (Option D - Day 22)
+| Viable | Support Distance | Position Size | Meaning |
+|--------|------------------|---------------|---------|
+| YES | ≤10% | FULL | Ideal Minervini setup |
+| CAUTION | 10-20% | HALF | Wide stop, reduce size |
+| NO | >20% | NONE | Extended, wait for pullback |
+| UNKNOWN | N/A | REDUCED | No support found |
+
 ### TradingView Scanning
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/scan/tradingview` | GET | Batch scanning (⚠️ OTC bug) |
+| `/api/scan/tradingview` | GET | Batch scanning (FIXED Day 21) |
 | `/api/scan/strategies` | GET | Available strategies |
 
 **Query Params:** `?strategy=reddit|minervini|momentum|value&limit=50`
+
+**Strategies Response:**
+```json
+{
+  "strategies": [
+    {"id": "reddit", "name": "Reddit Style", "description": "Mid-cap+, high relative volume, momentum stocks"},
+    {"id": "minervini", "name": "Minervini SEPA", "description": "Large-cap momentum leaders in Stage 2 uptrend"},
+    {"id": "momentum", "name": "Momentum", "description": "Sustainable gains, RSI 50-75 (not overbought)"},
+    {"id": "value", "name": "Value", "description": "Quality stocks above 200 SMA at fair RSI levels"}
+  ]
+}
+```
 
 ### Validation
 | Endpoint | Method | Description |
@@ -165,7 +209,7 @@ POST /api/forward-test/record
 calculateScore(stockData, spyData, vixData)
 ```
 
-### Output (v2.1)
+### Output (v2.2 - Day 22)
 ```javascript
 {
   // Basic info
@@ -215,14 +259,14 @@ calculateScore(stockData, spyData, vixData)
     passesQualityGate: boolean
   },
   
-  // Technical indicators
+  // Technical indicators (Day 22: RSI now working)
   indicators: {
     sma50: number,
     sma200: number,
     ema8: number,
     ema21: number,
-    atr: number,
-    rsi: number,
+    atr: number,              // ⚠️ May be null in frontend
+    rsi: number,              // ✅ Now working (Day 22)
     avgVolume50: number
   },
   
@@ -318,6 +362,9 @@ curl http://localhost:5001/api/health
 curl http://localhost:5001/api/stock/AAPL
 curl http://localhost:5001/api/sr/AAPL
 curl http://localhost:5001/api/fundamentals/AAPL
+
+# Test trade viability (Day 22)
+curl -s http://localhost:5001/api/sr/AAPL | python3 -m json.tool | grep -A 10 "tradeViability"
 
 # Test validation
 curl -X POST http://localhost:5001/api/validation/run \
