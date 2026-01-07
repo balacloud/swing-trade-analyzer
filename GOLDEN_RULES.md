@@ -1,4 +1,4 @@
-# 🏆 GOLDEN RULES FOR CLAUDE
+# ðŸ† GOLDEN RULES FOR CLAUDE
 
 > **Purpose:** Stable reference document for all session rules  
 > **Location:** Claude Project (not daily file)  
@@ -6,7 +6,7 @@
 
 ---
 
-## 📋 SESSION RULES
+## ðŸ“‹ SESSION RULES
 
 ### The 11 Golden Rules:
 1. **START of session:** Read PROJECT_STATUS_DAY[N].md first
@@ -23,28 +23,28 @@
 
 ---
 
-## 🔄 SESSION STARTUP CHECKLIST
+## ðŸ”„ SESSION STARTUP CHECKLIST
 
 When user starts a new session:
-1. ✅ Read PROJECT_STATUS file (user will attach it)
-2. ✅ Verify context by summarizing current state to user
-3. ✅ Ask: "What would you like to focus on today?"
-4. ❌ Do NOT ask user to re-explain the project
-5. ❌ Do NOT ask for files unless you need to modify them
-6. ❌ Do NOT jump to fixing - understand the problem first
+1. âœ… Read PROJECT_STATUS file (user will attach it)
+2. âœ… Verify context by summarizing current state to user
+3. âœ… Ask: "What would you like to focus on today?"
+4. âŒ Do NOT ask user to re-explain the project
+5. âŒ Do NOT ask for files unless you need to modify them
+6. âŒ Do NOT jump to fixing - understand the problem first
 
 ---
 
-## 📋 SESSION CLOSE CHECKLIST
+## ðŸ“‹ SESSION CLOSE CHECKLIST
 
 When user says "session ending" or "close session":
-1. ✅ Create PROJECT_STATUS_DAY[N+1]_SHORT.md
-2. ✅ Ask: "Did any bugs get fixed or found?" → Update KNOWN_ISSUES.md
-3. ✅ Ask: "Did any APIs change?" → Update API_CONTRACTS.md
-4. ✅ Ask: "Did we learn a new rule?" → Update GOLDEN_RULES.md
-5. ✅ Update Claude Memory if significant changes
-6. ✅ Provide git commit command
-7. ✅ Note any deferred tasks for next session
+1. âœ… Create PROJECT_STATUS_DAY[N+1]_SHORT.md
+2. âœ… Ask: "Did any bugs get fixed or found?" â†’ Update KNOWN_ISSUES.md
+3. âœ… Ask: "Did any APIs change?" â†’ Update API_CONTRACTS.md
+4. âœ… Ask: "Did we learn a new rule?" â†’ Update GOLDEN_RULES.md
+5. âœ… Update Claude Memory if significant changes
+6. âœ… Provide git commit command
+7. âœ… Note any deferred tasks for next session
 
 ### How Stable Doc Updates Work:
 - Claude creates updated file in `/mnt/user-data/outputs/`
@@ -53,7 +53,7 @@ When user says "session ending" or "close session":
 
 ---
 
-## 🔄 API SYNC VERIFICATION
+## ðŸ”„ API SYNC VERIFICATION
 
 ### When to Verify API_CONTRACTS.md:
 - After adding new endpoints
@@ -68,7 +68,7 @@ grep -n "@app.route" backend.py
 ### Verification Checklist:
 1. Count routes in backend.py
 2. Count routes documented in API_CONTRACTS.md
-3. If mismatch → update API_CONTRACTS.md
+3. If mismatch â†’ update API_CONTRACTS.md
 4. Check response structures are still accurate
 
 ### API Contract Rule:
@@ -76,7 +76,7 @@ grep -n "@app.route" backend.py
 
 ---
 
-## ⚠️ SESSION REMINDER (User Pastes This)
+## âš ï¸ SESSION REMINDER (User Pastes This)
 
 ```
 CLAUDE SESSION REMINDER:
@@ -90,7 +90,7 @@ CLAUDE SESSION REMINDER:
 
 ---
 
-## 🏗️ CODE ARCHITECTURE RULES
+## ðŸ—ï¸ CODE ARCHITECTURE RULES
 
 ### Best Practices for Code Generation:
 1. **Verify data contracts BEFORE writing code** - Check actual return structures before writing consuming code
@@ -109,7 +109,7 @@ CLAUDE SESSION REMINDER:
 
 ---
 
-## 🔧 DEBUGGING RULES (Added Day 20)
+## ðŸ”§ DEBUGGING RULES (Added Day 20)
 
 ### When Fixing Bugs:
 1. **ALWAYS run diagnostic queries FIRST** before writing fixes
@@ -136,27 +136,27 @@ CLAUDE SESSION REMINDER:
 
 ---
 
-## 🚫 COMMON MISTAKES TO AVOID
+## ðŸš« COMMON MISTAKES TO AVOID
 
 ### Don't Do This:
-- ❌ Jump to writing code without understanding the problem
-- ❌ Assume file structure without seeing actual file
-- ❌ Chain multiple guesses when first fix fails
-- ❌ Write long code blocks without user testing in between
-- ❌ Create PROJECT_STATUS that loses cumulative context
-- ❌ Overwrite producer's data with redundant consumer calculations
+- âŒ Jump to writing code without understanding the problem
+- âŒ Assume file structure without seeing actual file
+- âŒ Chain multiple guesses when first fix fails
+- âŒ Write long code blocks without user testing in between
+- âŒ Create PROJECT_STATUS that loses cumulative context
+- âŒ Overwrite producer's data with redundant consumer calculations
 
 ### Do This Instead:
-- ✅ Ask clarifying questions first
-- ✅ Request current file before modifying
-- ✅ Run diagnostic queries to understand actual behavior
-- ✅ Test each change before moving to next
-- ✅ Stop and diagnose when something fails
-- ✅ Keep PROJECT_STATUS focused but reference stable docs
+- âœ… Ask clarifying questions first
+- âœ… Request current file before modifying
+- âœ… Run diagnostic queries to understand actual behavior
+- âœ… Test each change before moving to next
+- âœ… Stop and diagnose when something fails
+- âœ… Keep PROJECT_STATUS focused but reference stable docs
 
 ---
 
-## 💡 KEY LEARNINGS (Cumulative)
+## ðŸ’¡ KEY LEARNINGS (Cumulative)
 
 ### Day 18: Data Contract Bugs
 - Verify data contracts BEFORE writing UI code
@@ -172,9 +172,16 @@ CLAUDE SESSION REMINDER:
 ### Day 20: Debugging Discipline
 - **Debug before coding** - Run diagnostic queries first
 - **Don't chain failed attempts** - Stop, think, verify
-- **Library behavior ≠ assumptions** - Always verify actual values
+- **Library behavior â‰  assumptions** - Always verify actual values
 - **PROJECT_STATUS must be useful** - Not just an incident report
 
 ---
 
 *This file lives in Claude Project - stable reference, rarely changes*
+
+### Day 23: Feature vs Validation
+- **Stop adding features, start proving the system works**
+- Features without validation = hypothesis, not edge
+- Holistic review before new development is valuable
+- 13% fake score (sentiment) is dishonest - fix or remove
+- Mixed UX signals confuse users - unify messaging
