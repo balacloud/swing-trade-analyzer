@@ -1,5 +1,5 @@
 """
-Swing Trade Analyzer Backend - v2.5
+Swing Trade Analyzer Backend - v2.6
 Flask API server with yfinance (prices) + Defeat Beta (fundamentals) + TradingView Screener (scanning) + S&R Engine
 
 Day 6: Fixed numpy type serialization issues
@@ -7,6 +7,7 @@ Day 8: Fixed Defeat Beta .data attribute usage
 Day 11: Added TradingView screener integration for batch scanning
 Day 13: Added Support & Resistance engine endpoint
 Day 20: Added TradingView scan endpoint, fixed API syntax for tradingview-screener library
+Day 25: Added auto-refresh cache for Defeat Beta data (TTL-based)
 """
 
 import os
@@ -61,6 +62,42 @@ except ImportError:
 
 app = Flask(__name__)
 CORS(app)
+
+# ============================================
+# CACHE CONFIGURATION (Day 25)
+# ============================================
+# TTL-based cache for Defeat Beta data to prevent stale data issues
+# Cache expires after 1 hour (3600 seconds)
+
+FUNDAMENTALS_CACHE = {}
+FUNDAMENTALS_CACHE_TTL = 3600  # 1 hour in seconds
+
+def get_cached_fundamentals(ticker_symbol):
+    """Get fundamentals from cache if not expired"""
+    if ticker_symbol in FUNDAMENTALS_CACHE:
+        cached_data, cached_time = FUNDAMENTALS_CACHE[ticker_symbol]
+        age = (datetime.now() - cached_time).total_seconds()
+        if age < FUNDAMENTALS_CACHE_TTL:
+            print(f"📦 Cache hit for {ticker_symbol} (age: {age:.0f}s)")
+            return cached_data
+        else:
+            print(f"🔄 Cache expired for {ticker_symbol} (age: {age:.0f}s)")
+    return None
+
+def set_cached_fundamentals(ticker_symbol, data):
+    """Store fundamentals in cache with timestamp"""
+    FUNDAMENTALS_CACHE[ticker_symbol] = (data, datetime.now())
+    print(f"💾 Cached fundamentals for {ticker_symbol}")
+
+def clear_fundamentals_cache(ticker_symbol=None):
+    """Clear cache for a ticker or all tickers"""
+    global FUNDAMENTALS_CACHE
+    if ticker_symbol:
+        FUNDAMENTALS_CACHE.pop(ticker_symbol, None)
+        print(f"🗑️ Cleared cache for {ticker_symbol}")
+    else:
+        FUNDAMENTALS_CACHE = {}
+        print("🗑️ Cleared all fundamentals cache")
 
 # ============================================
 # HELPER FUNCTIONS
@@ -133,14 +170,20 @@ def get_fundamentals_defeatbeta(ticker_symbol):
     """
     Get rich fundamental data from Defeat Beta
     Returns ROE, ROIC, ROA, EPS growth, revenue growth, etc.
-    
+
     Day 8 FIX: Use .data attribute instead of .to_df()
+    Day 25: Added TTL cache to prevent stale data (auto-refresh after 1 hour)
     DataFrame structure: Columns = ['Breakdown', '2024-10-31', '2023-10-31', ...]
     Values are in rows with labels in 'Breakdown' column
     """
     if not DEFEATBETA_AVAILABLE:
         return None
-    
+
+    # Day 25: Check cache first
+    cached = get_cached_fundamentals(ticker_symbol)
+    if cached:
+        return cached
+
     try:
         ticker = DBTicker(ticker_symbol)
         
@@ -296,7 +339,10 @@ def get_fundamentals_defeatbeta(ticker_symbol):
         print(f"   ROE: {result['roe']}%, ROA: {result['roa']}%, ROIC: {result['roic']}%")
         print(f"   EPS Growth: {result['epsGrowth']}%, Revenue Growth: {result['revenueGrowth']}%")
         print(f"   Debt/Equity: {result['debtToEquity']}, Profit Margin: {result['profitMargin']}%")
-        
+
+        # Day 25: Cache the result
+        set_cached_fundamentals(ticker_symbol, result)
+
         return result
         
     except Exception as e:
@@ -400,7 +446,52 @@ def health_check():
         'defeatbeta_available': DEFEATBETA_AVAILABLE,
         'tradingview_available': TRADINGVIEW_AVAILABLE,
         'sr_engine_available': SR_ENGINE_AVAILABLE,
-        'validation_available': VALIDATION_AVAILABLE
+        'validation_available': VALIDATION_AVAILABLE,
+        'cache_size': len(FUNDAMENTALS_CACHE),
+        'cache_ttl_seconds': FUNDAMENTALS_CACHE_TTL
+    })
+
+
+@app.route('/api/cache/clear', methods=['POST'])
+def clear_cache():
+    """
+    Clear fundamentals cache - Day 25
+    POST /api/cache/clear - clears all cache
+    POST /api/cache/clear?ticker=AAPL - clears specific ticker
+    """
+    ticker = request.args.get('ticker')
+    if ticker:
+        clear_fundamentals_cache(ticker.upper())
+        return jsonify({
+            'status': 'success',
+            'message': f'Cache cleared for {ticker.upper()}',
+            'cache_size': len(FUNDAMENTALS_CACHE)
+        })
+    else:
+        clear_fundamentals_cache()
+        return jsonify({
+            'status': 'success',
+            'message': 'All cache cleared',
+            'cache_size': 0
+        })
+
+
+@app.route('/api/cache/status', methods=['GET'])
+def cache_status():
+    """Get cache status - Day 25"""
+    cache_info = []
+    for ticker, (data, cached_time) in FUNDAMENTALS_CACHE.items():
+        age = (datetime.now() - cached_time).total_seconds()
+        cache_info.append({
+            'ticker': ticker,
+            'age_seconds': round(age),
+            'expires_in': round(FUNDAMENTALS_CACHE_TTL - age),
+            'has_roe': data.get('roe') is not None
+        })
+    return jsonify({
+        'cache_size': len(FUNDAMENTALS_CACHE),
+        'ttl_seconds': FUNDAMENTALS_CACHE_TTL,
+        'entries': cache_info
     })
 
 

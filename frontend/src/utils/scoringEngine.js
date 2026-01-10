@@ -1,10 +1,11 @@
 /**
  * Scoring Engine for Swing Trade Analyzer
  * 75-point scoring system based on Minervini SEPA + CAN SLIM
- * 
+ *
  * v2.0: Enhanced fundamental scoring with Defeat Beta data
  * v2.1: Fixed API structure - clean consumer-facing return object (Day 18)
- * 
+ * v2.2: Day 25 - Added ETF detection and extreme ROE/EPS context
+ *
  * Scoring Breakdown:
  * - Technical: 40 points
  * - Fundamental: 20 points (ENHANCED)
@@ -14,6 +15,70 @@
 
 import { calculateSMA, calculateEMA, calculateATR, calculateRSI } from './technicalIndicators';
 import { calculateRelativeStrength } from './rsCalculator';
+
+// Day 25: Known ETF tickers - these don't have traditional fundamentals
+const ETF_TICKERS = ['SPY', 'QQQ', 'IWM', 'DIA', 'VOO', 'VTI', 'VEA', 'VWO', 'VNQ',
+                     'BND', 'AGG', 'GLD', 'SLV', 'USO', 'XLF', 'XLK', 'XLE', 'XLV',
+                     'XLI', 'XLP', 'XLY', 'XLB', 'XLU', 'ARKK', 'ARKG', 'ARKW'];
+
+/**
+ * Day 25: Check if ticker is an ETF
+ */
+function isETF(ticker) {
+  return ETF_TICKERS.includes(ticker?.toUpperCase());
+}
+
+/**
+ * Day 25: Get context for extreme ROE/EPS values
+ * Returns explanation for values that might confuse users
+ */
+function getExtremeValueContext(fundamentals) {
+  const context = [];
+
+  const roe = fundamentals?.roe;
+  const eps = fundamentals?.epsGrowth;
+  const debtToEquity = fundamentals?.debtToEquity;
+
+  // Negative ROE
+  if (roe !== null && roe !== undefined && roe < 0) {
+    context.push({
+      metric: 'ROE',
+      value: roe,
+      explanation: 'Negative ROE indicates negative shareholder equity (often from share buybacks or accumulated losses)'
+    });
+  }
+
+  // Very high ROE (>100%)
+  if (roe !== null && roe !== undefined && roe > 100) {
+    context.push({
+      metric: 'ROE',
+      value: roe,
+      explanation: 'Very high ROE often indicates low equity base (from buybacks/dividends) or temporary earnings spike'
+    });
+  }
+
+  // Extreme EPS growth (>200% or < -100%)
+  if (eps !== null && eps !== undefined && (eps > 200 || eps < -100)) {
+    context.push({
+      metric: 'EPS Growth',
+      value: eps,
+      explanation: eps > 200
+        ? 'Extreme EPS growth often indicates recovery from prior losses or one-time gains'
+        : 'Large EPS decline may be temporary or indicate fundamental issues'
+    });
+  }
+
+  // Negative debt to equity
+  if (debtToEquity !== null && debtToEquity !== undefined && debtToEquity < 0) {
+    context.push({
+      metric: 'Debt/Equity',
+      value: debtToEquity,
+      explanation: 'Negative D/E indicates negative equity (more liabilities than assets or aggressive buybacks)'
+    });
+  }
+
+  return context;
+}
 
 /**
  * Calculate all technical indicators from price data
@@ -118,8 +183,9 @@ function calculateTechnicalScore(stockData, spyData) {
 /**
  * Calculate Fundamental Score (20 points)
  * ENHANCED with Defeat Beta data (ROE, ROIC, EPS Growth, etc.)
+ * Day 25: Added ETF detection and extreme value context
  */
-function calculateFundamentalScore(fundamentals) {
+function calculateFundamentalScore(fundamentals, ticker) {
   let scores = {
     epsGrowth: 0,
     revenueGrowth: 0,
@@ -127,14 +193,38 @@ function calculateFundamentalScore(fundamentals) {
     debtToEquity: 0,
     forwardPe: 0
   };
-  
+
   let dataSource = fundamentals?.enrichedSource || fundamentals?.source || 'unknown';
   let dataQuality = 'limited';
-  
+  let isEtfTicker = isETF(ticker);
+  let extremeContext = [];
+
+  // Day 25: Handle ETF tickers specially
+  if (isEtfTicker) {
+    return {
+      score: 0,
+      maxScore: 20,
+      details: {
+        epsGrowth: { score: 0, max: 6, value: null },
+        revenueGrowth: { score: 0, max: 5, value: null },
+        roe: { score: 0, max: 4, value: null },
+        debtToEquity: { score: 0, max: 3, value: null },
+        forwardPe: { score: 0, max: 2, value: null }
+      },
+      dataSource: 'N/A',
+      dataQuality: 'N/A',
+      isETF: true,
+      etfNote: 'ETFs do not have traditional fundamentals (EPS, ROE, etc.). Score based on technical analysis only.'
+    };
+  }
+
   // Check if we have enriched data from Defeat Beta
   if (fundamentals?.enriched || fundamentals?.source === 'defeatbeta') {
     dataQuality = 'rich';
   }
+
+  // Day 25: Get context for extreme values
+  extremeContext = getExtremeValueContext(fundamentals);
   
   // 1. EPS Growth (6 points)
   // Target: >25% YoY = 6pts, 15-25% = 4pts, 10-15% = 2pts
@@ -215,7 +305,9 @@ function calculateFundamentalScore(fundamentals) {
       forwardPe: { score: scores.forwardPe, max: 2, value: forwardPe }
     },
     dataSource: dataSource,
-    dataQuality: dataQuality
+    dataQuality: dataQuality,
+    isETF: false,
+    extremeValueContext: extremeContext  // Day 25: Context for unusual values
   };
 }
 
@@ -394,7 +486,7 @@ function determineVerdict(totalScore, qualityGates, rsData) {
 export function calculateScore(stockData, spyData, vixData) {
   // Calculate individual scores
   const technicalAnalysis = calculateTechnicalScore(stockData, spyData);
-  const fundamentalAnalysis = calculateFundamentalScore(stockData.fundamentals);
+  const fundamentalAnalysis = calculateFundamentalScore(stockData.fundamentals, stockData.ticker);  // Day 25: Pass ticker for ETF detection
   const sentimentAnalysis = calculateSentimentScore();
   const riskAnalysis = calculateRiskScore(spyData, vixData);
   

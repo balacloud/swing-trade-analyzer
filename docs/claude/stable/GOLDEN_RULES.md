@@ -2,7 +2,7 @@
 
 > **Purpose:** Stable reference document for all session rules  
 > **Location:** Claude Project (not daily file)  
-> **Last Updated:** Day 21 (January 3, 2026)
+> **Last Updated:** Day 25 (January 10, 2026)
 
 ---
 
@@ -185,3 +185,11 @@ CLAUDE SESSION REMINDER:
 - Holistic review before new development is valuable
 - 13% fake score (sentiment) is dishonest - fix or remove
 - Mixed UX signals confuse users - unify messaging
+
+### Day 25: Backend Data Caching
+- **Defeat Beta data can become stale** - Backend caches API responses
+- **Restart backend periodically** - Or implement auto-refresh mechanism
+- **Run comprehensive tests after restart** - Data quality improves dramatically
+- **ETFs (SPY, QQQ) have no fundamentals** - Handle specially in frontend
+- **Extreme ROE values need context** - Negative equity or high leverage explains outliers
+- **30-stock test revealed:** 93% null fundamentals before restart → 7% after restart

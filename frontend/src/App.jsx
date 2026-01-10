@@ -642,6 +642,23 @@ function App() {
                       {expandedScore === 'fundamental' && analysisResult.breakdown?.fundamental?.details && (
                         <div className="space-y-3">
                           <div className="text-sm font-semibold text-blue-300 mb-3">💼 Fundamental Breakdown</div>
+                          {/* Day 25: ETF Note */}
+                          {analysisResult.breakdown.fundamental.isETF && (
+                            <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-3 text-sm text-blue-300 mb-3">
+                              📊 {analysisResult.breakdown.fundamental.etfNote || 'This is an ETF - fundamental scoring does not apply.'}
+                            </div>
+                          )}
+                          {/* Day 25: Extreme Value Context */}
+                          {analysisResult.breakdown.fundamental.extremeValueContext?.length > 0 && (
+                            <div className="bg-amber-900/30 border border-amber-700 rounded-lg p-3 text-sm mb-3">
+                              <div className="text-amber-300 font-semibold mb-2">⚠️ Unusual Values Detected</div>
+                              {analysisResult.breakdown.fundamental.extremeValueContext.map((ctx, idx) => (
+                                <div key={idx} className="text-amber-200 text-xs mb-1">
+                                  <strong>{ctx.metric}:</strong> {ctx.explanation}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                           {Object.entries(analysisResult.breakdown.fundamental.details).map(([key, data]) => {
                             const info = getSubScoreInfo('fundamental', key, data);
                             const pct = (data.score / data.max) * 100;
@@ -652,7 +669,7 @@ function App() {
                                   <div className="flex justify-between text-sm">
                                     <span className="text-gray-300">{info.label}</span>
                                     <span className="text-gray-400 text-xs">
-                                      {data.value !== null && data.value !== undefined ? 
+                                      {data.value !== null && data.value !== undefined ?
                                         (typeof data.value === 'number' ? data.value.toFixed(1) : data.value) : 'N/A'}
                                     </span>
                                     <span className={`font-mono ${data.score === data.max ? 'text-green-400' : data.score === 0 ? 'text-red-400' : 'text-yellow-400'}`}>
@@ -660,7 +677,7 @@ function App() {
                                     </span>
                                   </div>
                                   <div className="w-full bg-gray-600 rounded-full h-2 mt-1">
-                                    <div 
+                                    <div
                                       className={`h-2 rounded-full ${pct >= 80 ? 'bg-green-500' : pct >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
                                       style={{ width: `${pct}%` }}
                                     ></div>
