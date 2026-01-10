@@ -6,6 +6,7 @@
  * 
  * Removed: RSI scoring, MACD scoring, Bollinger scoring, ADX scoring
  * (These are kept for reference but NOT used in scoring)
+ * // Day 20: Added calculateRSI function using Wilder's smoothing method
  */
 
 /**

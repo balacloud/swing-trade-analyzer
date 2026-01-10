@@ -1,8 +1,8 @@
 # 📊 API CONTRACTS & DATA STRUCTURES
 
 > **Purpose:** Stable reference for all API contracts  
-> **Location:** Claude Project (not daily file)  
-> **Last Updated:** Day 22 (January 6, 2026)  
+> **Location:** Claude Project + Git `/docs/claude/versioned/`  
+> **Version:** Day 24 (January 6, 2026)  
 > **Total API Routes:** 14 (verify with `grep -n "@app.route" backend.py`)
 
 ---
@@ -41,13 +41,21 @@
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx                 # Main React component (v2.5)
+│   │   ├── App.jsx                 # Main React component (v2.6 - Day 23)
 │   │   ├── services/api.js         # API client
 │   │   └── utils/
 │   │       ├── scoringEngine.js    # 75-point scoring (v2.2 - RSI working)
 │   │       ├── rsCalculator.js     # Relative Strength
 │   │       └── technicalIndicators.js  # SMA, EMA, ATR, RSI
 │   └── package.json
+│
+├── docs/
+│   └── claude/                     # Claude session documentation (Day 24)
+│       ├── stable/                 # Non-versioned docs (SESSION_START, GOLDEN_RULES)
+│       ├── versioned/              # Day-versioned docs (API_CONTRACTS, KNOWN_ISSUES)
+│       │   └── archive/            # Older than 15 days
+│       └── status/                 # Daily status files (PROJECT_STATUS)
+│           └── archive/            # Older than 15 days
 │
 ├── test_script.sh                  # Batch test scripts
 └── README.md
@@ -270,7 +278,7 @@ calculateScore(stockData, spyData, vixData)
     avgVolume50: number
   },
   
-  // Detailed breakdown (for debugging only)
+  // Detailed breakdown (for UI expandable cards - Day 23)
   breakdown: {
     technical: { score, details },
     fundamental: { score, details },
@@ -280,6 +288,31 @@ calculateScore(stockData, spyData, vixData)
   
   timestamp: string
 }
+```
+
+### Breakdown Details Structure (Day 23 - for expandable UI)
+
+**Technical Breakdown:**
+```javascript
+breakdown.technical.details = {
+  trendStructure: { score: 0-15, max: 15 },
+  shortTermTrend: { score: 0-10, max: 10 },
+  volume: { score: 0-5, max: 5 },
+  relativeStrength: { score: 0-10, max: 10 }
+}
+```
+
+**Fundamental Breakdown:**
+```javascript
+breakdown.fundamental.details = {
+  epsGrowth: { score: 0-6, max: 6, value: number|null },
+  revenueGrowth: { score: 0-5, max: 5, value: number|null },
+  roe: { score: 0-4, max: 4, value: number|null },
+  debtToEquity: { score: 0-3, max: 3, value: number|null },
+  forwardPe: { score: 0-2, max: 2, value: number|null }
+}
+breakdown.fundamental.dataSource = 'defeatbeta' | 'yfinance'
+breakdown.fundamental.dataQuality = 'rich' | 'basic'
 ```
 
 ---
@@ -305,6 +338,11 @@ calculateScore(stockData, spyData, vixData)
 
 ### Sentiment: 10 points (⚠️ PLACEHOLDER)
 Currently gives default 5 points to all stocks - needs real implementation.
+
+**Options under consideration (Day 23 review):**
+1. Remove sentiment (reduce to 65-point system)
+2. Implement Fear & Greed Index (`https://api.alternative.me/fng/`)
+3. Add earnings proximity check
 
 ### Risk/Macro: 5 points
 | Metric | Points | Criteria |
@@ -374,4 +412,17 @@ curl -X POST http://localhost:5001/api/validation/run \
 
 ---
 
-*This file lives in Claude Project - stable reference, update when APIs change*
+## 📋 CHANGE LOG
+
+| Day | Changes |
+|-----|---------|
+| Day 24 | Reorganized docs to /docs/claude/, versioned format, added breakdown details structure |
+| Day 23 | Added expandable Score Breakdown UI, breakdown.details documented |
+| Day 22 | Added tradeViability to S&R response, RSI working in frontend |
+| Day 21 | Fixed TradingView scanning (OTC bug) |
+| Day 20 | Added ATR to S&R response |
+
+---
+
+*This file is versioned by day. Current version: DAY24*
+*Previous version: API_CONTRACTS.md (Day 22)*

@@ -2,7 +2,7 @@
 
 > **Date:** January 6, 2026  
 > **Version:** v1.4.0  
-> **Stable Docs:** GOLDEN_RULES.md, API_CONTRACTS.md, KNOWN_ISSUES.md (in Claude Project)
+> **Docs:** See /docs/claude/ for all documentation
 
 ---
 
@@ -10,12 +10,10 @@
 
 ### Completed Day 23:
 - ✅ **Expandable Score Breakdown UI** - Click to see sub-component details
-  - Technical breakdown: Trend Structure, Short-term Trend, Volume, RS with progress bars
-  - Fundamental breakdown: EPS Growth, Revenue, ROE, D/E, Forward P/E with values
-  - "Why This Score?" plain English explanation
 - ✅ **Holistic System Review** - Critical evaluation documented
+- ✅ **Docs Reorganization** - New /docs/claude/ folder structure
 - 🔴 **FOUND:** Risk/Macro expand crash (object rendering bug)
-- 🔴 **FOUND:** UX confusion - AVOID (red) + VIABLE (green) sends mixed signals
+- 🔴 **FOUND:** UX confusion - AVOID + VIABLE sends mixed signals
 
 ### Priority for Day 24:
 1. **Fix Risk/Macro expand crash** - Quick bug fix
@@ -29,7 +27,7 @@
 
 | Day | What Got Done |
 |-----|---------------|
-| Day 23 | **Expandable Score Breakdown**, holistic review, identified UX issues |
+| Day 23 | Expandable Score Breakdown, holistic review, docs reorganization |
 | Day 22 | Option D complete, RSI working, Scan dropdown fixed |
 | Day 21 | TradingView OTC FIXED, docs restructured |
 | Day 20 | ATR fixed, RSI function added |
@@ -46,38 +44,20 @@
 | Sentiment placeholder (13% fake) | HIGH | 🔴 Open - needs decision |
 | ATR N/A in Analyze Stock UI | MEDIUM | 🟡 frontend issue |
 
-*Full issue list: KNOWN_ISSUES.md in Claude Project*
+*Full issue list: KNOWN_ISSUES_DAY24.md*
 
 ---
 
-## 📊 HOLISTIC REVIEW SUMMARY (Day 23)
+## 📁 NEW DOCS STRUCTURE
 
-### What's Working Well:
-- Technical Analysis (40pts) ✅
-- Fundamental Analysis (20pts) ✅
-- Relative Strength calculation ✅
-- S&R Engine + Trade Viability ✅
-- Data Validation (80% accuracy) ✅
-
-### What Needs Fixing:
-- Sentiment is FAKE (13% of score)
-- Risk/Macro partially broken
-- UX sends mixed signals
-- No forward/backtest = UNPROVEN
-
-### Key Decision Needed:
-**Sentiment:** Remove entirely (65-pt system) OR implement Fear & Greed Index?
-
----
-
-## 📋 PRIORITIZED NEXT STEPS
-
-| Priority | Task | Why |
-|----------|------|-----|
-| 1 | Fix bugs (Risk/Macro, UX) | Broken features |
-| 2 | Decide on Sentiment | 13% fake score |
-| 3 | Add "Bottom Line" summary | Clear guidance |
-| 4 | Forward Testing UI | PROVE THE SYSTEM |
+```
+/docs/claude/
+├── stable/           ← SESSION_START, GOLDEN_RULES, PROMPT_TEMPLATE
+├── versioned/        ← API_CONTRACTS_DAY[N], KNOWN_ISSUES_DAY[N]
+│   └── archive/      ← Older than 15 days
+└── status/           ← PROJECT_STATUS_DAY[N]_SHORT
+    └── archive/      ← Older than 15 days
+```
 
 ---
 
@@ -96,23 +76,13 @@ npm start
 
 ---
 
-## 📝 FILES MODIFIED DAY 23
-
-| File | Change |
-|------|--------|
-| `frontend/src/App.jsx` | Added expandable Score Breakdown, helper functions, state |
-
----
-
 ## 💡 KEY INSIGHT (Day 23)
 
 > **"Stop adding features. Start proving the system works."**
 
-The system has all the components but ZERO proof it makes money. Forward testing is the critical path before any live trading.
-
 ---
 
-## ❓ OPEN QUESTIONS (Answer Before Day 24)
+## ❓ OPEN QUESTIONS (Answer Before Continuing)
 
 1. **Sentiment:** Remove (65-pt system) or implement Fear & Greed Index?
 2. **Forward Testing:** Paper trade or track hypothetical signals?
@@ -121,4 +91,4 @@ The system has all the components but ZERO proof it makes money. Forward testing
 
 ---
 
-*Stable reference docs in Claude Project: GOLDEN_RULES.md, API_CONTRACTS.md, KNOWN_ISSUES.md*
+*Docs location: /docs/claude/status/*
