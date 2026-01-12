@@ -967,6 +967,22 @@ def scan_tradingview():
                 col('close') > col('SMA200'),
                 col('RSI') <= 60
             )
+        elif strategy == 'best':
+            # Day 26: "Best Candidates" - strictest criteria matching our scoring system
+            # Designed to find stocks most likely to get BUY verdict (score >= 60)
+            query = query.where(
+                col('exchange').isin(['NYSE', 'NASDAQ', 'AMEX']),
+                col('market_cap_basic') >= 10_000_000_000,  # Large-cap quality
+                col('close') > col('SMA50'),                # Price > 50 SMA
+                col('SMA50') > col('SMA200'),               # 50 SMA > 200 SMA (Stage 2)
+                col('RSI') >= 50,                           # Bullish momentum
+                col('RSI') <= 75,                           # Not overbought (matches momentum strategy)
+                col('relative_volume_10d_calc') >= 1.0,     # At least average volume
+                col('change|1W') >= 0,                      # Positive weekly
+                col('change|1M') >= 0                       # Positive monthly
+            )
+            # Sort by relative volume (highest interest first)
+            query = query.order_by('relative_volume_10d_calc', ascending=False)
         else:
             return jsonify({'error': f'Unknown strategy: {strategy}'}), 400
         
@@ -983,7 +999,23 @@ def scan_tradingview():
                 ticker = row.get('ticker', '')
                 if ':' in str(ticker):
                     ticker = str(ticker).split(':')[-1]
-                
+
+                # Day 26: Filter out non-common stocks
+                # Skip preferred stocks (contain "/"), SPAC units (end in U), warrants (end in W)
+                if '/' in ticker:
+                    continue  # Preferred stock (e.g., BAC/PL, KKR/PD)
+                if len(ticker) >= 4 and ticker.endswith('U'):
+                    continue  # SPAC unit (e.g., BTSGU)
+                if len(ticker) >= 4 and ticker.endswith('W'):
+                    continue  # Warrant (e.g., SPFRW)
+                if len(ticker) >= 5 and ticker.endswith('WS'):
+                    continue  # Warrant series (e.g., ABCDWS)
+                if len(ticker) >= 5 and ticker[-1] in 'PMNOL' and ticker[-2].isupper():
+                    continue  # Preferred stock series (e.g., CNOBP, VLYPP, FTAIM)
+                # Skip commodity ETFs/trusts
+                if ticker in ['PHYS', 'PSLV', 'GLD', 'SLV', 'IAU', 'GLDM', 'SGOL', 'SIVR']:
+                    continue  # Commodity trusts - not equities
+
                 current = row.get('close')
                 high52w = row.get('price_52_week_high')
                 pct_from_high = None
@@ -1052,6 +1084,11 @@ def get_scan_strategies():
                 'id': 'value',
                 'name': 'Value',
                 'description': 'Quality stocks above 200 SMA at fair RSI levels'
+            },
+            {
+                'id': 'best',
+                'name': 'Best Candidates',
+                'description': 'Large-cap Stage 2 stocks matching all scoring criteria (most likely BUY)'
             }
         ]
     })

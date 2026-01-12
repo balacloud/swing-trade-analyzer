@@ -329,6 +329,8 @@ export async function fetchSupportResistance(ticker) {
       method: data.method,
       support: data.support || [],
       resistance: data.resistance || [],
+      allSupport: data.allSupport || [],      // Day 26: Include all historical support levels
+      allResistance: data.allResistance || [], // Day 26: Include all historical resistance levels
       suggestedEntry: data.suggestedEntry,
       suggestedStop: data.suggestedStop,
       suggestedTarget: data.suggestedTarget,

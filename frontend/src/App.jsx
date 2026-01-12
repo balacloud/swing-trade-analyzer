@@ -518,8 +518,45 @@ function App() {
                       </div>
                     )}
 
-                    {/* Day 26: Pullback Guidance for Extended Stocks */}
-                    {srData.meta?.tradeViability?.viable === 'NO' && srData.support?.length === 0 && srData.allSupport?.length > 0 && (
+                    {/* Day 26: Pullback Guidance for CAUTION (wide stop) cases */}
+                    {srData.meta?.tradeViability?.viable === 'CAUTION' && srData.support?.length > 0 && (
+                      <div className="mb-4 p-3 rounded-lg text-sm bg-yellow-900/20 border border-yellow-700/50 text-yellow-200">
+                        <div className="font-semibold mb-2">📍 Entry Options for Wide Stop</div>
+                        <div className="text-xs space-y-2">
+                          {(() => {
+                            const nearestSupport = srData.support[0];
+                            const currentPrice = srData.currentPrice;
+                            const pullbackPct = ((currentPrice - nearestSupport) / currentPrice * 100).toFixed(1);
+                            return (
+                              <>
+                                <div className="flex items-start gap-2">
+                                  <span className="text-yellow-400 font-bold">A.</span>
+                                  <div>
+                                    <span className="text-yellow-100">Enter HALF position now</span>
+                                    <span className="text-yellow-400"> → Add remaining at </span>
+                                    <span className="text-yellow-100 font-mono">{formatCurrency(nearestSupport)}</span>
+                                  </div>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <span className="text-yellow-400 font-bold">B.</span>
+                                  <div>
+                                    <span className="text-yellow-100">Wait for pullback to </span>
+                                    <span className="text-yellow-100 font-mono">{formatCurrency(nearestSupport)}</span>
+                                    <span className="text-yellow-400"> ({pullbackPct}% drop) for full position</span>
+                                  </div>
+                                </div>
+                                <div className="mt-2 text-yellow-500/80 italic text-[11px]">
+                                  Support at {formatCurrency(nearestSupport)} allows tighter stop placement and better R:R
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Day 26: Pullback Guidance for Extended Stocks (NO viable) */}
+                    {srData.meta?.tradeViability?.viable === 'NO' && srData.allSupport?.length > 0 && (
                       <div className="mb-4 p-3 rounded-lg text-sm bg-blue-900/30 border border-blue-700 text-blue-300">
                         <div className="font-semibold mb-1">📍 Pullback Re-Entry Zones</div>
                         <div className="text-xs space-y-1">
