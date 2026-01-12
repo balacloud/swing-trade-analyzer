@@ -923,9 +923,9 @@ function App() {
                         <tr key={stock.ticker} className="border-b border-gray-700/50 hover:bg-gray-700/30">
                           <td className="py-3 px-2 font-bold text-blue-400">{stock.ticker}</td>
                           <td className="py-3 px-2 text-gray-300">{stock.name?.slice(0, 30)}</td>
-                          <td className="py-3 px-2 text-right font-mono">{formatCurrency(stock.close)}</td>
+                          <td className="py-3 px-2 text-right font-mono">{formatCurrency(stock.price)}</td>
                           <td className={`py-3 px-2 text-right ${stock.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            {formatPercent(stock.change)}
+                            {stock.change != null ? formatPercent(stock.change) : 'N/A'}
                           </td>
                           <td className="py-3 px-2 text-right text-gray-400">
                             {stock.volume ? (stock.volume / 1e6).toFixed(1) + 'M' : 'N/A'}

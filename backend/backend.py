@@ -994,6 +994,7 @@ def scan_tradingview():
                     'ticker': ticker,
                     'name': row.get('name', ''),
                     'price': safe_float(row.get('close')),
+                    'change': safe_float(row.get('change')),  # Day 26: Added change field
                     'volume': safe_int(row.get('volume')),
                     'marketCap': safe_int(row.get('market_cap_basic')),
                     'high52w': safe_float(row.get('price_52_week_high')),
