@@ -620,9 +620,47 @@ function App() {
                         </div>
                       </div>
                     </div>
-                    <div className="mt-4 text-xs text-gray-500 text-center">
-                      Method: {srData.method} • Support levels: {srData.support?.length || 0} • Resistance levels: {srData.resistance?.length || 0}
-                      {srData.meta?.atr && ` • ATR: $${srData.meta.atr.toFixed(2)}`}
+                    {/* Day 26: Show actual S&R levels */}
+                    <div className="mt-4 pt-3 border-t border-gray-700">
+                      <div className="grid grid-cols-2 gap-4 text-xs">
+                        <div>
+                          <div className="text-green-400 font-semibold mb-1">Support Levels</div>
+                          {srData.support?.length > 0 ? (
+                            <div className="space-y-0.5">
+                              {srData.support.slice().sort((a, b) => b - a).map((level, i) => (
+                                <div key={i} className="text-gray-400">
+                                  S{i + 1}: <span className="text-green-300 font-mono">{formatCurrency(level)}</span>
+                                  <span className="text-gray-500 ml-1">
+                                    ({((srData.currentPrice - level) / srData.currentPrice * 100).toFixed(1)}% below)
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-gray-500 italic">None within range</div>
+                          )}
+                        </div>
+                        <div>
+                          <div className="text-red-400 font-semibold mb-1">Resistance Levels</div>
+                          {srData.resistance?.length > 0 ? (
+                            <div className="space-y-0.5">
+                              {srData.resistance.slice().sort((a, b) => a - b).map((level, i) => (
+                                <div key={i} className="text-gray-400">
+                                  R{i + 1}: <span className="text-red-300 font-mono">{formatCurrency(level)}</span>
+                                  <span className="text-gray-500 ml-1">
+                                    ({((level - srData.currentPrice) / srData.currentPrice * 100).toFixed(1)}% above)
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-gray-500 italic">None within range</div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500 text-center">
+                        Method: {srData.method} • ATR: {srData.meta?.atr ? `$${srData.meta.atr.toFixed(2)}` : 'N/A'}
+                      </div>
                     </div>
                   </div>
                 )}
