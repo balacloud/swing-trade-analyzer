@@ -7,6 +7,8 @@
  * v2.4: Fixed rsData overwrite bug (Day 18)
  * v2.5: Added Trade Viability display - Option D (Day 22)
  * v2.6: Added expandable Score Breakdown with explanations (Day 23)
+ * v2.7: Day 26 - Fixed Risk/Reward display when null
+ * v2.8: Day 26 - Added pullback re-entry zones for extended stocks
  */
 
 import React, { useState, useEffect } from 'react';
@@ -516,6 +518,41 @@ function App() {
                       </div>
                     )}
 
+                    {/* Day 26: Pullback Guidance for Extended Stocks */}
+                    {srData.meta?.tradeViability?.viable === 'NO' && srData.support?.length === 0 && srData.allSupport?.length > 0 && (
+                      <div className="mb-4 p-3 rounded-lg text-sm bg-blue-900/30 border border-blue-700 text-blue-300">
+                        <div className="font-semibold mb-1">📍 Pullback Re-Entry Zones</div>
+                        <div className="text-xs space-y-1">
+                          {(() => {
+                            // Get nearest historical support levels (highest ones = closest to price)
+                            const sortedSupport = [...srData.allSupport].sort((a, b) => b - a);
+                            const nearestSupport = sortedSupport[0];
+                            const secondSupport = sortedSupport[1];
+                            const currentPrice = srData.currentPrice;
+                            const pullbackPct = ((currentPrice - nearestSupport) / currentPrice * 100).toFixed(1);
+
+                            return (
+                              <>
+                                <div>
+                                  <span className="text-blue-200">Primary zone:</span> {formatCurrency(nearestSupport)}
+                                  <span className="text-blue-400 ml-1">({pullbackPct}% pullback needed)</span>
+                                </div>
+                                {secondSupport && (
+                                  <div>
+                                    <span className="text-blue-200">Secondary zone:</span> {formatCurrency(secondSupport)}
+                                    <span className="text-blue-400 ml-1">({((currentPrice - secondSupport) / currentPrice * 100).toFixed(1)}% pullback)</span>
+                                  </div>
+                                )}
+                                <div className="mt-2 text-blue-400 italic">
+                                  Set price alert at ${nearestSupport?.toFixed(2)} and wait for confirmation before entry.
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Trade Levels Grid */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="bg-gray-700/50 rounded-lg p-4 text-center">
@@ -537,8 +574,12 @@ function App() {
                       </div>
                       <div className="bg-gray-700/50 rounded-lg p-4 text-center">
                         <div className="text-gray-400 text-sm mb-1">Risk/Reward</div>
-                        <div className={`text-xl font-bold ${srData.riskReward >= 2 ? 'text-green-400' : srData.riskReward >= 1.5 ? 'text-yellow-400' : 'text-red-400'}`}>
-                          {srData.riskReward?.toFixed(2)}:1
+                        <div className={`text-xl font-bold ${
+                          srData.riskReward == null ? 'text-gray-400' :
+                          srData.riskReward >= 2 ? 'text-green-400' :
+                          srData.riskReward >= 1.5 ? 'text-yellow-400' : 'text-red-400'
+                        }`}>
+                          {srData.riskReward != null ? `${srData.riskReward.toFixed(2)}:1` : 'N/A'}
                         </div>
                       </div>
                     </div>

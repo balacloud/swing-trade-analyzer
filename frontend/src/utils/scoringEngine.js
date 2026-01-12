@@ -5,6 +5,7 @@
  * v2.0: Enhanced fundamental scoring with Defeat Beta data
  * v2.1: Fixed API structure - clean consumer-facing return object (Day 18)
  * v2.2: Day 25 - Added ETF detection and extreme ROE/EPS context
+ * v2.3: Day 26 - Fixed ATR calculation (was passing wrong args to calculateATR)
  *
  * Scoring Breakdown:
  * - Technical: 40 points
@@ -82,18 +83,19 @@ function getExtremeValueContext(fundamentals) {
 
 /**
  * Calculate all technical indicators from price data
+ * Day 26: Fixed ATR calculation - now receives highs/lows/closes properly
  */
-function getIndicators(prices, volumes) {
+function getIndicators(prices, volumes, highs, lows) {
   if (!prices || prices.length < 200) {
     return null;
   }
-  
+
   return {
     sma50: calculateSMA(prices, 50),
     sma200: calculateSMA(prices, 200),
     ema8: calculateEMA(prices, 8),
     ema21: calculateEMA(prices, 21),
-    atr: calculateATR(prices, 14),
+    atr: calculateATR(highs, lows, prices, 14),  // Day 26: Fixed - was passing wrong args
     rsi: calculateRSI(prices, 14),
     avgVolume50: volumes.slice(-50).reduce((a, b) => a + b, 0) / 50
   };
@@ -101,16 +103,19 @@ function getIndicators(prices, volumes) {
 
 /**
  * Calculate Technical Analysis Score (40 points)
+ * Day 26: Now extracts highs/lows for proper ATR calculation
  */
 function calculateTechnicalScore(stockData, spyData) {
   const prices = stockData.priceHistory.map(d => d.close);
   const volumes = stockData.priceHistory.map(d => d.volume);
-  
+  const highs = stockData.priceHistory.map(d => d.high);    // Day 26: Added for ATR
+  const lows = stockData.priceHistory.map(d => d.low);      // Day 26: Added for ATR
+
   if (prices.length < 50) {
     return { score: 0, maxScore: 40, details: {}, error: 'Insufficient price data' };
   }
-  
-  const indicators = getIndicators(prices, volumes);
+
+  const indicators = getIndicators(prices, volumes, highs, lows);  // Day 26: Pass highs/lows
   const currentPrice = prices[prices.length - 1];
   
   let scores = {
