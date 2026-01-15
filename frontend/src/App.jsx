@@ -9,11 +9,16 @@
  * v2.6: Added expandable Score Breakdown with explanations (Day 23)
  * v2.7: Day 26 - Fixed Risk/Reward display when null
  * v2.8: Day 26 - Added pullback re-entry zones for extended stocks
+ * v2.9: Day 27 - Added Simplified Binary Scoring tab (research-backed minimalist system)
+ * v3.0: Day 28 - Added Settings tab + Position Sizing Calculator (Van Tharp principles)
+ * v3.1: Day 28 - Added auto-fill integration: Analysis → Position Calculator flow
  */
 
 import React, { useState, useEffect } from 'react';
 import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation } from './services/api';
 import { calculateScore } from './utils/scoringEngine';
+import { calculateSimplifiedAnalysis } from './utils/simplifiedScoring';
+import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings } from './utils/positionSizing';
 //import { calculateRelativeStrength } from './utils/rsCalculator';
 
 function App() {
@@ -44,16 +49,66 @@ function App() {
   // Score breakdown expanded state (Day 23)
   const [expandedScore, setExpandedScore] = useState(null); // 'technical', 'fundamental', 'sentiment', 'risk'
 
+  // Simplified analysis state (Day 27)
+  const [simplifiedResult, setSimplifiedResult] = useState(null);
+  const [analysisView, setAnalysisView] = useState('full'); // 'full' or 'simple'
+
+  // Settings state (Day 28)
+  const [settings, setSettings] = useState(getDefaultSettings);
+
+  // Position Calculator state (Day 28)
+  const [calcEntry, setCalcEntry] = useState('');
+  const [calcStop, setCalcStop] = useState('');
+  const [calcTicker, setCalcTicker] = useState('');
+  const [positionResult, setPositionResult] = useState(null);
+
   // Quick picks for testing
   const quickPicks = ['AVGO', 'NVDA', 'AAPL', 'META', 'MSFT', 'NFLX', 'PLTR']; 
 
-  // Check backend health and load strategies on mount
+  // Check backend health, load strategies, and load settings on mount
   useEffect(() => {
     checkBackendHealth().then(setBackendStatus);
     fetchScanStrategies()
       .then(setStrategies)
       .catch(err => console.error('Failed to load strategies:', err));
+    // Load saved settings
+    setSettings(loadSettings());
   }, []);
+
+  // Update settings and save to localStorage
+  const updateSettings = (newSettings) => {
+    setSettings(newSettings);
+    saveSettings(newSettings);
+  };
+
+  // Calculate position when inputs change
+  const runPositionCalculation = () => {
+    const entry = parseFloat(calcEntry);
+    const stop = parseFloat(calcStop);
+    if (!entry || !stop) {
+      setPositionResult(null);
+      return;
+    }
+    const result = calculatePositionSize(settings.accountSize, settings.riskPercent, entry, stop);
+    setPositionResult(result);
+  };
+
+  // Auto-fill position calculator from analysis and navigate to Settings (Day 28 integration)
+  const autoFillPositionCalculator = (tickerSymbol, entry, stop) => {
+    if (!entry || !stop) return;
+
+    // Set calculator values
+    setCalcTicker(tickerSymbol);
+    setCalcEntry(entry.toFixed(2));
+    setCalcStop(stop.toFixed(2));
+
+    // Calculate position immediately
+    const result = calculatePositionSize(settings.accountSize, settings.riskPercent, entry, stop);
+    setPositionResult(result);
+
+    // Switch to Settings tab
+    setActiveTab('settings');
+  };
 
   // Analyze stock
   const analyzeStock = async (tickerToAnalyze) => {
@@ -67,6 +122,7 @@ function App() {
     setError(null);
     setAnalysisResult(null);
     setSrData(null);
+    setSimplifiedResult(null);
     setActiveTab('analyze');
 
     try {
@@ -74,9 +130,13 @@ function App() {
       const result = calculateScore(data.stock, data.spy, data.vix);
       //const rsData = calculateRelativeStrength(data.stock, data.spy);
       //result.rsData = rsData;
-      
+
+      // Day 27: Also calculate simplified binary analysis
+      const simplified = calculateSimplifiedAnalysis(data.stock, data.spy, data.sr);
+
       setAnalysisResult(result);
       setSrData(data.sr);
+      setSimplifiedResult(simplified);
       setTicker(targetTicker);
       
     } catch (err) {
@@ -341,6 +401,16 @@ function App() {
             >
               ✅ Validate Data
             </button>
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'settings'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              ⚙️ Settings
+            </button>
           </div>
         </div>
 
@@ -382,6 +452,34 @@ function App() {
               </div>
             </div>
 
+            {/* Day 27: View Toggle - Full vs Simple */}
+            {analysisResult && !loading && (
+              <div className="flex justify-center mb-6">
+                <div className="bg-gray-800 rounded-lg p-1 inline-flex">
+                  <button
+                    onClick={() => setAnalysisView('full')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      analysisView === 'full'
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    📊 Full Analysis (75-pt)
+                  </button>
+                  <button
+                    onClick={() => setAnalysisView('simple')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      analysisView === 'simple'
+                        ? 'bg-green-600 text-white'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    ✅ Simple Checklist (4 criteria)
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Error Display */}
             {error && (
               <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-6 text-red-200">
@@ -398,7 +496,7 @@ function App() {
             )}
 
             {/* Analysis Results */}
-            {analysisResult && !loading && (
+            {analysisResult && !loading && analysisView === 'full' && (
               <div className="space-y-6">
                 {/* Verdict Card */}
                 <div className={`rounded-lg p-6 ${getVerdictColor(analysisResult.verdict)}`}>
@@ -910,6 +1008,141 @@ function App() {
               </div>
             )}
 
+            {/* ==================== SIMPLIFIED VIEW (Day 27) ==================== */}
+            {analysisResult && !loading && analysisView === 'simple' && simplifiedResult && (
+              <div className="space-y-6">
+                {/* Simplified Verdict Card */}
+                <div className={`rounded-lg p-6 ${
+                  simplifiedResult.verdict === 'TRADE' ? 'bg-green-600' : 'bg-gray-700'
+                }`}>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h2 className="text-2xl font-bold">{analysisResult.ticker} - {analysisResult.name}</h2>
+                      <p className="text-white/80">{analysisResult.sector} • {analysisResult.industry}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-4xl font-bold">
+                        {simplifiedResult.verdict === 'TRADE' ? '✅ TRADE' : '⏸️ PASS'}
+                      </div>
+                      <div className="text-xl">{simplifiedResult.passCount}/4 criteria met</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4 Binary Criteria Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {Object.entries(simplifiedResult.criteria).map(([key, criterion]) => (
+                    <div
+                      key={key}
+                      className={`rounded-lg p-5 border-2 ${
+                        criterion.pass
+                          ? 'bg-green-900/30 border-green-600'
+                          : 'bg-red-900/20 border-red-700/50'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <span className="text-3xl">
+                            {criterion.pass ? '✅' : '❌'}
+                          </span>
+                          <div>
+                            <h4 className="font-bold text-lg">
+                              {criterion.label}
+                            </h4>
+                            <span className={`text-sm ${criterion.pass ? 'text-green-400' : 'text-red-400'}`}>
+                              {criterion.pass ? 'PASS' : 'FAIL'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-300 mt-2">
+                        {criterion.reason}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Decision Summary */}
+                <div className={`rounded-lg p-6 ${
+                  simplifiedResult.verdict === 'TRADE'
+                    ? 'bg-green-900/30 border border-green-600'
+                    : 'bg-gray-800 border border-gray-600'
+                }`}>
+                  <h3 className="text-lg font-semibold mb-3">
+                    {simplifiedResult.verdict === 'TRADE' ? '🎯 Trade Decision' : '⏸️ No Trade'}
+                  </h3>
+                  <p className="text-gray-300 mb-4">{simplifiedResult.summary}</p>
+
+                  {simplifiedResult.verdict === 'TRADE' && srData && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-700">
+                      <div className="text-center">
+                        <div className="text-gray-400 text-sm">Entry</div>
+                        <div className="text-xl font-bold text-green-400">{formatCurrency(srData.suggestedEntry)}</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-gray-400 text-sm">Stop</div>
+                        <div className="text-xl font-bold text-red-400">{formatCurrency(srData.suggestedStop)}</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-gray-400 text-sm">Target</div>
+                        <div className="text-xl font-bold text-blue-400">{formatCurrency(srData.suggestedTarget)}</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-gray-400 text-sm">R:R</div>
+                        <div className="text-xl font-bold text-yellow-400">
+                          {srData.riskReward != null ? `${srData.riskReward.toFixed(2)}:1` : 'N/A'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Calculate Position Button - Day 28 Integration */}
+                  {simplifiedResult.verdict === 'TRADE' && srData?.suggestedEntry && srData?.suggestedStop && (
+                    <button
+                      onClick={() => autoFillPositionCalculator(
+                        analysisResult?.ticker || ticker,
+                        srData.suggestedEntry,
+                        srData.suggestedStop
+                      )}
+                      className="w-full mt-4 bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+                    >
+                      📊 Calculate Position Size →
+                    </button>
+                  )}
+                </div>
+
+                {/* Methodology Note */}
+                <div className="bg-gray-800/50 rounded-lg p-4 text-xs text-gray-500">
+                  <p><strong>Simplified Binary System</strong> - Day 27 Research-Backed Approach</p>
+                  <p className="mt-1">Based on: AQR Momentum Research • Turtle Trading Principles • Academic Factor Evidence</p>
+                  <p className="mt-2 text-gray-400">
+                    <strong>Rule:</strong> ALL 4 criteria must be YES to take a trade. Any NO = PASS. No exceptions.
+                  </p>
+                </div>
+
+                {/* Compare with Full Score */}
+                <div className="bg-gray-800 rounded-lg p-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="text-gray-400 text-sm">Full System Score (for comparison):</span>
+                      <span className={`ml-2 font-bold ${
+                        analysisResult.totalScore >= 60 ? 'text-green-400' :
+                        analysisResult.totalScore >= 40 ? 'text-yellow-400' : 'text-red-400'
+                      }`}>
+                        {analysisResult.totalScore}/75 → {analysisResult.verdict?.verdict}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => setAnalysisView('full')}
+                      className="text-blue-400 hover:text-blue-300 text-sm"
+                    >
+                      View Full Analysis →
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Empty State */}
             {!analysisResult && !loading && !error && (
               <div className="bg-gray-800 rounded-lg p-12 text-center">
@@ -1226,10 +1459,220 @@ function App() {
           </>
         )}
 
+        {/* ==================== SETTINGS TAB (Day 28) ==================== */}
+        {activeTab === 'settings' && (
+          <>
+            {/* Account Settings */}
+            <div className="bg-gray-800 rounded-lg p-6 mb-6">
+              <h3 className="text-lg font-semibold text-purple-400 mb-4">Account Settings</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Account Size */}
+                <div>
+                  <label className="block text-gray-400 text-sm mb-2">Account Size ($)</label>
+                  <input
+                    type="number"
+                    value={settings.accountSize}
+                    onChange={(e) => updateSettings({ ...settings, accountSize: parseInt(e.target.value) || 0 })}
+                    className="w-full bg-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="10000"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Total capital available for trading</p>
+                </div>
+
+                {/* Risk Percentage */}
+                <div>
+                  <label className="block text-gray-400 text-sm mb-2">
+                    Risk Per Trade: <span className="text-purple-400 font-bold">{settings.riskPercent}%</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="2"
+                    max="5"
+                    step="0.5"
+                    value={settings.riskPercent}
+                    onChange={(e) => updateSettings({ ...settings, riskPercent: parseFloat(e.target.value) })}
+                    className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>2% (Conservative)</span>
+                    <span>5% (Aggressive)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Current Risk Summary */}
+              <div className="mt-6 bg-purple-900/30 border border-purple-700 rounded-lg p-4">
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-gray-400 text-sm">Account</div>
+                    <div className="text-xl font-bold text-purple-400">${settings.accountSize?.toLocaleString()}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-400 text-sm">Risk %</div>
+                    <div className="text-xl font-bold text-purple-400">{settings.riskPercent}%</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-400 text-sm">Max Risk/Trade</div>
+                    <div className="text-xl font-bold text-green-400">
+                      ${((settings.accountSize * settings.riskPercent) / 100).toFixed(0)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Position Sizing Calculator */}
+            <div className="bg-gray-800 rounded-lg p-6 mb-6">
+              <h3 className="text-lg font-semibold text-green-400 mb-4">Position Sizing Calculator</h3>
+              <p className="text-gray-400 text-sm mb-4">
+                Van Tharp Principle: The 90% that actually matters. Enter your planned trade to calculate position size.
+              </p>
+
+              {/* Calculator Inputs */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label className="block text-gray-400 text-sm mb-2">Ticker (optional)</label>
+                  <input
+                    type="text"
+                    value={calcTicker}
+                    onChange={(e) => setCalcTicker(e.target.value.toUpperCase())}
+                    placeholder="AAPL"
+                    className="w-full bg-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-400 text-sm mb-2">Entry Price ($)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={calcEntry}
+                    onChange={(e) => setCalcEntry(e.target.value)}
+                    placeholder="150.00"
+                    className="w-full bg-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-400 text-sm mb-2">Stop Loss ($)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={calcStop}
+                    onChange={(e) => setCalcStop(e.target.value)}
+                    placeholder="142.50"
+                    className="w-full bg-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+              </div>
+
+              <button
+                onClick={runPositionCalculation}
+                className="w-full bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-semibold"
+              >
+                Calculate Position Size
+              </button>
+
+              {/* Calculation Results */}
+              {positionResult && !positionResult.error && (
+                <div className="mt-6 space-y-4">
+                  {/* Main Result Card */}
+                  <div className="bg-green-900/30 border border-green-700 rounded-lg p-6">
+                    <div className="text-center mb-4">
+                      <div className="text-gray-400 text-sm">Position Size</div>
+                      <div className="text-4xl font-bold text-green-400">
+                        {positionResult.shares} shares
+                      </div>
+                      <div className="text-gray-400 mt-1">
+                        {calcTicker && <span className="text-green-300">{calcTicker} • </span>}
+                        ${positionResult.positionValue?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                      <div className="bg-gray-800/50 rounded-lg p-3">
+                        <div className="text-gray-400 text-xs">Entry</div>
+                        <div className="text-lg font-bold text-green-400">${positionResult.entryPrice?.toFixed(2)}</div>
+                      </div>
+                      <div className="bg-gray-800/50 rounded-lg p-3">
+                        <div className="text-gray-400 text-xs">Stop</div>
+                        <div className="text-lg font-bold text-red-400">${positionResult.stopPrice?.toFixed(2)}</div>
+                      </div>
+                      <div className="bg-gray-800/50 rounded-lg p-3">
+                        <div className="text-gray-400 text-xs">Risk/Share (R)</div>
+                        <div className="text-lg font-bold text-yellow-400">${positionResult.riskPerShare?.toFixed(2)}</div>
+                      </div>
+                      <div className="bg-gray-800/50 rounded-lg p-3">
+                        <div className="text-gray-400 text-xs">Total Risk</div>
+                        <div className="text-lg font-bold text-red-400">${positionResult.actualRiskAmount?.toFixed(2)}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Target Levels */}
+                  <div className="bg-gray-700/50 rounded-lg p-4">
+                    <div className="text-sm font-semibold text-blue-300 mb-3">Target Levels (R-Multiples)</div>
+                    <div className="grid grid-cols-3 gap-4">
+                      {positionResult.targets?.map((target) => (
+                        <div key={target.label} className="text-center">
+                          <div className="text-gray-400 text-xs">{target.label} Target</div>
+                          <div className="text-lg font-bold text-blue-400">${target.price?.toFixed(2)}</div>
+                          <div className="text-xs text-gray-500">
+                            +${((target.price - positionResult.entryPrice) * positionResult.shares).toFixed(0)} profit
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Position Details */}
+                  <div className="bg-gray-700/30 rounded-lg p-4 text-sm">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="text-gray-400">Stop Distance:</div>
+                      <div className="text-right">{positionResult.stopPercent?.toFixed(1)}% below entry</div>
+                      <div className="text-gray-400">Position % of Account:</div>
+                      <div className="text-right">{positionResult.positionPercent?.toFixed(1)}%</div>
+                      <div className="text-gray-400">Max Risk Allowed:</div>
+                      <div className="text-right">${positionResult.maxRiskAmount?.toFixed(2)}</div>
+                      <div className="text-gray-400">Actual Risk:</div>
+                      <div className="text-right">${positionResult.actualRiskAmount?.toFixed(2)}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Display */}
+              {positionResult?.error && (
+                <div className="mt-4 bg-red-900/50 border border-red-500 rounded-lg p-4 text-red-200">
+                  {positionResult.error}
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!positionResult && (
+                <div className="mt-6 text-center text-gray-500 py-8">
+                  <div className="text-4xl mb-2">📊</div>
+                  <p>Enter entry and stop prices to calculate position size</p>
+                </div>
+              )}
+            </div>
+
+            {/* Van Tharp Reference */}
+            <div className="bg-gray-800/50 rounded-lg p-4 text-xs text-gray-500">
+              <p className="font-semibold text-gray-400 mb-2">Van Tharp Position Sizing Principles</p>
+              <ul className="space-y-1">
+                <li>• <strong>R</strong> = Entry - Stop (your initial risk per share)</li>
+                <li>• <strong>Position Size</strong> = (Account × Risk%) / R</li>
+                <li>• <strong>R-Multiple</strong> = (Exit - Entry) / R (measure results in R, not dollars)</li>
+                <li>• <strong>90% of performance</strong> comes from position sizing, not entry signals</li>
+              </ul>
+            </div>
+          </>
+        )}
+
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>Day 23 - Score Breakdown UX | 75-Point Scoring System</p>
-          <p className="mt-1">Based on Mark Minervini SEPA + William O'Neil CAN SLIM</p>
+          <p>Day 28 - Position Sizing + Van Tharp Principles</p>
+          <p className="mt-1">The 90% that actually matters</p>
         </div>
       </div>
     </div>

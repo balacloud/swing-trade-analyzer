@@ -1,8 +1,8 @@
 # ðŸ† GOLDEN RULES FOR CLAUDE
 
-> **Purpose:** Stable reference document for all session rules  
-> **Location:** Claude Project (not daily file)  
-> **Last Updated:** Day 25 (January 10, 2026)
+> **Purpose:** Stable reference document for all session rules
+> **Location:** Claude Project (not daily file)
+> **Last Updated:** Day 28 (January 14, 2026)
 
 ---
 
@@ -193,3 +193,21 @@ CLAUDE SESSION REMINDER:
 - **ETFs (SPY, QQQ) have no fundamentals** - Handle specially in frontend
 - **Extreme ROE values need context** - Negative equity or high leverage explains outliers
 - **30-stock test revealed:** 93% null fundamentals before restart → 7% after restart
+
+### Day 27: System Validation & Van Tharp Principles (CRITICAL)
+- **Backtest before believing** - 75-point system achieved 49.7% win rate (essentially random)
+- **Higher scores ≠ better trades** - Scores 30-34 outperformed 35-39 (counter-intuitive)
+- **Entry signals = ~10% of results** - We optimized the wrong thing for 27 days
+- **Position sizing = ~90% of results** - Van Tharp's key insight
+- **R-Multiples matter more than win rate** - Measure trades as multiples of initial risk
+- **Expectancy formula:** (Win% × Avg Win R) + (Loss% × Avg Loss R)
+- **Profit comes from R:R math** - 10% target / 7% stop = positive expectancy regardless of signal
+- **Simplified systems work as well** - 4 binary criteria matched 75-point complexity
+- **Academic research confirms:** Momentum works, but execution/sizing matters more
+
+### Van Tharp Core Principles (Reference)
+1. **Position sizing is the holy grail** - Not finding perfect entries
+2. **R = Entry - Stop** - Define risk before entering
+3. **Never risk more than 2% per trade** - Survival first
+4. **Track R-multiples** - Not dollar amounts
+5. **SQN (System Quality Number)** - (Mean R / StdDev R) × √N for comparing systems
