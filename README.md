@@ -42,48 +42,55 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 | Parameter | Value |
 |-----------|-------|
 | Hold Period | 1-2 months |
-| Target Returns | 10-20% per trade |
-| Win Rate Target | 60-70% (aspirational - needs backtesting) |
-| Risk/Reward | Minimum 2:1 preferred |
+| Target Returns | 10-20% per trade (2-3R) |
+| Position Risk | 2-5% of account per trade |
+| Risk/Reward | Minimum 2:1 required |
+
+> **Day 27 Critical Insight:** Backtesting revealed our 75-point scoring system achieves ~50% win rate (essentially random). This taught us that **entry signals account for only ~10% of trading results**, while **position sizing accounts for ~90%**. The system now focuses on proper position sizing using Van Tharp principles rather than chasing higher win rates.
 
 ---
 
 ## Features
 
-### ✅ Implemented (v1.3.1)
+### ✅ Implemented (v3.1)
 
 1. **Single Stock Analysis**
    - Enter any ticker symbol
    - Get comprehensive 75-point score
-   - View detailed breakdown by category
+   - View detailed breakdown by category with explanations
 
-2. **Relative Strength Calculation**
-   - RS vs S&P 500 (52-week and 13-week)
-   - RS Rating (0-99 scale)
-   - RS Trend detection (improving/declining/stable)
+2. **Simplified Binary Scoring** (Day 27)
+   - Research-backed 4-criteria system
+   - Trend, Momentum, Setup, Risk/Reward checks
+   - ALL 4 must pass = TRADE, any fail = PASS
+   - Based on AQR Momentum Research + Turtle Trading
 
-3. **Trade Setup Generation**
+3. **Position Sizing Calculator** (Day 28)
+   - Van Tharp R-multiple principles
+   - Configurable account size and risk % (2-5%)
+   - Auto-calculates shares, R targets (1.5R, 2R, 3R)
+   - Auto-fill from stock analysis
+
+4. **Trade Setup Generation**
    - Support & Resistance detection (Pivot, KMeans methods)
-   - Suggested Entry (nearest support)
-   - Stop Loss (below entry)
-   - Target (nearest resistance)
-   - Risk/Reward ratio
+   - Suggested Entry, Stop Loss, Target
+   - Risk/Reward ratio calculation
+   - Pullback re-entry zones for extended stocks
 
-4. **Market Scanning** (TradingView Screener)
-   - 4 pre-built strategies: Reddit, Minervini, Momentum, Value
+5. **Market Scanning** (TradingView Screener)
+   - 5 pre-built strategies: Reddit, Minervini, Momentum, Value, Best Candidates
    - Filters for institutional-quality stocks
    - Stage 2 uptrend requirement (50 SMA > 200 SMA)
 
-5. **Data Validation Engine**
+6. **Data Validation Engine**
    - Cross-references our data against StockAnalysis and Finviz
    - Quality Score = Coverage × Accuracy
    - Identifies data discrepancies
 
-6. **Quality Gates**
-   - Auto-AVOID triggers for critical failures
-   - RS < 0.8 detection
-   - Below 200 SMA detection
-   - Low liquidity detection (<$10M daily volume)
+7. **Settings & Configuration**
+   - Persistent account settings (localStorage)
+   - Risk percentage slider (2-5%)
+   - Position sizing preferences
 
 ---
 
@@ -557,13 +564,29 @@ TOLERANCES = {
 - v1.1: TradingView screener integration
 - v1.2: S&R Engine with trade setups
 - v1.3: Validation Engine with UI
+- v2.0: Score breakdown with explanations
+- v2.5: Trade viability display
+- v2.9: Simplified Binary Scoring (4-criteria system)
+- v3.0: Settings tab + Position Sizing Calculator
+- v3.1: Auto-fill integration (Analysis → Position Calculator)
 
 ### Planned 📅
 
-- v1.4: Forward Testing UI (signal tracking)
-- v2.0: Pattern detection (VCP, cup-and-handle, flat base)
-- v2.1: Full backtesting with historical signals
-- v2.2: Real sentiment analysis (news, social)
+- v3.2: **Forward Testing UI** - Track actual trades, record R-multiples, build SQN over time
+- v3.3: **Pattern Detection** - VCP, cup-and-handle, flat base (for better entry timing and R:R)
+- v3.4: **Sentiment Filter** - News/earnings filter to avoid high-risk events (defensive, not predictive)
+
+### Philosophy Change (Day 27)
+
+Original roadmap focused on improving **win rate** through better signals.
+After backtesting, we learned:
+- Entry signals = ~10% of results
+- Position sizing = ~90% of results
+
+New roadmap focuses on:
+- **Better R:R** through pattern-based entry timing
+- **Risk reduction** through sentiment filtering
+- **System measurement** through forward testing and SQN tracking
 
 ---
 
@@ -572,28 +595,34 @@ TOLERANCES = {
 ```
 swing-trade-analyzer/
 ├── backend/
-│   ├── backend.py              # Flask server (v2.8)
+│   ├── backend.py              # Flask server
 │   ├── support_resistance.py   # S&R calculation
 │   ├── validation/
 │   │   ├── engine.py           # Validation orchestrator
 │   │   ├── scrapers.py         # StockAnalysis + Finviz
 │   │   └── comparators.py      # Tolerance checking
-│   ├── requirements.txt
 │   └── venv/
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx             # Main UI (v2.4)
+│   │   ├── App.jsx             # Main UI (v3.1)
 │   │   ├── services/
-│   │   │   └── api.js          # API client (v2.3)
+│   │   │   └── api.js          # API client
 │   │   └── utils/
-│   │       ├── scoringEngine.js    # 75-point scoring (v2.1)
-│   │       ├── rsCalculator.js     # RS calculations
-│   │       └── technicalIndicators.js
+│   │       ├── scoringEngine.js      # 75-point scoring
+│   │       ├── simplifiedScoring.js  # 4-criteria binary (Day 27)
+│   │       ├── positionSizing.js     # Van Tharp calculator (Day 28)
+│   │       └── rsCalculator.js       # RS calculations
 │   └── package.json
 │
-├── README.md
-└── PROJECT_STATUS_DAY18.md
+├── docs/
+│   └── claude/                 # Claude session documentation
+│       ├── CLAUDE_CONTEXT.md   # Single reference point
+│       ├── stable/             # Rarely-changing docs
+│       ├── versioned/          # Day-versioned docs
+│       └── status/             # Daily status files
+│
+└── README.md
 ```
 
 ---
@@ -631,5 +660,5 @@ MIT License - See LICENSE file for details.
 
 ---
 
-*Last Updated: December 31, 2025 (Day 19)*
-*Version: 1.3.1*
+*Last Updated: January 15, 2026 (Day 28)*
+*Version: 3.1*
