@@ -1,11 +1,12 @@
 /**
  * API Service for Swing Trade Analyzer
  * Connects to Flask backend on port 5001
- * 
+ *
  * v2.0: Added fundamentals endpoint for rich fundamental data
  * v2.1: Added TradingView screener endpoints for batch scanning
  * v2.2: Added Support & Resistance endpoint
  * v2.3: Added Validation Engine endpoints (Day 17)
+ * v2.4: Added Cache Management endpoints (Day 29)
  */
 
 const API_BASE_URL = 'http://localhost:5001/api';
@@ -460,16 +461,65 @@ export async function runValidation(tickers) {
 export async function fetchValidationHistory() {
   try {
     const response = await fetch(`${API_BASE_URL}/validation/history`);
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to fetch validation history');
     }
-    
+
     return await response.json();
-    
+
   } catch (error) {
     console.error('Error fetching validation history:', error);
     return [];
+  }
+}
+
+// ============================================
+// CACHE MANAGEMENT (Day 29)
+// ============================================
+
+/**
+ * Clear backend cache to ensure fresh data
+ * Use at start of session or when data seems stale
+ *
+ * @returns {object} - { success, message, cleared_count }
+ */
+export async function clearBackendCache() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/cache/clear`, {
+      method: 'POST'
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to clear cache');
+    }
+
+    return await response.json();
+
+  } catch (error) {
+    console.error('Error clearing cache:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get cache status
+ * @returns {object} - { cache_size, ttl_seconds }
+ */
+export async function getCacheStatus() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/cache/status`);
+
+    if (!response.ok) {
+      return { cache_size: 0, error: 'Failed to get cache status' };
+    }
+
+    return await response.json();
+
+  } catch (error) {
+    console.error('Error getting cache status:', error);
+    return { cache_size: 0, error: error.message };
   }
 }

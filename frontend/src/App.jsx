@@ -12,10 +12,11 @@
  * v2.9: Day 27 - Added Simplified Binary Scoring tab (research-backed minimalist system)
  * v3.0: Day 28 - Added Settings tab + Position Sizing Calculator (Van Tharp principles)
  * v3.1: Day 28 - Added auto-fill integration: Analysis → Position Calculator flow
+ * v3.2: Day 29 - Added Session Refresh button (clears backend cache + resets frontend state)
  */
 
 import React, { useState, useEffect } from 'react';
-import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation } from './services/api';
+import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation, clearBackendCache } from './services/api';
 import { calculateScore } from './utils/scoringEngine';
 import { calculateSimplifiedAnalysis } from './utils/simplifiedScoring';
 import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings } from './utils/positionSizing';
@@ -62,6 +63,10 @@ function App() {
   const [calcTicker, setCalcTicker] = useState('');
   const [positionResult, setPositionResult] = useState(null);
 
+  // Session refresh state (Day 29)
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState(null);
+
   // Quick picks for testing
   const quickPicks = ['AVGO', 'NVDA', 'AAPL', 'META', 'MSFT', 'NFLX', 'PLTR']; 
 
@@ -74,6 +79,44 @@ function App() {
     // Load saved settings
     setSettings(loadSettings());
   }, []);
+
+  // Session Refresh - Clear backend cache and reset frontend state (Day 29)
+  const handleSessionRefresh = async () => {
+    setRefreshing(true);
+    try {
+      // Clear backend cache
+      await clearBackendCache();
+
+      // Reset frontend state
+      setAnalysisResult(null);
+      setSrData(null);
+      setSimplifiedResult(null);
+      setScanResults(null);
+      setValidationResults(null);
+      setError(null);
+      setScanError(null);
+      setValidationError(null);
+      setExpandedScore(null);
+      setPositionResult(null);
+      setCalcEntry('');
+      setCalcStop('');
+      setCalcTicker('');
+      setTicker('');
+
+      // Refresh backend status
+      const status = await checkBackendHealth();
+      setBackendStatus(status);
+
+      // Record refresh time
+      setLastRefresh(new Date().toLocaleTimeString());
+
+    } catch (err) {
+      console.error('Session refresh failed:', err);
+      setError('Failed to refresh session: ' + err.message);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   // Update settings and save to localStorage
   const updateSettings = (newSettings) => {
@@ -355,16 +398,33 @@ function App() {
           <h1 className="text-3xl font-bold text-blue-400">🎯 Swing Trade Analyzer</h1>
           <p className="text-gray-400 mt-2">Minervini SEPA + CAN SLIM Methodology</p>
           
-          {/* Backend Status */}
-          <div className="mt-4 flex justify-center items-center gap-2">
-            <span className={`w-3 h-3 rounded-full ${backendStatus.healthy ? 'bg-green-500' : 'bg-red-500'}`}></span>
-            <span className="text-sm text-gray-400">
-              Backend {backendStatus.healthy ? 'Connected' : 'Disconnected'}
-              {backendStatus.defeatbetaAvailable && ' • Defeat Beta ✓'}
-              {backendStatus.tradingviewAvailable && ' • TradingView ✓'}
-              {backendStatus.srEngineAvailable && ' • S&R ✓'}
-              {backendStatus.validationAvailable && ' • Validation ✓'}
-            </span>
+          {/* Backend Status + Session Refresh (Day 29) */}
+          <div className="mt-4 flex justify-center items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className={`w-3 h-3 rounded-full ${backendStatus.healthy ? 'bg-green-500' : 'bg-red-500'}`}></span>
+              <span className="text-sm text-gray-400">
+                Backend {backendStatus.healthy ? 'Connected' : 'Disconnected'}
+                {backendStatus.defeatbetaAvailable && ' • Defeat Beta ✓'}
+                {backendStatus.tradingviewAvailable && ' • TradingView ✓'}
+                {backendStatus.srEngineAvailable && ' • S&R ✓'}
+                {backendStatus.validationAvailable && ' • Validation ✓'}
+              </span>
+            </div>
+            <button
+              onClick={handleSessionRefresh}
+              disabled={refreshing}
+              className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                refreshing
+                  ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                  : 'bg-orange-600 hover:bg-orange-700 text-white'
+              }`}
+              title="Clear cache and reset session for fresh data"
+            >
+              {refreshing ? '🔄 Refreshing...' : '🔄 Refresh Session'}
+            </button>
+            {lastRefresh && (
+              <span className="text-xs text-gray-500">Last: {lastRefresh}</span>
+            )}
           </div>
         </div>
 
@@ -1685,8 +1745,8 @@ function App() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>Day 28 - Position Sizing + Van Tharp Principles</p>
-          <p className="mt-1">The 90% that actually matters</p>
+          <p>Day 29 - Session Refresh + Comprehensive Testing</p>
+          <p className="mt-1">Fresh data, accurate analysis</p>
         </div>
       </div>
     </div>
