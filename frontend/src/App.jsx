@@ -920,13 +920,27 @@ function App() {
                           <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
                               <span className="text-gray-400">VIX Level:</span>
-                              <span className="ml-2 text-gray-200">{analysisResult.breakdown?.risk?.details?.vixLevel || 'N/A'}</span>
-                              <span className="ml-2 text-xs text-gray-500">(Low VIX = bullish)</span>
+                              <span className="ml-2 text-gray-200">
+                                {analysisResult.breakdown?.risk?.details?.vix?.value?.toFixed(1) || 'N/A'}
+                              </span>
+                              <span className="ml-2 text-xs text-gray-500">
+                                ({analysisResult.breakdown?.risk?.details?.vix?.score || 0}/{analysisResult.breakdown?.risk?.details?.vix?.max || 2} pts)
+                              </span>
                             </div>
                             <div>
                               <span className="text-gray-400">S&P Regime:</span>
-                              <span className="ml-2 text-gray-200">{analysisResult.breakdown?.risk?.details?.spyRegime || 'N/A'}</span>
+                              <span className={`ml-2 ${analysisResult.breakdown?.risk?.details?.spyRegime?.aboveSma200 ? 'text-green-400' : 'text-red-400'}`}>
+                                {analysisResult.breakdown?.risk?.details?.spyRegime?.aboveSma200 ? 'Bullish' : 'Bearish'}
+                              </span>
+                              <span className="ml-2 text-xs text-gray-500">
+                                ({analysisResult.breakdown?.risk?.details?.spyRegime?.score || 0}/2 pts)
+                              </span>
                             </div>
+                          </div>
+                          <div className="text-sm">
+                            <span className="text-gray-400">Market Breadth:</span>
+                            <span className="ml-2 text-gray-200">Neutral</span>
+                            <span className="ml-2 text-xs text-gray-500">(placeholder - 1/1 pts)</span>
                           </div>
                         </div>
                       )}
