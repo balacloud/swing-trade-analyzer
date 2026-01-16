@@ -15,9 +15,10 @@
  * @param {number} riskPercent - Risk per trade (e.g., 2 for 2%)
  * @param {number} entryPrice - Planned entry price
  * @param {number} stopPrice - Stop loss price
+ * @param {object} options - Optional settings { maxPositionPercent, manualShares }
  * @returns {object} Position sizing details
  */
-export function calculatePositionSize(accountSize, riskPercent, entryPrice, stopPrice) {
+export function calculatePositionSize(accountSize, riskPercent, entryPrice, stopPrice, options = {}) {
   // Validate inputs
   if (!accountSize || accountSize <= 0) {
     return { error: 'Invalid account size' };
@@ -38,7 +39,26 @@ export function calculatePositionSize(accountSize, riskPercent, entryPrice, stop
   // Core calculations
   const riskPerShare = entryPrice - stopPrice; // R per share
   const maxRiskAmount = accountSize * (riskPercent / 100); // Total $ at risk
-  const shares = Math.floor(maxRiskAmount / riskPerShare);
+  let shares = Math.floor(maxRiskAmount / riskPerShare);
+
+  // Day 29: Apply max position size limit if specified
+  const maxPositionPercent = options.maxPositionPercent || 100; // Default: no limit
+  const maxPositionValue = accountSize * (maxPositionPercent / 100);
+  const maxSharesByPosition = Math.floor(maxPositionValue / entryPrice);
+
+  // Use the smaller of risk-based or position-limit shares
+  let limitApplied = null;
+  if (shares > maxSharesByPosition) {
+    shares = maxSharesByPosition;
+    limitApplied = `Position capped at ${maxPositionPercent}% of account`;
+  }
+
+  // Day 29: Allow manual share override
+  if (options.manualShares && options.manualShares > 0) {
+    shares = options.manualShares;
+    limitApplied = 'Manual share count';
+  }
+
   const actualRiskAmount = shares * riskPerShare;
   const positionValue = shares * entryPrice;
   const positionPercent = (positionValue / accountSize) * 100;
@@ -63,6 +83,7 @@ export function calculatePositionSize(accountSize, riskPercent, entryPrice, stop
     stopPercent,
     targets,
     rMultiple: 1, // Initial R is always 1
+    limitApplied, // Day 29: Shows if position was capped or manual
     summary: {
       position: `${shares} shares @ $${entryPrice.toFixed(2)}`,
       risk: `$${actualRiskAmount.toFixed(2)} (${riskPercent}%)`,
@@ -177,7 +198,10 @@ export function getDefaultSettings() {
     accountSize: 10000,
     riskPercent: 2,
     minRiskPercent: 2,
-    maxRiskPercent: 5
+    maxRiskPercent: 5,
+    maxPositionPercent: 25, // Day 29: Max % of account in single position (default 25%)
+    useManualShares: false, // Day 29: Allow manual share override
+    manualShares: 0         // Day 29: Manual share count if useManualShares is true
   };
 }
 

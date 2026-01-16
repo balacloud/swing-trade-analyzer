@@ -66,6 +66,7 @@ function App() {
   // Session refresh state (Day 29)
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(null);
+  const [refreshMessage, setRefreshMessage] = useState(null); // Feedback message
 
   // Quick picks for testing
   const quickPicks = ['AVGO', 'NVDA', 'AAPL', 'META', 'MSFT', 'NFLX', 'PLTR']; 
@@ -83,9 +84,10 @@ function App() {
   // Session Refresh - Clear backend cache and reset frontend state (Day 29)
   const handleSessionRefresh = async () => {
     setRefreshing(true);
+    setRefreshMessage(null);
     try {
-      // Clear backend cache
-      await clearBackendCache();
+      // Clear backend cache and get result
+      const cacheResult = await clearBackendCache();
 
       // Reset frontend state
       setAnalysisResult(null);
@@ -108,11 +110,24 @@ function App() {
       setBackendStatus(status);
 
       // Record refresh time
-      setLastRefresh(new Date().toLocaleTimeString());
+      const refreshTime = new Date().toLocaleTimeString();
+      setLastRefresh(refreshTime);
+
+      // Show success feedback
+      setRefreshMessage({
+        type: 'success',
+        text: `Session refreshed at ${refreshTime}. Backend cache cleared. Frontend state reset. Ready for fresh data.`
+      });
+
+      // Auto-hide message after 5 seconds
+      setTimeout(() => setRefreshMessage(null), 5000);
 
     } catch (err) {
       console.error('Session refresh failed:', err);
-      setError('Failed to refresh session: ' + err.message);
+      setRefreshMessage({
+        type: 'error',
+        text: `Refresh failed: ${err.message}`
+      });
     } finally {
       setRefreshing(false);
     }
@@ -132,7 +147,12 @@ function App() {
       setPositionResult(null);
       return;
     }
-    const result = calculatePositionSize(settings.accountSize, settings.riskPercent, entry, stop);
+    // Day 29: Pass options for max position size and manual shares
+    const options = {
+      maxPositionPercent: settings.maxPositionPercent || 25,
+      manualShares: settings.useManualShares ? (settings.manualShares || 0) : 0
+    };
+    const result = calculatePositionSize(settings.accountSize, settings.riskPercent, entry, stop, options);
     setPositionResult(result);
   };
 
@@ -145,8 +165,12 @@ function App() {
     setCalcEntry(entry.toFixed(2));
     setCalcStop(stop.toFixed(2));
 
-    // Calculate position immediately
-    const result = calculatePositionSize(settings.accountSize, settings.riskPercent, entry, stop);
+    // Day 29: Pass options for max position size (don't use manual shares on auto-fill)
+    const options = {
+      maxPositionPercent: settings.maxPositionPercent || 25,
+      manualShares: 0 // Auto-fill always uses calculated shares
+    };
+    const result = calculatePositionSize(settings.accountSize, settings.riskPercent, entry, stop, options);
     setPositionResult(result);
 
     // Switch to Settings tab
@@ -426,6 +450,26 @@ function App() {
               <span className="text-xs text-gray-500">Last: {lastRefresh}</span>
             )}
           </div>
+
+          {/* Refresh Feedback Banner (Day 29) */}
+          {refreshMessage && (
+            <div className={`mt-4 mx-auto max-w-2xl px-4 py-3 rounded-lg text-sm flex items-center justify-between ${
+              refreshMessage.type === 'success'
+                ? 'bg-green-900/50 border border-green-600 text-green-300'
+                : 'bg-red-900/50 border border-red-600 text-red-300'
+            }`}>
+              <span>
+                {refreshMessage.type === 'success' ? '✅ ' : '❌ '}
+                {refreshMessage.text}
+              </span>
+              <button
+                onClick={() => setRefreshMessage(null)}
+                className="ml-4 text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Tab Navigation */}
@@ -1540,7 +1584,7 @@ function App() {
             <div className="bg-gray-800 rounded-lg p-6 mb-6">
               <h3 className="text-lg font-semibold text-purple-400 mb-4">Account Settings</h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Account Size */}
                 <div>
                   <label className="block text-gray-400 text-sm mb-2">Account Size ($)</label>
@@ -1573,11 +1617,31 @@ function App() {
                     <span>5% (Aggressive)</span>
                   </div>
                 </div>
+
+                {/* Max Position Size (Day 29) */}
+                <div>
+                  <label className="block text-gray-400 text-sm mb-2">
+                    Max Position Size: <span className="text-orange-400 font-bold">{settings.maxPositionPercent || 25}%</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="10"
+                    max="50"
+                    step="5"
+                    value={settings.maxPositionPercent || 25}
+                    onChange={(e) => updateSettings({ ...settings, maxPositionPercent: parseInt(e.target.value) })}
+                    className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>10% (Diversified)</span>
+                    <span>50% (Concentrated)</span>
+                  </div>
+                </div>
               </div>
 
               {/* Current Risk Summary */}
               <div className="mt-6 bg-purple-900/30 border border-purple-700 rounded-lg p-4">
-                <div className="grid grid-cols-3 gap-4 text-center">
+                <div className="grid grid-cols-4 gap-4 text-center">
                   <div>
                     <div className="text-gray-400 text-sm">Account</div>
                     <div className="text-xl font-bold text-purple-400">${settings.accountSize?.toLocaleString()}</div>
@@ -1590,6 +1654,12 @@ function App() {
                     <div className="text-gray-400 text-sm">Max Risk/Trade</div>
                     <div className="text-xl font-bold text-green-400">
                       ${((settings.accountSize * settings.riskPercent) / 100).toFixed(0)}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-gray-400 text-sm">Max Position</div>
+                    <div className="text-xl font-bold text-orange-400">
+                      ${((settings.accountSize * (settings.maxPositionPercent || 25)) / 100).toLocaleString()}
                     </div>
                   </div>
                 </div>
@@ -1639,6 +1709,31 @@ function App() {
                 </div>
               </div>
 
+              {/* Manual Share Override (Day 29) */}
+              <div className="flex items-center gap-4 mb-4 p-3 bg-gray-700/30 rounded-lg">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={settings.useManualShares || false}
+                    onChange={(e) => updateSettings({ ...settings, useManualShares: e.target.checked })}
+                    className="w-4 h-4 rounded accent-orange-500"
+                  />
+                  <span className="text-gray-300 text-sm">Override with manual shares</span>
+                </label>
+                {settings.useManualShares && (
+                  <input
+                    type="number"
+                    value={settings.manualShares || ''}
+                    onChange={(e) => updateSettings({ ...settings, manualShares: parseInt(e.target.value) || 0 })}
+                    placeholder="100"
+                    className="w-24 bg-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                )}
+                <span className="text-xs text-gray-500 ml-auto">
+                  Max position: {settings.maxPositionPercent || 25}% of account
+                </span>
+              </div>
+
               <button
                 onClick={runPositionCalculation}
                 className="w-full bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-semibold"
@@ -1649,6 +1744,14 @@ function App() {
               {/* Calculation Results */}
               {positionResult && !positionResult.error && (
                 <div className="mt-6 space-y-4">
+                  {/* Limit Applied Notice (Day 29) */}
+                  {positionResult.limitApplied && (
+                    <div className="bg-orange-900/30 border border-orange-600 rounded-lg px-4 py-2 text-sm text-orange-300 flex items-center gap-2">
+                      <span>⚠️</span>
+                      <span>{positionResult.limitApplied}</span>
+                    </div>
+                  )}
+
                   {/* Main Result Card */}
                   <div className="bg-green-900/30 border border-green-700 rounded-lg p-6">
                     <div className="text-center mb-4">
