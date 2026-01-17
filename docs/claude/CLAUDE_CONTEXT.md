@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 28 (January 14, 2026)
+> **Last Updated:** Day 29 (January 16, 2026)
 
 ---
 
@@ -22,12 +22,12 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 28 |
-| Version | v3.0 |
-| Latest Status | PROJECT_STATUS_DAY28_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY28.md |
+| Current Day | 29 |
+| Version | v3.2 |
+| Latest Status | PROJECT_STATUS_DAY29_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY29.md |
 | Latest API | API_CONTRACTS_DAY26.md |
-| Focus | Position Sizing + Van Tharp Architecture |
+| Focus | Session Refresh + Position Size Controls |
 
 ---
 
@@ -49,8 +49,8 @@
 ### Files to Read (in order):
 ```
 docs/claude/stable/GOLDEN_RULES.md          <- Core rules (CRITICAL)
-docs/claude/status/PROJECT_STATUS_DAY28_SHORT.md   <- Current state
-docs/claude/versioned/KNOWN_ISSUES_DAY28.md        <- Active bugs
+docs/claude/status/PROJECT_STATUS_DAY29_SHORT.md   <- Current state
+docs/claude/versioned/KNOWN_ISSUES_DAY29.md        <- Active bugs
 docs/claude/versioned/API_CONTRACTS_DAY26.md       <- API reference (if needed)
 ```
 
@@ -194,6 +194,7 @@ git status
 | Day | Changes to this file |
 |-----|---------------------|
 | 28 | Created CLAUDE_CONTEXT.md as single reference point |
+| 29 | Updated for Day 29: Session Refresh + Position Controls |
 
 ---
 
