@@ -1,12 +1,12 @@
-# ðŸ† GOLDEN RULES FOR CLAUDE
+# GOLDEN RULES FOR CLAUDE
 
 > **Purpose:** Stable reference document for all session rules
 > **Location:** Claude Project (not daily file)
-> **Last Updated:** Day 28 (January 14, 2026)
+> **Last Updated:** Day 31 (January 18, 2026)
 
 ---
 
-## ðŸ“‹ SESSION RULES
+## SESSION RULES
 
 ### The 11 Golden Rules:
 1. **START of session:** Read PROJECT_STATUS_DAY[N].md first
@@ -23,28 +23,28 @@
 
 ---
 
-## ðŸ”„ SESSION STARTUP CHECKLIST
+## SESSION STARTUP CHECKLIST
 
 When user starts a new session:
-1. âœ… Read PROJECT_STATUS file (user will attach it)
-2. âœ… Verify context by summarizing current state to user
-3. âœ… Ask: "What would you like to focus on today?"
-4. âŒ Do NOT ask user to re-explain the project
-5. âŒ Do NOT ask for files unless you need to modify them
-6. âŒ Do NOT jump to fixing - understand the problem first
+1. [x] Read PROJECT_STATUS file (user will attach it)
+2. [x] Verify context by summarizing current state to user
+3. [x] Ask: "What would you like to focus on today?"
+4. [ ] Do NOT ask user to re-explain the project
+5. [ ] Do NOT ask for files unless you need to modify them
+6. [ ] Do NOT jump to fixing - understand the problem first
 
 ---
 
-## ðŸ“‹ SESSION CLOSE CHECKLIST
+## SESSION CLOSE CHECKLIST
 
 When user says "session ending" or "close session":
-1. âœ… Create PROJECT_STATUS_DAY[N+1]_SHORT.md
-2. âœ… Ask: "Did any bugs get fixed or found?" â†’ Update KNOWN_ISSUES.md
-3. âœ… Ask: "Did any APIs change?" â†’ Update API_CONTRACTS.md
-4. âœ… Ask: "Did we learn a new rule?" â†’ Update GOLDEN_RULES.md
-5. âœ… Update Claude Memory if significant changes
-6. âœ… Git commit AND PUSH (don't forget push!)
-7. âœ… Note any deferred tasks for next session
+1. [x] Create PROJECT_STATUS_DAY[N+1]_SHORT.md
+2. [x] Ask: "Did any bugs get fixed or found?" -> Update KNOWN_ISSUES.md
+3. [x] Ask: "Did any APIs change?" -> Update API_CONTRACTS.md
+4. [x] Ask: "Did we learn a new rule?" -> Update GOLDEN_RULES.md
+5. [x] Update Claude Memory if significant changes
+6. [x] Git commit AND PUSH (don't forget push!)
+7. [x] Note any deferred tasks for next session
 
 ### How Stable Doc Updates Work:
 - Claude creates updated file in `/mnt/user-data/outputs/`
@@ -53,7 +53,7 @@ When user says "session ending" or "close session":
 
 ---
 
-## ðŸ”„ API SYNC VERIFICATION
+## API SYNC VERIFICATION
 
 ### When to Verify API_CONTRACTS.md:
 - After adding new endpoints
@@ -68,7 +68,7 @@ grep -n "@app.route" backend.py
 ### Verification Checklist:
 1. Count routes in backend.py
 2. Count routes documented in API_CONTRACTS.md
-3. If mismatch â†’ update API_CONTRACTS.md
+3. If mismatch -> update API_CONTRACTS.md
 4. Check response structures are still accurate
 
 ### API Contract Rule:
@@ -76,7 +76,7 @@ grep -n "@app.route" backend.py
 
 ---
 
-## âš ï¸ SESSION REMINDER (User Pastes This)
+## SESSION REMINDER (User Pastes This)
 
 ```
 CLAUDE SESSION REMINDER:
@@ -90,7 +90,7 @@ CLAUDE SESSION REMINDER:
 
 ---
 
-## ðŸ—ï¸ CODE ARCHITECTURE RULES
+## CODE ARCHITECTURE RULES
 
 ### Best Practices for Code Generation:
 1. **Verify data contracts BEFORE writing code** - Check actual return structures before writing consuming code
@@ -109,7 +109,7 @@ CLAUDE SESSION REMINDER:
 
 ---
 
-## ðŸ”§ DEBUGGING RULES (Added Day 20)
+## DEBUGGING RULES (Added Day 20)
 
 ### When Fixing Bugs:
 1. **ALWAYS run diagnostic queries FIRST** before writing fixes
@@ -136,27 +136,27 @@ CLAUDE SESSION REMINDER:
 
 ---
 
-## ðŸš« COMMON MISTAKES TO AVOID
+## COMMON MISTAKES TO AVOID
 
 ### Don't Do This:
-- âŒ Jump to writing code without understanding the problem
-- âŒ Assume file structure without seeing actual file
-- âŒ Chain multiple guesses when first fix fails
-- âŒ Write long code blocks without user testing in between
-- âŒ Create PROJECT_STATUS that loses cumulative context
-- âŒ Overwrite producer's data with redundant consumer calculations
+- [ ] Jump to writing code without understanding the problem
+- [ ] Assume file structure without seeing actual file
+- [ ] Chain multiple guesses when first fix fails
+- [ ] Write long code blocks without user testing in between
+- [ ] Create PROJECT_STATUS that loses cumulative context
+- [ ] Overwrite producer's data with redundant consumer calculations
 
 ### Do This Instead:
-- âœ… Ask clarifying questions first
-- âœ… Request current file before modifying
-- âœ… Run diagnostic queries to understand actual behavior
-- âœ… Test each change before moving to next
-- âœ… Stop and diagnose when something fails
-- âœ… Keep PROJECT_STATUS focused but reference stable docs
+- [x] Ask clarifying questions first
+- [x] Request current file before modifying
+- [x] Run diagnostic queries to understand actual behavior
+- [x] Test each change before moving to next
+- [x] Stop and diagnose when something fails
+- [x] Keep PROJECT_STATUS focused but reference stable docs
 
 ---
 
-## ðŸ’¡ KEY LEARNINGS (Cumulative)
+## KEY LEARNINGS (Cumulative)
 
 ### Day 18: Data Contract Bugs
 - Verify data contracts BEFORE writing UI code
@@ -172,12 +172,8 @@ CLAUDE SESSION REMINDER:
 ### Day 20: Debugging Discipline
 - **Debug before coding** - Run diagnostic queries first
 - **Don't chain failed attempts** - Stop, think, verify
-- **Library behavior â‰  assumptions** - Always verify actual values
+- **Library behavior != assumptions** - Always verify actual values
 - **PROJECT_STATUS must be useful** - Not just an incident report
-
----
-
-*This file lives in Claude Project - stable reference, rarely changes*
 
 ### Day 23: Feature vs Validation
 - **Stop adding features, start proving the system works**
@@ -192,15 +188,15 @@ CLAUDE SESSION REMINDER:
 - **Run comprehensive tests after restart** - Data quality improves dramatically
 - **ETFs (SPY, QQQ) have no fundamentals** - Handle specially in frontend
 - **Extreme ROE values need context** - Negative equity or high leverage explains outliers
-- **30-stock test revealed:** 93% null fundamentals before restart → 7% after restart
+- **30-stock test revealed:** 93% null fundamentals before restart -> 7% after restart
 
 ### Day 27: System Validation & Van Tharp Principles (CRITICAL)
 - **Backtest before believing** - 75-point system achieved 49.7% win rate (essentially random)
-- **Higher scores ≠ better trades** - Scores 30-34 outperformed 35-39 (counter-intuitive)
+- **Higher scores != better trades** - Scores 30-34 outperformed 35-39 (counter-intuitive)
 - **Entry signals = ~10% of results** - We optimized the wrong thing for 27 days
 - **Position sizing = ~90% of results** - Van Tharp's key insight
 - **R-Multiples matter more than win rate** - Measure trades as multiples of initial risk
-- **Expectancy formula:** (Win% × Avg Win R) + (Loss% × Avg Loss R)
+- **Expectancy formula:** (Win% x Avg Win R) + (Loss% x Avg Loss R)
 - **Profit comes from R:R math** - 10% target / 7% stop = positive expectancy regardless of signal
 - **Simplified systems work as well** - 4 binary criteria matched 75-point complexity
 - **Academic research confirms:** Momentum works, but execution/sizing matters more
@@ -210,8 +206,12 @@ CLAUDE SESSION REMINDER:
 2. **R = Entry - Stop** - Define risk before entering
 3. **Never risk more than 2% per trade** - Survival first
 4. **Track R-multiples** - Not dollar amounts
-5. **SQN (System Quality Number)** - (Mean R / StdDev R) × √N for comparing systems
+5. **SQN (System Quality Number)** - (Mean R / StdDev R) x sqrt(N) for comparing systems
 
 ### Day 31: Session Close Reminder
 - **Always PUSH after commit** - Don't just commit, verify changes reach remote
 - **Commit + Push = Complete** - Session isn't closed until code is on GitHub
+
+---
+
+*This file lives in Claude Project - stable reference, rarely changes*
