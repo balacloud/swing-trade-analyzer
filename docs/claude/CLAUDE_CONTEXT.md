@@ -27,7 +27,7 @@
 | Latest Status | PROJECT_STATUS_DAY32_SHORT.md |
 | Latest Issues | KNOWN_ISSUES_DAY32.md |
 | Latest API | API_CONTRACTS_DAY26.md |
-| Focus | Fibonacci Extensions (Week 3) |
+| Focus | Fundamentals Transparency + MTF/Fib |
 
 ---
 

@@ -102,9 +102,9 @@
 | Priority | Task | Effort | Status |
 |----------|------|--------|--------|
 | 1 | Fundamentals Transparency (Full) | 1-2 hrs | Ready |
-| 2 | TradingView Widget (Free) | 3-4 hrs | Ready |
 | 3 | MTF Confluence Frontend Display | 2 hrs | Ready |
-| 4 | Fibonacci Extensions (Week 3) | 3 hrs | Research done |
+| 3 | Fibonacci Extensions (Week 3) | 3 hrs | Research done |
+| 4 | TradingView Widget (Free) | 3-4 hrs | Ready |
 
 ### S&R Improvements (4 weeks)
 | Week | Task | Status | Notes |
