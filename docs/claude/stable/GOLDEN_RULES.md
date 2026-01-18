@@ -43,7 +43,7 @@ When user says "session ending" or "close session":
 3. âœ… Ask: "Did any APIs change?" â†’ Update API_CONTRACTS.md
 4. âœ… Ask: "Did we learn a new rule?" â†’ Update GOLDEN_RULES.md
 5. âœ… Update Claude Memory if significant changes
-6. âœ… Provide git commit command
+6. âœ… Git commit AND PUSH (don't forget push!)
 7. âœ… Note any deferred tasks for next session
 
 ### How Stable Doc Updates Work:
@@ -211,3 +211,7 @@ CLAUDE SESSION REMINDER:
 3. **Never risk more than 2% per trade** - Survival first
 4. **Track R-multiples** - Not dollar amounts
 5. **SQN (System Quality Number)** - (Mean R / StdDev R) × √N for comparing systems
+
+### Day 31: Session Close Reminder
+- **Always PUSH after commit** - Don't just commit, verify changes reach remote
+- **Commit + Push = Complete** - Session isn't closed until code is on GitHub
