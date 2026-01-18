@@ -30,12 +30,32 @@
 
 ### Priority: HIGH
 
-#### 1. No Trade Journal / R-Multiple Tracking
+#### 1. Fundamentals Transparency (Full)
+- **Issue:** User has no visibility when Defeat Beta API is failing
+- **Root Cause:** Defeat Beta returning "TProtocolException: Invalid data"
+- **Current State:** Fallback to yfinance works, but user doesn't know WHY
+- **Solution (Full):**
+  - Header icon showing data source status (green/yellow/red)
+  - Tooltip explaining the issue
+  - Backend `/api/health` endpoint for diagnostics
+- **Effort:** 1-2 hours
+- **Status:** Ready to implement
+
+#### 2. No Trade Journal / R-Multiple Tracking
 - **Impact:** Cannot measure actual system performance over time
 - **Status:** Planned for v3.5 (Forward Testing UI)
 - **Solution:** Trade journal with R-multiple logging, SQN calculation
 
 ### Priority: MEDIUM
+
+#### NEW: TradingView Widget Integration
+- **Goal:** Add professional indicators (RSI, MACD) as supplementary view
+- **Research:** See `/docs/research/TRADINGVIEW_INTEGRATION.md`
+- **Phase 1 (Free):** Collapsible TradingView chart below our S&R chart
+- **Phase 2 (Future/Paid):** Full integration with S&R overlay
+- **Limitation:** Free widget cannot show our custom S&R levels
+- **Effort:** Phase 1 = 3-4 hours
+- **Status:** Research complete, ready to implement
 
 #### 2. Sentiment Score Placeholder (10 points)
 - **File:** `scoringEngine.js`
@@ -78,6 +98,14 @@
 
 ## IMPLEMENTATION PROGRESS
 
+### Immediate Priorities (Day 33+)
+| Priority | Task | Effort | Status |
+|----------|------|--------|--------|
+| 1 | Fundamentals Transparency (Full) | 1-2 hrs | Ready |
+| 2 | TradingView Widget (Free) | 3-4 hrs | Ready |
+| 3 | MTF Confluence Frontend Display | 2 hrs | Ready |
+| 4 | Fibonacci Extensions (Week 3) | 3 hrs | Research done |
+
 ### S&R Improvements (4 weeks)
 | Week | Task | Status | Notes |
 |------|------|--------|-------|
@@ -85,6 +113,15 @@
 | 2 | Multi-timeframe confluence | COMPLETE | Day 32 - 27.1% avg confluence |
 | 3 | Fibonacci extensions | Pending | ATH stocks |
 | 4 | Validation | Pending | TradingView comparison |
+
+### TradingView Integration Roadmap
+| Phase | Task | Status | Notes |
+|-------|------|--------|-------|
+| 1 | Free widget (RSI, MACD) | Ready | Collapsible UI |
+| 2 | Settings integration | Pending | User preferences |
+| 3 | Paid library (future) | Planned | S&R overlay capability |
+
+See: `/docs/research/TRADINGVIEW_INTEGRATION.md`
 
 ### Scoring Refactor (After S&R)
 | Task | Status |
@@ -115,9 +152,18 @@
 | File | Reason |
 |------|--------|
 | `backend/support_resistance.py` | S&R implementation (Fibonacci next) |
-| `backend/backend.py` | Fundamentals failsafe |
+| `backend/backend.py` | Fundamentals failsafe + health endpoint |
 | `frontend/src/utils/scoringEngine.js` | Data quality detection |
-| `frontend/src/App.jsx` | MTF display pending |
+| `frontend/src/App.jsx` | MTF display + TradingView widget |
+| `frontend/src/components/TradingViewWidget.jsx` | NEW: TradingView integration |
+
+## RESEARCH DOCUMENTS
+
+| Document | Purpose |
+|----------|---------|
+| `/docs/research/DAY32_RESEARCH.md` | Fundamentals + TradingView analysis |
+| `/docs/research/TRADINGVIEW_INTEGRATION.md` | Full TradingView roadmap |
+| `/docs/research/SR_IMPROVEMENT_RESEARCH.md` | S&R improvement plan |
 
 ---
 
