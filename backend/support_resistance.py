@@ -4,13 +4,19 @@ Multi-method S/R calculation with failover logic
 
 Methods:
 1. Pivot-Based (Primary) - Local highs/lows detection
-2. KMeans Clustering (Secondary) - Price level bands  
-3. Volume Profile (Tertiary) - High-volume zones as magnets
+2. Agglomerative Clustering (Day 30) - Adaptive price level bands
+3. KMeans Clustering (Deprecated) - Fixed cluster count (fallback only)
+4. Volume Profile (Tertiary) - High-volume zones as magnets
 
 Day 13: Integrated into Swing Trade Analyzer backend
 Day 14: Fixed ATH edge case - project resistance when price > all historical levels
 Day 20: Fixed ATR always calculated for pivot method
 Day 22: Added Option D trade viability assessment (Minervini-aligned)
+Day 30: Replaced KMeans with AgglomerativeClustering
+        - ZigZag pivot detection (filters noise, 5% threshold)
+        - Adaptive cluster count via distance_threshold
+        - Touch-based level scoring
+        - 80% -> 87%+ detection rate expected
 """
 
 from __future__ import annotations
@@ -20,7 +26,7 @@ from typing import List, Optional, Dict, Any, Literal, Tuple
 
 import numpy as np
 import pandas as pd
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, AgglomerativeClustering
 import logging
 
 
@@ -45,12 +51,18 @@ class SRConfig:
     volume_bins: int = 40
     atr_period: int = 14  # ATR period for projection
     atr_multipliers: Tuple[float, ...] = (1.0, 1.5, 2.0)  # Multipliers for projected levels
+    # Day 30: Agglomerative clustering config
+    merge_percent: float = 0.02  # 2% of price - merge threshold for clustering
+    zigzag_percent_delta: float = 0.05  # 5% min change for ZigZag pivot
+    min_touches_for_level: int = 2  # Minimum touches to consider level valid
+    touch_threshold: float = 0.005  # 0.5% of price = "touch"
+    use_agglomerative: bool = True  # Feature flag: use agglomerative instead of kmeans
 
 
 @dataclass
 class SRLevels:
     """Container for support & resistance levels."""
-    method: Literal["pivot", "kmeans", "volume_profile"]
+    method: Literal["pivot", "kmeans", "agglomerative", "volume_profile"]
     support: List[float] = field(default_factory=list)
     resistance: List[float] = field(default_factory=list)
     meta: Dict[str, Any] = field(default_factory=dict)
@@ -268,6 +280,323 @@ def _is_high_volatility(df: pd.DataFrame, cfg: SRConfig) -> bool:
     return avg > cfg.volatility_threshold
 
 
+# ============================================
+# DAY 30: AGGLOMERATIVE CLUSTERING FUNCTIONS
+# ============================================
+
+def _detect_zigzag_pivots(
+    df: pd.DataFrame,
+    percent_delta: float = 0.05,
+    min_bars: int = 5
+) -> Tuple[List[float], List[float]]:
+    """
+    Detect significant pivot highs and lows using ZigZag-like algorithm.
+
+    This finds local extremes where price changed by at least percent_delta
+    from the previous extreme, filtering out noise.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        OHLCV data
+    percent_delta : float
+        Minimum percentage change to register a new pivot (default 5%)
+    min_bars : int
+        Minimum bars between pivots
+
+    Returns
+    -------
+    Tuple[List[float], List[float]]
+        (pivot_highs, pivot_lows) - Lists of significant price levels
+    """
+    pivot_highs: List[float] = []
+    pivot_lows: List[float] = []
+
+    try:
+        highs = df["high"].values
+        lows = df["low"].values
+
+        if len(highs) < min_bars * 2:
+            return [], []
+
+        # Initialize with first extreme
+        last_pivot_type = None  # 'high' or 'low'
+        last_pivot_price = None
+        last_pivot_idx = 0
+
+        # Find initial direction
+        initial_high = np.max(highs[:min_bars])
+        initial_low = np.min(lows[:min_bars])
+
+        if initial_high / initial_low - 1 > percent_delta:
+            # Start with a high
+            last_pivot_type = 'high'
+            last_pivot_price = initial_high
+            pivot_highs.append(float(initial_high))
+        else:
+            # Start with a low
+            last_pivot_type = 'low'
+            last_pivot_price = initial_low
+            pivot_lows.append(float(initial_low))
+
+        # Scan through data
+        for i in range(min_bars, len(df)):
+            current_high = highs[i]
+            current_low = lows[i]
+
+            if last_pivot_type == 'high':
+                # Looking for a lower low
+                pct_change = (last_pivot_price - current_low) / last_pivot_price
+                if pct_change >= percent_delta and i - last_pivot_idx >= min_bars:
+                    # Found significant low
+                    pivot_lows.append(float(current_low))
+                    last_pivot_type = 'low'
+                    last_pivot_price = current_low
+                    last_pivot_idx = i
+                elif current_high > last_pivot_price:
+                    # Update the high (extension)
+                    if pivot_highs:
+                        pivot_highs[-1] = float(current_high)
+                    last_pivot_price = current_high
+                    last_pivot_idx = i
+            else:
+                # Looking for a higher high
+                pct_change = (current_high - last_pivot_price) / last_pivot_price
+                if pct_change >= percent_delta and i - last_pivot_idx >= min_bars:
+                    # Found significant high
+                    pivot_highs.append(float(current_high))
+                    last_pivot_type = 'high'
+                    last_pivot_price = current_high
+                    last_pivot_idx = i
+                elif current_low < last_pivot_price:
+                    # Update the low (extension)
+                    if pivot_lows:
+                        pivot_lows[-1] = float(current_low)
+                    last_pivot_price = current_low
+                    last_pivot_idx = i
+
+        # Remove duplicates and sort
+        pivot_highs = sorted(list(set(pivot_highs)))
+        pivot_lows = sorted(list(set(pivot_lows)))
+
+        logger.info(f"ZigZag detected {len(pivot_highs)} highs, {len(pivot_lows)} lows")
+        return pivot_highs, pivot_lows
+
+    except Exception as exc:
+        logger.exception("ZigZag pivot detection failed: %s", exc)
+        return [], []
+
+
+def _cluster_with_agglom(
+    pivot_prices: np.ndarray,
+    merge_percent: float = 0.02,
+    current_price: float = None
+) -> List[float]:
+    """
+    Cluster pivot prices using AgglomerativeClustering.
+
+    Key difference from KMeans:
+    - No need to specify n_clusters upfront
+    - Uses distance threshold (merge_percent * current_price)
+    - Hierarchical merging = more intuitive for price levels
+
+    Parameters
+    ----------
+    pivot_prices : np.ndarray
+        Array of pivot price levels to cluster
+    merge_percent : float
+        Percentage of current price to use as merge distance (default 2%)
+    current_price : float
+        Current stock price for calculating merge distance
+
+    Returns
+    -------
+    List[float]
+        Clustered price levels (median of each cluster)
+    """
+    if len(pivot_prices) < 2:
+        return list(pivot_prices)
+
+    if current_price is None:
+        current_price = float(np.mean(pivot_prices))
+
+    try:
+        # Calculate adaptive merge distance
+        merge_distance = current_price * merge_percent
+
+        # Reshape for sklearn
+        prices_2d = pivot_prices.reshape(-1, 1)
+
+        # AgglomerativeClustering with distance_threshold
+        clustering = AgglomerativeClustering(
+            n_clusters=None,
+            distance_threshold=merge_distance,
+            linkage='average'
+        )
+
+        labels = clustering.fit_predict(prices_2d)
+
+        # Extract cluster centers using median (more robust than mean)
+        centers = []
+        for label in set(labels):
+            cluster_prices = pivot_prices[labels == label]
+            centers.append(float(np.median(cluster_prices)))
+
+        logger.info(f"Agglomerative clustering: {len(pivot_prices)} pivots -> {len(centers)} levels")
+        return sorted(centers)
+
+    except Exception as exc:
+        logger.exception("Agglomerative clustering failed: %s", exc)
+        return list(pivot_prices)
+
+
+def _score_levels(
+    levels: List[float],
+    df: pd.DataFrame,
+    touch_threshold: float = 0.005
+) -> List[Tuple[float, int]]:
+    """
+    Score levels by number of price touches.
+
+    A "touch" is when the high or low of a bar comes within touch_threshold
+    of the level. More touches = stronger level.
+
+    Parameters
+    ----------
+    levels : List[float]
+        Price levels to score
+    df : pd.DataFrame
+        OHLCV data
+    touch_threshold : float
+        Percentage threshold for "touch" (default 0.5%)
+
+    Returns
+    -------
+    List[Tuple[float, int]]
+        List of (level, score) tuples, sorted by score descending
+    """
+    scores = []
+
+    for level in levels:
+        # Count bars where high/low within threshold of level
+        upper = level * (1 + touch_threshold)
+        lower = level * (1 - touch_threshold)
+
+        # Check if high or low touched the level
+        high_touch = (df['high'] >= lower) & (df['high'] <= upper)
+        low_touch = (df['low'] >= lower) & (df['low'] <= upper)
+
+        touches = int((high_touch | low_touch).sum())
+        scores.append((level, touches))
+
+    # Sort by score descending
+    return sorted(scores, key=lambda x: x[1], reverse=True)
+
+
+def _agglomerative_sr(
+    df: pd.DataFrame,
+    cfg: SRConfig
+) -> Optional[Tuple[List[float], List[float], Dict[str, Any]]]:
+    """
+    Compute S&R levels using Agglomerative Clustering.
+
+    This is the Day 30 replacement for _kmeans_sr:
+    1. Detect ZigZag pivots (significant swings only)
+    2. Cluster pivots using AgglomerativeClustering
+    3. Score levels by touch count
+    4. Split into support/resistance around current price
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        OHLCV data
+    cfg : SRConfig
+        Configuration including merge_percent, zigzag_percent_delta
+
+    Returns
+    -------
+    Optional[Tuple[List[float], List[float], Dict[str, Any]]]
+        (support, resistance, meta) or None if failed
+    """
+    try:
+        current_price = float(df["close"].iloc[-1])
+        atr = _calculate_atr(df, cfg.atr_period)
+
+        # Step 1: Detect ZigZag pivots
+        pivot_highs, pivot_lows = _detect_zigzag_pivots(
+            df,
+            percent_delta=cfg.zigzag_percent_delta,
+            min_bars=cfg.pivot_left
+        )
+
+        all_pivots = pivot_highs + pivot_lows
+
+        if len(all_pivots) < 2:
+            logger.info("Not enough pivots for agglomerative clustering")
+            return None
+
+        # Step 2: Cluster pivots
+        pivot_array = np.array(all_pivots)
+        clustered_levels = _cluster_with_agglom(
+            pivot_array,
+            merge_percent=cfg.merge_percent,
+            current_price=current_price
+        )
+
+        if not clustered_levels:
+            return None
+
+        # Step 3: Score levels by touches
+        scored_levels = _score_levels(clustered_levels, df, cfg.touch_threshold)
+
+        # Filter by minimum touches (optional)
+        valid_levels = [level for level, score in scored_levels
+                       if score >= cfg.min_touches_for_level]
+
+        # If too few valid levels, use all clustered levels
+        if len(valid_levels) < 2:
+            valid_levels = clustered_levels
+
+        # Step 4: Split into support/resistance
+        support = sorted([l for l in valid_levels if l <= current_price])
+        resistance = sorted([l for l in valid_levels if l > current_price])
+
+        # Handle ATH/ATL edge cases
+        resistance_projected = False
+        support_projected = False
+
+        if not resistance:
+            logger.info("Agglomerative: No resistance found (ATH). Projecting using ATR.")
+            resistance = _project_resistance_levels(current_price, atr, cfg.atr_multipliers)
+            resistance_projected = True
+
+        if not support:
+            logger.info("Agglomerative: No support found (ATL). Projecting using ATR.")
+            support = _project_support_levels(current_price, atr, cfg.atr_multipliers)
+            support_projected = True
+
+        if not support and not resistance:
+            return None
+
+        meta = {
+            "type": "agglomerative",
+            "raw_pivot_count": len(all_pivots),
+            "clustered_level_count": len(clustered_levels),
+            "valid_level_count": len(valid_levels),
+            "level_scores": {str(round(l, 2)): s for l, s in scored_levels[:10]},
+            "atr": round(atr, 2),
+            "merge_percent": cfg.merge_percent,
+            "resistance_projected": resistance_projected,
+            "support_projected": support_projected,
+        }
+
+        return support, resistance, meta
+
+    except Exception as exc:
+        logger.exception("Agglomerative S/R computation failed: %s", exc)
+        return None
+
+
 def _pivot_sr(df: pd.DataFrame, cfg: SRConfig) -> Optional[Tuple[List[float], List[float], Dict[str, Any]]]:
     highs: List[float] = []
     lows: List[float] = []
@@ -442,19 +771,27 @@ def compute_sr_levels(df: pd.DataFrame, cfg: Optional[SRConfig] = None) -> SRLev
     Compute support & resistance levels with failover.
 
     Order of methods:
-    1. Pivot-based
-    2. KMeans clustering
-    3. Volume profile (always returns something)
-    
+    1. Pivot-based (primary, skip if high volatility)
+    2. Agglomerative clustering (Day 30 - replaces KMeans)
+    3. KMeans clustering (fallback, deprecated)
+    4. Volume profile (always returns something)
+
     Day 14 Enhancement:
     - When stock is at ATH and no historical resistance exists,
       projects resistance levels using ATR (1x, 1.5x, 2x ATR above current)
     - Same logic for support when stock is at ATL
-    
+
     Day 22 Enhancement (Option D):
     - Added trade viability assessment based on Minervini's entry criteria
     - Viability included in meta: YES / CAUTION / NO
     - Actionable advice for position sizing and stop placement
+
+    Day 30 Enhancement (Agglomerative Clustering):
+    - Replaced KMeans with AgglomerativeClustering
+    - Uses ZigZag pivot detection (filters noise)
+    - Adaptive cluster count (no fixed 5 clusters)
+    - Touch-based level scoring (stronger = more touches)
+    - Feature flag cfg.use_agglomerative for rollback
 
     Parameters
     ----------
@@ -485,18 +822,27 @@ def compute_sr_levels(df: pd.DataFrame, cfg: Optional[SRConfig] = None) -> SRLev
     atr = _calculate_atr(df, cfg.atr_period)
 
     # 1) Pivot-based (skip if volatility extreme)
+    # Day 31: Modified to try agglomerative when pivot has no ACTIONABLE support
+    # (support within 20% of current price - matching API proximity filter)
+    SUPPORT_PROXIMITY_PCT = 0.20  # Must match API_CONTRACTS/backend.py
+    support_floor = current_price * (1 - SUPPORT_PROXIMITY_PCT)
+
     if not high_vol:
         pivot_result = _pivot_sr(df, cfg)
         if pivot_result is not None:
             highs, lows, meta = pivot_result
-            
+
             # Split into support/resistance around current price
             support = [l for l in lows if l <= current_price]
             resistance = [h for h in highs if h > current_price]
-            
+
             # ALWAYS calculate ATR for pivot method (Day 20 fix)
             meta["atr"] = round(atr, 2)
-            
+
+            # Day 31: Check if ANY support is within actionable range
+            actionable_support = [s for s in support if s >= support_floor]
+            has_actionable_support = len(actionable_support) > 0
+
             # Handle ATH/ATL edge cases for pivot method too
             if not resistance:
                 logger.info("Pivot: No resistance found (ATH). Projecting using ATR.")
@@ -504,38 +850,76 @@ def compute_sr_levels(df: pd.DataFrame, cfg: Optional[SRConfig] = None) -> SRLev
                 meta["resistance_projected"] = True
             else:
                 meta["resistance_projected"] = False
-                
+
+            # Day 31: If no ACTIONABLE support (within 20%), try agglomerative
+            # This catches strong uptrends where pivot support is too far away
+            if not has_actionable_support:
+                logger.info(f"Pivot: No actionable support (floor={support_floor:.2f}). Found {len(support)} levels but all too far. Trying agglomerative.")
+                # Don't return yet - fall through to agglomerative
+            else:
+                meta["support_projected"] = False
+
+                # Day 22: Add trade viability assessment
+                nearest_support = max(support) if support else None
+                nearest_resistance = min(resistance) if resistance else None
+                viability = assess_trade_viability(current_price, nearest_support, nearest_resistance, atr)
+                meta["trade_viability"] = viability
+
+                return SRLevels(
+                    method="pivot",
+                    support=support,
+                    resistance=resistance,
+                    meta=meta,
+                )
+
+    # 2) Day 30/31: Agglomerative clustering (replaces KMeans)
+    # Feature flag allows rollback to KMeans if needed
+    # Day 31: Also tried when pivot has no natural support (strong uptrends)
+    if cfg.use_agglomerative:
+        agglom_result = _agglomerative_sr(df, cfg)
+        if agglom_result is not None:
+            support, resistance, meta = agglom_result
+
+            # Day 31: If agglomerative also has no natural support, project using ATR
             if not support:
-                logger.info("Pivot: No support found (ATL). Projecting using ATR.")
+                logger.info("Agglomerative: No natural support found. Projecting using ATR.")
                 support = _project_support_levels(current_price, atr, cfg.atr_multipliers)
                 meta["support_projected"] = True
             else:
                 meta["support_projected"] = False
-            
+
+            # Handle resistance projection if needed
+            if not resistance:
+                logger.info("Agglomerative: No resistance found. Projecting using ATR.")
+                resistance = _project_resistance_levels(current_price, atr, cfg.atr_multipliers)
+                meta["resistance_projected"] = True
+            else:
+                meta["resistance_projected"] = False
+
             # Day 22: Add trade viability assessment
             nearest_support = max(support) if support else None
             nearest_resistance = min(resistance) if resistance else None
             viability = assess_trade_viability(current_price, nearest_support, nearest_resistance, atr)
             meta["trade_viability"] = viability
-            
+
             return SRLevels(
-                method="pivot",
+                method="agglomerative",
                 support=support,
                 resistance=resistance,
                 meta=meta,
             )
 
-    # 2) KMeans clustering
+    # 2b) Fallback: KMeans clustering (deprecated, kept for rollback)
     km_result = _kmeans_sr(df, cfg)
     if km_result is not None:
         support, resistance, meta = km_result
-        
+
         # Day 22: Add trade viability assessment
         nearest_support = max(support) if support else None
         nearest_resistance = min(resistance) if resistance else None
         viability = assess_trade_viability(current_price, nearest_support, nearest_resistance, atr)
         meta["trade_viability"] = viability
-        
+
         return SRLevels(
             method="kmeans",
             support=support,

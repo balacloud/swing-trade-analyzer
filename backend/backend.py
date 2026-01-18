@@ -585,31 +585,68 @@ def get_stock_data(ticker):
         return jsonify({'error': str(e)}), 500
 
 
+def _is_fundamentals_empty(data):
+    """Check if fundamentals data has all null key fields (Defeat Beta failed)"""
+    if data is None:
+        return True
+    key_fields = ['roe', 'epsGrowth', 'revenueGrowth', 'debtToEquity']
+    return all(data.get(field) is None for field in key_fields)
+
+
 @app.route('/api/fundamentals/<ticker>', methods=['GET'])
 def get_fundamentals(ticker):
     """
     Get rich fundamental data for scoring
-    Tries Defeat Beta first, falls back to yfinance
+    Tries Defeat Beta first, falls back to yfinance if Defeat Beta returns empty data
+
+    Day 31: Fixed fallback logic - now checks if key fields are null, not just if dict exists
     """
     try:
         ticker = ticker.upper()
-        
+
         # Try Defeat Beta first (richer data)
         fundamentals = None
+        data_quality = 'none'
+        fallback_used = False
+
         if DEFEATBETA_AVAILABLE:
             fundamentals = get_fundamentals_defeatbeta(ticker)
-        
-        # Fallback to yfinance
+
+            # Day 31: Check if Defeat Beta actually returned useful data
+            if _is_fundamentals_empty(fundamentals):
+                print(f"⚠️ Defeat Beta returned empty data for {ticker}, trying yfinance fallback...")
+                yf_fundamentals = get_fundamentals_yfinance(ticker)
+
+                if yf_fundamentals and not _is_fundamentals_empty(yf_fundamentals):
+                    fundamentals = yf_fundamentals
+                    data_quality = 'yfinance_fallback'
+                    fallback_used = True
+                    print(f"✅ yfinance fallback successful for {ticker}")
+                else:
+                    # Both failed - keep defeatbeta empty response but mark quality
+                    data_quality = 'unavailable'
+                    print(f"❌ Both Defeat Beta and yfinance failed for {ticker}")
+            else:
+                data_quality = 'rich'
+
+        # Primary fallback to yfinance if Defeat Beta not available
         if fundamentals is None:
             fundamentals = get_fundamentals_yfinance(ticker)
-        
+            data_quality = 'yfinance' if fundamentals else 'unavailable'
+
         if fundamentals is None:
-            return jsonify({'error': f'Could not get fundamentals for {ticker}'}), 404
-        
-        # Add ticker to response
+            return jsonify({
+                'error': f'Could not get fundamentals for {ticker}',
+                'dataQuality': 'unavailable',
+                'fallbackUsed': False
+            }), 404
+
+        # Add metadata to response
         fundamentals['ticker'] = ticker
         fundamentals['timestamp'] = datetime.now().isoformat()
-        
+        fundamentals['dataQuality'] = data_quality
+        fundamentals['fallbackUsed'] = fallback_used
+
         return jsonify(fundamentals)
         
     except Exception as e:

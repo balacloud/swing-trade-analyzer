@@ -203,6 +203,7 @@ function calculateFundamentalScore(fundamentals, ticker) {
   let dataQuality = 'limited';
   let isEtfTicker = isETF(ticker);
   let extremeContext = [];
+  let dataUnavailableReason = null;
 
   // Day 25: Handle ETF tickers specially
   if (isEtfTicker) {
@@ -223,9 +224,24 @@ function calculateFundamentalScore(fundamentals, ticker) {
     };
   }
 
-  // Check if we have enriched data from Defeat Beta
-  if (fundamentals?.enriched || fundamentals?.source === 'defeatbeta') {
+  // Day 31: Check if backend reported data quality issues
+  if (fundamentals?.dataQuality === 'unavailable') {
+    dataQuality = 'unavailable';
+    dataUnavailableReason = 'Data provider temporarily unavailable. Both primary (Defeat Beta) and fallback (yfinance) failed.';
+  } else if (fundamentals?.dataQuality === 'yfinance_fallback' || fundamentals?.fallbackUsed) {
+    dataQuality = 'fallback';
+    dataUnavailableReason = 'Primary data source (Defeat Beta) unavailable. Using yfinance fallback with limited data.';
+  } else if (fundamentals?.enriched || fundamentals?.source === 'defeatbeta') {
+    // Check if we have enriched data from Defeat Beta
     dataQuality = 'rich';
+  }
+
+  // Day 31: Also detect all-null fundamentals (provider failed silently)
+  const keyFields = ['roe', 'epsGrowth', 'revenueGrowth', 'debtToEquity'];
+  const allNull = keyFields.every(field => fundamentals?.[field] === null || fundamentals?.[field] === undefined);
+  if (allNull && dataQuality !== 'unavailable') {
+    dataQuality = 'unavailable';
+    dataUnavailableReason = 'Fundamental data temporarily unavailable for this stock.';
   }
 
   // Day 25: Get context for extreme values
@@ -311,6 +327,7 @@ function calculateFundamentalScore(fundamentals, ticker) {
     },
     dataSource: dataSource,
     dataQuality: dataQuality,
+    dataUnavailableReason: dataUnavailableReason,  // Day 31: Explanation when data unavailable
     isETF: false,
     extremeValueContext: extremeContext  // Day 25: Context for unusual values
   };

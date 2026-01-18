@@ -966,6 +966,23 @@ function App() {
                               📊 {analysisResult.breakdown.fundamental.etfNote || 'This is an ETF - fundamental scoring does not apply.'}
                             </div>
                           )}
+                          {/* Day 31: Data Unavailable Warning */}
+                          {(analysisResult.breakdown.fundamental.dataQuality === 'unavailable' ||
+                            analysisResult.breakdown.fundamental.dataQuality === 'fallback') && (
+                            <div className={`rounded-lg p-3 text-sm mb-3 ${
+                              analysisResult.breakdown.fundamental.dataQuality === 'unavailable'
+                                ? 'bg-red-900/30 border border-red-700 text-red-300'
+                                : 'bg-yellow-900/30 border border-yellow-700 text-yellow-300'
+                            }`}>
+                              <div className="font-semibold mb-1">
+                                {analysisResult.breakdown.fundamental.dataQuality === 'unavailable' ? '⚠️ Data Unavailable' : '📡 Using Fallback Data'}
+                              </div>
+                              <div className="text-xs opacity-90">
+                                {analysisResult.breakdown.fundamental.dataUnavailableReason ||
+                                  'Fundamental data temporarily unavailable. Try refreshing or check back later.'}
+                              </div>
+                            </div>
+                          )}
                           {/* Day 25: Extreme Value Context */}
                           {analysisResult.breakdown.fundamental.extremeValueContext?.length > 0 && (
                             <div className="bg-amber-900/30 border border-amber-700 rounded-lg p-3 text-sm mb-3">
