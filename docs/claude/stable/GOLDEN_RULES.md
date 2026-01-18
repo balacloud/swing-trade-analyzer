@@ -2,7 +2,7 @@
 
 > **Purpose:** Stable reference document for all session rules
 > **Location:** Claude Project (not daily file)
-> **Last Updated:** Day 31 (January 18, 2026)
+> **Last Updated:** Day 32 (January 18, 2026)
 
 ---
 
@@ -26,12 +26,13 @@
 ## SESSION STARTUP CHECKLIST
 
 When user starts a new session:
-1. [x] Read PROJECT_STATUS file (user will attach it)
-2. [x] Verify context by summarizing current state to user
-3. [x] Ask: "What would you like to focus on today?"
-4. [ ] Do NOT ask user to re-explain the project
-5. [ ] Do NOT ask for files unless you need to modify them
-6. [ ] Do NOT jump to fixing - understand the problem first
+1. [x] Read CLAUDE_CONTEXT.md FIRST (master reference)
+2. [x] Read PROJECT_STATUS file
+3. [x] Verify context by summarizing current state to user
+4. [x] Ask: "What would you like to focus on today?"
+5. [ ] Do NOT ask user to re-explain the project
+6. [ ] Do NOT ask for files unless you need to modify them
+7. [ ] Do NOT jump to fixing - understand the problem first
 
 ---
 
@@ -42,9 +43,10 @@ When user says "session ending" or "close session":
 2. [x] Ask: "Did any bugs get fixed or found?" -> Update KNOWN_ISSUES.md
 3. [x] Ask: "Did any APIs change?" -> Update API_CONTRACTS.md
 4. [x] Ask: "Did we learn a new rule?" -> Update GOLDEN_RULES.md
-5. [x] Update Claude Memory if significant changes
-6. [x] Git commit AND PUSH (don't forget push!)
-7. [x] Note any deferred tasks for next session
+5. [x] **UPDATE CLAUDE_CONTEXT.md** - Current Day, Version, Last Updated, Focus
+6. [x] Update Claude Memory if significant changes
+7. [x] Git commit AND PUSH (don't forget push!)
+8. [x] Note any deferred tasks for next session
 
 ### How Stable Doc Updates Work:
 - Claude creates updated file in `/mnt/user-data/outputs/`
@@ -211,6 +213,11 @@ CLAUDE SESSION REMINDER:
 ### Day 31: Session Close Reminder
 - **Always PUSH after commit** - Don't just commit, verify changes reach remote
 - **Commit + Push = Complete** - Session isn't closed until code is on GitHub
+
+### Day 32: CLAUDE_CONTEXT.md is Master Reference
+- **Check CLAUDE_CONTEXT.md at session START** - Contains current day, version, focus
+- **Update CLAUDE_CONTEXT.md at session CLOSE** - Last Updated, Current Day, Focus fields
+- **Don't skip this step** - Prevents stale context in next session
 
 ---
 
