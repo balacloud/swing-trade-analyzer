@@ -436,20 +436,55 @@ def get_fundamentals_yfinance(ticker_symbol):
 # API ROUTES
 # ============================================
 
+def _check_defeatbeta_status():
+    """
+    Day 33: Quick health check for Defeat Beta API
+    Tests with a known ticker (AAPL) to see if API is responding
+    Returns: dict with 'working', 'error', 'last_checked'
+    """
+    if not DEFEATBETA_AVAILABLE:
+        return {'working': False, 'error': 'Library not installed', 'last_checked': datetime.now().isoformat()}
+
+    try:
+        ticker = DBTicker('AAPL')
+        annual_income = ticker.annual_income_statement()
+
+        if hasattr(annual_income, 'data') and annual_income.data is not None:
+            # Check if we actually got data
+            if len(annual_income.data) > 0:
+                return {'working': True, 'error': None, 'last_checked': datetime.now().isoformat()}
+
+        return {'working': False, 'error': 'API returned empty data', 'last_checked': datetime.now().isoformat()}
+    except Exception as e:
+        error_msg = str(e)
+        if 'TProtocolException' in error_msg:
+            error_msg = 'API connection error (TProtocolException)'
+        return {'working': False, 'error': error_msg, 'last_checked': datetime.now().isoformat()}
+
+
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    """Health check endpoint"""
-    return jsonify({
+    """Health check endpoint - Day 33: Added Defeat Beta live status"""
+    # Day 33: Check if we should do a live Defeat Beta check
+    check_defeatbeta = request.args.get('check_defeatbeta', 'false').lower() == 'true'
+
+    response = {
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
-        'version': '2.6',
+        'version': '2.8',
         'defeatbeta_available': DEFEATBETA_AVAILABLE,
         'tradingview_available': TRADINGVIEW_AVAILABLE,
         'sr_engine_available': SR_ENGINE_AVAILABLE,
         'validation_available': VALIDATION_AVAILABLE,
         'cache_size': len(FUNDAMENTALS_CACHE),
         'cache_ttl_seconds': FUNDAMENTALS_CACHE_TTL
-    })
+    }
+
+    # Only do live check if requested (avoids slowing down regular health checks)
+    if check_defeatbeta:
+        response['defeatbeta_status'] = _check_defeatbeta_status()
+
+    return jsonify(response)
 
 
 @app.route('/api/cache/clear', methods=['POST'])
@@ -907,7 +942,9 @@ def get_support_resistance(ticker):
                     'resistanceCeiling': round(resistance_ceiling, 2),
                     'supportPct': SUPPORT_PROXIMITY_PCT,
                     'resistancePct': RESISTANCE_PROXIMITY_PCT
-                }
+                },
+                # Day 33: Add MTF confluence data
+                'mtf': sr_levels.meta.get('mtf')
             }
         }
         

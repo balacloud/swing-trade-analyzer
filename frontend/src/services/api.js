@@ -166,27 +166,33 @@ export async function fetchVIXData() {
 
 /**
  * Check backend health
+ * Day 33: Added defeatbetaStatus field with live API check
  */
-export async function checkBackendHealth() {
+export async function checkBackendHealth(checkDefeatBeta = false) {
   try {
-    const response = await fetch(`${API_BASE_URL}/health`);
-    
+    const url = checkDefeatBeta
+      ? `${API_BASE_URL}/health?check_defeatbeta=true`
+      : `${API_BASE_URL}/health`;
+    const response = await fetch(url);
+
     if (!response.ok) {
       return { healthy: false, error: 'Backend not responding' };
     }
-    
+
     const data = await response.json();
-    
+
     return {
       healthy: data.status === 'healthy',
       version: data.version,
       defeatbetaAvailable: data.defeatbeta_available,
+      defeatbetaStatus: data.defeatbeta_status || null,  // Day 33: Live status
       tradingviewAvailable: data.tradingview_available,
       srEngineAvailable: data.sr_engine_available,
       validationAvailable: data.validation_available,
+      cacheSize: data.cache_size,
       timestamp: data.timestamp
     };
-    
+
   } catch (error) {
     return { healthy: false, error: error.message };
   }

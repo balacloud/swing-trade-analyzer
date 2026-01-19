@@ -72,8 +72,9 @@ function App() {
   const quickPicks = ['AVGO', 'NVDA', 'AAPL', 'META', 'MSFT', 'NFLX', 'PLTR']; 
 
   // Check backend health, load strategies, and load settings on mount
+  // Day 33: Do full Defeat Beta check on startup for transparency
   useEffect(() => {
-    checkBackendHealth().then(setBackendStatus);
+    checkBackendHealth(true).then(setBackendStatus);
     fetchScanStrategies()
       .then(setStrategies)
       .catch(err => console.error('Failed to load strategies:', err));
@@ -105,8 +106,8 @@ function App() {
       setCalcTicker('');
       setTicker('');
 
-      // Refresh backend status
-      const status = await checkBackendHealth();
+      // Refresh backend status with Defeat Beta check
+      const status = await checkBackendHealth(true);
       setBackendStatus(status);
 
       // Record refresh time
@@ -428,7 +429,17 @@ function App() {
               <span className={`w-3 h-3 rounded-full ${backendStatus.healthy ? 'bg-green-500' : 'bg-red-500'}`}></span>
               <span className="text-sm text-gray-400">
                 Backend {backendStatus.healthy ? 'Connected' : 'Disconnected'}
-                {backendStatus.defeatbetaAvailable && ' • Defeat Beta ✓'}
+                {/* Day 33: Enhanced Defeat Beta status - show working/failing */}
+                {backendStatus.defeatbetaAvailable && (
+                  backendStatus.defeatbetaStatus?.working
+                    ? <span className="text-green-400"> • Defeat Beta ✓</span>
+                    : <span className="text-yellow-400" title={backendStatus.defeatbetaStatus?.error || 'API unavailable'}>
+                        {' • Defeat Beta ⚠️'}
+                      </span>
+                )}
+                {!backendStatus.defeatbetaAvailable && backendStatus.healthy && (
+                  <span className="text-gray-500"> • Defeat Beta ✗</span>
+                )}
                 {backendStatus.tradingviewAvailable && ' • TradingView ✓'}
                 {backendStatus.srEngineAvailable && ' • S&R ✓'}
                 {backendStatus.validationAvailable && ' • Validation ✓'}
@@ -615,6 +626,42 @@ function App() {
                     </div>
                   </div>
                 </div>
+
+                {/* Day 33: Data Source Status Banner - Prominent visibility for transparency */}
+                {analysisResult.breakdown?.fundamental?.dataQuality &&
+                 analysisResult.breakdown.fundamental.dataQuality !== 'rich' && (
+                  <div className={`rounded-lg px-4 py-3 flex items-center gap-3 ${
+                    analysisResult.breakdown.fundamental.dataQuality === 'unavailable'
+                      ? 'bg-red-900/40 border border-red-700/50'
+                      : 'bg-yellow-900/40 border border-yellow-700/50'
+                  }`}>
+                    <span className="text-2xl">
+                      {analysisResult.breakdown.fundamental.dataQuality === 'unavailable' ? '⚠️' : '📡'}
+                    </span>
+                    <div className="flex-1">
+                      <div className={`font-medium ${
+                        analysisResult.breakdown.fundamental.dataQuality === 'unavailable'
+                          ? 'text-red-300' : 'text-yellow-300'
+                      }`}>
+                        {analysisResult.breakdown.fundamental.dataQuality === 'unavailable'
+                          ? 'Fundamentals Unavailable'
+                          : 'Using Backup Data Source'}
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {analysisResult.breakdown.fundamental.dataQuality === 'unavailable'
+                          ? 'Both Defeat Beta and yfinance failed. Fundamental score may be incomplete.'
+                          : 'Defeat Beta API unavailable. Using yfinance (limited data, may be slightly delayed).'}
+                      </div>
+                    </div>
+                    <div className={`text-xs px-2 py-1 rounded ${
+                      analysisResult.breakdown.fundamental.dataQuality === 'unavailable'
+                        ? 'bg-red-800/50 text-red-300'
+                        : 'bg-yellow-800/50 text-yellow-300'
+                    }`}>
+                      {analysisResult.breakdown.fundamental.dataSource || 'yfinance'}
+                    </div>
+                  </div>
+                )}
 
                 {/* Price & RS Info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -822,21 +869,42 @@ function App() {
                         </div>
                       </div>
                     </div>
-                    {/* Day 26: Show actual S&R levels */}
+                    {/* Day 26: Show actual S&R levels - Day 33: Enhanced with MTF confluence */}
                     <div className="mt-4 pt-3 border-t border-gray-700">
+                      {/* Day 33: MTF Confluence Badge */}
+                      {srData.meta?.mtf?.enabled && (
+                        <div className="mb-3 flex items-center justify-center gap-2">
+                          <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            srData.meta.mtf.confluence_pct >= 40 ? 'bg-green-900/50 text-green-300 border border-green-700' :
+                            srData.meta.mtf.confluence_pct >= 20 ? 'bg-yellow-900/50 text-yellow-300 border border-yellow-700' :
+                            'bg-gray-700/50 text-gray-400 border border-gray-600'
+                          }`}>
+                            MTF Confluence: {srData.meta.mtf.confluence_pct?.toFixed(0)}%
+                            <span className="ml-1 opacity-70">
+                              ({srData.meta.mtf.confluent_levels}/{srData.meta.mtf.total_levels} levels)
+                            </span>
+                          </div>
+                        </div>
+                      )}
                       <div className="grid grid-cols-2 gap-4 text-xs">
                         <div>
                           <div className="text-green-400 font-semibold mb-1">Support Levels</div>
                           {srData.support?.length > 0 ? (
                             <div className="space-y-0.5">
-                              {srData.support.slice().sort((a, b) => b - a).map((level, i) => (
-                                <div key={i} className="text-gray-400">
-                                  S{i + 1}: <span className="text-green-300 font-mono">{formatCurrency(level)}</span>
-                                  <span className="text-gray-500 ml-1">
-                                    ({((srData.currentPrice - level) / srData.currentPrice * 100).toFixed(1)}% below)
-                                  </span>
-                                </div>
-                              ))}
+                              {srData.support.slice().sort((a, b) => b - a).map((level, i) => {
+                                const levelKey = level.toFixed(2);
+                                const mtfInfo = srData.meta?.mtf?.confluence_map?.[levelKey];
+                                const isConfluent = mtfInfo?.confluent;
+                                return (
+                                  <div key={i} className={`text-gray-400 ${isConfluent ? 'font-medium' : ''}`}>
+                                    {isConfluent && <span className="text-yellow-400 mr-1" title="Confluent with weekly level">★</span>}
+                                    S{i + 1}: <span className={`font-mono ${isConfluent ? 'text-green-200' : 'text-green-300'}`}>{formatCurrency(level)}</span>
+                                    <span className="text-gray-500 ml-1">
+                                      ({((srData.currentPrice - level) / srData.currentPrice * 100).toFixed(1)}% below)
+                                    </span>
+                                  </div>
+                                );
+                              })}
                             </div>
                           ) : (
                             <div className="text-gray-500 italic">None within range</div>
@@ -846,22 +914,53 @@ function App() {
                           <div className="text-red-400 font-semibold mb-1">Resistance Levels</div>
                           {srData.resistance?.length > 0 ? (
                             <div className="space-y-0.5">
-                              {srData.resistance.slice().sort((a, b) => a - b).map((level, i) => (
-                                <div key={i} className="text-gray-400">
-                                  R{i + 1}: <span className="text-red-300 font-mono">{formatCurrency(level)}</span>
-                                  <span className="text-gray-500 ml-1">
-                                    ({((level - srData.currentPrice) / srData.currentPrice * 100).toFixed(1)}% above)
-                                  </span>
-                                </div>
-                              ))}
+                              {srData.resistance.slice().sort((a, b) => a - b).map((level, i) => {
+                                const levelKey = level.toFixed(2);
+                                const mtfInfo = srData.meta?.mtf?.confluence_map?.[levelKey];
+                                const isConfluent = mtfInfo?.confluent;
+                                return (
+                                  <div key={i} className={`text-gray-400 ${isConfluent ? 'font-medium' : ''}`}>
+                                    {isConfluent && <span className="text-yellow-400 mr-1" title="Confluent with weekly level">★</span>}
+                                    R{i + 1}: <span className={`font-mono ${isConfluent ? 'text-red-200' : 'text-red-300'}`}>{formatCurrency(level)}</span>
+                                    <span className="text-gray-500 ml-1">
+                                      ({((level - srData.currentPrice) / srData.currentPrice * 100).toFixed(1)}% above)
+                                    </span>
+                                  </div>
+                                );
+                              })}
                             </div>
                           ) : (
                             <div className="text-gray-500 italic">None within range</div>
                           )}
                         </div>
                       </div>
+                      {/* Day 33: Weekly Levels (collapsed by default) */}
+                      {srData.meta?.mtf?.enabled && (srData.meta.mtf.weekly_support?.length > 0 || srData.meta.mtf.weekly_resistance?.length > 0) && (
+                        <details className="mt-3 text-xs">
+                          <summary className="text-gray-500 cursor-pointer hover:text-gray-400">
+                            Weekly Levels ({srData.meta.mtf.weekly_support?.length || 0} support, {srData.meta.mtf.weekly_resistance?.length || 0} resistance)
+                          </summary>
+                          <div className="mt-2 grid grid-cols-2 gap-4 pl-2 border-l-2 border-gray-700">
+                            <div>
+                              {srData.meta.mtf.weekly_support?.slice().sort((a, b) => b - a).map((level, i) => (
+                                <div key={i} className="text-gray-500">
+                                  W-S{i + 1}: <span className="text-green-400/70 font-mono">${level.toFixed(2)}</span>
+                                </div>
+                              ))}
+                            </div>
+                            <div>
+                              {srData.meta.mtf.weekly_resistance?.slice().sort((a, b) => a - b).map((level, i) => (
+                                <div key={i} className="text-gray-500">
+                                  W-R{i + 1}: <span className="text-red-400/70 font-mono">${level.toFixed(2)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </details>
+                      )}
                       <div className="mt-2 text-xs text-gray-500 text-center">
                         Method: {srData.method} • ATR: {srData.meta?.atr ? `$${srData.meta.atr.toFixed(2)}` : 'N/A'}
+                        {srData.meta?.mtf?.enabled && <span> • MTF: Weekly</span>}
                       </div>
                     </div>
                   </div>

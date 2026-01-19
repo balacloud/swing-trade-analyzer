@@ -52,7 +52,7 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 
 ## Features
 
-### ✅ Implemented (v3.1)
+### ✅ Implemented (v3.4)
 
 1. **Single Stock Analysis**
    - Enter any ticker symbol
@@ -70,27 +70,49 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
    - Configurable account size and risk % (2-5%)
    - Auto-calculates shares, R targets (1.5R, 2R, 3R)
    - Auto-fill from stock analysis
+   - **Day 29:** Manual override for custom entry/stop prices
+   - **Day 29:** Max position limit to prevent over-allocation
 
-4. **Trade Setup Generation**
-   - Support & Resistance detection (Pivot, KMeans methods)
+4. **Advanced S&R Detection** (Day 31-32)
+   - **Agglomerative Clustering** - Adaptive cluster count (replaced KMeans)
+   - **ZigZag Pivot Detection** - 5% minimum price change threshold
+   - **Touch-based Scoring** - Levels ranked by historical touches
+   - **Multi-Timeframe Confluence** - Daily + Weekly S&R alignment
+   - 100% detection rate (was 80% with KMeans)
+   - Confluence badge shows % of levels confirmed by weekly data
+
+5. **Trade Setup Generation**
+   - Support & Resistance detection (Pivot → Agglomerative → Volume Profile)
    - Suggested Entry, Stop Loss, Target
    - Risk/Reward ratio calculation
    - Pullback re-entry zones for extended stocks
+   - **MTF Confluence indicators** (★ marks confluent levels)
 
-5. **Market Scanning** (TradingView Screener)
+6. **Market Scanning** (TradingView Screener)
    - 5 pre-built strategies: Reddit, Minervini, Momentum, Value, Best Candidates
    - Filters for institutional-quality stocks
    - Stage 2 uptrend requirement (50 SMA > 200 SMA)
 
-6. **Data Validation Engine**
+7. **Data Validation Engine**
    - Cross-references our data against StockAnalysis and Finviz
    - Quality Score = Coverage × Accuracy
    - Identifies data discrepancies
 
-7. **Settings & Configuration**
-   - Persistent account settings (localStorage)
-   - Risk percentage slider (2-5%)
-   - Position sizing preferences
+8. **Fundamentals with Failsafe** (Day 31-33)
+   - Primary: Defeat Beta API
+   - Fallback: yfinance (automatic when primary fails)
+   - **Data source transparency** - Banner shows when using fallback
+   - **Health endpoint** - `/api/health?check_defeatbeta=true` for diagnostics
+   - ETF detection with special handling
+
+9. **Session Management** (Day 29)
+   - Session refresh button (clears backend cache + frontend state)
+   - Ensures fresh data without browser refresh
+
+10. **Settings & Configuration**
+    - Persistent account settings (localStorage)
+    - Risk percentage slider (2-5%)
+    - Position sizing preferences
 
 ---
 
@@ -144,8 +166,8 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 │  │ support_       │  │   validation/   │  │  TradingView    │   │
 │  │ resistance.py  │  │   engine.py     │  │  Screener       │   │
 │  │                │  │   scrapers.py   │  │                 │   │
-│  │ Pivot/KMeans   │  │   comparators   │  │ Batch scanning  │   │
-│  │ S&R detection  │  │                 │  │                 │   │
+│  │ Agglomerative  │  │   comparators   │  │ Batch scanning  │   │
+│  │ + MTF S&R      │  │                 │  │                 │   │
 │  └────────────────┘  └─────────────────┘  └─────────────────┘   │
 └─────────────────────────────────────────────────────────────────┘
                               │
@@ -270,7 +292,7 @@ User enters ticker
 - **yfinance** - Price data
 - **defeatbeta** - Fundamental data
 - **tradingview-screener** - Batch scanning
-- **scikit-learn** - KMeans clustering for S&R
+- **scikit-learn** - Agglomerative clustering for S&R
 - **beautifulsoup4 + selenium** - Web scraping for validation
 
 ### Data Sources
@@ -361,6 +383,23 @@ npm start
 
 ## API Reference
 
+### GET /api/health
+
+Returns backend health status. Add `?check_defeatbeta=true` for live API diagnostics.
+
+```json
+{
+  "status": "healthy",
+  "version": "2.8",
+  "defeatbeta_available": true,
+  "defeatbeta_status": {
+    "working": false,
+    "error": "API connection error (TProtocolException)",
+    "last_checked": "2026-01-19T10:00:00"
+  }
+}
+```
+
 ### GET /api/stock/<ticker>
 
 Returns price data and basic info.
@@ -380,11 +419,14 @@ Returns price data and basic info.
 
 ### GET /api/fundamentals/<ticker>
 
-Returns rich fundamental data from Defeat Beta.
+Returns fundamental data with automatic failsafe (Defeat Beta → yfinance).
 
 ```json
 {
-  "source": "defeatbeta",
+  "source": "yfinance",
+  "dataSource": "yfinance_fallback",
+  "dataQuality": "partial",
+  "fallbackUsed": true,
   "ticker": "AAPL",
   "roe": 151.91,
   "epsGrowth": 12.5,
@@ -394,21 +436,36 @@ Returns rich fundamental data from Defeat Beta.
 }
 ```
 
+**Data Quality Values:** `"full"` (Defeat Beta working), `"partial"` (yfinance fallback), `"unavailable"`
+
 ### GET /api/sr/<ticker>
 
-Returns Support & Resistance levels with trade setup.
+Returns Support & Resistance levels with trade setup and MTF confluence.
 
 ```json
 {
   "ticker": "AAPL",
   "currentPrice": 272.97,
-  "method": "kmeans",
+  "method": "agglomerative",
   "support": [251.19, 245.67, 238.90],
   "resistance": [273.29, 280.45, 288.62],
   "suggestedEntry": 251.19,
   "suggestedStop": 243.65,
   "suggestedTarget": 273.29,
-  "riskReward": 2.93
+  "riskReward": 2.93,
+  "meta": {
+    "mtf": {
+      "enabled": true,
+      "confluence_pct": 27.3,
+      "confluent_levels": 3,
+      "total_levels": 11,
+      "weekly_support": [250.50, 232.00],
+      "weekly_resistance": [275.00, 290.00],
+      "confluence_map": {
+        "251.19": {"confluent": true, "weekly_match": 250.50}
+      }
+    }
+  }
 }
 ```
 
@@ -543,11 +600,15 @@ TOLERANCES = {
 2. **Defeat Beta weekly lag** - Fundamentals may be 1-7 days old
 3. **Price delay** - 15-30 minute delay (acceptable for swing trading)
 
-### S&R Engine Limitations
+### S&R Engine (v3.4 - Improved)
 
-1. **Proximity filter** - May return 0 support levels for extended stocks
-2. **ATR sometimes null** - Depends on calculation method
-3. **Method selection** - Pivot vs KMeans can produce different results
+1. **100% detection rate** - Agglomerative clustering finds levels for all stocks
+2. **Multi-timeframe confluence** - ~27% of levels confirmed by weekly data
+3. **Touch-based scoring** - Levels ranked by historical significance
+
+**Remaining Limitations:**
+1. **ATH stocks** - Fibonacci extensions planned for stocks at all-time highs (Week 3)
+2. **Validation pending** - TradingView comparison not yet done (Week 4)
 
 ### Validation Limitations
 
@@ -569,12 +630,25 @@ TOLERANCES = {
 - v2.9: Simplified Binary Scoring (4-criteria system)
 - v3.0: Settings tab + Position Sizing Calculator
 - v3.1: Auto-fill integration (Analysis → Position Calculator)
+- v3.2: Session refresh, position controls (max position, manual override)
+- v3.3: Agglomerative S&R clustering (100% detection rate)
+- v3.4: Multi-timeframe confluence, fundamentals transparency, data source indicators
+
+### S&R Improvement Progress (Day 30-33)
+
+| Week | Task | Status |
+|------|------|--------|
+| 1 | Agglomerative Clustering | ✅ Complete (Day 31) |
+| 2 | Multi-Timeframe Confluence | ✅ Complete (Day 32-33) |
+| 3 | Fibonacci Extensions | 📅 Planned (ATH stocks) |
+| 4 | Validation vs TradingView | 📅 Planned |
 
 ### Planned 📅
 
-- v3.2: **Forward Testing UI** - Track actual trades, record R-multiples, build SQN over time
-- v3.3: **Pattern Detection** - VCP, cup-and-handle, flat base (for better entry timing and R:R)
-- v3.4: **Sentiment Filter** - News/earnings filter to avoid high-risk events (defensive, not predictive)
+- v3.5: **Forward Testing UI** - Track actual trades, record R-multiples, build SQN over time
+- v3.6: **TradingView Widget** - Supplementary RSI/MACD view (free tier)
+- v3.7: **Fibonacci Extensions** - Resistance projection for ATH stocks
+- v3.8: **Pattern Detection** - VCP, cup-and-handle, flat base (better entry timing)
 
 ### Philosophy Change (Day 27)
 
@@ -595,8 +669,8 @@ New roadmap focuses on:
 ```
 swing-trade-analyzer/
 ├── backend/
-│   ├── backend.py              # Flask server
-│   ├── support_resistance.py   # S&R calculation
+│   ├── backend.py              # Flask server (v2.8)
+│   ├── support_resistance.py   # S&R calculation (Agglomerative + MTF)
 │   ├── validation/
 │   │   ├── engine.py           # Validation orchestrator
 │   │   ├── scrapers.py         # StockAnalysis + Finviz
@@ -605,22 +679,26 @@ swing-trade-analyzer/
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx             # Main UI (v3.1)
+│   │   ├── App.jsx             # Main UI (v3.4)
 │   │   ├── services/
-│   │   │   └── api.js          # API client
+│   │   │   └── api.js          # API client + health checks
 │   │   └── utils/
-│   │       ├── scoringEngine.js      # 75-point scoring
+│   │       ├── scoringEngine.js      # 75-point scoring + data quality
 │   │       ├── simplifiedScoring.js  # 4-criteria binary (Day 27)
 │   │       ├── positionSizing.js     # Van Tharp calculator (Day 28)
 │   │       └── rsCalculator.js       # RS calculations
 │   └── package.json
 │
 ├── docs/
-│   └── claude/                 # Claude session documentation
-│       ├── CLAUDE_CONTEXT.md   # Single reference point
-│       ├── stable/             # Rarely-changing docs
-│       ├── versioned/          # Day-versioned docs
-│       └── status/             # Daily status files
+│   ├── claude/                 # Claude session documentation
+│   │   ├── CLAUDE_CONTEXT.md   # Single reference point
+│   │   ├── stable/             # Rarely-changing docs (GOLDEN_RULES)
+│   │   ├── versioned/          # Day-versioned docs (API_CONTRACTS, KNOWN_ISSUES)
+│   │   └── status/             # Daily status files
+│   └── research/               # Research documents
+│       ├── SR_IMPROVEMENT_RESEARCH.md
+│       ├── TRADINGVIEW_INTEGRATION.md
+│       └── FINNHUB_INTEGRATION_GUIDE.md
 │
 └── README.md
 ```
@@ -660,5 +738,5 @@ MIT License - See LICENSE file for details.
 
 ---
 
-*Last Updated: January 15, 2026 (Day 28)*
-*Version: 3.1*
+*Last Updated: January 19, 2026 (Day 33)*
+*Version: 3.4*
