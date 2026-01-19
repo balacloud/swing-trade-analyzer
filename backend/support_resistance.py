@@ -67,6 +67,10 @@ class SRConfig:
     mtf_confluence_threshold: float = 0.005  # 0.5% = levels are "confluent"
     mtf_daily_weight: float = 0.6  # Weight for daily S&R levels
     mtf_weekly_weight: float = 0.4  # Weight for weekly S&R levels
+    # Day 33: Fibonacci Extensions config
+    use_fibonacci: bool = True  # Feature flag: use Fibonacci extensions for ATH stocks
+    fib_extensions: Tuple[float, ...] = (1.272, 1.618, 2.0)  # Fibonacci extension levels
+    ath_threshold: float = 0.05  # 5% - within this distance of 52w high = "near ATH"
 
 
 @dataclass
@@ -185,6 +189,185 @@ def _project_support_levels(
     # Filter out negative values
     projected = [p for p in projected if p > 0]
     return sorted(projected)
+
+
+def _is_near_ath(
+    current_price: float,
+    fifty_two_week_high: float,
+    threshold: float = 0.05
+) -> bool:
+    """
+    Day 33: Check if stock is near all-time high (within threshold).
+
+    Parameters
+    ----------
+    current_price : float
+        Current stock price
+    fifty_two_week_high : float
+        52-week high price
+    threshold : float
+        Percentage threshold (default 5%)
+
+    Returns
+    -------
+    bool
+        True if within threshold of ATH
+    """
+    if fifty_two_week_high <= 0:
+        return False
+    distance_from_ath = (fifty_two_week_high - current_price) / fifty_two_week_high
+    return distance_from_ath <= threshold
+
+
+def _find_recent_swing_low(
+    df: pd.DataFrame,
+    lookback_days: int = 60
+) -> Optional[float]:
+    """
+    Day 33: Find the most recent significant swing low for Fibonacci calculation.
+
+    Uses the lowest low in the lookback period as the swing low.
+    For more sophisticated detection, could use ZigZag pivots.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        OHLCV data
+    lookback_days : int
+        Number of days to look back (default 60)
+
+    Returns
+    -------
+    Optional[float]
+        Recent swing low price, or None if not found
+    """
+    try:
+        if len(df) < lookback_days:
+            lookback_days = len(df)
+
+        recent_data = df.tail(lookback_days)
+        swing_low = float(recent_data['low'].min())
+
+        return swing_low
+    except Exception:
+        return None
+
+
+def _project_fibonacci_resistance(
+    ath_price: float,
+    swing_low: float,
+    extensions: Tuple[float, ...] = (1.272, 1.618, 2.0)
+) -> List[float]:
+    """
+    Day 33: Project resistance levels using Fibonacci extensions.
+
+    Fibonacci extensions are calculated from a swing low to ATH:
+    - 127.2% = ATH + 0.272 * (ATH - SwingLow)
+    - 161.8% = ATH + 0.618 * (ATH - SwingLow)
+    - 200.0% = ATH + 1.0 * (ATH - SwingLow)
+
+    Research basis (TrendSpider 2023):
+    - 127.2%: 68% accuracy (conservative target)
+    - 161.8%: 72% accuracy (primary target)
+    - 200.0%: 65% accuracy (extended target)
+
+    Parameters
+    ----------
+    ath_price : float
+        All-time high (or current price if at ATH)
+    swing_low : float
+        Recent swing low price
+    extensions : tuple
+        Fibonacci extension levels (default: 1.272, 1.618, 2.0)
+
+    Returns
+    -------
+    List[float]
+        Projected Fibonacci resistance levels
+    """
+    if swing_low >= ath_price:
+        logger.warning("Swing low >= ATH, cannot calculate Fibonacci extensions")
+        return []
+
+    price_range = ath_price - swing_low
+
+    # Calculate extensions: extension_level * range added to ATH
+    projected = []
+    for ext in extensions:
+        # For 1.272 extension: ATH + 0.272 * range
+        # For 1.618 extension: ATH + 0.618 * range
+        # For 2.0 extension: ATH + 1.0 * range
+        extension_amount = (ext - 1.0) * price_range
+        level = round(ath_price + extension_amount, 2)
+        projected.append(level)
+
+    logger.info(f"Fibonacci extensions from swing low ${swing_low:.2f} to ATH ${ath_price:.2f}: {projected}")
+
+    return projected
+
+
+def _smart_project_resistance(
+    current_price: float,
+    df: pd.DataFrame,
+    atr: float,
+    cfg: SRConfig,
+    fifty_two_week_high: Optional[float] = None
+) -> Tuple[List[float], str]:
+    """
+    Day 33: Intelligently project resistance using Fibonacci or ATR.
+
+    Decision logic:
+    1. If use_fibonacci=True AND near ATH AND have swing low -> Fibonacci
+    2. Otherwise -> ATR projection (fallback)
+
+    Parameters
+    ----------
+    current_price : float
+        Current stock price
+    df : pd.DataFrame
+        OHLCV data (for finding swing low)
+    atr : float
+        Average True Range
+    cfg : SRConfig
+        Configuration
+    fifty_two_week_high : float, optional
+        52-week high (defaults to max of df['high'])
+
+    Returns
+    -------
+    Tuple[List[float], str]
+        (projected_levels, method_used)
+        method_used is "fibonacci" or "atr"
+    """
+    # Determine 52-week high
+    if fifty_two_week_high is None:
+        try:
+            fifty_two_week_high = float(df['high'].max())
+        except Exception:
+            fifty_two_week_high = current_price
+
+    # Check if we should use Fibonacci
+    use_fib = (
+        cfg.use_fibonacci and
+        _is_near_ath(current_price, fifty_two_week_high, cfg.ath_threshold)
+    )
+
+    if use_fib:
+        # Find recent swing low
+        swing_low = _find_recent_swing_low(df, lookback_days=60)
+
+        if swing_low and swing_low < current_price * 0.9:  # At least 10% below current
+            # Use ATH (or current if higher) as reference
+            ath_reference = max(current_price, fifty_two_week_high)
+            projected = _project_fibonacci_resistance(ath_reference, swing_low, cfg.fib_extensions)
+
+            if projected:
+                logger.info(f"Using Fibonacci extensions (swing low: ${swing_low:.2f})")
+                return projected, "fibonacci"
+
+    # Fallback to ATR projection
+    projected = _project_resistance_levels(current_price, atr, cfg.atr_multipliers)
+    return projected, "atr"
 
 
 def assess_trade_viability(
@@ -574,10 +757,14 @@ def _agglomerative_sr(
         # Handle ATH/ATL edge cases
         resistance_projected = False
         support_projected = False
+        projection_method = None  # Day 33: Track which method was used
 
         if not resistance:
-            logger.info("Agglomerative: No resistance found (ATH). Projecting using ATR.")
-            resistance = _project_resistance_levels(current_price, atr, cfg.atr_multipliers)
+            logger.info("Agglomerative: No resistance found (ATH). Projecting resistance.")
+            # Day 33: Use smart projection (Fibonacci or ATR)
+            resistance, projection_method = _smart_project_resistance(
+                current_price, df, atr, cfg
+            )
             resistance_projected = True
 
         if not support:
@@ -598,6 +785,7 @@ def _agglomerative_sr(
             "merge_percent": cfg.merge_percent,
             "resistance_projected": resistance_projected,
             "support_projected": support_projected,
+            "projection_method": projection_method,  # Day 33: "fibonacci" or "atr" or None
         }
 
         return support, resistance, meta
@@ -893,13 +1081,17 @@ def _kmeans_sr(df: pd.DataFrame, cfg: SRConfig) -> Optional[Tuple[List[float], L
         atr = _calculate_atr(df, cfg.atr_period)
         resistance_projected = False
         support_projected = False
-        
+        projection_method = None
+
         if not resistance:
             # Stock at ATH - project resistance above current price
-            logger.info("No historical resistance found (ATH edge case). Projecting levels using ATR.")
-            resistance = _project_resistance_levels(last, atr, cfg.atr_multipliers)
+            logger.info("KMeans: No historical resistance found (ATH). Projecting resistance.")
+            # Day 33: Use smart projection (Fibonacci or ATR)
+            resistance, projection_method = _smart_project_resistance(
+                last, df, atr, cfg
+            )
             resistance_projected = True
-        
+
         if not support:
             # Stock at ATL - project support below current price
             logger.info("No historical support found (ATL edge case). Projecting levels using ATR.")
@@ -916,6 +1108,7 @@ def _kmeans_sr(df: pd.DataFrame, cfg: SRConfig) -> Optional[Tuple[List[float], L
             "atr": round(atr, 2),
             "resistance_projected": resistance_projected,
             "support_projected": support_projected,
+            "projection_method": projection_method,  # Day 33: "fibonacci" or "atr" or None
         }
         return support, resistance, meta
 
@@ -948,15 +1141,19 @@ def _volume_profile_sr(df: pd.DataFrame, cfg: SRConfig) -> Tuple[List[float], Li
         atr = _calculate_atr(df, cfg.atr_period)
         resistance_projected = False
         support_projected = False
-        
+        projection_method = None
+
         if not resistance:
             # Stock at ATH - project resistance above current price
-            logger.info("Volume profile: No resistance found (ATH). Projecting using ATR.")
-            resistance = _project_resistance_levels(last, atr, cfg.atr_multipliers)
+            logger.info("Volume profile: No resistance found (ATH). Projecting resistance.")
+            # Day 33: Use smart projection (Fibonacci or ATR)
+            resistance, projection_method = _smart_project_resistance(
+                last, df, atr, cfg
+            )
             resistance_projected = True
-        
+
         if not support:
-            # Stock at ATL - project support below current price  
+            # Stock at ATL - project support below current price
             logger.info("Volume profile: No support found (ATL). Projecting using ATR.")
             support = _project_support_levels(last, atr, cfg.atr_multipliers)
             support_projected = True
@@ -968,6 +1165,7 @@ def _volume_profile_sr(df: pd.DataFrame, cfg: SRConfig) -> Tuple[List[float], Li
             "atr": round(atr, 2),
             "resistance_projected": resistance_projected,
             "support_projected": support_projected,
+            "projection_method": projection_method,  # Day 33: "fibonacci" or "atr" or None
         }
         return support, resistance, meta
 
@@ -1019,6 +1217,14 @@ def compute_sr_levels(df: pd.DataFrame, cfg: Optional[SRConfig] = None) -> SRLev
     - Research shows 3.2x stronger predictive power for confluent levels
     - Feature flag cfg.use_mtf for rollback
     - Meta includes: weekly_support, weekly_resistance, confluence_map
+
+    Day 33 Enhancement (Fibonacci Extensions):
+    - When stock is near ATH (within 5%), uses Fibonacci extensions for resistance
+    - Extensions: 127.2% (conservative), 161.8% (primary), 200% (extended)
+    - Research basis (TrendSpider 2023): 68-72% accuracy
+    - Falls back to ATR projection if swing low not found
+    - Feature flag cfg.use_fibonacci for rollback
+    - Meta includes: projection_method ("fibonacci" or "atr")
 
     Parameters
     ----------
@@ -1072,11 +1278,16 @@ def compute_sr_levels(df: pd.DataFrame, cfg: Optional[SRConfig] = None) -> SRLev
 
             # Handle ATH/ATL edge cases for pivot method too
             if not resistance:
-                logger.info("Pivot: No resistance found (ATH). Projecting using ATR.")
-                resistance = _project_resistance_levels(current_price, atr, cfg.atr_multipliers)
+                logger.info("Pivot: No resistance found (ATH). Projecting resistance.")
+                # Day 33: Use smart projection (Fibonacci or ATR)
+                resistance, proj_method = _smart_project_resistance(
+                    current_price, df, atr, cfg
+                )
                 meta["resistance_projected"] = True
+                meta["projection_method"] = proj_method
             else:
                 meta["resistance_projected"] = False
+                meta["projection_method"] = None
 
             # Day 31: If no ACTIONABLE support (within 20%), try agglomerative
             # This catches strong uptrends where pivot support is too far away
@@ -1120,11 +1331,17 @@ def compute_sr_levels(df: pd.DataFrame, cfg: Optional[SRConfig] = None) -> SRLev
 
             # Handle resistance projection if needed
             if not resistance:
-                logger.info("Agglomerative: No resistance found. Projecting using ATR.")
-                resistance = _project_resistance_levels(current_price, atr, cfg.atr_multipliers)
+                logger.info("Agglomerative: No resistance found. Projecting resistance.")
+                # Day 33: Use smart projection (Fibonacci or ATR)
+                resistance, proj_method = _smart_project_resistance(
+                    current_price, df, atr, cfg
+                )
                 meta["resistance_projected"] = True
+                meta["projection_method"] = proj_method
             else:
                 meta["resistance_projected"] = False
+                if "projection_method" not in meta:
+                    meta["projection_method"] = None
 
             # Day 22: Add trade viability assessment
             nearest_support = max(support) if support else None
