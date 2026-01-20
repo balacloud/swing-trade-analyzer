@@ -64,7 +64,7 @@ class SRConfig:
     use_agglomerative: bool = True  # Feature flag: use agglomerative instead of kmeans
     # Day 32: Multi-Timeframe Confluence config
     use_mtf: bool = True  # Feature flag: enable multi-timeframe confluence
-    mtf_confluence_threshold: float = 0.005  # 0.5% = levels are "confluent"
+    mtf_confluence_threshold: float = 0.015  # 1.5% = levels are "confluent" (Day 34: tuned from 0.5%)
     mtf_daily_weight: float = 0.6  # Weight for daily S&R levels
     mtf_weekly_weight: float = 0.4  # Weight for weekly S&R levels
     # Day 33: Fibonacci Extensions config

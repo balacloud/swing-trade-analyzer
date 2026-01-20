@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 33 (January 19, 2026)
+> **Last Updated:** Day 34 (January 20, 2026)
 
 ---
 
@@ -22,12 +22,12 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 33 |
-| Version | v3.4 |
-| Latest Status | PROJECT_STATUS_DAY33_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY33.md |
+| Current Day | 34 |
+| Version | v3.5 |
+| Latest Status | PROJECT_STATUS_DAY34_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY34.md |
 | Latest API | API_CONTRACTS_DAY33.md |
-| Focus | Fibonacci Extensions + TradingView Widget |
+| Focus | TradingView Widget + Forward Testing UI |
 
 ---
 
@@ -49,10 +49,10 @@
 ### Files to Read (in order):
 ```
 docs/claude/stable/GOLDEN_RULES.md          <- Core rules (CRITICAL)
-docs/claude/status/PROJECT_STATUS_DAY33_SHORT.md   <- Current state
-docs/claude/versioned/KNOWN_ISSUES_DAY33.md        <- Active bugs
+docs/claude/status/PROJECT_STATUS_DAY34_SHORT.md   <- Current state
+docs/claude/versioned/KNOWN_ISSUES_DAY34.md        <- Active bugs
 docs/claude/versioned/API_CONTRACTS_DAY33.md       <- API reference (if needed)
-docs/research/SR_IMPROVEMENT_RESEARCH.md           <- S&R improvement plan (Weeks 1-2 DONE)
+docs/research/VALIDATION_WEEK4_RESULTS.md          <- S&R validation results (COMPLETE)
 ```
 
 ### Startup Checklist:
@@ -200,6 +200,7 @@ git status
 | 31 | Updated for Day 31: Agglomerative S&R + Fundamentals Failsafe |
 | 32 | Updated for Day 32: MTF Confluence + Fundamentals/TradingView Research |
 | 33 | Updated for Day 33: MTF Frontend + Fundamentals Transparency + README v3.4 |
+| 34 | Updated for Day 34: Week 4 Validation Complete + Fibonacci + S&R Research DONE |
 
 ---
 
