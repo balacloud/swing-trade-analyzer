@@ -13,6 +13,9 @@
  * v3.0: Day 28 - Added Settings tab + Position Sizing Calculator (Van Tharp principles)
  * v3.1: Day 28 - Added auto-fill integration: Analysis → Position Calculator flow
  * v3.2: Day 29 - Added Session Refresh button (clears backend cache + resets frontend state)
+ * v3.3: Day 33 - MTF Confluence UI (badges, starred levels, weekly levels dropdown)
+ * v3.4: Day 33 - Fundamentals transparency (data source banner, health check)
+ * v3.5: Day 34 - TradingView Widget (collapsible RSI/MACD chart)
  */
 
 import React, { useState, useEffect } from 'react';
@@ -67,6 +70,9 @@ function App() {
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(null);
   const [refreshMessage, setRefreshMessage] = useState(null); // Feedback message
+
+  // TradingView widget state (Day 34)
+  const [tvWidgetCollapsed, setTvWidgetCollapsed] = useState(true); // Collapsed by default
 
   // Quick picks for testing
   const quickPicks = ['AVGO', 'NVDA', 'AAPL', 'META', 'MSFT', 'NFLX', 'PLTR']; 
@@ -963,6 +969,43 @@ function App() {
                         {srData.meta?.mtf?.enabled && <span> • MTF: Weekly</span>}
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {/* TradingView Widget - Day 34: Supplementary RSI/MACD view */}
+                {analysisResult && (
+                  <div className="bg-gray-800 rounded-lg p-4">
+                    <button
+                      onClick={() => setTvWidgetCollapsed(!tvWidgetCollapsed)}
+                      className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors w-full text-left"
+                    >
+                      <span className="text-lg">{tvWidgetCollapsed ? '▶' : '▼'}</span>
+                      <span className="font-medium">📺 TradingView Chart</span>
+                      <span className="text-xs text-gray-500 ml-auto">RSI, MACD, Volume</span>
+                    </button>
+
+                    {!tvWidgetCollapsed && (
+                      <div className="mt-3">
+                        <div className="border border-gray-700 rounded-lg overflow-hidden">
+                          {/* TradingView Advanced Chart Widget */}
+                          <div
+                            className="tradingview-widget-container"
+                            style={{ height: '400px' }}
+                          >
+                            <iframe
+                              key={analysisResult.ticker} // Force re-render on ticker change
+                              src={`https://www.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=${analysisResult.ticker}&interval=D&hidesidetoolbar=0&symboledit=0&saveimage=0&toolbarbg=f1f3f6&studies=%5B%22RSI%40tv-basicstudies%22%2C%22MACD%40tv-basicstudies%22%5D&theme=dark&style=1&timezone=America%2FNew_York&withdateranges=1&showpopupbutton=0&studies_overrides=%7B%7D&overrides=%7B%7D&enabled_features=%5B%5D&disabled_features=%5B%5D&locale=en&utm_source=localhost&utm_medium=widget_new&utm_campaign=chart&utm_term=${analysisResult.ticker}`}
+                              style={{ width: '100%', height: '400px', border: 'none' }}
+                              title={`TradingView Chart for ${analysisResult.ticker}`}
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            />
+                          </div>
+                        </div>
+                        <div className="bg-yellow-900/20 text-yellow-400/80 text-xs p-2 text-center rounded-b-lg border-x border-b border-yellow-700/30 mt-0">
+                          ⚠️ Our S&R levels are shown in Trade Setup above. This widget provides supplementary RSI/MACD indicators.
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 

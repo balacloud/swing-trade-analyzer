@@ -148,6 +148,12 @@ getLineWidth(int touches) =>
 var line[] drawnLines = array.new_line(0)
 var label[] drawnLabels = array.new_label(0)
 
+// Declare at global scope so INFO TABLE can access
+var float[] validLevels = array.new_float(0)
+var int[] levelTouches = array.new_int(0)
+var bool[] levelIsResistance = array.new_bool(0)
+var int[] levelStartBars = array.new_int(0)
+
 if barstate.islast
     // Clear old drawings
     if array.size(drawnLines) > 0
@@ -161,12 +167,7 @@ if barstate.islast
 
     currentPrice = close
 
-    // Collect all valid levels with touch counts
-    var float[] validLevels = array.new_float(0)
-    var int[] levelTouches = array.new_int(0)
-    var bool[] levelIsResistance = array.new_bool(0)
-    var int[] levelStartBars = array.new_int(0)
-
+    // Clear and rebuild valid levels
     array.clear(validLevels)
     array.clear(levelTouches)
     array.clear(levelIsResistance)
