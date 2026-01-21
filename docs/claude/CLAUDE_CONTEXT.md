@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 34 (January 20, 2026)
+> **Last Updated:** Day 35 (January 21, 2026)
 
 ---
 
@@ -22,12 +22,12 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 34 |
+| Current Day | 35 |
 | Version | v3.5 |
-| Latest Status | PROJECT_STATUS_DAY34_SHORT.md |
+| Latest Status | PROJECT_STATUS_DAY35_SHORT.md |
 | Latest Issues | KNOWN_ISSUES_DAY34.md |
 | Latest API | API_CONTRACTS_DAY33.md |
-| Focus | TradingView Widget + Forward Testing UI |
+| Focus | Data Provider Validation + pegRatio calculation |
 
 ---
 
@@ -49,10 +49,11 @@
 ### Files to Read (in order):
 ```
 docs/claude/stable/GOLDEN_RULES.md          <- Core rules (CRITICAL)
-docs/claude/status/PROJECT_STATUS_DAY34_SHORT.md   <- Current state
+docs/claude/status/PROJECT_STATUS_DAY35_SHORT.md   <- Current state
 docs/claude/versioned/KNOWN_ISSUES_DAY34.md        <- Active bugs
 docs/claude/versioned/API_CONTRACTS_DAY33.md       <- API reference (if needed)
-docs/research/VALIDATION_WEEK4_RESULTS.md          <- S&R validation results (COMPLETE)
+docs/research/VALIDATION_RESULTS_DAY34.md          <- yfinance validation results (NEW)
+docs/research/ARCHITECTURE_PLANNING_DAY34.md       <- Data provider strategy (UPDATED)
 ```
 
 ### Startup Checklist:
@@ -201,6 +202,7 @@ git status
 | 32 | Updated for Day 32: MTF Confluence + Fundamentals/TradingView Research |
 | 33 | Updated for Day 33: MTF Frontend + Fundamentals Transparency + README v3.4 |
 | 34 | Updated for Day 34: Week 4 Validation Complete + Fibonacci + S&R Research DONE |
+| 35 | Updated for Day 35: Data Provider Validation - yfinance 100% working, Defeat Beta blocked |
 
 ---
 
