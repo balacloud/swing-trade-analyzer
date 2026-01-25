@@ -409,16 +409,27 @@ def get_fundamentals_yfinance(ticker_symbol):
         except:
             pass
         
+        # Day 36: Calculate pegRatio locally if not provided by yfinance
+        pe = safe_float(safe_get(info, 'trailingPE'))
+        eps_growth = safe_float(safe_get(info, 'earningsGrowth'))
+        peg_ratio = safe_float(safe_get(info, 'pegRatio'))
+
+        # Fallback: Calculate PEG = PE / (EPS Growth * 100)
+        # earningsGrowth from yfinance is decimal (0.15 = 15%), so multiply by 100
+        # Only calculate for positive growth (negative PEG is not meaningful)
+        if peg_ratio is None and pe is not None and eps_growth is not None and eps_growth > 0:
+            peg_ratio = round(pe / (eps_growth * 100), 2)
+
         return {
             'source': 'yfinance',
-            'pe': safe_float(safe_get(info, 'trailingPE')),
+            'pe': pe,
             'forwardPe': safe_float(safe_get(info, 'forwardPE')),
-            'pegRatio': safe_float(safe_get(info, 'pegRatio')),
+            'pegRatio': peg_ratio,
             'marketCap': safe_int(safe_get(info, 'marketCap')),
             'roe': roe or safe_float(safe_get(info, 'returnOnEquity')),
             'roa': roa or safe_float(safe_get(info, 'returnOnAssets')),
             'roic': None,
-            'epsGrowth': safe_float(safe_get(info, 'earningsGrowth')),
+            'epsGrowth': eps_growth,
             'revenueGrowth': rev_growth or safe_float(safe_get(info, 'revenueGrowth')),
             'debtToEquity': debt_to_equity or safe_float(safe_get(info, 'debtToEquity')),
             'profitMargin': safe_float(safe_get(info, 'profitMargins')),

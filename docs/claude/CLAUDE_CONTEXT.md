@@ -22,12 +22,12 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 35 |
+| Current Day | 36 |
 | Version | v3.5 |
-| Latest Status | PROJECT_STATUS_DAY35_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY34.md |
+| Latest Status | PROJECT_STATUS_DAY36_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY36.md |
 | Latest API | API_CONTRACTS_DAY33.md |
-| Focus | Data Provider Validation + pegRatio calculation |
+| Focus | Caching layer + TradingView Widget |
 
 ---
 
@@ -49,11 +49,11 @@
 ### Files to Read (in order):
 ```
 docs/claude/stable/GOLDEN_RULES.md          <- Core rules (CRITICAL)
-docs/claude/status/PROJECT_STATUS_DAY35_SHORT.md   <- Current state
-docs/claude/versioned/KNOWN_ISSUES_DAY34.md        <- Active bugs
+docs/claude/status/PROJECT_STATUS_DAY36_SHORT.md   <- Current state
+docs/claude/versioned/KNOWN_ISSUES_DAY36.md        <- Active bugs
 docs/claude/versioned/API_CONTRACTS_DAY33.md       <- API reference (if needed)
-docs/research/VALIDATION_RESULTS_DAY34.md          <- yfinance validation results (NEW)
-docs/research/ARCHITECTURE_PLANNING_DAY34.md       <- Data provider strategy (UPDATED)
+docs/research/VALIDATION_RESULTS_DAY34.md          <- yfinance validation results
+docs/research/ARCHITECTURE_PLANNING_DAY34.md       <- Data provider strategy
 ```
 
 ### Startup Checklist:
@@ -203,6 +203,7 @@ git status
 | 33 | Updated for Day 33: MTF Frontend + Fundamentals Transparency + README v3.4 |
 | 34 | Updated for Day 34: Week 4 Validation Complete + Fibonacci + S&R Research DONE |
 | 35 | Updated for Day 35: Data Provider Validation - yfinance 100% working, Defeat Beta blocked |
+| 36 | Updated for Day 36: pegRatio local calculation, Pine Script validation complete (9/9) |
 
 ---
 
