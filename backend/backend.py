@@ -1,5 +1,5 @@
 """
-Swing Trade Analyzer Backend - v2.6
+Swing Trade Analyzer Backend - v2.9
 Flask API server with yfinance (prices) + Defeat Beta (fundamentals) + TradingView Screener (scanning) + S&R Engine
 
 Day 6: Fixed numpy type serialization issues
@@ -8,6 +8,7 @@ Day 11: Added TradingView screener integration for batch scanning
 Day 13: Added Support & Resistance engine endpoint
 Day 20: Added TradingView scan endpoint, fixed API syntax for tradingview-screener library
 Day 25: Added auto-refresh cache for Defeat Beta data (TTL-based)
+Day 36: Upgraded to SQLite persistent cache (survives restarts, intelligent TTL)
 """
 
 import os
@@ -64,40 +65,47 @@ app = Flask(__name__)
 CORS(app)
 
 # ============================================
-# CACHE CONFIGURATION (Day 25)
+# CACHE CONFIGURATION (Day 36 - SQLite Persistent)
 # ============================================
-# TTL-based cache for Defeat Beta data to prevent stale data issues
-# Cache expires after 1 hour (3600 seconds)
+# SQLite-based cache that survives restarts
+# OHLCV: Expires at next market close
+# Fundamentals: 7-day TTL (quarterly data)
 
-FUNDAMENTALS_CACHE = {}
-FUNDAMENTALS_CACHE_TTL = 3600  # 1 hour in seconds
+try:
+    import cache_manager
+    SQLITE_CACHE_AVAILABLE = True
+    print("✅ SQLite Cache Manager loaded successfully")
+except ImportError as e:
+    SQLITE_CACHE_AVAILABLE = False
+    print(f"⚠️ SQLite Cache not available: {e}")
 
+# Wrapper functions for backward compatibility
 def get_cached_fundamentals(ticker_symbol):
-    """Get fundamentals from cache if not expired"""
-    if ticker_symbol in FUNDAMENTALS_CACHE:
-        cached_data, cached_time = FUNDAMENTALS_CACHE[ticker_symbol]
-        age = (datetime.now() - cached_time).total_seconds()
-        if age < FUNDAMENTALS_CACHE_TTL:
-            print(f"📦 Cache hit for {ticker_symbol} (age: {age:.0f}s)")
-            return cached_data
-        else:
-            print(f"🔄 Cache expired for {ticker_symbol} (age: {age:.0f}s)")
+    """Get fundamentals from SQLite cache if not expired"""
+    if SQLITE_CACHE_AVAILABLE:
+        return cache_manager.get_cached_fundamentals(ticker_symbol)
     return None
 
 def set_cached_fundamentals(ticker_symbol, data):
-    """Store fundamentals in cache with timestamp"""
-    FUNDAMENTALS_CACHE[ticker_symbol] = (data, datetime.now())
-    print(f"💾 Cached fundamentals for {ticker_symbol}")
+    """Store fundamentals in SQLite cache"""
+    if SQLITE_CACHE_AVAILABLE:
+        cache_manager.set_cached_fundamentals(ticker_symbol, data)
 
 def clear_fundamentals_cache(ticker_symbol=None):
-    """Clear cache for a ticker or all tickers"""
-    global FUNDAMENTALS_CACHE
-    if ticker_symbol:
-        FUNDAMENTALS_CACHE.pop(ticker_symbol, None)
-        print(f"🗑️ Cleared cache for {ticker_symbol}")
-    else:
-        FUNDAMENTALS_CACHE = {}
-        print("🗑️ Cleared all fundamentals cache")
+    """Clear SQLite cache"""
+    if SQLITE_CACHE_AVAILABLE:
+        cache_manager.clear_cache(ticker=ticker_symbol, cache_type='fundamentals')
+
+def get_cached_ohlcv(ticker_symbol):
+    """Get OHLCV from SQLite cache if not expired"""
+    if SQLITE_CACHE_AVAILABLE:
+        return cache_manager.get_cached_ohlcv(ticker_symbol)
+    return None
+
+def set_cached_ohlcv(ticker_symbol, df):
+    """Store OHLCV in SQLite cache"""
+    if SQLITE_CACHE_AVAILABLE:
+        cache_manager.set_cached_ohlcv(ticker_symbol, df)
 
 # ============================================
 # HELPER FUNCTIONS
@@ -479,16 +487,30 @@ def health_check():
     # Day 33: Check if we should do a live Defeat Beta check
     check_defeatbeta = request.args.get('check_defeatbeta', 'false').lower() == 'true'
 
+    # Get cache stats if available
+    cache_stats = {}
+    if SQLITE_CACHE_AVAILABLE:
+        try:
+            stats = cache_manager.get_cache_stats()
+            cache_stats = {
+                'ohlcv_count': stats['ohlcv']['count'],
+                'fundamentals_count': stats['fundamentals']['count'],
+                'market_count': stats['market']['count'],
+                'cache_size_kb': stats['total_size_kb']
+            }
+        except Exception:
+            cache_stats = {'error': 'Could not get cache stats'}
+
     response = {
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
-        'version': '2.8',
+        'version': '2.9',
         'defeatbeta_available': DEFEATBETA_AVAILABLE,
         'tradingview_available': TRADINGVIEW_AVAILABLE,
         'sr_engine_available': SR_ENGINE_AVAILABLE,
         'validation_available': VALIDATION_AVAILABLE,
-        'cache_size': len(FUNDAMENTALS_CACHE),
-        'cache_ttl_seconds': FUNDAMENTALS_CACHE_TTL
+        'sqlite_cache_available': SQLITE_CACHE_AVAILABLE,
+        'cache': cache_stats
     }
 
     # Only do live check if requested (avoids slowing down regular health checks)
@@ -501,94 +523,124 @@ def health_check():
 @app.route('/api/cache/clear', methods=['POST'])
 def clear_cache():
     """
-    Clear fundamentals cache - Day 25
+    Clear cache - Day 36 (SQLite)
     POST /api/cache/clear - clears all cache
     POST /api/cache/clear?ticker=AAPL - clears specific ticker
+    POST /api/cache/clear?type=ohlcv - clears specific cache type
     """
     ticker = request.args.get('ticker')
-    if ticker:
-        clear_fundamentals_cache(ticker.upper())
+    cache_type = request.args.get('type')  # 'ohlcv', 'fundamentals', or None for all
+
+    if SQLITE_CACHE_AVAILABLE:
+        cache_manager.clear_cache(ticker=ticker.upper() if ticker else None, cache_type=cache_type)
+        stats = cache_manager.get_cache_stats()
         return jsonify({
             'status': 'success',
-            'message': f'Cache cleared for {ticker.upper()}',
-            'cache_size': len(FUNDAMENTALS_CACHE)
+            'message': f'Cache cleared (ticker={ticker}, type={cache_type})',
+            'cache': {
+                'ohlcv_count': stats['ohlcv']['count'],
+                'fundamentals_count': stats['fundamentals']['count'],
+                'size_kb': stats['total_size_kb']
+            }
         })
     else:
-        clear_fundamentals_cache()
-        return jsonify({
-            'status': 'success',
-            'message': 'All cache cleared',
-            'cache_size': 0
-        })
+        return jsonify({'status': 'error', 'message': 'SQLite cache not available'}), 500
 
 
 @app.route('/api/cache/status', methods=['GET'])
 def cache_status():
-    """Get cache status - Day 25"""
-    cache_info = []
-    for ticker, (data, cached_time) in FUNDAMENTALS_CACHE.items():
-        age = (datetime.now() - cached_time).total_seconds()
-        cache_info.append({
-            'ticker': ticker,
-            'age_seconds': round(age),
-            'expires_in': round(FUNDAMENTALS_CACHE_TTL - age),
-            'has_roe': data.get('roe') is not None
+    """Get detailed cache status - Day 36 (SQLite)"""
+    if SQLITE_CACHE_AVAILABLE:
+        stats = cache_manager.get_cache_stats()
+        hit_rates = cache_manager.get_cache_hit_rate(hours=24)
+        return jsonify({
+            'status': 'healthy',
+            'storage': 'sqlite',
+            'database_size_kb': stats['total_size_kb'],
+            'ohlcv': {
+                'count': stats['ohlcv']['count'],
+                'hit_rate_24h': hit_rates.get('ohlcv', 0),
+                'entries': stats['ohlcv']['entries'][:20]  # Limit to 20 for response size
+            },
+            'fundamentals': {
+                'count': stats['fundamentals']['count'],
+                'hit_rate_24h': hit_rates.get('fundamentals', 0),
+                'entries': stats['fundamentals']['entries'][:20]
+            },
+            'market': {
+                'count': stats['market']['count'],
+                'entries': stats['market']['entries']
+            }
         })
-    return jsonify({
-        'cache_size': len(FUNDAMENTALS_CACHE),
-        'ttl_seconds': FUNDAMENTALS_CACHE_TTL,
-        'entries': cache_info
-    })
+    else:
+        return jsonify({'status': 'error', 'message': 'SQLite cache not available'}), 500
 
 
 @app.route('/api/stock/<ticker>', methods=['GET'])
 def get_stock_data(ticker):
     """
     Get stock data for analysis
-    Uses yfinance for price data (real-time)
+    Uses SQLite cache (Day 36) + yfinance fallback
     """
     try:
         ticker = ticker.upper()
-        stock = yf.Ticker(ticker)
-        
-        # Get historical data (260 trading days for 52-week calculations)
-        hist = stock.history(period='2y')
-        
-        if hist.empty:
-            return jsonify({'error': f'No data found for {ticker}'}), 404
-        
-        # FIXED: Get last 260 days (covers full 52 weeks of trading)
+
+        # Day 36: Check SQLite cache first for OHLCV
+        cached_hist = get_cached_ohlcv(ticker)
+
+        if cached_hist is not None and not cached_hist.empty:
+            hist = cached_hist
+            print(f"📦 Using cached OHLCV for {ticker}")
+        else:
+            # Cache miss - fetch from yfinance
+            stock = yf.Ticker(ticker)
+            hist = stock.history(period='2y')
+
+            if hist.empty:
+                return jsonify({'error': f'No data found for {ticker}'}), 404
+
+            # Normalize column names to lowercase
+            hist.columns = [c.lower() for c in hist.columns]
+
+            # Cache the full 2-year data
+            set_cached_ohlcv(ticker, hist)
+
+        # Get last 260 days (covers full 52 weeks of trading)
         hist_data = hist.tail(260)
-        
-        # Get stock info
+
+        # Normalize column names for consistent access (handles both cached and fresh data)
+        hist_data.columns = [c.lower() for c in hist_data.columns]
+
+        # Get stock info (always fresh - used for fundamentals, not OHLCV)
+        stock = yf.Ticker(ticker)
         info = stock.info
-        
-        # Prepare price history
+
+        # Prepare price history (using lowercase column names)
         price_history = []
         for date, row in hist_data.iterrows():
             price_history.append({
                 'date': date.strftime('%Y-%m-%d'),
-                'open': round(float(row['Open']), 2),
-                'high': round(float(row['High']), 2),
-                'low': round(float(row['Low']), 2),
-                'close': round(float(row['Close']), 2),
-                'volume': int(row['Volume'])
+                'open': round(float(row['open']), 2),
+                'high': round(float(row['high']), 2),
+                'low': round(float(row['low']), 2),
+                'close': round(float(row['close']), 2),
+                'volume': int(row['volume'])
             })
-        
+
         # Get 52-week ago price (approximately 252 trading days)
         price_52w_ago = None
         if len(hist_data) >= 252:
-            price_52w_ago = round(float(hist_data.iloc[-252]['Close']), 2)
+            price_52w_ago = round(float(hist_data.iloc[-252]['close']), 2)
         elif len(hist_data) > 200:
-            price_52w_ago = round(float(hist_data.iloc[0]['Close']), 2)
-        
+            price_52w_ago = round(float(hist_data.iloc[0]['close']), 2)
+
         # Get 13-week ago price (approximately 63 trading days)
         price_13w_ago = None
         if len(hist_data) >= 63:
-            price_13w_ago = round(float(hist_data.iloc[-63]['Close']), 2)
-        
+            price_13w_ago = round(float(hist_data.iloc[-63]['close']), 2)
+
         # Current price
-        current_price = round(float(hist_data.iloc[-1]['Close']), 2)
+        current_price = round(float(hist_data.iloc[-1]['close']), 2)
         
         # Basic fundamentals from yfinance (for backward compatibility)
         fundamentals = {

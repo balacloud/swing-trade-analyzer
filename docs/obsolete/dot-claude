@@ -1,0 +1,101 @@
+# Swing Trade Analyzer - Claude Code Context
+
+## Project Overview
+Institutional-grade swing trade recommendation engine using Mark Minervini's SEPA 
+and William O'Neil's CAN SLIM methodologies. 75-point scoring system for stock analysis.
+
+## Tech Stack
+- Backend: Python Flask (localhost:5001), venv in backend/venv/
+- Frontend: React + Tailwind CSS (localhost:3000)
+- Data Sources: yfinance (prices), Defeat Beta (fundamentals), TradingView Screener (scanning)
+
+## Key Files
+| File | Purpose |
+|------|---------|
+| backend/backend.py | Flask API server (14 routes) |
+| backend/support_resistance.py | S&R calculation + Option D viability |
+| frontend/src/App.jsx | Main React component (v2.6) |
+| frontend/src/utils/scoringEngine.js | 75-point scoring system |
+| frontend/src/utils/rsCalculator.js | Relative Strength calculation |
+| frontend/src/utils/technicalIndicators.js | SMA, EMA, ATR, RSI |
+
+## Documentation Structure
+```
+docs/claude/
+├── stable/           # Non-versioned (GOLDEN_RULES, SESSION_START, this guide)
+├── versioned/        # Day-versioned (API_CONTRACTS_DAY[N], KNOWN_ISSUES_DAY[N])
+│   └── archive/      # Older than 15 days
+└── status/           # Daily status (PROJECT_STATUS_DAY[N]_SHORT)
+    └── archive/      # Older than 15 days
+```
+
+## Current Version
+v1.4.0 - Day 24 (January 6, 2026)
+
+## Active Bugs (Update from KNOWN_ISSUES_DAY[N].md)
+1. CRITICAL: System UNPROVEN - no forward testing
+2. HIGH: Risk/Macro expand crash - object rendering in App.jsx
+3. HIGH: UX confusion - AVOID (red) + VIABLE (green) mixed signals
+4. HIGH: Sentiment placeholder - 13% of score is fake (5/10 default)
+
+## Golden Rules (ALWAYS FOLLOW)
+1. STOP before coding - understand problem first
+2. ASK to see current file before modifying
+3. RUN diagnostic queries before writing fixes
+4. TEST incrementally - one change at a time
+5. If something fails, STOP and diagnose - don't chain guesses
+6. Update docs alongside code changes (API_CONTRACTS, KNOWN_ISSUES)
+
+## Commands
+```bash
+# Start backend
+cd backend && source venv/bin/activate && python backend.py
+
+# Start frontend  
+cd frontend && npm start
+
+# Test API
+curl http://localhost:5001/api/health
+curl http://localhost:5001/api/sr/AAPL
+curl http://localhost:5001/api/stock/AAPL
+
+# Run validation
+curl -X POST http://localhost:5001/api/validation/run \
+  -H "Content-Type: application/json" \
+  -d '{"tickers": ["AAPL","NVDA"]}'
+```
+
+## Scoring System (75 Points)
+- Technical: 40 pts (Trend 15, Short-term 10, RS 10, Volume 5)
+- Fundamental: 20 pts (EPS 6, Revenue 5, ROE 4, D/E 3, P/E 2)
+- Sentiment: 10 pts (⚠️ PLACEHOLDER - needs fixing)
+- Risk/Macro: 5 pts (VIX 2, S&P Regime 2, Breadth 1)
+
+## Verdict Logic
+- BUY: Score ≥60 + No critical fails + RS ≥1.0
+- HOLD: Score 40-59 OR 1 critical fail
+- AVOID: Score <40 OR 2+ critical fails OR RS <0.8
+
+## API Endpoints (14 total)
+- /api/health - Backend health
+- /api/stock/<ticker> - Stock data
+- /api/fundamentals/<ticker> - Rich fundamentals
+- /api/market/spy - SPY for RS
+- /api/market/vix - VIX for risk
+- /api/sr/<ticker> - Support & Resistance + viability
+- /api/scan/tradingview - Batch scanning
+- /api/scan/strategies - Available strategies
+- /api/validation/run - Run validation
+- /api/validation/results - Get results
+- /api/validation/history - Get history
+- /api/forward-test/record - Record signal
+- /api/forward-test/signals - Get signals
+- /api/forward-test/performance - Get performance
+
+## Session Workflow
+1. Read PROJECT_STATUS_DAY[N]_SHORT.md for context
+2. Read KNOWN_ISSUES_DAY[N].md for active bugs
+3. Make changes following Golden Rules
+4. Test incrementally
+5. Update docs (create DAY[N+1] versions if needed)
+6. Commit with descriptive message

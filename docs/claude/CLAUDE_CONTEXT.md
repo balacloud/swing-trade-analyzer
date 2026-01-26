@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 35 (January 21, 2026)
+> **Last Updated:** Day 37 (January 26, 2026)
 
 ---
 
@@ -22,12 +22,12 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 36 |
-| Version | v3.5 |
-| Latest Status | PROJECT_STATUS_DAY36_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY36.md |
+| Current Day | 37 |
+| Version | v3.6 (Backend v2.9) |
+| Latest Status | PROJECT_STATUS_DAY37_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY37.md |
 | Latest API | API_CONTRACTS_DAY33.md |
-| Focus | Caching layer + TradingView Widget |
+| Focus | Lightweight Charts Phase 2 + Forward Testing UI |
 
 ---
 
@@ -49,8 +49,8 @@
 ### Files to Read (in order):
 ```
 docs/claude/stable/GOLDEN_RULES.md          <- Core rules (CRITICAL)
-docs/claude/status/PROJECT_STATUS_DAY36_SHORT.md   <- Current state
-docs/claude/versioned/KNOWN_ISSUES_DAY36.md        <- Active bugs
+docs/claude/status/PROJECT_STATUS_DAY37_SHORT.md   <- Current state
+docs/claude/versioned/KNOWN_ISSUES_DAY37.md        <- Active bugs
 docs/claude/versioned/API_CONTRACTS_DAY33.md       <- API reference (if needed)
 docs/research/VALIDATION_RESULTS_DAY34.md          <- yfinance validation results
 docs/research/ARCHITECTURE_PLANNING_DAY34.md       <- Data provider strategy
@@ -173,20 +173,20 @@ docs/claude/stable/GOLDEN_RULES.md              (only if new rules learned)
 ## QUICK COMMANDS
 
 ```bash
-# Start backend
-cd /Users/balajik/projects/swing-trade-analyzer/backend
-source venv/bin/activate
-python backend.py
-
-# Start frontend
-cd /Users/balajik/projects/swing-trade-analyzer/frontend
-npm start
+# Start/Stop services (Day 37+)
+./start.sh               # Start both backend and frontend
+./start.sh backend       # Start only backend
+./stop.sh                # Stop both services
+./stop.sh backend        # Stop only backend
 
 # Find latest day number
 ls -la docs/claude/status/ | grep PROJECT_STATUS | tail -1
 
 # Git status
 git status
+
+# Cache status (Day 37+)
+curl http://localhost:5001/api/cache/status
 ```
 
 ---
@@ -204,6 +204,7 @@ git status
 | 34 | Updated for Day 34: Week 4 Validation Complete + Fibonacci + S&R Research DONE |
 | 35 | Updated for Day 35: Data Provider Validation - yfinance 100% working, Defeat Beta blocked |
 | 36 | Updated for Day 36: pegRatio local calculation, Pine Script validation complete (9/9) |
+| 37 | Updated for Day 37: SQLite persistent cache (5.5x speedup), start.sh/stop.sh scripts, architecture cleanup |
 
 ---
 
