@@ -19,7 +19,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation, clearBackendCache } from './services/api';
+import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation, clearBackendCache, fetchDataProvenance, getCacheStatus } from './services/api';
 import { calculateScore } from './utils/scoringEngine';
 import { calculateSimplifiedAnalysis } from './utils/simplifiedScoring';
 import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings } from './utils/positionSizing';
@@ -73,6 +73,11 @@ function App() {
 
   // TradingView widget state (Day 34)
   const [tvWidgetCollapsed, setTvWidgetCollapsed] = useState(true); // Collapsed by default
+
+  // Data Sources state (Day 38)
+  const [provenanceData, setProvenanceData] = useState(null);
+  const [provenanceLoading, setProvenanceLoading] = useState(false);
+  const [cacheStatus, setCacheStatus] = useState(null);
 
   // Quick picks for testing
   const quickPicks = ['AVGO', 'NVDA', 'AAPL', 'META', 'MSFT', 'NFLX', 'PLTR']; 
@@ -521,6 +526,27 @@ function App() {
               }`}
             >
               ✅ Validate Data
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('datasources');
+                // Fetch cache status when tab is selected
+                getCacheStatus().then(setCacheStatus);
+                // Fetch provenance for current ticker if analyzed
+                if (analysisResult?.stock?.ticker) {
+                  setProvenanceLoading(true);
+                  fetchDataProvenance(analysisResult.stock.ticker)
+                    .then(setProvenanceData)
+                    .finally(() => setProvenanceLoading(false));
+                }
+              }}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'datasources'
+                  ? 'bg-cyan-600 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              📡 Data Sources
             </button>
             <button
               onClick={() => setActiveTab('settings')}
@@ -2001,6 +2027,221 @@ function App() {
                 <li>• <strong>R-Multiple</strong> = (Exit - Entry) / R (measure results in R, not dollars)</li>
                 <li>• <strong>90% of performance</strong> comes from position sizing, not entry signals</li>
               </ul>
+            </div>
+          </>
+        )}
+
+        {/* ==================== DATA SOURCES TAB (Day 38) ==================== */}
+        {activeTab === 'datasources' && (
+          <>
+            {/* Header with Current Ticker */}
+            <div className="bg-gray-800 rounded-lg p-6 mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-cyan-400">Data Sources & Provenance</h3>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Transparency into where your data comes from
+                  </p>
+                </div>
+                {analysisResult?.stock?.ticker && (
+                  <div className="bg-cyan-900/50 px-4 py-2 rounded-lg">
+                    <span className="text-gray-400 text-sm">Current Ticker: </span>
+                    <span className="text-cyan-400 font-bold">{analysisResult.stock.ticker}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Cache Status Overview */}
+            <div className="bg-gray-800 rounded-lg p-6 mb-6">
+              <h4 className="text-md font-semibold text-cyan-400 mb-4">📦 Cache Status</h4>
+              {cacheStatus ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-cyan-400">{cacheStatus.ohlcv?.count || 0}</div>
+                    <div className="text-xs text-gray-400">OHLCV Entries</div>
+                  </div>
+                  <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-cyan-400">{cacheStatus.fundamentals?.count || 0}</div>
+                    <div className="text-xs text-gray-400">Fundamentals Entries</div>
+                  </div>
+                  <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-cyan-400">{cacheStatus.database_size_kb || 0} KB</div>
+                    <div className="text-xs text-gray-400">Database Size</div>
+                  </div>
+                  <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-green-400">
+                      {cacheStatus.ohlcv?.hit_rate_24h || 0}%
+                    </div>
+                    <div className="text-xs text-gray-400">Hit Rate (24h)</div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-gray-500 text-center py-4">Loading cache status...</div>
+              )}
+            </div>
+
+            {/* Per-Ticker Provenance */}
+            {provenanceLoading ? (
+              <div className="bg-gray-800 rounded-lg p-6 mb-6 text-center">
+                <div className="text-cyan-400">Loading provenance data...</div>
+              </div>
+            ) : provenanceData ? (
+              <div className="bg-gray-800 rounded-lg p-6 mb-6">
+                <h4 className="text-md font-semibold text-cyan-400 mb-4">
+                  🎯 Provenance for {provenanceData.ticker}
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  {/* OHLCV Source */}
+                  <div className="bg-gray-700/50 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-gray-300 font-medium">Price Data (OHLCV)</span>
+                      <span className={`px-2 py-0.5 rounded text-xs ${
+                        provenanceData.ohlcv.status === 'cached'
+                          ? 'bg-green-900/50 text-green-400'
+                          : 'bg-blue-900/50 text-blue-400'
+                      }`}>
+                        {provenanceData.ohlcv.status.toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-400 space-y-1">
+                      <div>Source: <span className="text-gray-300">{provenanceData.ohlcv.source}</span></div>
+                      {provenanceData.ohlcv.rows && (
+                        <div>Data points: <span className="text-gray-300">{provenanceData.ohlcv.rows}</span></div>
+                      )}
+                      {provenanceData.ohlcv.age_hours && (
+                        <div>Age: <span className="text-gray-300">{provenanceData.ohlcv.age_hours}h</span></div>
+                      )}
+                      {provenanceData.ohlcv.expires_in && (
+                        <div>Expires in: <span className="text-yellow-400">{provenanceData.ohlcv.expires_in.split('.')[0]}</span></div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Fundamentals Source */}
+                  <div className="bg-gray-700/50 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-gray-300 font-medium">Fundamentals</span>
+                      <span className={`px-2 py-0.5 rounded text-xs ${
+                        provenanceData.fundamentals.status === 'cached'
+                          ? 'bg-green-900/50 text-green-400'
+                          : 'bg-blue-900/50 text-blue-400'
+                      }`}>
+                        {provenanceData.fundamentals.status.toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-400 space-y-1">
+                      <div>Source: <span className="text-gray-300">{provenanceData.fundamentals.source}</span></div>
+                      {provenanceData.fundamentals.age_days && (
+                        <div>Age: <span className="text-gray-300">{provenanceData.fundamentals.age_days} days</span></div>
+                      )}
+                      {provenanceData.fundamentals.expires_in && (
+                        <div>Expires in: <span className="text-yellow-400">{provenanceData.fundamentals.expires_in.split(',')[0]}</span></div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-gray-800 rounded-lg p-6 mb-6 text-center">
+                <div className="text-6xl mb-4">📊</div>
+                <p className="text-gray-400">Analyze a stock first to see its data provenance</p>
+                <p className="text-gray-500 text-sm mt-2">Go to "Analyze Stock" tab and analyze a ticker</p>
+              </div>
+            )}
+
+            {/* Local Calculations Reference */}
+            <div className="bg-gray-800 rounded-lg p-6 mb-6">
+              <h4 className="text-md font-semibold text-cyan-400 mb-4">🔢 Local Calculations</h4>
+              <p className="text-sm text-gray-400 mb-4">
+                These indicators are calculated locally using industry-standard formulas from OHLCV price data.
+              </p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-gray-400 border-b border-gray-700 text-xs">
+                      <th className="text-left py-2 px-2">Indicator</th>
+                      <th className="text-left py-2 px-2">Source</th>
+                      <th className="text-left py-2 px-2">Formula</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(provenanceData?.indicators || [
+                      {name: 'SMA 50', source: 'local', formula: 'Sum(Close, 50) / 50'},
+                      {name: 'SMA 200', source: 'local', formula: 'Sum(Close, 200) / 200'},
+                      {name: 'EMA 8', source: 'local', formula: 'Price * k + EMA_prev * (1-k), k=2/(8+1)'},
+                      {name: 'EMA 21', source: 'local', formula: 'Price * k + EMA_prev * (1-k), k=2/(21+1)'},
+                      {name: 'ATR 14', source: 'local', formula: 'EMA(TrueRange, 14) where TR=max(H-L, |H-Cp|, |L-Cp|)'},
+                      {name: 'RSI 14', source: 'local', formula: '100 - 100/(1 + AvgGain/AvgLoss) [Wilder smoothing]'},
+                      {name: 'Avg Volume 20', source: 'local', formula: 'Sum(Volume, 20) / 20'},
+                      {name: 'Avg Volume 50', source: 'local', formula: 'Sum(Volume, 50) / 50'},
+                      {name: 'RS 52W', source: 'local', formula: 'Stock 52W Return / SPY 52W Return'},
+                      {name: 'PEG Ratio', source: 'local', formula: 'PE / (EPS Growth * 100)'}
+                    ]).map((ind, idx) => (
+                      <tr key={idx} className="border-b border-gray-700/30 hover:bg-gray-700/20">
+                        <td className="py-2 px-2 text-gray-300">{ind.name}</td>
+                        <td className="py-2 px-2">
+                          <span className="px-2 py-0.5 rounded text-xs bg-blue-900/50 text-blue-400">
+                            {ind.source}
+                          </span>
+                        </td>
+                        <td className="py-2 px-2 text-gray-400 font-mono text-xs">{ind.formula}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Data Sources Map */}
+            <div className="bg-gray-800 rounded-lg p-6 mb-6">
+              <h4 className="text-md font-semibold text-cyan-400 mb-4">🗺️ Data Source Map</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-gray-400 border-b border-gray-700 text-xs">
+                      <th className="text-left py-2 px-2">Data Type</th>
+                      <th className="text-left py-2 px-2">Primary Source</th>
+                      <th className="text-left py-2 px-2">Fallback</th>
+                      <th className="text-left py-2 px-2">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(provenanceData?.data_sources ? [
+                      {type: 'Price Data (OHLCV)', primary: provenanceData.data_sources.prices?.name, fallback: '-', status: provenanceData.data_sources.prices?.status},
+                      {type: 'Fundamentals', primary: provenanceData.data_sources.fundamentals_primary?.name, fallback: provenanceData.data_sources.fundamentals_fallback?.name, status: provenanceData.data_sources.fundamentals_primary?.status},
+                      {type: 'Market Data (SPY/VIX)', primary: provenanceData.data_sources.market_data?.name, fallback: '-', status: provenanceData.data_sources.market_data?.status},
+                      {type: 'Market Scanning', primary: provenanceData.data_sources.scanning?.name, fallback: '-', status: provenanceData.data_sources.scanning?.status}
+                    ] : [
+                      {type: 'Price Data (OHLCV)', primary: 'Yahoo Finance (yfinance)', fallback: '-', status: 'available'},
+                      {type: 'Fundamentals', primary: 'Defeat Beta API', fallback: 'Yahoo Finance', status: 'available'},
+                      {type: 'Market Data (SPY/VIX)', primary: 'Yahoo Finance', fallback: '-', status: 'available'},
+                      {type: 'Market Scanning', primary: 'TradingView Screener', fallback: '-', status: 'available'}
+                    ]).map((src, idx) => (
+                      <tr key={idx} className="border-b border-gray-700/30 hover:bg-gray-700/20">
+                        <td className="py-2 px-2 text-gray-300">{src.type}</td>
+                        <td className="py-2 px-2 text-gray-400">{src.primary}</td>
+                        <td className="py-2 px-2 text-gray-500">{src.fallback}</td>
+                        <td className="py-2 px-2">
+                          <span className={`px-2 py-0.5 rounded text-xs ${
+                            src.status === 'available'
+                              ? 'bg-green-900/50 text-green-400'
+                              : 'bg-red-900/50 text-red-400'
+                          }`}>
+                            {src.status?.toUpperCase()}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Info Note */}
+            <div className="bg-gray-800/50 rounded-lg p-4 text-xs text-gray-500">
+              <p><strong>Cache TTL:</strong> OHLCV expires at next market close (4pm ET + 30min buffer). Fundamentals expire after 7 days.</p>
+              <p className="mt-1"><strong>Local Calculations:</strong> All technical indicators use industry-standard formulas (Wilder 1978 for RSI/ATR).</p>
             </div>
           </>
         )}

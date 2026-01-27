@@ -576,6 +576,77 @@ def cache_status():
         return jsonify({'status': 'error', 'message': 'SQLite cache not available'}), 500
 
 
+@app.route('/api/provenance/<ticker>', methods=['GET'])
+def get_data_provenance(ticker):
+    """
+    Get detailed data source provenance for a ticker.
+    Shows where each data point comes from, cache status, and calculation formulas.
+    Day 38: Data Sources tab support
+    """
+    ticker = ticker.upper()
+
+    # Get cache info for this specific ticker
+    ohlcv_cache = None
+    fund_cache = None
+
+    if SQLITE_CACHE_AVAILABLE:
+        ohlcv_cache = cache_manager.get_ticker_cache_info(ticker, 'ohlcv')
+        fund_cache = cache_manager.get_ticker_cache_info(ticker, 'fundamentals')
+
+    # Build provenance response
+    provenance = {
+        'ticker': ticker,
+        'timestamp': datetime.now().isoformat(),
+        'ohlcv': {
+            'source': 'yfinance',
+            'cached': ohlcv_cache is not None,
+            'cached_at': ohlcv_cache.get('cached_at') if ohlcv_cache else None,
+            'expires_at': ohlcv_cache.get('expires_at') if ohlcv_cache else None,
+            'expires_in': ohlcv_cache.get('expires_in') if ohlcv_cache else None,
+            'rows': ohlcv_cache.get('rows') if ohlcv_cache else None,
+            'age_hours': ohlcv_cache.get('age_hours') if ohlcv_cache else None,
+            'status': 'cached' if ohlcv_cache and not ohlcv_cache.get('expired') else 'live'
+        },
+        'fundamentals': {
+            'source': fund_cache.get('source', 'yfinance') if fund_cache else 'yfinance',
+            'cached': fund_cache is not None,
+            'cached_at': fund_cache.get('cached_at') if fund_cache else None,
+            'expires_at': fund_cache.get('expires_at') if fund_cache else None,
+            'expires_in': fund_cache.get('expires_in') if fund_cache else None,
+            'age_days': fund_cache.get('age_days') if fund_cache else None,
+            'status': 'cached' if fund_cache and not fund_cache.get('expired') else 'live'
+        },
+        'indicators': [
+            {'name': 'SMA 50', 'source': 'local', 'formula': 'Sum(Close, 50) / 50'},
+            {'name': 'SMA 200', 'source': 'local', 'formula': 'Sum(Close, 200) / 200'},
+            {'name': 'EMA 8', 'source': 'local', 'formula': 'Price * k + EMA_prev * (1-k), k=2/(8+1)'},
+            {'name': 'EMA 21', 'source': 'local', 'formula': 'Price * k + EMA_prev * (1-k), k=2/(21+1)'},
+            {'name': 'ATR 14', 'source': 'local', 'formula': 'EMA(TrueRange, 14) where TR=max(H-L, |H-Cp|, |L-Cp|)'},
+            {'name': 'RSI 14', 'source': 'local', 'formula': '100 - 100/(1 + AvgGain/AvgLoss) [Wilder smoothing]'},
+            {'name': 'Avg Volume 20', 'source': 'local', 'formula': 'Sum(Volume, 20) / 20'},
+            {'name': 'Avg Volume 50', 'source': 'local', 'formula': 'Sum(Volume, 50) / 50'},
+            {'name': 'RS 52W', 'source': 'local', 'formula': 'Stock 52W Return / SPY 52W Return'},
+            {'name': 'RS Price Ratio', 'source': 'local', 'formula': 'Stock Price / SPY Price'},
+            {'name': 'PEG Ratio', 'source': 'local', 'formula': 'PE / (EPS Growth * 100)'}
+        ],
+        'data_sources': {
+            'prices': {'name': 'Yahoo Finance (yfinance)', 'status': 'available'},
+            'fundamentals_primary': {
+                'name': 'Defeat Beta API',
+                'status': 'available' if DEFEATBETA_AVAILABLE else 'unavailable'
+            },
+            'fundamentals_fallback': {'name': 'Yahoo Finance (yfinance)', 'status': 'available'},
+            'market_data': {'name': 'Yahoo Finance (SPY, VIX)', 'status': 'available'},
+            'scanning': {
+                'name': 'TradingView Screener',
+                'status': 'available' if TRADINGVIEW_AVAILABLE else 'unavailable'
+            }
+        }
+    }
+
+    return jsonify(provenance)
+
+
 @app.route('/api/stock/<ticker>', methods=['GET'])
 def get_stock_data(ticker):
     """

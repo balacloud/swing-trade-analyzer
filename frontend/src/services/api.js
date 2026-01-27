@@ -529,3 +529,31 @@ export async function getCacheStatus() {
     return { cache_size: 0, error: error.message };
   }
 }
+
+// ============================================
+// DATA PROVENANCE (Day 38)
+// ============================================
+
+/**
+ * Fetch data source provenance for a ticker
+ * Shows where each data point comes from, cache status, and calculation formulas
+ *
+ * @param {string} ticker - Stock ticker symbol
+ * @returns {object} - Provenance info with sources, cache status, and formulas
+ */
+export async function fetchDataProvenance(ticker) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/provenance/${ticker.toUpperCase()}`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || `Failed to fetch provenance for ${ticker}`);
+    }
+
+    return await response.json();
+
+  } catch (error) {
+    console.error('Error fetching data provenance:', error);
+    return null;
+  }
+}

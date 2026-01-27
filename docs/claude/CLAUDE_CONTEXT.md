@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 37 (January 26, 2026)
+> **Last Updated:** Day 38 (January 27, 2026)
 
 ---
 
@@ -22,10 +22,10 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 37 |
-| Version | v3.6 (Backend v2.9) |
-| Latest Status | PROJECT_STATUS_DAY37_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY37.md |
+| Current Day | 38 |
+| Version | v3.7 (Backend v2.10) |
+| Latest Status | PROJECT_STATUS_DAY38_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY38.md |
 | Latest API | API_CONTRACTS_DAY33.md |
 | Focus | Lightweight Charts Phase 2 + Forward Testing UI |
 
@@ -49,8 +49,8 @@
 ### Files to Read (in order):
 ```
 docs/claude/stable/GOLDEN_RULES.md          <- Core rules (CRITICAL)
-docs/claude/status/PROJECT_STATUS_DAY37_SHORT.md   <- Current state
-docs/claude/versioned/KNOWN_ISSUES_DAY37.md        <- Active bugs
+docs/claude/status/PROJECT_STATUS_DAY38_SHORT.md   <- Current state
+docs/claude/versioned/KNOWN_ISSUES_DAY38.md        <- Active bugs
 docs/claude/versioned/API_CONTRACTS_DAY33.md       <- API reference (if needed)
 docs/research/VALIDATION_RESULTS_DAY34.md          <- yfinance validation results
 docs/research/ARCHITECTURE_PLANNING_DAY34.md       <- Data provider strategy
@@ -205,6 +205,7 @@ curl http://localhost:5001/api/cache/status
 | 35 | Updated for Day 35: Data Provider Validation - yfinance 100% working, Defeat Beta blocked |
 | 36 | Updated for Day 36: pegRatio local calculation, Pine Script validation complete (9/9) |
 | 37 | Updated for Day 37: SQLite persistent cache (5.5x speedup), start.sh/stop.sh scripts, architecture cleanup |
+| 38 | Updated for Day 38: Data Sources tab (transparency UI), /api/provenance endpoint |
 
 ---
 

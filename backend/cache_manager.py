@@ -517,6 +517,81 @@ def get_cache_hit_rate(hours: int = 24) -> Dict[str, float]:
 
 
 # =============================================================================
+# PROVENANCE FUNCTIONS
+# =============================================================================
+
+def get_ticker_cache_info(ticker: str, cache_type: str) -> Optional[Dict[str, Any]]:
+    """
+    Get cache metadata for a specific ticker without the full data.
+    Used by the Data Sources tab for provenance display.
+
+    Args:
+        ticker: Stock ticker symbol
+        cache_type: 'ohlcv' or 'fundamentals'
+
+    Returns:
+        Dict with cached_at, expires_at, source (if fundamentals), expired status
+        or None if not cached
+    """
+    ticker = ticker.upper()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        now = datetime.now(ET)
+
+        if cache_type == 'ohlcv':
+            cursor.execute("""
+                SELECT cached_at, expires_at, rows, period
+                FROM ohlcv_cache WHERE ticker = ?
+            """, (ticker,))
+            row = cursor.fetchone()
+            if not row:
+                return None
+
+            expires = datetime.fromisoformat(row['expires_at'])
+            cached = datetime.fromisoformat(row['cached_at']).replace(tzinfo=ET)
+            is_expired = now >= expires
+
+            return {
+                'cached_at': row['cached_at'],
+                'expires_at': row['expires_at'],
+                'rows': row['rows'],
+                'period': row['period'],
+                'expired': is_expired,
+                'age_hours': round((now - cached).total_seconds() / 3600, 1),
+                'expires_in': str(expires - now) if not is_expired else 'EXPIRED'
+            }
+
+        elif cache_type == 'fundamentals':
+            cursor.execute("""
+                SELECT cached_at, expires_at, source
+                FROM fundamentals_cache WHERE ticker = ?
+            """, (ticker,))
+            row = cursor.fetchone()
+            if not row:
+                return None
+
+            expires = datetime.fromisoformat(row['expires_at'])
+            cached = datetime.fromisoformat(row['cached_at']).replace(tzinfo=ET)
+            is_expired = now >= expires
+
+            return {
+                'cached_at': row['cached_at'],
+                'expires_at': row['expires_at'],
+                'source': row['source'],
+                'expired': is_expired,
+                'age_days': round((now - cached).total_seconds() / 86400, 1),
+                'expires_in': str(expires - now) if not is_expired else 'EXPIRED'
+            }
+
+        return None
+
+    finally:
+        conn.close()
+
+
+# =============================================================================
 # CONVENIENCE FUNCTIONS
 # =============================================================================
 
