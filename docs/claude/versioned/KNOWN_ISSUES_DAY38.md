@@ -33,6 +33,19 @@
 
 ## DEFERRED ITEMS (Day 38)
 
+### 0. Dual Entry Strategy Research & Implementation (NEW - Day 39 Priority)
+- **Goal:** Offer BOTH conservative pullback AND momentum confirmation strategies
+- **Gap Identified:** Kavout AI comparison showed we lack 4H momentum indicators
+- **What's Missing:**
+  - 4H RSI/MACD for entry timing
+  - ADX for trend strength gating
+  - Structural stop placement (swing low + ATR buffer)
+  - Entry confirmation patterns (hammer/engulfing)
+- **Documentation:**
+  - `docs/research/DUAL_ENTRY_STRATEGY_RESEARCH_DAY38.md` (planning doc)
+  - `docs/research/Dual_Entry_Strategy_Complete_Guide.md` (1338 lines - comprehensive guide)
+- **Status:** Research complete, implementation Day 39+
+
 ### 1. TradingView Phase 2 (Lightweight Charts)
 - **Goal:** Show our S&R levels on a professional chart
 - **Solution:** TradingView's free Lightweight Charts library

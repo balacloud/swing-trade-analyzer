@@ -27,7 +27,7 @@
 | Latest Status | PROJECT_STATUS_DAY38_SHORT.md |
 | Latest Issues | KNOWN_ISSUES_DAY38.md |
 | Latest API | API_CONTRACTS_DAY33.md |
-| Focus | Lightweight Charts Phase 2 + Forward Testing UI |
+| Focus | **Dual Entry Strategy Research (Day 39)** - See docs/research/ |
 
 ---
 
