@@ -410,6 +410,7 @@ def assess_trade_viability(
         "risk_reward_context": None,
         "advice": None,
         "stop_suggestion": None,
+        "stop_method": None,  # NEW: Explains how stop was calculated (structural vs ATR)
         "position_size_advice": None
     }
     
@@ -426,32 +427,42 @@ def assess_trade_viability(
     else:
         resistance_dist_pct = None
     
+    # Calculate structural stop: swing_low - (ATR * multiplier)
+    # This is market-structure based, not arbitrary percentage
+    def _calc_structural_stop(support_level: float, atr_val: float, multiplier: float = 2.0) -> float:
+        """Structural stop = support level - ATR buffer"""
+        return round(support_level - (atr_val * multiplier), 2)
+
     # Assess viability based on support distance (Minervini-aligned thresholds)
     if support_dist_pct is None:
         result["viable"] = "UNKNOWN"
         result["advice"] = "No support level found - use ATR-based stop"
         result["stop_suggestion"] = round(current_price - (1.5 * atr), 2)
+        result["stop_method"] = "ATR fallback (1.5×ATR below entry)"
         result["position_size_advice"] = "REDUCED - no clear support"
-        
+
     elif support_dist_pct <= 10:
         # Ideal Minervini setup - tight base
         result["viable"] = "YES"
-        result["advice"] = "Good setup - tight stop placement possible"
-        result["stop_suggestion"] = round(nearest_support * 0.98, 2)  # 2% below support
+        result["advice"] = "Good setup - structural stop at swing low minus ATR buffer"
+        result["stop_suggestion"] = _calc_structural_stop(nearest_support, atr, 2.0)
+        result["stop_method"] = f"Structural (${nearest_support:.2f} - 2×ATR)"
         result["position_size_advice"] = "FULL - low risk entry"
-        
+
     elif support_dist_pct <= 20:
         # Acceptable but requires caution
         result["viable"] = "CAUTION"
         result["advice"] = "Wide stop required - consider reducing position size or waiting for pullback"
-        result["stop_suggestion"] = round(nearest_support * 0.98, 2)
+        result["stop_suggestion"] = _calc_structural_stop(nearest_support, atr, 2.0)
+        result["stop_method"] = f"Structural (${nearest_support:.2f} - 2×ATR)"
         result["position_size_advice"] = "HALF - wide stop increases risk"
-        
+
     else:
         # Extended - Minervini would not enter here
         result["viable"] = "NO"
         result["advice"] = f"Extended {support_dist_pct:.0f}% from support - wait for pullback before entering"
         result["stop_suggestion"] = None  # Don't suggest a stop for non-viable trades
+        result["stop_method"] = None
         result["position_size_advice"] = "NONE - do not enter"
     
     # Add R:R context if we have both levels

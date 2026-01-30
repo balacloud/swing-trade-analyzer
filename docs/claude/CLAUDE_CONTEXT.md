@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 38 (January 27, 2026)
+> **Last Updated:** Day 39 (January 28, 2026)
 
 ---
 
@@ -22,12 +22,12 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 38 |
-| Version | v3.7 (Backend v2.10) |
-| Latest Status | PROJECT_STATUS_DAY38_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY38.md |
+| Current Day | 40 |
+| Version | v3.8 (Backend v2.12) |
+| Latest Status | PROJECT_STATUS_DAY40_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY40.md |
 | Latest API | API_CONTRACTS_DAY33.md |
-| Focus | **Dual Entry Strategy Research (Day 39)** - See docs/research/ |
+| Focus | **Run structural stop backtest (Gate G1)** - Then Lightweight Charts |
 
 ---
 
@@ -49,8 +49,8 @@
 ### Files to Read (in order):
 ```
 docs/claude/stable/GOLDEN_RULES.md          <- Core rules (CRITICAL)
-docs/claude/status/PROJECT_STATUS_DAY38_SHORT.md   <- Current state
-docs/claude/versioned/KNOWN_ISSUES_DAY38.md        <- Active bugs
+docs/claude/status/PROJECT_STATUS_DAY40_SHORT.md   <- Current state
+docs/claude/versioned/KNOWN_ISSUES_DAY40.md        <- Active bugs
 docs/claude/versioned/API_CONTRACTS_DAY33.md       <- API reference (if needed)
 docs/research/VALIDATION_RESULTS_DAY34.md          <- yfinance validation results
 docs/research/ARCHITECTURE_PLANNING_DAY34.md       <- Data provider strategy
@@ -206,6 +206,8 @@ curl http://localhost:5001/api/cache/status
 | 36 | Updated for Day 36: pegRatio local calculation, Pine Script validation complete (9/9) |
 | 37 | Updated for Day 37: SQLite persistent cache (5.5x speedup), start.sh/stop.sh scripts, architecture cleanup |
 | 38 | Updated for Day 38: Data Sources tab (transparency UI), /api/provenance endpoint |
+| 39 | Updated for Day 39: Dual Entry Strategy Phases 1-3: structural stops, local RSI/ADX, 4H RSI |
+| 40 | Updated for Day 40: Dual Entry Strategy UI complete, side-by-side cards for ALL stocks |
 
 ---
 

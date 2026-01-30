@@ -1,5 +1,5 @@
 """
-Swing Trade Analyzer Backend - v2.9
+Swing Trade Analyzer Backend - v2.12
 Flask API server with yfinance (prices) + Defeat Beta (fundamentals) + TradingView Screener (scanning) + S&R Engine
 
 Day 6: Fixed numpy type serialization issues
@@ -9,6 +9,7 @@ Day 13: Added Support & Resistance engine endpoint
 Day 20: Added TradingView scan endpoint, fixed API syntax for tradingview-screener library
 Day 25: Added auto-refresh cache for Defeat Beta data (TTL-based)
 Day 36: Upgraded to SQLite persistent cache (survives restarts, intelligent TTL)
+Day 39: Added local RSI, ADX, and 4H RSI calculations (Dual Entry Strategy)
 """
 
 import os
@@ -172,6 +173,230 @@ def calculate_growth_rate(current, previous):
     except:
         return None
 
+
+# =============================================================================
+# LOCAL INDICATOR CALCULATIONS (Day 39 - Dual Entry Strategy)
+# =============================================================================
+
+def calculate_rsi(closes: pd.Series, period: int = 14) -> float:
+    """
+    Calculate RSI (Relative Strength Index) using Wilder's smoothing.
+
+    This provides independence from TradingView for RSI calculations.
+    Formula: RSI = 100 - (100 / (1 + RS))
+    where RS = Average Gain / Average Loss over the period
+
+    Parameters
+    ----------
+    closes : pd.Series
+        Series of closing prices
+    period : int
+        RSI period (default 14)
+
+    Returns
+    -------
+    float
+        Current RSI value (0-100), or None if insufficient data
+    """
+    try:
+        if len(closes) < period + 1:
+            return None
+
+        # Calculate price changes
+        delta = closes.diff()
+
+        # Separate gains and losses
+        gain = delta.where(delta > 0, 0)
+        loss = -delta.where(delta < 0, 0)
+
+        # Use Wilder's smoothing (exponential with alpha = 1/period)
+        avg_gain = gain.ewm(alpha=1/period, min_periods=period).mean()
+        avg_loss = loss.ewm(alpha=1/period, min_periods=period).mean()
+
+        # Avoid division by zero
+        if avg_loss.iloc[-1] == 0:
+            return 100.0 if avg_gain.iloc[-1] > 0 else 50.0
+
+        rs = avg_gain.iloc[-1] / avg_loss.iloc[-1]
+        rsi = 100 - (100 / (1 + rs))
+
+        return round(float(rsi), 2)
+
+    except Exception as e:
+        print(f"RSI calculation error: {e}")
+        return None
+
+
+def calculate_adx(high: pd.Series, low: pd.Series, close: pd.Series, period: int = 14) -> dict:
+    """
+    Calculate ADX (Average Directional Index) using Wilder's method.
+
+    ADX measures trend strength (0-100):
+    - < 20: No trend (choppy)
+    - 20-25: Weak trend developing
+    - 25-40: Strong trend
+    - > 40: Very strong trend
+
+    Parameters
+    ----------
+    high : pd.Series
+        High prices
+    low : pd.Series
+        Low prices
+    close : pd.Series
+        Close prices
+    period : int
+        ADX period (default 14)
+
+    Returns
+    -------
+    dict
+        {
+            'adx': float,           # ADX value (0-100)
+            'di_plus': float,       # +DI value
+            'di_minus': float,      # -DI value
+            'trend_strength': str   # 'choppy'/'weak'/'strong'/'very_strong'
+        }
+    """
+    try:
+        if len(close) < period * 2:
+            return None
+
+        # True Range
+        tr1 = high - low
+        tr2 = abs(high - close.shift(1))
+        tr3 = abs(low - close.shift(1))
+        tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
+
+        # Directional Movement
+        up_move = high - high.shift(1)
+        down_move = low.shift(1) - low
+
+        # +DM and -DM
+        plus_dm = up_move.where((up_move > down_move) & (up_move > 0), 0)
+        minus_dm = down_move.where((down_move > up_move) & (down_move > 0), 0)
+
+        # Wilder's smoothing
+        atr = tr.ewm(alpha=1/period, min_periods=period).mean()
+        plus_di = 100 * (plus_dm.ewm(alpha=1/period, min_periods=period).mean() / atr)
+        minus_di = 100 * (minus_dm.ewm(alpha=1/period, min_periods=period).mean() / atr)
+
+        # DX and ADX
+        dx = 100 * abs(plus_di - minus_di) / (plus_di + minus_di + 1e-10)
+        adx = dx.ewm(alpha=1/period, min_periods=period).mean()
+
+        adx_value = round(float(adx.iloc[-1]), 1)
+
+        # Determine trend strength
+        if adx_value < 20:
+            trend = 'choppy'
+        elif adx_value < 25:
+            trend = 'weak'
+        elif adx_value < 40:
+            trend = 'strong'
+        else:
+            trend = 'very_strong'
+
+        return {
+            'adx': adx_value,
+            'di_plus': round(float(plus_di.iloc[-1]), 1),
+            'di_minus': round(float(minus_di.iloc[-1]), 1),
+            'trend_strength': trend
+        }
+
+    except Exception as e:
+        print(f"ADX calculation error: {e}")
+        return None
+
+
+def calculate_rsi_4h(ticker_symbol: str, period: int = 14) -> dict:
+    """
+    Calculate RSI on 4H timeframe using yfinance hourly data.
+
+    Fetches 60 days of 1H data, resamples to 4H, then calculates RSI.
+    This provides momentum confirmation for the Dual Entry Strategy.
+
+    Parameters
+    ----------
+    ticker_symbol : str
+        Stock ticker symbol
+    period : int
+        RSI period (default 14)
+
+    Returns
+    -------
+    dict
+        {
+            'rsi_4h': float,          # RSI value (0-100)
+            'bars_available': int,     # Number of 4H bars used
+            'momentum': str,           # 'oversold'/'weak'/'neutral'/'strong'/'overbought'
+            'entry_signal': bool       # True if RSI > 40 (momentum confirmation)
+        }
+    """
+    try:
+        stock = yf.Ticker(ticker_symbol)
+
+        # Fetch 60 days of 1H data (yfinance limit for intraday)
+        df_1h = stock.history(period='60d', interval='1h')
+
+        if df_1h.empty or len(df_1h) < 20:
+            return None
+
+        # Resample 1H to 4H
+        df_4h = df_1h.resample('4h').agg({
+            'Open': 'first',
+            'High': 'max',
+            'Low': 'min',
+            'Close': 'last',
+            'Volume': 'sum'
+        }).dropna()
+
+        if len(df_4h) < period + 1:
+            return None
+
+        # Calculate RSI on 4H closes
+        closes = df_4h['Close']
+        delta = closes.diff()
+
+        gain = delta.where(delta > 0, 0)
+        loss = -delta.where(delta < 0, 0)
+
+        avg_gain = gain.ewm(alpha=1/period, min_periods=period).mean()
+        avg_loss = loss.ewm(alpha=1/period, min_periods=period).mean()
+
+        if avg_loss.iloc[-1] == 0:
+            rsi_value = 100.0 if avg_gain.iloc[-1] > 0 else 50.0
+        else:
+            rs = avg_gain.iloc[-1] / avg_loss.iloc[-1]
+            rsi_value = 100 - (100 / (1 + rs))
+
+        rsi_value = round(float(rsi_value), 1)
+
+        # Determine momentum state
+        if rsi_value < 30:
+            momentum = 'oversold'
+        elif rsi_value < 40:
+            momentum = 'weak'
+        elif rsi_value < 60:
+            momentum = 'neutral'
+        elif rsi_value < 70:
+            momentum = 'strong'
+        else:
+            momentum = 'overbought'
+
+        # Entry signal: RSI > 40 indicates momentum is turning positive
+        entry_signal = rsi_value > 40
+
+        return {
+            'rsi_4h': rsi_value,
+            'bars_available': len(df_4h),
+            'momentum': momentum,
+            'entry_signal': entry_signal
+        }
+
+    except Exception as e:
+        print(f"4H RSI calculation error for {ticker_symbol}: {e}")
+        return None
 
 
 def get_fundamentals_defeatbeta(ticker_symbol):
@@ -996,7 +1221,21 @@ def get_support_resistance(ticker):
         
         # Get current price
         current_price = float(df['close'].iloc[-1])
-        
+
+        # ============================================
+        # Day 39: Calculate ADX (trend strength) and 4H RSI (momentum)
+        # ============================================
+        adx_data = calculate_adx(
+            pd.Series(df['high'].values),
+            pd.Series(df['low'].values),
+            pd.Series(df['close'].values)
+        )
+
+        rsi_4h_data = calculate_rsi_4h(ticker)
+
+        # Daily RSI for comparison
+        daily_rsi = calculate_rsi(pd.Series(df['close'].values))
+
         # ============================================
         # PROXIMITY FILTER (Day 15 Fix)
         # Filter S&R levels to actionable range for swing trading
@@ -1078,7 +1317,11 @@ def get_support_resistance(ticker):
                     'resistancePct': RESISTANCE_PROXIMITY_PCT
                 },
                 # Day 33: Add MTF confluence data
-                'mtf': sr_levels.meta.get('mtf')
+                'mtf': sr_levels.meta.get('mtf'),
+                # Day 39: Add trend strength and momentum indicators
+                'adx': adx_data,
+                'rsi_4h': rsi_4h_data,
+                'rsi_daily': daily_rsi
             }
         }
         

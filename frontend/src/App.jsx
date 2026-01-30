@@ -16,6 +16,9 @@
  * v3.3: Day 33 - MTF Confluence UI (badges, starred levels, weekly levels dropdown)
  * v3.4: Day 33 - Fundamentals transparency (data source banner, health check)
  * v3.5: Day 34 - TradingView Widget (collapsible RSI/MACD chart)
+ * v3.6: Day 37 - start.sh/stop.sh scripts, architecture cleanup
+ * v3.7: Day 38 - Data Sources tab (transparency UI)
+ * v3.8: Day 39 - Dual Entry Strategy UI (ADX badges, 4H RSI confirmation)
  */
 
 import React, { useState, useEffect } from 'react';
@@ -787,87 +790,158 @@ function App() {
                               </div>
                             )}
                           </div>
-                          <div className="text-right text-xs">
+                          <div className="text-right text-xs space-y-1">
                             {srData.meta.tradeViability.support_distance_pct !== null && (
                               <div>Support: {srData.meta.tradeViability.support_distance_pct}% away</div>
                             )}
                             {srData.meta.tradeViability.risk_reward_context && (
                               <div>R:R Context: {srData.meta.tradeViability.risk_reward_context}</div>
                             )}
+                            {/* Day 39: ADX + RSI indicators */}
+                            <div className="flex justify-end gap-2 mt-1">
+                              {srData.meta?.adx && (
+                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                  srData.meta.adx.trend_strength === 'very_strong' ? 'bg-green-600 text-white' :
+                                  srData.meta.adx.trend_strength === 'strong' ? 'bg-green-700 text-green-100' :
+                                  srData.meta.adx.trend_strength === 'weak' ? 'bg-yellow-700 text-yellow-100' :
+                                  'bg-red-700 text-red-100'
+                                }`}>
+                                  ADX {srData.meta.adx.adx}
+                                </span>
+                              )}
+                              {srData.meta?.rsi_4h && (
+                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                  srData.meta.rsi_4h.momentum === 'overbought' ? 'bg-red-600 text-white' :
+                                  srData.meta.rsi_4h.momentum === 'strong' ? 'bg-green-600 text-white' :
+                                  srData.meta.rsi_4h.momentum === 'neutral' ? 'bg-blue-600 text-white' :
+                                  srData.meta.rsi_4h.momentum === 'weak' ? 'bg-yellow-600 text-white' :
+                                  'bg-purple-600 text-white'
+                                }`}>
+                                  4H RSI {srData.meta.rsi_4h.rsi_4h}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
                     )}
 
-                    {/* Day 26: Pullback Guidance for CAUTION (wide stop) cases */}
-                    {srData.meta?.tradeViability?.viable === 'CAUTION' && srData.support?.length > 0 && (
-                      <div className="mb-4 p-3 rounded-lg text-sm bg-yellow-900/20 border border-yellow-700/50 text-yellow-200">
-                        <div className="font-semibold mb-2">📍 Entry Options for Wide Stop</div>
-                        <div className="text-xs space-y-2">
-                          {(() => {
-                            const nearestSupport = srData.support[0];
-                            const currentPrice = srData.currentPrice;
-                            const pullbackPct = ((currentPrice - nearestSupport) / currentPrice * 100).toFixed(1);
-                            return (
-                              <>
-                                <div className="flex items-start gap-2">
-                                  <span className="text-yellow-400 font-bold">A.</span>
-                                  <div>
-                                    <span className="text-yellow-100">Enter HALF position now</span>
-                                    <span className="text-yellow-400"> → Add remaining at </span>
-                                    <span className="text-yellow-100 font-mono">{formatCurrency(nearestSupport)}</span>
-                                  </div>
-                                </div>
-                                <div className="flex items-start gap-2">
-                                  <span className="text-yellow-400 font-bold">B.</span>
-                                  <div>
-                                    <span className="text-yellow-100">Wait for pullback to </span>
-                                    <span className="text-yellow-100 font-mono">{formatCurrency(nearestSupport)}</span>
-                                    <span className="text-yellow-400"> ({pullbackPct}% drop) for full position</span>
-                                  </div>
-                                </div>
-                                <div className="mt-2 text-yellow-500/80 italic text-[11px]">
-                                  Support at {formatCurrency(nearestSupport)} allows tighter stop placement and better R:R
-                                </div>
-                              </>
-                            );
-                          })()}
-                        </div>
-                      </div>
-                    )}
+                    {/* Day 39: Dual Entry Strategy Cards - Side by Side (ALL stocks) */}
+                    {srData.support?.length > 0 && (
+                      <div className="mb-4">
+                        {(() => {
+                          const nearestSupport = srData.support[0];
+                          const currentPrice = srData.currentPrice;
+                          const adx = srData.meta?.adx;
+                          const rsi4h = srData.meta?.rsi_4h;
+                          const atr = srData.meta?.atr || 0;
+                          const preferPullback = adx && adx.adx >= 25;
 
-                    {/* Day 26: Pullback Guidance for Extended Stocks (NO viable) */}
-                    {srData.meta?.tradeViability?.viable === 'NO' && srData.allSupport?.length > 0 && (
-                      <div className="mb-4 p-3 rounded-lg text-sm bg-blue-900/30 border border-blue-700 text-blue-300">
-                        <div className="font-semibold mb-1">📍 Pullback Re-Entry Zones</div>
-                        <div className="text-xs space-y-1">
-                          {(() => {
-                            // Get nearest historical support levels (highest ones = closest to price)
-                            const sortedSupport = [...srData.allSupport].sort((a, b) => b - a);
-                            const nearestSupport = sortedSupport[0];
-                            const secondSupport = sortedSupport[1];
-                            const currentPrice = srData.currentPrice;
-                            const pullbackPct = ((currentPrice - nearestSupport) / currentPrice * 100).toFixed(1);
+                          // Pullback Strategy calculations
+                          const pullbackEntry = nearestSupport;
+                          const pullbackStop = nearestSupport - (atr * 2);
+                          const pullbackTarget = srData.suggestedTarget || currentPrice * 1.10;
+                          const pullbackRisk = pullbackEntry - pullbackStop;
+                          const pullbackReward = pullbackTarget - pullbackEntry;
+                          const pullbackRR = pullbackRisk > 0 ? (pullbackReward / pullbackRisk).toFixed(2) : 'N/A';
 
-                            return (
-                              <>
-                                <div>
-                                  <span className="text-blue-200">Primary zone:</span> {formatCurrency(nearestSupport)}
-                                  <span className="text-blue-400 ml-1">({pullbackPct}% pullback needed)</span>
+                          // Momentum Strategy calculations
+                          const momentumEntry = currentPrice;
+                          const momentumStop = nearestSupport - (atr * 1.5);
+                          const momentumTarget = pullbackTarget;
+                          const momentumRisk = momentumEntry - momentumStop;
+                          const momentumReward = momentumTarget - momentumEntry;
+                          const momentumRR = momentumRisk > 0 ? (momentumReward / momentumRisk).toFixed(2) : 'N/A';
+
+                          const rsiConfirmed = rsi4h && rsi4h.entry_signal;
+
+                          return (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              {/* Strategy A: Pullback */}
+                              <div className={`rounded-lg p-4 ${preferPullback ? 'bg-green-900/30 border-2 border-green-600' : 'bg-gray-800/50 border border-gray-700'}`}>
+                                <div className="flex items-center justify-between mb-3">
+                                  <span className="font-semibold text-gray-200">Entry Strategy: Pullback</span>
+                                  {preferPullback && <span className="text-green-400 text-xs font-medium">★ PREFERRED</span>}
                                 </div>
-                                {secondSupport && (
-                                  <div>
-                                    <span className="text-blue-200">Secondary zone:</span> {formatCurrency(secondSupport)}
-                                    <span className="text-blue-400 ml-1">({((currentPrice - secondSupport) / currentPrice * 100).toFixed(1)}% pullback)</span>
+                                <div className="space-y-2 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-400">Entry</span>
+                                    <span className="text-gray-200 font-mono">{formatCurrency(pullbackEntry)}</span>
                                   </div>
-                                )}
-                                <div className="mt-2 text-blue-400 italic">
-                                  Set price alert at ${nearestSupport?.toFixed(2)} and wait for confirmation before entry.
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-400">Stop</span>
+                                    <span className="text-red-400 font-mono">{formatCurrency(pullbackStop)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-400">Target</span>
+                                    <span className="text-green-400 font-mono">{formatCurrency(pullbackTarget)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-400">R:R</span>
+                                    <span className={`font-mono ${parseFloat(pullbackRR) >= 2 ? 'text-green-400' : parseFloat(pullbackRR) >= 1 ? 'text-yellow-400' : 'text-red-400'}`}>{pullbackRR}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-400">Position</span>
+                                    <span className="text-blue-400">full</span>
+                                  </div>
+                                  <div className="pt-2 border-t border-gray-700">
+                                    <span className="text-gray-400 text-xs">Reason</span>
+                                    <div className="text-gray-300 text-xs mt-1">
+                                      {adx && adx.adx >= 25
+                                        ? `ADX ${adx.adx} strong trend; pullback preferred`
+                                        : `ADX ${adx?.adx || 'N/A'} weak; wait for better entry`
+                                      }
+                                    </div>
+                                  </div>
                                 </div>
-                              </>
-                            );
-                          })()}
-                        </div>
+                              </div>
+
+                              {/* Strategy B: Momentum */}
+                              <div className={`rounded-lg p-4 ${!preferPullback ? 'bg-blue-900/30 border-2 border-blue-600' : 'bg-gray-800/50 border border-gray-700'}`}>
+                                <div className="flex items-center justify-between mb-3">
+                                  <span className="font-semibold text-gray-200">Entry Strategy: Momentum</span>
+                                  {!preferPullback && <span className="text-blue-400 text-xs font-medium">★ SUGGESTED</span>}
+                                </div>
+                                <div className="space-y-2 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-400">Entry</span>
+                                    <span className="text-gray-200 font-mono">{formatCurrency(momentumEntry)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-400">Stop</span>
+                                    <span className="text-red-400 font-mono">{formatCurrency(momentumStop)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-400">Target</span>
+                                    <span className="text-green-400 font-mono">{formatCurrency(momentumTarget)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-400">R:R</span>
+                                    <span className={`font-mono ${parseFloat(momentumRR) >= 2 ? 'text-green-400' : parseFloat(momentumRR) >= 1 ? 'text-yellow-400' : 'text-red-400'}`}>{momentumRR}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-400">Position</span>
+                                    <span className="text-yellow-400">half</span>
+                                  </div>
+                                  <div className="pt-2 border-t border-gray-700 space-y-1">
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-400 text-xs">4H RSI</span>
+                                      <span className={`text-xs font-mono ${rsi4h ? (rsi4h.entry_signal ? 'text-green-400' : 'text-yellow-400') : 'text-gray-500'}`}>
+                                        {rsi4h ? rsi4h.rsi_4h : 'N/A'}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-400 text-xs">Confirmation</span>
+                                      <span className={`text-xs ${rsiConfirmed ? 'text-green-400' : 'text-red-400'}`}>
+                                        {rsiConfirmed ? 'confirmed' : 'not_confirmed'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
 
