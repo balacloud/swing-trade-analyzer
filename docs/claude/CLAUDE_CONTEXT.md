@@ -128,7 +128,7 @@ docs/claude/stable/GOLDEN_RULES.md              (only if new rules learned)
 
 ## CORE RULES (Embedded - Always Apply)
 
-### The 11 Golden Rules:
+### The 12 Golden Rules:
 1. START of session: Read PROJECT_STATUS first
 2. BEFORE modifying any file: Read it first
 3. NEVER assume code structure - verify with actual file
@@ -140,6 +140,7 @@ docs/claude/stable/GOLDEN_RULES.md              (only if new rules learned)
 9. GENERATE FILES ONE AT A TIME - Wait for confirmation
 10. FOLLOW CODE ARCHITECTURE RULES
 11. DEBUG APIS PROPERLY - Run diagnostic queries FIRST
+12. LOCAL FILES FIRST, THEN GIT - Update files locally, then commit
 
 ### Debugging Workflow:
 1. Understand the symptom

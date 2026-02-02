@@ -2,13 +2,13 @@
 
 > **Purpose:** Stable reference document for all session rules
 > **Location:** Claude Project (not daily file)
-> **Last Updated:** Day 32 (January 18, 2026)
+> **Last Updated:** Day 42 (February 2, 2026)
 
 ---
 
 ## SESSION RULES
 
-### The 11 Golden Rules:
+### The 12 Golden Rules:
 1. **START of session:** Read PROJECT_STATUS_DAY[N].md first
 2. **BEFORE modifying any file:** Ask user to attach/paste the CURRENT version
 3. **NEVER assume code structure** - always verify with actual file
@@ -20,6 +20,7 @@
 9. **GENERATE FILES ONE AT A TIME** - Wait for user confirmation before next file
 10. **FOLLOW CODE ARCHITECTURE RULES** - See section below
 11. **DEBUG APIS PROPERLY** - Run diagnostic queries FIRST before writing fixes
+12. **LOCAL FILES FIRST, THEN GIT** - Update files locally using Edit/Write tools FIRST, then commit to git (not the other way around)
 
 ---
 
@@ -218,6 +219,12 @@ CLAUDE SESSION REMINDER:
 - **Check CLAUDE_CONTEXT.md at session START** - Contains current day, version, focus
 - **Update CLAUDE_CONTEXT.md at session CLOSE** - Last Updated, Current Day, Focus fields
 - **Don't skip this step** - Prevents stale context in next session
+
+### Day 42: Local Files First, Then Git
+- **Update files locally FIRST** - Use Edit/Write tools to modify filesystem
+- **Then commit to git** - Git is for version control, not primary update
+- **@ references read from filesystem** - Claude Code reads local files, not git
+- **Don't ask user to manually update** - Claude can update local files directly
 
 ---
 
