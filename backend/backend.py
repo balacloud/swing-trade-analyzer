@@ -1114,17 +1114,24 @@ def get_spy_data():
 def get_vix_data():
     """
     Get VIX (Volatility Index) data for risk assessment
+    Day 41 Fix: Use regularMarketPrice for current value (not last close)
     """
     try:
         vix = yf.Ticker('^VIX')
-        hist = vix.history(period='1mo')
-        
-        if hist.empty:
-            return jsonify({'error': 'No VIX data found'}), 404
-        
-        # FIX: Convert numpy float to Python float
-        current_vix = float(hist.iloc[-1]['Close'])
-        current_vix = round(current_vix, 2)
+
+        # Day 41: Use real-time price from info, fallback to history
+        vix_info = vix.info
+        current_vix = vix_info.get('regularMarketPrice')
+        previous_close = vix_info.get('previousClose')
+
+        # Fallback to history if info doesn't have current price
+        if current_vix is None:
+            hist = vix.history(period='5d')
+            if hist.empty:
+                return jsonify({'error': 'No VIX data found'}), 404
+            current_vix = float(hist.iloc[-1]['Close'])
+
+        current_vix = round(float(current_vix), 2)
         
         # VIX levels interpretation
         if current_vix < 15:
@@ -1138,9 +1145,16 @@ def get_vix_data():
         else:
             regime = 'extreme'
         
+        # Day 41: Include previous close and change
+        change_pct = None
+        if previous_close:
+            change_pct = round(((current_vix - previous_close) / previous_close) * 100, 2)
+
         return jsonify({
             'ticker': 'VIX',
             'current': current_vix,
+            'previousClose': round(float(previous_close), 2) if previous_close else None,
+            'changePct': change_pct,
             'regime': regime,
             # FIX: Convert numpy.bool_ to Python bool
             'isRisky': bool(current_vix > 30)
