@@ -220,7 +220,7 @@ curl http://localhost:5001/api/cache/status
 | 39 | Updated for Day 39: Dual Entry Strategy Phases 1-3: structural stops, local RSI/ADX, 4H RSI |
 | 40 | Updated for Day 40: Dual Entry Strategy UI complete, side-by-side cards for ALL stocks |
 | 41 | Updated for Day 41: Perplexity research synthesis complete, TIER 1 gaps identified, baseline backtest priority |
-| 42 | Updated for Day 42: Defeat Beta confirmed working, validation tolerances fixed (92.3% quality), VIX fixed |
+| 42 | Updated for Day 42: Defeat Beta confirmed working, validation tolerances fixed (92.3% quality), VIX fixed, README v3.9 |
 
 ---
 
