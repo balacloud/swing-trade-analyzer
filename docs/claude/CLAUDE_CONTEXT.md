@@ -90,12 +90,13 @@ docs/claude/versioned/API_CONTRACTS_DAY33.md       <- API reference (if needed)
 
 ## SCENARIO 2: SESSION_CLOSE
 
-### Files to Create:
+### Files to Create/Update:
 ```
 docs/claude/status/PROJECT_STATUS_DAY[N+1]_SHORT.md
 docs/claude/versioned/KNOWN_ISSUES_DAY[N+1].md
 docs/claude/versioned/API_CONTRACTS_DAY[N+1].md  (only if APIs changed)
 docs/claude/stable/GOLDEN_RULES.md              (only if new rules learned)
+docs/claude/stable/ROADMAP.md                   (only if roadmap items changed)
 ```
 
 ### Close Checklist:
@@ -108,9 +109,10 @@ docs/claude/stable/GOLDEN_RULES.md              (only if new rules learned)
    - New issues discovered
 3. Update API_CONTRACTS if any APIs added/changed
 4. Update GOLDEN_RULES if new lessons learned
-5. Provide git commit command
-6. Update the CURRENT STATE table in this file
-7. Tell user which files to update in Claude Project
+5. Update ROADMAP.md if roadmap items completed/added
+6. Provide git commit command
+7. Update the CURRENT STATE table in this file
+8. Tell user which files to update in Claude Project
 
 ---
 
