@@ -19,6 +19,7 @@
  * v3.6: Day 37 - start.sh/stop.sh scripts, architecture cleanup
  * v3.7: Day 38 - Data Sources tab (transparency UI)
  * v3.8: Day 39 - Dual Entry Strategy UI (ADX badges, 4H RSI confirmation)
+ * v3.9: Day 42 - Data source labels for all score sections (Technical, Sentiment, Risk/Macro)
  */
 
 import React, { useState, useEffect } from 'react';
@@ -797,10 +798,12 @@ function App() {
                             {srData.meta.tradeViability.risk_reward_context && (
                               <div>R:R Context: {srData.meta.tradeViability.risk_reward_context}</div>
                             )}
-                            {/* Day 39: ADX + RSI indicators */}
+                            {/* Day 39: ADX + RSI indicators - Day 40: Added tooltips */}
                             <div className="flex justify-end gap-2 mt-1">
                               {srData.meta?.adx && (
-                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                <span
+                                  title={`ADX measures trend strength.\n≥25 = Strong trend (Pullback strategy preferred)\n<25 = Weak/ranging (Momentum strategy suggested)\nCurrent: ${srData.meta.adx.trend_strength}`}
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-medium cursor-help ${
                                   srData.meta.adx.trend_strength === 'very_strong' ? 'bg-green-600 text-white' :
                                   srData.meta.adx.trend_strength === 'strong' ? 'bg-green-700 text-green-100' :
                                   srData.meta.adx.trend_strength === 'weak' ? 'bg-yellow-700 text-yellow-100' :
@@ -810,7 +813,9 @@ function App() {
                                 </span>
                               )}
                               {srData.meta?.rsi_4h && (
-                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                <span
+                                  title={`4-Hour RSI momentum indicator.\n<40 = Oversold (good entry zone)\n40-60 = Neutral\n>60 = Overbought (avoid new entries)\nUsed to confirm momentum entries.`}
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-medium cursor-help ${
                                   srData.meta.rsi_4h.momentum === 'overbought' ? 'bg-red-600 text-white' :
                                   srData.meta.rsi_4h.momentum === 'strong' ? 'bg-green-600 text-white' :
                                   srData.meta.rsi_4h.momentum === 'neutral' ? 'bg-blue-600 text-white' :
@@ -860,8 +865,8 @@ function App() {
                               {/* Strategy A: Pullback */}
                               <div className={`rounded-lg p-4 ${preferPullback ? 'bg-green-900/30 border-2 border-green-600' : 'bg-gray-800/50 border border-gray-700'}`}>
                                 <div className="flex items-center justify-between mb-3">
-                                  <span className="font-semibold text-gray-200">Entry Strategy: Pullback</span>
-                                  {preferPullback && <span className="text-green-400 text-xs font-medium">★ PREFERRED</span>}
+                                  <span className="font-semibold text-gray-200 cursor-help" title="Wait for price to pull back to support level before entering. Lower risk, better R:R, but may miss fast moves.">Entry Strategy: Pullback</span>
+                                  {preferPullback && <span className="text-green-400 text-xs font-medium cursor-help" title="ADX ≥25 indicates strong trend. Pullback entries work best in trending markets.">★ PREFERRED</span>}
                                 </div>
                                 <div className="space-y-2 text-sm">
                                   <div className="flex justify-between">
@@ -877,11 +882,11 @@ function App() {
                                     <span className="text-green-400 font-mono">{formatCurrency(pullbackTarget)}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-gray-400">R:R</span>
+                                    <span className="text-gray-400 cursor-help" title="Risk-to-Reward ratio. >2:1 is good, >3:1 is excellent. Shows potential reward per $1 risked.">R:R</span>
                                     <span className={`font-mono ${parseFloat(pullbackRR) >= 2 ? 'text-green-400' : parseFloat(pullbackRR) >= 1 ? 'text-yellow-400' : 'text-red-400'}`}>{pullbackRR}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-gray-400">Position</span>
+                                    <span className="text-gray-400 cursor-help" title="Position size recommendation. 'Full' = standard position. Pullback entries have lower risk, allowing full position.">Position</span>
                                     <span className="text-blue-400">full</span>
                                   </div>
                                   <div className="pt-2 border-t border-gray-700">
@@ -899,8 +904,8 @@ function App() {
                               {/* Strategy B: Momentum */}
                               <div className={`rounded-lg p-4 ${!preferPullback ? 'bg-blue-900/30 border-2 border-blue-600' : 'bg-gray-800/50 border border-gray-700'}`}>
                                 <div className="flex items-center justify-between mb-3">
-                                  <span className="font-semibold text-gray-200">Entry Strategy: Momentum</span>
-                                  {!preferPullback && <span className="text-blue-400 text-xs font-medium">★ SUGGESTED</span>}
+                                  <span className="font-semibold text-gray-200 cursor-help" title="Enter at current price on breakout/momentum. Higher risk (wider stop), but captures immediate moves. Use half position.">Entry Strategy: Momentum</span>
+                                  {!preferPullback && <span className="text-blue-400 text-xs font-medium cursor-help" title="ADX <25 indicates weak/ranging market. Momentum entries with RSI confirmation work better here.">★ SUGGESTED</span>}
                                 </div>
                                 <div className="space-y-2 text-sm">
                                   <div className="flex justify-between">
@@ -916,22 +921,22 @@ function App() {
                                     <span className="text-green-400 font-mono">{formatCurrency(momentumTarget)}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-gray-400">R:R</span>
+                                    <span className="text-gray-400 cursor-help" title="Risk-to-Reward ratio. >2:1 is good, >3:1 is excellent. Momentum entries typically have lower R:R due to wider stops.">R:R</span>
                                     <span className={`font-mono ${parseFloat(momentumRR) >= 2 ? 'text-green-400' : parseFloat(momentumRR) >= 1 ? 'text-yellow-400' : 'text-red-400'}`}>{momentumRR}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-gray-400">Position</span>
+                                    <span className="text-gray-400 cursor-help" title="Position size recommendation. 'Half' = reduced position due to higher risk from entering at current price with wider stop.">Position</span>
                                     <span className="text-yellow-400">half</span>
                                   </div>
                                   <div className="pt-2 border-t border-gray-700 space-y-1">
                                     <div className="flex justify-between">
-                                      <span className="text-gray-400 text-xs">4H RSI</span>
+                                      <span className="text-gray-400 text-xs cursor-help" title="4-hour timeframe RSI. Used to confirm momentum entries. <40 is oversold (good), >60 is overbought (avoid).">4H RSI</span>
                                       <span className={`text-xs font-mono ${rsi4h ? (rsi4h.entry_signal ? 'text-green-400' : 'text-yellow-400') : 'text-gray-500'}`}>
                                         {rsi4h ? rsi4h.rsi_4h : 'N/A'}
                                       </span>
                                     </div>
                                     <div className="flex justify-between">
-                                      <span className="text-gray-400 text-xs">Confirmation</span>
+                                      <span className="text-gray-400 text-xs cursor-help" title="Entry confirmed when 4H RSI shows oversold (<40) or rising from lows. 'not_confirmed' means wait for better entry.">Confirmation</span>
                                       <span className={`text-xs ${rsiConfirmed ? 'text-green-400' : 'text-red-400'}`}>
                                         {rsiConfirmed ? 'confirmed' : 'not_confirmed'}
                                       </span>
@@ -945,36 +950,7 @@ function App() {
                       </div>
                     )}
 
-                    {/* Trade Levels Grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="bg-gray-700/50 rounded-lg p-4 text-center">
-                        <div className="text-gray-400 text-sm mb-1">Entry</div>
-                        <div className="text-xl font-bold text-green-400">{formatCurrency(srData.suggestedEntry)}</div>
-                      </div>
-                      <div className="bg-gray-700/50 rounded-lg p-4 text-center">
-                        <div className="text-gray-400 text-sm mb-1">Stop Loss</div>
-                        <div className="text-xl font-bold text-red-400">{formatCurrency(srData.suggestedStop)}</div>
-                        {srData.meta?.tradeViability?.stop_suggestion && srData.suggestedStop !== srData.meta.tradeViability.stop_suggestion && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            Alt: {formatCurrency(srData.meta.tradeViability.stop_suggestion)}
-                          </div>
-                        )}
-                      </div>
-                      <div className="bg-gray-700/50 rounded-lg p-4 text-center">
-                        <div className="text-gray-400 text-sm mb-1">Target</div>
-                        <div className="text-xl font-bold text-blue-400">{formatCurrency(srData.suggestedTarget)}</div>
-                      </div>
-                      <div className="bg-gray-700/50 rounded-lg p-4 text-center">
-                        <div className="text-gray-400 text-sm mb-1">Risk/Reward</div>
-                        <div className={`text-xl font-bold ${
-                          srData.riskReward == null ? 'text-gray-400' :
-                          srData.riskReward >= 2 ? 'text-green-400' :
-                          srData.riskReward >= 1.5 ? 'text-yellow-400' : 'text-red-400'
-                        }`}>
-                          {srData.riskReward != null ? `${srData.riskReward.toFixed(2)}:1` : 'N/A'}
-                        </div>
-                      </div>
-                    </div>
+                    {/* Day 40: Removed legacy Trade Levels Grid - now using dual strategy cards above */}
                     {/* Day 26: Show actual S&R levels - Day 33: Enhanced with MTF confluence */}
                     <div className="mt-4 pt-3 border-t border-gray-700">
                       {/* Day 33: MTF Confluence Badge */}
@@ -1197,6 +1173,9 @@ function App() {
                               </div>
                             );
                           })}
+                          <div className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-600">
+                            Data: yfinance • Quality: full
+                          </div>
                         </div>
                       )}
                       {expandedScore === 'fundamental' && analysisResult.breakdown?.fundamental?.details && (
@@ -1273,7 +1252,10 @@ function App() {
                         <div className="space-y-3">
                           <div className="text-sm font-semibold text-blue-300 mb-3">📰 Sentiment Breakdown</div>
                           <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-3 text-sm text-yellow-300">
-                            ⚠️ Sentiment is currently a placeholder (5/10 default). Real news/social sentiment analysis coming in a future update.
+                            ⚠️ Sentiment is currently a placeholder (5/10 default). Real news/social sentiment analysis coming in v4.4.
+                          </div>
+                          <div className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-600">
+                            Data: none • Quality: <span className="text-yellow-500">placeholder</span>
                           </div>
                         </div>
                       )}
@@ -1304,6 +1286,9 @@ function App() {
                             <span className="text-gray-400">Market Breadth:</span>
                             <span className="ml-2 text-gray-200">Neutral</span>
                             <span className="ml-2 text-xs text-gray-500">(placeholder - 1/1 pts)</span>
+                          </div>
+                          <div className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-600">
+                            Data: yfinance (VIX, SPY) • Quality: partial <span className="text-yellow-500">(breadth placeholder)</span>
                           </div>
                         </div>
                       )}

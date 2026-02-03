@@ -1,9 +1,10 @@
 """
-Swing Trade Analyzer Backend - v2.12
+Swing Trade Analyzer Backend - v2.13
 Flask API server with yfinance (prices) + Defeat Beta (fundamentals) + TradingView Screener (scanning) + S&R Engine
 
 Day 6: Fixed numpy type serialization issues
 Day 8: Fixed Defeat Beta .data attribute usage
+Day 42: Enhanced Defeat Beta error handling with specific error tracking
 Day 11: Added TradingView screener integration for batch scanning
 Day 13: Added Support & Resistance engine endpoint
 Day 20: Added TradingView scan endpoint, fixed API syntax for tradingview-screener library
@@ -406,6 +407,7 @@ def get_fundamentals_defeatbeta(ticker_symbol):
 
     Day 8 FIX: Use .data attribute instead of .to_df()
     Day 25: Added TTL cache to prevent stale data (auto-refresh after 1 hour)
+    Day 42: Enhanced error handling with specific error tracking
     DataFrame structure: Columns = ['Breakdown', '2024-10-31', '2023-10-31', ...]
     Values are in rows with labels in 'Breakdown' column
     """
@@ -417,9 +419,17 @@ def get_fundamentals_defeatbeta(ticker_symbol):
     if cached:
         return cached
 
+    # Day 42: Track API call status for debugging
+    api_call_status = {
+        'ticker_init': {'success': False, 'error': None},
+        'annual_income': {'success': False, 'error': None},
+        'balance_sheet': {'success': False, 'error': None}
+    }
+
     try:
         ticker = DBTicker(ticker_symbol)
-        
+        api_call_status['ticker_init'] = {'success': True, 'error': None}
+
         # Initialize result
         result = {
             'source': 'defeatbeta',
@@ -431,7 +441,8 @@ def get_fundamentals_defeatbeta(ticker_symbol):
             'debtToEquity': None,
             'profitMargin': None,
             'operatingMargin': None,
-            'pegRatio': None
+            'pegRatio': None,
+            '_api_status': api_call_status  # Day 42: Include for debugging
         }
         
         # Track data we've collected
@@ -444,7 +455,8 @@ def get_fundamentals_defeatbeta(ticker_symbol):
         # Try to get annual income statement for growth calculations
         try:
             annual_income = ticker.annual_income_statement()
-            
+            api_call_status['annual_income'] = {'success': True, 'error': None}
+
             # DAY 8 FIX: Use .data instead of .to_df()
             if hasattr(annual_income, 'data'):
                 annual_df = annual_income.data
@@ -503,13 +515,15 @@ def get_fundamentals_defeatbeta(ticker_symbol):
                             result['profitMargin'] = round((net_income / total_revenue) * 100, 2)
                             
         except Exception as e:
-            print(f"Error getting annual income: {e}")
+            api_call_status['annual_income'] = {'success': False, 'error': f"{type(e).__name__}: {str(e)}"}
+            print(f"⚠️ Error getting annual income for {ticker_symbol}: {e}")
             traceback.print_exc()
-        
+
         # Try to get balance sheet for ROE, ROIC, Debt/Equity
         try:
             annual_balance = ticker.annual_balance_sheet()
-            
+            api_call_status['balance_sheet'] = {'success': True, 'error': None}
+
             # DAY 8 FIX: Use .data instead of .to_df()
             if hasattr(annual_balance, 'data'):
                 balance_df = annual_balance.data
@@ -564,22 +578,53 @@ def get_fundamentals_defeatbeta(ticker_symbol):
                             result['roic'] = round((net_income / invested_capital) * 100, 2)
                         
         except Exception as e:
-            print(f"Error getting balance sheet: {e}")
+            api_call_status['balance_sheet'] = {'success': False, 'error': f"{type(e).__name__}: {str(e)}"}
+            print(f"⚠️ Error getting balance sheet for {ticker_symbol}: {e}")
             traceback.print_exc()
-        
+
+        # Day 42: Update result with API status
+        result['_api_status'] = api_call_status
+
         # Debug output
         print(f"📊 Defeat Beta fundamentals for {ticker_symbol}:")
         print(f"   ROE: {result['roe']}%, ROA: {result['roa']}%, ROIC: {result['roic']}%")
         print(f"   EPS Growth: {result['epsGrowth']}%, Revenue Growth: {result['revenueGrowth']}%")
         print(f"   Debt/Equity: {result['debtToEquity']}, Profit Margin: {result['profitMargin']}%")
+        # Day 42: Log API call status
+        api_success = [k for k, v in api_call_status.items() if v['success']]
+        api_failed = [k for k, v in api_call_status.items() if not v['success']]
+        print(f"   API Calls - Success: {api_success}, Failed: {api_failed}")
 
         # Day 25: Cache the result
         set_cached_fundamentals(ticker_symbol, result)
 
         return result
-        
+
+    except AttributeError as e:
+        # Day 42: Specific handling for .data attribute errors
+        error_msg = f"AttributeError: {str(e)}"
+        print(f"❌ Defeat Beta AttributeError for {ticker_symbol}: {error_msg}")
+        print(f"   This usually means the API structure changed or ticker doesn't exist in Defeat Beta")
+        print(f"   API Call Status: {api_call_status}")
+        traceback.print_exc()
+        return None
+
+    except ConnectionError as e:
+        # Day 42: Network/connection issues
+        error_msg = f"ConnectionError: {str(e)}"
+        print(f"❌ Defeat Beta connection failed for {ticker_symbol}: {error_msg}")
+        print(f"   Check network connectivity and Defeat Beta API status")
+        return None
+
     except Exception as e:
-        print(f"Error in get_fundamentals_defeatbeta: {e}")
+        # Day 42: Enhanced generic error handling
+        error_type = type(e).__name__
+        error_msg = str(e)
+        print(f"❌ Defeat Beta error for {ticker_symbol}:")
+        print(f"   Error Type: {error_type}")
+        print(f"   Error Message: {error_msg}")
+        print(f"   API Call Status: {api_call_status}")
+        print(f"   FIX: Check KNOWN_ISSUES file for Defeat Beta troubleshooting")
         traceback.print_exc()
         return None
 

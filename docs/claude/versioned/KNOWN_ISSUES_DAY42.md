@@ -114,14 +114,28 @@ All TIER 1 backtest fixes remain implemented and active:
 
 ---
 
+## SCORING PLACEHOLDERS - NOW TRACKED IN ROADMAP
+
+**Issue:** 13% of score (Sentiment) is placeholder - tracked since Day 23, now in roadmap
+
+| Component | Current State | Points | Roadmap |
+|-----------|---------------|--------|---------|
+| **Sentiment** | Hardcoded 5/10 | 10 pts (13%) | v4.4 |
+| **Market Breadth** | Hardcoded 1/1 | 1 pt (1%) | v4.5 |
+
+**UI now shows explicit "placeholder" labels** (Day 42 update)
+
+---
+
 ## DEFERRED ITEMS (v2+)
 
 | Feature | Reason for Deferral |
 |---------|---------------------|
-| Options Tab | Needs Greeks calculation (complex) |
+| Options Tab | Needs Greeks calculation (complex) - v4.3 |
 | Sector Rotation RRG | Complex, marginal v1 value |
 | Candlestick Patterns | Low statistical accuracy |
-| Full Lightweight Charts | After backtest validation |
+| Sentiment Integration | v4.4 - Finnhub free tier |
+| Scoring Logic Review | v4.5 - Re-evaluate after more backtest data |
 
 ---
 
@@ -130,7 +144,9 @@ All TIER 1 backtest fixes remain implemented and active:
 | File | Changes |
 |------|---------|
 | `backend/validation/engine.py` | Updated tolerances for methodology differences |
-| `backend/backend.py` | Fixed VIX real-time price |
+| `backend/backend.py` | Fixed VIX real-time price, enhanced Defeat Beta error handling (v2.13) |
+| `frontend/src/App.jsx` | Added data source labels to all score sections (v3.9) |
+| `README.md` | Added v4.4 Sentiment, v4.5 Scoring Review to roadmap |
 
 ---
 

@@ -764,6 +764,15 @@ TOLERANCES = {
 2. **Revenue Growth** - Defeat Beta uses fiscal YoY, Finviz uses TTM (60-85% variance)
 3. **These are not bugs** - Different valid calculation methods
 
+### Scoring Placeholders (Tracked since Day 23)
+
+| Component | Current State | Points | Impact |
+|-----------|---------------|--------|--------|
+| **Sentiment** | Hardcoded 5/10 | 10 pts (13%) | Everyone gets same score |
+| **Market Breadth** | Hardcoded 1/1 | 1 pt (1%) | Minor impact |
+
+**Note:** These are explicitly marked in the UI with "placeholder" labels. Fix planned for v4.4-v4.5.
+
 ### Deferred Features (v2+)
 
 | Feature | Reason for Deferral |
@@ -816,9 +825,11 @@ TOLERANCES = {
 ### Planned 📅
 
 - v4.0: **Forward Testing UI** - Track actual trades, record R-multiples, build SQN over time
-- v4.1: **TradingView Widget** - Supplementary RSI/MACD view (free tier)
+- v4.1: **TradingView Lightweight Charts** - Interactive charts with RSI/MACD overlays
 - v4.2: **Pattern Detection** - VCP, cup-and-handle, flat base (better entry timing)
 - v4.3: **Options Tab** - If data sources become available
+- v4.4: **Sentiment Integration** - Real news/social sentiment (Finnhub free tier) replacing placeholder
+- v4.5: **Scoring Logic Review** - Re-evaluate 75-point weights based on backtest data
 
 ### Philosophy (Day 27)
 
