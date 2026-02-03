@@ -60,6 +60,7 @@
 ### Files to Read (in order):
 ```
 docs/claude/stable/GOLDEN_RULES.md          <- Core rules (CRITICAL)
+docs/claude/stable/ROADMAP.md               <- What's planned (v4.0-v4.5) - DON'T LOSE TRACK
 docs/claude/status/PROJECT_STATUS_DAY42_SHORT.md   <- Current state
 docs/claude/versioned/KNOWN_ISSUES_DAY42.md        <- Active bugs (DEFEAT BETA STATUS)
 docs/research/PERPLEXITY_RESEARCH_SYNTHESIS.md     <- Research validation findings
@@ -68,13 +69,14 @@ docs/claude/versioned/API_CONTRACTS_DAY33.md       <- API reference (if needed)
 
 ### Startup Checklist:
 1. Read GOLDEN_RULES.md - internalize the rules
-2. Read PROJECT_STATUS - understand current state
-3. Read KNOWN_ISSUES - know active bugs
-4. Confirm to user:
+2. Read ROADMAP.md - know what's planned (prevents losing track of items)
+3. Read PROJECT_STATUS - understand current state
+4. Read KNOWN_ISSUES - know active bugs
+5. Confirm to user:
    - Current version and day
    - What was accomplished last session
-   - Active priorities
-5. Ask: "What would you like to focus on today?"
+   - Active priorities from ROADMAP
+6. Ask: "What would you like to focus on today?"
 
 ### Rules to Follow:
 - STOP before coding - understand problem first
@@ -167,6 +169,7 @@ docs/claude/stable/GOLDEN_RULES.md              (only if new rules learned)
 ├── CLAUDE_CONTEXT.md              <- THIS FILE (single reference)
 ├── stable/                        <- Rarely change
 │   ├── GOLDEN_RULES.md           <- Core rules
+│   ├── ROADMAP.md                <- Canonical roadmap (v4.0-v4.5)
 │   ├── SESSION_START.md          <- Legacy (now in CLAUDE_CONTEXT)
 │   ├── SESSION_PROMPT_TEMPLATE.md <- Legacy (now in CLAUDE_CONTEXT)
 │   └── CLAUDE_CODE_GUIDE.md      <- Tool usage guide
@@ -220,7 +223,7 @@ curl http://localhost:5001/api/cache/status
 | 39 | Updated for Day 39: Dual Entry Strategy Phases 1-3: structural stops, local RSI/ADX, 4H RSI |
 | 40 | Updated for Day 40: Dual Entry Strategy UI complete, side-by-side cards for ALL stocks |
 | 41 | Updated for Day 41: Perplexity research synthesis complete, TIER 1 gaps identified, baseline backtest priority |
-| 42 | Updated for Day 42: Defeat Beta confirmed working, validation tolerances fixed (92.3% quality), VIX fixed, README v3.9 |
+| 42 | Updated for Day 42: Defeat Beta confirmed working, validation tolerances fixed (92.3% quality), VIX fixed, README v3.9, ROADMAP.md created |
 
 ---
 
