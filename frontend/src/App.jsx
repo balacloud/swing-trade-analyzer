@@ -20,6 +20,8 @@
  * v3.7: Day 38 - Data Sources tab (transparency UI)
  * v3.8: Day 39 - Dual Entry Strategy UI (ADX badges, 4H RSI confirmation)
  * v3.9: Day 42 - Data source labels for all score sections (Technical, Sentiment, Risk/Macro)
+ * v4.0: Day 44 - Categorical Assessment System (v4.5) - replaces 75-point numerical scoring
+ * v4.1: Day 44 - Actionable Recommendation Card - clear guidance above assessment section
  */
 
 import React, { useState, useEffect } from 'react';
@@ -27,6 +29,7 @@ import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchSc
 import { calculateScore } from './utils/scoringEngine';
 import { calculateSimplifiedAnalysis } from './utils/simplifiedScoring';
 import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings } from './utils/positionSizing';
+import { runCategoricalAssessment } from './utils/categoricalAssessment';
 //import { calculateRelativeStrength } from './utils/rsCalculator';
 
 function App() {
@@ -40,6 +43,9 @@ function App() {
   const [backendStatus, setBackendStatus] = useState({ healthy: false });
   const [analysisResult, setAnalysisResult] = useState(null);
   const [srData, setSrData] = useState(null);
+  const [patternsData, setPatternsData] = useState(null); // Day 44: Pattern detection
+  const [fearGreedData, setFearGreedData] = useState(null); // Day 44: v4.5 Fear & Greed
+  const [categoricalResult, setCategoricalResult] = useState(null); // Day 44: v4.5 Categorical Assessment
 
   // Scan state
   const [scanLoading, setScanLoading] = useState(false);
@@ -108,6 +114,7 @@ function App() {
       // Reset frontend state
       setAnalysisResult(null);
       setSrData(null);
+      setPatternsData(null);
       setSimplifiedResult(null);
       setScanResults(null);
       setValidationResults(null);
@@ -205,6 +212,9 @@ function App() {
     setError(null);
     setAnalysisResult(null);
     setSrData(null);
+    setPatternsData(null);
+    setFearGreedData(null);
+    setCategoricalResult(null);
     setSimplifiedResult(null);
     setActiveTab('analyze');
 
@@ -217,8 +227,24 @@ function App() {
       // Day 27: Also calculate simplified binary analysis
       const simplified = calculateSimplifiedAnalysis(data.stock, data.spy, data.sr);
 
+      // Day 44: v4.5 Categorical Assessment System
+      const trendTemplate = data.patterns?.trendTemplate || null;
+      const categorical = runCategoricalAssessment(
+        data.stock,
+        data.spy,
+        data.vix,
+        data.fearGreed,
+        trendTemplate,
+        result.breakdown?.technical,
+        data.stock.fundamentals,  // Pass raw fundamentals, not breakdown
+        targetTicker
+      );
+
       setAnalysisResult(result);
       setSrData(data.sr);
+      setPatternsData(data.patterns); // Day 44: Pattern detection
+      setFearGreedData(data.fearGreed); // Day 44: v4.5 Fear & Greed
+      setCategoricalResult(categorical); // Day 44: v4.5 Categorical Assessment
       setSimplifiedResult(simplified);
       setTicker(targetTicker);
       
@@ -366,6 +392,117 @@ function App() {
         label: 'UNKNOWN'
       };
     }
+  };
+
+  // Generate actionable recommendation based on categorical assessment + trade viability (Day 44)
+  const generateActionableRecommendation = (categoricalResult, srData, currentPrice) => {
+    if (!categoricalResult) return null;
+
+    const verdict = categoricalResult.verdict?.verdict;
+    const viability = srData?.meta?.tradeViability;
+    const nearestSupport = srData?.support?.[0];
+    const nearestResistance = srData?.resistance?.[0];
+
+    // Calculate support zone (5% range around nearest support)
+    const supportZoneLow = nearestSupport ? (nearestSupport * 0.97).toFixed(2) : null;
+    const supportZoneHigh = nearestSupport ? (nearestSupport * 1.02).toFixed(2) : null;
+
+    // Calculate % away from support
+    const pctFromSupport = nearestSupport && currentPrice
+      ? (((currentPrice - nearestSupport) / nearestSupport) * 100).toFixed(1)
+      : null;
+
+    // Recommendation logic based on verdict + viability combination
+    let recommendation = {
+      action: '',
+      details: '',
+      alertPrice: null,
+      bgColor: 'bg-gray-700',
+      borderColor: 'border-gray-600',
+      textColor: 'text-gray-300',
+      icon: '📋',
+      actionType: 'RESEARCH' // EXECUTE, WATCHLIST, WAIT, AVOID, RESEARCH
+    };
+
+    // BUY verdict scenarios
+    if (verdict === 'BUY') {
+      if (viability?.viable === 'YES') {
+        recommendation = {
+          action: 'READY TO TRADE',
+          details: `Strong setup near support. Consider entry at current price with stop below $${nearestSupport?.toFixed(2) || 'support'}.`,
+          alertPrice: null,
+          bgColor: 'bg-gradient-to-r from-green-600 to-emerald-600',
+          borderColor: 'border-green-400',
+          textColor: 'text-white',
+          icon: '🎯',
+          actionType: 'EXECUTE'
+        };
+      } else if (viability?.viable === 'CAUTION') {
+        recommendation = {
+          action: 'ADD TO WATCHLIST',
+          details: `Good stock, but ${pctFromSupport}% above support. Set alert for pullback to $${supportZoneLow}-${supportZoneHigh} zone.`,
+          alertPrice: nearestSupport,
+          bgColor: 'bg-gradient-to-r from-blue-600 to-indigo-600',
+          borderColor: 'border-blue-400',
+          textColor: 'text-white',
+          icon: '👀',
+          actionType: 'WATCHLIST'
+        };
+      } else {
+        // viability NO
+        recommendation = {
+          action: 'WAIT FOR PULLBACK',
+          details: `Quality stock but extended. Wait for pullback to $${supportZoneLow}-${supportZoneHigh} zone before entry.`,
+          alertPrice: nearestSupport,
+          bgColor: 'bg-gradient-to-r from-amber-600 to-orange-600',
+          borderColor: 'border-amber-400',
+          textColor: 'text-white',
+          icon: '⏳',
+          actionType: 'WAIT'
+        };
+      }
+    }
+    // HOLD verdict scenarios
+    else if (verdict === 'HOLD') {
+      if (viability?.viable === 'YES') {
+        recommendation = {
+          action: 'WATCHLIST - MONITOR',
+          details: `Decent setup near support. Watch for improving technicals or sentiment before entry.`,
+          alertPrice: nearestResistance,
+          bgColor: 'bg-gradient-to-r from-cyan-600 to-teal-600',
+          borderColor: 'border-cyan-400',
+          textColor: 'text-white',
+          icon: '📊',
+          actionType: 'WATCHLIST'
+        };
+      } else {
+        recommendation = {
+          action: 'NOT NOW - PATIENCE',
+          details: `Mixed signals and not near support. Set alert at $${nearestSupport?.toFixed(2) || 'lower levels'} and wait for better entry.`,
+          alertPrice: nearestSupport,
+          bgColor: 'bg-gradient-to-r from-slate-600 to-gray-600',
+          borderColor: 'border-slate-400',
+          textColor: 'text-white',
+          icon: '⏸️',
+          actionType: 'WAIT'
+        };
+      }
+    }
+    // AVOID verdict scenarios
+    else {
+      recommendation = {
+        action: 'SKIP THIS ONE',
+        details: `Does not meet criteria. Look for stocks with stronger technicals/fundamentals in a favorable regime.`,
+        alertPrice: null,
+        bgColor: 'bg-gradient-to-r from-red-700 to-rose-700',
+        borderColor: 'border-red-500',
+        textColor: 'text-white',
+        icon: '🚫',
+        actionType: 'AVOID'
+      };
+    }
+
+    return recommendation;
   };
 
   // Generate plain English explanation for scores (Day 23)
@@ -649,16 +786,40 @@ function App() {
             {/* Analysis Results */}
             {analysisResult && !loading && analysisView === 'full' && (
               <div className="space-y-6">
-                {/* Verdict Card */}
-                <div className={`rounded-lg p-6 ${getVerdictColor(analysisResult.verdict)}`}>
+                {/* Verdict Card - v4.5 Categorical Assessment (Neutral design) */}
+                <div className="rounded-lg p-6 bg-gray-800 border border-gray-700">
                   <div className="flex justify-between items-center">
                     <div>
-                      <h2 className="text-2xl font-bold">{analysisResult.ticker} - {analysisResult.name}</h2>
-                      <p className="text-white/80">{analysisResult.sector} • {analysisResult.industry}</p>
+                      <h2 className="text-2xl font-bold text-white">{analysisResult.ticker} - {analysisResult.name}</h2>
+                      <p className="text-gray-400">{analysisResult.sector} • {analysisResult.industry}</p>
+                      <p className="text-gray-500 text-sm mt-1">{formatCurrency(analysisResult.currentPrice)}</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-4xl font-bold">{analysisResult.verdict?.verdict || 'N/A'}</div>
-                      <div className="text-xl">{analysisResult.totalScore}/75 points</div>
+                      <div className={`text-4xl font-bold px-4 py-2 rounded-lg ${
+                        (categoricalResult?.verdict?.verdict || analysisResult.verdict?.verdict) === 'BUY'
+                          ? 'text-green-400 bg-green-900/30 border border-green-600'
+                          : (categoricalResult?.verdict?.verdict || analysisResult.verdict?.verdict) === 'HOLD'
+                          ? 'text-yellow-400 bg-yellow-900/30 border border-yellow-600'
+                          : 'text-red-400 bg-red-900/30 border border-red-600'
+                      }`}>
+                        {categoricalResult?.verdict?.verdict || analysisResult.verdict?.verdict || 'N/A'}
+                      </div>
+                      {categoricalResult && (
+                        <div className="text-xs text-gray-500 mt-2 space-x-2">
+                          <span className={categoricalResult.technical?.assessment === 'Strong' ? 'text-green-400' : categoricalResult.technical?.assessment === 'Decent' ? 'text-yellow-400' : 'text-red-400'}>
+                            T:{categoricalResult.technical?.assessment?.charAt(0)}
+                          </span>
+                          <span className={categoricalResult.fundamental?.assessment === 'Strong' ? 'text-green-400' : categoricalResult.fundamental?.assessment === 'Decent' ? 'text-yellow-400' : categoricalResult.fundamental?.assessment === 'N/A' ? 'text-gray-400' : 'text-red-400'}>
+                            F:{categoricalResult.fundamental?.assessment?.charAt(0)}
+                          </span>
+                          <span className={categoricalResult.sentiment?.assessment === 'Strong' ? 'text-green-400' : categoricalResult.sentiment?.assessment === 'Neutral' ? 'text-gray-400' : 'text-red-400'}>
+                            S:{categoricalResult.sentiment?.assessment?.charAt(0)}
+                          </span>
+                          <span className={categoricalResult.riskMacro?.assessment === 'Favorable' ? 'text-green-400' : categoricalResult.riskMacro?.assessment === 'Neutral' ? 'text-yellow-400' : 'text-red-400'}>
+                            R:{categoricalResult.riskMacro?.assessment?.charAt(0)}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1048,6 +1209,199 @@ function App() {
                   </div>
                 )}
 
+                {/* Pattern Detection Card - Day 44: VCP, Cup & Handle, Flat Base */}
+                {patternsData && (
+                  <div className="bg-gray-800 rounded-lg p-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold text-purple-400">📐 Pattern Detection</h3>
+                      {patternsData.summary?.count > 0 && (
+                        <div className="px-3 py-1 rounded-full text-sm font-bold bg-purple-900/50 text-purple-300 border border-purple-600">
+                          {patternsData.summary.count} Pattern{patternsData.summary.count > 1 ? 's' : ''} Found
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Trend Template Score */}
+                    {patternsData.trendTemplate && (
+                      <div className="mb-4 p-3 rounded-lg bg-gray-700/50 border border-gray-600">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-gray-300 font-medium cursor-help" title="Mark Minervini's 8-point Trend Template. Stocks meeting 7+/8 criteria are in a Stage 2 uptrend - ideal for swing trades.">
+                            Trend Template
+                          </span>
+                          <span className={`font-bold ${
+                            patternsData.trendTemplate.criteria_met >= 7 ? 'text-green-400' :
+                            patternsData.trendTemplate.criteria_met >= 5 ? 'text-yellow-400' :
+                            'text-red-400'
+                          }`}>
+                            {patternsData.trendTemplate.criteria_met}/8
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1 text-xs">
+                          {Object.entries(patternsData.trendTemplate.criteria || {}).map(([key, value]) => (
+                            <div key={key} className="flex items-center gap-1">
+                              <span className={value ? 'text-green-400' : 'text-red-400'}>{value ? '✓' : '✗'}</span>
+                              <span className="text-gray-400">{key.replace(/_/g, ' ')}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {patternsData.trendTemplate.in_stage2_uptrend && (
+                          <div className="mt-2 text-xs text-green-400 font-medium">
+                            ✅ In Stage 2 Uptrend (ideal for swing trades)
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Pattern Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {/* VCP Pattern */}
+                      <div className={`rounded-lg p-3 ${
+                        patternsData.patterns?.vcp?.detected
+                          ? 'bg-green-900/30 border border-green-600'
+                          : 'bg-gray-700/30 border border-gray-600'
+                      }`}>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium text-gray-200 cursor-help" title="Volatility Contraction Pattern (VCP) - Mark Minervini's signature pattern. Price makes a series of smaller pullbacks, showing selling pressure drying up before breakout.">VCP</span>
+                          <span className={`text-xs px-2 py-0.5 rounded ${
+                            patternsData.patterns?.vcp?.detected ? 'bg-green-600 text-white' : 'bg-gray-600 text-gray-300'
+                          }`}>
+                            {patternsData.patterns?.vcp?.confidence || 0}%
+                          </span>
+                        </div>
+                        <div className="text-xs space-y-1">
+                          <div className="flex justify-between text-gray-400">
+                            <span>Contractions</span>
+                            <span className="text-gray-300">{patternsData.patterns?.vcp?.contractions_count || 0}</span>
+                          </div>
+                          <div className="flex justify-between text-gray-400">
+                            <span>Tight Base</span>
+                            <span className={patternsData.patterns?.vcp?.tight_base ? 'text-green-400' : 'text-gray-500'}>
+                              {patternsData.patterns?.vcp?.tight_base ? 'Yes' : 'No'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-gray-400">
+                            <span>Status</span>
+                            <span className={`${
+                              patternsData.patterns?.vcp?.status === 'at_pivot' ? 'text-yellow-400' :
+                              patternsData.patterns?.vcp?.status === 'broken_out' ? 'text-green-400' :
+                              'text-gray-300'
+                            }`}>
+                              {patternsData.patterns?.vcp?.status || 'N/A'}
+                            </span>
+                          </div>
+                          {patternsData.patterns?.vcp?.pivot_price && (
+                            <div className="flex justify-between text-gray-400">
+                              <span>Pivot</span>
+                              <span className="text-blue-400 font-mono">${patternsData.patterns.vcp.pivot_price.toFixed(2)}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Cup & Handle Pattern */}
+                      <div className={`rounded-lg p-3 ${
+                        patternsData.patterns?.cupHandle?.detected
+                          ? 'bg-green-900/30 border border-green-600'
+                          : 'bg-gray-700/30 border border-gray-600'
+                      }`}>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium text-gray-200 cursor-help" title="Cup and Handle - William O'Neil's classic pattern. U-shaped cup formation followed by a small handle pullback before breakout.">Cup & Handle</span>
+                          <span className={`text-xs px-2 py-0.5 rounded ${
+                            patternsData.patterns?.cupHandle?.detected ? 'bg-green-600 text-white' : 'bg-gray-600 text-gray-300'
+                          }`}>
+                            {patternsData.patterns?.cupHandle?.confidence || 0}%
+                          </span>
+                        </div>
+                        <div className="text-xs space-y-1">
+                          <div className="flex justify-between text-gray-400">
+                            <span>Cup Depth</span>
+                            <span className="text-gray-300">{patternsData.patterns?.cupHandle?.cup?.depth_pct?.toFixed(1) || 'N/A'}%</span>
+                          </div>
+                          <div className="flex justify-between text-gray-400">
+                            <span>U-Shaped</span>
+                            <span className={patternsData.patterns?.cupHandle?.cup?.u_shaped ? 'text-green-400' : 'text-gray-500'}>
+                              {patternsData.patterns?.cupHandle?.cup?.u_shaped ? 'Yes' : 'No'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-gray-400">
+                            <span>Status</span>
+                            <span className={`${
+                              patternsData.patterns?.cupHandle?.status === 'complete' ? 'text-yellow-400' :
+                              patternsData.patterns?.cupHandle?.status === 'broken_out' ? 'text-green-400' :
+                              'text-gray-300'
+                            }`}>
+                              {patternsData.patterns?.cupHandle?.status || 'N/A'}
+                            </span>
+                          </div>
+                          {patternsData.patterns?.cupHandle?.pivot_price && (
+                            <div className="flex justify-between text-gray-400">
+                              <span>Pivot</span>
+                              <span className="text-blue-400 font-mono">${patternsData.patterns.cupHandle.pivot_price.toFixed(2)}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Flat Base Pattern */}
+                      <div className={`rounded-lg p-3 ${
+                        patternsData.patterns?.flatBase?.detected
+                          ? 'bg-green-900/30 border border-green-600'
+                          : 'bg-gray-700/30 border border-gray-600'
+                      }`}>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium text-gray-200 cursor-help" title="Flat Base - Tight consolidation after a strong uptrend. Price moves sideways in a narrow range as the stock digests gains before continuing higher.">Flat Base</span>
+                          <span className={`text-xs px-2 py-0.5 rounded ${
+                            patternsData.patterns?.flatBase?.detected ? 'bg-green-600 text-white' : 'bg-gray-600 text-gray-300'
+                          }`}>
+                            {patternsData.patterns?.flatBase?.confidence || 0}%
+                          </span>
+                        </div>
+                        <div className="text-xs space-y-1">
+                          <div className="flex justify-between text-gray-400">
+                            <span>Range</span>
+                            <span className="text-gray-300">{patternsData.patterns?.flatBase?.base?.range_pct?.toFixed(1) || 'N/A'}%</span>
+                          </div>
+                          <div className="flex justify-between text-gray-400">
+                            <span>Prior Uptrend</span>
+                            <span className={patternsData.patterns?.flatBase?.prior_uptrend?.has_30pct_move ? 'text-green-400' : 'text-gray-500'}>
+                              {patternsData.patterns?.flatBase?.prior_uptrend?.pct?.toFixed(0) || 'N/A'}%
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-gray-400">
+                            <span>Status</span>
+                            <span className={`${
+                              patternsData.patterns?.flatBase?.status === 'forming' ? 'text-yellow-400' :
+                              patternsData.patterns?.flatBase?.status === 'broken_out' ? 'text-green-400' :
+                              'text-gray-300'
+                            }`}>
+                              {patternsData.patterns?.flatBase?.status || 'N/A'}
+                            </span>
+                          </div>
+                          {patternsData.patterns?.flatBase?.pivot_price && (
+                            <div className="flex justify-between text-gray-400">
+                              <span>Pivot</span>
+                              <span className="text-blue-400 font-mono">${patternsData.patterns.flatBase.pivot_price.toFixed(2)}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Summary */}
+                    {patternsData.summary?.bestPattern && (
+                      <div className="mt-3 p-2 bg-purple-900/30 rounded-lg text-center text-sm">
+                        <span className="text-purple-300">Best Pattern: </span>
+                        <span className="font-semibold text-purple-200">{patternsData.summary.bestPattern}</span>
+                        <span className="text-purple-300"> ({patternsData.summary.bestConfidence}% confidence)</span>
+                      </div>
+                    )}
+
+                    <div className="mt-3 text-xs text-gray-500 text-center">
+                      Data: yfinance (OHLCV) • Quality: algorithmic detection
+                    </div>
+                  </div>
+                )}
+
                 {/* TradingView Widget - Day 34: Supplementary RSI/MACD view */}
                 {analysisResult && (
                   <div className="bg-gray-800 rounded-lg p-4">
@@ -1085,12 +1439,70 @@ function App() {
                   </div>
                 )}
 
-                {/* Score Breakdown - Enhanced with expandable details (Day 23) */}
+                {/* Actionable Recommendation Card - Day 44 (v4.5) */}
+                {categoricalResult && (
+                  (() => {
+                    const recommendation = generateActionableRecommendation(
+                      categoricalResult,
+                      srData,
+                      analysisResult?.currentPrice
+                    );
+                    if (!recommendation) return null;
+
+                    return (
+                      <div className={`rounded-xl p-5 shadow-lg border-2 ${recommendation.bgColor} ${recommendation.borderColor}`}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <span className="text-3xl">{recommendation.icon}</span>
+                            <div>
+                              <div className={`text-xl font-bold ${recommendation.textColor}`}>
+                                {recommendation.action}
+                              </div>
+                              <div className={`text-sm ${recommendation.textColor} opacity-90 mt-1`}>
+                                {recommendation.details}
+                              </div>
+                            </div>
+                          </div>
+                          {recommendation.alertPrice && (
+                            <div className="text-right">
+                              <div className="text-xs text-white/70 uppercase tracking-wide">Alert Price</div>
+                              <div className="text-2xl font-bold text-white">
+                                ${recommendation.alertPrice.toFixed(2)}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        {/* Action type badge */}
+                        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/20">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            recommendation.actionType === 'EXECUTE' ? 'bg-green-400/30 text-green-100' :
+                            recommendation.actionType === 'WATCHLIST' ? 'bg-blue-400/30 text-blue-100' :
+                            recommendation.actionType === 'WAIT' ? 'bg-amber-400/30 text-amber-100' :
+                            recommendation.actionType === 'AVOID' ? 'bg-red-400/30 text-red-100' :
+                            'bg-gray-400/30 text-gray-100'
+                          }`}>
+                            {recommendation.actionType}
+                          </span>
+                          <span className="text-xs text-white/60">
+                            {recommendation.actionType === 'EXECUTE' && 'Entry conditions met'}
+                            {recommendation.actionType === 'WATCHLIST' && 'Monitor for entry opportunity'}
+                            {recommendation.actionType === 'WAIT' && 'Patience required - wait for setup'}
+                            {recommendation.actionType === 'AVOID' && 'Look elsewhere for opportunities'}
+                            {recommendation.actionType === 'RESEARCH' && 'More analysis needed'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()
+                )}
+
+                {/* Categorical Assessment - v4.5 (Day 44) */}
+                {categoricalResult && (
                 <div className="bg-gray-800 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold mb-4 text-blue-400">📊 Score Breakdown <span className="text-xs text-gray-500 font-normal ml-2">Click to expand</span></h3>
+                  <h3 className="text-lg font-semibold mb-4 text-blue-400">📊 Assessment <span className="text-xs text-gray-500 font-normal ml-2">Click to expand</span></h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {/* Technical Card */}
-                    <div 
+                    <div
                       className={`bg-gray-700/50 rounded-lg p-4 cursor-pointer transition-all hover:bg-gray-700 ${expandedScore === 'technical' ? 'ring-2 ring-blue-500' : ''}`}
                       onClick={() => setExpandedScore(expandedScore === 'technical' ? null : 'technical')}
                     >
@@ -1098,12 +1510,15 @@ function App() {
                         <div className="text-gray-400 text-sm">Technical</div>
                         <span className="text-gray-500 text-xs">{expandedScore === 'technical' ? '▼' : '▶'}</span>
                       </div>
-                      <div className={`text-2xl font-bold ${getScoreColor(analysisResult.scores?.technical || 0, 40)}`}>
-                        {analysisResult.scores?.technical || 0}/40
+                      <div className={`text-xl font-bold ${
+                        categoricalResult.technical.assessment === 'Strong' ? 'text-green-400' :
+                        categoricalResult.technical.assessment === 'Decent' ? 'text-yellow-400' : 'text-red-400'
+                      }`}>
+                        {categoricalResult.technical.assessment}
                       </div>
                     </div>
                     {/* Fundamental Card */}
-                    <div 
+                    <div
                       className={`bg-gray-700/50 rounded-lg p-4 cursor-pointer transition-all hover:bg-gray-700 ${expandedScore === 'fundamental' ? 'ring-2 ring-blue-500' : ''}`}
                       onClick={() => setExpandedScore(expandedScore === 'fundamental' ? null : 'fundamental')}
                     >
@@ -1111,12 +1526,16 @@ function App() {
                         <div className="text-gray-400 text-sm">Fundamental</div>
                         <span className="text-gray-500 text-xs">{expandedScore === 'fundamental' ? '▼' : '▶'}</span>
                       </div>
-                      <div className={`text-2xl font-bold ${getScoreColor(analysisResult.scores?.fundamental || 0, 20)}`}>
-                        {analysisResult.scores?.fundamental || 0}/20
+                      <div className={`text-xl font-bold ${
+                        categoricalResult.fundamental.assessment === 'Strong' ? 'text-green-400' :
+                        categoricalResult.fundamental.assessment === 'Decent' ? 'text-yellow-400' :
+                        categoricalResult.fundamental.assessment === 'N/A' || categoricalResult.fundamental.assessment === 'Unknown' ? 'text-gray-400' : 'text-red-400'
+                      }`}>
+                        {categoricalResult.fundamental.assessment}
                       </div>
                     </div>
                     {/* Sentiment Card */}
-                    <div 
+                    <div
                       className={`bg-gray-700/50 rounded-lg p-4 cursor-pointer transition-all hover:bg-gray-700 ${expandedScore === 'sentiment' ? 'ring-2 ring-blue-500' : ''}`}
                       onClick={() => setExpandedScore(expandedScore === 'sentiment' ? null : 'sentiment')}
                     >
@@ -1124,12 +1543,18 @@ function App() {
                         <div className="text-gray-400 text-sm">Sentiment</div>
                         <span className="text-gray-500 text-xs">{expandedScore === 'sentiment' ? '▼' : '▶'}</span>
                       </div>
-                      <div className={`text-2xl font-bold ${getScoreColor(analysisResult.scores?.sentiment || 0, 10)}`}>
-                        {analysisResult.scores?.sentiment || 0}/10
+                      <div className={`text-xl font-bold ${
+                        categoricalResult.sentiment.assessment === 'Strong' ? 'text-green-400' :
+                        categoricalResult.sentiment.assessment === 'Neutral' ? 'text-gray-300' : 'text-red-400'
+                      }`}>
+                        {categoricalResult.sentiment.assessment}
                       </div>
+                      {fearGreedData && (
+                        <div className="text-xs text-gray-500 mt-1">F&G: {fearGreedData.value}</div>
+                      )}
                     </div>
                     {/* Risk/Macro Card */}
-                    <div 
+                    <div
                       className={`bg-gray-700/50 rounded-lg p-4 cursor-pointer transition-all hover:bg-gray-700 ${expandedScore === 'risk' ? 'ring-2 ring-blue-500' : ''}`}
                       onClick={() => setExpandedScore(expandedScore === 'risk' ? null : 'risk')}
                     >
@@ -1137,8 +1562,11 @@ function App() {
                         <div className="text-gray-400 text-sm">Risk/Macro</div>
                         <span className="text-gray-500 text-xs">{expandedScore === 'risk' ? '▼' : '▶'}</span>
                       </div>
-                      <div className={`text-2xl font-bold ${getScoreColor(analysisResult.scores?.risk || 0, 5)}`}>
-                        {analysisResult.scores?.risk || 0}/5
+                      <div className={`text-xl font-bold ${
+                        categoricalResult.riskMacro.assessment === 'Favorable' ? 'text-green-400' :
+                        categoricalResult.riskMacro.assessment === 'Neutral' ? 'text-yellow-400' : 'text-red-400'
+                      }`}>
+                        {categoricalResult.riskMacro.assessment}
                       </div>
                     </div>
                   </div>
@@ -1146,176 +1574,123 @@ function App() {
                   {/* Expanded Details Panel */}
                   {expandedScore && (
                     <div className="mt-4 bg-gray-700/30 rounded-lg p-4 border border-gray-600">
-                      {expandedScore === 'technical' && analysisResult.breakdown?.technical?.details && (
+                      {expandedScore === 'technical' && categoricalResult.technical && (
                         <div className="space-y-3">
-                          <div className="text-sm font-semibold text-blue-300 mb-3">📈 Technical Breakdown</div>
-                          {Object.entries(analysisResult.breakdown.technical.details).map(([key, data]) => {
-                            const info = getSubScoreInfo('technical', key, data);
-                            const pct = (data.score / data.max) * 100;
-                            return (
-                              <div key={key} className="flex items-center gap-3">
-                                <span className="text-lg">{info.icon}</span>
-                                <div className="flex-1">
-                                  <div className="flex justify-between text-sm">
-                                    <span className="text-gray-300">{info.label}</span>
-                                    <span className={`font-mono ${data.score === data.max ? 'text-green-400' : data.score === 0 ? 'text-red-400' : 'text-yellow-400'}`}>
-                                      {data.score}/{data.max}
-                                    </span>
-                                  </div>
-                                  <div className="w-full bg-gray-600 rounded-full h-2 mt-1">
-                                    <div 
-                                      className={`h-2 rounded-full ${pct >= 80 ? 'bg-green-500' : pct >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                                      style={{ width: `${pct}%` }}
-                                    ></div>
-                                  </div>
-                                  <div className="text-xs text-gray-500 mt-1">{info.desc}</div>
-                                </div>
-                              </div>
-                            );
-                          })}
+                          <div className="text-sm font-semibold text-blue-300 mb-3">📈 Technical Assessment: {categoricalResult.technical.assessment}</div>
+                          <ul className="list-disc list-inside space-y-1 text-gray-400 text-sm">
+                            {categoricalResult.technical.reasons.map((reason, idx) => (
+                              <li key={idx}>{reason}</li>
+                            ))}
+                          </ul>
+                          {categoricalResult.technical.data && (
+                            <div className="grid grid-cols-2 gap-2 text-xs text-gray-500 mt-3 pt-2 border-t border-gray-600">
+                              <div>Trend Template: {categoricalResult.technical.data.trendTemplateScore}</div>
+                              <div>RSI: {categoricalResult.technical.data.rsi?.toFixed(1)}</div>
+                              <div>RS vs SPY: {categoricalResult.technical.data.rs52Week?.toFixed(2)}x</div>
+                            </div>
+                          )}
+                          <div className="text-xs text-gray-500 mt-2">Data: yfinance + Pattern Detection</div>
+                        </div>
+                      )}
+                      {expandedScore === 'fundamental' && categoricalResult.fundamental && (
+                        <div className="space-y-3">
+                          <div className="text-sm font-semibold text-blue-300 mb-3">💼 Fundamental Assessment: {categoricalResult.fundamental.assessment}</div>
+                          <ul className="list-disc list-inside space-y-1 text-gray-400 text-sm">
+                            {categoricalResult.fundamental.reasons.map((reason, idx) => (
+                              <li key={idx}>{reason}</li>
+                            ))}
+                          </ul>
                           <div className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-600">
-                            Data: yfinance • Quality: full
+                            Data: {categoricalResult.fundamental.data?.dataSource || 'Defeat Beta'}
                           </div>
                         </div>
                       )}
-                      {expandedScore === 'fundamental' && analysisResult.breakdown?.fundamental?.details && (
+                      {expandedScore === 'sentiment' && categoricalResult.sentiment && (
                         <div className="space-y-3">
-                          <div className="text-sm font-semibold text-blue-300 mb-3">💼 Fundamental Breakdown</div>
-                          {/* Day 25: ETF Note */}
-                          {analysisResult.breakdown.fundamental.isETF && (
-                            <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-3 text-sm text-blue-300 mb-3">
-                              📊 {analysisResult.breakdown.fundamental.etfNote || 'This is an ETF - fundamental scoring does not apply.'}
+                          <div className="text-sm font-semibold text-blue-300 mb-3">📰 Sentiment Assessment: {categoricalResult.sentiment.assessment}</div>
+                          <ul className="list-disc list-inside space-y-1 text-gray-400 text-sm">
+                            {categoricalResult.sentiment.reasons.map((reason, idx) => (
+                              <li key={idx}>{reason}</li>
+                            ))}
+                          </ul>
+                          {fearGreedData && (
+                            <div className="mt-3 pt-2 border-t border-gray-600">
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-400 text-sm">Fear & Greed Index:</span>
+                                <span className={`text-lg font-bold ${
+                                  fearGreedData.value >= 55 && fearGreedData.value <= 75 ? 'text-green-400' :
+                                  fearGreedData.value >= 45 && fearGreedData.value < 55 ? 'text-gray-300' : 'text-red-400'
+                                }`}>{fearGreedData.value}</span>
+                                <span className="text-gray-500 text-sm">({fearGreedData.rating})</span>
+                              </div>
+                              <div className="w-full bg-gray-600 rounded-full h-3 mt-2">
+                                <div
+                                  className={`h-3 rounded-full ${
+                                    fearGreedData.value < 25 ? 'bg-red-500' :
+                                    fearGreedData.value < 45 ? 'bg-orange-500' :
+                                    fearGreedData.value < 55 ? 'bg-gray-400' :
+                                    fearGreedData.value < 75 ? 'bg-green-500' : 'bg-red-500'
+                                  }`}
+                                  style={{ width: `${fearGreedData.value}%` }}
+                                ></div>
+                              </div>
+                              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>Extreme Fear</span>
+                                <span>Neutral</span>
+                                <span>Extreme Greed</span>
+                              </div>
                             </div>
                           )}
-                          {/* Day 31: Data Unavailable Warning */}
-                          {(analysisResult.breakdown.fundamental.dataQuality === 'unavailable' ||
-                            analysisResult.breakdown.fundamental.dataQuality === 'fallback') && (
-                            <div className={`rounded-lg p-3 text-sm mb-3 ${
-                              analysisResult.breakdown.fundamental.dataQuality === 'unavailable'
-                                ? 'bg-red-900/30 border border-red-700 text-red-300'
-                                : 'bg-yellow-900/30 border border-yellow-700 text-yellow-300'
-                            }`}>
-                              <div className="font-semibold mb-1">
-                                {analysisResult.breakdown.fundamental.dataQuality === 'unavailable' ? '⚠️ Data Unavailable' : '📡 Using Fallback Data'}
-                              </div>
-                              <div className="text-xs opacity-90">
-                                {analysisResult.breakdown.fundamental.dataUnavailableReason ||
-                                  'Fundamental data temporarily unavailable. Try refreshing or check back later.'}
-                              </div>
-                            </div>
-                          )}
-                          {/* Day 25: Extreme Value Context */}
-                          {analysisResult.breakdown.fundamental.extremeValueContext?.length > 0 && (
-                            <div className="bg-amber-900/30 border border-amber-700 rounded-lg p-3 text-sm mb-3">
-                              <div className="text-amber-300 font-semibold mb-2">⚠️ Unusual Values Detected</div>
-                              {analysisResult.breakdown.fundamental.extremeValueContext.map((ctx, idx) => (
-                                <div key={idx} className="text-amber-200 text-xs mb-1">
-                                  <strong>{ctx.metric}:</strong> {ctx.explanation}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          {Object.entries(analysisResult.breakdown.fundamental.details).map(([key, data]) => {
-                            const info = getSubScoreInfo('fundamental', key, data);
-                            const pct = (data.score / data.max) * 100;
-                            return (
-                              <div key={key} className="flex items-center gap-3">
-                                <span className="text-lg">{info.icon}</span>
-                                <div className="flex-1">
-                                  <div className="flex justify-between text-sm">
-                                    <span className="text-gray-300">{info.label}</span>
-                                    <span className="text-gray-400 text-xs">
-                                      {data.value !== null && data.value !== undefined ?
-                                        (typeof data.value === 'number' ? data.value.toFixed(1) : data.value) : 'N/A'}
-                                    </span>
-                                    <span className={`font-mono ${data.score === data.max ? 'text-green-400' : data.score === 0 ? 'text-red-400' : 'text-yellow-400'}`}>
-                                      {data.score}/{data.max}
-                                    </span>
-                                  </div>
-                                  <div className="w-full bg-gray-600 rounded-full h-2 mt-1">
-                                    <div
-                                      className={`h-2 rounded-full ${pct >= 80 ? 'bg-green-500' : pct >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                                      style={{ width: `${pct}%` }}
-                                    ></div>
-                                  </div>
-                                  <div className="text-xs text-gray-500 mt-1">{info.desc}</div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                          <div className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-600">
-                            Data: {analysisResult.breakdown.fundamental.dataSource || 'yfinance'} • Quality: {analysisResult.breakdown.fundamental.dataQuality || 'unknown'}
-                          </div>
+                          <div className="text-xs text-gray-500 mt-2">Data: {fearGreedData?.source || 'CNN Fear & Greed Index'}</div>
                         </div>
                       )}
-                      {expandedScore === 'sentiment' && (
+                      {expandedScore === 'risk' && categoricalResult.riskMacro && (
                         <div className="space-y-3">
-                          <div className="text-sm font-semibold text-blue-300 mb-3">📰 Sentiment Breakdown</div>
-                          <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-3 text-sm text-yellow-300">
-                            ⚠️ Sentiment is currently a placeholder (5/10 default). Real news/social sentiment analysis coming in v4.4.
-                          </div>
-                          <div className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-600">
-                            Data: none • Quality: <span className="text-yellow-500">placeholder</span>
-                          </div>
-                        </div>
-                      )}
-                      {expandedScore === 'risk' && (
-                        <div className="space-y-3">
-                          <div className="text-sm font-semibold text-blue-300 mb-3">⚡ Risk/Macro Breakdown</div>
-                          <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div className="text-sm font-semibold text-blue-300 mb-3">⚡ Risk/Macro Assessment: {categoricalResult.riskMacro.assessment}</div>
+                          <ul className="list-disc list-inside space-y-1 text-gray-400 text-sm">
+                            {categoricalResult.riskMacro.reasons.map((reason, idx) => (
+                              <li key={idx}>{reason}</li>
+                            ))}
+                          </ul>
+                          <div className="grid grid-cols-2 gap-4 text-sm mt-3 pt-2 border-t border-gray-600">
                             <div>
-                              <span className="text-gray-400">VIX Level:</span>
-                              <span className="ml-2 text-gray-200">
-                                {analysisResult.breakdown?.risk?.details?.vix?.value?.toFixed(1) || 'N/A'}
-                              </span>
-                              <span className="ml-2 text-xs text-gray-500">
-                                ({analysisResult.breakdown?.risk?.details?.vix?.score || 0}/{analysisResult.breakdown?.risk?.details?.vix?.max || 2} pts)
+                              <span className="text-gray-400">VIX:</span>
+                              <span className={`ml-2 ${
+                                categoricalResult.riskMacro.data?.vix < 20 ? 'text-green-400' :
+                                categoricalResult.riskMacro.data?.vix <= 30 ? 'text-yellow-400' : 'text-red-400'
+                              }`}>
+                                {categoricalResult.riskMacro.data?.vix?.toFixed(1) || 'N/A'}
                               </span>
                             </div>
                             <div>
-                              <span className="text-gray-400">S&P Regime:</span>
-                              <span className={`ml-2 ${analysisResult.breakdown?.risk?.details?.spyRegime?.aboveSma200 ? 'text-green-400' : 'text-red-400'}`}>
-                                {analysisResult.breakdown?.risk?.details?.spyRegime?.aboveSma200 ? 'Bullish' : 'Bearish'}
-                              </span>
-                              <span className="ml-2 text-xs text-gray-500">
-                                ({analysisResult.breakdown?.risk?.details?.spyRegime?.score || 0}/2 pts)
+                              <span className="text-gray-400">SPY Regime:</span>
+                              <span className={`ml-2 ${categoricalResult.riskMacro.data?.spyAbove200EMA ? 'text-green-400' : 'text-red-400'}`}>
+                                {categoricalResult.riskMacro.data?.spyAbove200EMA ? 'Bull' : 'Bear'}
                               </span>
                             </div>
                           </div>
-                          <div className="text-sm">
-                            <span className="text-gray-400">Market Breadth:</span>
-                            <span className="ml-2 text-gray-200">Neutral</span>
-                            <span className="ml-2 text-xs text-gray-500">(placeholder - 1/1 pts)</span>
-                          </div>
-                          <div className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-600">
-                            Data: yfinance (VIX, SPY) • Quality: partial <span className="text-yellow-500">(breadth placeholder)</span>
-                          </div>
+                          <div className="text-xs text-gray-500 mt-2">Data: yfinance (VIX, SPY)</div>
                         </div>
                       )}
                     </div>
                   )}
 
-                  {/* Plain English Summary */}
-                  {generateScoreExplanation(analysisResult) && (
-                    <div className={`mt-4 p-4 rounded-lg text-sm ${
-                      generateScoreExplanation(analysisResult).type === 'positive' ? 'bg-green-900/20 border border-green-800' :
-                      generateScoreExplanation(analysisResult).type === 'negative' ? 'bg-red-900/20 border border-red-800' :
-                      'bg-yellow-900/20 border border-yellow-800'
-                    }`}>
-                      <div className="font-semibold mb-2 text-gray-200">
-                        💡 Why This Score?
-                      </div>
-                      <ul className="list-disc list-inside space-y-1 text-gray-400">
-                        {generateScoreExplanation(analysisResult).reasons.map((reason, idx) => (
-                          <li key={idx}>{reason}</li>
-                        ))}
-                      </ul>
-                      <div className="mt-2 text-gray-300 font-medium">
-                        {generateScoreExplanation(analysisResult).summary}
-                      </div>
+                  {/* Categorical Verdict Summary */}
+                  <div className={`mt-4 p-4 rounded-lg text-sm ${
+                    categoricalResult.verdict.verdict === 'BUY' ? 'bg-green-900/20 border border-green-800' :
+                    categoricalResult.verdict.verdict === 'AVOID' ? 'bg-red-900/20 border border-red-800' :
+                    'bg-yellow-900/20 border border-yellow-800'
+                  }`}>
+                    <div className="font-semibold mb-2 text-gray-200">
+                      💡 Why This Verdict?
                     </div>
-                  )}
+                    <p className="text-gray-400 mb-2">{categoricalResult.verdict.reason}</p>
+                    <div className="text-xs text-gray-500">
+                      Criteria: Need 2+ Strong categories with Favorable/Neutral risk for BUY
+                    </div>
+                  </div>
                 </div>
+                )}
 
                 {/* Technical Indicators */}
                 <div className="bg-gray-800 rounded-lg p-6">
@@ -1482,17 +1857,22 @@ function App() {
                   </p>
                 </div>
 
-                {/* Compare with Full Score */}
+                {/* Compare with Full Assessment */}
                 <div className="bg-gray-800 rounded-lg p-4">
                   <div className="flex justify-between items-center">
                     <div>
-                      <span className="text-gray-400 text-sm">Full System Score (for comparison):</span>
+                      <span className="text-gray-400 text-sm">Full Assessment (for comparison):</span>
                       <span className={`ml-2 font-bold ${
-                        analysisResult.totalScore >= 60 ? 'text-green-400' :
-                        analysisResult.totalScore >= 40 ? 'text-yellow-400' : 'text-red-400'
+                        categoricalResult?.verdict?.verdict === 'BUY' ? 'text-green-400' :
+                        categoricalResult?.verdict?.verdict === 'HOLD' ? 'text-yellow-400' : 'text-red-400'
                       }`}>
-                        {analysisResult.totalScore}/75 → {analysisResult.verdict?.verdict}
+                        {categoricalResult?.verdict?.verdict || analysisResult.verdict?.verdict}
                       </span>
+                      {categoricalResult && (
+                        <span className="ml-2 text-xs text-gray-500">
+                          (T:{categoricalResult.technical?.assessment?.charAt(0)} F:{categoricalResult.fundamental?.assessment?.charAt(0)} S:{categoricalResult.sentiment?.assessment?.charAt(0)} R:{categoricalResult.riskMacro?.assessment?.charAt(0)})
+                        </span>
+                      )}
                     </div>
                     <button
                       onClick={() => setAnalysisView('full')}

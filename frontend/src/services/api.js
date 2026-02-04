@@ -7,6 +7,8 @@
  * v2.2: Added Support & Resistance endpoint
  * v2.3: Added Validation Engine endpoints (Day 17)
  * v2.4: Added Cache Management endpoints (Day 29)
+ * v2.5: Added Pattern Detection endpoint (Day 44)
+ * v2.6: Added Fear & Greed Index endpoint (Day 44 - v4.5 Categorical Assessment)
  */
 
 const API_BASE_URL = 'http://localhost:5001/api';
@@ -354,19 +356,22 @@ export async function fetchSupportResistance(ticker) {
 }
 
 /**
- * Fetch analysis data WITH Support & Resistance
- * Enhanced version that includes S&R levels in parallel
+ * Fetch analysis data WITH Support & Resistance + Pattern Detection + Fear & Greed
+ * Enhanced version that includes S&R levels, patterns, and sentiment in parallel
+ * v4.5: Added Fear & Greed Index for categorical assessment
  */
 export async function fetchFullAnalysisData(ticker) {
   try {
-    const [stockData, fundamentals, spyData, vixData, srData] = await Promise.all([
+    const [stockData, fundamentals, spyData, vixData, srData, patterns, fearGreed] = await Promise.all([
       fetchStockData(ticker),
       fetchFundamentals(ticker),
       fetchSPYData(),
       fetchVIXData(),
-      fetchSupportResistance(ticker)
+      fetchSupportResistance(ticker),
+      fetchPatterns(ticker),
+      fetchFearGreed()
     ]);
-    
+
     if (fundamentals) {
       stockData.fundamentals = {
         ...stockData.fundamentals,
@@ -375,15 +380,17 @@ export async function fetchFullAnalysisData(ticker) {
         enrichedSource: fundamentals.source
       };
     }
-    
+
     return {
       stock: stockData,
       spy: spyData,
       vix: vixData,
       fundamentals: fundamentals,
-      sr: srData
+      sr: srData,
+      patterns: patterns,
+      fearGreed: fearGreed
     };
-    
+
   } catch (error) {
     console.error('Error fetching full analysis data:', error);
     throw error;
@@ -555,5 +562,98 @@ export async function fetchDataProvenance(ticker) {
   } catch (error) {
     console.error('Error fetching data provenance:', error);
     return null;
+  }
+}
+
+// ============================================
+// PATTERN DETECTION (Day 44 - v4.2)
+// ============================================
+
+/**
+ * Fetch pattern detection results for a ticker
+ * Detects VCP, Cup & Handle, and Flat Base patterns
+ * Also includes Minervini's Trend Template check
+ *
+ * @param {string} ticker - Stock ticker symbol
+ * @returns {object} - Pattern detection results
+ */
+export async function fetchPatterns(ticker) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/patterns/${ticker.toUpperCase()}`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || `Failed to fetch patterns for ${ticker}`);
+    }
+
+    const data = await response.json();
+
+    return {
+      ticker: data.ticker,
+      dataPoints: data.data_points,
+      analysisDate: data.analysis_date,
+      patterns: {
+        vcp: data.patterns.vcp,
+        cupHandle: data.patterns.cup_handle,
+        flatBase: data.patterns.flat_base
+      },
+      summary: {
+        patternsDetected: data.summary.patterns_detected,
+        count: data.summary.count,
+        bestPattern: data.summary.best_pattern,
+        bestConfidence: data.summary.best_confidence
+      },
+      trendTemplate: data.trend_template
+    };
+
+  } catch (error) {
+    console.error('Error fetching patterns:', error);
+    return null;
+  }
+}
+
+// ============================================
+// FEAR & GREED INDEX (Day 44 - v4.5 Categorical Assessment)
+// ============================================
+
+/**
+ * Fetch CNN Fear & Greed Index for sentiment assessment
+ * Part of v4.5 Categorical Assessment System
+ *
+ * @returns {object} - Fear & Greed data with value, rating, assessment
+ */
+export async function fetchFearGreed() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/fear-greed`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch Fear & Greed Index');
+    }
+
+    const data = await response.json();
+
+    return {
+      value: data.value,
+      rating: data.rating,
+      assessment: data.assessment,
+      timestamp: data.timestamp,
+      previousClose: data.previousClose,
+      source: data.source,
+      error: data.error || null
+    };
+
+  } catch (error) {
+    console.error('Error fetching Fear & Greed Index:', error);
+    // Return neutral fallback on error
+    return {
+      value: 50,
+      rating: 'Neutral',
+      assessment: 'Neutral',
+      timestamp: null,
+      previousClose: null,
+      source: 'default (error fallback)',
+      error: error.message
+    };
   }
 }

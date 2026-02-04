@@ -1,5 +1,5 @@
 # Swing Trade Analyzer - Backend Dependencies
-# Last Updated: Day 16 (December 22, 2025)
+# Last Updated: Day 44 (February 4, 2026)
 
 # Core Framework
 flask>=2.0.0
@@ -15,6 +15,7 @@ tradingview-screener==3.0.0
 # Data Processing
 pandas>=1.5.0
 numpy>=1.21.0
+scipy>=1.9.0  # Day 44: Pattern detection (argrelextrema)
 
 # Utilities
 requests>=2.28.0

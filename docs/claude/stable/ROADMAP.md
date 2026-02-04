@@ -2,12 +2,12 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 42 (February 2, 2026)
+> **Last Updated:** Day 44 (February 4, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v3.9 (Backend v2.13)
+## Current Version: v4.0 (Backend v2.15)
 
 ---
 
@@ -33,6 +33,7 @@
 | v3.7 | Data Sources tab (transparency UI) | Day 38 |
 | v3.8 | Dual Entry Strategy UI | Day 39-40 |
 | v3.9 | Data source labels, Defeat Beta error handling | Day 42 |
+| v4.0 | Pattern Detection (VCP, Cup-Handle, Flat Base) + Categorical Assessment | Day 44 |
 
 ### S&R Improvements (Complete)
 | Week | Task | Status |
@@ -83,11 +84,14 @@
 - **Technology:** TradingView Lightweight Charts (free, open source)
 - **Effort:** Medium (4-6 hours)
 
-### v4.2: Pattern Detection
-- **Priority:** MEDIUM
-- **Description:** VCP, cup-and-handle, flat base patterns
-- **Why:** Better entry timing for swing trades
-- **Effort:** Medium
+### v4.2: Pattern Detection ✅ COMPLETED (Day 44)
+- **Status:** Implemented in v4.0
+- **Features:**
+  - VCP (Volatility Contraction Pattern) detection
+  - Cup & Handle pattern detection
+  - Flat Base pattern detection
+  - Minervini's 8-point Trend Template
+- **Files:** `backend/pattern_detection.py`, `/api/patterns/<ticker>` endpoint
 
 ### v4.3: Options Tab
 - **Priority:** LOW
@@ -95,23 +99,22 @@
 - **Blocker:** Needs Greeks calculation, complex data sourcing
 - **Research:** `docs/research/OPTIONS_TAB_FEASIBILITY_ANALYSIS.md`
 
-### v4.4: Sentiment Integration
-- **Priority:** MEDIUM (tracked since Day 1)
-- **Description:** Replace placeholder 5/10 sentiment with real data
-- **Current State:** Hardcoded 5/10 (13% of score is fake)
-- **Solution Options:**
-  1. Finnhub free tier (news sentiment)
-  2. Fear & Greed Index API
-  3. Earnings proximity flag
-- **UI:** Now shows "placeholder" label (Day 42)
+### v4.4: Sentiment Integration ✅ COMPLETED (Day 44)
+- **Status:** Implemented via Fear & Greed Index
+- **Solution Used:** CNN Fear & Greed Index (free API, no key required)
+- **Endpoint:** `/api/fear-greed` returns value (0-100), rating, assessment
+- **Integration:** Part of v4.5 Categorical Assessment System
 
-### v4.5: Scoring Logic Review + Market Breadth
-- **Priority:** MEDIUM (tracked since Day 1)
-- **Description:**
-  1. Replace Market Breadth placeholder (1/1 pts)
-  2. Re-evaluate 75-point weights based on backtest data
-- **Current State:** Market Breadth hardcoded (1% of score)
-- **Research Finding:** Real breadth filter is HIGH ROI (Day 34)
+### v4.5: Categorical Assessment System ✅ COMPLETED (Day 44)
+- **Status:** Replaced 75-point numerical scoring
+- **Key Finding:** Score-to-return correlation = 0.011 (essentially ZERO)
+- **New Approach:** Categorical assessments (Strong/Decent/Weak)
+  - Technical: Based on Trend Template + RSI + RS
+  - Fundamental: Based on ROE, Revenue Growth, Debt/Equity
+  - Sentiment: Based on Fear & Greed Index (55-75 = Strong)
+  - Risk/Macro: Based on VIX (<20) + SPY regime (>200 EMA)
+- **Verdict Logic:** Need 2+ Strong categories with Favorable/Neutral risk for BUY
+- **Files:** `frontend/src/utils/categoricalAssessment.js`
 
 ---
 
@@ -135,17 +138,25 @@
 
 ---
 
-## KEY INSIGHTS (Day 27 Philosophy)
+## KEY INSIGHTS (Day 27 Philosophy + Day 44 Update)
 
 From backtesting:
 - **Entry signals = ~10% of results**
 - **Position sizing = ~90% of results**
+- Score-to-return correlation = 0.011 (essentially ZERO)
 - 75-point scoring achieves ~50% win rate (essentially random)
+
+**Day 44 Response (v4.5 Categorical Assessment):**
+- Replaced 75-point numerical scoring with categorical assessments
+- System works as a FILTER, not a RANKER
+- Categories (Strong/Decent/Weak) honestly represent this reality
+- Real Fear & Greed Index replaces placeholder sentiment
 
 **Current Focus:**
 - Better R:R through dual entry strategy
 - Risk reduction through proper stops
 - System measurement through forward testing
+- Categorical filtering over numerical ranking
 
 ---
 
@@ -154,6 +165,7 @@ From backtesting:
 | Day | Changes |
 |-----|---------|
 | 42 | Created ROADMAP.md, added v4.4/v4.5 for placeholders |
+| 44 | v4.2 Pattern Detection complete, v4.4 Sentiment (Fear & Greed) complete, v4.5 Categorical Assessment complete |
 
 ---
 

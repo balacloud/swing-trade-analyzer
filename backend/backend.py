@@ -1,5 +1,5 @@
 """
-Swing Trade Analyzer Backend - v2.13
+Swing Trade Analyzer Backend - v2.15
 Flask API server with yfinance (prices) + Defeat Beta (fundamentals) + TradingView Screener (scanning) + S&R Engine
 
 Day 6: Fixed numpy type serialization issues
@@ -11,9 +11,12 @@ Day 20: Added TradingView scan endpoint, fixed API syntax for tradingview-screen
 Day 25: Added auto-refresh cache for Defeat Beta data (TTL-based)
 Day 36: Upgraded to SQLite persistent cache (survives restarts, intelligent TTL)
 Day 39: Added local RSI, ADX, and 4H RSI calculations (Dual Entry Strategy)
+Day 44: Added Pattern Detection endpoint (VCP, Cup & Handle, Flat Base)
+Day 44: Added Fear & Greed Index endpoint + Categorical Assessment System (v4.5)
 """
 
 import os
+import requests
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import yfinance as yf
@@ -62,6 +65,15 @@ try:
 except ImportError:
     SR_ENGINE_AVAILABLE = False
     print("⚠️  S&R Engine not available - place support_resistance.py in backend folder")
+
+# Try to import pattern_detection engine - graceful fallback
+try:
+    from pattern_detection import detect_patterns
+    PATTERN_DETECTION_AVAILABLE = True
+    print("✅ Pattern Detection Engine loaded successfully")
+except ImportError:
+    PATTERN_DETECTION_AVAILABLE = False
+    print("⚠️  Pattern Detection not available - place pattern_detection.py in backend folder")
 
 app = Flask(__name__)
 CORS(app)
@@ -1212,6 +1224,85 @@ def get_vix_data():
 
 
 # ============================================
+# FEAR & GREED INDEX ENDPOINT (Day 44 - v4.5)
+# CNN Fear & Greed Index for real sentiment data
+# ============================================
+
+@app.route('/api/fear-greed', methods=['GET'])
+def get_fear_greed():
+    """
+    Fetch CNN Fear & Greed Index for sentiment assessment
+
+    Returns:
+        value: 0-100 (0=Extreme Fear, 100=Extreme Greed)
+        rating: Text description (Extreme Fear, Fear, Neutral, Greed, Extreme Greed)
+        timestamp: When the data was last updated
+    """
+    try:
+        url = "https://production.dataviz.cnn.io/index/fearandgreed/graphdata"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/json',
+            'Referer': 'https://www.cnn.com/markets/fear-and-greed'
+        }
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
+        # Extract current Fear & Greed value
+        current = data.get('fear_and_greed', {})
+        value = current.get('score', 50)
+        rating = current.get('rating', 'Neutral')
+        timestamp = current.get('timestamp')
+
+        # Get previous close for comparison
+        historical = data.get('fear_and_greed_historical', {})
+        previous_close = historical.get('previous_close')
+
+        # Determine assessment category for v4.5 categorical system
+        # Strong: 55-75 (Greed but not extreme - good for momentum)
+        # Neutral: 45-55 (Balanced sentiment)
+        # Weak: <45 (Fear - pullback setups risky) OR >75 (Extreme greed)
+        if value >= 55 and value <= 75:
+            assessment = 'Strong'  # Greed but not extreme
+        elif value >= 45 and value < 55:
+            assessment = 'Neutral'  # Balanced
+        else:
+            assessment = 'Weak'  # Fear (<45) or Extreme greed (>75)
+
+        return jsonify({
+            'value': round(float(value), 1),
+            'rating': rating,
+            'assessment': assessment,
+            'timestamp': timestamp,
+            'previousClose': round(float(previous_close), 1) if previous_close else None,
+            'source': 'CNN Fear & Greed Index'
+        })
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching Fear & Greed Index: {e}")
+        # Return neutral fallback on error
+        return jsonify({
+            'value': 50,
+            'rating': 'Neutral',
+            'assessment': 'Neutral',
+            'timestamp': None,
+            'previousClose': None,
+            'source': 'CNN Fear & Greed Index',
+            'error': str(e)
+        })
+    except Exception as e:
+        print(f"Error processing Fear & Greed data: {e}")
+        traceback.print_exc()
+        return jsonify({
+            'value': 50,
+            'rating': 'Neutral',
+            'assessment': 'Neutral',
+            'error': str(e)
+        })
+
+
+# ============================================
 # SUPPORT & RESISTANCE ENDPOINT (Day 13)
 # Day 15 Fix: Added proximity filter for actionable levels
 # ============================================
@@ -1405,6 +1496,83 @@ def get_support_resistance(ticker):
         print(f"Error computing S&R for {ticker}: {e}")
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
+
+
+# ============================================
+# PATTERN DETECTION ENDPOINT (Day 44 - v4.2)
+# Detects VCP, Cup & Handle, Flat Base patterns
+# ============================================
+
+@app.route('/api/patterns/<ticker>', methods=['GET'])
+def get_patterns(ticker):
+    """
+    Detect chart patterns for a ticker.
+
+    Patterns detected:
+    1. VCP (Volatility Contraction Pattern) - Mark Minervini
+    2. Cup and Handle - William O'Neil
+    3. Flat Base - Consolidation after uptrend
+
+    Also includes Minervini's Trend Template check (8 criteria).
+
+    Returns:
+    - patterns: {vcp, cup_handle, flat_base} with detection results
+    - summary: Patterns detected, best pattern, confidence
+    - trend_template: Minervini's 8 criteria check
+    """
+    if not PATTERN_DETECTION_AVAILABLE:
+        return jsonify({
+            'error': 'Pattern Detection not available',
+            'message': 'Place pattern_detection.py in backend folder'
+        }), 503
+
+    try:
+        ticker = ticker.upper()
+        print(f"📊 Detecting patterns for {ticker}...")
+
+        # Fetch price data from yfinance (need 1+ year for good detection)
+        stock = yf.Ticker(ticker)
+        hist = stock.history(period='2y')
+
+        if hist.empty:
+            return jsonify({'error': f'No data found for {ticker}'}), 404
+
+        if len(hist) < 100:
+            return jsonify({
+                'error': f'Insufficient data for {ticker}',
+                'message': f'Need at least 100 bars, got {len(hist)}'
+            }), 400
+
+        # Prepare DataFrame for pattern detection
+        df = pd.DataFrame({
+            'Open': hist['Open'].values,
+            'High': hist['High'].values,
+            'Low': hist['Low'].values,
+            'Close': hist['Close'].values,
+            'Volume': hist['Volume'].values
+        }, index=hist.index)
+
+        # Run pattern detection
+        results = detect_patterns(df)
+
+        # Add ticker info to response
+        results['ticker'] = ticker
+        results['data_points'] = len(df)
+
+        # Log summary
+        patterns_found = results['summary']['patterns_detected']
+        print(f"   ✅ Patterns detected: {patterns_found if patterns_found else 'None'}")
+        if results['trend_template']:
+            tt_score = results['trend_template']['criteria_met']
+            print(f"   📈 Trend Template: {tt_score}/8 criteria met")
+
+        return jsonify(results)
+
+    except Exception as e:
+        print(f"Error detecting patterns for {ticker}: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
 
 # ============================================
 # TRADINGVIEW SCREENER ENDPOINT (Day 11 / Fixed Day 20)
