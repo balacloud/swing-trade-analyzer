@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 45 (February 4, 2026)
+> **Last Updated:** Day 46 (February 5, 2026)
 
 ---
 
@@ -22,25 +22,24 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 45 |
-| Version | v4.1 (Backend v2.15) |
-| Latest Status | PROJECT_STATUS_DAY45_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY45.md |
+| Current Day | 46 |
+| Version | v4.6 (Backend v2.15) |
+| Latest Status | PROJECT_STATUS_DAY46_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY46.md |
 | Latest API | API_CONTRACTS_DAY33.md |
-| Focus | **Data Quality Validation** - Frontend/Backend consistency checks |
+| Focus | **v4.6 Perplexity Research Implementation** + Testing Framework |
 
-### Day 44 Summary
-- **Completed:** v4.2 Pattern Detection (VCP, Cup-Handle, Flat Base)
-- **Completed:** v4.4 Sentiment (Fear & Greed Index integration)
-- **Completed:** v4.5 Categorical Assessment (replaces 75-point scoring)
-- **Added:** Actionable Recommendation Card (READY TO TRADE, WATCHLIST, etc.)
-- **Fixed:** criteria_met vs criteria_passed field mismatch
-- **Validated:** 30-stock test (4 BUY, 6 HOLD, 20 AVOID)
+### Day 45 Summary
+- **Completed:** v4.6 F&G Threshold Fix (neutral zone expanded 35-60, cliff at 45 eliminated)
+- **Completed:** v4.6 Structure > Sentiment Hierarchy (Risk/Macro determines IF, Sentiment determines HOW)
+- **Created:** Comprehensive Test Plan (docs/test/TEST_PLAN_COMPREHENSIVE.md)
+- **Created:** Automated Test Script (backend/test_categorical_comprehensive.py)
+- **Updated:** ROADMAP with v4.6 and v4.7 sections
+- **Tested:** 100% pass rate on baseline tests
 
-### Next Session: Data Quality Validation
-- Validate frontend displays match backend API responses
-- Run validation engine on 20 tickers
-- Test edge cases (ETFs, missing data, extreme RSI)
+### Next Session: Continue v4.6 + Forward Testing
+- ADX Entry Preference Logic (v4.6 Recommendation #2)
+- Pattern Actionability ≥80% (v4.6 Recommendation #3)
 - Forward Testing UI (v4.0 Roadmap priority)
 
 ---
@@ -63,9 +62,9 @@
 ### Files to Read (in order):
 ```
 docs/claude/stable/GOLDEN_RULES.md          <- Core rules (CRITICAL)
-docs/claude/stable/ROADMAP.md               <- What's planned (v4.0-v4.5) - DON'T LOSE TRACK
-docs/claude/status/PROJECT_STATUS_DAY45_SHORT.md   <- Current state
-docs/claude/versioned/KNOWN_ISSUES_DAY45.md        <- Active bugs
+docs/claude/stable/ROADMAP.md               <- What's planned (v4.0-v4.7) - DON'T LOSE TRACK
+docs/claude/status/PROJECT_STATUS_DAY46_SHORT.md   <- Current state
+docs/claude/versioned/KNOWN_ISSUES_DAY46.md        <- Active bugs
 docs/research/PERPLEXITY_RESEARCH_SYNTHESIS.md     <- Research validation findings
 docs/claude/versioned/API_CONTRACTS_DAY33.md       <- API reference (if needed)
 ```
@@ -231,6 +230,7 @@ curl http://localhost:5001/api/cache/status
 | 42 | Updated for Day 42: Defeat Beta confirmed working, validation tolerances fixed (92.3% quality), VIX fixed, README v3.9, ROADMAP.md created |
 | 43 | Updated for Day 43: Data source labels, Defeat Beta error handling (v2.13), ROADMAP.md added to startup checklist |
 | 44 | Updated for Day 44: v4.2-v4.5 complete (Pattern Detection, Sentiment, Categorical Assessment), Actionable Recommendation Card, 30-stock validation |
+| 45 | Updated for Day 45: v4.6 Perplexity Research (F&G thresholds, Structure > Sentiment), Comprehensive Test Plan, 100% baseline pass rate |
 
 ---
 

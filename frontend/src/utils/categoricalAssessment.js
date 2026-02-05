@@ -1,8 +1,13 @@
 /**
  * Categorical Assessment System for Swing Trade Analyzer
  * v4.5: Replaces 75-point numerical scoring with categorical assessments
+ * v4.6: Perplexity research recommendations (Day 45)
+ *       - F&G thresholds: Expanded neutral zone (35-60) to eliminate cliff at 45
+ *       - Structure > Sentiment hierarchy: Risk/Macro determines IF, Sentiment determines HOW
+ *       - Entry preference guidance: Pullback vs Momentum based on sentiment
  *
  * Day 44: Initial implementation
+ * Day 45: v4.6 updates based on Perplexity research
  *
  * Categories:
  * - Technical: Strong / Decent / Weak
@@ -256,10 +261,17 @@ export function assessFundamental(fundamentals, ticker) {
 /**
  * Assess Sentiment (Fear & Greed Index)
  *
- * Criteria:
- * - Strong: 55-75 (Greed but not extreme - good for momentum)
- * - Neutral: 45-55 (Neutral zone)
- * - Weak: 0-25 (Extreme Fear) OR 75-100 (Extreme Greed - contrarian risk)
+ * v4.6 Update (Day 45): Expanded neutral zone to eliminate cliff at 45
+ * Based on Perplexity research analysis - see docs/research/Perplexity_STA_Analysis_result_Feb5_2026
+ *
+ * Criteria (UPDATED):
+ * - Strong: 60-80 (Greed but not extreme - good for momentum)
+ * - Neutral (Optimistic): 50-60 (Mild greed, supports momentum)
+ * - Neutral (Cautious): 35-50 (Mild fear, neither extreme)
+ * - Weak: <35 (Fear - pullback setups risky)
+ * - Weak: >80 (Extreme Greed - contrarian risk)
+ *
+ * Key Change: F&G 44.7 is now Neutral (was Weak), eliminating cliff at 45
  *
  * @param {object} fearGreedData - Fear & Greed Index data from backend
  * @returns {object} { assessment, reasons, data }
@@ -286,42 +298,55 @@ export function assessSentiment(fearGreedData) {
   data.source = fearGreedData.source || 'CNN Fear & Greed Index';
 
   let assessment = 'Neutral';
+  let subLabel = ''; // For more nuanced messaging
 
-  // Strong: Greed but not extreme (55-75) - good for momentum trades
-  if (value >= 55 && value <= 75) {
+  // Strong: Greed but not extreme (60-80) - good for momentum trades
+  // Tightened from 55-75 to require more confident greed
+  if (value >= 60 && value <= 80) {
     assessment = 'Strong';
     reasons.push(`Fear & Greed: ${value} (${rating})`);
-    reasons.push('Positive sentiment without extreme greed');
-    reasons.push('Good conditions for momentum/pullback trades');
+    reasons.push('Positive sentiment supports momentum entries');
+    reasons.push('Good conditions for both pullback and momentum trades');
   }
-  // Neutral: Middle range (45-55) - balanced sentiment
-  else if (value >= 45 && value < 55) {
+  // Neutral (Optimistic): Mild greed (50-60) - supports momentum
+  else if (value >= 50 && value < 60) {
     assessment = 'Neutral';
+    subLabel = 'Optimistic';
     reasons.push(`Fear & Greed: ${value} (${rating})`);
-    reasons.push('Market sentiment is balanced');
-    reasons.push('Neither fear nor greed dominant');
+    reasons.push('Mild greed - sentiment slightly positive');
+    reasons.push('Focus on stock-specific technicals');
   }
-  // Weak: Fear zone (25-45) - pullback setups often fail
-  else if (value >= 25 && value < 45) {
+  // Neutral (Cautious): Mild fear (35-50) - neither extreme
+  // KEY FIX: 44.7 is now Neutral, not Weak (eliminates cliff at 45)
+  else if (value >= 35 && value < 50) {
+    assessment = 'Neutral';
+    subLabel = 'Cautious';
+    reasons.push(`Fear & Greed: ${value} (${rating})`);
+    reasons.push('Mild fear - sentiment cautious but not extreme');
+    reasons.push('Pullback entries still viable if structure is bullish');
+  }
+  // Weak: Fear zone (<35) - pullback setups often fail
+  else if (value < 35) {
     assessment = 'Weak';
     reasons.push(`Fear & Greed: ${value} (${rating})`);
-    reasons.push('Fear present - pullback setups risky');
-    reasons.push('Consider waiting for sentiment improvement');
+    if (value < 20) {
+      reasons.push('Extreme fear - potential capitulation');
+      reasons.push('Contrarian opportunity possible, but high risk');
+    } else {
+      reasons.push('Fear present - pullback setups risky');
+      reasons.push('Consider waiting for sentiment improvement');
+    }
   }
-  // Weak: Extreme fear (<25) - capitulation risk
-  else if (value < 25) {
+  // Weak: Extreme greed (>80) - contrarian risk
+  else if (value > 80) {
     assessment = 'Weak';
     reasons.push(`Fear & Greed: ${value} (${rating})`);
-    reasons.push('Extreme fear - potential capitulation');
-    reasons.push('Caution: pullback setups often fail in fearful markets');
-  }
-  // Weak: Extreme greed (>75) - contrarian risk
-  else if (value > 75) {
-    assessment = 'Weak';
-    reasons.push(`Fear & Greed: ${value} (${rating})`);
-    reasons.push('Extreme greed - contrarian risk');
+    reasons.push('Extreme greed - contrarian risk elevated');
     reasons.push('Caution: market may be overextended');
   }
+
+  // Add sub-label to data for UI to optionally display
+  data.subLabel = subLabel;
 
   return {
     assessment,
@@ -395,59 +420,109 @@ export function assessRiskMacro(vixData, spyData) {
 /**
  * Determine Overall Verdict
  *
+ * v4.6 Update (Day 45): Structure > Sentiment Hierarchy
+ * Based on Elder's Triple Screen and Perplexity research:
+ * - Structure (Risk/Macro) determines IF you trade
+ * - Sentiment determines HOW you enter (pullback vs momentum)
+ *
  * Logic:
- * - BUY: 2+ Strong categories AND Favorable/Neutral Risk
- * - HOLD: 1 Strong OR (Decent Tech + Decent Fund) with no Unfavorable Risk
- * - AVOID: Weak Technical OR (Weak Fundamental + Weak Sentiment) OR Unfavorable Risk override
+ * - BUY: Strong Tech + Strong Fund + Favorable/Neutral Risk (Sentiment guides entry, not go/no-go)
+ * - BUY: 2+ Strong with Favorable Risk (even if Sentiment is Weak)
+ * - HOLD: Mixed signals or Unfavorable Risk override
+ * - AVOID: Weak Technical (non-negotiable) OR Weak Fundamental with no Strong to offset
+ *
+ * Key Change: When Risk/Macro is Favorable, Sentiment Weak doesn't veto a BUY
+ *             Instead, it suggests preferring pullback entries over momentum
  *
  * @param {string} technical - Technical assessment
  * @param {string} fundamental - Fundamental assessment
  * @param {string} sentiment - Sentiment assessment
  * @param {string} riskMacro - Risk/Macro assessment
- * @returns {object} { verdict, reason, color }
+ * @returns {object} { verdict, reason, color, entryPreference }
  */
 export function determineVerdict(technical, fundamental, sentiment, riskMacro) {
   // Count strong assessments (excluding Risk which uses different scale)
   const assessments = [technical, fundamental, sentiment];
   const strongCount = assessments.filter(a => a === 'Strong').length;
-  const weakCount = assessments.filter(a => a === 'Weak').length;
 
-  // AVOID conditions (highest priority)
+  // Entry preference based on sentiment (Structure > Sentiment hierarchy)
+  // This guides HOW to enter, not IF to enter
+  let entryPreference = 'Either';
+  if (sentiment === 'Weak') {
+    entryPreference = 'Pullback preferred (fearful sentiment)';
+  } else if (sentiment === 'Strong') {
+    entryPreference = 'Momentum viable (positive sentiment)';
+  }
+
+  // AVOID conditions (highest priority - non-negotiable)
 
   // 1. Technical Weak = AVOID (can't fight bad technicals)
   if (technical === 'Weak') {
     return {
       verdict: 'AVOID',
       reason: 'Weak technical setup',
-      color: 'red'
+      color: 'red',
+      entryPreference: null
     };
   }
 
-  // 2. Unfavorable Risk = HOLD at best (regime override)
+  // 2. Unfavorable Risk = HOLD at best (structure override)
+  // This is the highest-level filter - bearish structure = don't trade
   if (riskMacro === 'Unfavorable') {
     return {
       verdict: 'HOLD',
       reason: 'Unfavorable market conditions (regime caution)',
-      color: 'yellow'
+      color: 'yellow',
+      entryPreference: null
     };
   }
 
-  // 3. Both Fundamental AND Sentiment are Weak = AVOID
-  if (fundamental === 'Weak' && sentiment === 'Weak') {
+  // 3. Weak Fundamental with no Strong categories = AVOID
+  // Note: Sentiment Weak alone no longer triggers AVOID when structure is bullish
+  if (fundamental === 'Weak' && strongCount === 0) {
     return {
       verdict: 'AVOID',
-      reason: 'Weak fundamentals and negative sentiment',
-      color: 'red'
+      reason: 'Weak fundamentals with no offsetting strengths',
+      color: 'red',
+      entryPreference: null
     };
   }
 
-  // BUY conditions
-  // Need 2+ Strong with Favorable or Neutral risk
+  // BUY conditions (Structure > Sentiment applied here)
+
+  // Strong Tech + Strong Fund = BUY regardless of Sentiment (Structure determines IF)
+  // Sentiment guides entry type via entryPreference
+  if (technical === 'Strong' && fundamental === 'Strong') {
+    let reason = '2 strong categories (Technical + Fundamental)';
+    if (sentiment === 'Weak') {
+      reason += ' - structure bullish despite fearful sentiment';
+    }
+    return {
+      verdict: 'BUY',
+      reason,
+      color: 'green',
+      entryPreference
+    };
+  }
+
+  // 2+ Strong with Favorable/Neutral risk = BUY
   if (strongCount >= 2 && (riskMacro === 'Favorable' || riskMacro === 'Neutral')) {
     return {
       verdict: 'BUY',
       reason: `${strongCount} strong categories with ${riskMacro.toLowerCase()} conditions`,
-      color: 'green'
+      color: 'green',
+      entryPreference
+    };
+  }
+
+  // Strong Tech + Decent Fund + Favorable Risk = BUY (upgraded from HOLD)
+  // Because structure is clearly bullish
+  if (technical === 'Strong' && fundamental === 'Decent' && riskMacro === 'Favorable') {
+    return {
+      verdict: 'BUY',
+      reason: 'Strong technicals with favorable macro conditions',
+      color: 'green',
+      entryPreference
     };
   }
 
@@ -456,7 +531,8 @@ export function determineVerdict(technical, fundamental, sentiment, riskMacro) {
     return {
       verdict: 'HOLD',
       reason: 'Mixed signals - wait for better setup',
-      color: 'yellow'
+      color: 'yellow',
+      entryPreference
     };
   }
 
@@ -465,7 +541,8 @@ export function determineVerdict(technical, fundamental, sentiment, riskMacro) {
     return {
       verdict: 'HOLD',
       reason: 'Decent setup - consider with proper position sizing',
-      color: 'yellow'
+      color: 'yellow',
+      entryPreference
     };
   }
 
@@ -473,7 +550,8 @@ export function determineVerdict(technical, fundamental, sentiment, riskMacro) {
   return {
     verdict: 'AVOID',
     reason: 'Insufficient strength across categories',
-    color: 'red'
+    color: 'red',
+    entryPreference: null
   };
 }
 

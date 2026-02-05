@@ -2,7 +2,7 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 44 (February 4, 2026)
+> **Last Updated:** Day 45 (February 5, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
@@ -116,6 +116,45 @@
 - **Verdict Logic:** Need 2+ Strong categories with Favorable/Neutral risk for BUY
 - **Files:** `frontend/src/utils/categoricalAssessment.js`
 
+### v4.6: Perplexity Research Recommendations (Day 45)
+- **Priority:** HIGH
+- **Status:** PLANNED
+- **Source:** `docs/research/Perplexity_STA_Analysis_result_Feb5_2026`
+- **Recommendations to Implement:**
+
+| # | Recommendation | Priority | Effort | Status |
+|---|----------------|----------|--------|--------|
+| 1 | **F&G Threshold Fix** - Expand neutral zone from 45-55 to 35-60 | HIGH | Low | ✅ DONE |
+| 2 | **Entry Preference Logic** - ADX-based (>25 momentum, 20-25 pullback) | MEDIUM | Medium | PENDING |
+| 3 | **Pattern Actionability** - Only show patterns ≥80% formed | MEDIUM | Medium | PENDING |
+| 4 | **Structure > Sentiment Hierarchy** - Risk/Macro overrides F&G assessment | HIGH | Low | ✅ DONE |
+
+**Key Findings from Research:**
+- F&G at 44.7 vs 45.0 creates cliff behavior (0.3 point = different assessment)
+- Elder's Triple Screen: Structure determines IF, Sentiment determines HOW
+- ADX > 25 = trend confirmed, favor momentum; ADX 20-25 = favor pullback
+- Patterns < 80% have high false positive rate - don't show "75% forming"
+
+### v4.7: Comprehensive Testing Framework (Day 45)
+- **Priority:** HIGH (prerequisite for forward testing)
+- **Status:** ACTIVE (baseline tests complete, validation ongoing)
+- **Test Plan:** `docs/test/TEST_PLAN_COMPREHENSIVE.md`
+- **Test Script:** `backend/test_categorical_comprehensive.py`
+- **Categories:**
+  - A: API Contract Tests (structure validation)
+  - B: Categorical Logic Tests (threshold behavior)
+  - C: Edge Case Tests (ETFs, extremes, missing data)
+  - D: Cross-Validation (vs external sources)
+  - E: Integration Tests (frontend-backend match)
+  - F: Forward Testing Framework
+
+**Test Tickers:**
+- Tier 1: AAPL, NVDA, JPM, MSFT, COST (baseline)
+- Tier 2: SPY, QQQ (ETFs)
+- Tier 3: Technical extremes (RSI < 30, > 80)
+- Tier 4: TSLA, AMC (fundamental extremes)
+- Tier 5: Small caps (PLTR, SOFI)
+
 ---
 
 ## DEFERRED (v2+ / Low Priority)
@@ -135,6 +174,8 @@
 | PERPLEXITY_RESEARCH_SYNTHESIS.md | Trading system validation | Day 41 |
 | OPTIONS_TAB_FEASIBILITY_ANALYSIS.md | Options data requirements | Day 42 |
 | SECTOR_ROTATION_IDENTIFICATION_GUIDE.md | Sector rotation methods | Day 42 |
+| Perplexity_STA_Analysis_result_Feb5_2026 | UX/Trading system design (4 questions) | Day 45 |
+| TEST_PLAN_COMPREHENSIVE.md | Quant-style testing methodology | Day 45 |
 
 ---
 
@@ -166,6 +207,7 @@ From backtesting:
 |-----|---------|
 | 42 | Created ROADMAP.md, added v4.4/v4.5 for placeholders |
 | 44 | v4.2 Pattern Detection complete, v4.4 Sentiment (Fear & Greed) complete, v4.5 Categorical Assessment complete |
+| 45 | v4.6 Perplexity Research Recommendations added, v4.7 Comprehensive Testing Framework added |
 
 ---
 
