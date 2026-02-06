@@ -395,24 +395,33 @@ function App() {
   };
 
   // Generate actionable recommendation based on categorical assessment + trade viability (Day 44)
+  // Day 46 Fix: Align recommendation message with entryPreference (Pullback vs Momentum)
   const generateActionableRecommendation = (categoricalResult, srData, currentPrice) => {
     if (!categoricalResult) return null;
 
     const verdict = categoricalResult.verdict?.verdict;
+    const entryPreference = categoricalResult.verdict?.entryPreference;
     const viability = srData?.meta?.tradeViability;
     const nearestSupport = srData?.support?.[0];
-    const nearestResistance = srData?.resistance?.[0];
+
+    // Entry preference parsing
+    const isPullbackPreferred = entryPreference?.includes('Pullback');
 
     // Calculate support zone (5% range around nearest support)
     const supportZoneLow = nearestSupport ? (nearestSupport * 0.97).toFixed(2) : null;
     const supportZoneHigh = nearestSupport ? (nearestSupport * 1.02).toFixed(2) : null;
 
-    // Calculate % away from support
+    // Calculate % away from support (how far current price is above support)
     const pctFromSupport = nearestSupport && currentPrice
       ? (((currentPrice - nearestSupport) / nearestSupport) * 100).toFixed(1)
       : null;
 
-    // Recommendation logic based on verdict + viability combination
+    // Is pullback entry significantly below current price? (>10% = meaningful pullback)
+    const pullbackIsFarBelow = nearestSupport && currentPrice
+      ? ((currentPrice - nearestSupport) / currentPrice) > 0.10
+      : false;
+
+    // Recommendation logic based on verdict + viability + entryPreference combination
     let recommendation = {
       action: '',
       details: '',
@@ -427,16 +436,30 @@ function App() {
     // BUY verdict scenarios
     if (verdict === 'BUY') {
       if (viability?.viable === 'YES') {
-        recommendation = {
-          action: 'READY TO TRADE',
-          details: `Strong setup near support. Consider entry at current price with stop below $${nearestSupport?.toFixed(2) || 'support'}.`,
-          alertPrice: null,
-          bgColor: 'bg-gradient-to-r from-green-600 to-emerald-600',
-          borderColor: 'border-green-400',
-          textColor: 'text-white',
-          icon: '🎯',
-          actionType: 'EXECUTE'
-        };
+        // Day 46: Check if pullback preferred with significant distance
+        if (isPullbackPreferred && pullbackIsFarBelow) {
+          recommendation = {
+            action: 'READY - PREFER PULLBACK',
+            details: `Strong stock but ${pctFromSupport}% above support. Wait for pullback to ~$${nearestSupport?.toFixed(2)} for better R:R.`,
+            alertPrice: nearestSupport,
+            bgColor: 'bg-gradient-to-r from-green-600 to-emerald-600',
+            borderColor: 'border-green-400',
+            textColor: 'text-white',
+            icon: '🎯',
+            actionType: 'EXECUTE'
+          };
+        } else {
+          recommendation = {
+            action: 'READY TO TRADE',
+            details: `Strong setup near support (${pctFromSupport}% away). Consider entry at current price with stop below $${nearestSupport?.toFixed(2) || 'support'}.`,
+            alertPrice: null,
+            bgColor: 'bg-gradient-to-r from-green-600 to-emerald-600',
+            borderColor: 'border-green-400',
+            textColor: 'text-white',
+            icon: '🎯',
+            actionType: 'EXECUTE'
+          };
+        }
       } else if (viability?.viable === 'CAUTION') {
         recommendation = {
           action: 'ADD TO WATCHLIST',
@@ -465,16 +488,31 @@ function App() {
     // HOLD verdict scenarios
     else if (verdict === 'HOLD') {
       if (viability?.viable === 'YES') {
-        recommendation = {
-          action: 'WATCHLIST - MONITOR',
-          details: `Decent setup near support. Watch for improving technicals or sentiment before entry.`,
-          alertPrice: nearestResistance,
-          bgColor: 'bg-gradient-to-r from-cyan-600 to-teal-600',
-          borderColor: 'border-cyan-400',
-          textColor: 'text-white',
-          icon: '📊',
-          actionType: 'WATCHLIST'
-        };
+        // Day 46 Fix: Use support as alert price (entry), not resistance
+        // Show pullback preference if applicable
+        if (isPullbackPreferred && pullbackIsFarBelow) {
+          recommendation = {
+            action: 'WATCHLIST - WAIT FOR PULLBACK',
+            details: `Mixed signals. Wait for pullback to ~$${nearestSupport?.toFixed(2)} (${pctFromSupport}% below) for better entry.`,
+            alertPrice: nearestSupport,
+            bgColor: 'bg-gradient-to-r from-cyan-600 to-teal-600',
+            borderColor: 'border-cyan-400',
+            textColor: 'text-white',
+            icon: '📊',
+            actionType: 'WATCHLIST'
+          };
+        } else {
+          recommendation = {
+            action: 'WATCHLIST - MONITOR',
+            details: `Decent setup near support (${pctFromSupport}% away). Watch for improving technicals or sentiment.`,
+            alertPrice: nearestSupport, // Day 46: Changed from nearestResistance to nearestSupport
+            bgColor: 'bg-gradient-to-r from-cyan-600 to-teal-600',
+            borderColor: 'border-cyan-400',
+            textColor: 'text-white',
+            icon: '📊',
+            actionType: 'WATCHLIST'
+          };
+        }
       } else {
         recommendation = {
           action: 'NOT NOW - PATIENCE',

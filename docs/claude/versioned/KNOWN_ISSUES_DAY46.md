@@ -2,17 +2,19 @@
 
 > **Purpose:** Track all known bugs, gaps, and issues
 > **Location:** Git `/docs/claude/versioned/`
-> **Version:** Day 46 (February 5, 2026) - v4.6 Perplexity Research Implementation
+> **Version:** Day 46 (February 6, 2026) - v4.6 UI Testing + Validation
+> **UI Test Report:** `docs/test/UI_TEST_REPORT_DAY46.md`
 
 ---
 
-## RESOLVED (Day 45)
+## RESOLVED (Day 45-46)
 
 | Issue | Resolution | Date |
 |-------|------------|------|
 | F&G 25-45 Zone Cliff at 45 | Expanded neutral zone to 35-60, cliff eliminated | Day 45 |
 | Sentiment could veto BUY | Structure > Sentiment hierarchy implemented | Day 45 |
 | No systematic test plan | Created comprehensive test plan + automated script | Day 45 |
+| **Issue 0: Recommendation Card Mismatch** | Fixed - now uses `entryPreference` to show "Wait for pullback to $X" when applicable. Alert price uses support (entry) not resistance. | Day 46 |
 
 ---
 
@@ -54,6 +56,16 @@
 - **Impact:** Visual only - regime detection still working
 - **Status:** DEFERRED - Not blocking
 
+### Issue 6: RSI Range Too Narrow for Strong Technical
+- **Severity:** MEDIUM
+- **Description:** RSI range 50-70 for "Strong" Technical is very narrow
+- **Examples:**
+  - JPM: 7/8 Trend Template but RSI 49.1 → Technical = Decent
+  - IWM: 8/8 Trend Template but RSI 43.5 → Technical = Decent
+- **Current Logic:** Strong = TT ≥ 7 AND RSI 50-70
+- **Proposed:** Strong = TT ≥ 7 AND RSI 40-75 (when TT = 8/8)
+- **Status:** DEFERRED - Needs more data to validate
+
 ---
 
 ## VALIDATION GATES STATUS
@@ -81,6 +93,34 @@
 | 2 | ADX Entry Preference | PENDING | Next priority |
 | 3 | Pattern Actionability | PENDING | After ADX |
 | 4 | Structure > Sentiment | ✅ DONE | Entry preference added |
+
+---
+
+## UI TEST RESULTS (Day 46)
+
+### 10-Ticker Manual Test
+| Ticker | Verdict | Assessment | Rec Card | Issues |
+|--------|---------|------------|----------|--------|
+| AAPL | HOLD | T:S F:D S:W R:N | WATCHLIST | ⚠️ Entry mismatch |
+| NVDA | AVOID | T:W F:S S:W R:N | SKIP | ✅ Pass |
+| META | HOLD | T:D F:S S:W R:N | PATIENCE | ✅ Pass |
+| JPM | AVOID | T:D F:D S:W R:N | SKIP | ⚠️ RSI range |
+| GOOGL | **BUY** | T:S F:S S:W R:N | READY | ✅ Pass |
+| SPY | AVOID | T:W F:N S:W R:N | SKIP | ✅ Pass |
+| TSLA | AVOID | T:W F:W S:W R:N | SKIP | ✅ Pass |
+| IWM | AVOID | T:D F:N S:W R:N | SKIP | ⚠️ RSI range |
+| XLE | AVOID | T:D F:N S:W R:N | SKIP | ✅ Pass |
+| INTC | HOLD | T:S F:W S:W R:N | WATCHLIST | ⚠️ Alert price wrong |
+
+### Summary
+- **Pass Rate:** 6/10 (60%) - no issues
+- **Minor Issues:** 4/10 (40%) - actionable but not breaking
+- **Structure > Sentiment:** ✅ Working (GOOGL proves it)
+- **F&G Thresholds:** ✅ Working (all show Weak at ~33)
+- **ETF Handling:** ✅ Working (SPY, IWM, XLE show N/A fundamentals)
+
+### Report Location
+`docs/test/UI_TEST_REPORT_DAY46.md`
 
 ---
 
@@ -120,7 +160,7 @@
 |-----------|--------|-------|
 | Categorical Assessment | OK | v4.6 - F&G thresholds fixed |
 | Structure > Sentiment | OK | v4.6 - Entry preference added |
-| Recommendation Card | OK | Actionable guidance |
+| Recommendation Card | ⚠️ BUG | Message doesn't match preferred entry (Issue #0) |
 | Verdict Card | OK | Neutral design |
 
 ---

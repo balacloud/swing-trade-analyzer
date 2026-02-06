@@ -1,8 +1,8 @@
 # GOLDEN RULES FOR CLAUDE
 
 > **Purpose:** Stable reference document for all session rules
-> **Location:** Claude Project (not daily file)
-> **Last Updated:** Day 42 (February 2, 2026)
+> **Location:** Git `/docs/claude/stable/` (rarely changes)
+> **Last Updated:** Day 46 (February 6, 2026)
 
 ---
 
@@ -10,7 +10,7 @@
 
 ### The 12 Golden Rules:
 1. **START of session:** Read PROJECT_STATUS_DAY[N].md first
-2. **BEFORE modifying any file:** Ask user to attach/paste the CURRENT version
+2. **BEFORE modifying any file:** READ it first using Read tool (Claude Code can access files directly)
 3. **NEVER assume code structure** - always verify with actual file
 4. **END of session:** Create updated PROJECT_STATUS_DAY[N+1].md
 5. **User will say "session ending"** to trigger status file creation
@@ -45,14 +45,14 @@ When user says "session ending" or "close session":
 3. [x] Ask: "Did any APIs change?" -> Update API_CONTRACTS.md
 4. [x] Ask: "Did we learn a new rule?" -> Update GOLDEN_RULES.md
 5. [x] **UPDATE CLAUDE_CONTEXT.md** - Current Day, Version, Last Updated, Focus
-6. [x] Update Claude Memory if significant changes
+6. [x] Update auto memory (`~/.claude/projects/.../memory/MEMORY.md`) if significant learnings
 7. [x] Git commit AND PUSH (don't forget push!)
 8. [x] Note any deferred tasks for next session
 
-### How Stable Doc Updates Work:
-- Claude creates updated file in `/mnt/user-data/outputs/`
-- User downloads and replaces file in Claude Project
-- User confirms update is done
+### How Updates Work (Claude Code):
+- Claude uses Edit/Write tools to update files directly in the filesystem
+- No manual user action needed for local file updates
+- User commits to git after Claude makes changes
 
 ---
 

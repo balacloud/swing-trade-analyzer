@@ -2,7 +2,7 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 45 (February 5, 2026)
+> **Last Updated:** Day 46 (February 6, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
@@ -54,6 +54,7 @@
 | UX Confusion (Mixed Signals) | ✅ | Day 23 ("Why This Score?") |
 | VIX Stale Data | ✅ | Day 42 |
 | Validation Low Scores | ✅ | Day 42 (tolerances) |
+| Recommendation Card Alert Price | ✅ | Day 46 (Issue #0 - used resistance instead of support) |
 
 ---
 
@@ -116,18 +117,23 @@
 - **Verdict Logic:** Need 2+ Strong categories with Favorable/Neutral risk for BUY
 - **Files:** `frontend/src/utils/categoricalAssessment.js`
 
-### v4.6: Perplexity Research Recommendations (Day 45)
+### v4.6: Perplexity Research Recommendations (Day 45-46)
 - **Priority:** HIGH
-- **Status:** PLANNED
+- **Status:** IN PROGRESS (2/4 recommendations done + UI testing complete)
 - **Source:** `docs/research/Perplexity_STA_Analysis_result_Feb5_2026`
 - **Recommendations to Implement:**
 
 | # | Recommendation | Priority | Effort | Status |
 |---|----------------|----------|--------|--------|
-| 1 | **F&G Threshold Fix** - Expand neutral zone from 45-55 to 35-60 | HIGH | Low | ✅ DONE |
+| 1 | **F&G Threshold Fix** - Expand neutral zone from 45-55 to 35-60 | HIGH | Low | ✅ DONE (Day 45) |
 | 2 | **Entry Preference Logic** - ADX-based (>25 momentum, 20-25 pullback) | MEDIUM | Medium | PENDING |
 | 3 | **Pattern Actionability** - Only show patterns ≥80% formed | MEDIUM | Medium | PENDING |
-| 4 | **Structure > Sentiment Hierarchy** - Risk/Macro overrides F&G assessment | HIGH | Low | ✅ DONE |
+| 4 | **Structure > Sentiment Hierarchy** - Risk/Macro overrides F&G assessment | HIGH | Low | ✅ DONE (Day 45) |
+
+**Day 46 Testing & Bug Fix:**
+- UI Test Report: `docs/test/UI_TEST_REPORT_DAY46.md` (10-ticker comprehensive test)
+- Issue #0 Fixed: Recommendation Card now uses `entryPreference` for alert prices
+- 2nd Iteration Validation: 5/5 tickers pass post-fix
 
 **Key Findings from Research:**
 - F&G at 44.7 vs 45.0 creates cliff behavior (0.3 point = different assessment)
@@ -208,6 +214,7 @@ From backtesting:
 | 42 | Created ROADMAP.md, added v4.4/v4.5 for placeholders |
 | 44 | v4.2 Pattern Detection complete, v4.4 Sentiment (Fear & Greed) complete, v4.5 Categorical Assessment complete |
 | 45 | v4.6 Perplexity Research Recommendations added, v4.7 Comprehensive Testing Framework added |
+| 46 | v4.6 UI Testing complete, Issue #0 fixed (Recommendation Card alert prices), validated with 5-ticker 2nd iteration |
 
 ---
 

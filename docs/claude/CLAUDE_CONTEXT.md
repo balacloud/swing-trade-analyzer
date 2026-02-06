@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 46 (February 5, 2026)
+> **Last Updated:** Day 47 (February 6, 2026)
 
 ---
 
@@ -22,22 +22,22 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 46 |
-| Version | v4.6 (Backend v2.15) |
-| Latest Status | PROJECT_STATUS_DAY46_SHORT.md |
+| Current Day | 47 |
+| Version | v4.6.1 (Backend v2.15) |
+| Latest Status | PROJECT_STATUS_DAY47_SHORT.md |
 | Latest Issues | KNOWN_ISSUES_DAY46.md |
 | Latest API | API_CONTRACTS_DAY33.md |
-| Focus | **v4.6 Perplexity Research Implementation** + Testing Framework |
+| Focus | **v4.6 Perplexity Research Implementation** + ADX Entry Preference |
 
-### Day 45 Summary
-- **Completed:** v4.6 F&G Threshold Fix (neutral zone expanded 35-60, cliff at 45 eliminated)
-- **Completed:** v4.6 Structure > Sentiment Hierarchy (Risk/Macro determines IF, Sentiment determines HOW)
-- **Created:** Comprehensive Test Plan (docs/test/TEST_PLAN_COMPREHENSIVE.md)
-- **Created:** Automated Test Script (backend/test_categorical_comprehensive.py)
-- **Updated:** ROADMAP with v4.6 and v4.7 sections
-- **Tested:** 100% pass rate on baseline tests
+### Day 46 Summary
+- **Fixed:** Issue #0 (CRITICAL) - Recommendation Card / Entry Mismatch
+  - Alert prices now show support (entry) not resistance
+  - Uses `entryPreference` from categorical assessment
+- **Created:** UI Test Report (docs/test/UI_TEST_REPORT_DAY46.md) - 10 tickers
+- **Validated:** 2nd iteration 5-ticker test - 100% pass rate
+- **Noted:** Market F&G improved from ~33 (Weak) to ~40 (Neutral)
 
-### Next Session: Continue v4.6 + Forward Testing
+### Next Session: ADX Entry + Pattern Actionability
 - ADX Entry Preference Logic (v4.6 Recommendation #2)
 - Pattern Actionability ≥80% (v4.6 Recommendation #3)
 - Forward Testing UI (v4.0 Roadmap priority)
@@ -63,7 +63,7 @@
 ```
 docs/claude/stable/GOLDEN_RULES.md          <- Core rules (CRITICAL)
 docs/claude/stable/ROADMAP.md               <- What's planned (v4.0-v4.7) - DON'T LOSE TRACK
-docs/claude/status/PROJECT_STATUS_DAY46_SHORT.md   <- Current state
+docs/claude/status/PROJECT_STATUS_DAY47_SHORT.md   <- Current state
 docs/claude/versioned/KNOWN_ISSUES_DAY46.md        <- Active bugs
 docs/research/PERPLEXITY_RESEARCH_SYNTHESIS.md     <- Research validation findings
 docs/claude/versioned/API_CONTRACTS_DAY33.md       <- API reference (if needed)
@@ -231,6 +231,7 @@ curl http://localhost:5001/api/cache/status
 | 43 | Updated for Day 43: Data source labels, Defeat Beta error handling (v2.13), ROADMAP.md added to startup checklist |
 | 44 | Updated for Day 44: v4.2-v4.5 complete (Pattern Detection, Sentiment, Categorical Assessment), Actionable Recommendation Card, 30-stock validation |
 | 45 | Updated for Day 45: v4.6 Perplexity Research (F&G thresholds, Structure > Sentiment), Comprehensive Test Plan, 100% baseline pass rate |
+| 46 | Updated for Day 46: Issue #0 fixed (Recommendation Card Mismatch), UI Test Report created, 2nd iteration validation 100% pass |
 
 ---
 
