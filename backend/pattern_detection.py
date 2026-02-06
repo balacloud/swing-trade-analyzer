@@ -77,6 +77,155 @@ def find_pivot_points(prices: pd.Series, order: int = 5) -> Tuple[List[int], Lis
     return list(highs_idx), list(lows_idx)
 
 
+def check_breakout_quality(df: pd.DataFrame, pivot_price: float, lookback_days: int = 5) -> Dict:
+    """
+    Check breakout quality using volume confirmation.
+
+    Day 47: Added to distinguish valid breakouts from false breakouts.
+
+    Valid breakout characteristics:
+    - Volume spike ≥1.5x 50-day average on breakout day
+    - Price closes in upper half of the day's range
+    - Follow-through within 3 days (price holds above pivot)
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        OHLCV data
+    pivot_price : float
+        The breakout pivot price
+    lookback_days : int
+        Days to look back for breakout (default 5)
+
+    Returns
+    -------
+    dict with breakout quality assessment
+    """
+    if len(df) < 50:
+        return {
+            'quality': 'Unknown',
+            'has_breakout': False,
+            'volume_confirmed': False,
+            'reason': 'Insufficient data'
+        }
+
+    close = df['Close']
+    high = df['High']
+    low = df['Low']
+    volume = df['Volume']
+
+    current_price = close.iloc[-1]
+
+    # Calculate 50-day average volume
+    avg_volume_50 = volume.tail(50).mean()
+
+    # Check if price is at or above pivot (within lookback window)
+    recent = df.tail(lookback_days)
+    breakout_detected = False
+    breakout_day_idx = None
+
+    for i in range(len(recent)):
+        day_close = recent['Close'].iloc[i]
+        if day_close > pivot_price:
+            breakout_detected = True
+            breakout_day_idx = i
+            break
+
+    if not breakout_detected:
+        # Check if price is near pivot (within 2%)
+        distance_to_pivot = (pivot_price - current_price) / current_price * 100
+        if distance_to_pivot < 2:
+            return {
+                'quality': 'Approaching',
+                'has_breakout': False,
+                'volume_confirmed': False,
+                'distance_to_pivot_pct': round(distance_to_pivot, 1),
+                'reason': f'Price {round(distance_to_pivot, 1)}% below pivot - watch for breakout'
+            }
+        return {
+            'quality': 'Not Ready',
+            'has_breakout': False,
+            'volume_confirmed': False,
+            'distance_to_pivot_pct': round(distance_to_pivot, 1),
+            'reason': f'Price {round(distance_to_pivot, 1)}% below pivot'
+        }
+
+    # Breakout detected - check quality
+    breakout_day = recent.iloc[breakout_day_idx]
+    breakout_volume = breakout_day['Volume']
+    breakout_close = breakout_day['Close']
+    breakout_high = breakout_day['High']
+    breakout_low = breakout_day['Low']
+    breakout_range = breakout_high - breakout_low
+
+    # Volume confirmation: ≥1.5x average
+    volume_ratio = breakout_volume / avg_volume_50 if avg_volume_50 > 0 else 0
+    volume_confirmed = volume_ratio >= 1.5
+
+    # Close in upper half of range
+    if breakout_range > 0:
+        close_position = (breakout_close - breakout_low) / breakout_range
+        strong_close = close_position >= 0.5
+    else:
+        close_position = 0.5
+        strong_close = True
+
+    # Follow-through check (if breakout was not today)
+    days_since_breakout = len(recent) - 1 - breakout_day_idx
+    if days_since_breakout >= 1:
+        # Check if price held above pivot
+        post_breakout = recent.iloc[breakout_day_idx + 1:]
+        closes_above_pivot = (post_breakout['Close'] > pivot_price).sum()
+        follow_through = closes_above_pivot == len(post_breakout)
+    else:
+        follow_through = True  # Too early to assess
+
+    # Determine overall quality
+    quality_score = 0
+    reasons = []
+
+    if volume_confirmed:
+        quality_score += 40
+        reasons.append(f'Volume {round(volume_ratio, 1)}x average')
+    else:
+        reasons.append(f'Volume {round(volume_ratio, 1)}x (needs 1.5x+)')
+
+    if strong_close:
+        quality_score += 30
+        reasons.append(f'Closed in upper {round(close_position * 100)}% of range')
+    else:
+        reasons.append(f'Weak close (lower {round((1-close_position) * 100)}% of range)')
+
+    if follow_through:
+        quality_score += 30
+        if days_since_breakout >= 1:
+            reasons.append(f'Holding above pivot ({days_since_breakout}d follow-through)')
+    else:
+        reasons.append('Failed to hold above pivot')
+
+    # Quality rating
+    if quality_score >= 80:
+        quality = 'High'
+    elif quality_score >= 50:
+        quality = 'Medium'
+    else:
+        quality = 'Low'
+
+    return {
+        'quality': quality,
+        'quality_score': quality_score,
+        'has_breakout': True,
+        'volume_confirmed': volume_confirmed,
+        'volume_ratio': round(volume_ratio, 2),
+        'close_position': round(close_position * 100, 1),
+        'strong_close': strong_close,
+        'follow_through': follow_through,
+        'days_since_breakout': days_since_breakout,
+        'reasons': reasons,
+        'tradeable': quality in ['High', 'Medium'] and volume_confirmed
+    }
+
+
 def check_trend_template(df: pd.DataFrame) -> Dict:
     """
     Check Mark Minervini's Trend Template criteria.
@@ -599,6 +748,8 @@ def detect_patterns(df: pd.DataFrame) -> Dict:
     """
     Main pattern detection function that runs all pattern detectors.
 
+    Day 47: Added breakout quality assessment for each pattern.
+
     Parameters
     ----------
     df : pd.DataFrame
@@ -623,6 +774,16 @@ def detect_patterns(df: pd.DataFrame) -> Dict:
     cup_handle_result = detect_cup_handle(df, lookback_days=180)
     flat_base_result = detect_flat_base(df, min_weeks=5, lookback_days=90)
 
+    # Day 47: Add breakout quality for detected patterns
+    if vcp_result.get('detected') and vcp_result.get('pivot_price'):
+        vcp_result['breakout'] = check_breakout_quality(df, vcp_result['pivot_price'])
+
+    if cup_handle_result.get('detected') and cup_handle_result.get('pivot_price'):
+        cup_handle_result['breakout'] = check_breakout_quality(df, cup_handle_result['pivot_price'])
+
+    if flat_base_result.get('detected') and flat_base_result.get('pivot_price'):
+        flat_base_result['breakout'] = check_breakout_quality(df, flat_base_result['pivot_price'])
+
     # Summary of patterns found
     patterns_detected = []
     if vcp_result.get('detected'):
@@ -642,6 +803,12 @@ def detect_patterns(df: pd.DataFrame) -> Dict:
     detected_patterns = [(name, result) for name, result in all_patterns if result.get('detected')]
     best_pattern = max(detected_patterns, key=lambda x: x[1].get('confidence', 0)) if detected_patterns else None
 
+    # Day 47: Check if any pattern has a tradeable breakout
+    tradeable_patterns = [
+        name for name, result in detected_patterns
+        if result.get('breakout', {}).get('tradeable', False)
+    ]
+
     result = {
         'patterns': {
             'vcp': vcp_result,
@@ -652,7 +819,9 @@ def detect_patterns(df: pd.DataFrame) -> Dict:
             'patterns_detected': patterns_detected,
             'count': len(patterns_detected),
             'best_pattern': best_pattern[0] if best_pattern else None,
-            'best_confidence': best_pattern[1].get('confidence', 0) if best_pattern else 0
+            'best_confidence': best_pattern[1].get('confidence', 0) if best_pattern else 0,
+            'tradeable_patterns': tradeable_patterns,
+            'has_tradeable_breakout': len(tradeable_patterns) > 0
         },
         'trend_template': trend_template,
         'analysis_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')

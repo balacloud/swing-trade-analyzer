@@ -2,12 +2,12 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 46 (February 6, 2026)
+> **Last Updated:** Day 47 (February 6, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.0 (Backend v2.15)
+## Current Version: v4.7 (Backend v2.15)
 
 ---
 
@@ -117,32 +117,46 @@
 - **Verdict Logic:** Need 2+ Strong categories with Favorable/Neutral risk for BUY
 - **Files:** `frontend/src/utils/categoricalAssessment.js`
 
-### v4.6: Perplexity Research Recommendations (Day 45-46)
+### v4.6: Perplexity Research Recommendations (Day 45-47)
 - **Priority:** HIGH
-- **Status:** IN PROGRESS (2/4 recommendations done + UI testing complete)
+- **Status:** ✅ COMPLETE (4/4 recommendations done)
 - **Source:** `docs/research/Perplexity_STA_Analysis_result_Feb5_2026`
-- **Recommendations to Implement:**
+- **Recommendations Implemented:**
 
 | # | Recommendation | Priority | Effort | Status |
 |---|----------------|----------|--------|--------|
 | 1 | **F&G Threshold Fix** - Expand neutral zone from 45-55 to 35-60 | HIGH | Low | ✅ DONE (Day 45) |
-| 2 | **Entry Preference Logic** - ADX-based (>25 momentum, 20-25 pullback) | MEDIUM | Medium | PENDING |
-| 3 | **Pattern Actionability** - Only show patterns ≥80% formed | MEDIUM | Medium | PENDING |
+| 2 | **Entry Preference Logic** - ADX-based (>25 momentum, 20-25 pullback) | MEDIUM | Medium | ✅ DONE (Day 47) |
+| 3 | **Pattern Actionability** - Only show patterns ≥80% formed | MEDIUM | Medium | ✅ DONE (Day 47) |
 | 4 | **Structure > Sentiment Hierarchy** - Risk/Macro overrides F&G assessment | HIGH | Low | ✅ DONE (Day 45) |
 
-**Day 46 Testing & Bug Fix:**
-- UI Test Report: `docs/test/UI_TEST_REPORT_DAY46.md` (10-ticker comprehensive test)
-- Issue #0 Fixed: Recommendation Card now uses `entryPreference` for alert prices
-- 2nd Iteration Validation: 5/5 tickers pass post-fix
+**Day 47 Implementation (v4.6.2 + v4.7.1):**
+- ADX-based entry preference: >25 = Momentum viable, 20-25 = Pullback preferred, <20 = Wait for trend
+- Pattern actionability: Only patterns ≥80% confidence shown as "Actionable" with trigger/stop/target prices
+- **Breakout Volume Confirmation (v4.7.1):** Volume ≥1.5x avg = confirmed, shows quality badge (High/Medium/Low)
+- Files modified: `categoricalAssessment.js`, `App.jsx`, `pattern_detection.py`
 
-**Key Findings from Research:**
-- F&G at 44.7 vs 45.0 creates cliff behavior (0.3 point = different assessment)
-- Elder's Triple Screen: Structure determines IF, Sentiment determines HOW
-- ADX > 25 = trend confirmed, favor momentum; ADX 20-25 = favor pullback
-- Patterns < 80% have high false positive rate - don't show "75% forming"
+**Key Findings Applied:**
+- F&G at 44.7 vs 45.0 creates cliff behavior (0.3 point = different assessment) → Fixed
+- Elder's Triple Screen: Structure determines IF, Sentiment determines HOW → Implemented
+- ADX > 25 = trend confirmed, favor momentum; ADX 20-25 = favor pullback → Implemented
+- Patterns < 80% have high false positive rate - don't show "75% forming" → Implemented
 
-### v4.7: Comprehensive Testing Framework (Day 45)
-- **Priority:** HIGH (prerequisite for forward testing)
+### v4.7: Forward Testing UI ✅ COMPLETE (Day 47)
+- **Priority:** HIGH (tracked since Day 25 as CRITICAL)
+- **Status:** ✅ IMPLEMENTED
+- **Description:** Paper trading simulation with R-multiple tracking
+- **Features:**
+  - Add/close trades with entry, stop, target prices
+  - Automatic R-multiple calculation on close
+  - Van Tharp statistics: Win Rate, Avg Win R, Avg Loss R, Expectancy, SQN
+  - Trade journal table with status tracking
+  - Export to CSV functionality
+  - LocalStorage persistence
+- **Files:** `frontend/src/utils/forwardTesting.js`, Forward Test tab in `App.jsx`
+
+### v4.8: Comprehensive Testing Framework (Day 45)
+- **Priority:** MEDIUM (testing ongoing)
 - **Status:** ACTIVE (baseline tests complete, validation ongoing)
 - **Test Plan:** `docs/test/TEST_PLAN_COMPREHENSIVE.md`
 - **Test Script:** `backend/test_categorical_comprehensive.py`
@@ -152,7 +166,6 @@
   - C: Edge Case Tests (ETFs, extremes, missing data)
   - D: Cross-Validation (vs external sources)
   - E: Integration Tests (frontend-backend match)
-  - F: Forward Testing Framework
 
 **Test Tickers:**
 - Tier 1: AAPL, NVDA, JPM, MSFT, COST (baseline)
@@ -215,6 +228,7 @@ From backtesting:
 | 44 | v4.2 Pattern Detection complete, v4.4 Sentiment (Fear & Greed) complete, v4.5 Categorical Assessment complete |
 | 45 | v4.6 Perplexity Research Recommendations added, v4.7 Comprehensive Testing Framework added |
 | 46 | v4.6 UI Testing complete, Issue #0 fixed (Recommendation Card alert prices), validated with 5-ticker 2nd iteration |
+| 47 | v4.6.2 ADX Entry Preference + Pattern Actionability ≥80% complete, v4.7 Forward Testing UI complete |
 
 ---
 

@@ -23,24 +23,29 @@
 | Field | Value |
 |-------|-------|
 | Current Day | 47 |
-| Version | v4.6.1 (Backend v2.15) |
+| Version | v4.7 (Backend v2.15) |
 | Latest Status | PROJECT_STATUS_DAY47_SHORT.md |
 | Latest Issues | KNOWN_ISSUES_DAY46.md |
 | Latest API | API_CONTRACTS_DAY33.md |
-| Focus | **v4.6 Perplexity Research Implementation** + ADX Entry Preference |
+| Focus | **v4.6 Perplexity Recommendations COMPLETE** + v4.7 Forward Testing UI |
 
-### Day 46 Summary
-- **Fixed:** Issue #0 (CRITICAL) - Recommendation Card / Entry Mismatch
-  - Alert prices now show support (entry) not resistance
-  - Uses `entryPreference` from categorical assessment
-- **Created:** UI Test Report (docs/test/UI_TEST_REPORT_DAY46.md) - 10 tickers
-- **Validated:** 2nd iteration 5-ticker test - 100% pass rate
-- **Noted:** Market F&G improved from ~33 (Weak) to ~40 (Neutral)
+### Day 47 Summary
+- **Implemented:** ADX Entry Preference Logic (v4.6.2) - ADX determines momentum vs pullback
+- **Implemented:** Pattern Actionability ≥80% - Only actionable patterns shown with trigger/stop/target
+- **Implemented:** Forward Testing UI (v4.7) - Paper trading with Van Tharp metrics
+- **Implemented:** Breakout Volume Confirmation (v4.7.1) - Distinguishes valid vs false breakouts
+- **Completed:** All 4 Perplexity Research Recommendations now done
 
-### Next Session: ADX Entry + Pattern Actionability
-- ADX Entry Preference Logic (v4.6 Recommendation #2)
-- Pattern Actionability ≥80% (v4.6 Recommendation #3)
-- Forward Testing UI (v4.0 Roadmap priority)
+### v4.6 Perplexity Recommendations - ALL COMPLETE
+1. ✅ F&G Threshold Fix (35-60) - Day 45
+2. ✅ ADX Entry Preference - Day 47
+3. ✅ Pattern Actionability ≥80% - Day 47
+4. ✅ Structure > Sentiment Hierarchy - Day 45
+
+### Next Session: Testing & Validation
+- UI test the new Forward Testing tab
+- Validate ADX-based entry preference with real tickers
+- Consider TradingView Lightweight Charts (v4.1 Roadmap)
 
 ---
 

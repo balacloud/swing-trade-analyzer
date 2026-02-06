@@ -1,35 +1,57 @@
 # PROJECT STATUS - Day 47 Short
 
 > **Date:** February 6, 2026
-> **Version:** v4.6.1 (Backend v2.15)
-> **Focus:** Issue #0 Fixed + UI Test Validation Complete
+> **Version:** v4.7 (Backend v2.15)
+> **Focus:** v4.6 Perplexity Recommendations Complete + v4.7 Forward Testing UI
 
 ---
 
-## Day 46 Accomplishments
+## Day 47 Accomplishments
 
-### 1. Comprehensive UI Testing (10 Tickers)
-- Created `docs/test/UI_TEST_REPORT_DAY46.md`
-- Tested: AAPL, NVDA, META, JPM, GOOGL, SPY, TSLA, IWM, XLE, INTC
-- Discovered Issue #0 (CRITICAL): Recommendation Card / Entry Mismatch
+### 1. ADX Entry Preference Logic (v4.6.2) - COMPLETE
+Implemented ADX-based entry preference per Perplexity research:
+- **ADX > 25:** Momentum entry viable (strong trend confirmed)
+- **ADX 20-25:** Pullback preferred (trend developing)
+- **ADX < 20:** Wait for trend (no trend/choppy) - downgrades verdict to HOLD
 
-### 2. Issue #0 Fix - COMPLETE
-**Problem:** Recommendation card showed "near support" but alert price was resistance
-**Fix:** Updated `generateActionableRecommendation()` in App.jsx:398-504
-- Now reads `entryPreference` from categorical assessment
-- When pullback preferred + >10% below → shows "Wait for pullback to $X"
-- Alert price now uses support (entry level), not resistance
+Files modified:
+- `frontend/src/utils/categoricalAssessment.js` - Updated `determineVerdict()` to accept ADX
+- `frontend/src/App.jsx` - Passes `srData.meta.adx` to categorical assessment
 
-### 3. 2nd Iteration Validation - 100% PASS
-Tested 5 tickers post-fix: AAPL, NVDA, AVGO, INTC, IWM
-- All alert prices now correctly show support/entry levels
-- AAPL: $224.85 (was showing ~$288 resistance)
-- INTC: $42.04 (was showing $54.60 resistance)
+### 2. Pattern Actionability ≥80% (v4.6.2) - COMPLETE
+Only patterns with ≥80% confidence are now shown as "Actionable":
+- Added `getActionablePatterns()` function with trigger/stop/target prices
+- Patterns below threshold shown with transparency message
+- R:R ratio calculated for actionable patterns
 
-### 4. Market Condition Change Noted
-- F&G Index improved: ~33 (Weak) → ~40-41 (Neutral)
-- Some tickers now show Neutral sentiment instead of Weak
-- IWM RSI improved: 43.5 → 53.4 (now Strong Technical)
+Files modified:
+- `frontend/src/utils/categoricalAssessment.js` - Added `getActionablePatterns()`
+- `frontend/src/App.jsx` - New Actionable Patterns section in Pattern Detection card
+
+### 4. Breakout Volume Confirmation (v4.7.1) - COMPLETE
+Added volume confirmation to distinguish valid breakouts from false breakouts:
+- **High Quality Breakout:** Volume ≥1.5x avg + close in upper 50% + follow-through
+- **Medium Quality:** Some but not all criteria met
+- **Low/Approaching:** Missing key criteria or price below pivot
+- Breakout quality badge shown on actionable patterns
+- "Ready to Trade" indicator when volume-confirmed breakout detected
+
+Files modified:
+- `backend/pattern_detection.py` - Added `check_breakout_quality()` function
+- `frontend/src/utils/categoricalAssessment.js` - Breakout data in actionable patterns
+- `frontend/src/App.jsx` - Breakout quality badge + volume confirmation display
+
+### 3. Forward Testing UI (v4.7) - COMPLETE
+Full paper trading simulation with Van Tharp metrics:
+- **Add Trade:** Ticker, Entry, Stop, Target, Shares, Notes
+- **Close Trade:** Manual exit or Stop Hit
+- **Statistics:** Win Rate, Avg Win R, Avg Loss R, Expectancy, SQN
+- **Trade Journal:** Table view with status, R-multiple, P/L
+- **Export:** CSV download functionality
+- **Persistence:** LocalStorage for trades
+
+Files created:
+- `frontend/src/utils/forwardTesting.js` - Trade management & Van Tharp calculations
 
 ---
 
@@ -37,11 +59,22 @@ Tested 5 tickers post-fix: AAPL, NVDA, AVGO, INTC, IWM
 
 | Component | Version | Status |
 |-----------|---------|--------|
-| Frontend | v4.6.1 | Issue #0 fixed |
+| Frontend | v4.7 | All 3 priorities complete |
 | Backend | v2.15 | Stable |
-| Categorical Assessment | v4.6 | Working |
-| Structure > Sentiment | v4.6 | Working |
-| Recommendation Card | v4.6.1 | Fixed |
+| Categorical Assessment | v4.6.2 | ADX-based entry preference |
+| Pattern Detection | v4.6.2 | Actionability threshold |
+| Forward Testing | v4.7 | New tab available |
+
+---
+
+## v4.6 Perplexity Recommendations - ALL COMPLETE
+
+| # | Recommendation | Status |
+|---|----------------|--------|
+| 1 | F&G Threshold Fix (35-60) | ✅ Day 45 |
+| 2 | ADX Entry Preference | ✅ Day 47 |
+| 3 | Pattern Actionability ≥80% | ✅ Day 47 |
+| 4 | Structure > Sentiment Hierarchy | ✅ Day 45 |
 
 ---
 
@@ -49,8 +82,6 @@ Tested 5 tickers post-fix: AAPL, NVDA, AVGO, INTC, IWM
 
 | # | Issue | Severity | Status |
 |---|-------|----------|--------|
-| 1 | ADX Entry Preference Not Implemented | MEDIUM | PENDING - Next priority |
-| 2 | Pattern Actionability Missing | MEDIUM | PENDING |
 | 6 | RSI Range Too Narrow for Strong | MEDIUM | DEFERRED |
 | 3 | Frontend/Backend Data Validation | MEDIUM | ONGOING |
 | 4 | Test Script Field Name Mismatch | LOW | DEFERRED |
@@ -58,30 +89,14 @@ Tested 5 tickers post-fix: AAPL, NVDA, AVGO, INTC, IWM
 
 ---
 
-## Next Session Priorities
-
-1. **ADX Entry Preference Logic** (v4.6 Recommendation #2)
-   - ADX > 25 = Momentum entry viable
-   - ADX 20-25 = Pullback preferred
-   - ADX < 20 = Wait for trend
-
-2. **Pattern Actionability ≥80%** (v4.6 Recommendation #3)
-   - Only show patterns ≥80% formed
-   - Include specific trigger price and stop level
-
-3. **Forward Testing UI** (v4.0 Roadmap priority)
-   - Paper trading simulation
-   - Track entry/exit decisions
-
----
-
-## Files Modified (Day 46)
+## Files Modified (Day 47)
 
 | File | Changes |
 |------|---------|
-| `frontend/src/App.jsx` | Fixed `generateActionableRecommendation()` - alert price logic |
-| `docs/test/UI_TEST_REPORT_DAY46.md` | Created comprehensive test report |
-| `docs/claude/versioned/KNOWN_ISSUES_DAY46.md` | Issue #0 moved to RESOLVED |
+| `frontend/src/utils/categoricalAssessment.js` | ADX entry preference + `getActionablePatterns()` |
+| `frontend/src/utils/forwardTesting.js` | NEW - Trade management & statistics |
+| `frontend/src/App.jsx` | Forward Testing tab, Actionable Patterns section |
+| `docs/claude/stable/ROADMAP.md` | Updated to v4.7, all v4.6 recommendations complete |
 
 ---
 

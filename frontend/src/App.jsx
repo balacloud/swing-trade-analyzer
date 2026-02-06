@@ -29,7 +29,12 @@ import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchSc
 import { calculateScore } from './utils/scoringEngine';
 import { calculateSimplifiedAnalysis } from './utils/simplifiedScoring';
 import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings } from './utils/positionSizing';
-import { runCategoricalAssessment } from './utils/categoricalAssessment';
+import { runCategoricalAssessment, getActionablePatterns } from './utils/categoricalAssessment';
+import {
+  createTrade, closeTrade, calculateStatistics, getSQNRating,
+  loadTrades, saveTrades, addTrade, updateTrade, deleteTrade,
+  downloadTradesCSV, TradeStatus
+} from './utils/forwardTesting';
 //import { calculateRelativeStrength } from './utils/rsCalculator';
 
 function App() {
@@ -44,8 +49,18 @@ function App() {
   const [analysisResult, setAnalysisResult] = useState(null);
   const [srData, setSrData] = useState(null);
   const [patternsData, setPatternsData] = useState(null); // Day 44: Pattern detection
+  const [actionablePatternsData, setActionablePatternsData] = useState(null); // Day 47: Actionable patterns ≥80%
   const [fearGreedData, setFearGreedData] = useState(null); // Day 44: v4.5 Fear & Greed
   const [categoricalResult, setCategoricalResult] = useState(null); // Day 44: v4.5 Categorical Assessment
+
+  // Forward Testing state (Day 47: v4.7)
+  const [forwardTrades, setForwardTrades] = useState(() => loadTrades());
+  const [showAddTradeModal, setShowAddTradeModal] = useState(false);
+  const [newTradeForm, setNewTradeForm] = useState({
+    ticker: '', entryPrice: '', stopPrice: '', targetPrice: '', shares: '', notes: ''
+  });
+  const [closeTradeId, setCloseTradeId] = useState(null);
+  const [closeTradePrice, setCloseTradePrice] = useState('');
 
   // Scan state
   const [scanLoading, setScanLoading] = useState(false);
@@ -228,7 +243,9 @@ function App() {
       const simplified = calculateSimplifiedAnalysis(data.stock, data.spy, data.sr);
 
       // Day 44: v4.5 Categorical Assessment System
+      // Day 47: v4.6.2 - Added ADX data for entry preference logic
       const trendTemplate = data.patterns?.trendTemplate || null;
+      const adxData = data.sr?.meta?.adx || null;  // ADX for entry preference
       const categorical = runCategoricalAssessment(
         data.stock,
         data.spy,
@@ -237,12 +254,19 @@ function App() {
         trendTemplate,
         result.breakdown?.technical,
         data.stock.fundamentals,  // Pass raw fundamentals, not breakdown
-        targetTicker
+        targetTicker,
+        adxData  // v4.6.2: Pass ADX for entry preference
       );
 
       setAnalysisResult(result);
       setSrData(data.sr);
       setPatternsData(data.patterns); // Day 44: Pattern detection
+
+      // Day 47: v4.6.2 - Calculate actionable patterns (≥80% confidence only)
+      const atr = data.sr?.meta?.atr || null;
+      const actionablePatterns = getActionablePatterns(data.patterns, atr);
+      setActionablePatternsData(actionablePatterns);
+
       setFearGreedData(data.fearGreed); // Day 44: v4.5 Fear & Greed
       setCategoricalResult(categorical); // Day 44: v4.5 Categorical Assessment
       setSimplifiedResult(simplified);
@@ -726,6 +750,16 @@ function App() {
               }`}
             >
               📡 Data Sources
+            </button>
+            <button
+              onClick={() => setActiveTab('forward')}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'forward'
+                  ? 'bg-green-600 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              📈 Forward Test
             </button>
             <button
               onClick={() => setActiveTab('settings')}
@@ -1425,17 +1459,107 @@ function App() {
                       </div>
                     </div>
 
+                    {/* Day 47: Actionable Patterns Section (≥80% confidence only) */}
+                    {actionablePatternsData?.summary?.hasActionable && (
+                      <div className="mt-4 p-3 bg-green-900/20 border border-green-600 rounded-lg">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-green-400 font-semibold">✅ Actionable Patterns</span>
+                          <span className="text-xs text-gray-400">(≥80% confidence)</span>
+                        </div>
+                        <div className="space-y-3">
+                          {actionablePatternsData.actionablePatterns.map((pattern, idx) => (
+                            <div key={idx} className="bg-gray-800/50 rounded p-3">
+                              <div className="flex justify-between items-center mb-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-green-300">{pattern.name}</span>
+                                  {/* Breakout Quality Badge */}
+                                  {pattern.breakout?.quality && (
+                                    <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                      pattern.breakout.quality === 'High' ? 'bg-green-600 text-white' :
+                                      pattern.breakout.quality === 'Medium' ? 'bg-yellow-600 text-white' :
+                                      pattern.breakout.quality === 'Low' ? 'bg-red-600 text-white' :
+                                      pattern.breakout.quality === 'Approaching' ? 'bg-blue-600 text-white' :
+                                      'bg-gray-600 text-gray-200'
+                                    }`} title={pattern.breakout.reasons?.join(' | ')}>
+                                      {pattern.breakout.quality} Breakout
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-xs px-2 py-0.5 bg-green-600 text-white rounded">
+                                  {pattern.confidence}%
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-3 gap-2 text-xs mb-2">
+                                <div className="text-center p-1 bg-gray-700/50 rounded">
+                                  <div className="text-gray-400">Trigger</div>
+                                  <div className="text-blue-400 font-mono font-medium">${pattern.triggerPrice?.toFixed(2)}</div>
+                                </div>
+                                <div className="text-center p-1 bg-gray-700/50 rounded">
+                                  <div className="text-gray-400">Stop</div>
+                                  <div className="text-red-400 font-mono font-medium">${pattern.stopPrice?.toFixed(2)}</div>
+                                </div>
+                                <div className="text-center p-1 bg-gray-700/50 rounded">
+                                  <div className="text-gray-400">Target</div>
+                                  <div className="text-green-400 font-mono font-medium">${pattern.targetPrice?.toFixed(2)}</div>
+                                </div>
+                              </div>
+                              {/* Volume Confirmation Row */}
+                              {pattern.breakout?.volumeRatio && (
+                                <div className="flex items-center gap-2 text-xs mb-2">
+                                  <span className={pattern.breakout.volumeConfirmed ? 'text-green-400' : 'text-yellow-400'}>
+                                    {pattern.breakout.volumeConfirmed ? '✓' : '⚠'} Volume: {pattern.breakout.volumeRatio}x avg
+                                  </span>
+                                  <span className="text-gray-500">
+                                    {pattern.breakout.volumeConfirmed ? '(confirmed ≥1.5x)' : '(needs 1.5x+ for confirmation)'}
+                                  </span>
+                                </div>
+                              )}
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="text-gray-400">R:R {pattern.riskReward}:1</span>
+                                <span className={`${
+                                  pattern.breakout?.isTradeable ? 'text-green-400 font-medium' :
+                                  pattern.status === 'at_pivot' || pattern.status === 'complete' ? 'text-yellow-400' :
+                                  pattern.status === 'broken_out' ? 'text-green-400' :
+                                  'text-gray-400'
+                                }`}>
+                                  {pattern.breakout?.isTradeable ? '🎯 Ready to Trade' : pattern.action}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Day 47: Patterns below threshold (transparency) */}
+                    {actionablePatternsData?.belowThreshold?.length > 0 && (
+                      <div className="mt-2 p-2 bg-gray-700/30 rounded-lg">
+                        <div className="text-xs text-gray-500">
+                          Patterns below 80% threshold:{' '}
+                          {actionablePatternsData.belowThreshold.map((p, i) => (
+                            <span key={i} className="text-gray-400">
+                              {p.name} ({p.confidence}%)
+                              {i < actionablePatternsData.belowThreshold.length - 1 ? ', ' : ''}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Summary */}
-                    {patternsData.summary?.bestPattern && (
+                    {patternsData.summary?.bestPattern && !actionablePatternsData?.summary?.hasActionable && (
                       <div className="mt-3 p-2 bg-purple-900/30 rounded-lg text-center text-sm">
                         <span className="text-purple-300">Best Pattern: </span>
                         <span className="font-semibold text-purple-200">{patternsData.summary.bestPattern}</span>
                         <span className="text-purple-300"> ({patternsData.summary.bestConfidence}% confidence)</span>
+                        <div className="text-xs text-gray-400 mt-1">
+                          Below 80% actionability threshold
+                        </div>
                       </div>
                     )}
 
                     <div className="mt-3 text-xs text-gray-500 text-center">
-                      Data: yfinance (OHLCV) • Quality: algorithmic detection
+                      Data: yfinance (OHLCV) • Quality: algorithmic detection • Threshold: ≥80% for actionability
                     </div>
                   </div>
                 )}
@@ -2234,6 +2358,337 @@ function App() {
                 <p className="text-gray-600 text-sm">
                   Sources: StockAnalysis (prices, P/E, EPS) • Finviz (ROE, D/E, Revenue Growth)
                 </p>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ==================== FORWARD TESTING TAB (Day 47: v4.7) ==================== */}
+        {activeTab === 'forward' && (
+          <>
+            {/* Statistics Overview */}
+            <div className="bg-gray-800 rounded-lg p-6 mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-green-400">📈 Forward Testing Statistics</h3>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowAddTradeModal(true)}
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white font-medium transition-colors"
+                  >
+                    + Add Trade
+                  </button>
+                  {forwardTrades.length > 0 && (
+                    <button
+                      onClick={() => downloadTradesCSV(forwardTrades)}
+                      className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-white font-medium transition-colors"
+                    >
+                      Export CSV
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {(() => {
+                const stats = calculateStatistics(forwardTrades);
+                const sqnRating = getSQNRating(stats.sqn);
+
+                return (
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <div className="bg-gray-700/50 rounded-lg p-3 text-center">
+                      <div className="text-gray-400 text-xs">Total Trades</div>
+                      <div className="text-2xl font-bold text-white">{stats.totalTrades}</div>
+                      <div className="text-xs text-gray-500">{stats.openTrades} open</div>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-3 text-center">
+                      <div className="text-gray-400 text-xs">Win Rate</div>
+                      <div className={`text-2xl font-bold ${stats.winRate >= 50 ? 'text-green-400' : 'text-yellow-400'}`}>
+                        {stats.winRate}%
+                      </div>
+                      <div className="text-xs text-gray-500">{stats.wins}W / {stats.losses}L</div>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-3 text-center">
+                      <div className="text-gray-400 text-xs">Avg Win R</div>
+                      <div className="text-2xl font-bold text-green-400">+{stats.avgWinR}R</div>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-3 text-center">
+                      <div className="text-gray-400 text-xs">Avg Loss R</div>
+                      <div className="text-2xl font-bold text-red-400">{stats.avgLossR}R</div>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-3 text-center">
+                      <div className="text-gray-400 text-xs">Expectancy</div>
+                      <div className={`text-2xl font-bold ${stats.expectancy > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {stats.expectancy > 0 ? '+' : ''}{stats.expectancy}R
+                      </div>
+                      <div className="text-xs text-gray-500">${stats.expectancyDollar}/trade</div>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-3 text-center" title={sqnRating.description}>
+                      <div className="text-gray-400 text-xs">SQN</div>
+                      <div className={`text-2xl font-bold text-${sqnRating.color}-400`}>
+                        {stats.sqn}
+                      </div>
+                      <div className="text-xs text-gray-500">{sqnRating.rating}</div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              <div className="mt-4 p-3 bg-gray-700/30 rounded-lg text-xs text-gray-400">
+                <strong>Van Tharp Metrics:</strong> R = Initial Risk (Entry - Stop) | R-Multiple = Profit/Loss ÷ R |
+                Expectancy = (Win% × AvgWinR) + (Loss% × AvgLossR) | SQN = (MeanR ÷ StdDevR) × √N
+              </div>
+            </div>
+
+            {/* Trades Table */}
+            <div className="bg-gray-800 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-300 mb-4">Trade Journal</h3>
+
+              {forwardTrades.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <div className="text-4xl mb-3">📝</div>
+                  <p className="text-lg mb-2">No trades recorded yet</p>
+                  <p className="text-sm">Add your first paper trade to start tracking performance</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-gray-400 border-b border-gray-700">
+                        <th className="pb-2 pr-3">Ticker</th>
+                        <th className="pb-2 pr-3">Entry</th>
+                        <th className="pb-2 pr-3">Stop</th>
+                        <th className="pb-2 pr-3">Target</th>
+                        <th className="pb-2 pr-3">Shares</th>
+                        <th className="pb-2 pr-3">Status</th>
+                        <th className="pb-2 pr-3">R-Multiple</th>
+                        <th className="pb-2 pr-3">P/L</th>
+                        <th className="pb-2 pr-3">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {forwardTrades.map(trade => (
+                        <tr key={trade.id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
+                          <td className="py-2 pr-3 font-mono font-medium text-blue-400">{trade.ticker}</td>
+                          <td className="py-2 pr-3 font-mono">${trade.entryPrice.toFixed(2)}</td>
+                          <td className="py-2 pr-3 font-mono text-red-400">${trade.stopPrice.toFixed(2)}</td>
+                          <td className="py-2 pr-3 font-mono text-green-400">${trade.targetPrice.toFixed(2)}</td>
+                          <td className="py-2 pr-3">{trade.shares}</td>
+                          <td className="py-2 pr-3">
+                            <span className={`px-2 py-0.5 rounded text-xs ${
+                              trade.status === TradeStatus.OPEN ? 'bg-blue-900/50 text-blue-300' :
+                              trade.status === TradeStatus.CLOSED_WIN ? 'bg-green-900/50 text-green-300' :
+                              trade.status === TradeStatus.CLOSED_LOSS || trade.status === TradeStatus.STOPPED_OUT ? 'bg-red-900/50 text-red-300' :
+                              'bg-gray-700 text-gray-300'
+                            }`}>
+                              {trade.status.replace('_', ' ')}
+                            </span>
+                          </td>
+                          <td className={`py-2 pr-3 font-mono ${
+                            trade.rMultiple > 0 ? 'text-green-400' :
+                            trade.rMultiple < 0 ? 'text-red-400' :
+                            'text-gray-400'
+                          }`}>
+                            {trade.rMultiple !== null ? `${trade.rMultiple > 0 ? '+' : ''}${trade.rMultiple}R` : '-'}
+                          </td>
+                          <td className={`py-2 pr-3 font-mono ${
+                            trade.profitLoss > 0 ? 'text-green-400' :
+                            trade.profitLoss < 0 ? 'text-red-400' :
+                            'text-gray-400'
+                          }`}>
+                            {trade.profitLoss !== null ? `${trade.profitLoss > 0 ? '+' : ''}$${trade.profitLoss.toFixed(2)}` : '-'}
+                          </td>
+                          <td className="py-2 pr-3">
+                            {trade.status === TradeStatus.OPEN ? (
+                              <div className="flex gap-1">
+                                <button
+                                  onClick={() => {
+                                    setCloseTradeId(trade.id);
+                                    setCloseTradePrice('');
+                                  }}
+                                  className="px-2 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-xs text-white"
+                                >
+                                  Close
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    const updated = updateTrade(forwardTrades, trade.id,
+                                      closeTrade(trade, trade.stopPrice, 'stopped_out')
+                                    );
+                                    setForwardTrades(updated);
+                                  }}
+                                  className="px-2 py-1 bg-red-600 hover:bg-red-700 rounded text-xs text-white"
+                                >
+                                  Stop Hit
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => setForwardTrades(deleteTrade(forwardTrades, trade.id))}
+                                className="px-2 py-1 bg-gray-600 hover:bg-gray-700 rounded text-xs text-white"
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Add Trade Modal */}
+            {showAddTradeModal && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+                  <h3 className="text-lg font-semibold text-green-400 mb-4">Add Paper Trade</h3>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-gray-400 text-sm mb-1">Ticker</label>
+                      <input
+                        type="text"
+                        value={newTradeForm.ticker}
+                        onChange={(e) => setNewTradeForm({...newTradeForm, ticker: e.target.value.toUpperCase()})}
+                        className="w-full bg-gray-700 rounded px-3 py-2 text-white"
+                        placeholder="AAPL"
+                      />
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-gray-400 text-sm mb-1">Entry $</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={newTradeForm.entryPrice}
+                          onChange={(e) => setNewTradeForm({...newTradeForm, entryPrice: e.target.value})}
+                          className="w-full bg-gray-700 rounded px-3 py-2 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-400 text-sm mb-1">Stop $</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={newTradeForm.stopPrice}
+                          onChange={(e) => setNewTradeForm({...newTradeForm, stopPrice: e.target.value})}
+                          className="w-full bg-gray-700 rounded px-3 py-2 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-400 text-sm mb-1">Target $</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={newTradeForm.targetPrice}
+                          onChange={(e) => setNewTradeForm({...newTradeForm, targetPrice: e.target.value})}
+                          className="w-full bg-gray-700 rounded px-3 py-2 text-white"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-gray-400 text-sm mb-1">Shares</label>
+                      <input
+                        type="number"
+                        value={newTradeForm.shares}
+                        onChange={(e) => setNewTradeForm({...newTradeForm, shares: e.target.value})}
+                        className="w-full bg-gray-700 rounded px-3 py-2 text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-gray-400 text-sm mb-1">Notes (optional)</label>
+                      <textarea
+                        value={newTradeForm.notes}
+                        onChange={(e) => setNewTradeForm({...newTradeForm, notes: e.target.value})}
+                        className="w-full bg-gray-700 rounded px-3 py-2 text-white h-20"
+                        placeholder="Why are you taking this trade?"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      onClick={() => {
+                        if (newTradeForm.ticker && newTradeForm.entryPrice && newTradeForm.stopPrice && newTradeForm.shares) {
+                          const trade = createTrade({
+                            ticker: newTradeForm.ticker,
+                            entryPrice: parseFloat(newTradeForm.entryPrice),
+                            stopPrice: parseFloat(newTradeForm.stopPrice),
+                            targetPrice: parseFloat(newTradeForm.targetPrice) || parseFloat(newTradeForm.entryPrice) * 1.1,
+                            shares: parseInt(newTradeForm.shares),
+                            notes: newTradeForm.notes,
+                            categoricalVerdict: categoricalResult?.verdict?.verdict
+                          });
+                          setForwardTrades(addTrade(forwardTrades, trade));
+                          setNewTradeForm({ ticker: '', entryPrice: '', stopPrice: '', targetPrice: '', shares: '', notes: '' });
+                          setShowAddTradeModal(false);
+                        }
+                      }}
+                      className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white font-medium"
+                    >
+                      Add Trade
+                    </button>
+                    <button
+                      onClick={() => setShowAddTradeModal(false)}
+                      className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-white"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Close Trade Modal */}
+            {closeTradeId && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4">
+                  <h3 className="text-lg font-semibold text-yellow-400 mb-4">Close Trade</h3>
+
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1">Exit Price $</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={closeTradePrice}
+                      onChange={(e) => setCloseTradePrice(e.target.value)}
+                      className="w-full bg-gray-700 rounded px-3 py-2 text-white"
+                      autoFocus
+                    />
+                  </div>
+
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      onClick={() => {
+                        if (closeTradePrice) {
+                          const trade = forwardTrades.find(t => t.id === closeTradeId);
+                          if (trade) {
+                            const closedTrade = closeTrade(trade, parseFloat(closeTradePrice), 'manual');
+                            const updated = forwardTrades.map(t =>
+                              t.id === closeTradeId ? closedTrade : t
+                            );
+                            saveTrades(updated);
+                            setForwardTrades(updated);
+                          }
+                          setCloseTradeId(null);
+                          setCloseTradePrice('');
+                        }
+                      }}
+                      className="flex-1 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-white font-medium"
+                    >
+                      Close Trade
+                    </button>
+                    <button
+                      onClick={() => {
+                        setCloseTradeId(null);
+                        setCloseTradePrice('');
+                      }}
+                      className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-white"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </>

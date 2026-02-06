@@ -5,9 +5,14 @@
  *       - F&G thresholds: Expanded neutral zone (35-60) to eliminate cliff at 45
  *       - Structure > Sentiment hierarchy: Risk/Macro determines IF, Sentiment determines HOW
  *       - Entry preference guidance: Pullback vs Momentum based on sentiment
+ * v4.6.2: ADX-based entry preference (Day 47)
+ *       - ADX > 25: Momentum entry viable (strong trend)
+ *       - ADX 20-25: Pullback preferred (moderate trend)
+ *       - ADX < 20: Wait for trend (no trend/choppy)
  *
  * Day 44: Initial implementation
  * Day 45: v4.6 updates based on Perplexity research
+ * Day 47: v4.6.2 ADX-based entry preference (Recommendation #2)
  *
  * Categories:
  * - Technical: Strong / Decent / Weak
@@ -25,6 +30,181 @@
 const ETF_TICKERS = ['SPY', 'QQQ', 'IWM', 'DIA', 'VOO', 'VTI', 'VEA', 'VWO', 'VNQ',
                      'BND', 'AGG', 'GLD', 'SLV', 'USO', 'XLF', 'XLK', 'XLE', 'XLV',
                      'XLI', 'XLP', 'XLY', 'XLB', 'XLU', 'ARKK', 'ARKG', 'ARKW'];
+
+// v4.6.2 (Day 47): Minimum confidence threshold for actionable patterns
+const PATTERN_ACTIONABILITY_THRESHOLD = 80;
+
+/**
+ * Get Actionable Patterns
+ *
+ * v4.6.2 (Day 47): Filter patterns to only show those ≥80% confidence
+ * Based on Perplexity research: patterns < 80% have high false positive rate
+ *
+ * @param {object} patternsData - Raw patterns data from backend
+ * @param {number} atr - ATR value for stop calculation
+ * @returns {object} { actionablePatterns, summary }
+ */
+export function getActionablePatterns(patternsData, atr = null) {
+  if (!patternsData || !patternsData.patterns) {
+    return {
+      actionablePatterns: [],
+      summary: { count: 0, hasActionable: false }
+    };
+  }
+
+  const actionablePatterns = [];
+
+  // Check VCP
+  const vcp = patternsData.patterns.vcp;
+  if (vcp?.detected && vcp.confidence >= PATTERN_ACTIONABILITY_THRESHOLD) {
+    const pivotPrice = vcp.pivot_price;
+    const stopPrice = atr
+      ? pivotPrice - (atr * 2)  // 2 ATR below pivot
+      : pivotPrice * 0.93;     // 7% below pivot as fallback
+    const targetPrice = pivotPrice * 1.15; // 15% above pivot
+
+    // Day 47: Breakout quality assessment
+    const breakout = vcp.breakout || {};
+    const breakoutQuality = breakout.quality || 'Unknown';
+    const volumeConfirmed = breakout.volume_confirmed || false;
+    const isTradeable = breakout.tradeable || false;
+
+    actionablePatterns.push({
+      name: 'VCP',
+      fullName: 'Volatility Contraction Pattern',
+      confidence: vcp.confidence,
+      status: vcp.status,
+      triggerPrice: pivotPrice,
+      stopPrice: Math.round(stopPrice * 100) / 100,
+      targetPrice: Math.round(targetPrice * 100) / 100,
+      riskReward: ((targetPrice - pivotPrice) / (pivotPrice - stopPrice)).toFixed(1),
+      description: `${vcp.contractions_count} contractions with ${vcp.base_tightness_pct}% base tightness`,
+      action: vcp.status === 'at_pivot' ? 'Ready to buy on breakout above pivot' :
+              vcp.status === 'broken_out' ? 'Already broken out - use pullback entry' :
+              'Wait for price to reach pivot zone',
+      breakout: {
+        quality: breakoutQuality,
+        volumeConfirmed,
+        volumeRatio: breakout.volume_ratio,
+        isTradeable,
+        reasons: breakout.reasons || []
+      },
+      raw: vcp
+    });
+  }
+
+  // Check Cup & Handle (note: API transforms to camelCase)
+  const cupHandle = patternsData.patterns.cupHandle;
+  if (cupHandle?.detected && cupHandle.confidence >= PATTERN_ACTIONABILITY_THRESHOLD) {
+    const pivotPrice = cupHandle.pivot_price;
+    const stopPrice = atr
+      ? pivotPrice - (atr * 2)
+      : pivotPrice * 0.93;
+    const targetPrice = pivotPrice * 1.20; // 20% above pivot (C&H targets are higher)
+
+    // Day 47: Breakout quality assessment
+    const breakout = cupHandle.breakout || {};
+    const breakoutQuality = breakout.quality || 'Unknown';
+    const volumeConfirmed = breakout.volume_confirmed || false;
+    const isTradeable = breakout.tradeable || false;
+
+    actionablePatterns.push({
+      name: 'Cup & Handle',
+      fullName: 'Cup and Handle Pattern',
+      confidence: cupHandle.confidence,
+      status: cupHandle.status,
+      triggerPrice: pivotPrice,
+      stopPrice: Math.round(stopPrice * 100) / 100,
+      targetPrice: Math.round(targetPrice * 100) / 100,
+      riskReward: ((targetPrice - pivotPrice) / (pivotPrice - stopPrice)).toFixed(1),
+      description: `Cup depth ${cupHandle.cup?.depth_pct}%, ${cupHandle.handle?.days || 0} day handle`,
+      action: cupHandle.status === 'complete' ? 'Ready to buy on handle breakout' :
+              cupHandle.status === 'broken_out' ? 'Already broken out - use pullback entry' :
+              'Cup forming - wait for handle',
+      breakout: {
+        quality: breakoutQuality,
+        volumeConfirmed,
+        volumeRatio: breakout.volume_ratio,
+        isTradeable,
+        reasons: breakout.reasons || []
+      },
+      raw: cupHandle
+    });
+  }
+
+  // Check Flat Base (note: API transforms to camelCase)
+  const flatBase = patternsData.patterns.flatBase;
+  if (flatBase?.detected && flatBase.confidence >= PATTERN_ACTIONABILITY_THRESHOLD) {
+    const pivotPrice = flatBase.pivot_price;
+    const stopPrice = atr
+      ? pivotPrice - (atr * 2)
+      : pivotPrice * 0.93;
+    const targetPrice = pivotPrice * 1.12; // 12% above pivot (flat base targets are modest)
+
+    // Day 47: Breakout quality assessment
+    const breakout = flatBase.breakout || {};
+    const breakoutQuality = breakout.quality || 'Unknown';
+    const volumeConfirmed = breakout.volume_confirmed || false;
+    const isTradeable = breakout.tradeable || false;
+
+    actionablePatterns.push({
+      name: 'Flat Base',
+      fullName: 'Flat Base Consolidation',
+      confidence: flatBase.confidence,
+      status: flatBase.status,
+      triggerPrice: pivotPrice,
+      stopPrice: Math.round(stopPrice * 100) / 100,
+      targetPrice: Math.round(targetPrice * 100) / 100,
+      riskReward: ((targetPrice - pivotPrice) / (pivotPrice - stopPrice)).toFixed(1),
+      description: `${flatBase.base?.range_pct}% range, ${flatBase.prior_uptrend?.pct}% prior uptrend`,
+      action: flatBase.status === 'forming' ? 'Ready to buy on breakout above range' :
+              flatBase.status === 'broken_out' ? 'Already broken out - use pullback entry' :
+              'Wait for base to complete',
+      breakout: {
+        quality: breakoutQuality,
+        volumeConfirmed,
+        volumeRatio: breakout.volume_ratio,
+        isTradeable,
+        reasons: breakout.reasons || []
+      },
+      raw: flatBase
+    });
+  }
+
+  // Summary
+  const bestPattern = actionablePatterns.length > 0
+    ? actionablePatterns.reduce((best, p) => p.confidence > best.confidence ? p : best)
+    : null;
+
+  return {
+    actionablePatterns,
+    summary: {
+      count: actionablePatterns.length,
+      hasActionable: actionablePatterns.length > 0,
+      bestPattern: bestPattern?.name || null,
+      bestConfidence: bestPattern?.confidence || 0,
+      threshold: PATTERN_ACTIONABILITY_THRESHOLD
+    },
+    // Also include patterns below threshold for transparency
+    belowThreshold: [
+      vcp?.detected && vcp.confidence < PATTERN_ACTIONABILITY_THRESHOLD ? {
+        name: 'VCP',
+        confidence: vcp.confidence,
+        reason: `${vcp.confidence}% < ${PATTERN_ACTIONABILITY_THRESHOLD}% threshold`
+      } : null,
+      cupHandle?.detected && cupHandle.confidence < PATTERN_ACTIONABILITY_THRESHOLD ? {
+        name: 'Cup & Handle',
+        confidence: cupHandle.confidence,
+        reason: `${cupHandle.confidence}% < ${PATTERN_ACTIONABILITY_THRESHOLD}% threshold`
+      } : null,
+      flatBase?.detected && flatBase.confidence < PATTERN_ACTIONABILITY_THRESHOLD ? {
+        name: 'Flat Base',
+        confidence: flatBase.confidence,
+        reason: `${flatBase.confidence}% < ${PATTERN_ACTIONABILITY_THRESHOLD}% threshold`
+      } : null
+    ].filter(Boolean)
+  };
+}
 
 /**
  * Assess Technical Strength
@@ -425,33 +605,73 @@ export function assessRiskMacro(vixData, spyData) {
  * - Structure (Risk/Macro) determines IF you trade
  * - Sentiment determines HOW you enter (pullback vs momentum)
  *
+ * v4.6.2 Update (Day 47): ADX-based Entry Preference
+ * - ADX > 25: Momentum entry viable (strong confirmed trend)
+ * - ADX 20-25: Pullback preferred (trend developing)
+ * - ADX < 20: Wait for trend (no trend/choppy market)
+ *
  * Logic:
- * - BUY: Strong Tech + Strong Fund + Favorable/Neutral Risk (Sentiment guides entry, not go/no-go)
+ * - BUY: Strong Tech + Strong Fund + Favorable/Neutral Risk (ADX guides entry type)
  * - BUY: 2+ Strong with Favorable Risk (even if Sentiment is Weak)
  * - HOLD: Mixed signals or Unfavorable Risk override
  * - AVOID: Weak Technical (non-negotiable) OR Weak Fundamental with no Strong to offset
  *
- * Key Change: When Risk/Macro is Favorable, Sentiment Weak doesn't veto a BUY
- *             Instead, it suggests preferring pullback entries over momentum
+ * Key Change: ADX now determines entry preference instead of sentiment alone.
+ *             ADX < 20 suggests waiting for trend development.
  *
  * @param {string} technical - Technical assessment
  * @param {string} fundamental - Fundamental assessment
  * @param {string} sentiment - Sentiment assessment
  * @param {string} riskMacro - Risk/Macro assessment
- * @returns {object} { verdict, reason, color, entryPreference }
+ * @param {object} adxData - ADX data { adx: number, trend_strength: string }
+ * @returns {object} { verdict, reason, color, entryPreference, adxAnalysis }
  */
-export function determineVerdict(technical, fundamental, sentiment, riskMacro) {
+export function determineVerdict(technical, fundamental, sentiment, riskMacro, adxData = null) {
   // Count strong assessments (excluding Risk which uses different scale)
   const assessments = [technical, fundamental, sentiment];
   const strongCount = assessments.filter(a => a === 'Strong').length;
 
-  // Entry preference based on sentiment (Structure > Sentiment hierarchy)
-  // This guides HOW to enter, not IF to enter
+  // v4.6.2: ADX-based entry preference (replaces sentiment-based logic)
+  // ADX measures trend strength - determines HOW to enter, not IF to enter
+  const adxValue = adxData?.adx || null;
+  // trendStrength available for future use: adxData?.trend_strength
+
   let entryPreference = 'Either';
-  if (sentiment === 'Weak') {
-    entryPreference = 'Pullback preferred (fearful sentiment)';
-  } else if (sentiment === 'Strong') {
-    entryPreference = 'Momentum viable (positive sentiment)';
+  let adxAnalysis = null;
+
+  if (adxValue !== null) {
+    if (adxValue >= 25) {
+      // Strong trend confirmed - momentum entries work well
+      entryPreference = 'Momentum viable (ADX ' + adxValue + ' - strong trend)';
+      adxAnalysis = {
+        value: adxValue,
+        interpretation: 'Strong trend confirmed',
+        recommendation: 'Momentum entry viable - trend is established'
+      };
+    } else if (adxValue >= 20) {
+      // Moderate/developing trend - prefer pullback entries
+      entryPreference = 'Pullback preferred (ADX ' + adxValue + ' - moderate trend)';
+      adxAnalysis = {
+        value: adxValue,
+        interpretation: 'Trend developing',
+        recommendation: 'Wait for pullback to support - better risk/reward'
+      };
+    } else {
+      // No trend/choppy - wait for trend development
+      entryPreference = 'Wait for trend (ADX ' + adxValue + ' - choppy/no trend)';
+      adxAnalysis = {
+        value: adxValue,
+        interpretation: 'No clear trend',
+        recommendation: 'Avoid entries - wait for trend to develop (ADX > 20)'
+      };
+    }
+  } else {
+    // Fallback to sentiment-based if no ADX data
+    if (sentiment === 'Weak') {
+      entryPreference = 'Pullback preferred (fearful sentiment, no ADX data)';
+    } else if (sentiment === 'Strong') {
+      entryPreference = 'Momentum viable (positive sentiment, no ADX data)';
+    }
   }
 
   // AVOID conditions (highest priority - non-negotiable)
@@ -462,7 +682,8 @@ export function determineVerdict(technical, fundamental, sentiment, riskMacro) {
       verdict: 'AVOID',
       reason: 'Weak technical setup',
       color: 'red',
-      entryPreference: null
+      entryPreference: null,
+      adxAnalysis
     };
   }
 
@@ -473,7 +694,8 @@ export function determineVerdict(technical, fundamental, sentiment, riskMacro) {
       verdict: 'HOLD',
       reason: 'Unfavorable market conditions (regime caution)',
       color: 'yellow',
-      entryPreference: null
+      entryPreference: null,
+      adxAnalysis
     };
   }
 
@@ -484,24 +706,44 @@ export function determineVerdict(technical, fundamental, sentiment, riskMacro) {
       verdict: 'AVOID',
       reason: 'Weak fundamentals with no offsetting strengths',
       color: 'red',
-      entryPreference: null
+      entryPreference: null,
+      adxAnalysis
     };
+  }
+
+  // v4.6.2: ADX < 20 suggests caution - downgrade to HOLD if no strong trend
+  // Even with good categories, choppy markets increase failure rate
+  if (adxValue !== null && adxValue < 20) {
+    // Strong categories but no trend - still tradeable but prefer to wait
+    if (strongCount >= 2) {
+      return {
+        verdict: 'HOLD',
+        reason: `${strongCount} strong categories but ADX ${adxValue} < 20 (no trend) - wait for trend development`,
+        color: 'yellow',
+        entryPreference,
+        adxAnalysis
+      };
+    }
   }
 
   // BUY conditions (Structure > Sentiment applied here)
 
   // Strong Tech + Strong Fund = BUY regardless of Sentiment (Structure determines IF)
-  // Sentiment guides entry type via entryPreference
+  // ADX guides entry type via entryPreference
   if (technical === 'Strong' && fundamental === 'Strong') {
     let reason = '2 strong categories (Technical + Fundamental)';
     if (sentiment === 'Weak') {
       reason += ' - structure bullish despite fearful sentiment';
     }
+    if (adxValue !== null && adxValue >= 25) {
+      reason += ` - ADX ${adxValue} confirms trend`;
+    }
     return {
       verdict: 'BUY',
       reason,
       color: 'green',
-      entryPreference
+      entryPreference,
+      adxAnalysis
     };
   }
 
@@ -511,7 +753,8 @@ export function determineVerdict(technical, fundamental, sentiment, riskMacro) {
       verdict: 'BUY',
       reason: `${strongCount} strong categories with ${riskMacro.toLowerCase()} conditions`,
       color: 'green',
-      entryPreference
+      entryPreference,
+      adxAnalysis
     };
   }
 
@@ -522,7 +765,8 @@ export function determineVerdict(technical, fundamental, sentiment, riskMacro) {
       verdict: 'BUY',
       reason: 'Strong technicals with favorable macro conditions',
       color: 'green',
-      entryPreference
+      entryPreference,
+      adxAnalysis
     };
   }
 
@@ -532,7 +776,8 @@ export function determineVerdict(technical, fundamental, sentiment, riskMacro) {
       verdict: 'HOLD',
       reason: 'Mixed signals - wait for better setup',
       color: 'yellow',
-      entryPreference
+      entryPreference,
+      adxAnalysis
     };
   }
 
@@ -542,7 +787,8 @@ export function determineVerdict(technical, fundamental, sentiment, riskMacro) {
       verdict: 'HOLD',
       reason: 'Decent setup - consider with proper position sizing',
       color: 'yellow',
-      entryPreference
+      entryPreference,
+      adxAnalysis
     };
   }
 
@@ -551,7 +797,8 @@ export function determineVerdict(technical, fundamental, sentiment, riskMacro) {
     verdict: 'AVOID',
     reason: 'Insufficient strength across categories',
     color: 'red',
-    entryPreference: null
+    entryPreference: null,
+    adxAnalysis
   };
 }
 
@@ -559,6 +806,8 @@ export function determineVerdict(technical, fundamental, sentiment, riskMacro) {
  * Run Full Categorical Assessment
  *
  * Main entry point that runs all assessments and returns complete result
+ *
+ * v4.6.2 (Day 47): Added ADX data parameter for entry preference logic
  *
  * @param {object} stockData - Stock data from backend
  * @param {object} spyData - SPY data
@@ -568,6 +817,7 @@ export function determineVerdict(technical, fundamental, sentiment, riskMacro) {
  * @param {object} technicalResult - Technical scoring result (from scoringEngine)
  * @param {object} fundamentalResult - Fundamental scoring result
  * @param {string} ticker - Stock ticker symbol
+ * @param {object} adxData - ADX data { adx: number, trend_strength: string } (optional)
  * @returns {object} Complete categorical assessment
  */
 export function runCategoricalAssessment(
@@ -578,7 +828,8 @@ export function runCategoricalAssessment(
   trendTemplate,
   technicalResult,
   fundamentalResult,
-  ticker
+  ticker,
+  adxData = null
 ) {
   // Get RSI from technical indicators or calculate
   const rsi = technicalResult?.indicators?.rsi || stockData?.technicals?.rsi14 || 50;
@@ -589,12 +840,13 @@ export function runCategoricalAssessment(
   const sentiment = assessSentiment(fearGreedData);
   const riskMacro = assessRiskMacro(vixData, spyData);
 
-  // Determine overall verdict
+  // Determine overall verdict (v4.6.2: now includes ADX data for entry preference)
   const verdict = determineVerdict(
     technical.assessment,
     fundamental.assessment,
     sentiment.assessment,
-    riskMacro.assessment
+    riskMacro.assessment,
+    adxData
   );
 
   return {
@@ -603,6 +855,7 @@ export function runCategoricalAssessment(
     sentiment,
     riskMacro,
     verdict,
+    adxData,  // Include raw ADX data in result
     timestamp: new Date().toISOString()
   };
 }
