@@ -9,6 +9,7 @@
  * v2.4: Added Cache Management endpoints (Day 29)
  * v2.5: Added Pattern Detection endpoint (Day 44)
  * v2.6: Added Fear & Greed Index endpoint (Day 44 - v4.5 Categorical Assessment)
+ * v2.7: Added Earnings Calendar endpoint (Day 49 - v4.10)
  */
 
 const API_BASE_URL = 'http://localhost:5001/api';
@@ -356,20 +357,22 @@ export async function fetchSupportResistance(ticker) {
 }
 
 /**
- * Fetch analysis data WITH Support & Resistance + Pattern Detection + Fear & Greed
- * Enhanced version that includes S&R levels, patterns, and sentiment in parallel
+ * Fetch analysis data WITH Support & Resistance + Pattern Detection + Fear & Greed + Earnings
+ * Enhanced version that includes S&R levels, patterns, sentiment, and earnings in parallel
  * v4.5: Added Fear & Greed Index for categorical assessment
+ * v4.10: Added Earnings Calendar for event risk warning
  */
 export async function fetchFullAnalysisData(ticker) {
   try {
-    const [stockData, fundamentals, spyData, vixData, srData, patterns, fearGreed] = await Promise.all([
+    const [stockData, fundamentals, spyData, vixData, srData, patterns, fearGreed, earnings] = await Promise.all([
       fetchStockData(ticker),
       fetchFundamentals(ticker),
       fetchSPYData(),
       fetchVIXData(),
       fetchSupportResistance(ticker),
       fetchPatterns(ticker),
-      fetchFearGreed()
+      fetchFearGreed(),
+      fetchEarnings(ticker)
     ]);
 
     if (fundamentals) {
@@ -388,7 +391,8 @@ export async function fetchFullAnalysisData(ticker) {
       fundamentals: fundamentals,
       sr: srData,
       patterns: patterns,
-      fearGreed: fearGreed
+      fearGreed: fearGreed,
+      earnings: earnings
     };
 
   } catch (error) {
@@ -653,6 +657,56 @@ export async function fetchFearGreed() {
       timestamp: null,
       previousClose: null,
       source: 'default (error fallback)',
+      error: error.message
+    };
+  }
+}
+
+// ============================================
+// EARNINGS CALENDAR (Day 49 - v4.10)
+// ============================================
+
+/**
+ * Fetch earnings calendar for a ticker
+ * Warns about upcoming earnings to avoid event/gap risk
+ * Part of v4.10 Earnings Calendar Warning
+ *
+ * @param {string} ticker - Stock ticker symbol
+ * @param {number} days - Warning window in days (default 7)
+ * @returns {object} - Earnings info with warning if applicable
+ */
+export async function fetchEarnings(ticker, days = 7) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/earnings/${ticker.toUpperCase()}?days=${days}`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || `Failed to fetch earnings for ${ticker}`);
+    }
+
+    const data = await response.json();
+
+    return {
+      ticker: data.ticker,
+      hasUpcoming: data.has_upcoming,
+      earningsDate: data.earnings_date,
+      daysUntil: data.days_until,
+      warning: data.warning,
+      recommendation: data.recommendation,
+      source: data.source
+    };
+
+  } catch (error) {
+    console.error('Error fetching earnings:', error);
+    // Return safe default on error
+    return {
+      ticker: ticker,
+      hasUpcoming: false,
+      earningsDate: null,
+      daysUntil: null,
+      warning: null,
+      recommendation: 'Could not fetch earnings data',
+      source: null,
       error: error.message
     };
   }

@@ -1,5 +1,5 @@
 """
-Swing Trade Analyzer Backend - v2.15
+Swing Trade Analyzer Backend - v2.16
 Flask API server with yfinance (prices) + Defeat Beta (fundamentals) + TradingView Screener (scanning) + S&R Engine
 
 Day 6: Fixed numpy type serialization issues
@@ -13,6 +13,8 @@ Day 36: Upgraded to SQLite persistent cache (survives restarts, intelligent TTL)
 Day 39: Added local RSI, ADX, and 4H RSI calculations (Dual Entry Strategy)
 Day 44: Added Pattern Detection endpoint (VCP, Cup & Handle, Flat Base)
 Day 44: Added Fear & Greed Index endpoint + Categorical Assessment System (v4.5)
+Day 49: Added OBV (On-Balance Volume) indicator + RVOL display (v4.9)
+Day 49: Added Earnings Calendar endpoint (v4.10)
 """
 
 import os
@@ -319,6 +321,104 @@ def calculate_adx(high: pd.Series, low: pd.Series, close: pd.Series, period: int
 
     except Exception as e:
         print(f"ADX calculation error: {e}")
+        return None
+
+
+def calculate_obv(close: pd.Series, volume: pd.Series, lookback: int = 20) -> dict:
+    """
+    Calculate On-Balance Volume (OBV) and trend.
+
+    OBV is a cumulative indicator that adds volume on up days
+    and subtracts volume on down days. It shows accumulation/distribution
+    before price moves.
+
+    Day 49 (v4.9): Added for enhanced volume analysis.
+
+    Parameters
+    ----------
+    close : pd.Series
+        Closing prices
+    volume : pd.Series
+        Volume data
+    lookback : int
+        Period to determine OBV trend (default 20 days)
+
+    Returns
+    -------
+    dict
+        {
+            'obv': float,           # Current OBV value
+            'obv_prev': float,      # Previous OBV value (for trend)
+            'obv_change': float,    # % change in OBV over lookback
+            'trend': str,           # 'rising'/'falling'/'flat'
+            'divergence': str,      # 'bullish'/'bearish'/'none' vs price
+            'signal': str           # Interpretation for traders
+        }
+    """
+    try:
+        if len(close) < lookback + 1 or len(volume) < lookback + 1:
+            return None
+
+        # Calculate OBV: +volume on up days, -volume on down days
+        # sign of price change * volume, then cumsum
+        price_change = close.diff()
+        direction = np.sign(price_change)
+        obv = (direction * volume).cumsum()
+
+        # Get current and lookback-ago OBV values
+        current_obv = float(obv.iloc[-1])
+        prev_obv = float(obv.iloc[-lookback])
+
+        # Calculate OBV change %
+        obv_change_pct = 0.0
+        if prev_obv != 0:
+            obv_change_pct = ((current_obv - prev_obv) / abs(prev_obv)) * 100
+
+        # Determine OBV trend
+        # Use regression slope over lookback period for smoother trend
+        recent_obv = obv.tail(lookback)
+        obv_sma = recent_obv.mean()
+
+        if current_obv > obv_sma * 1.02:  # OBV above moving average by 2%
+            trend = 'rising'
+        elif current_obv < obv_sma * 0.98:  # OBV below moving average by 2%
+            trend = 'falling'
+        else:
+            trend = 'flat'
+
+        # Check for divergence with price
+        # Compare price trend vs OBV trend over lookback period
+        price_change_pct = ((close.iloc[-1] - close.iloc[-lookback]) / close.iloc[-lookback]) * 100
+
+        divergence = 'none'
+        signal = 'Neutral - OBV confirms price trend'
+
+        # Bullish divergence: Price flat/down but OBV rising (accumulation)
+        if price_change_pct <= 2 and obv_change_pct > 5:
+            divergence = 'bullish'
+            signal = 'Bullish divergence - accumulation detected'
+        # Bearish divergence: Price up but OBV falling (distribution)
+        elif price_change_pct >= 2 and obv_change_pct < -5:
+            divergence = 'bearish'
+            signal = 'Bearish divergence - distribution warning'
+        # Strong confirmation: Both rising
+        elif price_change_pct > 5 and obv_change_pct > 5:
+            signal = 'Strong confirmation - volume supports uptrend'
+        # Weak trend: Price up but OBV flat
+        elif price_change_pct > 5 and abs(obv_change_pct) < 5:
+            signal = 'Weak trend - price rising without volume support'
+
+        return {
+            'obv': round(current_obv, 0),
+            'obv_prev': round(prev_obv, 0),
+            'obv_change_pct': round(obv_change_pct, 1),
+            'trend': trend,
+            'divergence': divergence,
+            'signal': signal
+        }
+
+    except Exception as e:
+        print(f"OBV calculation error: {e}")
         return None
 
 
@@ -786,7 +886,7 @@ def health_check():
     response = {
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
-        'version': '2.9',
+        'version': '2.16',
         'defeatbeta_available': DEFEATBETA_AVAILABLE,
         'tradingview_available': TRADINGVIEW_AVAILABLE,
         'sr_engine_available': SR_ENGINE_AVAILABLE,
@@ -1303,6 +1403,142 @@ def get_fear_greed():
 
 
 # ============================================
+# EARNINGS CALENDAR ENDPOINT (Day 49 - v4.10)
+# Warns about upcoming earnings to avoid gap risk
+# ============================================
+
+@app.route('/api/earnings/<ticker>', methods=['GET'])
+def get_earnings_calendar(ticker):
+    """
+    Get earnings calendar for a ticker.
+
+    Day 49 (v4.10): Helps avoid event risk by flagging stocks with
+    upcoming earnings that could cause gaps that invalidate technicals.
+
+    Returns:
+        has_upcoming: bool - True if earnings within warning_days
+        days_until: int - Days until next earnings (or None)
+        earnings_date: str - ISO date of next earnings
+        warning: str - Warning message if applicable
+        recommendation: str - Suggested action
+    """
+    try:
+        ticker = ticker.upper()
+        warning_days = int(request.args.get('days', 7))  # Default 7 days
+
+        stock = yf.Ticker(ticker)
+
+        # Try multiple methods to get earnings date
+        earnings_date = None
+        earnings_source = None
+
+        # Method 1: Try .calendar
+        try:
+            calendar = stock.calendar
+            if calendar is not None and not calendar.empty:
+                # calendar may be a DataFrame with earnings dates
+                if 'Earnings Date' in calendar.index:
+                    earnings_date = calendar.loc['Earnings Date']
+                    if hasattr(earnings_date, 'iloc'):
+                        earnings_date = earnings_date.iloc[0]
+                    earnings_source = 'calendar'
+        except Exception as e:
+            print(f"Calendar method failed for {ticker}: {e}")
+
+        # Method 2: Try .earnings_dates
+        if earnings_date is None:
+            try:
+                earnings_dates = stock.earnings_dates
+                if earnings_dates is not None and len(earnings_dates) > 0:
+                    # Get the next upcoming date
+                    now = datetime.now()
+                    future_dates = [d for d in earnings_dates.index if d.to_pydatetime() > now]
+                    if future_dates:
+                        earnings_date = min(future_dates)
+                        earnings_source = 'earnings_dates'
+            except Exception as e:
+                print(f"Earnings dates method failed for {ticker}: {e}")
+
+        # Method 3: Try info dict
+        if earnings_date is None:
+            try:
+                info = stock.info
+                if info and 'earningsTimestamp' in info:
+                    ts = info['earningsTimestamp']
+                    if ts:
+                        earnings_date = datetime.fromtimestamp(ts)
+                        earnings_source = 'info'
+            except Exception as e:
+                print(f"Info method failed for {ticker}: {e}")
+
+        # Process the earnings date
+        if earnings_date is None:
+            return jsonify({
+                'ticker': ticker,
+                'has_upcoming': False,
+                'earnings_date': None,
+                'days_until': None,
+                'warning': None,
+                'recommendation': 'No earnings date found',
+                'source': None
+            })
+
+        # Convert to datetime if needed
+        if hasattr(earnings_date, 'to_pydatetime'):
+            earnings_date = earnings_date.to_pydatetime()
+        elif isinstance(earnings_date, str):
+            earnings_date = datetime.fromisoformat(earnings_date.replace('Z', '+00:00'))
+
+        # Make timezone-naive for comparison
+        if hasattr(earnings_date, 'tzinfo') and earnings_date.tzinfo is not None:
+            earnings_date = earnings_date.replace(tzinfo=None)
+
+        now = datetime.now()
+        days_until = (earnings_date - now).days
+
+        # Determine warning status
+        has_upcoming = 0 <= days_until <= warning_days
+
+        warning = None
+        recommendation = 'No event risk detected'
+
+        if days_until < 0:
+            recommendation = 'Earnings have passed - check recent news'
+        elif days_until == 0:
+            warning = '⚠️ EARNINGS TODAY'
+            recommendation = 'HIGH RISK - Gap risk is maximum. Consider waiting.'
+        elif days_until <= 3:
+            warning = f'⚠️ Earnings in {days_until} day{"s" if days_until > 1 else ""}'
+            recommendation = 'CAUTION - Close to earnings. Size position smaller or wait.'
+        elif days_until <= warning_days:
+            warning = f'📅 Earnings in {days_until} days'
+            recommendation = 'AWARE - Consider exiting before earnings if position is taken.'
+
+        return jsonify({
+            'ticker': ticker,
+            'has_upcoming': has_upcoming,
+            'earnings_date': earnings_date.strftime('%Y-%m-%d'),
+            'days_until': days_until,
+            'warning': warning,
+            'recommendation': recommendation,
+            'source': earnings_source
+        })
+
+    except Exception as e:
+        print(f"Error fetching earnings for {ticker}: {e}")
+        traceback.print_exc()
+        return jsonify({
+            'ticker': ticker,
+            'has_upcoming': False,
+            'earnings_date': None,
+            'days_until': None,
+            'warning': None,
+            'recommendation': f'Error: {str(e)}',
+            'source': None
+        })
+
+
+# ============================================
 # SUPPORT & RESISTANCE ENDPOINT (Day 13)
 # Day 15 Fix: Added proximity filter for actionable levels
 # ============================================
@@ -1374,6 +1610,7 @@ def get_support_resistance(ticker):
 
         # ============================================
         # Day 39: Calculate ADX (trend strength) and 4H RSI (momentum)
+        # Day 49: Added OBV (On-Balance Volume) for v4.9
         # ============================================
         adx_data = calculate_adx(
             pd.Series(df['high'].values),
@@ -1385,6 +1622,18 @@ def get_support_resistance(ticker):
 
         # Daily RSI for comparison
         daily_rsi = calculate_rsi(pd.Series(df['close'].values))
+
+        # Day 49 (v4.9): Calculate OBV for volume analysis
+        obv_data = calculate_obv(
+            pd.Series(df['close'].values),
+            pd.Series(df['volume'].values)
+        )
+
+        # Day 49 (v4.9): Calculate RVOL (Relative Volume) for display
+        avg_volume_50 = df['volume'].tail(50).mean()
+        current_volume = df['volume'].iloc[-1]
+        rvol = round(current_volume / avg_volume_50, 2) if avg_volume_50 > 0 else 1.0
+        rvol_display = f"{rvol}x avg" if rvol >= 1.5 else f"{rvol}x"
 
         # ============================================
         # PROXIMITY FILTER (Day 15 Fix)
@@ -1471,7 +1720,11 @@ def get_support_resistance(ticker):
                 # Day 39: Add trend strength and momentum indicators
                 'adx': adx_data,
                 'rsi_4h': rsi_4h_data,
-                'rsi_daily': daily_rsi
+                'rsi_daily': daily_rsi,
+                # Day 49 (v4.9): Add OBV and RVOL for enhanced volume analysis
+                'obv': obv_data,
+                'rvol': rvol,
+                'rvol_display': rvol_display
             }
         }
         

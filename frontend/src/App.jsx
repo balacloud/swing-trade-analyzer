@@ -22,6 +22,14 @@
  * v3.9: Day 42 - Data source labels for all score sections (Technical, Sentiment, Risk/Macro)
  * v4.0: Day 44 - Categorical Assessment System (v4.5) - replaces 75-point numerical scoring
  * v4.1: Day 44 - Actionable Recommendation Card - clear guidance above assessment section
+ * v4.2: Day 49 - Indicator Coherence Fixes:
+ *       - R:R Filter: Cards grayed out + "⛔ R:R < 1" badge when R:R < 1.0
+ *       - ADX Logic: Corrected entry strategy suggestions (ADX >=25=preferred, 20-25=viable, <20=caution)
+ *       - Distribution Warning: "⚠️ DIST" badge when RVOL high + OBV falling
+ * v4.3: Day 49 - UI Cohesiveness Fixes (from Test_2):
+ *       - Entry uses nearest support: Fixed Math.max() instead of support[0]
+ *       - Position/Reason aligned: Position now says "wait" when ADX < 20
+ *       - VIABLE badge specificity: Shows "PULLBACK OK", "MOMENTUM OK", or "BOTH VIABLE"
  */
 
 import React, { useState, useEffect } from 'react';
@@ -51,6 +59,7 @@ function App() {
   const [patternsData, setPatternsData] = useState(null); // Day 44: Pattern detection
   const [actionablePatternsData, setActionablePatternsData] = useState(null); // Day 47: Actionable patterns ≥80%
   const [fearGreedData, setFearGreedData] = useState(null); // Day 44: v4.5 Fear & Greed
+  const [earningsData, setEarningsData] = useState(null); // Day 49: v4.10 Earnings Calendar
   const [categoricalResult, setCategoricalResult] = useState(null); // Day 44: v4.5 Categorical Assessment
 
   // Forward Testing state (Day 47: v4.7)
@@ -268,6 +277,7 @@ function App() {
       setActionablePatternsData(actionablePatterns);
 
       setFearGreedData(data.fearGreed); // Day 44: v4.5 Fear & Greed
+      setEarningsData(data.earnings); // Day 49: v4.10 Earnings Calendar
       setCategoricalResult(categorical); // Day 44: v4.5 Categorical Assessment
       setSimplifiedResult(simplified);
       setTicker(targetTicker);
@@ -864,7 +874,22 @@ function App() {
                     <div>
                       <h2 className="text-2xl font-bold text-white">{analysisResult.ticker} - {analysisResult.name}</h2>
                       <p className="text-gray-400">{analysisResult.sector} • {analysisResult.industry}</p>
-                      <p className="text-gray-500 text-sm mt-1">{formatCurrency(analysisResult.currentPrice)}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="text-gray-500 text-sm">{formatCurrency(analysisResult.currentPrice)}</p>
+                        {/* Day 49: v4.10 Earnings Warning Badge */}
+                        {earningsData?.hasUpcoming && (
+                          <span
+                            title={`${earningsData.recommendation}\n\nEarnings Date: ${earningsData.earningsDate}\nDays Until: ${earningsData.daysUntil}`}
+                            className={`px-2 py-0.5 rounded text-xs font-medium cursor-help ${
+                              earningsData.daysUntil <= 3
+                                ? 'bg-red-600 text-white animate-pulse'
+                                : 'bg-yellow-600 text-white'
+                            }`}
+                          >
+                            {earningsData.warning}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="text-right">
                       <div className={`text-4xl font-bold px-4 py-2 rounded-lg ${
@@ -990,17 +1015,64 @@ function App() {
                 </div>
 
                 {/* Trade Setup Card (S&R) - Day 22: Enhanced with Viability */}
+                {/* Day 49: Calculate R:R viability for badge specificity */}
                 {srData && (
                   <div className="bg-gray-800 rounded-lg p-6">
-                    {/* Header with Viability Badge */}
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold text-blue-400">🎯 Trade Setup</h3>
-                      {srData.meta?.tradeViability && (
-                        <div className={`px-3 py-1 rounded-full text-sm font-bold ${getViabilityStyle(srData.meta.tradeViability.viable).bg} ${getViabilityStyle(srData.meta.tradeViability.viable).text}`}>
-                          {getViabilityStyle(srData.meta.tradeViability.viable).icon} {getViabilityStyle(srData.meta.tradeViability.viable).label}
-                        </div>
-                      )}
-                    </div>
+                    {/* Day 49: Pre-calculate R:R for viability badge */}
+                    {(() => {
+                      const nearestSupport = srData.support?.length > 0 ? Math.max(...srData.support) : null;
+                      const currentPrice = srData.currentPrice;
+                      const atr = srData.meta?.atr || 0;
+                      const pullbackTarget = srData.suggestedTarget || currentPrice * 1.10;
+
+                      // Pullback R:R
+                      const pullbackEntry = nearestSupport;
+                      const pullbackStop = nearestSupport ? nearestSupport - (atr * 2) : 0;
+                      const pullbackRisk = pullbackEntry ? pullbackEntry - pullbackStop : 0;
+                      const pullbackReward = pullbackEntry ? pullbackTarget - pullbackEntry : 0;
+                      const pullbackRRValue = pullbackRisk > 0 ? pullbackReward / pullbackRisk : 0;
+
+                      // Momentum R:R
+                      const momentumStop = nearestSupport ? nearestSupport - (atr * 1.5) : 0;
+                      const momentumRisk = currentPrice - momentumStop;
+                      const momentumReward = pullbackTarget - currentPrice;
+                      const momentumRRValue = momentumRisk > 0 ? momentumReward / momentumRisk : 0;
+
+                      const pullbackViable = pullbackRRValue >= 1.0;
+                      const momentumViable = momentumRRValue >= 1.0;
+                      const anyViable = pullbackViable || momentumViable;
+
+                      // Determine which strategy is viable for the badge
+                      let viabilityLabel = 'NOT VIABLE';
+                      let viabilityBg = 'bg-red-600';
+                      let viabilityIcon = '🚫';
+
+                      if (pullbackViable && momentumViable) {
+                        viabilityLabel = 'BOTH VIABLE';
+                        viabilityBg = 'bg-green-600';
+                        viabilityIcon = '✅';
+                      } else if (pullbackViable) {
+                        viabilityLabel = 'PULLBACK OK';
+                        viabilityBg = 'bg-green-700';
+                        viabilityIcon = '✅';
+                      } else if (momentumViable) {
+                        viabilityLabel = 'MOMENTUM OK';
+                        viabilityBg = 'bg-blue-600';
+                        viabilityIcon = '✅';
+                      }
+
+                      return (
+                        <>
+                          {/* Header with Viability Badge - Day 49: Shows which strategy is viable */}
+                          <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold text-blue-400">🎯 Trade Setup</h3>
+                            <div className={`px-3 py-1 rounded-full text-sm font-bold ${viabilityBg} text-white`}>
+                              {viabilityIcon} {viabilityLabel}
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
 
                     {/* Viability Advice Banner (Day 22) */}
                     {srData.meta?.tradeViability && (
@@ -1058,6 +1130,41 @@ function App() {
                                   4H RSI {srData.meta.rsi_4h.rsi_4h}
                                 </span>
                               )}
+                              {/* Day 49 (v4.9): OBV indicator */}
+                              {srData.meta?.obv && (
+                                <span
+                                  title={`On-Balance Volume (OBV):\n${srData.meta.obv.signal}\n\nOBV Trend: ${srData.meta.obv.trend}\nChange: ${srData.meta.obv.obv_change_pct}%\nDivergence: ${srData.meta.obv.divergence}`}
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-medium cursor-help ${
+                                  srData.meta.obv.divergence === 'bullish' ? 'bg-green-600 text-white' :
+                                  srData.meta.obv.divergence === 'bearish' ? 'bg-red-600 text-white' :
+                                  srData.meta.obv.trend === 'rising' ? 'bg-green-700 text-green-100' :
+                                  srData.meta.obv.trend === 'falling' ? 'bg-red-700 text-red-100' :
+                                  'bg-gray-600 text-gray-100'
+                                }`}>
+                                  OBV {srData.meta.obv.trend === 'rising' ? '↑' : srData.meta.obv.trend === 'falling' ? '↓' : '→'}
+                                </span>
+                              )}
+                              {/* Day 49 (v4.9): RVOL (Relative Volume) display */}
+                              {srData.meta?.rvol && (
+                                <span
+                                  title={`Relative Volume (RVOL):\nCurrent volume vs 50-day average.\n≥1.5x = High interest (breakout confirmation)\n1.0-1.5x = Normal activity\n<1.0x = Low interest\n\nCurrent: ${srData.meta.rvol_display}`}
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-medium cursor-help ${
+                                  srData.meta.rvol >= 2.0 ? 'bg-green-600 text-white' :
+                                  srData.meta.rvol >= 1.5 ? 'bg-green-700 text-green-100' :
+                                  srData.meta.rvol >= 1.0 ? 'bg-blue-700 text-blue-100' :
+                                  'bg-gray-600 text-gray-100'
+                                }`}>
+                                  Vol {srData.meta.rvol_display}
+                                </span>
+                              )}
+                              {/* Day 49: Distribution Warning - High RVOL + OBV Falling = big money selling */}
+                              {srData.meta?.rvol >= 1.5 && srData.meta?.obv?.trend === 'falling' && (
+                                <span
+                                  title="⚠️ Distribution Signal:\nHigh volume (≥1.5x avg) + Falling OBV\n\nPossible Meaning:\n• Large players may be selling into strength\n• Volume expansion but money leaving the stock\n• Be cautious with new long positions\n\nThis doesn't mean the stock will fall, but suggests caution."
+                                  className="px-1.5 py-0.5 rounded text-[10px] font-medium cursor-help bg-orange-600 text-white animate-pulse">
+                                  ⚠️ DIST
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1065,15 +1172,26 @@ function App() {
                     )}
 
                     {/* Day 39: Dual Entry Strategy Cards - Side by Side (ALL stocks) */}
+                    {/* Day 49: Fixed R:R filter + ADX-based suggestion logic + nearest support fix */}
                     {srData.support?.length > 0 && (
                       <div className="mb-4">
                         {(() => {
-                          const nearestSupport = srData.support[0];
+                          // Day 49: Fix - use nearest support (highest value below current price)
+                          // Support array is not sorted, so find max to get nearest
+                          const nearestSupport = Math.max(...srData.support);
                           const currentPrice = srData.currentPrice;
                           const adx = srData.meta?.adx;
                           const rsi4h = srData.meta?.rsi_4h;
                           const atr = srData.meta?.atr || 0;
-                          const preferPullback = adx && adx.adx >= 25;
+                          const adxValue = adx?.adx || 0;
+
+                          // Day 49: Corrected ADX-based strategy preference
+                          // ADX >= 25: Strong trend - prefer pullback entries
+                          // ADX 20-25: Weak trend - either strategy viable
+                          // ADX < 20: No trend - wait, don't suggest entries
+                          const strongTrend = adxValue >= 25;
+                          const weakTrend = adxValue >= 20 && adxValue < 25;
+                          const noTrend = adxValue < 20;
 
                           // Pullback Strategy calculations
                           const pullbackEntry = nearestSupport;
@@ -1081,7 +1199,8 @@ function App() {
                           const pullbackTarget = srData.suggestedTarget || currentPrice * 1.10;
                           const pullbackRisk = pullbackEntry - pullbackStop;
                           const pullbackReward = pullbackTarget - pullbackEntry;
-                          const pullbackRR = pullbackRisk > 0 ? (pullbackReward / pullbackRisk).toFixed(2) : 'N/A';
+                          const pullbackRRValue = pullbackRisk > 0 ? pullbackReward / pullbackRisk : 0;
+                          const pullbackRR = pullbackRRValue > 0 ? pullbackRRValue.toFixed(2) : 'N/A';
 
                           // Momentum Strategy calculations
                           const momentumEntry = currentPrice;
@@ -1089,17 +1208,39 @@ function App() {
                           const momentumTarget = pullbackTarget;
                           const momentumRisk = momentumEntry - momentumStop;
                           const momentumReward = momentumTarget - momentumEntry;
-                          const momentumRR = momentumRisk > 0 ? (momentumReward / momentumRisk).toFixed(2) : 'N/A';
+                          const momentumRRValue = momentumRisk > 0 ? momentumReward / momentumRisk : 0;
+                          const momentumRR = momentumRRValue > 0 ? momentumRRValue.toFixed(2) : 'N/A';
 
                           const rsiConfirmed = rsi4h && rsi4h.entry_signal;
+
+                          // Day 49: R:R filter - don't suggest entries with R:R < 1.0
+                          const pullbackViable = pullbackRRValue >= 1.0;
+                          const momentumViable = momentumRRValue >= 1.0;
+
+                          // Day 49: No trend warning
+                          if (noTrend && !pullbackViable && !momentumViable) {
+                            return (
+                              <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-4 text-center">
+                                <span className="text-yellow-400 font-medium">⚠️ Wait for Better Setup</span>
+                                <div className="text-gray-400 text-sm mt-1">
+                                  ADX {adxValue.toFixed(1)} indicates no trend. R:R unfavorable at current levels.
+                                </div>
+                              </div>
+                            );
+                          }
 
                           return (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                               {/* Strategy A: Pullback */}
-                              <div className={`rounded-lg p-4 ${preferPullback ? 'bg-green-900/30 border-2 border-green-600' : 'bg-gray-800/50 border border-gray-700'}`}>
+                              <div className={`rounded-lg p-4 ${
+                                !pullbackViable ? 'bg-red-900/20 border border-red-800/50 opacity-60' :
+                                strongTrend ? 'bg-green-900/30 border-2 border-green-600' :
+                                'bg-gray-800/50 border border-gray-700'
+                              }`}>
                                 <div className="flex items-center justify-between mb-3">
                                   <span className="font-semibold text-gray-200 cursor-help" title="Wait for price to pull back to support level before entering. Lower risk, better R:R, but may miss fast moves.">Entry Strategy: Pullback</span>
-                                  {preferPullback && <span className="text-green-400 text-xs font-medium cursor-help" title="ADX ≥25 indicates strong trend. Pullback entries work best in trending markets.">★ PREFERRED</span>}
+                                  {!pullbackViable && <span className="text-red-400 text-xs font-medium" title="Risk/Reward below 1.0 - trade not favorable">⛔ R:R &lt; 1</span>}
+                                  {pullbackViable && strongTrend && <span className="text-green-400 text-xs font-medium cursor-help" title="ADX ≥25 indicates strong trend. Pullback entries work best in trending markets.">★ PREFERRED</span>}
                                 </div>
                                 <div className="space-y-2 text-sm">
                                   <div className="flex justify-between">
@@ -1119,15 +1260,19 @@ function App() {
                                     <span className={`font-mono ${parseFloat(pullbackRR) >= 2 ? 'text-green-400' : parseFloat(pullbackRR) >= 1 ? 'text-yellow-400' : 'text-red-400'}`}>{pullbackRR}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-gray-400 cursor-help" title="Position size recommendation. 'Full' = standard position. Pullback entries have lower risk, allowing full position.">Position</span>
-                                    <span className="text-blue-400">full</span>
+                                    <span className="text-gray-400 cursor-help" title="Position size recommendation based on trend strength. Full = ADX 25+, Reduced = ADX 20-25, Wait = ADX <20">Position</span>
+                                    <span className={`${strongTrend ? 'text-green-400' : weakTrend ? 'text-yellow-400' : 'text-gray-400'}`}>
+                                      {strongTrend ? 'full' : weakTrend ? 'reduced' : 'wait'}
+                                    </span>
                                   </div>
                                   <div className="pt-2 border-t border-gray-700">
                                     <span className="text-gray-400 text-xs">Reason</span>
                                     <div className="text-gray-300 text-xs mt-1">
-                                      {adx && adx.adx >= 25
-                                        ? `ADX ${adx.adx} strong trend; pullback preferred`
-                                        : `ADX ${adx?.adx || 'N/A'} weak; wait for better entry`
+                                      {strongTrend
+                                        ? `ADX ${adxValue.toFixed(1)} strong trend; pullback preferred`
+                                        : weakTrend
+                                        ? `ADX ${adxValue.toFixed(1)} weak trend; reduce position size`
+                                        : `ADX ${adxValue.toFixed(1)} no trend; wait for trend to develop`
                                       }
                                     </div>
                                   </div>
@@ -1135,10 +1280,16 @@ function App() {
                               </div>
 
                               {/* Strategy B: Momentum */}
-                              <div className={`rounded-lg p-4 ${!preferPullback ? 'bg-blue-900/30 border-2 border-blue-600' : 'bg-gray-800/50 border border-gray-700'}`}>
+                              <div className={`rounded-lg p-4 ${
+                                !momentumViable ? 'bg-red-900/20 border border-red-800/50 opacity-60' :
+                                weakTrend && momentumViable && rsiConfirmed ? 'bg-blue-900/30 border-2 border-blue-600' :
+                                'bg-gray-800/50 border border-gray-700'
+                              }`}>
                                 <div className="flex items-center justify-between mb-3">
                                   <span className="font-semibold text-gray-200 cursor-help" title="Enter at current price on breakout/momentum. Higher risk (wider stop), but captures immediate moves. Use half position.">Entry Strategy: Momentum</span>
-                                  {!preferPullback && <span className="text-blue-400 text-xs font-medium cursor-help" title="ADX <25 indicates weak/ranging market. Momentum entries with RSI confirmation work better here.">★ SUGGESTED</span>}
+                                  {!momentumViable && <span className="text-red-400 text-xs font-medium" title="Risk/Reward below 1.0 - trade not favorable">⛔ R:R &lt; 1</span>}
+                                  {momentumViable && weakTrend && rsiConfirmed && <span className="text-blue-400 text-xs font-medium cursor-help" title="ADX 20-25 with RSI confirmation. Momentum entry viable with proper risk management.">★ VIABLE</span>}
+                                  {momentumViable && noTrend && <span className="text-yellow-400 text-xs font-medium cursor-help" title="ADX <20 no trend. Consider waiting for better setup.">⚠️ CAUTION</span>}
                                 </div>
                                 <div className="space-y-2 text-sm">
                                   <div className="flex justify-between">

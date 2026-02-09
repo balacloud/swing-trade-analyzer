@@ -2,12 +2,12 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 47 (February 6, 2026)
+> **Last Updated:** Day 49 (February 9, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.7 (Backend v2.15)
+## Current Version: v4.10 (Backend v2.16, Frontend v4.3)
 
 ---
 
@@ -176,13 +176,80 @@
 
 ---
 
+## PLANNED (Research-Verified Features)
+
+> **Source:** Day 48 Multi-AI Research Analysis (Grok/ChatGPT/Perplexity)
+> **Principle:** Only implement what's VERIFIED by multiple sources
+
+### v4.9: Enhanced Volume Analysis ✅ COMPLETE (Day 49)
+- **Priority:** HIGH (verified useful by all 3 sources)
+- **Status:** ✅ IMPLEMENTED
+- **Features:**
+  - OBV (On-Balance Volume) indicator with trend detection (Rising/Falling/Flat)
+  - OBV vs Price divergence detection (Bullish/Bearish/None)
+  - Enhanced RVOL display (shows "2.3x avg" not just "confirmed")
+  - Tooltips explaining each indicator
+- **Files Modified:** `backend/backend.py` (v2.16), `frontend/src/App.jsx`
+- **Backend:** `calculate_obv()` function added, returns in `/api/sr/<ticker>` meta
+
+### v4.10: Earnings Calendar Warning ✅ COMPLETE (Day 49)
+- **Priority:** HIGH (verified - "event risk dominates technicals")
+- **Status:** ✅ IMPLEMENTED
+- **Features:**
+  - Flag stocks with earnings within 7 days (configurable)
+  - Warning badge on analysis card (red pulse for ≤3 days, yellow for 4-7 days)
+  - Recommendation text based on timing (CAUTION, AWARE)
+  - Tooltip with earnings date and specific advice
+- **Backend:** `/api/earnings/<ticker>` endpoint with multiple yfinance fallback methods
+- **Files Modified:** `backend/backend.py`, `frontend/src/services/api.js`, `frontend/src/App.jsx`
+
+### v4.11: Sector Rotation Tab (Day 49+)
+- **Priority:** MEDIUM (verified - simple RS ranking is effective)
+- **Status:** PLANNED
+- **Features:**
+  - Sector RS Calculation (Sector ETF / SPY)
+  - 11 SPDR Sector ETFs tracked
+  - Simple 3-criteria ranking (RS > 0, RS > MA, near 52wk high)
+  - Integration: Show sector context for analyzed stocks
+- **Research:** `docs/research/RESEARCH_ANALYSIS_CRITICAL_REVIEW.md`
+- **Effort:** 4-6 hours
+
+### v4.12: TradingView Lightweight Charts
+- **Priority:** MEDIUM
+- **Status:** PLANNED (after volume/earnings features)
+- **Description:** Interactive charts with S&R levels, RSI/MACD overlays
+- **Technology:** TradingView Lightweight Charts (free, open source)
+- **Effort:** 4-6 hours
+
+---
+
+## RESEARCH REQUIRED (Before Implementation)
+
+### Options Open Interest
+- **Status:** BLOCKED - Data availability uncertain
+- **Action:** Verify yfinance options data works before planning
+- **Test:** Run `ticker.option_chain()` and check `openInterest` field
+- **If fails:** Explore Polygon.io or OCC as alternatives
+
+### RSI/MACD Divergence Detection
+- **Status:** RESEARCH NEEDED
+- **Problem:** Generic false positive rates are unverifiable
+- **Action:** If implementing, must compute OUR OWN FPR via backtest
+- **Threshold:** Only implement if FPR < 40%
+
+---
+
 ## DEFERRED (v2+ / Low Priority)
 
 | Feature | Reason for Deferral |
 |---------|---------------------|
-| Sector Rotation RRG | Complex, marginal v1 value |
+| Full RRG Charts | Overkill - simple RS ranking achieves same goal (Day 48 research) |
 | Candlestick Patterns | Low statistical accuracy per research |
 | Full TradingView Integration | After Lightweight Charts validated |
+| H&S Pattern Detection | Academic research "scarce and inconclusive" (NY Fed) |
+| Seasonal Patterns | "Small edge", regime-dependent (ChatGPT) |
+| Optimal Weighting System | No universal answer exists - varies by regime |
+| Options Open Interest | Data source uncertain - verify first |
 
 ---
 
@@ -195,6 +262,9 @@
 | SECTOR_ROTATION_IDENTIFICATION_GUIDE.md | Sector rotation methods | Day 42 |
 | Perplexity_STA_Analysis_result_Feb5_2026 | UX/Trading system design (4 questions) | Day 45 |
 | TEST_PLAN_COMPREHENSIVE.md | Quant-style testing methodology | Day 45 |
+| Research_answers_For_Thinking_Journal.md | Multi-AI research (Grok/ChatGPT/Perplexity) | Day 48 |
+| RESEARCH_ANALYSIS_CRITICAL_REVIEW.md | Critical analysis of research - verified vs unverified | Day 48 |
+| ACTION_PLAN_FROM_RESEARCH.md | Implementation priorities from research | Day 48 |
 
 ---
 
@@ -229,6 +299,7 @@ From backtesting:
 | 45 | v4.6 Perplexity Research Recommendations added, v4.7 Comprehensive Testing Framework added |
 | 46 | v4.6 UI Testing complete, Issue #0 fixed (Recommendation Card alert prices), validated with 5-ticker 2nd iteration |
 | 47 | v4.6.2 ADX Entry Preference + Pattern Actionability ≥80% complete, v4.7 Forward Testing UI complete |
+| 48 | Multi-AI research analysis, added v4.9-v4.12 (OBV, Earnings, Sector Rotation, Charts), updated DEFERRED with research findings |
 
 ---
 

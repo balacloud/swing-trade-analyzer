@@ -22,30 +22,41 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 47 |
-| Version | v4.7 (Backend v2.15) |
-| Latest Status | PROJECT_STATUS_DAY47_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY46.md |
+| Current Day | 49 |
+| Version | v4.10 (Backend v2.16, Frontend v4.3) |
+| Latest Status | PROJECT_STATUS_DAY49_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY49.md |
 | Latest API | API_CONTRACTS_DAY33.md |
-| Focus | **v4.6 Perplexity Recommendations COMPLETE** + v4.7 Forward Testing UI |
+| Focus | **UI Cohesiveness Fixes** then **v4.11 Sector Rotation Tab** |
 
-### Day 47 Summary
-- **Implemented:** ADX Entry Preference Logic (v4.6.2) - ADX determines momentum vs pullback
-- **Implemented:** Pattern Actionability ≥80% - Only actionable patterns shown with trigger/stop/target
-- **Implemented:** Forward Testing UI (v4.7) - Paper trading with Van Tharp metrics
-- **Implemented:** Breakout Volume Confirmation (v4.7.1) - Distinguishes valid vs false breakouts
-- **Completed:** All 4 Perplexity Research Recommendations now done
+### Day 49 Summary
+- **v4.9 COMPLETE:** Enhanced Volume Analysis (OBV + RVOL)
+- **v4.10 COMPLETE:** Earnings Calendar Warning
+- **v4.2-v4.3 COMPLETE:** UI Cohesiveness Fixes
+  - R:R < 1.0 filter (grayed out cards)
+  - ADX-based entry suggestions (PREFERRED/VIABLE/CAUTION)
+  - Nearest support fix, VIABLE badge specificity
+  - Distribution warning badge
+- **UI Cohesiveness Test:** 13/14 tickers passed (92.8%)
+- **Pending Fixes (Next Session):**
+  - P1: Old Position Size banner conflict
+  - P2: Retry button for transient API errors
+  - P3: Entry cards gray-out (NOT hide) when conditions bad
+  - P4: R:R = 1.0 edge case
 
-### v4.6 Perplexity Recommendations - ALL COMPLETE
-1. ✅ F&G Threshold Fix (35-60) - Day 45
-2. ✅ ADX Entry Preference - Day 47
-3. ✅ Pattern Actionability ≥80% - Day 47
-4. ✅ Structure > Sentiment Hierarchy - Day 45
+### Implementation Status (v4.9-v4.12)
+| Priority | Feature | Effort | Status |
+|----------|---------|--------|--------|
+| P1 | v4.9: OBV + RVOL Display | 2-3 hrs | ✅ **COMPLETE** |
+| P1 | v4.10: Earnings Calendar | 1-2 hrs | ✅ **COMPLETE** |
+| P1 | UI Cohesiveness Fixes | 2 hrs | ✅ **MOSTLY COMPLETE** (4 pending) |
+| P2 | v4.11: Sector Rotation | 4-6 hrs | **NEXT** |
+| P3 | v4.12: Charts (Own Tab) | 4-6 hrs | QUEUED |
 
-### Next Session: Testing & Validation
-- UI test the new Forward Testing tab
-- Validate ADX-based entry preference with real tickers
-- Consider TradingView Lightweight Charts (v4.1 Roadmap)
+### Next Session Priorities
+1. Fix P1-P3 issues from KNOWN_ISSUES_DAY49.md
+2. **IMPORTANT:** Entry cards should GRAY OUT, not HIDE when conditions not met
+3. v4.11 Sector Rotation Tab
 
 ---
 
@@ -237,6 +248,7 @@ curl http://localhost:5001/api/cache/status
 | 44 | Updated for Day 44: v4.2-v4.5 complete (Pattern Detection, Sentiment, Categorical Assessment), Actionable Recommendation Card, 30-stock validation |
 | 45 | Updated for Day 45: v4.6 Perplexity Research (F&G thresholds, Structure > Sentiment), Comprehensive Test Plan, 100% baseline pass rate |
 | 46 | Updated for Day 46: Issue #0 fixed (Recommendation Card Mismatch), UI Test Report created, 2nd iteration validation 100% pass |
+| 48 | Updated for Day 48: Multi-AI research analysis complete, v4.9-v4.12 roadmap added, verified features vs deferred based on research |
 
 ---
 
