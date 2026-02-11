@@ -2,7 +2,7 @@
 
 > **Purpose:** Stable reference document for all session rules
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 46 (February 6, 2026)
+> **Last Updated:** Day 51 (February 11, 2026)
 
 ---
 
@@ -21,6 +21,9 @@
 10. **FOLLOW CODE ARCHITECTURE RULES** - See section below
 11. **DEBUG APIS PROPERLY** - Run diagnostic queries FIRST before writing fixes
 12. **LOCAL FILES FIRST, THEN GIT** - Update files locally using Edit/Write tools FIRST, then commit to git (not the other way around)
+13. **EXHAUSTIVE VERIFICATION** - When testing artifacts (PDFs, logs, reports), check EVERY item, not a sample. This is Claude's computational advantage over humans.
+14. **UPDATE "LAST UPDATED" DATES** - When modifying any file in `docs/claude/stable/`, update the `Last Updated` header.
+15. **NEVER IMPLEMENT WITHOUT VALIDATION** - Don't implement features based on assumptions. Always require either (a) peer-reviewed research, (b) backtested evidence, or (c) validated practitioner consensus. Day 51 example: RSI thresholds by holding period sounded logical but research showed it was WRONG.
 
 ---
 
@@ -225,6 +228,13 @@ CLAUDE SESSION REMINDER:
 - **Then commit to git** - Git is for version control, not primary update
 - **@ references read from filesystem** - Claude Code reads local files, not git
 - **Don't ask user to manually update** - Claude can update local files directly
+
+### Day 50: Exhaustive Verification is My Edge
+- **Don't spot-check - verify EVERYTHING** - User provided 14 PDFs, I spot-checked a few and missed bugs
+- **Pass rate dropped from 92.8% to 21%** when properly tested
+- **This is my computational advantage** - I can process every item; humans would sample
+- **When given test artifacts:** Read EVERY file, Check EVERY field, Document EVERY finding
+- **Don't take human shortcuts** - My value is thoroughness, not speed
 
 ---
 

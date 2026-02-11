@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 47 (February 6, 2026)
+> **Last Updated:** Day 51 (February 11, 2026)
 
 ---
 
@@ -22,41 +22,43 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 49 |
-| Version | v4.10 (Backend v2.16, Frontend v4.3) |
-| Latest Status | PROJECT_STATUS_DAY49_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY49.md |
-| Latest API | API_CONTRACTS_DAY33.md |
-| Focus | **UI Cohesiveness Fixes** then **v4.11 Sector Rotation Tab** |
+| Current Day | 51 |
+| Version | v4.10 (Backend v2.16, Frontend v4.4) |
+| Latest Status | PROJECT_STATUS_DAY51_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY51.md |
+| Latest API | API_CONTRACTS_DAY49.md |
+| Focus | **v4.11 Sector Rotation Tab** then **v4.13 Holding Period Selector** |
 
-### Day 49 Summary
-- **v4.9 COMPLETE:** Enhanced Volume Analysis (OBV + RVOL)
-- **v4.10 COMPLETE:** Earnings Calendar Warning
-- **v4.2-v4.3 COMPLETE:** UI Cohesiveness Fixes
-  - R:R < 1.0 filter (grayed out cards)
-  - ADX-based entry suggestions (PREFERRED/VIABLE/CAUTION)
-  - Nearest support fix, VIABLE badge specificity
-  - Distribution warning badge
-- **UI Cohesiveness Test:** 13/14 tickers passed (92.8%)
-- **Pending Fixes (Next Session):**
-  - P1: Old Position Size banner conflict
-  - P2: Retry button for transient API errors
-  - P3: Entry cards gray-out (NOT hide) when conditions bad
-  - P4: R:R = 1.0 edge case
+### Day 51 Summary (Current)
+- **v4.13 Plan REVISED After Research Validation:**
+  - ❌ RSI thresholds by holding period (40-65/35-70/30-75) = INVALIDATED (invented, not research-backed)
+  - ✅ ADX-based regime detection = VALIDATED (already in v4.6.2)
+  - ✅ Signal weighting by horizon = VALIDATED (arXiv 2512.00280, 40 bps alpha)
+  - ✅ Bottom Line summary card = VALIDATED (UX research)
+- **Golden Rule #15 Added:** Never implement without validation (research/backtest/practitioner consensus)
+- **Backtest Pending:** `backtest_adx_rsi_thresholds.py` created but yfinance API down
+- **Key Learning:** Don't assume - my original RSI thresholds were invented without evidence
 
-### Implementation Status (v4.9-v4.12)
+### Day 50 Summary
+- **Exhaustive UI Re-Test COMPLETE:** Properly verified ALL 14 PDFs
+- **True Pass Rate:** 3/14 (21%) - not 92.8% from spot-check
+- **ALL 5 UI Issues FIXED in v4.4**
+- **Key Learning:** Exhaustive verification is my edge - don't spot-check
+
+### Implementation Status (v4.9-v4.13)
 | Priority | Feature | Effort | Status |
 |----------|---------|--------|--------|
 | P1 | v4.9: OBV + RVOL Display | 2-3 hrs | ✅ **COMPLETE** |
 | P1 | v4.10: Earnings Calendar | 1-2 hrs | ✅ **COMPLETE** |
-| P1 | UI Cohesiveness Fixes | 2 hrs | ✅ **MOSTLY COMPLETE** (4 pending) |
-| P2 | v4.11: Sector Rotation | 4-6 hrs | **NEXT** |
+| P1 | UI Cohesiveness Fixes (v4.4) | 2 hrs | ✅ **COMPLETE** |
+| P2 | v4.11: Sector Rotation | 4-6 hrs | QUEUED |
 | P3 | v4.12: Charts (Own Tab) | 4-6 hrs | QUEUED |
+| P2 | v4.13: Holding Period Selector | 4-6 hrs | PLANNED |
 
 ### Next Session Priorities
-1. Fix P1-P3 issues from KNOWN_ISSUES_DAY49.md
-2. **IMPORTANT:** Entry cards should GRAY OUT, not HIDE when conditions not met
-3. v4.11 Sector Rotation Tab
+1. **v4.11 Sector Rotation Tab** - Sector RS calculation, ETF tracking
+2. **v4.13 Holding Period Selector** - Plan ready in `docs/research/HOLDING_PERIOD_SELECTOR_PLAN.md`
+3. **v4.12 Charts** - After above validated
 
 ---
 
@@ -249,6 +251,8 @@ curl http://localhost:5001/api/cache/status
 | 45 | Updated for Day 45: v4.6 Perplexity Research (F&G thresholds, Structure > Sentiment), Comprehensive Test Plan, 100% baseline pass rate |
 | 46 | Updated for Day 46: Issue #0 fixed (Recommendation Card Mismatch), UI Test Report created, 2nd iteration validation 100% pass |
 | 48 | Updated for Day 48: Multi-AI research analysis complete, v4.9-v4.12 roadmap added, verified features vs deferred based on research |
+| 49 | Updated for Day 49: v4.9 OBV+RVOL, v4.10 Earnings, API_CONTRACTS_DAY49.md created (was 16 days outdated!) |
+| 50 | Exhaustive UI re-test: 21% true pass rate (not 92.8%), 5 open issues identified, Position Size banner is main culprit (64% affected) |
 
 ---
 

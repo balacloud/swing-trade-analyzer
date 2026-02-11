@@ -2,7 +2,7 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 49 (February 9, 2026)
+> **Last Updated:** Day 51 (February 11, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
@@ -221,6 +221,24 @@
 - **Technology:** TradingView Lightweight Charts (free, open source)
 - **Effort:** 4-6 hours
 
+### v4.13: Holding Period Selector + Bottom Line Summary (Day 50-51)
+- **Priority:** HIGH (addresses core UX confusion)
+- **Status:** PLANNED (REVISED after Day 51 research validation)
+- **Problem:** Conflicting signals confuse users (JNJ: AVOID + PULLBACK OK + Stage 2 Uptrend)
+- **Day 51 Research Findings:**
+  - ❌ INVALIDATED: RSI thresholds by holding period (40-65/35-70/30-75 were invented, not research-backed)
+  - ✅ VALIDATED: ADX-based regime determines RSI interpretation (already in v4.6.2)
+  - ✅ VALIDATED: Signal weighting by horizon (arXiv 2512.00280 - 40 bps monthly alpha)
+  - ✅ VALIDATED: Consolidated summary cards (UX research supports)
+- **Revised Solution:**
+  - 3-way holding period toggle: 5-10 days | 15-30 days | 1-3 months
+  - Signal WEIGHTING by horizon (Quick=70% tech, Position=70% fund), NOT threshold adjustment
+  - ADX-based RSI interpretation PRESERVED (weak trend=mean reversion, strong trend=momentum)
+  - Unified "Bottom Line" card replacing confusing multiple signals
+  - Clear action plan with entry/stop/target/alert prices
+- **Plan:** `docs/research/HOLDING_PERIOD_SELECTOR_PLAN.md` (REVISED Day 51)
+- **Effort:** 4-6 hours
+
 ---
 
 ## RESEARCH REQUIRED (Before Implementation)
@@ -300,6 +318,9 @@ From backtesting:
 | 46 | v4.6 UI Testing complete, Issue #0 fixed (Recommendation Card alert prices), validated with 5-ticker 2nd iteration |
 | 47 | v4.6.2 ADX Entry Preference + Pattern Actionability ≥80% complete, v4.7 Forward Testing UI complete |
 | 48 | Multi-AI research analysis, added v4.9-v4.12 (OBV, Earnings, Sector Rotation, Charts), updated DEFERRED with research findings |
+| 49 | v4.9 OBV+RVOL complete, v4.10 Earnings Warning complete, UI Cohesiveness test (92.8% pass), 5 issues fixed (support level, position sizing, VIABLE badge, R:R filter, null support zone) |
+| 50 | Exhaustive UI re-test (21% true pass vs 92.8% spot-check), ALL 5 UI issues FIXED (v4.4), v4.13 Holding Period Selector plan created, n8n research notes added |
+| 51 | v4.13 plan REVISED after research validation - RSI thresholds by holding period INVALIDATED, signal weighting by horizon VALIDATED, ADX-based regime logic confirmed, Golden Rule #15 added (never implement without validation) |
 
 ---
 
