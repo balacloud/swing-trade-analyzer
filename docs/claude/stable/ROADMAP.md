@@ -241,25 +241,27 @@
 
 ### v4.14: Multi-Source Data Intelligence (Day 51+)
 - **Priority:** HIGH (eliminates single-source dependency)
-- **Status:** PLANNED - Reference implementation exists
-- **Problem:** Current STA relies only on yfinance; backtest scripts don't use caching
-- **Reference:** `docs/research/DATA_SOURCE_INTELLIGENCE_OVERVIEW.md` (proven in another trading engine)
-- **Features to Implement:**
-  - Multi-provider fallback: TwelveData → Alpha Vantage → yfinance → Stooq
+- **Status:** RESEARCH COMPLETE - Plan created
+- **Problem:** STA relies 100% on yfinance (unofficial scraper, rate-limited, IP blocked)
+- **Day 51 Research Findings (free tier reality):**
+  - TwelveData: 800 credits/day, 8/min - BEST for OHLCV
+  - Finnhub: Unlimited, 60/min - BEST for fundamentals
+  - FMP: 250/day - Good fundamentals backup
+  - Alpha Vantage: ~~25/day~~ - NOW NEARLY USELESS (was 500/day)
+  - EODHD: 20/day, 10 credits/fundamental - NOT VIABLE free
+  - yfinance: Free but unreliable - DEMOTE to fallback
+- **Fallback Architecture:**
+  - OHLCV: TwelveData → yfinance → Stooq
+  - Fundamentals: Finnhub → FMP → yfinance
+  - VIX: yfinance → Finnhub → cache fallback
+- **Also Includes:**
+  - Unified `DataProvider` class for backend + backtest scripts
   - Provenance tracking (which source served each data point)
-  - Cache policies with TTL and stale fallback
-  - Frontend indicator: cached vs fresh data
-  - Backtest scripts use same infrastructure as main app
-- **Effort:** 8-12 hours (significant architectural change)
-
-### Backtest Infrastructure Improvement
-- **Priority:** MEDIUM
-- **Status:** PLANNED
-- **Problem:** Backtest scripts call yfinance directly, don't use backend caching
-- **Solution:** Backtest scripts should either:
-  - Call backend API endpoints, OR
-  - Import and use same caching functions from backend
-- **Effort:** 2-3 hours
+  - Cache-first strategy with stale fallback
+  - Frontend data freshness indicator (green/yellow/red dot)
+- **Plan:** `docs/research/MULTI_SOURCE_DATA_PLAN.md`
+- **Reference:** `docs/research/DATA_SOURCE_INTELLIGENCE_OVERVIEW.md` (proven in Codex engine)
+- **Effort:** 9-13 hours (2-3 sessions)
 
 ---
 
@@ -342,7 +344,7 @@ From backtesting:
 | 48 | Multi-AI research analysis, added v4.9-v4.12 (OBV, Earnings, Sector Rotation, Charts), updated DEFERRED with research findings |
 | 49 | v4.9 OBV+RVOL complete, v4.10 Earnings Warning complete, UI Cohesiveness test (92.8% pass), 5 issues fixed (support level, position sizing, VIABLE badge, R:R filter, null support zone) |
 | 50 | Exhaustive UI re-test (21% true pass vs 92.8% spot-check), ALL 5 UI issues FIXED (v4.4), v4.13 Holding Period Selector plan created, n8n research notes added |
-| 51 | v4.13 plan REVISED after research validation - RSI thresholds by holding period INVALIDATED, signal weighting by horizon VALIDATED, ADX-based regime logic confirmed, Golden Rule #15 added (never implement without validation) |
+| 51 | v4.13 plan REVISED after research validation - RSI thresholds INVALIDATED, signal weighting VALIDATED, Golden Rule #15. v4.14 Multi-Source Data plan created - researched free tier limits, TwelveData+Finnhub primary, yfinance demoted to fallback |
 
 ---
 
