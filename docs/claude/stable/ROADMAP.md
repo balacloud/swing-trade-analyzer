@@ -239,6 +239,28 @@
 - **Plan:** `docs/research/HOLDING_PERIOD_SELECTOR_PLAN.md` (REVISED Day 51)
 - **Effort:** 4-6 hours
 
+### v4.14: Multi-Source Data Intelligence (Day 51+)
+- **Priority:** HIGH (eliminates single-source dependency)
+- **Status:** PLANNED - Reference implementation exists
+- **Problem:** Current STA relies only on yfinance; backtest scripts don't use caching
+- **Reference:** `docs/research/DATA_SOURCE_INTELLIGENCE_OVERVIEW.md` (proven in another trading engine)
+- **Features to Implement:**
+  - Multi-provider fallback: TwelveData → Alpha Vantage → yfinance → Stooq
+  - Provenance tracking (which source served each data point)
+  - Cache policies with TTL and stale fallback
+  - Frontend indicator: cached vs fresh data
+  - Backtest scripts use same infrastructure as main app
+- **Effort:** 8-12 hours (significant architectural change)
+
+### Backtest Infrastructure Improvement
+- **Priority:** MEDIUM
+- **Status:** PLANNED
+- **Problem:** Backtest scripts call yfinance directly, don't use backend caching
+- **Solution:** Backtest scripts should either:
+  - Call backend API endpoints, OR
+  - Import and use same caching functions from backend
+- **Effort:** 2-3 hours
+
 ---
 
 ## RESEARCH REQUIRED (Before Implementation)

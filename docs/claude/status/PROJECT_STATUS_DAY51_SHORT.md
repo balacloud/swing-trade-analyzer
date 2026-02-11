@@ -73,6 +73,12 @@
 - Bottom Line summary card
 - ADX-based messaging preserved
 
+### P4: v4.14 Multi-Source Data Intelligence
+- Review `docs/research/DATA_SOURCE_INTELLIGENCE_OVERVIEW.md`
+- Implement multi-provider fallback (TwelveData → Alpha Vantage → yfinance → Stooq)
+- Add provenance tracking and cache policies
+- Fix backtest scripts to use same infrastructure as main app
+
 ---
 
 ## Architecture Notes
