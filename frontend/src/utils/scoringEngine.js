@@ -2,15 +2,19 @@
  * Scoring Engine for Swing Trade Analyzer
  * 75-point scoring system based on Minervini SEPA + CAN SLIM
  *
- * v2.0: Enhanced fundamental scoring with Defeat Beta data
+ * v2.0: Enhanced fundamental scoring with multi-source data (Finnhub, FMP, yfinance)
  * v2.1: Fixed API structure - clean consumer-facing return object (Day 18)
  * v2.2: Day 25 - Added ETF detection and extreme ROE/EPS context
  * v2.3: Day 26 - Fixed ATR calculation (was passing wrong args to calculateATR)
+ * v2.4: Day 44 - NOTE: Numerical scoring is now supplementary to v4.5 Categorical Assessment
+ *       The categorical system (categoricalAssessment.js) uses breakdown data from this engine
+ *       but determines verdicts based on Strong/Decent/Weak categories rather than point totals.
+ *       Score correlation to returns = 0.011 (essentially zero), hence the switch to categorical.
  *
- * Scoring Breakdown:
+ * Scoring Breakdown (Legacy - kept for data extraction):
  * - Technical: 40 points
  * - Fundamental: 20 points (ENHANCED)
- * - Sentiment: 10 points (placeholder)
+ * - Sentiment: 10 points (placeholder - replaced by Fear & Greed in v4.5)
  * - Risk/Macro: 5 points
  */
 
@@ -187,7 +191,7 @@ function calculateTechnicalScore(stockData, spyData) {
 
 /**
  * Calculate Fundamental Score (20 points)
- * ENHANCED with Defeat Beta data (ROE, ROIC, EPS Growth, etc.)
+ * ENHANCED with multi-source data (ROE, ROIC, EPS Growth, etc.)
  * Day 25: Added ETF detection and extreme value context
  */
 function calculateFundamentalScore(fundamentals, ticker) {
@@ -224,15 +228,15 @@ function calculateFundamentalScore(fundamentals, ticker) {
     };
   }
 
-  // Day 31: Check if backend reported data quality issues
+  // v4.14: Check data quality from multi-source provider system
   if (fundamentals?.dataQuality === 'unavailable') {
     dataQuality = 'unavailable';
-    dataUnavailableReason = 'Data provider temporarily unavailable. Both primary (Defeat Beta) and fallback (yfinance) failed.';
+    dataUnavailableReason = 'All data providers failed (Finnhub, FMP, yfinance). Fundamental score may be incomplete.';
   } else if (fundamentals?.dataQuality === 'yfinance_fallback' || fundamentals?.fallbackUsed) {
     dataQuality = 'fallback';
-    dataUnavailableReason = 'Primary data source (Defeat Beta) unavailable. Using yfinance fallback with limited data.';
-  } else if (fundamentals?.enriched || fundamentals?.source === 'defeatbeta') {
-    // Check if we have enriched data from Defeat Beta
+    dataUnavailableReason = 'Primary providers unavailable. Using yfinance fallback with limited data.';
+  } else if (fundamentals?.enriched || fundamentals?.source === 'defeatbeta' || fundamentals?.source === 'finnhub' || fundamentals?.source === 'fmp' || fundamentals?.source === 'multi') {
+    // Rich data from multi-source providers (Finnhub, FMP, or merged)
     dataQuality = 'rich';
   }
 

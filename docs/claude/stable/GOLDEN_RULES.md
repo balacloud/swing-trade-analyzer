@@ -2,7 +2,7 @@
 
 > **Purpose:** Stable reference document for all session rules
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 51 (February 11, 2026)
+> **Last Updated:** Day 52 (February 12, 2026)
 
 ---
 
@@ -235,6 +235,13 @@ CLAUDE SESSION REMINDER:
 - **This is my computational advantage** - I can process every item; humans would sample
 - **When given test artifacts:** Read EVERY file, Check EVERY field, Document EVERY finding
 - **Don't take human shortcuts** - My value is thoroughness, not speed
+
+### Day 52: Surgical Integration Preserves Stability
+- **Legacy fallback pattern:** When replacing a working system, keep old code as fallback
+- **Pattern used in backend.py:** DataProvider tried first → if fails → legacy yfinance code runs
+- **Never break existing code** while adding new infrastructure (user's explicit instruction)
+- **Test each replacement individually** - Don't batch all 9 replacements, test one at a time
+- **Timezone awareness matters:** yfinance returns timezone-aware, TwelveData returns naive - normalize at boundaries
 
 ---
 

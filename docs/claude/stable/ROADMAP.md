@@ -2,12 +2,12 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 51 (February 11, 2026)
+> **Last Updated:** Day 52 (February 12, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.10 (Backend v2.16, Frontend v4.3)
+## Current Version: v4.14 (Backend v2.17, Frontend v4.4)
 
 ---
 
@@ -239,29 +239,31 @@
 - **Plan:** `docs/research/HOLDING_PERIOD_SELECTOR_PLAN.md` (REVISED Day 51)
 - **Effort:** 4-6 hours
 
-### v4.14: Multi-Source Data Intelligence (Day 51+)
+### v4.14: Multi-Source Data Intelligence ✅ COMPLETE (Day 52)
 - **Priority:** HIGH (eliminates single-source dependency)
-- **Status:** RESEARCH COMPLETE - Plan created
-- **Problem:** STA relies 100% on yfinance (unofficial scraper, rate-limited, IP blocked)
-- **Day 51 Research Findings (free tier reality):**
-  - TwelveData: 800 credits/day, 8/min - BEST for OHLCV
-  - Finnhub: Unlimited, 60/min - BEST for fundamentals
-  - FMP: 250/day - Good fundamentals backup
-  - Alpha Vantage: ~~25/day~~ - NOW NEARLY USELESS (was 500/day)
-  - EODHD: 20/day, 10 credits/fundamental - NOT VIABLE free
-  - yfinance: Free but unreliable - DEMOTE to fallback
+- **Status:** ✅ IMPLEMENTED
+- **Problem Solved:** STA relied 100% on yfinance (unofficial scraper, rate-limited, IP blocked)
+- **Providers Implemented:**
+  - TwelveData: 800 credits/day, 8/min - Primary OHLCV
+  - Finnhub: Unlimited, 60/min - Primary fundamentals
+  - FMP: 250/day - Fundamentals backup (epsGrowth, revenueGrowth)
+  - yfinance: Free - Universal fallback
+  - Stooq: Free via pandas_datareader - Last resort OHLCV
 - **Fallback Architecture:**
   - OHLCV: TwelveData → yfinance → Stooq
-  - Fundamentals: Finnhub → FMP → yfinance
-  - VIX: yfinance → Finnhub → cache fallback
-- **Also Includes:**
-  - Unified `DataProvider` class for backend + backtest scripts
-  - Provenance tracking (which source served each data point)
-  - Cache-first strategy with stale fallback
-  - Frontend data freshness indicator (green/yellow/red dot)
-- **Plan:** `docs/research/MULTI_SOURCE_DATA_PLAN.md`
-- **Reference:** `docs/research/DATA_SOURCE_INTELLIGENCE_OVERVIEW.md` (proven in Codex engine)
-- **Effort:** 9-13 hours (2-3 sessions)
+  - Fundamentals: Finnhub → FMP → yfinance (field-level merge)
+  - VIX: yfinance → Finnhub → stale cache
+- **Infrastructure:**
+  - `backend/providers/` package (13 files)
+  - `DataProvider` orchestrator with singleton pattern
+  - Circuit breaker per provider (3 failures → 5min cooldown)
+  - Token-bucket rate limiting per provider
+  - Cache-first strategy with stale cache fallback
+  - Provenance tracking (`_field_sources` dict)
+  - `backtest_adapter.py` for backtest scripts
+- **Backend Integration:** All 9 yfinance call sites replaced with DataProvider + legacy fallback
+- **Frontend:** All data source labels updated from "Defeat Beta" / "yfinance" to multi-source names
+- **Files:** `backend/providers/` (13 files), `backend/backend.py` (v2.17), `backend/cache_manager.py`
 
 ---
 
@@ -345,6 +347,7 @@ From backtesting:
 | 49 | v4.9 OBV+RVOL complete, v4.10 Earnings Warning complete, UI Cohesiveness test (92.8% pass), 5 issues fixed (support level, position sizing, VIABLE badge, R:R filter, null support zone) |
 | 50 | Exhaustive UI re-test (21% true pass vs 92.8% spot-check), ALL 5 UI issues FIXED (v4.4), v4.13 Holding Period Selector plan created, n8n research notes added |
 | 51 | v4.13 plan REVISED after research validation - RSI thresholds INVALIDATED, signal weighting VALIDATED, Golden Rule #15. v4.14 Multi-Source Data plan created - researched free tier limits, TwelveData+Finnhub primary, yfinance demoted to fallback |
+| 52 | v4.14 Multi-Source Data Intelligence COMPLETE: 5 providers, 13 new files, backend v2.17, field-level merge, circuit breakers, rate limiting, frontend labels updated, Defeat Beta now redundant |
 
 ---
 

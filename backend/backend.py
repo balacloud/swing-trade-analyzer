@@ -1,6 +1,6 @@
 """
-Swing Trade Analyzer Backend - v2.16
-Flask API server with yfinance (prices) + Defeat Beta (fundamentals) + TradingView Screener (scanning) + S&R Engine
+Swing Trade Analyzer Backend - v2.17
+Flask API server with Multi-Source Data Intelligence (v4.14)
 
 Day 6: Fixed numpy type serialization issues
 Day 8: Fixed Defeat Beta .data attribute usage
@@ -15,6 +15,7 @@ Day 44: Added Pattern Detection endpoint (VCP, Cup & Handle, Flat Base)
 Day 44: Added Fear & Greed Index endpoint + Categorical Assessment System (v4.5)
 Day 49: Added OBV (On-Balance Volume) indicator + RVOL display (v4.9)
 Day 49: Added Earnings Calendar endpoint (v4.10)
+Day 51: v4.14 Multi-Source Data Intelligence (TwelveData + Finnhub + FMP + yfinance + Stooq)
 """
 
 import os
@@ -29,6 +30,22 @@ import numpy as np
 import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
+
+# Day 51: Load environment variables for API keys
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
+except ImportError:
+    print("⚠️ python-dotenv not installed - API keys must be set in environment")
+
+# Day 51: Multi-Source Data Intelligence (v4.14)
+try:
+    from providers import get_data_provider
+    DATA_PROVIDER_AVAILABLE = True
+    print("✅ Multi-Source Data Provider loaded successfully")
+except ImportError as e:
+    DATA_PROVIDER_AVAILABLE = False
+    print(f"⚠️ Data Provider not available, using yfinance directly: {e}")
 
 try:
     from validation import ValidationEngine, ForwardTestTracker, SignalType
@@ -447,12 +464,24 @@ def calculate_rsi_4h(ticker_symbol: str, period: int = 14) -> dict:
         }
     """
     try:
-        stock = yf.Ticker(ticker_symbol)
+        # Day 51: Use DataProvider for intraday (TwelveData → yfinance fallback)
+        df_1h = None
+        if DATA_PROVIDER_AVAILABLE:
+            try:
+                dp = get_data_provider()
+                df_1h = dp.get_intraday_ohlcv(ticker_symbol, '1h', '60d')
+                if df_1h is not None:
+                    # Capitalize columns for existing calculation code
+                    df_1h.columns = [c.capitalize() for c in df_1h.columns]
+            except Exception as e:
+                print(f"⚠️ DataProvider intraday failed for {ticker_symbol}, falling back to yfinance: {e}")
 
-        # Fetch 60 days of 1H data (yfinance limit for intraday)
-        df_1h = stock.history(period='60d', interval='1h')
+        # Fallback to direct yfinance if DataProvider unavailable or failed
+        if df_1h is None:
+            stock = yf.Ticker(ticker_symbol)
+            df_1h = stock.history(period='60d', interval='1h')
 
-        if df_1h.empty or len(df_1h) < 20:
+        if df_1h is None or df_1h.empty or len(df_1h) < 20:
             return None
 
         # Resample 1H to 4H
@@ -886,14 +915,23 @@ def health_check():
     response = {
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
-        'version': '2.16',
+        'version': '2.17',
         'defeatbeta_available': DEFEATBETA_AVAILABLE,
         'tradingview_available': TRADINGVIEW_AVAILABLE,
         'sr_engine_available': SR_ENGINE_AVAILABLE,
         'validation_available': VALIDATION_AVAILABLE,
         'sqlite_cache_available': SQLITE_CACHE_AVAILABLE,
+        'data_provider_available': DATA_PROVIDER_AVAILABLE,
         'cache': cache_stats
     }
+
+    # Day 51: Add provider status if DataProvider is available
+    if DATA_PROVIDER_AVAILABLE:
+        try:
+            dp = get_data_provider()
+            response['providers'] = dp.get_provider_status()
+        except Exception:
+            response['providers'] = {'error': 'Could not get provider status'}
 
     # Only do live check if requested (avoids slowing down regular health checks)
     if check_defeatbeta:
@@ -1038,25 +1076,28 @@ def get_stock_data(ticker):
     try:
         ticker = ticker.upper()
 
-        # Day 36: Check SQLite cache first for OHLCV
-        cached_hist = get_cached_ohlcv(ticker)
+        # Day 51: Use DataProvider (cache-first + multi-source fallback)
+        hist = None
+        if DATA_PROVIDER_AVAILABLE:
+            try:
+                dp = get_data_provider()
+                hist = dp.get_ohlcv(ticker, '2y')
+            except Exception as e:
+                print(f"⚠️ DataProvider OHLCV failed for {ticker}: {e}")
 
-        if cached_hist is not None and not cached_hist.empty:
-            hist = cached_hist
-            print(f"📦 Using cached OHLCV for {ticker}")
-        else:
-            # Cache miss - fetch from yfinance
-            stock = yf.Ticker(ticker)
-            hist = stock.history(period='2y')
-
-            if hist.empty:
-                return jsonify({'error': f'No data found for {ticker}'}), 404
-
-            # Normalize column names to lowercase
-            hist.columns = [c.lower() for c in hist.columns]
-
-            # Cache the full 2-year data
-            set_cached_ohlcv(ticker, hist)
+        # Fallback to legacy path if DataProvider unavailable
+        if hist is None:
+            cached_hist = get_cached_ohlcv(ticker)
+            if cached_hist is not None and not cached_hist.empty:
+                hist = cached_hist
+                print(f"📦 Using cached OHLCV for {ticker}")
+            else:
+                stock = yf.Ticker(ticker)
+                hist = stock.history(period='2y')
+                if hist.empty:
+                    return jsonify({'error': f'No data found for {ticker}'}), 404
+                hist.columns = [c.lower() for c in hist.columns]
+                set_cached_ohlcv(ticker, hist)
 
         # Get last 260 days (covers full 52 weeks of trading)
         hist_data = hist.tail(260)
@@ -1064,9 +1105,19 @@ def get_stock_data(ticker):
         # Normalize column names for consistent access (handles both cached and fresh data)
         hist_data.columns = [c.lower() for c in hist_data.columns]
 
-        # Get stock info (always fresh - used for fundamentals, not OHLCV)
-        stock = yf.Ticker(ticker)
-        info = stock.info
+        # Day 51: Get stock info via DataProvider (yfinance for metadata)
+        info = {}
+        if DATA_PROVIDER_AVAILABLE:
+            try:
+                dp = get_data_provider()
+                info_result = dp.get_stock_info(ticker)
+                if info_result:
+                    info = info_result.data
+            except Exception as e:
+                print(f"⚠️ DataProvider stock info failed for {ticker}: {e}")
+        if not info:
+            stock = yf.Ticker(ticker)
+            info = stock.info or {}
 
         # Prepare price history (using lowercase column names)
         price_history = []
@@ -1148,14 +1199,29 @@ def _is_fundamentals_empty(data):
 def get_fundamentals(ticker):
     """
     Get rich fundamental data for scoring
-    Tries Defeat Beta first, falls back to yfinance if Defeat Beta returns empty data
+    Day 51: Uses DataProvider with Finnhub → FMP → yfinance field-level merge
+    Falls back to legacy Defeat Beta → yfinance cascade if DataProvider unavailable
 
     Day 31: Fixed fallback logic - now checks if key fields are null, not just if dict exists
     """
     try:
         ticker = ticker.upper()
 
-        # Try Defeat Beta first (richer data)
+        # Day 51: Try DataProvider first (Finnhub → FMP → yfinance merge)
+        if DATA_PROVIDER_AVAILABLE:
+            try:
+                dp = get_data_provider()
+                fundamentals = dp.get_fundamentals(ticker)
+                if fundamentals and not _is_fundamentals_empty(fundamentals):
+                    fundamentals['ticker'] = ticker
+                    fundamentals['timestamp'] = datetime.now().isoformat()
+                    fundamentals['dataQuality'] = 'multi_source'
+                    fundamentals['fallbackUsed'] = False
+                    return jsonify(fundamentals)
+            except Exception as e:
+                print(f"⚠️ DataProvider fundamentals failed for {ticker}, trying legacy: {e}")
+
+        # Legacy fallback: Defeat Beta → yfinance
         fundamentals = None
         data_quality = 'none'
         fallback_used = False
@@ -1174,7 +1240,6 @@ def get_fundamentals(ticker):
                     fallback_used = True
                     print(f"✅ yfinance fallback successful for {ticker}")
                 else:
-                    # Both failed - keep defeatbeta empty response but mark quality
                     data_quality = 'unavailable'
                     print(f"❌ Both Defeat Beta and yfinance failed for {ticker}")
             else:
@@ -1212,12 +1277,25 @@ def get_spy_data():
     Get SPY (S&P 500 ETF) data for relative strength calculations
     """
     try:
-        spy = yf.Ticker('SPY')
-        hist = spy.history(period='2y')
-        
-        if hist.empty:
+        # Day 51: Use DataProvider for SPY (TwelveData → yfinance → Stooq)
+        hist = None
+        if DATA_PROVIDER_AVAILABLE:
+            try:
+                dp = get_data_provider()
+                hist = dp.get_ohlcv('SPY', '2y')
+            except Exception as e:
+                print(f"⚠️ DataProvider SPY failed: {e}")
+
+        if hist is None:
+            spy = yf.Ticker('SPY')
+            hist = spy.history(period='2y')
+
+        if hist is None or hist.empty:
             return jsonify({'error': 'No SPY data found'}), 404
-        
+
+        # Capitalize columns for existing code
+        hist.columns = [c.capitalize() for c in hist.columns]
+
         # Get last 260 days
         hist_data = hist.tail(260)
         
@@ -1274,19 +1352,32 @@ def get_vix_data():
     Day 41 Fix: Use regularMarketPrice for current value (not last close)
     """
     try:
-        vix = yf.Ticker('^VIX')
+        # Day 51: Use DataProvider for VIX (yfinance → Finnhub fallback)
+        current_vix = None
+        previous_close = None
 
-        # Day 41: Use real-time price from info, fallback to history
-        vix_info = vix.info
-        current_vix = vix_info.get('regularMarketPrice')
-        previous_close = vix_info.get('previousClose')
+        if DATA_PROVIDER_AVAILABLE:
+            try:
+                dp = get_data_provider()
+                quote = dp.get_quote('^VIX')
+                if quote:
+                    current_vix = quote.price
+                    previous_close = quote.previous_close
+            except Exception as e:
+                print(f"⚠️ DataProvider VIX failed: {e}")
 
-        # Fallback to history if info doesn't have current price
+        # Legacy fallback
         if current_vix is None:
-            hist = vix.history(period='5d')
-            if hist.empty:
-                return jsonify({'error': 'No VIX data found'}), 404
-            current_vix = float(hist.iloc[-1]['Close'])
+            vix = yf.Ticker('^VIX')
+            vix_info = vix.info
+            current_vix = vix_info.get('regularMarketPrice')
+            previous_close = vix_info.get('previousClose')
+
+            if current_vix is None:
+                hist = vix.history(period='5d')
+                if hist.empty:
+                    return jsonify({'error': 'No VIX data found'}), 404
+                current_vix = float(hist.iloc[-1]['Close'])
 
         current_vix = round(float(current_vix), 2)
         
@@ -1426,24 +1517,36 @@ def get_earnings_calendar(ticker):
         ticker = ticker.upper()
         warning_days = int(request.args.get('days', 7))  # Default 7 days
 
-        stock = yf.Ticker(ticker)
-
-        # Try multiple methods to get earnings date
+        # Day 51: Try DataProvider for earnings first
         earnings_date = None
         earnings_source = None
 
-        # Method 1: Try .calendar
-        try:
-            calendar = stock.calendar
-            if calendar is not None and not calendar.empty:
-                # calendar may be a DataFrame with earnings dates
-                if 'Earnings Date' in calendar.index:
-                    earnings_date = calendar.loc['Earnings Date']
-                    if hasattr(earnings_date, 'iloc'):
-                        earnings_date = earnings_date.iloc[0]
-                    earnings_source = 'calendar'
-        except Exception as e:
-            print(f"Calendar method failed for {ticker}: {e}")
+        if DATA_PROVIDER_AVAILABLE:
+            try:
+                dp = get_data_provider()
+                earnings_result = dp.get_earnings(ticker)
+                if earnings_result and earnings_result.earnings_date:
+                    earnings_date = earnings_result.earnings_date
+                    earnings_source = earnings_result.source
+            except Exception as e:
+                print(f"⚠️ DataProvider earnings failed for {ticker}: {e}")
+
+        # Legacy fallback: direct yfinance 3-method approach
+        if earnings_date is None:
+            stock = yf.Ticker(ticker)
+
+        # Method 1: Try .calendar (only if legacy path)
+        if earnings_date is None:
+            try:
+                calendar = stock.calendar
+                if calendar is not None and not calendar.empty:
+                    if 'Earnings Date' in calendar.index:
+                        earnings_date = calendar.loc['Earnings Date']
+                        if hasattr(earnings_date, 'iloc'):
+                            earnings_date = earnings_date.iloc[0]
+                        earnings_source = 'calendar'
+            except Exception as e:
+                print(f"Calendar method failed for {ticker}: {e}")
 
         # Method 2: Try .earnings_dates
         if earnings_date is None:
@@ -1577,29 +1680,41 @@ def get_support_resistance(ticker):
         ticker = ticker.upper()
         print(f"🎯 Computing S&R levels for {ticker}...")
         
-        # Fetch price data from yfinance
-        stock = yf.Ticker(ticker)
-        hist = stock.history(period='2y')
-        
-        if hist.empty:
+        # Day 51: Use DataProvider for OHLCV (cache-first + multi-source)
+        hist = None
+        if DATA_PROVIDER_AVAILABLE:
+            try:
+                dp = get_data_provider()
+                hist = dp.get_ohlcv(ticker, '2y')
+            except Exception as e:
+                print(f"⚠️ DataProvider S&R OHLCV failed for {ticker}: {e}")
+
+        if hist is None:
+            stock = yf.Ticker(ticker)
+            hist = stock.history(period='2y')
+
+        if hist is None or hist.empty:
             return jsonify({'error': f'No data found for {ticker}'}), 404
-        
+
+        # Normalize columns to lowercase
+        hist.columns = [c.lower() for c in hist.columns]
+
         # Get last 260 days (enough for S&R calculation)
         hist_data = hist.tail(260)
-        
+
         if len(hist_data) < 150:
             return jsonify({
                 'error': f'Insufficient data for {ticker}',
                 'message': f'Need at least 150 bars, got {len(hist_data)}'
             }), 400
-        
+
         # Prepare DataFrame for S&R engine (lowercase columns required)
         df = pd.DataFrame({
-            'open': hist_data['Open'].values,
-            'high': hist_data['High'].values,
-            'low': hist_data['Low'].values,
-            'close': hist_data['Close'].values,
-            'volume': hist_data['Volume'].values
+            'open': hist_data['open'].values,
+            'high': hist_data['high'].values,
+            'low': hist_data['low'].values,
+            'close': hist_data['close'].values,
+            'volume': hist_data['volume'].values
         })
         
         # Compute S&R levels
@@ -1783,12 +1898,24 @@ def get_patterns(ticker):
         ticker = ticker.upper()
         print(f"📊 Detecting patterns for {ticker}...")
 
-        # Fetch price data from yfinance (need 1+ year for good detection)
-        stock = yf.Ticker(ticker)
-        hist = stock.history(period='2y')
+        # Day 51: Use DataProvider for OHLCV (cache-first + multi-source)
+        hist = None
+        if DATA_PROVIDER_AVAILABLE:
+            try:
+                dp = get_data_provider()
+                hist = dp.get_ohlcv(ticker, '2y')
+            except Exception as e:
+                print(f"⚠️ DataProvider patterns OHLCV failed for {ticker}: {e}")
 
-        if hist.empty:
+        if hist is None:
+            stock = yf.Ticker(ticker)
+            hist = stock.history(period='2y')
+
+        if hist is None or hist.empty:
             return jsonify({'error': f'No data found for {ticker}'}), 404
+
+        # Normalize to lowercase
+        hist.columns = [c.lower() for c in hist.columns]
 
         if len(hist) < 100:
             return jsonify({
@@ -1796,13 +1923,13 @@ def get_patterns(ticker):
                 'message': f'Need at least 100 bars, got {len(hist)}'
             }), 400
 
-        # Prepare DataFrame for pattern detection
+        # Prepare DataFrame for pattern detection (needs capitalized columns)
         df = pd.DataFrame({
-            'Open': hist['Open'].values,
-            'High': hist['High'].values,
-            'Low': hist['Low'].values,
-            'Close': hist['Close'].values,
-            'Volume': hist['Volume'].values
+            'Open': hist['open'].values,
+            'High': hist['high'].values,
+            'Low': hist['low'].values,
+            'Close': hist['close'].values,
+            'Volume': hist['volume'].values
         }, index=hist.index)
 
         # Run pattern detection

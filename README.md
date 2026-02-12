@@ -24,8 +24,10 @@ An institutional-grade stock analysis system for swing traders, built on proven 
 ### What is This?
 
 A **data-driven swing trade recommendation engine** that analyzes stocks and provides:
-- **75-point scoring system** across technical, fundamental, sentiment, and risk factors
-- **BUY / HOLD / AVOID verdicts** based on quantitative analysis
+- **Categorical Assessment System** (v4.5) - Strong/Decent/Weak ratings across Technical, Fundamental, Sentiment, and Risk
+- **BUY / HOLD / AVOID verdicts** based on categorical criteria (2+ Strong categories with favorable risk = BUY)
+- **Pattern Detection** - VCP, Cup & Handle, Flat Base + Minervini Trend Template
+- **Fear & Greed Index** - Real market sentiment data (replaces placeholder)
 - **Trade setups** with Entry, Stop Loss, Target, and Risk/Reward ratios
 - **Dual Entry Strategy** - Conservative (support) and Aggressive (current) entries
 - **Relative Strength (RS)** calculations vs S&P 500
@@ -48,13 +50,15 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 | Position Risk | 2-5% of account per trade |
 | Risk/Reward | Minimum 2:1 required |
 
-> **Day 27 Critical Insight:** Backtesting revealed our 75-point scoring system achieves ~50% win rate (essentially random). This taught us that **entry signals account for only ~10% of trading results**, while **position sizing accounts for ~90%**. The system now focuses on proper position sizing using Van Tharp principles rather than chasing higher win rates.
+> **Day 27 Critical Insight:** Backtesting revealed score-to-return correlation = 0.011 (essentially ZERO). Entry signals account for only ~10% of trading results, while position sizing accounts for ~90%.
+>
+> **Day 44 Response (v4.5):** Replaced 75-point numerical scoring with categorical assessments (Strong/Decent/Weak). The system works as a FILTER, not a RANKER. Categorical assessments honestly represent this reality and eliminate false precision.
 
 ---
 
 ## Features
 
-### ✅ Implemented (v3.9)
+### ✅ Implemented (v4.0)
 
 1. **Single Stock Analysis**
    - Enter any ticker symbol
@@ -109,11 +113,14 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
    - **92.3% quality score** with methodology-aware tolerances
    - Identifies data discrepancies
 
-9. **Fundamentals with Failsafe** (Day 31-42)
-   - Primary: Defeat Beta API (confirmed working Day 42)
-   - Fallback: yfinance (automatic when primary fails)
-   - **Data source transparency** - Banner shows data source
-   - **Health endpoint** - `/api/health?check_defeatbeta=true` for diagnostics
+9. **Multi-Source Data Intelligence** (Day 52 - v4.14)
+   - **5 data providers** with automatic fallback chains
+   - OHLCV: TwelveData → yfinance → Stooq
+   - Fundamentals: Finnhub → FMP → yfinance (field-level merge)
+   - Circuit breaker per provider (3 failures → 5min cooldown)
+   - Token-bucket rate limiting per provider
+   - Cache-first with stale cache fallback when all providers fail
+   - Provenance tracking (which provider supplied each data field)
    - ETF detection with special handling
 
 10. **SQLite Persistent Cache** (Day 37) ⭐ NEW
@@ -123,9 +130,9 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
     - Survives backend restarts
     - Cache status endpoint for monitoring
 
-11. **Data Sources Tab** (Day 38) ⭐ NEW
+11. **Data Sources Tab** (Day 38)
     - Full transparency on data provenance
-    - Shows source for each data point (Defeat Beta vs yfinance)
+    - Shows which provider supplied each data field
     - Cache hit/miss status
     - Calculation formulas displayed
 
@@ -214,22 +221,25 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 ┌─────────────────────────────────────────────────────────────────┐
 │                      DATA SOURCES                               │
 ├─────────────────────────────────────────────────────────────────┤
-│  ┌────────────────┐  ┌─────────────────┐  ┌─────────────────┐   │
-│  │    yfinance    │  │   Defeat Beta   │  │   TradingView   │   │
-│  │                │  │                 │  │    Screener     │   │
-│  │ - Prices       │  │ - ROE, ROIC     │  │                 │   │
-│  │ - Volume       │  │ - EPS Growth    │  │ - Batch scans   │   │
-│  │ - 52w High/Low │  │ - Revenue Growth│  │ - Real-time     │   │
-│  │ - Basic info   │  │ - Debt/Equity   │  │   filters       │   │
-│  │                │  │ - Profit Margin │  │                 │   │
-│  │ 15-30 min delay│  │ Weekly updates  │  │ Real-time       │   │
-│  └────────────────┘  └─────────────────┘  └─────────────────┘   │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐           │
+│  │  TwelveData  │  │   Finnhub    │  │     FMP      │           │
+│  │              │  │              │  │              │           │
+│  │ - OHLCV      │  │ - ROE, ROA   │  │ - EPS Growth │           │
+│  │ - Intraday   │  │ - PE, Margins│  │ - Rev Growth │           │
+│  │ 8/min limit  │  │ - D/E, Beta  │  │ 250/day      │           │
+│  └──────────────┘  └──────────────┘  └──────────────┘           │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐           │
+│  │   yfinance   │  │    Stooq     │  │  TradingView │           │
+│  │  (fallback)  │  │ (last resort)│  │   Screener   │           │
+│  │ - All data   │  │ - OHLCV only │  │ - Batch scans│           │
+│  │ 15-30m delay │  │ No API key   │  │ - Real-time  │           │
+│  └──────────────┘  └──────────────┘  └──────────────┘           │
 │                              │                                   │
 │                              ▼                                   │
 │  ┌─────────────────────────────────────────────────────────┐    │
 │  │                   SQLite Cache                          │    │
 │  │         backend/data/cache.db (persistent)              │    │
-│  │  - OHLCV: 24h TTL (market-aware)                        │    │
+│  │  - OHLCV: 24h TTL (market-aware) + source tracking      │    │
 │  │  - Fundamentals: 7 day TTL                              │    │
 │  └─────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────┘
@@ -252,10 +262,10 @@ User enters ticker
         │         │
         │         └──► Cache MISS: Fetch from sources ──┐
         │                                                │
-        ├──► /api/stock/AAPL ──────► yfinance (prices, volume)
-        ├──► /api/fundamentals/AAPL ► Defeat Beta (ROE, EPS, etc.)
-        ├──► /api/market/spy ──────► yfinance (S&P 500 for RS)
-        ├──► /api/market/vix ──────► yfinance (VIX for risk)
+        ├──► /api/stock/AAPL ──────► TwelveData → yfinance → Stooq
+        ├──► /api/fundamentals/AAPL ► Finnhub → FMP → yfinance (merge)
+        ├──► /api/market/spy ──────► TwelveData → yfinance (for RS)
+        ├──► /api/market/vix ──────► yfinance → Finnhub (VIX)
         └──► /api/sr/AAPL ─────────► S&R Engine (Entry/Stop/Target)
         │
         ▼
@@ -350,21 +360,28 @@ User enters ticker
 - **Python 3.9+** - Runtime
 - **Flask** - Web framework
 - **SQLite** - Persistent cache (Day 37)
-- **yfinance** - Price data
-- **defeatbeta** - Fundamental data
+- **Multi-Source Provider System** (v4.14):
+  - **TwelveData** - Primary OHLCV + Intraday
+  - **Finnhub** - Primary Fundamentals + Quote
+  - **FMP** - Growth metrics (epsGrowth, revenueGrowth)
+  - **yfinance** - Universal fallback
+  - **Stooq** (pandas_datareader) - Last resort OHLCV
 - **tradingview-screener** - Batch scanning
 - **scikit-learn** - Agglomerative clustering for S&R
 - **beautifulsoup4 + selenium** - Web scraping for validation
 
 ### Data Sources
 
-| Source | Data Type | Update Frequency |
-|--------|-----------|------------------|
-| yfinance | Prices, Volume, 52w High/Low | 15-30 min delay |
-| Defeat Beta | ROE, EPS Growth, Revenue Growth, D/E | Weekly |
-| TradingView Screener | Batch scanning, real-time filters | Real-time |
-| StockAnalysis | Validation (prices, P/E, EPS) | Real-time |
-| Finviz | Validation (ROE, D/E, Revenue Growth) | Real-time |
+| Source | Data Type | Rate Limit | Role |
+|--------|-----------|------------|------|
+| TwelveData | OHLCV, Intraday | 8/min, 800/day | Primary OHLCV |
+| Finnhub | Fundamentals, Quote | 60/min | Primary Fundamentals |
+| FMP | Growth metrics | 10/min, 250/day | Fundamentals backup |
+| yfinance | All types | ~30/min | Universal fallback |
+| Stooq | OHLCV only | ~5/min | Last resort OHLCV |
+| TradingView Screener | Batch scanning | Real-time | Market scanning |
+| StockAnalysis | Validation | Real-time | Data quality check |
+| Finviz | Validation | Real-time | Data quality check |
 
 ---
 
@@ -401,8 +418,11 @@ python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
-pip install flask yfinance defeatbeta tradingview-screener scikit-learn
-pip install beautifulsoup4 selenium webdriver-manager pytz
+pip install -r requirements.txt
+
+# Configure API keys (copy template and add your keys)
+cp .env.example .env
+# Edit .env with your API keys (TwelveData, Finnhub, FMP)
 
 # Start backend
 python backend.py
@@ -474,17 +494,21 @@ npm start
 
 ### GET /api/health
 
-Returns backend health status. Add `?check_defeatbeta=true` for live API diagnostics.
+Returns backend health status including multi-source provider information.
 
 ```json
 {
   "status": "healthy",
-  "version": "2.12",
-  "defeatbeta_available": true,
-  "cache_status": {
-    "storage": "sqlite",
-    "ohlcv_entries": 45,
-    "fundamentals_entries": 32
+  "version": "2.17",
+  "data_provider_available": true,
+  "providers": {
+    "providers": {
+      "twelvedata": {"configured": true, "type": "OHLCV + Intraday"},
+      "finnhub": {"configured": true, "type": "Fundamentals + Quote"},
+      "fmp": {"configured": true, "type": "Fundamentals (growth)"},
+      "yfinance": {"configured": true, "type": "All (fallback)"},
+      "stooq": {"configured": true, "type": "OHLCV (last resort)"}
+    }
   }
 }
 ```
@@ -508,24 +532,30 @@ Returns price data and basic info.
 
 ### GET /api/fundamentals/<ticker>
 
-Returns fundamental data with automatic failsafe (Defeat Beta → yfinance).
+Returns fundamental data with multi-source fallback (Finnhub → FMP → yfinance).
 
 ```json
 {
-  "source": "defeatbeta",
-  "dataSource": "defeatbeta_api",
-  "dataQuality": "rich",
+  "source": "finnhub",
+  "dataSource": "finnhub",
+  "dataQuality": "full",
   "fallbackUsed": false,
   "ticker": "AAPL",
   "roe": 151.91,
   "epsGrowth": 12.5,
   "revenueGrowth": 6.43,
   "debtToEquity": 1.34,
-  "profitMargin": 24.3
+  "profitMargin": 24.3,
+  "_field_sources": {
+    "pe": "finnhub",
+    "roe": "finnhub",
+    "epsGrowth": "fmp",
+    "revenueGrowth": "fmp"
+  }
 }
 ```
 
-**Data Quality Values:** `"rich"` (Defeat Beta working), `"partial"` (yfinance fallback), `"unavailable"`
+**Data Quality Values:** `"full"` (multi-source working), `"partial"` (yfinance fallback only), `"unavailable"`
 
 ### GET /api/sr/<ticker>
 
@@ -670,36 +700,65 @@ Cross-validate data against external sources.
 
 ## Data Sources
 
-### yfinance (Primary - Prices)
+### Multi-Source Provider System (v4.14)
 
-- **What:** Real-time prices, volume, 52-week high/low, basic info
-- **Delay:** 15-30 minutes
-- **Reliability:** High for price data
-- **Limitations:** Fundamentals often incomplete or zero
+STA uses a multi-source data architecture with automatic fallback chains, eliminating single-point-of-failure dependency on any one provider.
 
-### Defeat Beta (Primary - Fundamentals)
+### TwelveData (Primary - OHLCV)
 
-- **What:** ROE, ROIC, EPS Growth, Revenue Growth, Debt/Equity, Margins
-- **Update Frequency:** Weekly
-- **Reliability:** Confirmed working (Day 42)
-- **Access:** `.data` attribute for raw data
+- **What:** Daily OHLCV price data, intraday data (for 4H RSI)
+- **Rate Limit:** 8 requests/min, 800/day (free tier)
+- **API Key:** Required (`TWELVEDATA_API_KEY` in `.env`)
+- **Reliability:** High, official API
+
+### Finnhub (Primary - Fundamentals)
+
+- **What:** PE, ROE, ROA, Debt/Equity, Profit Margin, Beta, Current Ratio
+- **Rate Limit:** 60 requests/min (free tier, unlimited daily)
+- **API Key:** Required (`FINNHUB_API_KEY` in `.env`)
+- **Note:** Lacks epsGrowth and revenueGrowth - filled by FMP
+
+### FMP (Backup - Growth Metrics)
+
+- **What:** EPS Growth, Revenue Growth (fills Finnhub gaps)
+- **Rate Limit:** 10/min, 250/day (free tier)
+- **API Key:** Required (`FMP_API_KEY` in `.env`)
+
+### yfinance (Universal Fallback)
+
+- **What:** All data types (prices, fundamentals, earnings, stock info)
+- **Rate Limit:** Self-imposed 30/min
+- **API Key:** None (unofficial Yahoo Finance scraper)
+- **Reliability:** Variable - subject to Yahoo throttling/blocking
+
+### Stooq (Last Resort - OHLCV)
+
+- **What:** Daily OHLCV only via pandas_datareader
+- **Rate Limit:** Self-imposed 5/min
+- **API Key:** None
+- **Note:** Optional dependency, graceful if not installed
+
+### Field-Level Merge Strategy
+
+```python
+# Finnhub provides most fundamental fields
+# FMP fills growth gaps (epsGrowth, revenueGrowth)
+# yfinance fills any remaining gaps
+# Result includes _field_sources for transparency
+merged = {
+    "pe": "finnhub",
+    "roe": "finnhub",
+    "epsGrowth": "fmp",        # Finnhub lacks this
+    "revenueGrowth": "fmp",    # Finnhub lacks this
+    "pegRatio": "yfinance"     # Only yfinance has this
+}
+```
 
 ### TradingView Screener (Scanning)
 
 - **What:** Batch market scanning with filters
 - **Update Frequency:** Real-time
 - **Filters Available:** Market cap, RSI, SMA relationships, volume, sector
-
-### Blended Approach
-
-We merge data from multiple sources:
-```python
-# yfinance provides P/E, forwardP/E
-# Defeat Beta provides ROE, EPS Growth, Revenue Growth
-merged_fundamentals = {**yfinance_data, **defeatbeta_data}
-```
-
-This ensures we get the best data available from each source.
 
 ---
 
@@ -747,9 +806,10 @@ TOLERANCES = {
 
 ### Data Limitations
 
-1. **EPS not available** - yfinance doesn't provide EPS in fundamentals
-2. **Defeat Beta weekly lag** - Fundamentals may be 1-7 days old
-3. **Price delay** - 15-30 minute delay (acceptable for swing trading)
+1. **Price delay** - 15-30 minute delay (acceptable for swing trading)
+2. **FMP free tier** - 250 calls/day, may return 403 on some tickers
+3. **TwelveData free tier** - 800 credits/day, 8/min (sufficient for ~100 tickers/day)
+4. **Field-level gaps** - Some fundamental fields may come from fallback providers
 
 ### S&R Engine (v3.9 - Complete)
 
@@ -764,14 +824,18 @@ TOLERANCES = {
 2. **Revenue Growth** - Defeat Beta uses fiscal YoY, Finviz uses TTM (60-85% variance)
 3. **These are not bugs** - Different valid calculation methods
 
-### Scoring Placeholders (Tracked since Day 23)
+### Scoring System Update (Day 44 - v4.5)
 
-| Component | Current State | Points | Impact |
-|-----------|---------------|--------|--------|
-| **Sentiment** | Hardcoded 5/10 | 10 pts (13%) | Everyone gets same score |
-| **Market Breadth** | Hardcoded 1/1 | 1 pt (1%) | Minor impact |
+**v4.5 Categorical Assessment System** replaced the 75-point numerical scoring:
 
-**Note:** These are explicitly marked in the UI with "placeholder" labels. Fix planned for v4.4-v4.5.
+| Component | Old State | New State (v4.5) |
+|-----------|-----------|------------------|
+| **Sentiment** | Hardcoded 5/10 | Real Fear & Greed Index (Strong/Neutral/Weak) |
+| **Market Breadth** | Hardcoded 1/1 | SPY regime check (Favorable/Neutral/Unfavorable) |
+| **Technical** | 40 points | Strong/Decent/Weak (Trend Template + RSI + RS) |
+| **Fundamental** | 20 points | Strong/Decent/Weak (ROE, Revenue Growth, D/E) |
+
+**Rationale:** Score-to-return correlation was 0.011 (essentially ZERO). Categorical assessments honestly represent that the system works as a FILTER, not a RANKER.
 
 ### Deferred Features (v2+)
 
@@ -822,25 +886,31 @@ TOLERANCES = {
 - Options tab feasibility analysis documented
 - Sector rotation research documented
 
+### Completed (Day 44)
+
+- **v4.2: Pattern Detection** ✅ VCP, cup-and-handle, flat base detection + Minervini Trend Template
+- **v4.4: Sentiment Integration** ✅ CNN Fear & Greed Index (real data, free API)
+- **v4.5: Categorical Assessment** ✅ Replaced 75-point scoring with Strong/Decent/Weak categories
+
 ### Planned 📅
 
 - v4.0: **Forward Testing UI** - Track actual trades, record R-multiples, build SQN over time
 - v4.1: **TradingView Lightweight Charts** - Interactive charts with RSI/MACD overlays
-- v4.2: **Pattern Detection** - VCP, cup-and-handle, flat base (better entry timing)
 - v4.3: **Options Tab** - If data sources become available
-- v4.4: **Sentiment Integration** - Real news/social sentiment (Finnhub free tier) replacing placeholder
-- v4.5: **Scoring Logic Review** - Re-evaluate 75-point weights based on backtest data
 
-### Philosophy (Day 27)
+### Philosophy (Day 27 + Day 44 Update)
 
 Original roadmap focused on improving **win rate** through better signals.
 After backtesting, we learned:
 - Entry signals = ~10% of results
 - Position sizing = ~90% of results
+- **Score-to-return correlation = 0.011** (essentially ZERO)
+
+**Day 44 Response:** Replaced 75-point numerical scoring with categorical assessments (Strong/Decent/Weak). The system works as a FILTER, not a RANKER - categorical assessments honestly represent this reality.
 
 Current focus:
 - **Better R:R** through dual entry strategy
-- **Risk reduction** through sentiment filtering
+- **Categorical filtering** over numerical ranking
 - **System measurement** through forward testing and SQN tracking
 
 ---
@@ -852,9 +922,26 @@ swing-trade-analyzer/
 ├── start.sh                   # Service starter script
 ├── stop.sh                    # Service stopper script
 ├── backend/
-│   ├── backend.py             # Flask server (v2.12)
-│   ├── cache_manager.py       # SQLite persistent cache
+│   ├── backend.py             # Flask server (v2.17)
+│   ├── cache_manager.py       # SQLite persistent cache (with source tracking)
 │   ├── support_resistance.py  # S&R calculation (Agglomerative + MTF)
+│   ├── pattern_detection.py   # VCP, Cup & Handle, Flat Base
+│   ├── .env                   # API keys (gitignored)
+│   ├── .env.example           # API key template
+│   ├── providers/             # v4.14 Multi-Source Data Intelligence
+│   │   ├── __init__.py        # Exports get_data_provider()
+│   │   ├── orchestrator.py    # Fallback chains + field merge
+│   │   ├── base.py            # Abstract interfaces
+│   │   ├── exceptions.py      # Error hierarchy
+│   │   ├── field_maps.py      # Field normalization
+│   │   ├── rate_limiter.py    # Token-bucket per provider
+│   │   ├── circuit_breaker.py # Circuit breaker pattern
+│   │   ├── twelvedata_provider.py  # Primary OHLCV
+│   │   ├── finnhub_provider.py     # Primary Fundamentals
+│   │   ├── fmp_provider.py         # Growth metrics
+│   │   ├── yfinance_provider.py    # Universal fallback
+│   │   ├── stooq_provider.py       # Last resort OHLCV
+│   │   └── backtest_adapter.py     # yf.download() replacement
 │   ├── data/
 │   │   └── cache.db           # SQLite cache database
 │   ├── validation/
@@ -865,27 +952,24 @@ swing-trade-analyzer/
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx            # Main UI (v3.9)
+│   │   ├── App.jsx            # Main UI (v4.4)
 │   │   ├── services/
 │   │   │   └── api.js         # API client + health checks
 │   │   └── utils/
-│   │       ├── scoringEngine.js      # 75-point scoring + data quality
-│   │       ├── simplifiedScoring.js  # 4-criteria binary (Day 27)
-│   │       ├── positionSizing.js     # Van Tharp calculator (Day 28)
-│   │       └── rsCalculator.js       # RS calculations
+│   │       ├── categoricalAssessment.js  # v4.5 Categorical System
+│   │       ├── scoringEngine.js          # Legacy scoring + data quality
+│   │       ├── forwardTesting.js         # Paper trading (v4.7)
+│   │       ├── positionSizing.js         # Van Tharp calculator
+│   │       └── rsCalculator.js           # RS calculations
 │   └── package.json
 │
 ├── docs/
 │   ├── claude/                # Claude session documentation
 │   │   ├── CLAUDE_CONTEXT.md  # Single reference point
-│   │   ├── stable/            # Rarely-changing docs (GOLDEN_RULES)
+│   │   ├── stable/            # Rarely-changing docs (GOLDEN_RULES, ROADMAP)
 │   │   ├── versioned/         # Day-versioned docs (API_CONTRACTS, KNOWN_ISSUES)
 │   │   └── status/            # Daily status files
 │   └── research/              # Research documents
-│       ├── PERPLEXITY_RESEARCH_SYNTHESIS.md
-│       ├── OPTIONS_TAB_FEASIBILITY_ANALYSIS.md
-│       ├── SECTOR_ROTATION_IDENTIFICATION_GUIDE.md
-│       └── ...
 │
 └── README.md
 ```
@@ -919,11 +1003,13 @@ MIT License - See LICENSE file for details.
 
 - **Mark Minervini** - SEPA methodology, VCP patterns
 - **William O'Neil** - CAN SLIM strategy
-- **yfinance** - Free market data
-- **Defeat Beta** - Fundamental data API
+- **TwelveData** - Primary OHLCV data
+- **Finnhub** - Primary fundamentals data
+- **Financial Modeling Prep (FMP)** - Growth metrics
+- **yfinance** - Universal fallback data
 - **TradingView** - Screener library
 
 ---
 
-*Last Updated: February 2, 2026 (Day 42)*
-*Version: 3.9 (Backend v2.12)*
+*Last Updated: February 12, 2026 (Day 52)*
+*Version: v4.14 (Backend v2.17, Frontend v4.4)*

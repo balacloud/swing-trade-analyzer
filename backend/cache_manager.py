@@ -52,10 +52,17 @@ def _init_tables(conn):
             data TEXT NOT NULL,           -- JSON: {date: {open, high, low, close, volume}}
             period TEXT DEFAULT '2y',     -- Period fetched (e.g., '2y', '1y')
             rows INTEGER,                 -- Number of data points
+            source TEXT DEFAULT 'yfinance', -- Day 51: Data provider source
             cached_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             expires_at TIMESTAMP NOT NULL
         )
     """)
+
+    # Day 51: Add source column to existing ohlcv_cache tables (migration)
+    try:
+        cursor.execute("ALTER TABLE ohlcv_cache ADD COLUMN source TEXT DEFAULT 'yfinance'")
+    except Exception:
+        pass  # Column already exists
 
     # Fundamentals cache
     cursor.execute("""
@@ -178,8 +185,8 @@ def get_cached_ohlcv(ticker: str) -> Optional[pd.DataFrame]:
         conn.close()
 
 
-def set_cached_ohlcv(ticker: str, df: pd.DataFrame, period: str = '2y'):
-    """Store OHLCV data in cache"""
+def set_cached_ohlcv(ticker: str, df: pd.DataFrame, period: str = '2y', source: str = 'yfinance'):
+    """Store OHLCV data in cache. Day 51: Added source parameter for provenance."""
     ticker = ticker.upper()
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -193,13 +200,14 @@ def set_cached_ohlcv(ticker: str, df: pd.DataFrame, period: str = '2y'):
         expires_at = calculate_ohlcv_expiry()
 
         cursor.execute("""
-            INSERT OR REPLACE INTO ohlcv_cache (ticker, data, period, rows, cached_at, expires_at)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO ohlcv_cache (ticker, data, period, rows, source, cached_at, expires_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (
             ticker,
             json.dumps(data_json),
             period,
             len(df),
+            source,
             datetime.now(ET).isoformat(),
             expires_at.isoformat()
         ))
@@ -405,7 +413,7 @@ def get_cache_stats() -> Dict[str, Any]:
 
         # OHLCV stats
         cursor.execute("""
-            SELECT ticker, rows, cached_at, expires_at
+            SELECT ticker, rows, source, cached_at, expires_at
             FROM ohlcv_cache
             ORDER BY ticker
         """)
@@ -416,6 +424,7 @@ def get_cache_stats() -> Dict[str, Any]:
             stats['ohlcv']['entries'].append({
                 'ticker': row['ticker'],
                 'rows': row['rows'],
+                'source': row['source'] if 'source' in row.keys() else 'yfinance',
                 'cached_at': row['cached_at'],
                 'expires_in': str(expires - now) if not is_expired else 'EXPIRED',
                 'expired': is_expired
@@ -542,7 +551,7 @@ def get_ticker_cache_info(ticker: str, cache_type: str) -> Optional[Dict[str, An
 
         if cache_type == 'ohlcv':
             cursor.execute("""
-                SELECT cached_at, expires_at, rows, period
+                SELECT cached_at, expires_at, rows, period, source
                 FROM ohlcv_cache WHERE ticker = ?
             """, (ticker,))
             row = cursor.fetchone()
@@ -558,6 +567,7 @@ def get_ticker_cache_info(ticker: str, cache_type: str) -> Optional[Dict[str, An
                 'expires_at': row['expires_at'],
                 'rows': row['rows'],
                 'period': row['period'],
+                'source': row['source'] if 'source' in row.keys() else 'yfinance',
                 'expired': is_expired,
                 'age_hours': round((now - cached).total_seconds() / 3600, 1),
                 'expires_in': str(expires - now) if not is_expired else 'EXPIRED'

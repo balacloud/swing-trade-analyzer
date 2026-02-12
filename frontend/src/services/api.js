@@ -57,7 +57,7 @@ export async function fetchStockData(ticker) {
 
 /**
  * Fetch rich fundamental data for scoring
- * Uses Defeat Beta if available, falls back to yfinance
+ * Uses multi-source providers (Finnhub, FMP, yfinance) with fallback chain
  * 
  * Returns:
  * - ROE, ROIC, ROA
@@ -169,7 +169,7 @@ export async function fetchVIXData() {
 
 /**
  * Check backend health
- * Day 33: Added defeatbetaStatus field with live API check
+ * v4.14: Multi-Source Data Provider status
  */
 export async function checkBackendHealth(checkDefeatBeta = false) {
   try {
@@ -187,8 +187,10 @@ export async function checkBackendHealth(checkDefeatBeta = false) {
     return {
       healthy: data.status === 'healthy',
       version: data.version,
+      dataProviderAvailable: data.data_provider_available || false,
+      providers: data.providers || null,
       defeatbetaAvailable: data.defeatbeta_available,
-      defeatbetaStatus: data.defeatbeta_status || null,  // Day 33: Live status
+      defeatbetaStatus: data.defeatbeta_status || null,
       tradingviewAvailable: data.tradingview_available,
       srEngineAvailable: data.sr_engine_available,
       validationAvailable: data.validation_available,

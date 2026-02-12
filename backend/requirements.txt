@@ -1,5 +1,5 @@
 # Swing Trade Analyzer - Backend Dependencies
-# Last Updated: Day 44 (February 4, 2026)
+# Last Updated: Day 51 (February 11, 2026)
 
 # Core Framework
 flask>=2.0.0
@@ -19,6 +19,10 @@ scipy>=1.9.0  # Day 44: Pattern detection (argrelextrema)
 
 # Utilities
 requests>=2.28.0
+python-dotenv>=1.0.0          # Day 51: v4.14 - Load API keys from .env
+
+# Multi-Source Data Providers (Day 51: v4.14)
+pandas_datareader>=0.10.0     # Stooq fallback OHLCV provider
 
 #scraping tools
 stockanalysis-scraper==1.1.0

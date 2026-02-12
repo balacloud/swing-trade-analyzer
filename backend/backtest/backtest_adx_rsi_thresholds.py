@@ -20,12 +20,30 @@ Usage:
     python backtest_adx_rsi_thresholds.py
 """
 
-import yfinance as yf
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import warnings
+import os
+import sys
 warnings.filterwarnings('ignore')
+
+# Day 51: Use DataProvider instead of direct yfinance
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env'))
+except ImportError:
+    pass
+
+try:
+    from providers.backtest_adapter import download_ohlcv
+    USE_DATA_PROVIDER = True
+    print("✅ Using Multi-Source DataProvider (TwelveData → yfinance → Stooq)")
+except ImportError:
+    import yfinance as yf
+    USE_DATA_PROVIDER = False
+    print("⚠️ DataProvider not available, using yfinance directly")
 
 
 def calculate_rsi(prices, period=14):
@@ -161,7 +179,11 @@ def run_adx_rsi_backtest(tickers, start_date='2020-01-01', end_date='2024-12-31'
             buffer_start = (datetime.strptime(start_date, '%Y-%m-%d') -
                           timedelta(days=100)).strftime('%Y-%m-%d')
 
-            stock_df = yf.download(ticker, start=buffer_start, end=end_date, progress=False)
+            # Day 51: Use DataProvider with fallback chain
+            if USE_DATA_PROVIDER:
+                stock_df = download_ohlcv(ticker, start=buffer_start, end=end_date)
+            else:
+                stock_df = yf.download(ticker, start=buffer_start, end=end_date, progress=False)
 
             if stock_df.empty or len(stock_df) < 100:
                 print(f"  Insufficient data for {ticker}")

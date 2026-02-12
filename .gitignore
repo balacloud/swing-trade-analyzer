@@ -1,3 +1,7 @@
 .DS_Store
 swing-trade-frontend-day2.zip
 Files_Archives/
+
+# Environment variables (API keys - never commit)
+.env
+backend/.env

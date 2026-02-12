@@ -1,6 +1,6 @@
 /**
  * Swing Trade Analyzer - Main App Component
- * v2.0: Integrated with Defeat Beta for rich fundamentals
+ * v2.0: Multi-Source Data Intelligence (TwelveData, Finnhub, FMP, yfinance, Stooq)
  * v2.1: Added TradingView screener scan tab (Day 12)
  * v2.2: Added Support & Resistance Trade Setup display (Day 14)
  * v2.3: Added Validation tab for data quality monitoring (Day 17)
@@ -30,6 +30,11 @@
  *       - Entry uses nearest support: Fixed Math.max() instead of support[0]
  *       - Position/Reason aligned: Position now says "wait" when ADX < 20
  *       - VIABLE badge specificity: Shows "PULLBACK OK", "MOMENTUM OK", or "BOTH VIABLE"
+ * v4.4: Day 50 - UI Cohesiveness Fixes (from exhaustive re-test):
+ *       - Issue #1: Hide Position Size banner when verdict=AVOID or ADX<20 (was conflicting)
+ *       - Issue #2: Added Retry button to error display for transient API failures
+ *       - Issue #3: Entry cards always shown (grayed out with warning) instead of hidden
+ *       - Issue #5: Warning when AVOID verdict but setup shows VIABLE badge
  */
 
 import React, { useState, useEffect } from 'react';
@@ -117,7 +122,7 @@ function App() {
   const quickPicks = ['AVGO', 'NVDA', 'AAPL', 'META', 'MSFT', 'NFLX', 'PLTR']; 
 
   // Check backend health, load strategies, and load settings on mount
-  // Day 33: Do full Defeat Beta check on startup for transparency
+  // v4.14: Check multi-source provider status on startup
   useEffect(() => {
     checkBackendHealth(true).then(setBackendStatus);
     fetchScanStrategies()
@@ -152,7 +157,7 @@ function App() {
       setCalcTicker('');
       setTicker('');
 
-      // Refresh backend status with Defeat Beta check
+      // Refresh backend status with provider check
       const status = await checkBackendHealth(true);
       setBackendStatus(status);
 
@@ -497,7 +502,9 @@ function App() {
       } else if (viability?.viable === 'CAUTION') {
         recommendation = {
           action: 'ADD TO WATCHLIST',
-          details: `Good stock, but ${pctFromSupport}% above support. Set alert for pullback to $${supportZoneLow}-${supportZoneHigh} zone.`,
+          details: supportZoneLow && supportZoneHigh
+            ? `Good stock, but ${pctFromSupport}% above support. Set alert for pullback to $${supportZoneLow}-${supportZoneHigh} zone.`
+            : `Good stock, but extended from support levels. Wait for a pullback before entry.`,
           alertPrice: nearestSupport,
           bgColor: 'bg-gradient-to-r from-blue-600 to-indigo-600',
           borderColor: 'border-blue-400',
@@ -509,7 +516,9 @@ function App() {
         // viability NO
         recommendation = {
           action: 'WAIT FOR PULLBACK',
-          details: `Quality stock but extended. Wait for pullback to $${supportZoneLow}-${supportZoneHigh} zone before entry.`,
+          details: supportZoneLow && supportZoneHigh
+            ? `Quality stock but extended. Wait for pullback to $${supportZoneLow}-${supportZoneHigh} zone before entry.`
+            : `Quality stock but significantly extended. Wait for a meaningful pullback to establish new support levels.`,
           alertPrice: nearestSupport,
           bgColor: 'bg-gradient-to-r from-amber-600 to-orange-600',
           borderColor: 'border-amber-400',
@@ -653,16 +662,12 @@ function App() {
               <span className={`w-3 h-3 rounded-full ${backendStatus.healthy ? 'bg-green-500' : 'bg-red-500'}`}></span>
               <span className="text-sm text-gray-400">
                 Backend {backendStatus.healthy ? 'Connected' : 'Disconnected'}
-                {/* Day 33: Enhanced Defeat Beta status - show working/failing */}
-                {backendStatus.defeatbetaAvailable && (
-                  backendStatus.defeatbetaStatus?.working
-                    ? <span className="text-green-400"> • Defeat Beta ✓</span>
-                    : <span className="text-yellow-400" title={backendStatus.defeatbetaStatus?.error || 'API unavailable'}>
-                        {' • Defeat Beta ⚠️'}
-                      </span>
+                {/* v4.14: Multi-Source Data Provider status */}
+                {backendStatus.dataProviderAvailable && (
+                  <span className="text-green-400"> • Multi-Source ✓</span>
                 )}
-                {!backendStatus.defeatbetaAvailable && backendStatus.healthy && (
-                  <span className="text-gray-500"> • Defeat Beta ✗</span>
+                {!backendStatus.dataProviderAvailable && backendStatus.healthy && (
+                  <span className="text-yellow-400"> • Single-Source ⚠️</span>
                 )}
                 {backendStatus.tradingviewAvailable && ' • TradingView ✓'}
                 {backendStatus.srEngineAvailable && ' • S&R ✓'}
@@ -850,10 +855,18 @@ function App() {
               </div>
             )}
 
-            {/* Error Display */}
+            {/* Error Display - Day 50: Added retry button */}
             {error && (
               <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-6 text-red-200">
-                {error}
+                <div className="flex items-center justify-between">
+                  <span>{error}</span>
+                  <button
+                    onClick={() => analyzeStock(ticker)}
+                    className="ml-4 px-3 py-1 bg-red-700 hover:bg-red-600 rounded text-sm font-medium transition-colors"
+                  >
+                    Retry
+                  </button>
+                </div>
               </div>
             )}
 
@@ -943,8 +956,8 @@ function App() {
                       </div>
                       <div className="text-xs text-gray-400">
                         {analysisResult.breakdown.fundamental.dataQuality === 'unavailable'
-                          ? 'Both Defeat Beta and yfinance failed. Fundamental score may be incomplete.'
-                          : 'Defeat Beta API unavailable. Using yfinance (limited data, may be slightly delayed).'}
+                          ? 'All data providers failed (Finnhub, FMP, yfinance). Fundamental score may be incomplete.'
+                          : 'Primary providers unavailable. Using fallback source (limited data, may be slightly delayed).'}
                       </div>
                     </div>
                     <div className={`text-xs px-2 py-1 rounded ${
@@ -1061,13 +1074,25 @@ function App() {
                         viabilityIcon = '✅';
                       }
 
+                      // Day 50: Check for AVOID verdict + VIABLE conflict
+                      const verdictIsAvoid = categoricalResult?.verdict?.verdict === 'AVOID';
+                      const anyViableSetup = pullbackViable || momentumViable;
+
                       return (
                         <>
                           {/* Header with Viability Badge - Day 49: Shows which strategy is viable */}
                           <div className="flex justify-between items-center mb-4">
                             <h3 className="text-lg font-semibold text-blue-400">🎯 Trade Setup</h3>
-                            <div className={`px-3 py-1 rounded-full text-sm font-bold ${viabilityBg} text-white`}>
-                              {viabilityIcon} {viabilityLabel}
+                            <div className="flex items-center gap-2">
+                              <div className={`px-3 py-1 rounded-full text-sm font-bold ${viabilityBg} text-white`}>
+                                {viabilityIcon} {viabilityLabel}
+                              </div>
+                              {/* Day 50: Warning when AVOID verdict but setup is viable */}
+                              {verdictIsAvoid && anyViableSetup && (
+                                <span className="text-yellow-400 text-xs" title="Setup viable but stock fundamentals/technicals don't support trading">
+                                  ⚠️ Stock not recommended
+                                </span>
+                              )}
                             </div>
                           </div>
                         </>
@@ -1090,7 +1115,10 @@ function App() {
                               {srData.meta.tradeViability.viable === 'NO' && '🚫 '}
                               {srData.meta.tradeViability.advice}
                             </span>
-                            {srData.meta.tradeViability.position_size_advice && (
+                            {/* Day 50: Hide position_size_advice when it conflicts with verdict/ADX */}
+                            {srData.meta.tradeViability.position_size_advice &&
+                             categoricalResult?.verdict?.verdict !== 'AVOID' &&
+                             (srData.meta?.adx?.adx || 0) >= 20 && (
                               <div className="mt-1 text-xs opacity-80">
                                 Position Size: {srData.meta.tradeViability.position_size_advice}
                               </div>
@@ -1217,20 +1245,21 @@ function App() {
                           const pullbackViable = pullbackRRValue >= 1.0;
                           const momentumViable = momentumRRValue >= 1.0;
 
-                          // Day 49: No trend warning
-                          if (noTrend && !pullbackViable && !momentumViable) {
-                            return (
-                              <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-4 text-center">
-                                <span className="text-yellow-400 font-medium">⚠️ Wait for Better Setup</span>
-                                <div className="text-gray-400 text-sm mt-1">
-                                  ADX {adxValue.toFixed(1)} indicates no trend. R:R unfavorable at current levels.
-                                </div>
-                              </div>
-                            );
-                          }
+                          // Day 50: Show warning but ALWAYS show entry cards (grayed out when not viable)
+                          const showNoTrendWarning = noTrend && !pullbackViable && !momentumViable;
 
                           return (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <>
+                              {/* Day 50: Warning banner shown when no trend and both R:R < 1 */}
+                              {showNoTrendWarning && (
+                                <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-4 text-center mb-3">
+                                  <span className="text-yellow-400 font-medium">⚠️ Wait for Better Setup</span>
+                                  <div className="text-gray-400 text-sm mt-1">
+                                    ADX {adxValue.toFixed(1)} indicates no trend. R:R unfavorable at current levels.
+                                  </div>
+                                </div>
+                              )}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                               {/* Strategy A: Pullback */}
                               <div className={`rounded-lg p-4 ${
                                 !pullbackViable ? 'bg-red-900/20 border border-red-800/50 opacity-60' :
@@ -1329,6 +1358,7 @@ function App() {
                                 </div>
                               </div>
                             </div>
+                            </>
                           );
                         })()}
                       </div>
@@ -1710,7 +1740,7 @@ function App() {
                     )}
 
                     <div className="mt-3 text-xs text-gray-500 text-center">
-                      Data: yfinance (OHLCV) • Quality: algorithmic detection • Threshold: ≥80% for actionability
+                      Data: Multi-Source (OHLCV) • Quality: algorithmic detection • Threshold: ≥80% for actionability
                     </div>
                   </div>
                 )}
@@ -1902,7 +1932,7 @@ function App() {
                               <div>RS vs SPY: {categoricalResult.technical.data.rs52Week?.toFixed(2)}x</div>
                             </div>
                           )}
-                          <div className="text-xs text-gray-500 mt-2">Data: yfinance + Pattern Detection</div>
+                          <div className="text-xs text-gray-500 mt-2">Data: Multi-Source OHLCV + Pattern Detection</div>
                         </div>
                       )}
                       {expandedScore === 'fundamental' && categoricalResult.fundamental && (
@@ -1914,7 +1944,7 @@ function App() {
                             ))}
                           </ul>
                           <div className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-600">
-                            Data: {categoricalResult.fundamental.data?.dataSource || 'Defeat Beta'}
+                            Data: {categoricalResult.fundamental.data?.dataSource || 'Multi-Source'}
                           </div>
                         </div>
                       )}
@@ -1982,7 +2012,7 @@ function App() {
                               </span>
                             </div>
                           </div>
-                          <div className="text-xs text-gray-500 mt-2">Data: yfinance (VIX, SPY)</div>
+                          <div className="text-xs text-gray-500 mt-2">Data: Multi-Source (VIX, SPY)</div>
                         </div>
                       )}
                     </div>
@@ -3291,14 +3321,14 @@ function App() {
                   </thead>
                   <tbody>
                     {(provenanceData?.data_sources ? [
-                      {type: 'Price Data (OHLCV)', primary: provenanceData.data_sources.prices?.name, fallback: '-', status: provenanceData.data_sources.prices?.status},
+                      {type: 'Price Data (OHLCV)', primary: provenanceData.data_sources.prices?.name, fallback: provenanceData.data_sources.prices?.fallback || '-', status: provenanceData.data_sources.prices?.status},
                       {type: 'Fundamentals', primary: provenanceData.data_sources.fundamentals_primary?.name, fallback: provenanceData.data_sources.fundamentals_fallback?.name, status: provenanceData.data_sources.fundamentals_primary?.status},
                       {type: 'Market Data (SPY/VIX)', primary: provenanceData.data_sources.market_data?.name, fallback: '-', status: provenanceData.data_sources.market_data?.status},
                       {type: 'Market Scanning', primary: provenanceData.data_sources.scanning?.name, fallback: '-', status: provenanceData.data_sources.scanning?.status}
                     ] : [
-                      {type: 'Price Data (OHLCV)', primary: 'Yahoo Finance (yfinance)', fallback: '-', status: 'available'},
-                      {type: 'Fundamentals', primary: 'Defeat Beta API', fallback: 'Yahoo Finance', status: 'available'},
-                      {type: 'Market Data (SPY/VIX)', primary: 'Yahoo Finance', fallback: '-', status: 'available'},
+                      {type: 'Price Data (OHLCV)', primary: 'TwelveData', fallback: 'yfinance → Stooq', status: 'available'},
+                      {type: 'Fundamentals', primary: 'Finnhub + FMP', fallback: 'yfinance', status: 'available'},
+                      {type: 'Market Data (SPY/VIX)', primary: 'TwelveData (SPY) / yfinance (VIX)', fallback: 'yfinance → Finnhub', status: 'available'},
                       {type: 'Market Scanning', primary: 'TradingView Screener', fallback: '-', status: 'available'}
                     ]).map((src, idx) => (
                       <tr key={idx} className="border-b border-gray-700/30 hover:bg-gray-700/20">
@@ -3331,8 +3361,8 @@ function App() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>Day 29 - Session Refresh + Comprehensive Testing</p>
-          <p className="mt-1">Fresh data, accurate analysis</p>
+          <p>v4.14 - Multi-Source Data Intelligence</p>
+          <p className="mt-1">TwelveData • Finnhub • FMP • yfinance • Stooq</p>
         </div>
       </div>
     </div>
