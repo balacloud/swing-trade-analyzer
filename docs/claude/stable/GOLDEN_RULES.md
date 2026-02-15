@@ -2,7 +2,7 @@
 
 > **Purpose:** Stable reference document for all session rules
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 52 (February 12, 2026)
+> **Last Updated:** Day 53 (February 15, 2026)
 
 ---
 
@@ -242,6 +242,14 @@ CLAUDE SESSION REMINDER:
 - **Never break existing code** while adding new infrastructure (user's explicit instruction)
 - **Test each replacement individually** - Don't batch all 9 replacements, test one at a time
 - **Timezone awareness matters:** yfinance returns timezone-aware, TwelveData returns naive - normalize at boundaries
+
+### Day 53: SRP and Dead Code — The Architecture Tax
+- **Dual endpoints for the same data = guaranteed corruption.** `/api/stock/` and `/api/fundamentals/` both returned fundamentals. When one returned zeros, scoring was silently corrupted.
+- **Zero is not null.** Hardcoded `roe: 0` scored as "Weak" (not missing). `debtToEquity: 0` scored as "Strong" (0 < 1.0). Use null for missing data, never zero.
+- **Validate each field end-to-end, both happy and failure paths.** Trace through ALL layers (backend → API → frontend merge → scoring → categorical → UI). Phase 1+2 reconciliation caught issues at layer 6 that compile/build checks never would.
+- **Dead code accumulates silently.** Three functions (~255 lines) were completely unused. Nobody noticed because they compiled fine.
+- **Phase-then-validate beats big-bang.** Phase 1 (stop corruption) → validate → Phase 2 (clean architecture) → validate. Each phase independently verifiable.
+- **After building enough features: STOP and PROVE.** Day 27 showed 49.7% win rate. All improvements since are untested. The next priority is always the backtest, not the next feature.
 
 ---
 

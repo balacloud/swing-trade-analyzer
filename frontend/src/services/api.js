@@ -30,6 +30,8 @@ export async function fetchStockData(ticker) {
     const data = await response.json();
     
     // Transform data for frontend consumption
+    // NOTE: fundamentals are NOT included here (SRP).
+    // Single source of truth: /api/fundamentals/ via DataProvider.
     return {
       ticker: data.ticker,
       name: data.name,
@@ -43,7 +45,6 @@ export async function fetchStockData(ticker) {
       avgVolume: data.avgVolume,
       avgVolume10d: data.avgVolume10d,
       priceHistory: data.priceHistory,
-      fundamentals: data.fundamentals,
       dataPoints: data.dataPoints,
       oldestDate: data.oldestDate,
       newestDate: data.newestDate
@@ -171,12 +172,9 @@ export async function fetchVIXData() {
  * Check backend health
  * v4.14: Multi-Source Data Provider status
  */
-export async function checkBackendHealth(checkDefeatBeta = false) {
+export async function checkBackendHealth() {
   try {
-    const url = checkDefeatBeta
-      ? `${API_BASE_URL}/health?check_defeatbeta=true`
-      : `${API_BASE_URL}/health`;
-    const response = await fetch(url);
+    const response = await fetch(`${API_BASE_URL}/health`);
 
     if (!response.ok) {
       return { healthy: false, error: 'Backend not responding' };
@@ -189,8 +187,6 @@ export async function checkBackendHealth(checkDefeatBeta = false) {
       version: data.version,
       dataProviderAvailable: data.data_provider_available || false,
       providers: data.providers || null,
-      defeatbetaAvailable: data.defeatbeta_available,
-      defeatbetaStatus: data.defeatbeta_status || null,
       tradingviewAvailable: data.tradingview_available,
       srEngineAvailable: data.sr_engine_available,
       validationAvailable: data.validation_available,
@@ -217,17 +213,22 @@ export async function fetchAnalysisData(ticker) {
       fetchVIXData()
     ]);
     
-    // Merge fundamentals into stock data if available
+    // Attach fundamentals to stock data (single source: /api/fundamentals/)
     if (fundamentals) {
       stockData.fundamentals = {
-        ...stockData.fundamentals,
         ...fundamentals,
-        // Keep track of data source
         enriched: true,
         enrichedSource: fundamentals.source
       };
+    } else {
+      // Fundamentals fetch failed — mark explicitly so scoring engine
+      // returns dataQuality: 'unavailable' instead of scoring null fields.
+      stockData.fundamentals = {
+        dataQuality: 'unavailable',
+        enriched: false
+      };
     }
-    
+
     return {
       stock: stockData,
       spy: spyData,
@@ -377,12 +378,19 @@ export async function fetchFullAnalysisData(ticker) {
       fetchEarnings(ticker)
     ]);
 
+    // Attach fundamentals to stock data (single source: /api/fundamentals/)
     if (fundamentals) {
       stockData.fundamentals = {
-        ...stockData.fundamentals,
         ...fundamentals,
         enriched: true,
         enrichedSource: fundamentals.source
+      };
+    } else {
+      // Fundamentals fetch failed — mark explicitly so scoring engine
+      // returns dataQuality: 'unavailable' instead of scoring null fields.
+      stockData.fundamentals = {
+        dataQuality: 'unavailable',
+        enriched: false
       };
     }
 

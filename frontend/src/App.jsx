@@ -43,6 +43,8 @@ import { calculateScore } from './utils/scoringEngine';
 import { calculateSimplifiedAnalysis } from './utils/simplifiedScoring';
 import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings } from './utils/positionSizing';
 import { runCategoricalAssessment, getActionablePatterns } from './utils/categoricalAssessment';
+import BottomLineCard, { HOLDING_PERIODS } from './components/BottomLineCard';
+import DecisionMatrix from './components/DecisionMatrix';
 import {
   createTrade, closeTrade, calculateStatistics, getSQNRating,
   loadTrades, saveTrades, addTrade, updateTrade, deleteTrade,
@@ -66,6 +68,8 @@ function App() {
   const [fearGreedData, setFearGreedData] = useState(null); // Day 44: v4.5 Fear & Greed
   const [earningsData, setEarningsData] = useState(null); // Day 49: v4.10 Earnings Calendar
   const [categoricalResult, setCategoricalResult] = useState(null); // Day 44: v4.5 Categorical Assessment
+  const [holdingPeriod, setHoldingPeriod] = useState('standard'); // Day 53: v4.13 Holding Period Selector
+  const [rawAnalysisData, setRawAnalysisData] = useState(null); // Day 53: Stored for re-assessment on period change
 
   // Forward Testing state (Day 47: v4.7)
   const [forwardTrades, setForwardTrades] = useState(() => loadTrades());
@@ -131,6 +135,18 @@ function App() {
     // Load saved settings
     setSettings(loadSettings());
   }, []);
+
+  // v4.13: Re-run categorical assessment when holding period changes (no API re-fetch needed)
+  useEffect(() => {
+    if (!rawAnalysisData) return;
+    const { stock, spy, vix, fearGreed, trendTemplate, technicalBreakdown, fundamentals, ticker: rawTicker, adxData } = rawAnalysisData;
+    const categorical = runCategoricalAssessment(
+      stock, spy, vix, fearGreed, trendTemplate,
+      technicalBreakdown, fundamentals, rawTicker,
+      adxData, holdingPeriod
+    );
+    setCategoricalResult(categorical);
+  }, [holdingPeriod]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Session Refresh - Clear backend cache and reset frontend state (Day 29)
   const handleSessionRefresh = async () => {
@@ -269,7 +285,8 @@ function App() {
         result.breakdown?.technical,
         data.stock.fundamentals,  // Pass raw fundamentals, not breakdown
         targetTicker,
-        adxData  // v4.6.2: Pass ADX for entry preference
+        adxData,  // v4.6.2: Pass ADX for entry preference
+        holdingPeriod  // v4.13: Pass holding period for signal weighting
       );
 
       setAnalysisResult(result);
@@ -286,6 +303,19 @@ function App() {
       setCategoricalResult(categorical); // Day 44: v4.5 Categorical Assessment
       setSimplifiedResult(simplified);
       setTicker(targetTicker);
+
+      // v4.13: Store raw data for re-assessment when holding period changes
+      setRawAnalysisData({
+        stock: data.stock,
+        spy: data.spy,
+        vix: data.vix,
+        fearGreed: data.fearGreed,
+        trendTemplate,
+        technicalBreakdown: result.breakdown?.technical,
+        fundamentals: data.stock.fundamentals,
+        ticker: targetTicker,
+        adxData,
+      });
       
     } catch (err) {
       setError(err.message || 'Failed to analyze stock');
@@ -441,7 +471,7 @@ function App() {
     const verdict = categoricalResult.verdict?.verdict;
     const entryPreference = categoricalResult.verdict?.entryPreference;
     const viability = srData?.meta?.tradeViability;
-    const nearestSupport = srData?.support?.[0];
+    const nearestSupport = srData?.support?.length > 0 ? Math.max(...srData.support) : null;
 
     // Entry preference parsing
     const isPullbackPreferred = entryPreference?.includes('Pullback');
@@ -842,6 +872,16 @@ function App() {
                     📊 Full Analysis (75-pt)
                   </button>
                   <button
+                    onClick={() => setAnalysisView('matrix')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      analysisView === 'matrix'
+                        ? 'bg-indigo-600 text-white'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    🎯 Decision Matrix
+                  </button>
+                  <button
                     onClick={() => setAnalysisView('simple')}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       analysisView === 'simple'
@@ -881,6 +921,30 @@ function App() {
             {/* Analysis Results */}
             {analysisResult && !loading && analysisView === 'full' && (
               <div className="space-y-6">
+                {/* v4.13: Holding Period Selector Toggle */}
+                <div className="flex items-center gap-3 bg-gray-800/50 rounded-lg px-4 py-3">
+                  <span className="text-sm text-gray-400 font-medium">Holding Period:</span>
+                  <div className="flex gap-1">
+                    {Object.entries(HOLDING_PERIODS).map(([key, config]) => (
+                      <button
+                        key={key}
+                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                          holdingPeriod === key
+                            ? 'bg-blue-600 text-white shadow-lg'
+                            : 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-gray-200'
+                        }`}
+                        onClick={() => setHoldingPeriod(key)}
+                        title={`${config.name}: Tech ${Math.round(config.techWeight * 100)}% / Fund ${Math.round(config.fundWeight * 100)}%`}
+                      >
+                        {config.label}
+                      </button>
+                    ))}
+                  </div>
+                  <span className="text-xs text-gray-500 ml-2">
+                    Tech {Math.round(HOLDING_PERIODS[holdingPeriod].techWeight * 100)}% / Fund {Math.round(HOLDING_PERIODS[holdingPeriod].fundWeight * 100)}%
+                  </span>
+                </div>
+
                 {/* Verdict Card - v4.5 Categorical Assessment (Neutral design) */}
                 <div className="rounded-lg p-6 bg-gray-800 border border-gray-700">
                   <div className="flex justify-between items-center">
@@ -994,6 +1058,20 @@ function App() {
                           {formatPercent(analysisResult.pctFromHigh)}
                         </span>
                       </div>
+                      {/* Day 53: Average Daily Dollar Volume - critical for swing trade liquidity */}
+                      {(() => {
+                        const avgVol = rawAnalysisData?.stock?.avgVolume || 0;
+                        const dollarVol = avgVol * (analysisResult.currentPrice || 0);
+                        const color = dollarVol >= 50e6 ? 'text-green-400' : dollarVol >= 10e6 ? 'text-yellow-400' : 'text-red-400';
+                        return (
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Liquidity (Daily $):</span>
+                            <span className={`font-semibold ${color}`}>
+                              {dollarVol > 0 ? formatMarketCap(dollarVol) : 'N/A'}
+                            </span>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
 
@@ -1019,10 +1097,18 @@ function App() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">RS Rating:</span>
-                        <span className={`font-bold ${analysisResult.rsData?.rsRating === 'Strong' ? 'text-green-400' : analysisResult.rsData?.rsRating === 'Moderate' ? 'text-yellow-400' : 'text-red-400'}`}>
+                        <span className={`font-bold ${analysisResult.rsData?.rsRating >= 70 ? 'text-green-400' : analysisResult.rsData?.rsRating >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
                           {analysisResult.rsData?.rsRating || 'N/A'}
                         </span>
                       </div>
+                      {/* Day 53: RS Interpretation - computed in rsCalculator.js but was never displayed */}
+                      {analysisResult.rsData?.interpretation && (
+                        <div className="mt-2 pt-2 border-t border-gray-700">
+                          <span className={`text-xs ${analysisResult.rsData?.rs52Week >= 1.0 ? 'text-green-400' : analysisResult.rsData?.rs52Week >= 0.8 ? 'text-yellow-400' : 'text-red-400'}`}>
+                            {analysisResult.rsData.interpretation}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1100,20 +1186,38 @@ function App() {
                     })()}
 
                     {/* Viability Advice Banner (Day 22) */}
-                    {srData.meta?.tradeViability && (
+                    {/* Day 53 Bug #8: Backend viability (support distance) can contradict frontend R:R check */}
+                    {srData.meta?.tradeViability && (() => {
+                      // Recalculate R:R to detect contradiction with backend "Good setup" advice
+                      const _sup = srData.support?.length > 0 ? Math.max(...srData.support) : null;
+                      const _atr = srData.meta?.atr || 0;
+                      const _tgt = srData.suggestedTarget || srData.currentPrice * 1.10;
+                      const _pullbackRR = _sup && _atr > 0 ? (_tgt - _sup) / (_atr * 2) : 0;
+                      const _momRR = _sup && srData.currentPrice && (srData.currentPrice - (_sup - _atr * 1.5)) > 0
+                        ? (_tgt - srData.currentPrice) / (srData.currentPrice - (_sup - _atr * 1.5)) : 0;
+                      const _rrFails = _pullbackRR < 1.0 && _momRR < 1.0;
+                      // If backend says "YES" (structural stop is sound) but R:R fails, override to yellow
+                      const backendViable = srData.meta.tradeViability.viable;
+                      const hasContradiction = backendViable === 'YES' && _rrFails;
+
+                      return (
                       <div className={`mb-4 p-3 rounded-lg text-sm ${
-                        srData.meta.tradeViability.viable === 'YES' ? 'bg-green-900/30 border border-green-700 text-green-300' :
-                        srData.meta.tradeViability.viable === 'CAUTION' ? 'bg-yellow-900/30 border border-yellow-700 text-yellow-300' :
-                        srData.meta.tradeViability.viable === 'NO' ? 'bg-red-900/30 border border-red-700 text-red-300' :
+                        hasContradiction ? 'bg-yellow-900/30 border border-yellow-700 text-yellow-300' :
+                        backendViable === 'YES' ? 'bg-green-900/30 border border-green-700 text-green-300' :
+                        backendViable === 'CAUTION' ? 'bg-yellow-900/30 border border-yellow-700 text-yellow-300' :
+                        backendViable === 'NO' ? 'bg-red-900/30 border border-red-700 text-red-300' :
                         'bg-gray-700/30 border border-gray-600 text-gray-300'
                       }`}>
                         <div className="flex justify-between items-start">
                           <div>
                             <span className="font-semibold">
-                              {srData.meta.tradeViability.viable === 'YES' && '✅ '}
-                              {srData.meta.tradeViability.viable === 'CAUTION' && '⚠️ '}
-                              {srData.meta.tradeViability.viable === 'NO' && '🚫 '}
-                              {srData.meta.tradeViability.advice}
+                              {hasContradiction ? '⚠️ ' :
+                               backendViable === 'YES' ? '✅ ' :
+                               backendViable === 'CAUTION' ? '⚠️ ' :
+                               backendViable === 'NO' ? '🚫 ' : ''}
+                              {hasContradiction
+                                ? 'Structural stop is sound, but R:R insufficient at current price'
+                                : srData.meta.tradeViability.advice}
                             </span>
                             {/* Day 50: Hide position_size_advice when it conflicts with verdict/ADX */}
                             {srData.meta.tradeViability.position_size_advice &&
@@ -1197,7 +1301,8 @@ function App() {
                           </div>
                         </div>
                       </div>
-                    )}
+                      );
+                    })()}
 
                     {/* Day 39: Dual Entry Strategy Cards - Side by Side (ALL stocks) */}
                     {/* Day 49: Fixed R:R filter + ADX-based suggestion logic + nearest support fix */}
@@ -1297,10 +1402,12 @@ function App() {
                                   <div className="pt-2 border-t border-gray-700">
                                     <span className="text-gray-400 text-xs">Reason</span>
                                     <div className="text-gray-300 text-xs mt-1">
-                                      {strongTrend
-                                        ? `ADX ${adxValue.toFixed(1)} strong trend; pullback preferred`
+                                      {adxValue >= 30
+                                        ? `ADX ${adxValue.toFixed(1)} very strong trend; momentum entry viable`
+                                        : strongTrend
+                                        ? `ADX ${adxValue.toFixed(1)} strong trend; pullback preferred for better R:R`
                                         : weakTrend
-                                        ? `ADX ${adxValue.toFixed(1)} weak trend; reduce position size`
+                                        ? `ADX ${adxValue.toFixed(1)} moderate trend; reduce position size`
                                         : `ADX ${adxValue.toFixed(1)} no trend; wait for trend to develop`
                                       }
                                     </div>
@@ -1782,62 +1889,13 @@ function App() {
                   </div>
                 )}
 
-                {/* Actionable Recommendation Card - Day 44 (v4.5) */}
-                {categoricalResult && (
-                  (() => {
-                    const recommendation = generateActionableRecommendation(
-                      categoricalResult,
-                      srData,
-                      analysisResult?.currentPrice
-                    );
-                    if (!recommendation) return null;
-
-                    return (
-                      <div className={`rounded-xl p-5 shadow-lg border-2 ${recommendation.bgColor} ${recommendation.borderColor}`}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <span className="text-3xl">{recommendation.icon}</span>
-                            <div>
-                              <div className={`text-xl font-bold ${recommendation.textColor}`}>
-                                {recommendation.action}
-                              </div>
-                              <div className={`text-sm ${recommendation.textColor} opacity-90 mt-1`}>
-                                {recommendation.details}
-                              </div>
-                            </div>
-                          </div>
-                          {recommendation.alertPrice && (
-                            <div className="text-right">
-                              <div className="text-xs text-white/70 uppercase tracking-wide">Alert Price</div>
-                              <div className="text-2xl font-bold text-white">
-                                ${recommendation.alertPrice.toFixed(2)}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        {/* Action type badge */}
-                        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/20">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            recommendation.actionType === 'EXECUTE' ? 'bg-green-400/30 text-green-100' :
-                            recommendation.actionType === 'WATCHLIST' ? 'bg-blue-400/30 text-blue-100' :
-                            recommendation.actionType === 'WAIT' ? 'bg-amber-400/30 text-amber-100' :
-                            recommendation.actionType === 'AVOID' ? 'bg-red-400/30 text-red-100' :
-                            'bg-gray-400/30 text-gray-100'
-                          }`}>
-                            {recommendation.actionType}
-                          </span>
-                          <span className="text-xs text-white/60">
-                            {recommendation.actionType === 'EXECUTE' && 'Entry conditions met'}
-                            {recommendation.actionType === 'WATCHLIST' && 'Monitor for entry opportunity'}
-                            {recommendation.actionType === 'WAIT' && 'Patience required - wait for setup'}
-                            {recommendation.actionType === 'AVOID' && 'Look elsewhere for opportunities'}
-                            {recommendation.actionType === 'RESEARCH' && 'More analysis needed'}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })()
-                )}
+                {/* v4.13: Bottom Line Card - replaces old Actionable Recommendation (Day 44) */}
+                <BottomLineCard
+                  categoricalResult={categoricalResult}
+                  srData={srData}
+                  currentPrice={analysisResult?.currentPrice}
+                  holdingPeriod={holdingPeriod}
+                />
 
                 {/* Categorical Assessment - v4.5 (Day 44) */}
                 {categoricalResult && (
@@ -1961,8 +2019,8 @@ function App() {
                               <div className="flex items-center gap-2">
                                 <span className="text-gray-400 text-sm">Fear & Greed Index:</span>
                                 <span className={`text-lg font-bold ${
-                                  fearGreedData.value >= 55 && fearGreedData.value <= 75 ? 'text-green-400' :
-                                  fearGreedData.value >= 45 && fearGreedData.value < 55 ? 'text-gray-300' : 'text-red-400'
+                                  fearGreedData.value >= 60 && fearGreedData.value <= 80 ? 'text-green-400' :
+                                  fearGreedData.value >= 35 && fearGreedData.value < 60 ? 'text-gray-300' : 'text-red-400'
                                 }`}>{fearGreedData.value}</span>
                                 <span className="text-gray-500 text-sm">({fearGreedData.rating})</span>
                               </div>
@@ -1970,9 +2028,9 @@ function App() {
                                 <div
                                   className={`h-3 rounded-full ${
                                     fearGreedData.value < 25 ? 'bg-red-500' :
-                                    fearGreedData.value < 45 ? 'bg-orange-500' :
-                                    fearGreedData.value < 55 ? 'bg-gray-400' :
-                                    fearGreedData.value < 75 ? 'bg-green-500' : 'bg-red-500'
+                                    fearGreedData.value < 35 ? 'bg-orange-500' :
+                                    fearGreedData.value < 60 ? 'bg-gray-400' :
+                                    fearGreedData.value < 80 ? 'bg-green-500' : 'bg-red-500'
                                   }`}
                                   style={{ width: `${fearGreedData.value}%` }}
                                 ></div>
@@ -2085,6 +2143,41 @@ function App() {
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* ==================== DECISION MATRIX VIEW (Day 53) ==================== */}
+            {analysisResult && !loading && analysisView === 'matrix' && (
+              <div className="space-y-6">
+                {/* Day 53: Holding Period Selector (same as full view) */}
+                <div className="flex items-center gap-3 bg-gray-800/50 rounded-lg px-4 py-3">
+                  <span className="text-sm text-gray-400 font-medium">Holding Period:</span>
+                  <div className="flex gap-1">
+                    {Object.entries(HOLDING_PERIODS).map(([key, config]) => (
+                      <button
+                        key={key}
+                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                          holdingPeriod === key
+                            ? 'bg-blue-600 text-white shadow-lg'
+                            : 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-gray-200'
+                        }`}
+                        onClick={() => setHoldingPeriod(key)}
+                        title={`${config.name}: Tech ${Math.round(config.techWeight * 100)}% / Fund ${Math.round(config.fundWeight * 100)}%`}
+                      >
+                        {config.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <DecisionMatrix
+                  categoricalResult={categoricalResult}
+                  analysisResult={analysisResult}
+                  srData={srData}
+                  patternsData={patternsData}
+                  holdingPeriod={holdingPeriod}
+                  currentPrice={analysisResult?.currentPrice}
+                />
               </div>
             )}
 

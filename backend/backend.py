@@ -541,362 +541,21 @@ def calculate_rsi_4h(ticker_symbol: str, period: int = 14) -> dict:
         return None
 
 
-def get_fundamentals_defeatbeta(ticker_symbol):
-    """
-    Get rich fundamental data from Defeat Beta
-    Returns ROE, ROIC, ROA, EPS growth, revenue growth, etc.
 
-    Day 8 FIX: Use .data attribute instead of .to_df()
-    Day 25: Added TTL cache to prevent stale data (auto-refresh after 1 hour)
-    Day 42: Enhanced error handling with specific error tracking
-    DataFrame structure: Columns = ['Breakdown', '2024-10-31', '2023-10-31', ...]
-    Values are in rows with labels in 'Breakdown' column
-    """
-    if not DEFEATBETA_AVAILABLE:
-        return None
-
-    # Day 25: Check cache first
-    cached = get_cached_fundamentals(ticker_symbol)
-    if cached:
-        return cached
-
-    # Day 42: Track API call status for debugging
-    api_call_status = {
-        'ticker_init': {'success': False, 'error': None},
-        'annual_income': {'success': False, 'error': None},
-        'balance_sheet': {'success': False, 'error': None}
-    }
-
-    try:
-        ticker = DBTicker(ticker_symbol)
-        api_call_status['ticker_init'] = {'success': True, 'error': None}
-
-        # Initialize result
-        result = {
-            'source': 'defeatbeta',
-            'roe': None,
-            'roic': None,
-            'roa': None,
-            'epsGrowth': None,
-            'revenueGrowth': None,
-            'debtToEquity': None,
-            'profitMargin': None,
-            'operatingMargin': None,
-            'pegRatio': None,
-            '_api_status': api_call_status  # Day 42: Include for debugging
-        }
-        
-        # Track data we've collected
-        net_income = None
-        total_equity = None
-        total_assets = None
-        total_debt = None
-        total_revenue = None
-        
-        # Try to get annual income statement for growth calculations
-        try:
-            annual_income = ticker.annual_income_statement()
-            api_call_status['annual_income'] = {'success': True, 'error': None}
-
-            # DAY 8 FIX: Use .data instead of .to_df()
-            if hasattr(annual_income, 'data'):
-                annual_df = annual_income.data
-                
-                if annual_df is not None and 'Breakdown' in annual_df.columns:
-                    # Get date columns (exclude 'Breakdown')
-                    date_cols = [c for c in annual_df.columns if c != 'Breakdown']
-                    
-                    if len(date_cols) >= 2:
-                        current_year = date_cols[0]  # Most recent (e.g., '2024-10-31')
-                        prev_year = date_cols[1]     # Previous year (e.g., '2023-10-31')
-                        
-                        # Iterate through rows to find values
-                        for _, row in annual_df.iterrows():
-                            breakdown = str(row.get('Breakdown', ''))
-                            
-                            # Get Diluted EPS for EPS Growth
-                            if breakdown == 'Diluted EPS':
-                                try:
-                                    current_eps = safe_float(row.get(current_year))
-                                    prev_eps = safe_float(row.get(prev_year))
-                                    if current_eps is not None and prev_eps is not None and prev_eps != 0:
-                                        result['epsGrowth'] = round(((current_eps - prev_eps) / abs(prev_eps)) * 100, 2)
-                                except:
-                                    pass
-                            
-                            # Get Total Revenue for Revenue Growth
-                            if breakdown == 'Total Revenue':
-                                try:
-                                    current_rev = safe_float(row.get(current_year))
-                                    prev_rev = safe_float(row.get(prev_year))
-                                    total_revenue = current_rev  # Save for profit margin
-                                    if current_rev is not None and prev_rev is not None and prev_rev != 0:
-                                        result['revenueGrowth'] = round(((current_rev - prev_rev) / abs(prev_rev)) * 100, 2)
-                                except:
-                                    pass
-                            
-                            # Get Net Income Common Stockholders for ROE/ROA
-                            if breakdown == 'Net Income Common Stockholders':
-                                try:
-                                    net_income = safe_float(row.get(current_year))
-                                except:
-                                    pass
-                            
-                            # Get Operating Income for Operating Margin
-                            if breakdown == 'Operating Income':
-                                try:
-                                    operating_income = safe_float(row.get(current_year))
-                                    if operating_income is not None and total_revenue is not None and total_revenue != 0:
-                                        result['operatingMargin'] = round((operating_income / total_revenue) * 100, 2)
-                                except:
-                                    pass
-                        
-                        # Calculate Profit Margin
-                        if net_income is not None and total_revenue is not None and total_revenue != 0:
-                            result['profitMargin'] = round((net_income / total_revenue) * 100, 2)
-                            
-        except Exception as e:
-            api_call_status['annual_income'] = {'success': False, 'error': f"{type(e).__name__}: {str(e)}"}
-            print(f"⚠️ Error getting annual income for {ticker_symbol}: {e}")
-            traceback.print_exc()
-
-        # Try to get balance sheet for ROE, ROIC, Debt/Equity
-        try:
-            annual_balance = ticker.annual_balance_sheet()
-            api_call_status['balance_sheet'] = {'success': True, 'error': None}
-
-            # DAY 8 FIX: Use .data instead of .to_df()
-            if hasattr(annual_balance, 'data'):
-                balance_df = annual_balance.data
-                
-                if balance_df is not None and 'Breakdown' in balance_df.columns:
-                    # Get date columns (exclude 'Breakdown')
-                    date_cols = [c for c in balance_df.columns if c != 'Breakdown']
-                    
-                    if len(date_cols) >= 1:
-                        current_col = date_cols[0]  # Most recent
-                        
-                        # Iterate through rows to find values
-                        for _, row in balance_df.iterrows():
-                            breakdown = str(row.get('Breakdown', ''))
-                            
-                            # Get Total Assets
-                            if breakdown == 'Total Assets':
-                                try:
-                                    total_assets = safe_float(row.get(current_col))
-                                except:
-                                    pass
-                            
-                            # Get Stockholders' Equity
-                            if breakdown == "Stockholders' Equity":
-                                try:
-                                    total_equity = safe_float(row.get(current_col))
-                                except:
-                                    pass
-                            
-                            # Get Total Debt
-                            if breakdown == 'Total Debt':
-                                try:
-                                    total_debt = safe_float(row.get(current_col))
-                                except:
-                                    pass
-                        
-                        # Calculate Debt to Equity
-                        if total_equity and total_equity != 0 and total_debt:
-                            result['debtToEquity'] = round(total_debt / total_equity, 2)
-                        
-                        # Calculate ROE = Net Income / Shareholders Equity
-                        if net_income and total_equity and total_equity != 0:
-                            result['roe'] = round((net_income / total_equity) * 100, 2)
-                        
-                        # Calculate ROA = Net Income / Total Assets
-                        if net_income and total_assets and total_assets != 0:
-                            result['roa'] = round((net_income / total_assets) * 100, 2)
-                        
-                        # Calculate ROIC (simplified) = Net Income / (Equity + Debt)
-                        invested_capital = (total_equity or 0) + (total_debt or 0)
-                        if net_income and invested_capital != 0:
-                            result['roic'] = round((net_income / invested_capital) * 100, 2)
-                        
-        except Exception as e:
-            api_call_status['balance_sheet'] = {'success': False, 'error': f"{type(e).__name__}: {str(e)}"}
-            print(f"⚠️ Error getting balance sheet for {ticker_symbol}: {e}")
-            traceback.print_exc()
-
-        # Day 42: Update result with API status
-        result['_api_status'] = api_call_status
-
-        # Debug output
-        print(f"📊 Defeat Beta fundamentals for {ticker_symbol}:")
-        print(f"   ROE: {result['roe']}%, ROA: {result['roa']}%, ROIC: {result['roic']}%")
-        print(f"   EPS Growth: {result['epsGrowth']}%, Revenue Growth: {result['revenueGrowth']}%")
-        print(f"   Debt/Equity: {result['debtToEquity']}, Profit Margin: {result['profitMargin']}%")
-        # Day 42: Log API call status
-        api_success = [k for k, v in api_call_status.items() if v['success']]
-        api_failed = [k for k, v in api_call_status.items() if not v['success']]
-        print(f"   API Calls - Success: {api_success}, Failed: {api_failed}")
-
-        # Day 25: Cache the result
-        set_cached_fundamentals(ticker_symbol, result)
-
-        return result
-
-    except AttributeError as e:
-        # Day 42: Specific handling for .data attribute errors
-        error_msg = f"AttributeError: {str(e)}"
-        print(f"❌ Defeat Beta AttributeError for {ticker_symbol}: {error_msg}")
-        print(f"   This usually means the API structure changed or ticker doesn't exist in Defeat Beta")
-        print(f"   API Call Status: {api_call_status}")
-        traceback.print_exc()
-        return None
-
-    except ConnectionError as e:
-        # Day 42: Network/connection issues
-        error_msg = f"ConnectionError: {str(e)}"
-        print(f"❌ Defeat Beta connection failed for {ticker_symbol}: {error_msg}")
-        print(f"   Check network connectivity and Defeat Beta API status")
-        return None
-
-    except Exception as e:
-        # Day 42: Enhanced generic error handling
-        error_type = type(e).__name__
-        error_msg = str(e)
-        print(f"❌ Defeat Beta error for {ticker_symbol}:")
-        print(f"   Error Type: {error_type}")
-        print(f"   Error Message: {error_msg}")
-        print(f"   API Call Status: {api_call_status}")
-        print(f"   FIX: Check KNOWN_ISSUES file for Defeat Beta troubleshooting")
-        traceback.print_exc()
-        return None
-
-
-def get_fundamentals_yfinance(ticker_symbol):
-    """
-    Fallback: Get basic fundamental data from yfinance
-    Limited data but always available
-    """
-    try:
-        stock = yf.Ticker(ticker_symbol)
-        info = stock.info
-        
-        # Get financials for growth calculations
-        rev_growth = None
-        net_income = None
-        try:
-            financials = stock.quarterly_financials
-            if financials is not None and len(financials.columns) >= 2:
-                if 'Total Revenue' in financials.index:
-                    current_rev = safe_float(financials.loc['Total Revenue'].iloc[0])
-                    prev_rev = safe_float(financials.loc['Total Revenue'].iloc[1])
-                    if current_rev and prev_rev and prev_rev != 0:
-                        rev_growth = round(((current_rev - prev_rev) / abs(prev_rev)) * 100, 2)
-                        
-                if 'Net Income' in financials.index:
-                    net_income = safe_float(financials.loc['Net Income'].iloc[0])
-        except:
-            pass
-        
-        # Get balance sheet for ROE calculation
-        roe = None
-        roa = None
-        debt_to_equity = None
-        try:
-            balance = stock.quarterly_balance_sheet
-            if balance is not None and len(balance.columns) >= 1:
-                equity = None
-                total_assets = None
-                total_debt = None
-                
-                if 'Stockholders Equity' in balance.index:
-                    equity = safe_float(balance.loc['Stockholders Equity'].iloc[0])
-                elif 'Total Stockholder Equity' in balance.index:
-                    equity = safe_float(balance.loc['Total Stockholder Equity'].iloc[0])
-                    
-                if 'Total Assets' in balance.index:
-                    total_assets = safe_float(balance.loc['Total Assets'].iloc[0])
-                    
-                if 'Total Debt' in balance.index:
-                    total_debt = safe_float(balance.loc['Total Debt'].iloc[0])
-                
-                # Calculate metrics
-                if net_income and equity and equity != 0:
-                    roe = round((net_income / equity) * 100, 2)
-                if net_income and total_assets and total_assets != 0:
-                    roa = round((net_income / total_assets) * 100, 2)
-                if total_debt and equity and equity != 0:
-                    debt_to_equity = round(total_debt / equity, 2)
-        except:
-            pass
-        
-        # Day 36: Calculate pegRatio locally if not provided by yfinance
-        pe = safe_float(safe_get(info, 'trailingPE'))
-        eps_growth = safe_float(safe_get(info, 'earningsGrowth'))
-        peg_ratio = safe_float(safe_get(info, 'pegRatio'))
-
-        # Fallback: Calculate PEG = PE / (EPS Growth * 100)
-        # earningsGrowth from yfinance is decimal (0.15 = 15%), so multiply by 100
-        # Only calculate for positive growth (negative PEG is not meaningful)
-        if peg_ratio is None and pe is not None and eps_growth is not None and eps_growth > 0:
-            peg_ratio = round(pe / (eps_growth * 100), 2)
-
-        return {
-            'source': 'yfinance',
-            'pe': pe,
-            'forwardPe': safe_float(safe_get(info, 'forwardPE')),
-            'pegRatio': peg_ratio,
-            'marketCap': safe_int(safe_get(info, 'marketCap')),
-            'roe': roe or safe_float(safe_get(info, 'returnOnEquity')),
-            'roa': roa or safe_float(safe_get(info, 'returnOnAssets')),
-            'roic': None,
-            'epsGrowth': eps_growth,
-            'revenueGrowth': rev_growth or safe_float(safe_get(info, 'revenueGrowth')),
-            'debtToEquity': debt_to_equity or safe_float(safe_get(info, 'debtToEquity')),
-            'profitMargin': safe_float(safe_get(info, 'profitMargins')),
-            'operatingMargin': safe_float(safe_get(info, 'operatingMargins')),
-            'beta': safe_float(safe_get(info, 'beta')),
-            'dividendYield': safe_float(safe_get(info, 'dividendYield')),
-        }
-        
-    except Exception as e:
-        print(f"Error in get_fundamentals_yfinance: {e}")
-        return None
+# REMOVED: get_fundamentals_defeatbeta() and get_fundamentals_yfinance()
+# These legacy functions (~230 lines) were superseded by DataProvider
+# (providers/orchestrator.py) which handles Finnhub → FMP → yfinance
+# field-level merge with circuit breakers, rate limiting, and stale cache.
+# Removed in Phase 2C architectural cleanup.
 
 
 # ============================================
 # API ROUTES
 # ============================================
 
-def _check_defeatbeta_status():
-    """
-    Day 33: Quick health check for Defeat Beta API
-    Tests with a known ticker (AAPL) to see if API is responding
-    Returns: dict with 'working', 'error', 'last_checked'
-    """
-    if not DEFEATBETA_AVAILABLE:
-        return {'working': False, 'error': 'Library not installed', 'last_checked': datetime.now().isoformat()}
-
-    try:
-        ticker = DBTicker('AAPL')
-        annual_income = ticker.annual_income_statement()
-
-        if hasattr(annual_income, 'data') and annual_income.data is not None:
-            # Check if we actually got data
-            if len(annual_income.data) > 0:
-                return {'working': True, 'error': None, 'last_checked': datetime.now().isoformat()}
-
-        return {'working': False, 'error': 'API returned empty data', 'last_checked': datetime.now().isoformat()}
-    except Exception as e:
-        error_msg = str(e)
-        if 'TProtocolException' in error_msg:
-            error_msg = 'API connection error (TProtocolException)'
-        return {'working': False, 'error': error_msg, 'last_checked': datetime.now().isoformat()}
-
-
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    """Health check endpoint - Day 33: Added Defeat Beta live status"""
-    # Day 33: Check if we should do a live Defeat Beta check
-    check_defeatbeta = request.args.get('check_defeatbeta', 'false').lower() == 'true'
+    """Health check endpoint"""
 
     # Get cache stats if available
     cache_stats = {}
@@ -932,10 +591,6 @@ def health_check():
             response['providers'] = dp.get_provider_status()
         except Exception:
             response['providers'] = {'error': 'Could not get provider status'}
-
-    # Only do live check if requested (avoids slowing down regular health checks)
-    if check_defeatbeta:
-        response['defeatbeta_status'] = _check_defeatbeta_status()
 
     return jsonify(response)
 
@@ -1146,23 +801,15 @@ def get_stock_data(ticker):
         # Current price
         current_price = round(float(hist_data.iloc[-1]['close']), 2)
         
-        # Basic fundamentals from yfinance (for backward compatibility)
-        fundamentals = {
-            'pe': safe_float(safe_get(info, 'trailingPE')),
-            'forwardPe': safe_float(safe_get(info, 'forwardPE')),
-            'marketCap': safe_int(safe_get(info, 'marketCap')),
-            'beta': safe_float(safe_get(info, 'beta')),
-            'dividendYield': safe_float(safe_get(info, 'dividendYield')),
-            'epsGrowth': 0,
-            'revenueGrowth': 0,
-            'roe': 0,
-            'roic': 0,
-            'debtToEquity': 0
-        }
-        
+        # SRP: Fundamentals are NOT included here.
+        # Single source of truth: /api/fundamentals/ via DataProvider
+        # (Finnhub → FMP → yfinance field-level merge + stale cache).
+        # Previously this endpoint returned a fundamentals dict with hardcoded zeros
+        # that corrupted categorical assessment scoring.
+
         response = {
             'ticker': ticker,
-            'name': safe_get(info, 'shortName', ticker),
+            'name': safe_get(info, 'shortName') or safe_get(info, 'name') or ticker,
             'sector': safe_get(info, 'sector', 'Unknown'),
             'industry': safe_get(info, 'industry', 'Unknown'),
             'currentPrice': current_price,
@@ -1170,10 +817,9 @@ def get_stock_data(ticker):
             'price13wAgo': price_13w_ago,
             'fiftyTwoWeekHigh': safe_float(safe_get(info, 'fiftyTwoWeekHigh')),
             'fiftyTwoWeekLow': safe_float(safe_get(info, 'fiftyTwoWeekLow')),
-            'avgVolume': safe_int(safe_get(info, 'averageVolume')),
-            'avgVolume10d': safe_int(safe_get(info, 'averageVolume10days')),
+            'avgVolume': safe_int(safe_get(info, 'averageVolume') or safe_get(info, 'avgVolume')),
+            'avgVolume10d': safe_int(safe_get(info, 'averageVolume10days') or safe_get(info, 'avgVolume10d')),
             'priceHistory': price_history,
-            'fundamentals': fundamentals,
             'dataPoints': len(price_history),
             'oldestDate': price_history[0]['date'] if price_history else None,
             'newestDate': price_history[-1]['date'] if price_history else None
@@ -1198,73 +844,36 @@ def _is_fundamentals_empty(data):
 @app.route('/api/fundamentals/<ticker>', methods=['GET'])
 def get_fundamentals(ticker):
     """
-    Get rich fundamental data for scoring
-    Day 51: Uses DataProvider with Finnhub → FMP → yfinance field-level merge
-    Falls back to legacy Defeat Beta → yfinance cascade if DataProvider unavailable
-
-    Day 31: Fixed fallback logic - now checks if key fields are null, not just if dict exists
+    Get rich fundamental data for scoring.
+    Uses DataProvider (Finnhub → FMP → yfinance field-level merge + stale cache).
+    Single source of truth for fundamentals — no legacy fallback paths.
     """
     try:
         ticker = ticker.upper()
 
-        # Day 51: Try DataProvider first (Finnhub → FMP → yfinance merge)
-        if DATA_PROVIDER_AVAILABLE:
-            try:
-                dp = get_data_provider()
-                fundamentals = dp.get_fundamentals(ticker)
-                if fundamentals and not _is_fundamentals_empty(fundamentals):
-                    fundamentals['ticker'] = ticker
-                    fundamentals['timestamp'] = datetime.now().isoformat()
-                    fundamentals['dataQuality'] = 'multi_source'
-                    fundamentals['fallbackUsed'] = False
-                    return jsonify(fundamentals)
-            except Exception as e:
-                print(f"⚠️ DataProvider fundamentals failed for {ticker}, trying legacy: {e}")
-
-        # Legacy fallback: Defeat Beta → yfinance
-        fundamentals = None
-        data_quality = 'none'
-        fallback_used = False
-
-        if DEFEATBETA_AVAILABLE:
-            fundamentals = get_fundamentals_defeatbeta(ticker)
-
-            # Day 31: Check if Defeat Beta actually returned useful data
-            if _is_fundamentals_empty(fundamentals):
-                print(f"⚠️ Defeat Beta returned empty data for {ticker}, trying yfinance fallback...")
-                yf_fundamentals = get_fundamentals_yfinance(ticker)
-
-                if yf_fundamentals and not _is_fundamentals_empty(yf_fundamentals):
-                    fundamentals = yf_fundamentals
-                    data_quality = 'yfinance_fallback'
-                    fallback_used = True
-                    print(f"✅ yfinance fallback successful for {ticker}")
-                else:
-                    data_quality = 'unavailable'
-                    print(f"❌ Both Defeat Beta and yfinance failed for {ticker}")
-            else:
-                data_quality = 'rich'
-
-        # Primary fallback to yfinance if Defeat Beta not available
-        if fundamentals is None:
-            fundamentals = get_fundamentals_yfinance(ticker)
-            data_quality = 'yfinance' if fundamentals else 'unavailable'
-
-        if fundamentals is None:
+        if not DATA_PROVIDER_AVAILABLE:
             return jsonify({
-                'error': f'Could not get fundamentals for {ticker}',
+                'error': 'DataProvider not available',
                 'dataQuality': 'unavailable',
                 'fallbackUsed': False
-            }), 404
+            }), 503
 
-        # Add metadata to response
-        fundamentals['ticker'] = ticker
-        fundamentals['timestamp'] = datetime.now().isoformat()
-        fundamentals['dataQuality'] = data_quality
-        fundamentals['fallbackUsed'] = fallback_used
+        dp = get_data_provider()
+        fundamentals = dp.get_fundamentals(ticker)
 
-        return jsonify(fundamentals)
-        
+        if fundamentals and not _is_fundamentals_empty(fundamentals):
+            fundamentals['ticker'] = ticker
+            fundamentals['timestamp'] = datetime.now().isoformat()
+            fundamentals['dataQuality'] = 'multi_source'
+            fundamentals['fallbackUsed'] = False
+            return jsonify(fundamentals)
+
+        return jsonify({
+            'error': f'Could not get fundamentals for {ticker}',
+            'dataQuality': 'unavailable',
+            'fallbackUsed': False
+        }), 404
+
     except Exception as e:
         print(f"Error fetching fundamentals for {ticker}: {e}")
         traceback.print_exc()

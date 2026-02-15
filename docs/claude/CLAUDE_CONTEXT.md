@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 52 (February 12, 2026)
+> **Last Updated:** Day 53 (February 15, 2026)
 
 ---
 
@@ -22,22 +22,27 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 52 |
-| Version | v4.14 (Backend v2.17, Frontend v4.4) |
-| Latest Status | PROJECT_STATUS_DAY52_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY52.md |
-| Latest API | API_CONTRACTS_DAY52.md |
-| Focus | **v4.11 Sector Rotation Tab** then **v4.13 Holding Period Selector** |
+| Current Day | 53 |
+| Version | v4.15 (Backend v2.18, Frontend v4.4 + DecisionMatrix) |
+| Latest Status | PROJECT_STATUS_DAY53_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY53.md |
+| Latest API | API_CONTRACTS_DAY53.md |
+| Focus | **v4.16 Holistic 3-Layer Backtest** (STOP building, START proving) |
 
-### Day 52 Summary (Current)
-- **v4.14 Multi-Source Data Intelligence - FULL IMPLEMENTATION:**
-  - Created `backend/providers/` package (13 files, 5 data providers)
-  - Fallback chains: OHLCV (TwelveData → yfinance → Stooq), Fundamentals (Finnhub → FMP → yfinance)
-  - Field-level merge, circuit breakers, rate limiting, stale cache fallback
-  - Replaced ALL 9 yfinance call sites in backend.py (v2.17)
-  - Frontend updated: all "Defeat Beta" / "yfinance" labels → multi-source
-  - ADX/RSI backtest completed via multi-source (was blocked Day 51)
-  - Defeat Beta now redundant (Finnhub+FMP+yfinance replaces it)
+### Day 53 Summary (Current)
+- **v4.15 Decision Matrix Tab:** 3-step synthesis workflow, surfaces 10 hidden computed fields
+- **v4.13 Holding Period Selector:** Signal weighting by horizon, Bottom Line Card
+- **Bugs #7 (RS Rating red) + #8 (competing viability) fixed**
+- **Architectural Audit & Cleanup (Phase 1 + 2):**
+  - Root cause: `/api/stock/` returned hardcoded zeros that corrupted categorical assessment
+  - Phase 1: zeros → null, simplified /api/fundamentals/ (DataProvider only), frontend failure handling
+  - Phase 2: removed fundamentals from /api/stock/ (SRP), cleaned merge, removed ~255 lines dead code
+  - 5-field end-to-end reconciliation through 7+ layers, both paths PASS
+  - Backend v2.17 → v2.18 (35 functions, was 38)
+
+### Day 52 Summary
+- v4.14 Multi-Source Data Intelligence - FULL IMPLEMENTATION
+- 5 data providers, 13 new files, backend v2.17
 
 ### Day 51 Summary
 - v4.13 Plan REVISED (RSI thresholds INVALIDATED, signal weighting VALIDATED)
@@ -51,14 +56,16 @@
 | P1 | v4.10: Earnings Calendar | 1-2 hrs | ✅ **COMPLETE** |
 | P1 | UI Cohesiveness Fixes (v4.4) | 2 hrs | ✅ **COMPLETE** |
 | P1 | v4.14: Multi-Source Data Intelligence | 10-14 hrs | ✅ **COMPLETE** |
+| P1 | v4.13: Holding Period Selector | 4-6 hrs | ✅ **COMPLETE** |
+| P1 | v4.15: Decision Matrix Tab | 4-6 hrs | ✅ **COMPLETE** |
+| P0 | v4.16: Holistic 3-Layer Backtest | 6-8 hrs | **NEXT PRIORITY** |
 | P2 | v4.11: Sector Rotation | 4-6 hrs | QUEUED |
 | P3 | v4.12: Charts (Own Tab) | 4-6 hrs | QUEUED |
-| P2 | v4.13: Holding Period Selector | 4-6 hrs | PLANNED |
 
 ### Next Session Priorities
-1. **v4.11 Sector Rotation Tab** - Sector RS calculation, ETF tracking
-2. **v4.13 Holding Period Selector** - Plan ready in `docs/research/HOLDING_PERIOD_SELECTOR_PLAN.md`
-3. **v4.12 Charts** - After above validated
+1. **v4.16 Holistic 3-Layer Backtest** - THE priority. STOP building, START proving. Day 27 showed 49.7% win rate — all improvements since untested.
+2. **Legacy file cleanup** - Move App_day23.jsx, api_day4.js, scoringEngine_v2.1.js etc. to `legacy/` dirs
+3. **v4.11 Sector Rotation Tab** - Only after backtest validates current system
 
 ---
 
@@ -81,10 +88,10 @@
 ```
 docs/claude/stable/GOLDEN_RULES.md          <- Core rules (CRITICAL)
 docs/claude/stable/ROADMAP.md               <- What's planned (v4.0-v4.7) - DON'T LOSE TRACK
-docs/claude/status/PROJECT_STATUS_DAY52_SHORT.md   <- Current state
-docs/claude/versioned/KNOWN_ISSUES_DAY52.md        <- Active bugs
+docs/claude/status/PROJECT_STATUS_DAY53_SHORT.md   <- Current state
+docs/claude/versioned/KNOWN_ISSUES_DAY53.md        <- Active bugs
 docs/research/PERPLEXITY_RESEARCH_SYNTHESIS.md     <- Research validation findings
-docs/claude/versioned/API_CONTRACTS_DAY52.md       <- API reference (if needed)
+docs/claude/versioned/API_CONTRACTS_DAY53.md       <- API reference (if needed)
 ```
 
 ### Startup Checklist:
@@ -254,6 +261,7 @@ curl http://localhost:5001/api/cache/status
 | 49 | Updated for Day 49: v4.9 OBV+RVOL, v4.10 Earnings, API_CONTRACTS_DAY49.md created (was 16 days outdated!) |
 | 50 | Exhaustive UI re-test: 21% true pass rate (not 92.8%), 5 open issues identified, Position Size banner is main culprit (64% affected) |
 | 52 | v4.14 Multi-Source Data Intelligence complete: 5 providers (TwelveData, Finnhub, FMP, yfinance, Stooq), 13 new files, backend v2.17, frontend labels updated |
+| 53 | v4.15 Decision Matrix, v4.13 Holding Period, Bugs #7/#8, Architectural cleanup (SRP: removed fundamentals from /api/stock/, ~255 lines dead code removed, backend v2.18). Focus shifted to v4.16 backtest. |
 
 ---
 

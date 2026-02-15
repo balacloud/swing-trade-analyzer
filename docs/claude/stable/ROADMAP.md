@@ -221,23 +221,41 @@
 - **Technology:** TradingView Lightweight Charts (free, open source)
 - **Effort:** 4-6 hours
 
-### v4.13: Holding Period Selector + Bottom Line Summary (Day 50-51)
+### v4.13: Holding Period Selector + Bottom Line Summary ✅ COMPLETE (Day 53)
 - **Priority:** HIGH (addresses core UX confusion)
-- **Status:** PLANNED (REVISED after Day 51 research validation)
-- **Problem:** Conflicting signals confuse users (JNJ: AVOID + PULLBACK OK + Stage 2 Uptrend)
-- **Day 51 Research Findings:**
-  - ❌ INVALIDATED: RSI thresholds by holding period (40-65/35-70/30-75 were invented, not research-backed)
-  - ✅ VALIDATED: ADX-based regime determines RSI interpretation (already in v4.6.2)
-  - ✅ VALIDATED: Signal weighting by horizon (arXiv 2512.00280 - 40 bps monthly alpha)
-  - ✅ VALIDATED: Consolidated summary cards (UX research supports)
-- **Revised Solution:**
-  - 3-way holding period toggle: 5-10 days | 15-30 days | 1-3 months
-  - Signal WEIGHTING by horizon (Quick=70% tech, Position=70% fund), NOT threshold adjustment
-  - ADX-based RSI interpretation PRESERVED (weak trend=mean reversion, strong trend=momentum)
-  - Unified "Bottom Line" card replacing confusing multiple signals
-  - Clear action plan with entry/stop/target/alert prices
-- **Plan:** `docs/research/HOLDING_PERIOD_SELECTOR_PLAN.md` (REVISED Day 51)
-- **Effort:** 4-6 hours
+- **Status:** ✅ IMPLEMENTED
+- **Features:**
+  - 3-way holding period toggle: Quick (5-10d) | Standard (15-30d) | Position (1-3mo)
+  - Signal WEIGHTING by horizon (Quick=T:70%/F:30%, Standard=50/50, Position=T:30%/F:70%)
+  - Verdict changes when Tech and Fundamental disagree (weighting tips the balance)
+  - Bottom Line Card with action plan, what's good/risky, weight badges
+  - Research-validated: arXiv 2512.00280 (40 bps monthly alpha from signal weighting)
+- **Files Modified:** `categoricalAssessment.js`, `BottomLineCard.jsx`, `App.jsx`
+
+### v4.15: Decision Matrix Tab ✅ COMPLETE (Day 53)
+- **Priority:** HIGH (synthesis layer for 3 independent analysis systems)
+- **Status:** ✅ IMPLEMENTED
+- **Problem Solved:** 3 layers (Assessment, Patterns, Trade Setup) each produce correct output independently but nobody SYNTHESIZES them. Trader had to mentally cross-reference 4+ UI cards.
+- **Features:**
+  - 3-step workflow: "Should I Trade This?" → "When Should I Enter?" → "Does The Math Work?"
+  - Surfaces 10 computed-but-hidden fields (RS interpretation, ADX analysis, signal weights, entry preference, fundamental metrics, sentiment subLabel)
+  - Contradiction resolution: explains WHY backend says "Good setup" but R:R fails
+  - Contextual action items based on verdict + viability + patterns
+  - 3rd view toggle between Full Analysis and Simple Checklist
+- **Files:** `frontend/src/components/DecisionMatrix.jsx` (new), `App.jsx` (3 edits)
+
+### v4.16: Holistic 3-Layer System Backtest
+- **Priority:** HIGH (cannot validate system without historical outcome testing)
+- **Status:** PLANNED
+- **Problem:** Current tests validate layers work TODAY but not whether BUY signals MADE MONEY historically
+- **Current Validation (Day 53):** `test_3layer_validation.py` confirms all 3 layers pass 100% isolation tests
+- **What's Missing:** Historical backtest that:
+  - Takes stocks with KNOWN outcomes (went up 10%+ or dropped 7%+ in past)
+  - Runs all 3 layers against data as it existed BEFORE the move
+  - Checks: Did system correctly recommend BUY for winners and AVOID for losers?
+  - Measures: Win rate, expectancy, R-multiples across holding periods
+- **Builds On:** `backend/backtest/backtest_technical.py` (Day 27) but extends to all 3 layers
+- **Effort:** 6-8 hours
 
 ### v4.14: Multi-Source Data Intelligence ✅ COMPLETE (Day 52)
 - **Priority:** HIGH (eliminates single-source dependency)
@@ -348,6 +366,7 @@ From backtesting:
 | 50 | Exhaustive UI re-test (21% true pass vs 92.8% spot-check), ALL 5 UI issues FIXED (v4.4), v4.13 Holding Period Selector plan created, n8n research notes added |
 | 51 | v4.13 plan REVISED after research validation - RSI thresholds INVALIDATED, signal weighting VALIDATED, Golden Rule #15. v4.14 Multi-Source Data plan created - researched free tier limits, TwelveData+Finnhub primary, yfinance demoted to fallback |
 | 52 | v4.14 Multi-Source Data Intelligence COMPLETE: 5 providers, 13 new files, backend v2.17, field-level merge, circuit breakers, rate limiting, frontend labels updated, Defeat Beta now redundant |
+| 53 | v4.15 Decision Matrix COMPLETE, v4.13 Holding Period COMPLETE, Bugs #7/#8 fixed, Architectural audit: removed fundamentals from /api/stock/ (SRP), removed ~255 lines dead code, 5-field end-to-end reconciliation. Backend v2.18. |
 
 ---
 
