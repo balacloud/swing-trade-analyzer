@@ -339,18 +339,18 @@ function calculateFundamentalScore(fundamentals, ticker) {
 
 /**
  * Calculate Sentiment Score (10 points)
- * Placeholder - real sentiment analysis in v2.0
+ * NOT IMPLEMENTED in legacy scoring — returns 0/10 (honest).
+ * Real sentiment analysis uses CNN Fear & Greed Index in
+ * categoricalAssessment.js → assessSentiment().
  */
 function calculateSentimentScore() {
-  // TODO: Implement real sentiment analysis
-  // For now, return neutral score
   return {
-    score: 5,
+    score: 0,
     maxScore: 10,
     details: {
-      newsScore: { score: 5, max: 10 }
+      newsScore: { score: 0, max: 10 }
     },
-    note: 'Placeholder - real sentiment coming in v2.0'
+    note: 'Not scored here — real sentiment via categorical assessment (Fear & Greed Index)'
   };
 }
 
@@ -380,9 +380,10 @@ function calculateRiskScore(spyData, vixData) {
     scores.spyRegime = 2; // Bullish market regime
   }
   
-  // 3. Market Breadth (1 point) - placeholder
-  // Would need % of stocks above 50 SMA
-  scores.breadth = 1; // Default to neutral
+  // 3. Market Breadth (1 point) - NOT IMPLEMENTED
+  // Would need % of stocks above 50 SMA — no data source available.
+  // Returns 0 (honest) instead of hardcoded 1 that inflated every score.
+  scores.breadth = 0;
   
   const totalScore = scores.vix + scores.spyRegime + scores.breadth;
   

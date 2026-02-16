@@ -158,12 +158,14 @@ export async function fetchVIXData() {
     
   } catch (error) {
     console.error('Error fetching VIX data:', error);
-    // Return safe defaults if VIX fetch fails
+    // Return null VIX — let assessRiskMacro() handle missing data honestly
+    // instead of pretending VIX is 20 (normal).
     return {
       ticker: 'VIX',
-      current: 20,
-      regime: 'normal',
-      isRisky: false
+      current: null,
+      regime: 'unknown',
+      isRisky: null,
+      fallback: true
     };
   }
 }
@@ -659,16 +661,11 @@ export async function fetchFearGreed() {
 
   } catch (error) {
     console.error('Error fetching Fear & Greed Index:', error);
-    // Return neutral fallback on error
-    return {
-      value: 50,
-      rating: 'Neutral',
-      assessment: 'Neutral',
-      timestamp: null,
-      previousClose: null,
-      source: 'default (error fallback)',
-      error: error.message
-    };
+    // Return null — let categorical assessment handle "no data" honestly
+    // instead of pretending we have neutral sentiment.
+    // assessSentiment() checks for null and returns gray "Neutral" with
+    // "data unavailable" reason, which is the honest answer.
+    return null;
   }
 }
 

@@ -9,10 +9,17 @@
  *       - ADX > 25: Momentum entry viable (strong trend)
  *       - ADX 20-25: Pullback preferred (moderate trend)
  *       - ADX < 20: Wait for trend (no trend/choppy)
+ * v4.13: Holding Period Selector (Day 53)
+ *       - Signal weighting by horizon (arXiv 2512.00280 validated)
+ *       - Quick (5-10d): 70% Technical / 30% Fundamental
+ *       - Standard (15-30d): 50% / 50%
+ *       - Position (1-3mo): 30% Technical / 70% Fundamental
+ *       - RSI thresholds by period INVALIDATED - only weighting changes
  *
  * Day 44: Initial implementation
  * Day 45: v4.6 updates based on Perplexity research
  * Day 47: v4.6.2 ADX-based entry preference (Recommendation #2)
+ * Day 53: v4.13 Holding Period signal weighting
  *
  * Categories:
  * - Technical: Strong / Decent / Weak
@@ -460,12 +467,12 @@ export function assessSentiment(fearGreedData) {
   const reasons = [];
   const data = {};
 
-  // Default to neutral if no data
-  if (!fearGreedData || fearGreedData.error) {
+  // Default to neutral if no data or if backend returned a fallback
+  if (!fearGreedData || fearGreedData.error || fearGreedData.fallback) {
     return {
       assessment: 'Neutral',
       reasons: ['Fear & Greed data unavailable - defaulting to neutral'],
-      data: { value: 50, rating: 'Neutral', source: 'default' },
+      data: { value: null, rating: 'Unavailable', source: 'default' },
       color: 'gray'
     };
   }
@@ -552,17 +559,31 @@ export function assessRiskMacro(vixData, spyData) {
   const reasons = [];
   const data = {};
 
-  const vix = vixData?.current || 20;
+  const vix = vixData?.current != null ? vixData.current : null;
   const spyAbove200EMA = spyData?.aboveSma200 || false;
 
   data.vix = vix;
   data.vixRegime = vixData?.regime || 'unknown';
   data.spyAbove200EMA = spyAbove200EMA;
+  data.vixUnavailable = vix === null;
 
   let assessment = 'Neutral';
 
+  // If VIX unavailable, assess based on SPY alone
+  if (vix === null) {
+    reasons.push('VIX data unavailable');
+    if (!spyAbove200EMA) {
+      assessment = 'Unfavorable';
+      reasons.push('SPY below 200 EMA (Bear regime)');
+      reasons.push('Caution: Most pullback setups fail in bear markets');
+    } else {
+      assessment = 'Neutral';
+      reasons.push('SPY above 200 EMA (Bull regime intact)');
+      reasons.push('VIX unknown — proceed with caution');
+    }
+  }
   // Check for unfavorable conditions first (either condition triggers)
-  if (vix > 30 || !spyAbove200EMA) {
+  else if (vix > 30 || !spyAbove200EMA) {
     assessment = 'Unfavorable';
     if (vix > 30) {
       reasons.push(`VIX at ${vix.toFixed(1)} (Extreme volatility > 30)`);
@@ -598,6 +619,29 @@ export function assessRiskMacro(vixData, spyData) {
 }
 
 /**
+ * Get signal weights based on holding period
+ *
+ * v4.13 (Day 53): Research-validated signal weighting by horizon
+ * - arXiv 2512.00280: Short-horizon = technical signals, Long-horizon = fundamental
+ * - This changes category IMPORTANCE in verdict, not individual thresholds
+ * - RSI thresholds by period were INVALIDATED (Day 51) - we only change weights
+ *
+ * @param {string} holdingPeriod - 'quick', 'standard', or 'position'
+ * @returns {object} { technical, fundamental }
+ */
+export function getSignalWeight(holdingPeriod) {
+  switch (holdingPeriod) {
+    case 'quick':    // 5-10 days - Technical dominates
+      return { technical: 0.7, fundamental: 0.3 };
+    case 'position': // 1-3 months - Fundamental dominates
+      return { technical: 0.3, fundamental: 0.7 };
+    case 'standard': // 15-30 days - Balanced (default)
+    default:
+      return { technical: 0.5, fundamental: 0.5 };
+  }
+}
+
+/**
  * Determine Overall Verdict
  *
  * v4.6 Update (Day 45): Structure > Sentiment Hierarchy
@@ -610,6 +654,12 @@ export function assessRiskMacro(vixData, spyData) {
  * - ADX 20-25: Pullback preferred (trend developing)
  * - ADX < 20: Wait for trend (no trend/choppy market)
  *
+ * v4.13 Update (Day 53): Holding Period Signal Weighting
+ * - Quick: Technical 70% / Fundamental 30% (short-term = technicals matter more)
+ * - Standard: 50/50 balanced
+ * - Position: Technical 30% / Fundamental 70% (long-term = fundamentals matter more)
+ * - Affects verdict when categories disagree (e.g., Strong tech + Weak fund)
+ *
  * Logic:
  * - BUY: Strong Tech + Strong Fund + Favorable/Neutral Risk (ADX guides entry type)
  * - BUY: 2+ Strong with Favorable Risk (even if Sentiment is Weak)
@@ -618,18 +668,23 @@ export function assessRiskMacro(vixData, spyData) {
  *
  * Key Change: ADX now determines entry preference instead of sentiment alone.
  *             ADX < 20 suggests waiting for trend development.
+ *             Holding period weights influence borderline decisions.
  *
  * @param {string} technical - Technical assessment
  * @param {string} fundamental - Fundamental assessment
  * @param {string} sentiment - Sentiment assessment
  * @param {string} riskMacro - Risk/Macro assessment
  * @param {object} adxData - ADX data { adx: number, trend_strength: string }
- * @returns {object} { verdict, reason, color, entryPreference, adxAnalysis }
+ * @param {string} holdingPeriod - 'quick', 'standard', or 'position'
+ * @returns {object} { verdict, reason, color, entryPreference, adxAnalysis, holdingPeriod, signalWeights }
  */
-export function determineVerdict(technical, fundamental, sentiment, riskMacro, adxData = null) {
+export function determineVerdict(technical, fundamental, sentiment, riskMacro, adxData = null, holdingPeriod = 'standard') {
   // Count strong assessments (excluding Risk which uses different scale)
   const assessments = [technical, fundamental, sentiment];
   const strongCount = assessments.filter(a => a === 'Strong').length;
+
+  // v4.13: Get signal weights for this holding period
+  const signalWeights = getSignalWeight(holdingPeriod);
 
   // v4.6.2: ADX-based entry preference (replaces sentiment-based logic)
   // ADX measures trend strength - determines HOW to enter, not IF to enter
@@ -674,41 +729,41 @@ export function determineVerdict(technical, fundamental, sentiment, riskMacro, a
     }
   }
 
+  // Helper to build return object with v4.13 fields
+  const buildResult = (verdict, reason, color, includeEntry = true) => ({
+    verdict,
+    reason,
+    color,
+    entryPreference: includeEntry ? entryPreference : null,
+    adxAnalysis,
+    holdingPeriod,
+    signalWeights,
+  });
+
   // AVOID conditions (highest priority - non-negotiable)
 
-  // 1. Technical Weak = AVOID (can't fight bad technicals)
+  // 1. Technical Weak = AVOID (can't fight bad technicals for ANY holding period)
   if (technical === 'Weak') {
-    return {
-      verdict: 'AVOID',
-      reason: 'Weak technical setup',
-      color: 'red',
-      entryPreference: null,
-      adxAnalysis
-    };
+    return buildResult('AVOID', 'Weak technical setup', 'red', false);
   }
 
   // 2. Unfavorable Risk = HOLD at best (structure override)
   // This is the highest-level filter - bearish structure = don't trade
   if (riskMacro === 'Unfavorable') {
-    return {
-      verdict: 'HOLD',
-      reason: 'Unfavorable market conditions (regime caution)',
-      color: 'yellow',
-      entryPreference: null,
-      adxAnalysis
-    };
+    return buildResult('HOLD', 'Unfavorable market conditions (regime caution)', 'yellow', false);
   }
 
-  // 3. Weak Fundamental with no Strong categories = AVOID
-  // Note: Sentiment Weak alone no longer triggers AVOID when structure is bullish
-  if (fundamental === 'Weak' && strongCount === 0) {
-    return {
-      verdict: 'AVOID',
-      reason: 'Weak fundamentals with no offsetting strengths',
-      color: 'red',
-      entryPreference: null,
-      adxAnalysis
-    };
+  // 3. Weak Fundamental handling - v4.13: depends on holding period
+  if (fundamental === 'Weak') {
+    if (holdingPeriod === 'position') {
+      // Position trades: weak fundamentals = AVOID (fundamentals are 70% weight)
+      return buildResult('AVOID', 'Weak fundamentals - critical for position trades (70% weight)', 'red', false);
+    } else if (holdingPeriod === 'quick' && technical === 'Strong') {
+      // Quick trades: strong technicals can offset weak fundamentals (tech is 70% weight)
+      // Don't AVOID - let it fall through to BUY/HOLD logic below
+    } else if (strongCount === 0) {
+      return buildResult('AVOID', 'Weak fundamentals with no offsetting strengths', 'red', false);
+    }
   }
 
   // v4.6.2: ADX < 20 suggests caution - downgrade to HOLD if no strong trend
@@ -716,13 +771,11 @@ export function determineVerdict(technical, fundamental, sentiment, riskMacro, a
   if (adxValue !== null && adxValue < 20) {
     // Strong categories but no trend - still tradeable but prefer to wait
     if (strongCount >= 2) {
-      return {
-        verdict: 'HOLD',
-        reason: `${strongCount} strong categories but ADX ${adxValue} < 20 (no trend) - wait for trend development`,
-        color: 'yellow',
-        entryPreference,
-        adxAnalysis
-      };
+      return buildResult(
+        'HOLD',
+        `${strongCount} strong categories but ADX ${adxValue} < 20 (no trend) - wait for trend development`,
+        'yellow'
+      );
     }
   }
 
@@ -738,68 +791,56 @@ export function determineVerdict(technical, fundamental, sentiment, riskMacro, a
     if (adxValue !== null && adxValue >= 25) {
       reason += ` - ADX ${adxValue} confirms trend`;
     }
-    return {
-      verdict: 'BUY',
-      reason,
-      color: 'green',
-      entryPreference,
-      adxAnalysis
-    };
+    return buildResult('BUY', reason, 'green');
   }
 
   // 2+ Strong with Favorable/Neutral risk = BUY
   if (strongCount >= 2 && (riskMacro === 'Favorable' || riskMacro === 'Neutral')) {
-    return {
-      verdict: 'BUY',
-      reason: `${strongCount} strong categories with ${riskMacro.toLowerCase()} conditions`,
-      color: 'green',
-      entryPreference,
-      adxAnalysis
-    };
+    return buildResult('BUY', `${strongCount} strong categories with ${riskMacro.toLowerCase()} conditions`, 'green');
+  }
+
+  // v4.13: Strong Tech + Weak Fund in Quick mode = BUY (tech dominates at 70%)
+  if (holdingPeriod === 'quick' && technical === 'Strong' && fundamental === 'Weak' &&
+      (riskMacro === 'Favorable' || riskMacro === 'Neutral')) {
+    return buildResult('BUY', 'Strong technicals (70% weight for quick swing) offset weak fundamentals', 'green');
   }
 
   // Strong Tech + Decent Fund + Favorable Risk = BUY (upgraded from HOLD)
-  // Because structure is clearly bullish
-  if (technical === 'Strong' && fundamental === 'Decent' && riskMacro === 'Favorable') {
-    return {
-      verdict: 'BUY',
-      reason: 'Strong technicals with favorable macro conditions',
-      color: 'green',
-      entryPreference,
-      adxAnalysis
-    };
+  // v4.13: Also BUY for quick swings even without Favorable risk (tech is 70%)
+  if (technical === 'Strong' && fundamental === 'Decent') {
+    if (riskMacro === 'Favorable') {
+      return buildResult('BUY', 'Strong technicals with favorable macro conditions', 'green');
+    }
+    if (holdingPeriod === 'quick' && riskMacro === 'Neutral') {
+      return buildResult('BUY', 'Strong technicals (70% weight for quick swing) with neutral conditions', 'green');
+    }
+  }
+
+  // v4.13: Decent Tech + Strong Fund in Position mode = BUY (fund dominates at 70%)
+  if (holdingPeriod === 'position' && technical === 'Decent' && fundamental === 'Strong' &&
+      (riskMacro === 'Favorable' || riskMacro === 'Neutral')) {
+    return buildResult('BUY', 'Strong fundamentals (70% weight for position trade) with decent technicals', 'green');
   }
 
   // HOLD conditions (default for mixed signals)
   if (strongCount >= 1) {
-    return {
-      verdict: 'HOLD',
-      reason: 'Mixed signals - wait for better setup',
-      color: 'yellow',
-      entryPreference,
-      adxAnalysis
-    };
+    let reason = 'Mixed signals - wait for better setup';
+    // v4.13: Add context about which signal matters more for this period
+    if (holdingPeriod === 'quick' && technical === 'Strong') {
+      reason = 'Strong technicals but other signals mixed - consider with tight stop';
+    } else if (holdingPeriod === 'position' && fundamental === 'Strong') {
+      reason = 'Strong fundamentals but technicals need improvement for entry timing';
+    }
+    return buildResult('HOLD', reason, 'yellow');
   }
 
   // Decent across the board with favorable risk = HOLD (borderline)
   if (technical === 'Decent' && riskMacro === 'Favorable') {
-    return {
-      verdict: 'HOLD',
-      reason: 'Decent setup - consider with proper position sizing',
-      color: 'yellow',
-      entryPreference,
-      adxAnalysis
-    };
+    return buildResult('HOLD', 'Decent setup - consider with proper position sizing', 'yellow');
   }
 
   // Default: AVOID
-  return {
-    verdict: 'AVOID',
-    reason: 'Insufficient strength across categories',
-    color: 'red',
-    entryPreference: null,
-    adxAnalysis
-  };
+  return buildResult('AVOID', 'Insufficient strength across categories', 'red', false);
 }
 
 /**
@@ -808,6 +849,7 @@ export function determineVerdict(technical, fundamental, sentiment, riskMacro, a
  * Main entry point that runs all assessments and returns complete result
  *
  * v4.6.2 (Day 47): Added ADX data parameter for entry preference logic
+ * v4.13 (Day 53): Added holdingPeriod parameter for signal weighting
  *
  * @param {object} stockData - Stock data from backend
  * @param {object} spyData - SPY data
@@ -818,6 +860,7 @@ export function determineVerdict(technical, fundamental, sentiment, riskMacro, a
  * @param {object} fundamentalResult - Fundamental scoring result
  * @param {string} ticker - Stock ticker symbol
  * @param {object} adxData - ADX data { adx: number, trend_strength: string } (optional)
+ * @param {string} holdingPeriod - 'quick', 'standard', or 'position' (default: 'standard')
  * @returns {object} Complete categorical assessment
  */
 export function runCategoricalAssessment(
@@ -829,24 +872,26 @@ export function runCategoricalAssessment(
   technicalResult,
   fundamentalResult,
   ticker,
-  adxData = null
+  adxData = null,
+  holdingPeriod = 'standard'
 ) {
   // Get RSI from technical indicators or calculate
   const rsi = technicalResult?.indicators?.rsi || stockData?.technicals?.rsi14 || 50;
 
-  // Run individual assessments
+  // Run individual assessments (these don't change with holding period)
   const technical = assessTechnical(technicalResult, trendTemplate, rsi);
   const fundamental = assessFundamental(fundamentalResult || stockData?.fundamentals, ticker);
   const sentiment = assessSentiment(fearGreedData);
   const riskMacro = assessRiskMacro(vixData, spyData);
 
-  // Determine overall verdict (v4.6.2: now includes ADX data for entry preference)
+  // Determine overall verdict (v4.13: now includes holdingPeriod for signal weighting)
   const verdict = determineVerdict(
     technical.assessment,
     fundamental.assessment,
     sentiment.assessment,
     riskMacro.assessment,
-    adxData
+    adxData,
+    holdingPeriod
   );
 
   return {
@@ -856,6 +901,7 @@ export function runCategoricalAssessment(
     riskMacro,
     verdict,
     adxData,  // Include raw ADX data in result
+    holdingPeriod,  // v4.13: Include holding period in result
     timestamp: new Date().toISOString()
   };
 }

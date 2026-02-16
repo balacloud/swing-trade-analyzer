@@ -1081,14 +1081,15 @@ def get_fear_greed():
 
     except requests.exceptions.RequestException as e:
         print(f"Error fetching Fear & Greed Index: {e}")
-        # Return neutral fallback on error
+        # Return neutral fallback — marked as fallback so frontend knows it's not real
         return jsonify({
             'value': 50,
             'rating': 'Neutral',
             'assessment': 'Neutral',
             'timestamp': None,
             'previousClose': None,
-            'source': 'CNN Fear & Greed Index',
+            'source': 'default (API error fallback)',
+            'fallback': True,
             'error': str(e)
         })
     except Exception as e:
@@ -1098,6 +1099,8 @@ def get_fear_greed():
             'value': 50,
             'rating': 'Neutral',
             'assessment': 'Neutral',
+            'source': 'default (parse error fallback)',
+            'fallback': True,
             'error': str(e)
         })
 

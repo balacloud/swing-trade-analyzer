@@ -2,7 +2,7 @@
 
 > **Purpose:** Stable reference document for all session rules
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 53 (February 15, 2026)
+> **Last Updated:** Day 54 (February 16, 2026)
 
 ---
 
@@ -250,6 +250,12 @@ CLAUDE SESSION REMINDER:
 - **Dead code accumulates silently.** Three functions (~255 lines) were completely unused. Nobody noticed because they compiled fine.
 - **Phase-then-validate beats big-bang.** Phase 1 (stop corruption) → validate → Phase 2 (clean architecture) → validate. Each phase independently verifiable.
 - **After building enough features: STOP and PROVE.** Day 27 showed 49.7% win rate. All improvements since are untested. The next priority is always the backtest, not the next feature.
+
+### Day 54: Silent Fallbacks — The Invisible Lie
+- **A hardcoded fallback value is worse than an error.** VIX=20 "normal" when API fails, Fear&Greed=50 "neutral" on error — the system makes decisions on phantom data and the trader never knows.
+- **Return null, not a plausible fake.** Let downstream consumers (categorical assessment) handle missing data honestly with gray "unavailable" instead of silently scoring fake values.
+- **Audit the WHOLE path, not just the feature code.** The categorical assessment was clean, but the data feeding it had double-fallback chains (backend returns 50, frontend also returns 50) that masked failures completely.
+- **Legacy scoring systems accumulate "debt" even when replaced.** The 75-point scoring was superseded by categorical assessment, but its hardcoded sentiment=5/10 and breadth=1/1 still inflated displayed scores.
 
 ---
 

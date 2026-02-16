@@ -367,6 +367,7 @@ From backtesting:
 | 51 | v4.13 plan REVISED after research validation - RSI thresholds INVALIDATED, signal weighting VALIDATED, Golden Rule #15. v4.14 Multi-Source Data plan created - researched free tier limits, TwelveData+Finnhub primary, yfinance demoted to fallback |
 | 52 | v4.14 Multi-Source Data Intelligence COMPLETE: 5 providers, 13 new files, backend v2.17, field-level merge, circuit breakers, rate limiting, frontend labels updated, Defeat Beta now redundant |
 | 53 | v4.15 Decision Matrix COMPLETE, v4.13 Holding Period COMPLETE, Bugs #7/#8 fixed, Architectural audit: removed fundamentals from /api/stock/ (SRP), removed ~255 lines dead code, 5-field end-to-end reconciliation. Backend v2.18. |
+| 54 | Pre-backtest audit (3 investigations): API data integrity (3 CRITICAL + 4 HIGH found), Decision Matrix coherence (ALL CLEAR), Simple Checklist review (50% SEPA alignment). Fixed 4 hardcoded fallbacks: sentiment 5→0, breadth 1→0, F&G 50→null, VIX 20→null. Golden Rule: silent fallbacks are invisible lies. |
 
 ---
 
