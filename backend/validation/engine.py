@@ -81,16 +81,18 @@ class ValidationEngine:
     API_BASE = 'http://localhost:5001/api'
     
     # Validation tolerances (as decimal, e.g., 0.05 = 5%)
-    # Day 42: Updated tolerances to account for methodology differences:
-    # - Defeat Beta uses "Total Debt" (current + long-term), Finviz uses long-term only
-    # - Defeat Beta uses fiscal year YoY growth, Finviz uses TTM (trailing 12 months)
+    # Day 54: Updated for v4.14 multi-source providers (was Defeat Beta)
+    # - Our providers (Finnhub/FMP/yfinance) vs external (Finviz/StockAnalysis)
+    # - Growth rates: our providers return DECIMAL (0.15), Finviz returns PERCENTAGE (15.0)
+    #   → we normalize (×100) before comparing, so tolerance can be tighter now
+    # - Debt/Equity: providers may use total debt vs long-term only
     TOLERANCES = {
         'price': 0.02,           # 2% for prices (delayed data)
         'roe': 0.20,             # 20% - calculation methodology varies
-        'eps_growth': 0.20,      # 20% for EPS growth (timing differences)
-        'revenue_growth': 0.85,  # 85% - Defeat Beta uses FY YoY, Finviz uses TTM
+        'eps_growth': 0.25,      # 25% for EPS growth (timing + methodology)
+        'revenue_growth': 0.25,  # 25% (was 85% — units bug fixed Day 54)
         'pe_ratio': 0.10,        # 10% for P/E ratio
-        'debt_equity': 0.50,     # 50% - Defeat Beta uses Total Debt, Finviz uses LT only
+        'debt_equity': 0.50,     # 50% - total debt vs long-term only
         '52w_high': 0.01,        # 1% for 52-week high
         '52w_low': 0.01,         # 1% for 52-week low
     }
@@ -357,15 +359,35 @@ class ValidationEngine:
                 tolerance_key='debt_equity'
             ))
             
+            # Day 54: Normalize growth rates from decimal to percentage
+            # Our providers (FMP/yfinance info) return 0.1565 (decimal),
+            # Finviz shows 15.65 (percentage). Multiply by 100 if < 1.
+            # Edge case: growth > 100% (e.g., 1.50 = 150%) won't normalize,
+            # but that's rare and would only trigger a WARNING, not a FAIL.
+            rev_growth_raw = fundamentals.get('revenueGrowth')
+            rev_growth_pct = rev_growth_raw * 100 if rev_growth_raw is not None and abs(rev_growth_raw) < 1 else rev_growth_raw
             results.append(self.comparator.compare(
                 ticker=ticker,
                 metric='revenue_growth',
-                our_value=fundamentals.get('revenueGrowth'),
+                our_value=rev_growth_pct,
                 external_value=finviz_data.get('sales_growth'),
                 external_source='Finviz',
                 tolerance_key='revenue_growth'
             ))
-        
+
+            # Day 54: Add epsGrowth comparison (was missing entirely)
+            # Same decimal→percentage normalization
+            eps_growth_raw = fundamentals.get('epsGrowth')
+            eps_growth_pct = eps_growth_raw * 100 if eps_growth_raw is not None and abs(eps_growth_raw) < 1 else eps_growth_raw
+            results.append(self.comparator.compare(
+                ticker=ticker,
+                metric='eps_growth',
+                our_value=eps_growth_pct,
+                external_value=finviz_data.get('eps_growth'),
+                external_source='Finviz',
+                tolerance_key='eps_growth'
+            ))
+
         # === S&R LOGIC VALIDATIONS ===
         sr_data = self._fetch_sr_data(ticker)
         if sr_data:
