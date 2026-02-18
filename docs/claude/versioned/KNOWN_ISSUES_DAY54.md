@@ -45,6 +45,21 @@
 **Action:** Enhance AFTER backtest validates what criteria actually matter
 **Found during:** Day 54 pre-backtest audit
 
+### Medium: EPS/Revenue Growth Using QoQ Instead of YoY
+**Severity:** Medium (incorrect methodology)
+**Description:** `yfinance_provider.py` calculates revenueGrowth by comparing adjacent quarters (Q4 vs Q3 = QoQ). epsGrowth is missing entirely — Finnhub doesn't have it, FMP free tier 403s, yfinance `info['earningsGrowth']` often returns None.
+**Impact:** QoQ growth is distorted by seasonality (e.g., retail Q4 always > Q3). Industry standard for swing trading (Finviz, Minervini/SEPA, IBD) is YoY quarterly (Q4 2025 vs Q4 2024).
+**Fix required:** Change both revenue and EPS growth to YoY (needs ≥5 quarters of data). Don't just add epsGrowth with the same QoQ bug.
+**Action:** Fix AFTER backtest planning — methodology decision needed first
+**Found during:** Day 54 validation fix review
+
+### Info: Fear & Greed Index — Questionable Value
+**Severity:** Info (architectural consideration)
+**Description:** Fear & Greed Index is a lagging, macro-level narrative tool. CNN API is unreliable (frequent failures). Already redundant with VIX in `assessRiskMacro()`.
+**Evidence:** Research shows declining predictive power, lagging structure, and inferior to pure price-volume indicators for swing trading.
+**Recommendation:** Don't include as backtest variable. Consider removing from categorical assessment in favor of VIX-only macro risk.
+**Found during:** Day 54 pre-backtest discussion
+
 ---
 
 ## Resolved Issues (Day 54 - This Session)

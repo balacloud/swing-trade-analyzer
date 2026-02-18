@@ -34,11 +34,12 @@
 
 ### Files Modified
 - `backend/backend.py` (v2.16) - OBV, RVOL, Earnings endpoints
-- `frontend/src/App.jsx` (v4.3) - UI cohesiveness fixes
+- `frontend/src/App.jsx` (v4.3) - UI cohesiveness fixes + MU null support zone fix
 - `frontend/src/services/api.js` (v2.7) - Earnings fetch
 - `backend/test_indicator_coherence.py` - New test suite
 - `docs/test/UI_COHESIVENESS_TEST_PLAN.md` - Test plan
 - `docs/test/UI_Cohesiveness_Test_Feb09/FINDINGS_AND_ACTION_PLAN.md` - Results
+- `docs/claude/stable/ROADMAP.md` - Updated Day 49 log
 
 ### Pending Fixes (Next Session)
 

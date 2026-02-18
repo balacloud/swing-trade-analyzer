@@ -60,6 +60,12 @@
 **Description:** Momentum was "SUGGESTED" even when ADX < 25 (no trend)
 **Fix:** Corrected logic: ADX >=25 = PREFERRED, 20-25 = VIABLE, <20 = CAUTION
 
+### Resolved: MU "$null-null" Support Zone Bug ✅
+**Fixed in:** v4.3
+**Description:** Extended stocks with no nearby support levels showed "$null-null" in recommendation
+**Example:** MU at $107.5 (43.2% extended) showed "Wait for pullback to $null-null zone before entry"
+**Fix:** Added conditional check - shows alternative text when support levels unavailable
+
 ---
 
 ## Issue Statistics
@@ -68,4 +74,4 @@
 | Open - High | 2 |
 | Open - Medium | 1 |
 | Open - Low | 1 |
-| Resolved Today | 5 |
+| Resolved Today | 6 |

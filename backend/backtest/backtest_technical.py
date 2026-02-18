@@ -48,6 +48,160 @@ def calculate_ema(prices, period):
 
 
 # =============================================================================
+# DAY 41: MARKET REGIME FILTER (TIER 1 Fix #1)
+# =============================================================================
+
+def check_bull_regime(spy_df, date_idx, ema_period=200):
+    """
+    Check if market is in bull regime (SPY > 200-EMA).
+
+    Research finding: 85%+ of pullback trades fail in bear markets.
+    This filter prevents entries when SPY is below its 200-day EMA.
+
+    Args:
+        spy_df: SPY DataFrame with Close prices
+        date_idx: Index of the date to check
+        ema_period: EMA period (default 200)
+
+    Returns:
+        tuple: (is_bull, spy_close, spy_ema)
+    """
+    if date_idx < ema_period:
+        return False, None, None
+
+    # Get prices up to this date
+    prices = spy_df['Close'].iloc[:date_idx + 1]
+
+    # Calculate 200-day EMA
+    ema_series = prices.ewm(span=ema_period, adjust=False).mean()
+    spy_ema = ema_series.iloc[-1]
+    spy_close = prices.iloc[-1]
+
+    # Bull regime: SPY close > 200-EMA
+    is_bull = spy_close > spy_ema
+
+    return is_bull, spy_close, spy_ema
+
+
+# =============================================================================
+# DAY 41: EARNINGS BLACKOUT (TIER 1 Fix #3)
+# =============================================================================
+
+def get_earnings_dates_cached(ticker, cache={}):
+    """
+    Get historical earnings dates for a ticker with caching.
+
+    Uses yfinance earnings calendar. Returns empty list if unavailable.
+    Cache prevents repeated API calls for the same ticker.
+
+    Args:
+        ticker: Stock ticker symbol
+        cache: Internal cache dictionary
+
+    Returns:
+        list: List of earnings dates (pd.Timestamp)
+    """
+    if ticker in cache:
+        return cache[ticker]
+
+    try:
+        stock = yf.Ticker(ticker)
+        # Get earnings dates (includes historical)
+        earnings = stock.get_earnings_dates(limit=50)  # ~12.5 years of quarterly earnings
+
+        if earnings is not None and not earnings.empty:
+            # Extract just the dates
+            dates = list(earnings.index)
+            cache[ticker] = dates
+            return dates
+        else:
+            cache[ticker] = []
+            return []
+    except Exception:
+        cache[ticker] = []
+        return []
+
+
+def check_earnings_blackout(entry_date, earnings_dates, blackout_days=5):
+    """
+    Check if entry date is within blackout period of any earnings date.
+
+    Research finding: Earnings can gap 8-15% overnight.
+    Professional standard: Skip entries within ±5 days of earnings.
+
+    Args:
+        entry_date: Date of proposed entry (pd.Timestamp)
+        earnings_dates: List of earnings dates
+        blackout_days: Days before/after earnings to avoid (default 5)
+
+    Returns:
+        tuple: (is_in_blackout, nearest_earnings, days_to_earnings)
+    """
+    if not earnings_dates:
+        return False, None, None  # No earnings data = allow entry
+
+    entry_date = pd.Timestamp(entry_date)
+    nearest_earnings = None
+    min_days = float('inf')
+
+    for earn_date in earnings_dates:
+        earn_date = pd.Timestamp(earn_date)
+        days_diff = abs((entry_date - earn_date).days)
+
+        if days_diff < min_days:
+            min_days = days_diff
+            nearest_earnings = earn_date
+
+    # In blackout if within ±5 days of earnings
+    is_in_blackout = min_days <= blackout_days
+
+    return is_in_blackout, nearest_earnings, min_days
+
+
+# =============================================================================
+# DAY 41: VOLUME CONFIRMATION (TIER 1 Fix #2)
+# =============================================================================
+
+def check_volume_confirmation(stock_df, date_idx, ma_period=50):
+    """
+    Check if current volume is above 50-day moving average.
+
+    Research finding: 30-40% of breakouts fail without volume confirmation.
+    With volume filter: failure rate drops to 15-20%.
+
+    Args:
+        stock_df: Stock DataFrame with Volume column
+        date_idx: Index of the date to check
+        ma_period: Moving average period (default 50)
+
+    Returns:
+        tuple: (has_volume, current_vol, vol_ma, vol_ratio)
+    """
+    if date_idx < ma_period:
+        return False, None, None, None
+
+    # Get volume data up to this date
+    volumes = stock_df['Volume'].iloc[:date_idx + 1]
+
+    # Current day's volume
+    current_vol = volumes.iloc[-1]
+
+    # 50-day simple moving average of volume
+    vol_ma = volumes.iloc[-ma_period:].mean()
+
+    if vol_ma == 0:
+        return False, current_vol, vol_ma, None
+
+    # Volume ratio
+    vol_ratio = current_vol / vol_ma
+
+    # Confirmation: Current volume > 50-day MA
+    has_volume = current_vol > vol_ma
+
+    return has_volume, current_vol, vol_ma, vol_ratio
+
+
+# =============================================================================
 # DAY 39: STRUCTURAL STOP CALCULATIONS
 # =============================================================================
 
@@ -497,6 +651,9 @@ def run_backtest(tickers, start_date='2020-01-01', end_date='2024-12-31',
     print(f"Target: +{target_pct*100:.0f}%")
     print(f"Stop Loss: -{stop_pct*100:.0f}%")
     print(f"Max Hold: {max_hold} days")
+    print(f"TIER 1 Fix #1: Market Regime Filter (SPY > 200-EMA) ACTIVE")
+    print(f"TIER 1 Fix #2: Volume Confirmation (Vol > 50-day MA) ACTIVE")
+    print(f"TIER 1 Fix #3: Earnings Blackout (±5 days) ACTIVE")
     print(f"{'='*60}\n")
 
     # Download SPY data (benchmark)
@@ -539,6 +696,11 @@ def run_backtest(tickers, start_date='2020-01-01', end_date='2024-12-31',
 
             print(f"  Data: {len(stock_df)} days")
 
+            # DAY 41: Fetch earnings dates once per ticker (TIER 1 Fix #3)
+            earnings_dates = get_earnings_dates_cached(ticker)
+            if earnings_dates:
+                print(f"  Earnings dates loaded: {len(earnings_dates)} quarters")
+
             # Find signal days
             signal_count = 0
             cooldown = 0  # Prevent re-entry for X days after a trade
@@ -553,6 +715,25 @@ def run_backtest(tickers, start_date='2020-01-01', end_date='2024-12-31',
                 # Only check dates within our backtest period
                 if date < pd.Timestamp(start_date):
                     continue
+
+                # DAY 41: TIER 1 Fix #1 - Market Regime Filter
+                # Skip entries when SPY is below 200-EMA (bear market)
+                spy_idx = spy_aligned.index.get_loc(date)
+                is_bull, spy_close, spy_ema = check_bull_regime(spy_aligned, spy_idx)
+                if not is_bull:
+                    continue  # Skip this entry - bear market
+
+                # DAY 41: TIER 1 Fix #2 - Volume Confirmation
+                # Skip entries when volume is below 50-day MA
+                has_volume, curr_vol, vol_ma, vol_ratio = check_volume_confirmation(stock_df, i)
+                if not has_volume:
+                    continue  # Skip this entry - insufficient volume
+
+                # DAY 41: TIER 1 Fix #3 - Earnings Blackout
+                # Skip entries within ±5 days of earnings (gap risk)
+                in_blackout, nearest_earn, days_to_earn = check_earnings_blackout(date, earnings_dates)
+                if in_blackout:
+                    continue  # Skip this entry - earnings blackout
 
                 score, score_details = get_technical_score(stock_df, spy_aligned, i)
 

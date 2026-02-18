@@ -22,50 +22,45 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 54 |
-| Version | v4.15 (Backend v2.18, Frontend v4.4 + DecisionMatrix) |
-| Latest Status | PROJECT_STATUS_DAY54_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY54.md |
+| Current Day | 55 |
+| Version | v4.16 (Backend v2.18, Frontend v4.4, Backtest v4.16) |
+| Latest Status | PROJECT_STATUS_DAY55_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY55.md |
 | Latest API | API_CONTRACTS_DAY53.md |
-| Focus | **v4.16 Holistic 3-Layer Backtest** — PLAN first, then implement |
+| Focus | **Backtest improvements** — exit optimization done, bear regime + coherence audit next |
 
-### Day 53 Summary (Current)
-- **v4.15 Decision Matrix Tab:** 3-step synthesis workflow, surfaces 10 hidden computed fields
-- **v4.13 Holding Period Selector:** Signal weighting by horizon, Bottom Line Card
-- **Bugs #7 (RS Rating red) + #8 (competing viability) fixed**
-- **Architectural Audit & Cleanup (Phase 1 + 2):**
-  - Root cause: `/api/stock/` returned hardcoded zeros that corrupted categorical assessment
-  - Phase 1: zeros → null, simplified /api/fundamentals/ (DataProvider only), frontend failure handling
-  - Phase 2: removed fundamentals from /api/stock/ (SRP), cleaned merge, removed ~255 lines dead code
-  - 5-field end-to-end reconciliation through 7+ layers, both paths PASS
-  - Backend v2.17 → v2.18 (35 functions, was 38)
+### Day 55 Summary (Current)
+- **v4.16 Holistic 3-Layer Backtest — COMPLETE**
+  - 60 tickers, 2020-2025, 3 configs, all statistically significant (p < 0.01)
+  - Config C: 53.78% WR, PF 1.61, Sharpe 0.85 (238 trades)
+  - Walk-forward: OOS outperforms IS — NOT overfitted
+  - Fixed Config C bug (0 trades → 238 trades): lowercase column mismatch in compute_sr_levels
+- **Exit Strategy Optimization (Step 1):**
+  - Added 10-day EMA trailing stop + breakeven stop for standard period
+  - Max drawdown reduced 65.9% → 52.6% (-13.3%)
+  - 27 new trailing_ema_exit trades (captures profits before they evaporate)
+- **Codebase integrity verified** — no unintended changes to scan/API/frontend code
 
-### Day 52 Summary
-- v4.14 Multi-Source Data Intelligence - FULL IMPLEMENTATION
-- 5 data providers, 13 new files, backend v2.17
+### Day 54 Summary
+- Pre-backtest audit: 3 CRITICAL hardcoded fallbacks fixed
+- Decision Matrix coherence verified (ALL CLEAR)
 
-### Day 51 Summary
-- v4.13 Plan REVISED (RSI thresholds INVALIDATED, signal weighting VALIDATED)
-- Golden Rule #15: Never implement without validation
-- v4.14 Multi-Source Data plan created and approved
-
-### Implementation Status (v4.9-v4.14)
+### Implementation Status (v4.9-v4.16)
 | Priority | Feature | Effort | Status |
 |----------|---------|--------|--------|
-| P1 | v4.9: OBV + RVOL Display | 2-3 hrs | ✅ **COMPLETE** |
-| P1 | v4.10: Earnings Calendar | 1-2 hrs | ✅ **COMPLETE** |
-| P1 | UI Cohesiveness Fixes (v4.4) | 2 hrs | ✅ **COMPLETE** |
-| P1 | v4.14: Multi-Source Data Intelligence | 10-14 hrs | ✅ **COMPLETE** |
-| P1 | v4.13: Holding Period Selector | 4-6 hrs | ✅ **COMPLETE** |
-| P1 | v4.15: Decision Matrix Tab | 4-6 hrs | ✅ **COMPLETE** |
-| P0 | v4.16: Holistic 3-Layer Backtest | 6-8 hrs | **NEXT PRIORITY** |
+| P1 | v4.9-v4.15: All features | — | ✅ **COMPLETE** |
+| P0 | v4.16: Holistic 3-Layer Backtest | 6-8 hrs | ✅ **COMPLETE** |
+| P0 | Exit Strategy Optimization | 2 hrs | ✅ **COMPLETE** |
+| P0 | Bear Market Regime Refinement | 2 hrs | **NEXT** |
+| P0 | Frontend-Backend Coherence Audit | 2 hrs | QUEUED |
 | P2 | v4.11: Sector Rotation | 4-6 hrs | QUEUED |
 | P3 | v4.12: Charts (Own Tab) | 4-6 hrs | QUEUED |
 
 ### Next Session Priorities
-1. **v4.16 Holistic 3-Layer Backtest** - THE priority. STOP building, START proving. Day 27 showed 49.7% win rate — all improvements since untested.
-2. **Legacy file cleanup** - Move App_day23.jsx, api_day4.js, scoringEngine_v2.1.js etc. to `legacy/` dirs
-3. **v4.11 Sector Rotation Tab** - Only after backtest validates current system
+1. **Bear market regime refinement** — SPY 50 SMA slope filter (2021 was 37.8% WR disaster)
+2. **Frontend-backend coherence audit** — Ensure UI thresholds match backtested thresholds
+3. **Scan Market 5th filter fix** — Add "Best Candidates" to hardcoded fallback
+4. **Backtest other holding periods** — Quick and Position untested
 
 ---
 
@@ -88,8 +83,8 @@
 ```
 docs/claude/stable/GOLDEN_RULES.md          <- Core rules (CRITICAL)
 docs/claude/stable/ROADMAP.md               <- What's planned (v4.0-v4.7) - DON'T LOSE TRACK
-docs/claude/status/PROJECT_STATUS_DAY53_SHORT.md   <- Current state
-docs/claude/versioned/KNOWN_ISSUES_DAY53.md        <- Active bugs
+docs/claude/status/PROJECT_STATUS_DAY55_SHORT.md   <- Current state
+docs/claude/versioned/KNOWN_ISSUES_DAY55.md        <- Active bugs
 docs/research/PERPLEXITY_RESEARCH_SYNTHESIS.md     <- Research validation findings
 docs/claude/versioned/API_CONTRACTS_DAY53.md       <- API reference (if needed)
 ```
@@ -263,6 +258,7 @@ curl http://localhost:5001/api/cache/status
 | 52 | v4.14 Multi-Source Data Intelligence complete: 5 providers (TwelveData, Finnhub, FMP, yfinance, Stooq), 13 new files, backend v2.17, frontend labels updated |
 | 53 | v4.15 Decision Matrix, v4.13 Holding Period, Bugs #7/#8, Architectural cleanup (SRP: removed fundamentals from /api/stock/, ~255 lines dead code removed, backend v2.18). Focus shifted to v4.16 backtest. |
 | 54 | Pre-backtest audit: 3 CRITICAL hardcoded fallbacks fixed (sentiment 5→0, breadth 1→0, F&G 50→null, VIX 20→null). Decision Matrix coherence verified (ALL CLEAR). Simple Checklist gaps documented. Next: PLAN backtest. |
+| 55 | v4.16 Holistic Backtest COMPLETE: 60 tickers, 3 configs, all statistically significant. Config C fixed (0→238 trades). Walk-forward validated (OOS>IS). Exit optimization: trailing 10 EMA + breakeven stop, DD 65.9%→52.6%. No unintended changes to production code. |
 
 ---
 
