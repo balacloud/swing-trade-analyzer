@@ -7,7 +7,7 @@ An institutional-grade stock analysis system for swing traders, built on proven 
 - [Overview](#overview)
 - [Features](#features)
 - [Architecture](#architecture)
-- [Scoring Methodology](#scoring-methodology)
+- [Assessment Methodology](#assessment-methodology)
 - [Tech Stack](#tech-stack)
 - [Installation](#installation)
 - [Usage](#usage)
@@ -16,6 +16,11 @@ An institutional-grade stock analysis system for swing traders, built on proven 
 - [Validation System](#validation-system)
 - [Known Limitations](#known-limitations)
 - [Roadmap](#roadmap)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
+- [Disclaimer](#disclaimer)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
 
 ---
 
