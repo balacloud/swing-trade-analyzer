@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 54 (February 16, 2026)
+> **Last Updated:** Day 56 (February 19, 2026)
 
 ---
 
@@ -22,45 +22,46 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 55 |
-| Version | v4.16 (Backend v2.18, Frontend v4.4, Backtest v4.16) |
-| Latest Status | PROJECT_STATUS_DAY55_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY55.md |
+| Current Day | 56 |
+| Version | v4.17 (Backend v2.19, Frontend v4.5, Backtest v4.17) |
+| Latest Status | PROJECT_STATUS_DAY56_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY56.md |
 | Latest API | API_CONTRACTS_DAY53.md |
-| Focus | **Backtest improvements** — exit optimization done, bear regime + coherence audit next |
+| Focus | **Backtest bear regime validation** — run with SPY 50 SMA filter, then Quick/Position periods |
 
-### Day 55 Summary (Current)
-- **v4.16 Holistic 3-Layer Backtest — COMPLETE**
-  - 60 tickers, 2020-2025, 3 configs, all statistically significant (p < 0.01)
-  - Config C: 53.78% WR, PF 1.61, Sharpe 0.85 (238 trades)
-  - Walk-forward: OOS outperforms IS — NOT overfitted
-  - Fixed Config C bug (0 trades → 238 trades): lowercase column mismatch in compute_sr_levels
-- **Exit Strategy Optimization (Step 1):**
-  - Added 10-day EMA trailing stop + breakeven stop for standard period
-  - Max drawdown reduced 65.9% → 52.6% (-13.3%)
-  - 27 new trailing_ema_exit trades (captures profits before they evaporate)
-- **Codebase integrity verified** — no unintended changes to scan/API/frontend code
+### Day 56 Summary (Current)
+- **v4.17 Production Coherence + Bear Regime + 5th Filter Redesign**
+  - 5th "Best Candidates" filter redesigned to match Config C criteria (ADX>=20, RSI 50-70, EMA momentum)
+  - Frontend-backend coherence audit: 39/42 parameters match, fixed pattern threshold 80%→60%
+  - Bear market regime: SPY 50 SMA declining caps risk at "Neutral" (catches early bear)
+  - S&P 500 filter researched: TradingView native `set_index('SYML:SP;SPX')` — 1-line change
 
-### Day 54 Summary
-- Pre-backtest audit: 3 CRITICAL hardcoded fallbacks fixed
-- Decision Matrix coherence verified (ALL CLEAR)
+### Day 55 Summary
+- v4.16 Holistic 3-Layer Backtest COMPLETE — all 3 configs statistically significant
+- Config C: 53.78% WR, PF 1.61, Sharpe 0.85 (238 trades, p=0.002)
+- Walk-forward validated (OOS > IS — NOT overfitted)
+- Exit optimization: trailing 10 EMA + breakeven stop, DD 65.9%→52.6%
 
-### Implementation Status (v4.9-v4.16)
+### Implementation Status (v4.9-v4.17)
 | Priority | Feature | Effort | Status |
 |----------|---------|--------|--------|
 | P1 | v4.9-v4.15: All features | — | ✅ **COMPLETE** |
 | P0 | v4.16: Holistic 3-Layer Backtest | 6-8 hrs | ✅ **COMPLETE** |
 | P0 | Exit Strategy Optimization | 2 hrs | ✅ **COMPLETE** |
-| P0 | Bear Market Regime Refinement | 2 hrs | **NEXT** |
-| P0 | Frontend-Backend Coherence Audit | 2 hrs | QUEUED |
+| P0 | Bear Market Regime Refinement | 2 hrs | ✅ **COMPLETE** (Day 56) |
+| P0 | Frontend-Backend Coherence Audit | 2 hrs | ✅ **COMPLETE** (Day 56) |
+| P0 | 5th Scan Filter Redesign | 1 hr | ✅ **COMPLETE** (Day 56) |
+| P0 | Re-run Backtest with Bear Regime | 1 hr | **NEXT** |
+| P1 | S&P 500 Index Filter for Scan | 1 hr | QUEUED |
+| P1 | Backtest Quick & Position Periods | 2 hrs | QUEUED |
 | P2 | v4.11: Sector Rotation | 4-6 hrs | QUEUED |
 | P3 | v4.12: Charts (Own Tab) | 4-6 hrs | QUEUED |
 
 ### Next Session Priorities
-1. **Bear market regime refinement** — SPY 50 SMA slope filter (2021 was 37.8% WR disaster)
-2. **Frontend-backend coherence audit** — Ensure UI thresholds match backtested thresholds
-3. **Scan Market 5th filter fix** — Add "Best Candidates" to hardcoded fallback
-4. **Backtest other holding periods** — Quick and Position untested
+1. **Re-run backtest with bear regime filter** — compare 2022 year specifically
+2. **Backtest Quick & Position holding periods** — only Standard tested
+3. **S&P 500 index filter** — `Query().set_index('SYML:SP;SPX')` for scan market
+4. **Simple Checklist enhancements** — after backtest validates criteria
 
 ---
 
@@ -83,8 +84,8 @@
 ```
 docs/claude/stable/GOLDEN_RULES.md          <- Core rules (CRITICAL)
 docs/claude/stable/ROADMAP.md               <- What's planned (v4.0-v4.7) - DON'T LOSE TRACK
-docs/claude/status/PROJECT_STATUS_DAY55_SHORT.md   <- Current state
-docs/claude/versioned/KNOWN_ISSUES_DAY55.md        <- Active bugs
+docs/claude/status/PROJECT_STATUS_DAY56_SHORT.md   <- Current state
+docs/claude/versioned/KNOWN_ISSUES_DAY56.md        <- Active bugs
 docs/research/PERPLEXITY_RESEARCH_SYNTHESIS.md     <- Research validation findings
 docs/claude/versioned/API_CONTRACTS_DAY53.md       <- API reference (if needed)
 ```
@@ -259,6 +260,7 @@ curl http://localhost:5001/api/cache/status
 | 53 | v4.15 Decision Matrix, v4.13 Holding Period, Bugs #7/#8, Architectural cleanup (SRP: removed fundamentals from /api/stock/, ~255 lines dead code removed, backend v2.18). Focus shifted to v4.16 backtest. |
 | 54 | Pre-backtest audit: 3 CRITICAL hardcoded fallbacks fixed (sentiment 5→0, breadth 1→0, F&G 50→null, VIX 20→null). Decision Matrix coherence verified (ALL CLEAR). Simple Checklist gaps documented. Next: PLAN backtest. |
 | 55 | v4.16 Holistic Backtest COMPLETE: 60 tickers, 3 configs, all statistically significant. Config C fixed (0→238 trades). Walk-forward validated (OOS>IS). Exit optimization: trailing 10 EMA + breakeven stop, DD 65.9%→52.6%. No unintended changes to production code. |
+| 56 | v4.17: 5th filter redesigned (Config C criteria), coherence audit (39/42 match, pattern threshold synced 80→60), bear regime filter (SPY 50 SMA declining), S&P 500 index filter researched (native TradingView support). |
 
 ---
 

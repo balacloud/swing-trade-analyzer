@@ -58,11 +58,20 @@
 - Only Standard tested so far
 - Quick (1-5 days) and Position (15-45 days) untested
 
-### P2 (Deferred): Simple Checklist Enhancements
+### P2: S&P 500 Index Filter for Scan Market
+- **Goal:** Restrict scan market results to S&P 500 constituents only
+- **Discovery:** TradingView scanner has NATIVE support via `Query().set_index('SYML:SP;SPX')`
+- **Implementation:** 1-line addition per strategy — add `.set_index()` before `.where()`
+- **Note:** `set_index()` resets market to `/global` internally (transparent, no user impact)
+- **Options:** Apply to all strategies OR add as a user-selectable dropdown (S&P 500 / NASDAQ 100 / All)
+- **Also supports:** NASDAQ 100 (`SYML:NDAQ;NDX`), Dow 30 (`SYML:US;INDU`), Russell 2000 (`SYML:US;RUT`)
+- **No maintenance needed** — TradingView keeps constituent lists current
+
+### P3 (Deferred): Simple Checklist Enhancements
 - Missing Laws #3-#7 (Psychology, Volume, Risk, Patience)
 - Only AFTER backtest validation complete
 
-### P3 (Deferred): Legacy file cleanup
+### P4 (Deferred): Legacy file cleanup
 
 ---
 

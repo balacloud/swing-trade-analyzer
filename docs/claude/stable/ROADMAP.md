@@ -2,12 +2,12 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 52 (February 12, 2026)
+> **Last Updated:** Day 56 (February 19, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.14 (Backend v2.17, Frontend v4.4)
+## Current Version: v4.17 (Backend v2.19, Frontend v4.5, Backtest v4.17)
 
 ---
 
@@ -60,14 +60,17 @@
 
 ## IN PROGRESS / PENDING VALIDATION
 
-### Backtest Gates (Day 40-41)
+### Backtest Status (Day 55-56)
 | Gate | Description | Status |
 |------|-------------|--------|
-| G1 | Structural Stops Backtest | PENDING |
-| G2 | ADX Value Validation | PENDING |
-| G4 | 4H RSI Entry Timing | PENDING |
+| G1 | Holistic 3-Layer Backtest (60 tickers) | ✅ COMPLETE (Day 55) |
+| G2 | Walk-Forward Validation (IS vs OOS) | ✅ COMPLETE (Day 55) |
+| G3 | Exit Strategy Optimization | ✅ COMPLETE (Day 55) |
+| G4 | Bear Market Regime Filter | ✅ IMPLEMENTED (Day 56) — needs re-run |
+| G5 | Frontend-Backend Threshold Sync | ✅ COMPLETE (Day 56) |
+| G6 | Quick & Position Period Backtest | PENDING |
 
-**Test Command:** `python backtest_technical.py --compare-stops`
+**Test Command:** `python backend/backtest/backtest_holistic.py --configs C --walk-forward`
 
 ---
 
@@ -244,18 +247,27 @@
   - 3rd view toggle between Full Analysis and Simple Checklist
 - **Files:** `frontend/src/components/DecisionMatrix.jsx` (new), `App.jsx` (3 edits)
 
-### v4.16: Holistic 3-Layer System Backtest
+### v4.16: Holistic 3-Layer System Backtest ✅ COMPLETE (Day 55)
 - **Priority:** HIGH (cannot validate system without historical outcome testing)
-- **Status:** PLANNED
-- **Problem:** Current tests validate layers work TODAY but not whether BUY signals MADE MONEY historically
-- **Current Validation (Day 53):** `test_3layer_validation.py` confirms all 3 layers pass 100% isolation tests
-- **What's Missing:** Historical backtest that:
-  - Takes stocks with KNOWN outcomes (went up 10%+ or dropped 7%+ in past)
-  - Runs all 3 layers against data as it existed BEFORE the move
-  - Checks: Did system correctly recommend BUY for winners and AVOID for losers?
-  - Measures: Win rate, expectancy, R-multiples across holding periods
-- **Builds On:** `backend/backtest/backtest_technical.py` (Day 27) but extends to all 3 layers
-- **Effort:** 6-8 hours
+- **Status:** ✅ IMPLEMENTED
+- **Results (60 tickers, 2020-2025):**
+  - Config A (Categorical only): 1108 trades, 51.53% WR, PF 1.41, p<0.000001
+  - Config B (A + Patterns): 406 trades, 51.72% WR, PF 1.43, p=0.002
+  - Config C (Full 3-layer): 238 trades, 53.78% WR, PF 1.61, Sharpe 0.85, p=0.002
+  - **All 3 configs statistically significant — NOT random**
+- **Walk-Forward:** OOS outperforms IS — system is NOT overfitted
+- **Exit Optimization:** 10-day EMA trailing stop + breakeven stop, max drawdown 65.9% → 52.6%
+- **Files:** `backend/backtest/` (5 new files: simfin_loader, categorical_engine, metrics, trade_simulator, backtest_holistic)
+
+### v4.17: Production Coherence + Bear Regime ✅ COMPLETE (Day 56)
+- **Priority:** HIGH (sync production with backtested thresholds)
+- **Status:** ✅ IMPLEMENTED
+- **Features:**
+  - Frontend-backend coherence audit: 39/42 parameters matched
+  - Pattern confidence threshold synced: 80% → 60% in production
+  - Bear market regime: SPY 50 SMA declining caps risk at "Neutral"
+  - 5th scan filter redesigned to match Config C criteria
+- **Files Modified:** `categoricalAssessment.js`, `backend.py`, `App.jsx`, backtest files
 
 ### v4.14: Multi-Source Data Intelligence ✅ COMPLETE (Day 52)
 - **Priority:** HIGH (eliminates single-source dependency)
@@ -282,6 +294,20 @@
 - **Backend Integration:** All 9 yfinance call sites replaced with DataProvider + legacy fallback
 - **Frontend:** All data source labels updated from "Defeat Beta" / "yfinance" to multi-source names
 - **Files:** `backend/providers/` (13 files), `backend/backend.py` (v2.17), `backend/cache_manager.py`
+
+---
+
+### v4.18: S&P 500 Index Filter for Scan Market
+- **Priority:** MEDIUM (user-requested quality filter)
+- **Status:** PLANNED (research complete Day 56)
+- **Discovery:** TradingView scanner has NATIVE support via `Query().set_index('SYML:SP;SPX')`
+- **Implementation:** 1-line addition per strategy — `.set_index()` before `.where()`
+- **Options:**
+  - Apply to all strategies by default
+  - OR add user-selectable dropdown: S&P 500 / NASDAQ 100 / All US Stocks
+- **Also supports:** NASDAQ 100 (`SYML:NDAQ;NDX`), Dow 30 (`SYML:US;INDU`), Russell 2000 (`SYML:US;RUT`)
+- **Note:** `set_index()` resets API to `/global` endpoint (transparent, no user impact)
+- **Effort:** 1 hour
 
 ---
 
@@ -368,6 +394,8 @@ From backtesting:
 | 52 | v4.14 Multi-Source Data Intelligence COMPLETE: 5 providers, 13 new files, backend v2.17, field-level merge, circuit breakers, rate limiting, frontend labels updated, Defeat Beta now redundant |
 | 53 | v4.15 Decision Matrix COMPLETE, v4.13 Holding Period COMPLETE, Bugs #7/#8 fixed, Architectural audit: removed fundamentals from /api/stock/ (SRP), removed ~255 lines dead code, 5-field end-to-end reconciliation. Backend v2.18. |
 | 54 | Pre-backtest audit (3 investigations): API data integrity (3 CRITICAL + 4 HIGH found), Decision Matrix coherence (ALL CLEAR), Simple Checklist review (50% SEPA alignment). Fixed 4 hardcoded fallbacks: sentiment 5→0, breadth 1→0, F&G 50→null, VIX 20→null. Golden Rule: silent fallbacks are invisible lies. |
+| 55 | v4.16 Holistic 3-Layer Backtest COMPLETE: 60 tickers, 3 configs, all statistically significant. Config C: 53.78% WR, PF 1.61, Sharpe 0.85. Walk-forward validated. Exit optimization: trailing 10 EMA + breakeven stop, DD reduced -13.3%. |
+| 56 | v4.17: 5th filter redesigned (Config C), coherence audit (39/42 match, pattern threshold 80→60), bear regime filter added, S&P 500 index filter researched + planned as v4.18. |
 
 ---
 

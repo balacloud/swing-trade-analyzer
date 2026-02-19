@@ -104,6 +104,7 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 
 7. **Market Scanning** (TradingView Screener)
    - 5 pre-built strategies: Reddit, Minervini, Momentum, Value, Best Candidates
+   - **Best Candidates** aligned with backtested Config C criteria (ADX>=20, RSI 50-70, EMA momentum)
    - Filters for institutional-quality stocks
    - Stage 2 uptrend requirement (50 SMA > 200 SMA)
 
@@ -470,6 +471,7 @@ npm start
    - **Minervini**: Large-cap momentum leaders
    - **Momentum**: Sustainable 5-50% monthly gains
    - **Value**: Quality at fair price (P/E 5-25)
+   - **Best Candidates**: Backtested Config C picks (ADX>=20, RSI 50-70, EMA momentum)
 3. Click "Scan for Opportunities"
 4. Click any result to run full analysis
 
@@ -499,7 +501,7 @@ Returns backend health status including multi-source provider information.
 ```json
 {
   "status": "healthy",
-  "version": "2.17",
+  "version": "2.19",
   "data_provider_available": true,
   "providers": {
     "providers": {
@@ -886,17 +888,26 @@ TOLERANCES = {
 - Options tab feasibility analysis documented
 - Sector rotation research documented
 
-### Completed (Day 44)
+### Completed (Day 44-56)
 
 - **v4.2: Pattern Detection** ✅ VCP, cup-and-handle, flat base detection + Minervini Trend Template
 - **v4.4: Sentiment Integration** ✅ CNN Fear & Greed Index (real data, free API)
 - **v4.5: Categorical Assessment** ✅ Replaced 75-point scoring with Strong/Decent/Weak categories
+- **v4.7: Forward Testing UI** ✅ Paper trading with R-multiple tracking and Van Tharp statistics
+- **v4.9: Enhanced Volume** ✅ OBV indicator + divergence detection + enhanced RVOL
+- **v4.10: Earnings Warning** ✅ Flags stocks with earnings within 7 days
+- **v4.13: Holding Period Selector** ✅ Quick/Standard/Position with signal weighting
+- **v4.14: Multi-Source Data** ✅ 5 providers with automatic fallback chains
+- **v4.15: Decision Matrix** ✅ 3-step synthesis: Should I Trade? → When Enter? → Does Math Work?
+- **v4.16: Holistic 3-Layer Backtest** ✅ 60 tickers, statistically significant edge (p=0.002)
+- **v4.17: Production Coherence** ✅ Bear regime filter, threshold sync, 5th filter redesign
 
 ### Planned 📅
 
-- v4.0: **Forward Testing UI** - Track actual trades, record R-multiples, build SQN over time
-- v4.1: **TradingView Lightweight Charts** - Interactive charts with RSI/MACD overlays
-- v4.3: **Options Tab** - If data sources become available
+- **S&P 500 Index Filter** - Restrict scans to S&P 500 constituents
+- **TradingView Lightweight Charts** - Interactive charts with RSI/MACD overlays
+- **Sector Rotation Tab** - Sector RS ranking vs SPY
+- **Options Tab** - If data sources become available
 
 ### Philosophy (Day 27 + Day 44 Update)
 
@@ -922,7 +933,7 @@ swing-trade-analyzer/
 ├── start.sh                   # Service starter script
 ├── stop.sh                    # Service stopper script
 ├── backend/
-│   ├── backend.py             # Flask server (v2.17)
+│   ├── backend.py             # Flask server (v2.19)
 │   ├── cache_manager.py       # SQLite persistent cache (with source tracking)
 │   ├── support_resistance.py  # S&R calculation (Agglomerative + MTF)
 │   ├── pattern_detection.py   # VCP, Cup & Handle, Flat Base
@@ -942,8 +953,15 @@ swing-trade-analyzer/
 │   │   ├── yfinance_provider.py    # Universal fallback
 │   │   ├── stooq_provider.py       # Last resort OHLCV
 │   │   └── backtest_adapter.py     # yf.download() replacement
+│   ├── backtest/              # v4.16-v4.17 Holistic Backtest System
+│   │   ├── backtest_holistic.py       # Main runner (60 tickers, 3 configs)
+│   │   ├── categorical_engine.py      # Python port of categorical assessment
+│   │   ├── trade_simulator.py         # Exit models + market regime
+│   │   ├── metrics.py                 # Statistical metrics (Sharpe, Sortino, T-test)
+│   │   └── simfin_loader.py           # SimFin historical fundamentals
 │   ├── data/
-│   │   └── cache.db           # SQLite cache database
+│   │   ├── cache.db           # SQLite cache database
+│   │   └── simfin/            # Cached SimFin historical datasets
 │   ├── validation/
 │   │   ├── engine.py          # Validation orchestrator
 │   │   ├── scrapers.py        # StockAnalysis + Finviz
@@ -952,9 +970,12 @@ swing-trade-analyzer/
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx            # Main UI (v4.4)
+│   │   ├── App.jsx            # Main UI (v4.5)
 │   │   ├── services/
 │   │   │   └── api.js         # API client + health checks
+│   │   ├── components/
+│   │   │   ├── DecisionMatrix.jsx        # v4.15 3-step decision synthesis
+│   │   │   └── BottomLineCard.jsx        # v4.13 Action plan summary
 │   │   └── utils/
 │   │       ├── categoricalAssessment.js  # v4.5 Categorical System
 │   │       ├── scoringEngine.js          # Legacy scoring + data quality
@@ -1011,5 +1032,5 @@ MIT License - See LICENSE file for details.
 
 ---
 
-*Last Updated: February 12, 2026 (Day 52)*
-*Version: v4.14 (Backend v2.17, Frontend v4.4)*
+*Last Updated: February 19, 2026 (Day 56)*
+*Version: v4.17 (Backend v2.19, Frontend v4.5, Backtest v4.17)*
