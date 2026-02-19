@@ -1587,17 +1587,29 @@ def scan_tradingview():
     try:
         strategy = request.args.get('strategy', 'reddit').lower()
         limit = int(request.args.get('limit', 50))
-        
-        print(f"🔍 TradingView Scan: strategy={strategy}, limit={limit}")
-        
-        # Build query
-        query = (Query()
-            .set_markets('america')
-            .select('name', 'close', 'volume', 'market_cap_basic',
+        market_index = request.args.get('market_index', 'all').lower()
+
+        # Supported index filters (verified working index names)
+        INDEX_MAP = {
+            'sp500': 'SYML:SP;SPX',
+            'nasdaq100': 'SYML:NASDAQ;NDX',
+            'dow30': 'SYML:DJ;DJI',
+        }
+
+        print(f"🔍 TradingView Scan: strategy={strategy}, limit={limit}, market_index={market_index}")
+
+        # Build query — use set_index for index filtering, set_markets for "all"
+        query = Query()
+        if market_index in INDEX_MAP:
+            query = query.set_index(INDEX_MAP[market_index])
+        else:
+            query = query.set_markets('america')
+
+        query = query.select('name', 'close', 'volume', 'market_cap_basic',
                     'price_52_week_high', 'price_52_week_low',
                     'SMA50', 'SMA200', 'RSI', 'relative_volume_10d_calc',
                     'sector', 'change', 'exchange',
-                    'ADX', 'EMA10', 'EMA21', 'Perf.Y')
+                    'ADX', 'EMA10', 'EMA21', 'Perf.Y'
         )
         
         # Day 21 Fix: Consolidate ALL filters into single .where() call
@@ -1729,6 +1741,7 @@ def scan_tradingview():
         
         return jsonify({
             'strategy': strategy,
+            'marketIndex': market_index,
             'totalMatches': count,
             'returned': len(candidates),
             'candidates': candidates,

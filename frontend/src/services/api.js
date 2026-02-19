@@ -278,25 +278,27 @@ export async function fetchScanStrategies() {
 /**
  * Scan for swing trade candidates using TradingView screener
  * 
- * @param {string} strategy - 'reddit', 'minervini', 'momentum', 'value'
+ * @param {string} strategy - 'reddit', 'minervini', 'momentum', 'value', 'best'
  * @param {number} limit - max results (default 50, max 100)
- * @returns {object} - { strategy, totalMatches, returned, candidates[] }
+ * @param {string} marketIndex - 'all', 'sp500', 'nasdaq100', 'dow30'
+ * @returns {object} - { strategy, marketIndex, totalMatches, returned, candidates[] }
  */
-export async function fetchScanResults(strategy = 'reddit', limit = 50) {
+export async function fetchScanResults(strategy = 'reddit', limit = 50, marketIndex = 'all') {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/scan/tradingview?strategy=${strategy}&limit=${limit}`
+      `${API_BASE_URL}/scan/tradingview?strategy=${strategy}&limit=${limit}&market_index=${marketIndex}`
     );
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to scan for candidates');
     }
-    
+
     const data = await response.json();
-    
+
     return {
       strategy: data.strategy,
+      marketIndex: data.marketIndex,
       totalMatches: data.totalMatches,
       returned: data.returned,
       limit: data.limit,

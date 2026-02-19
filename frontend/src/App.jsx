@@ -86,6 +86,7 @@ function App() {
   const [scanResults, setScanResults] = useState(null);
   const [selectedStrategy, setSelectedStrategy] = useState('reddit');
   const [strategies, setStrategies] = useState(null);
+  const [selectedMarketIndex, setSelectedMarketIndex] = useState('all');
 
   // Validation state (Day 17)
   const [validationLoading, setValidationLoading] = useState(false);
@@ -331,7 +332,7 @@ function App() {
     setScanResults(null);
 
     try {
-      const results = await fetchScanResults(selectedStrategy, 50);
+      const results = await fetchScanResults(selectedStrategy, 50, selectedMarketIndex);
       setScanResults(results);
     } catch (err) {
       setScanError(err.message || 'Failed to scan for candidates');
@@ -2340,7 +2341,7 @@ function App() {
         {/* ==================== SCAN TAB ==================== */}
         {activeTab === 'scan' && (
           <>
-            {/* Strategy Selector */}
+            {/* Strategy & Market Index Selector */}
             <div className="bg-gray-800 rounded-lg p-6 mb-6">
               <div className="flex gap-4 items-center">
                 <select
@@ -2361,6 +2362,16 @@ function App() {
                       <option value="best">Best Candidates - Backtested Config C picks</option>
                     </>
                   )}
+                </select>
+                <select
+                  value={selectedMarketIndex}
+                  onChange={(e) => setSelectedMarketIndex(e.target.value)}
+                  className="bg-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">All US Stocks</option>
+                  <option value="sp500">S&P 500</option>
+                  <option value="nasdaq100">NASDAQ 100</option>
+                  <option value="dow30">Dow 30</option>
                 </select>
                 <button
                   onClick={runScan}
@@ -2385,6 +2396,11 @@ function App() {
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold text-blue-400">
                     📋 Scan Results: {scanResults.strategy}
+                    {scanResults.marketIndex && scanResults.marketIndex !== 'all' && (
+                      <span className="ml-2 text-sm font-normal text-yellow-400">
+                        ({scanResults.marketIndex === 'sp500' ? 'S&P 500' : scanResults.marketIndex === 'nasdaq100' ? 'NASDAQ 100' : scanResults.marketIndex === 'dow30' ? 'Dow 30' : scanResults.marketIndex})
+                      </span>
+                    )}
                   </h3>
                   <span className="text-gray-400 text-sm">
                     {scanResults.returned} of {scanResults.totalMatches} matches
