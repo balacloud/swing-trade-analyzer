@@ -39,13 +39,15 @@ const ETF_TICKERS = ['SPY', 'QQQ', 'IWM', 'DIA', 'VOO', 'VTI', 'VEA', 'VWO', 'VN
                      'XLI', 'XLP', 'XLY', 'XLB', 'XLU', 'ARKK', 'ARKG', 'ARKW'];
 
 // v4.6.2 (Day 47): Minimum confidence threshold for actionable patterns
-const PATTERN_ACTIONABILITY_THRESHOLD = 80;
+// Day 56: Lowered from 80 to 60 per Perplexity research + backtest validation
+// Config C at 60%: 238 trades, 53.78% WR, PF 1.61, p=0.002
+const PATTERN_ACTIONABILITY_THRESHOLD = 60;
 
 /**
  * Get Actionable Patterns
  *
- * v4.6.2 (Day 47): Filter patterns to only show those ≥80% confidence
- * Based on Perplexity research: patterns < 80% have high false positive rate
+ * v4.6.2 (Day 47): Filter patterns to only show those above confidence threshold
+ * Day 56: Lowered from 80% to 60% — backtest validated (Config C: PF 1.61)
  *
  * @param {object} patternsData - Raw patterns data from backend
  * @param {number} atr - ATR value for stop calculation

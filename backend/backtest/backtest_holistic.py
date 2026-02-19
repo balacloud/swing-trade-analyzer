@@ -40,7 +40,7 @@ import yfinance as yf
 from backtest.categorical_engine import run_assessment
 from backtest.trade_simulator import (
     simulate_trade, classify_market_regime, is_spy_above_200sma,
-    calculate_atr_at, calculate_atr_series
+    is_spy_50sma_declining, calculate_atr_at, calculate_atr_series
 )
 from backtest.metrics import compute_metrics, apply_transaction_costs
 from backtest.simfin_loader import get_fundamentals_at_date
@@ -215,6 +215,7 @@ def check_entry_signals(stock_df, spy_df, vix_df, date_idx,
     # VIX and SPY regime
     vix_val = get_vix_at_date(vix_df, date_idx) if vix_df is not None else None
     spy_above = is_spy_above_200sma(spy_df, date_idx) if spy_df is not None else True
+    spy_declining = is_spy_50sma_declining(spy_df, date_idx) if spy_df is not None else False
 
     # Trend template (using the slice up to current date)
     trend = check_trend_template(df_slice)
@@ -250,6 +251,7 @@ def check_entry_signals(stock_df, spy_df, vix_df, date_idx,
         adx=adx_val,
         vix=vix_val,
         spy_above_200sma=spy_above,
+        spy_50sma_declining=spy_declining,
         roe=roe,
         revenue_growth=rev_growth,
         debt_equity=de_ratio,

@@ -125,6 +125,26 @@ def is_spy_above_200sma(spy_df, date_idx):
     return close.iloc[-1] > sma200
 
 
+def is_spy_50sma_declining(spy_df, date_idx):
+    """
+    Day 56: Check if SPY 50 SMA is declining (leading bear indicator).
+    Compares current 50 SMA vs 50 SMA from 20 days ago.
+    Returns True if decline > 1% (same threshold as classify_market_regime).
+    """
+    if date_idx < 70:
+        return False  # Not enough data
+
+    close = spy_df['Close'].iloc[:date_idx + 1]
+    sma50_now = close.iloc[-50:].mean()
+    sma50_20d_ago = close.iloc[-70:-20].mean()
+
+    if sma50_20d_ago == 0:
+        return False
+
+    sma50_change = (sma50_now - sma50_20d_ago) / sma50_20d_ago * 100
+    return sma50_change < -1.0
+
+
 # ─── Trade Simulation ────────────────────────────────────────────────────────
 
 def simulate_trade(stock_df, entry_idx, holding_period,

@@ -2358,6 +2358,7 @@ function App() {
                       <option value="minervini">Minervini - Stage 2 leaders</option>
                       <option value="momentum">Momentum - Strong 52w</option>
                       <option value="value">Value - Quality discounts</option>
+                      <option value="best">Best Candidates - Backtested Config C picks</option>
                     </>
                   )}
                 </select>

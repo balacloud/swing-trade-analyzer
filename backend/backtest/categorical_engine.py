@@ -168,19 +168,24 @@ def assess_fundamental(roe=None, revenue_growth=None, debt_equity=None, eps_grow
     return {'assessment': assessment, 'reasons': reasons, 'data': data}
 
 
-def assess_risk_macro(vix, spy_above_200sma):
+def assess_risk_macro(vix, spy_above_200sma, spy_50sma_declining=False):
     """
     Assess risk/macro environment.
 
-    Favorable:   VIX < 20 AND SPY > 200 SMA
-    Neutral:     VIX 20-30 AND SPY > 200 SMA
+    Favorable:   VIX < 20 AND SPY > 200 SMA AND 50 SMA not declining
+    Neutral:     VIX 20-30 AND SPY > 200 SMA (or 50 SMA declining)
     Unfavorable: VIX > 30 OR SPY < 200 SMA
+
+    Day 56: Added spy_50sma_declining — leading indicator for early bear.
+    When SPY still above 200 SMA but 50 SMA declining, cap at Neutral
+    (prevents entering during 2022-type slow deterioration).
 
     Source: categoricalAssessment.js lines 558-619
 
     Args:
         vix: VIX value (float or None)
         spy_above_200sma: bool — is SPY above its 200-day SMA?
+        spy_50sma_declining: bool — is SPY 50 SMA declining > 1%?
 
     Returns:
         dict with assessment, reasons, data
@@ -189,6 +194,7 @@ def assess_risk_macro(vix, spy_above_200sma):
     data = {
         'vix': vix,
         'spy_above_200sma': spy_above_200sma,
+        'spy_50sma_declining': spy_50sma_declining,
     }
 
     # VIX unavailable — assess on SPY alone
@@ -196,6 +202,9 @@ def assess_risk_macro(vix, spy_above_200sma):
         if not spy_above_200sma:
             assessment = 'Unfavorable'
             reasons.append('VIX unavailable, SPY below 200 SMA (Bear regime)')
+        elif spy_50sma_declining:
+            assessment = 'Neutral'
+            reasons.append('VIX unavailable, SPY 50 SMA declining (early weakness)')
         else:
             assessment = 'Neutral'
             reasons.append('VIX unavailable, SPY above 200 SMA')
@@ -206,7 +215,11 @@ def assess_risk_macro(vix, spy_above_200sma):
             reasons.append(f"VIX {vix:.1f} > 30 (extreme volatility)")
         if not spy_above_200sma:
             reasons.append('SPY below 200 SMA (Bear regime)')
-    # Favorable: low VIX + bull regime
+    # Day 56: SPY 50 SMA declining — cap at Neutral even with low VIX
+    elif spy_50sma_declining:
+        assessment = 'Neutral'
+        reasons.append(f"VIX {vix:.1f}, SPY above 200 SMA but 50 SMA declining (early weakness)")
+    # Favorable: low VIX + bull regime + 50 SMA not declining
     elif vix < 20 and spy_above_200sma:
         assessment = 'Favorable'
         reasons.append(f"VIX {vix:.1f} < 20, SPY above 200 SMA")
@@ -354,7 +367,7 @@ def determine_verdict(technical, fundamental, risk_macro, adx=None,
 
 
 def run_assessment(trend_template_score, rsi, rs_52w, adx,
-                   vix, spy_above_200sma,
+                   vix, spy_above_200sma, spy_50sma_declining=False,
                    roe=None, revenue_growth=None, debt_equity=None, eps_growth=None,
                    holding_period='standard'):
     """
@@ -380,7 +393,7 @@ def run_assessment(trend_template_score, rsi, rs_52w, adx,
     """
     technical = assess_technical(trend_template_score, rsi, rs_52w, adx)
     fundamental = assess_fundamental(roe, revenue_growth, debt_equity, eps_growth)
-    risk_macro = assess_risk_macro(vix, spy_above_200sma)
+    risk_macro = assess_risk_macro(vix, spy_above_200sma, spy_50sma_declining)
 
     verdict = determine_verdict(
         technical=technical['assessment'],

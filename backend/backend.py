@@ -1596,7 +1596,8 @@ def scan_tradingview():
             .select('name', 'close', 'volume', 'market_cap_basic',
                     'price_52_week_high', 'price_52_week_low',
                     'SMA50', 'SMA200', 'RSI', 'relative_volume_10d_calc',
-                    'sector', 'change', 'exchange')
+                    'sector', 'change', 'exchange',
+                    'ADX', 'EMA10', 'EMA21', 'Perf.Y')
         )
         
         # Day 21 Fix: Consolidate ALL filters into single .where() call
@@ -1638,21 +1639,23 @@ def scan_tradingview():
                 col('RSI') <= 60
             )
         elif strategy == 'best':
-            # Day 26: "Best Candidates" - strictest criteria matching our scoring system
-            # Designed to find stocks most likely to get BUY verdict (score >= 60)
+            # Day 55: Redesigned to match backtested Config C criteria (v4.16)
+            # Config C: 238 trades, 53.78% WR, PF 1.61, Sharpe 0.85, p=0.002
+            # Note: "within 25% of 52W high" applied as post-filter (col() doesn't support arithmetic)
             query = query.where(
                 col('exchange').isin(['NYSE', 'NASDAQ', 'AMEX']),
-                col('market_cap_basic') >= 10_000_000_000,  # Large-cap quality
-                col('close') > col('SMA50'),                # Price > 50 SMA
-                col('SMA50') > col('SMA200'),               # 50 SMA > 200 SMA (Stage 2)
+                col('market_cap_basic') >= 2_000_000_000,   # Mid-cap+ (not just large-cap)
+                col('close') > col('SMA50'),                # Stage 2: Price > 50 SMA
+                col('SMA50') > col('SMA200'),               # Stage 2: 50 SMA > 200 SMA
+                col('ADX') >= 20,                           # Trend strength (Config C requirement)
                 col('RSI') >= 50,                           # Bullish momentum
-                col('RSI') <= 75,                           # Not overbought (matches momentum strategy)
-                col('relative_volume_10d_calc') >= 1.0,     # At least average volume
-                col('change|1W') >= 0,                      # Positive weekly
-                col('change|1M') >= 0                       # Positive monthly
+                col('RSI') <= 70,                           # Not overbought (tighter: was 75)
+                col('EMA10') > col('EMA21'),                # Short-term momentum confirmation
+                col('Perf.Y') > 0,                          # Positive 52W performance (RS proxy)
+                col('relative_volume_10d_calc') >= 1.0      # At least average volume
             )
-            # Sort by relative volume (highest interest first)
-            query = query.order_by('relative_volume_10d_calc', ascending=False)
+            # Sort by ADX descending (strongest trends first)
+            query = query.order_by('ADX', ascending=False)
         else:
             return jsonify({'error': f'Unknown strategy: {strategy}'}), 400
         
@@ -1691,7 +1694,12 @@ def scan_tradingview():
                 pct_from_high = None
                 if current and high52w and high52w > 0:
                     pct_from_high = round(((current - high52w) / high52w) * 100, 1)
-                
+
+                # Post-filter: "best" strategy requires within 25% of 52W high
+                # (col() doesn't support arithmetic, so we filter here)
+                if strategy == 'best' and pct_from_high is not None and pct_from_high < -25:
+                    continue
+
                 candidates.append({
                     'ticker': ticker,
                     'name': row.get('name', ''),
@@ -1707,7 +1715,11 @@ def scan_tradingview():
                     'relativeVolume': safe_float(row.get('relative_volume_10d_calc')),
                     'sector': row.get('sector', 'N/A'),
                     'pctFromHigh': pct_from_high,
-                    'exchange': row.get('exchange', 'N/A')
+                    'exchange': row.get('exchange', 'N/A'),
+                    'adx': safe_float(row.get('ADX')),
+                    'ema10': safe_float(row.get('EMA10')),
+                    'ema21': safe_float(row.get('EMA21')),
+                    'perf52w': safe_float(row.get('Perf.Y'))
                 })
             except Exception as e:
                 print(f"Error parsing row: {e}")
@@ -1758,7 +1770,7 @@ def get_scan_strategies():
             {
                 'id': 'best',
                 'name': 'Best Candidates',
-                'description': 'Large-cap Stage 2 stocks matching all scoring criteria (most likely BUY)'
+                'description': 'Stage 2 + ADX≥20 + RSI 50-70 + EMA momentum — backtested Config C criteria'
             }
         ]
     })
