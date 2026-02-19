@@ -58,18 +58,14 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 
 ## Features
 
-### ✅ Implemented (v4.0)
+### ✅ Implemented (v4.17)
 
 1. **Single Stock Analysis**
    - Enter any ticker symbol
-   - Get comprehensive 75-point score
-   - View detailed breakdown by category with explanations
-
-2. **Simplified Binary Scoring** (Day 27)
-   - Research-backed 4-criteria system
-   - Trend, Momentum, Setup, Risk/Reward checks
-   - ALL 4 must pass = TRADE, any fail = PASS
-   - Based on AQR Momentum Research + Turtle Trading
+   - Get categorical assessment (Strong/Decent/Weak) across 4 dimensions
+   - BUY / HOLD / AVOID verdict with detailed reasoning
+   - Decision Matrix: 3-step synthesis (Should I Trade? → When Enter? → Does Math Work?)
+   - Holding period selector: Quick (5-10d) / Standard (15-30d) / Position (1-3mo)
 
 3. **Position Sizing Calculator** (Day 28-29)
    - Van Tharp R-multiple principles
@@ -165,9 +161,9 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 │  │ Analyze Tab │  │  Scan Tab   │  │    Validation Tab       │  │
 │  │             │  │             │  │                         │  │
 │  │ - Ticker    │  │ - Strategy  │  │ - Multi-ticker input    │  │
-│  │ - Scores    │  │ - Results   │  │ - Pass/Fail/Warning     │  │
-│  │ - Dual Entry│  │ - Quick     │  │ - Quality metrics       │  │
-│  │   Strategy  │  │   Analyze   │  │                         │  │
+│  │ - Assessment│  │ - Results   │  │ - Pass/Fail/Warning     │  │
+│  │ - Decision  │  │ - Quick     │  │ - Quality metrics       │  │
+│  │   Matrix    │  │   Analyze   │  │                         │  │
 │  └─────────────┘  └─────────────┘  └─────────────────────────┘  │
 │                                                                  │
 │  ┌─────────────────────────┐  ┌─────────────────────────────┐   │
@@ -180,9 +176,9 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 ├─────────────────────────────────────────────────────────────────┤
 │                      SERVICES & UTILS                           │
 │  ┌──────────────┐  ┌───────────────┐  ┌───────────────────┐     │
-│  │   api.js     │  │scoringEngine  │  │  rsCalculator.js  │     │
-│  │              │  │    .js        │  │                   │     │
-│  │ API calls    │  │ 75-pt scoring │  │ RS vs S&P 500     │     │
+│  │   api.js     │  │ categorical   │  │  rsCalculator.js  │     │
+│  │              │  │ Assessment.js │  │                   │     │
+│  │ API calls    │  │ Verdict logic │  │ RS vs S&P 500     │     │
 │  └──────────────┘  └───────────────┘  └───────────────────┘     │
 └─────────────────────────────────────────────────────────────────┘
                               │
@@ -270,83 +266,88 @@ User enters ticker
         └──► /api/sr/AAPL ─────────► S&R Engine (Entry/Stop/Target)
         │
         ▼
-┌───────────────────┐
-│ calculateScore()  │ (scoringEngine.js)
-│                   │
-│ - Technical: 40   │
-│ - Fundamental: 20 │
-│ - Sentiment: 10   │
-│ - Risk: 5         │
-│ ─────────────────│
-│ Total: 75 points  │
-└───────────────────┘
+┌───────────────────────────┐
+│ Categorical Assessment    │ (categoricalAssessment.js)
+│                           │
+│ Technical:  Strong/Decent/Weak  (Trend Template + RSI + RS)
+│ Fundamental: Strong/Decent/Weak (ROE, Revenue Growth, D/E)
+│ Sentiment:  Strong/Neutral/Weak (Fear & Greed Index)
+│ Risk/Macro: Favorable/Neutral/Unfavorable (VIX + SPY)
+└───────────────────────────┘
         │
         ▼
-┌───────────────────┐
-│ Verdict:          │
-│ BUY / HOLD / AVOID│
-└───────────────────┘
+┌───────────────────────────┐
+│ Verdict:                  │
+│ BUY / HOLD / AVOID        │
+│ (2+ Strong + Favorable    │
+│  Risk = BUY)              │
+└───────────────────────────┘
         │
         ▼
-┌───────────────────┐
-│ Dual Entry Cards: │
-│ Conservative vs   │
-│ Aggressive        │
-└───────────────────┘
+┌───────────────────────────┐
+│ Decision Matrix +         │
+│ Dual Entry Cards +        │
+│ Bottom Line Summary       │
+└───────────────────────────┘
 ```
 
 ---
 
-## Scoring Methodology
+## Assessment Methodology
 
-### 75-Point Scoring System
+### Categorical Assessment System (v4.5+)
 
-#### Technical Analysis (40 points)
+Replaced the original 75-point numerical scoring (which had 0.011 score-to-return correlation) with categorical assessments. The system works as a **FILTER**, not a RANKER.
 
-| Metric | Points | Criteria |
-|--------|--------|----------|
-| **Trend Structure** | 15 | Price > 50 SMA > 200 SMA (Stage 2 uptrend) |
-| **Short-term Trend** | 10 | Price > 8 EMA > 21 EMA |
-| **Relative Strength** | 10 | RS ≥1.5 = 10pts, ≥1.2 = 7pts, ≥1.0 = 4pts |
-| **Volume** | 5 | ≥1.5x 50-day avg = 5pts, ≥1.0x = 2pts |
+#### Four Assessment Dimensions
 
-#### Fundamental Analysis (20 points)
+| Dimension | Levels | Key Metrics |
+|-----------|--------|-------------|
+| **Technical** | Strong / Decent / Weak | Trend Template (8-point), RSI, RS vs SPY, ADX |
+| **Fundamental** | Strong / Decent / Weak | ROE, Revenue Growth, Debt/Equity |
+| **Sentiment** | Strong / Neutral / Weak | CNN Fear & Greed Index |
+| **Risk/Macro** | Favorable / Neutral / Unfavorable | VIX level, SPY regime (above 200 EMA) |
 
-| Metric | Points | Criteria |
-|--------|--------|----------|
-| **EPS Growth** | 6 | ≥25% = 6pts, ≥15% = 4pts, ≥10% = 2pts |
-| **Revenue Growth** | 5 | ≥20% = 5pts, ≥10% = 3pts, ≥5% = 1pt |
-| **ROE** | 4 | ≥15% = 4pts, ≥10% = 2pts |
-| **Debt/Equity** | 3 | <0.5 = 3pts, <1.0 = 2pts, <1.5 = 1pt |
-| **Forward P/E** | 2 | <20 = 2pts, <25 = 1pt |
+#### Technical Assessment Thresholds
 
-#### Sentiment (10 points)
+| Level | Criteria |
+|-------|----------|
+| **Strong** | Trend Template >= 7/8 AND RSI 50-70 AND RS >= 1.0 |
+| **Decent** | Trend Template >= 5/8 AND RSI 40-80 |
+| **Weak** | Below thresholds, extreme RSI, or RS < 0.8 |
 
-| Metric | Points | Criteria |
-|--------|--------|----------|
-| **News Sentiment** | 10 | Placeholder (real sentiment in v2.0) |
+#### Fundamental Assessment Thresholds
 
-#### Risk/Macro (5 points)
-
-| Metric | Points | Criteria |
-|--------|--------|----------|
-| **VIX Level** | 2 | <15 = 2pts, <20 = 1pt |
-| **S&P Regime** | 2 | SPY > 200 SMA = 2pts |
-| **Market Breadth** | 1 | Placeholder |
+| Level | Criteria |
+|-------|----------|
+| **Strong** | ROE > 15% AND Revenue Growth > 10% AND D/E < 1.0 |
+| **Decent** | ROE 8-15% OR Revenue Growth 0-10% OR D/E 1.0-2.0 |
+| **Weak** | ROE < 8% OR negative growth OR D/E > 2.0 |
 
 ### Verdict Logic
 
 | Verdict | Conditions |
 |---------|------------|
-| **BUY** | Score ≥60 + No critical fails + RS ≥1.0 |
-| **HOLD** | Score 40-59 OR 1 critical fail |
-| **AVOID** | Score <40 OR 2+ critical fails OR RS <0.8 |
+| **BUY** | 2+ Strong categories + Favorable/Neutral risk + ADX >= 20 |
+| **HOLD** | Mixed signals, ADX < 20 (no trend), or Unfavorable risk |
+| **AVOID** | Weak Technical (non-negotiable) OR 2+ Weak categories |
 
-### Quality Gates (Auto-AVOID Triggers)
+### Additional Filters
 
-- Stock below 200 SMA (downtrend)
-- RS < 0.8 (significant underperformance)
-- Average daily dollar volume < $10M (illiquid)
+- **ADX < 20** = HOLD regardless of other signals (no trend to trade)
+- **Pattern confidence >= 60%** = actionable (backtested threshold)
+- **Holding period weighting**: Quick = 70% Technical, Position = 70% Fundamental
+- **Bear market regime**: SPY 50 SMA declining caps risk at "Neutral"
+
+### Backtest Validation (v4.16, Day 55)
+
+| Config | Trades | Win Rate | Profit Factor | Sharpe | p-value |
+|--------|--------|----------|---------------|--------|---------|
+| A (Categorical only) | 1,108 | 51.53% | 1.41 | — | <0.000001 |
+| B (A + Patterns) | 406 | 51.72% | 1.43 | — | 0.002 |
+| C (Full 3-layer) | 238 | 53.78% | 1.61 | 0.85 | 0.002 |
+
+Walk-forward validation: Out-of-sample outperforms in-sample — system is NOT overfitted.
 
 ---
 
@@ -457,11 +458,11 @@ npm start
 2. Enter ticker symbol (e.g., "AAPL")
 3. Click "Analyze" or press Enter
 4. View results:
-   - Verdict (BUY/HOLD/AVOID)
-   - 75-point score breakdown
+   - Verdict (BUY/HOLD/AVOID) with categorical assessment
+   - Decision Matrix (3-step trade evaluation)
    - **Dual Entry Strategy cards** (Conservative vs Aggressive)
    - Trade setup (Entry/Stop/Target)
-   - Relative Strength metrics
+   - Pattern detection and volume analysis
 
 ### Scan for Opportunities
 
@@ -607,12 +608,12 @@ Returns detailed data source provenance for transparency.
     }
   },
   "fundamentals": {
-    "source": "defeatbeta",
+    "source": "finnhub",
     "cached": true,
     "cache_age_seconds": 86400,
     "fields": {
-      "roe": {"source": "defeatbeta", "formula": "Net Income / Shareholders Equity"},
-      "epsGrowth": {"source": "defeatbeta", "formula": "(Current EPS - Previous EPS) / Previous EPS"}
+      "roe": {"source": "finnhub", "formula": "Net Income / Shareholders Equity"},
+      "epsGrowth": {"source": "fmp", "formula": "(Current EPS - Previous EPS) / Previous EPS"}
     }
   }
 }
@@ -800,7 +801,7 @@ TOLERANCES = {
 }
 ```
 
-**Note:** Tolerances were increased in Day 42 to account for legitimate methodology differences between data providers (e.g., Defeat Beta uses fiscal year YoY for revenue growth, Finviz uses TTM).
+**Note:** Tolerances account for legitimate methodology differences between data providers (e.g., fiscal year YoY vs TTM for revenue growth).
 
 ---
 
@@ -822,22 +823,9 @@ TOLERANCES = {
 
 ### Validation Methodology Differences
 
-1. **Debt/Equity** - Defeat Beta uses total debt, Finviz uses long-term only (30-50% variance)
-2. **Revenue Growth** - Defeat Beta uses fiscal YoY, Finviz uses TTM (60-85% variance)
+1. **Debt/Equity** - Different providers use total debt vs long-term only (30-50% variance)
+2. **Revenue Growth** - Fiscal YoY vs TTM differences between sources (60-85% variance)
 3. **These are not bugs** - Different valid calculation methods
-
-### Scoring System Update (Day 44 - v4.5)
-
-**v4.5 Categorical Assessment System** replaced the 75-point numerical scoring:
-
-| Component | Old State | New State (v4.5) |
-|-----------|-----------|------------------|
-| **Sentiment** | Hardcoded 5/10 | Real Fear & Greed Index (Strong/Neutral/Weak) |
-| **Market Breadth** | Hardcoded 1/1 | SPY regime check (Favorable/Neutral/Unfavorable) |
-| **Technical** | 40 points | Strong/Decent/Weak (Trend Template + RSI + RS) |
-| **Fundamental** | 20 points | Strong/Decent/Weak (ROE, Revenue Growth, D/E) |
-
-**Rationale:** Score-to-return correlation was 0.011 (essentially ZERO). Categorical assessments honestly represent that the system works as a FILTER, not a RANKER.
 
 ### Deferred Features (v2+)
 
