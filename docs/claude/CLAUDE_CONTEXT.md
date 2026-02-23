@@ -22,14 +22,25 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 56 |
-| Version | v4.17 (Backend v2.19, Frontend v4.5, Backtest v4.17) |
-| Latest Status | PROJECT_STATUS_DAY56_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY56.md |
-| Latest API | API_CONTRACTS_DAY53.md |
-| Focus | **Backtest bear regime validation** — run with SPY 50 SMA filter, then Quick/Position periods |
+| Current Day | 57 |
+| Version | v4.18 (Backend v2.20, Frontend v4.6, Backtest v4.17) |
+| Latest Status | PROJECT_STATUS_DAY57_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY57.md |
+| Latest API | API_CONTRACTS_DAY53.md (outdated — update when APIs change next) |
+| Focus | **Backtest COMPLETE** — All 3 holding periods validated, walk-forward passed |
 
-### Day 56 Summary (Current)
+### Day 57 Summary (Current)
+- **v4.18 S&P 500 Index Filter + Bear Regime Coherence + Audit + Backtest Validation**
+  - S&P 500 / NASDAQ 100 / Dow 30 index filter COMPLETE (dropdown in Scan Market)
+  - Bear regime coherence gap FIXED: backend SPY endpoint now returns `sma50Declining`, frontend `assessRiskMacro()` uses it
+  - Options research pinned (v4.19 deferred), TSX 60 Canadian support researched (v4.20 deferred)
+  - Full system coherence audit created (71 params, 96% coherence)
+  - **Backtest with bear regime**: Config C Standard = 244 trades, 53.69% WR, PF 1.615, p=0.001
+  - **Quick period**: 318 trades, 55.35% WR, PF 1.72, Sharpe 0.85 (BEST overall)
+  - **Position period**: 362 trades, 38.67% WR, PF 1.51, avg winner 8.05% (regime-sensitive)
+  - **Walk-forward validated**: Quick OOS all metrics improved (+6-18%); Position OOS dramatically improved (regime-dependent, not overfitted)
+
+### Day 56 Summary
 - **v4.17 Production Coherence + Bear Regime + 5th Filter Redesign**
   - 5th "Best Candidates" filter redesigned to match Config C criteria (ADX>=20, RSI 50-70, EMA momentum)
   - Frontend-backend coherence audit: 39/42 parameters match, fixed pattern threshold 80%→60%
@@ -51,17 +62,24 @@
 | P0 | Bear Market Regime Refinement | 2 hrs | ✅ **COMPLETE** (Day 56) |
 | P0 | Frontend-Backend Coherence Audit | 2 hrs | ✅ **COMPLETE** (Day 56) |
 | P0 | 5th Scan Filter Redesign | 1 hr | ✅ **COMPLETE** (Day 56) |
-| P0 | Re-run Backtest with Bear Regime | 1 hr | **NEXT** |
-| P1 | S&P 500 Index Filter for Scan | 1 hr | QUEUED |
-| P1 | Backtest Quick & Position Periods | 2 hrs | QUEUED |
+| P0 | Re-run Backtest with Bear Regime | 1 hr | ✅ **COMPLETE** (Day 57) |
+| P1 | S&P 500 / NASDAQ 100 / Dow 30 Index Filter | 1 hr | ✅ **COMPLETE** (Day 57, v4.18) |
+| P1 | Backtest Quick & Position Periods | 2 hrs | ✅ **COMPLETE** (Day 57, walk-forward validated) |
 | P2 | v4.11: Sector Rotation | 4-6 hrs | QUEUED |
 | P3 | v4.12: Charts (Own Tab) | 4-6 hrs | QUEUED |
 
+### Backtest Results Summary (Day 57)
+| Period | Trades | Win Rate | PF | Sharpe | Walk-Forward |
+|--------|--------|----------|----|--------|--------------|
+| Quick (1-5d) | 318 | 55.35% | 1.72 | 0.85 | PASS (all metrics improved OOS) |
+| Standard (5-15d) | 244 | 53.69% | 1.62 | 0.85 | PASS (Day 55) |
+| Position (15-45d) | 362 | 38.67% | 1.51 | 0.61 | PASS (regime-sensitive, not overfitted) |
+
 ### Next Session Priorities
-1. **Re-run backtest with bear regime filter** — compare 2022 year specifically
-2. **Backtest Quick & Position holding periods** — only Standard tested
-3. **S&P 500 index filter** — `Query().set_index('SYML:SP;SPX')` for scan market
-4. **Simple Checklist enhancements** — after backtest validates criteria
+1. **Pattern trader descriptions** — visible human-readable context on pattern cards (30 min)
+2. **Sector Rotation Phase 1** — sector context in Analyze + Scan views (1-2 hrs, no new tab)
+3. **Simple Checklist enhancements** — backtest now validates criteria
+4. **Position period regime gate** — show warning when not in bull regime
 
 ---
 
@@ -84,8 +102,8 @@
 ```
 docs/claude/stable/GOLDEN_RULES.md          <- Core rules (CRITICAL)
 docs/claude/stable/ROADMAP.md               <- What's planned (v4.0-v4.7) - DON'T LOSE TRACK
-docs/claude/status/PROJECT_STATUS_DAY56_SHORT.md   <- Current state
-docs/claude/versioned/KNOWN_ISSUES_DAY56.md        <- Active bugs
+docs/claude/status/PROJECT_STATUS_DAY57_SHORT.md   <- Current state
+docs/claude/versioned/KNOWN_ISSUES_DAY57.md        <- Active bugs
 docs/research/PERPLEXITY_RESEARCH_SYNTHESIS.md     <- Research validation findings
 docs/claude/versioned/API_CONTRACTS_DAY53.md       <- API reference (if needed)
 ```
@@ -261,6 +279,7 @@ curl http://localhost:5001/api/cache/status
 | 54 | Pre-backtest audit: 3 CRITICAL hardcoded fallbacks fixed (sentiment 5→0, breadth 1→0, F&G 50→null, VIX 20→null). Decision Matrix coherence verified (ALL CLEAR). Simple Checklist gaps documented. Next: PLAN backtest. |
 | 55 | v4.16 Holistic Backtest COMPLETE: 60 tickers, 3 configs, all statistically significant. Config C fixed (0→238 trades). Walk-forward validated (OOS>IS). Exit optimization: trailing 10 EMA + breakeven stop, DD 65.9%→52.6%. No unintended changes to production code. |
 | 56 | v4.17: 5th filter redesigned (Config C criteria), coherence audit (39/42 match, pattern threshold synced 80→60), bear regime filter (SPY 50 SMA declining), S&P 500 index filter researched (native TradingView support). |
+| 57 | v4.18: S&P 500/NASDAQ 100/Dow 30 index filter complete, bear regime coherence gap fixed (sma50Declining in backend+frontend), Options tab deferred (v4.19), TSX 60 deferred (v4.20), coherence audit document created. Backtest: bear regime validated (WR 71.4%), Quick+Position walk-forward passed, yfinance 0.2.28→1.2.0. Sector rotation rethought (Phase 1: embed in views). |
 
 ---
 

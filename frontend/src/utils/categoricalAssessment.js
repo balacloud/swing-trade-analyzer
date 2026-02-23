@@ -563,10 +563,13 @@ export function assessRiskMacro(vixData, spyData) {
 
   const vix = vixData?.current != null ? vixData.current : null;
   const spyAbove200EMA = spyData?.aboveSma200 || false;
+  // Day 57: Early bear detection — mirrors backtest categorical_engine.assess_risk_macro()
+  const sma50Declining = spyData?.sma50Declining || false;
 
   data.vix = vix;
   data.vixRegime = vixData?.regime || 'unknown';
   data.spyAbove200EMA = spyAbove200EMA;
+  data.sma50Declining = sma50Declining;
   data.vixUnavailable = vix === null;
 
   let assessment = 'Neutral';
@@ -610,6 +613,14 @@ export function assessRiskMacro(vixData, spyData) {
       reasons.push('SPY above 200 EMA (Bull regime intact)');
     }
     reasons.push('Proceed with caution');
+  }
+
+  // Day 57: Early bear regime cap — SPY above 200 EMA but 50 SMA declining >1%
+  // Catches 2022-style slow deterioration before 200 SMA crosses
+  // Mirrors backtest categorical_engine.py lines 219-221
+  if (sma50Declining && assessment === 'Favorable') {
+    assessment = 'Neutral';
+    reasons.push('SPY 50 SMA declining (early bear signal — capped at Neutral)');
   }
 
   return {

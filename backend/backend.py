@@ -934,7 +934,18 @@ def get_spy_data():
         
         # Calculate 200 SMA for market regime
         sma_200 = round(float(hist_data['Close'].tail(200).mean()), 2)
-        
+
+        # Day 57: Calculate 50 SMA declining (early bear indicator)
+        # Mirrors backtest trade_simulator.is_spy_50sma_declining()
+        sma50_declining = False
+        if len(hist_data) >= 70:
+            closes = hist_data['Close']
+            sma50_now = float(closes.iloc[-50:].mean())
+            sma50_20d_ago = float(closes.iloc[-70:-20].mean())
+            if sma50_20d_ago > 0:
+                sma50_change = (sma50_now - sma50_20d_ago) / sma50_20d_ago * 100
+                sma50_declining = sma50_change < -1.0
+
         response = {
             'ticker': 'SPY',
             'currentPrice': current_price,
@@ -942,6 +953,7 @@ def get_spy_data():
             'price13wAgo': price_13w_ago,
             'sma200': sma_200,
             'aboveSma200': bool(current_price > sma_200),  # FIX: Convert to Python bool
+            'sma50Declining': bool(sma50_declining),
             'priceHistory': price_history,
             'dataPoints': len(price_history)
         }

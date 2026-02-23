@@ -2,12 +2,12 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 56 (February 19, 2026)
+> **Last Updated:** Day 57 (February 22, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.17 (Backend v2.19, Frontend v4.5, Backtest v4.17)
+## Current Version: v4.18 (Backend v2.20, Frontend v4.6, Backtest v4.17)
 
 ---
 
@@ -66,9 +66,10 @@
 | G1 | Holistic 3-Layer Backtest (60 tickers) | ✅ COMPLETE (Day 55) |
 | G2 | Walk-Forward Validation (IS vs OOS) | ✅ COMPLETE (Day 55) |
 | G3 | Exit Strategy Optimization | ✅ COMPLETE (Day 55) |
-| G4 | Bear Market Regime Filter | ✅ IMPLEMENTED (Day 56) — needs re-run |
+| G4 | Bear Market Regime Filter | ✅ VALIDATED (Day 57) — bear WR 55.6%→71.4% |
 | G5 | Frontend-Backend Threshold Sync | ✅ COMPLETE (Day 56) |
-| G6 | Quick & Position Period Backtest | PENDING |
+| G6 | Quick & Position Period Backtest | ✅ COMPLETE (Day 57) — walk-forward validated |
+| G7 | Full System Coherence Audit | ✅ COMPLETE (Day 57) — 71 params, 96% coherence |
 
 **Test Command:** `python backend/backtest/backtest_holistic.py --configs C --walk-forward`
 
@@ -206,16 +207,21 @@
 - **Backend:** `/api/earnings/<ticker>` endpoint with multiple yfinance fallback methods
 - **Files Modified:** `backend/backend.py`, `frontend/src/services/api.js`, `frontend/src/App.jsx`
 
-### v4.11: Sector Rotation Tab (Day 49+)
+### v4.11: Sector Rotation (Day 49+, Rethought Day 57)
 - **Priority:** MEDIUM (verified - simple RS ranking is effective)
-- **Status:** PLANNED
-- **Features:**
-  - Sector RS Calculation (Sector ETF / SPY)
-  - 11 SPDR Sector ETFs tracked
-  - Simple 3-criteria ranking (RS > 0, RS > MA, near 52wk high)
-  - Integration: Show sector context for analyzed stocks
-- **Research:** `docs/research/RESEARCH_ANALYSIS_CRITICAL_REVIEW.md`
-- **Effort:** 4-6 hours
+- **Status:** PLANNED (Phase 1 approach — embed in existing views first)
+- **Research:** `docs/research/Sector_Rotation_analysis.md` (450+ lines, comprehensive)
+- **Phase 1 (1-2 hrs):** Sector context in existing views — NO new tab
+  - Backend: `/api/sectors/rotation` — fetch 11 SPDR ETFs, calculate RS vs SPY, cache daily
+  - Analyze page: Show "Technology (XLK) — LEADING" below stock header
+  - Scan results: Add sector strength badge
+  - Decision Matrix: Add sector as informational factor (no verdict change)
+  - Purely informational — does NOT change any trade signals or verdicts
+- **Phase 2 (later, only if Phase 1 insufficient):** Dedicated sector tab
+  - 11 sector cards ranked by RS with quadrant colors (Leading/Improving/Weakening/Lagging)
+  - "Show stocks in this sector" → pre-filter Scan tab
+- **Key insight:** 70% of stock price movement comes from sector leadership (Faber study)
+- **Effort:** Phase 1: 1-2 hours | Phase 2: 2-3 hours additional
 
 ### v4.12: TradingView Lightweight Charts
 - **Priority:** MEDIUM
@@ -297,27 +303,24 @@
 
 ---
 
-### v4.18: S&P 500 Index Filter for Scan Market
+### v4.18: S&P 500 / NASDAQ 100 / Dow 30 Index Filter ✅ COMPLETE (Day 56)
 - **Priority:** MEDIUM (user-requested quality filter)
-- **Status:** PLANNED (research complete Day 56)
-- **Discovery:** TradingView scanner has NATIVE support via `Query().set_index('SYML:SP;SPX')`
-- **Implementation:** 1-line addition per strategy — `.set_index()` before `.where()`
-- **Options:**
-  - Apply to all strategies by default
-  - OR add user-selectable dropdown: S&P 500 / NASDAQ 100 / All US Stocks
-- **Also supports:** NASDAQ 100 (`SYML:NDAQ;NDX`), Dow 30 (`SYML:US;INDU`), Russell 2000 (`SYML:US;RUT`)
-- **Note:** `set_index()` resets API to `/global` endpoint (transparent, no user impact)
-- **Effort:** 1 hour
+- **Status:** ✅ IMPLEMENTED
+- **Features:**
+  - User-selectable dropdown: All US Stocks / S&P 500 / NASDAQ 100 / Dow 30
+  - TradingView native `Query().set_index()` — no maintenance needed
+  - Correct index identifiers (verified via live testing):
+    - S&P 500: `SYML:SP;SPX` (503 stocks)
+    - NASDAQ 100: `SYML:NASDAQ;NDX` (101 stocks)
+    - Dow 30: `SYML:DJ;DJI` (30 stocks)
+  - Works with all 5 scan strategies
+- **Files Modified:** `backend.py` (INDEX_MAP + market_index param), `api.js` (marketIndex param), `App.jsx` (dropdown)
 
 ---
 
 ## RESEARCH REQUIRED (Before Implementation)
 
-### Options Open Interest
-- **Status:** BLOCKED - Data availability uncertain
-- **Action:** Verify yfinance options data works before planning
-- **Test:** Run `ticker.option_chain()` and check `openInterest` field
-- **If fails:** Explore Polygon.io or OCC as alternatives
+### RSI/MACD Divergence Detection
 
 ### RSI/MACD Divergence Detection
 - **Status:** RESEARCH NEEDED
@@ -337,7 +340,35 @@
 | H&S Pattern Detection | Academic research "scarce and inconclusive" (NY Fed) |
 | Seasonal Patterns | "Small edge", regime-dependent (ChatGPT) |
 | Optimal Weighting System | No universal answer exists - varies by regime |
-| Options Open Interest | Data source uncertain - verify first |
+
+### v4.19: Basic Options Tab (LOWEST PRIORITY)
+- **Priority:** LOW — build only when daily forward testing is running and system is in maintenance mode
+- **Status:** RESEARCH COMPLETE (Perplexity deep research, Day 56)
+- **Research doc:** `docs/research/OPTIONS_TAB_PERPLEXITY_PROMPT.md` (includes full results)
+- **Scope:** 4 signals: Call Buy, Covered Call, Put Buy, Cash-Secured Put eligibility
+- **Data:** yfinance chains + `py_vollib_vectorized` for local Greeks/IV computation
+- **Key decisions:**
+  - Binary "Eligible / Not Eligible" per strategy with bullet rationale
+  - IV Rank/Percentile computed locally from stored IV history
+  - Greeks via Black-Scholes (no vendor dependency)
+  - No multi-leg strategies, no naked selling, no real-time dashboards
+- **Prerequisite:** System must be in daily forward testing phase first
+
+### v4.20: Canadian Market Support (TSX) (LOW PRIORITY)
+- **Priority:** LOW — build when US market flow is stable
+- **Status:** RESEARCH COMPLETE (Day 56, live-tested)
+- **Verified:**
+  - TradingView `set_markets('canada')` → 8,408 stocks (TSX + NEO exchanges)
+  - TSX 60 index: `set_index('SYML:TSX;TX60')` → 60 stocks
+  - All technical columns (RSI, ADX, EMA50, SMA200, RVOL) available and identical to US
+- **Changes needed:**
+  - **Scan tab (easy):** Add `tsx60` to INDEX_MAP, add `canada` to set_markets, frontend dropdown options
+  - **Analysis tab (medium):** Ticker mapping `TSX:RY` → `RY.TO` for yfinance/TwelveData
+  - **Benchmark decision:** RS vs SPY (keep) or RS vs XIU.TO (Canadian benchmark) — or auto-detect
+  - **Currency:** CAD label on prices (no conversion needed)
+  - **VIX/Regime:** US VIX still valid for global sentiment; Canadian VIXC optional
+- **What doesn't change:** All technical analysis, S/R clustering, pattern detection, decision matrix — math is math
+- **Market hours:** TSX = same as NYSE (9:30-4:00 ET) — no timezone issues
 
 ---
 
@@ -353,6 +384,7 @@
 | Research_answers_For_Thinking_Journal.md | Multi-AI research (Grok/ChatGPT/Perplexity) | Day 48 |
 | RESEARCH_ANALYSIS_CRITICAL_REVIEW.md | Critical analysis of research - verified vs unverified | Day 48 |
 | ACTION_PLAN_FROM_RESEARCH.md | Implementation priorities from research | Day 48 |
+| OPTIONS_TAB_PERPLEXITY_PROMPT.md | Options Tab: data sources, checklists, Greeks, decision matrix | Day 56 |
 
 ---
 
@@ -395,7 +427,8 @@ From backtesting:
 | 53 | v4.15 Decision Matrix COMPLETE, v4.13 Holding Period COMPLETE, Bugs #7/#8 fixed, Architectural audit: removed fundamentals from /api/stock/ (SRP), removed ~255 lines dead code, 5-field end-to-end reconciliation. Backend v2.18. |
 | 54 | Pre-backtest audit (3 investigations): API data integrity (3 CRITICAL + 4 HIGH found), Decision Matrix coherence (ALL CLEAR), Simple Checklist review (50% SEPA alignment). Fixed 4 hardcoded fallbacks: sentiment 5→0, breadth 1→0, F&G 50→null, VIX 20→null. Golden Rule: silent fallbacks are invisible lies. |
 | 55 | v4.16 Holistic 3-Layer Backtest COMPLETE: 60 tickers, 3 configs, all statistically significant. Config C: 53.78% WR, PF 1.61, Sharpe 0.85. Walk-forward validated. Exit optimization: trailing 10 EMA + breakeven stop, DD reduced -13.3%. |
-| 56 | v4.17: 5th filter redesigned (Config C), coherence audit (39/42 match, pattern threshold 80→60), bear regime filter added, S&P 500 index filter researched + planned as v4.18. |
+| 56 | v4.17: 5th filter redesigned (Config C), coherence audit (39/42 match, pattern threshold 80→60), bear regime filter added. v4.18 S&P/NASDAQ/Dow index filter IMPLEMENTED. Options Tab research complete (v4.19, deferred). |
+| 57 | Bear regime backtest VALIDATED (bear WR 71.4%). Quick+Position periods backtested and walk-forward validated. Full coherence audit (71 params, 96%). sma50Declining wired backend→frontend. yfinance 0.2.28→1.2.0. Sector rotation plan RETHOUGHT (Phase 1: embed in views, not new tab). |
 
 ---
 

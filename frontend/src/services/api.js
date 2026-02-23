@@ -125,6 +125,7 @@ export async function fetchSPYData() {
       price13wAgo: data.price13wAgo,
       sma200: data.sma200,
       aboveSma200: data.aboveSma200,
+      sma50Declining: data.sma50Declining || false,  // Day 57: early bear indicator
       priceHistory: data.priceHistory,
       dataPoints: data.dataPoints
     };
