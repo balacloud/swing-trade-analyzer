@@ -2051,6 +2051,149 @@ def get_forward_test_performance():
         return jsonify({'error': str(e)}), 500
 
 # ============================================
+# SECTOR ROTATION (Day 58 - v4.19)
+# ============================================
+
+# GICS Sector → SPDR ETF mapping
+SECTOR_ETF_MAP = {
+    'XLK': {'name': 'Technology', 'gics': ['Technology', 'Information Technology']},
+    'XLF': {'name': 'Financials', 'gics': ['Financial Services', 'Financials', 'Financial']},
+    'XLV': {'name': 'Health Care', 'gics': ['Healthcare', 'Health Care']},
+    'XLI': {'name': 'Industrials', 'gics': ['Industrials', 'Industrial Goods']},
+    'XLY': {'name': 'Consumer Discretionary', 'gics': ['Consumer Cyclical', 'Consumer Discretionary']},
+    'XLP': {'name': 'Consumer Staples', 'gics': ['Consumer Defensive', 'Consumer Staples']},
+    'XLE': {'name': 'Energy', 'gics': ['Energy']},
+    'XLB': {'name': 'Materials', 'gics': ['Basic Materials', 'Materials']},
+    'XLU': {'name': 'Utilities', 'gics': ['Utilities']},
+    'XLRE': {'name': 'Real Estate', 'gics': ['Real Estate']},
+    'XLC': {'name': 'Communication Services', 'gics': ['Communication Services']},
+}
+
+# Reverse mapping: yfinance sector string → ETF ticker
+GICS_TO_ETF = {}
+for etf, info in SECTOR_ETF_MAP.items():
+    for gics_name in info['gics']:
+        GICS_TO_ETF[gics_name] = etf
+
+
+@app.route('/api/sectors/rotation', methods=['GET'])
+def get_sector_rotation():
+    """
+    Get sector rotation data for all 11 SPDR sector ETFs.
+    Calculates Relative Strength vs SPY and determines RRG quadrant.
+
+    Returns:
+    - sectors: Array of {etf, name, rsRatio, rsMomentum, quadrant, weekChange, monthChange}
+    - mapping: GICS sector name → ETF ticker (for matching stocks to their sector)
+    """
+    try:
+        period = request.args.get('period', '6mo')
+
+        # Download SPY + all 11 sector ETFs in one batch
+        etf_tickers = list(SECTOR_ETF_MAP.keys())
+        all_tickers = ['SPY'] + etf_tickers
+
+        # Use yfinance batch download for efficiency
+        data = yf.download(all_tickers, period=period, progress=False, group_by='ticker')
+
+        if data is None or data.empty:
+            return jsonify({'error': 'Failed to download sector ETF data'}), 500
+
+        # Handle both single and multi-ticker column formats
+        # yf.download with multiple tickers returns MultiIndex columns: (ticker, field)
+        spy_close = data['SPY']['Close'].dropna()
+
+        if len(spy_close) < 20:
+            return jsonify({'error': 'Insufficient SPY data'}), 500
+
+        sectors = []
+        for etf in etf_tickers:
+            try:
+                etf_close = data[etf]['Close'].dropna()
+
+                if len(etf_close) < 20:
+                    continue
+
+                # Align dates
+                common_idx = spy_close.index.intersection(etf_close.index)
+                if len(common_idx) < 20:
+                    continue
+
+                spy_aligned = spy_close.loc[common_idx]
+                etf_aligned = etf_close.loc[common_idx]
+
+                # RS Ratio: (ETF / SPY) normalized to 100 at midpoint
+                rs_line = (etf_aligned / spy_aligned)
+                midpoint = len(rs_line) // 2
+                rs_normalized = (rs_line / rs_line.iloc[midpoint]) * 100
+
+                # Current RS Ratio (latest value)
+                rs_ratio = round(float(rs_normalized.iloc[-1]), 2)
+
+                # RS Momentum: RS change over last 10 trading days
+                if len(rs_normalized) >= 10:
+                    rs_momentum = round(float(rs_normalized.iloc[-1] - rs_normalized.iloc[-10]), 2)
+                else:
+                    rs_momentum = 0.0
+
+                # Determine RRG Quadrant
+                if rs_ratio >= 100 and rs_momentum >= 0:
+                    quadrant = 'Leading'
+                elif rs_ratio >= 100 and rs_momentum < 0:
+                    quadrant = 'Weakening'
+                elif rs_ratio < 100 and rs_momentum < 0:
+                    quadrant = 'Lagging'
+                else:  # rs_ratio < 100 and rs_momentum >= 0
+                    quadrant = 'Improving'
+
+                # Price changes for context
+                current_price = round(float(etf_aligned.iloc[-1]), 2)
+                week_change = None
+                month_change = None
+                if len(etf_aligned) >= 5:
+                    week_change = round(float((etf_aligned.iloc[-1] / etf_aligned.iloc[-5] - 1) * 100), 2)
+                if len(etf_aligned) >= 21:
+                    month_change = round(float((etf_aligned.iloc[-1] / etf_aligned.iloc[-21] - 1) * 100), 2)
+
+                sectors.append({
+                    'etf': etf,
+                    'name': SECTOR_ETF_MAP[etf]['name'],
+                    'price': current_price,
+                    'rsRatio': rs_ratio,
+                    'rsMomentum': rs_momentum,
+                    'quadrant': quadrant,
+                    'weekChange': week_change,
+                    'monthChange': month_change,
+                })
+
+            except Exception as e:
+                print(f"⚠️ Error processing {etf}: {e}")
+                continue
+
+        # Sort by RS Ratio descending (strongest first)
+        sectors.sort(key=lambda x: x['rsRatio'], reverse=True)
+
+        # Add rank
+        for i, s in enumerate(sectors):
+            s['rank'] = i + 1
+
+        response = {
+            'sectors': sectors,
+            'sectorCount': len(sectors),
+            'mapping': GICS_TO_ETF,
+            'timestamp': datetime.now().isoformat(),
+            'period': period,
+        }
+
+        return jsonify(response)
+
+    except Exception as e:
+        print(f"Error fetching sector rotation: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+# ============================================
 # MAIN
 # ============================================
 

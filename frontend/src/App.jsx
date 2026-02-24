@@ -38,7 +38,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation, clearBackendCache, fetchDataProvenance, getCacheStatus } from './services/api';
+import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation, clearBackendCache, fetchDataProvenance, getCacheStatus, fetchSectorRotation } from './services/api';
 import { calculateScore } from './utils/scoringEngine';
 import { calculateSimplifiedAnalysis } from './utils/simplifiedScoring';
 import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings } from './utils/positionSizing';
@@ -123,6 +123,9 @@ function App() {
   const [provenanceLoading, setProvenanceLoading] = useState(false);
   const [cacheStatus, setCacheStatus] = useState(null);
 
+  // Sector Rotation state (Day 58 - v4.19)
+  const [sectorRotation, setSectorRotation] = useState(null);
+
   // Quick picks for testing
   const quickPicks = ['AVGO', 'NVDA', 'AAPL', 'META', 'MSFT', 'NFLX', 'PLTR']; 
 
@@ -133,6 +136,10 @@ function App() {
     fetchScanStrategies()
       .then(setStrategies)
       .catch(err => console.error('Failed to load strategies:', err));
+    // Day 58: Load sector rotation data on startup
+    fetchSectorRotation()
+      .then(setSectorRotation)
+      .catch(err => console.error('Failed to load sector rotation:', err));
     // Load saved settings
     setSettings(loadSettings());
   }, []);
@@ -206,6 +213,14 @@ function App() {
   const updateSettings = (newSettings) => {
     setSettings(newSettings);
     saveSettings(newSettings);
+  };
+
+  // Day 58: Look up sector rotation context for a stock
+  const getSectorContext = (stockSector) => {
+    if (!sectorRotation || !stockSector) return null;
+    const etfTicker = sectorRotation.mapping[stockSector];
+    if (!etfTicker) return null;
+    return sectorRotation.sectors.find(s => s.etf === etfTicker) || null;
   };
 
   // Calculate position when inputs change
@@ -951,7 +966,20 @@ function App() {
                   <div className="flex justify-between items-center">
                     <div>
                       <h2 className="text-2xl font-bold text-white">{analysisResult.ticker} - {analysisResult.name}</h2>
-                      <p className="text-gray-400">{analysisResult.sector} • {analysisResult.industry}</p>
+                      <p className="text-gray-400">
+                        {analysisResult.sector} • {analysisResult.industry}
+                        {(() => {
+                          const sc = getSectorContext(analysisResult.sector);
+                          if (!sc) return null;
+                          const qColors = { Leading: 'bg-green-600', Weakening: 'bg-yellow-600', Lagging: 'bg-red-600', Improving: 'bg-blue-600' };
+                          return (
+                            <span className={`ml-2 px-1.5 py-0.5 rounded text-xs font-medium text-white ${qColors[sc.quadrant] || 'bg-gray-600'}`}
+                              title={`${sc.name} (${sc.etf}) — RS: ${sc.rsRatio} | Mom: ${sc.rsMomentum > 0 ? '+' : ''}${sc.rsMomentum} | Rank: ${sc.rank}/11`}>
+                              {sc.etf} {sc.quadrant.toUpperCase()}
+                            </span>
+                          );
+                        })()}
+                      </p>
                       <div className="flex items-center gap-2 mt-1">
                         <p className="text-gray-500 text-sm">{formatCurrency(analysisResult.currentPrice)}</p>
                         {/* Day 49: v4.10 Earnings Warning Badge */}
@@ -2201,7 +2229,20 @@ function App() {
                   <div className="flex justify-between items-center">
                     <div>
                       <h2 className="text-2xl font-bold">{analysisResult.ticker} - {analysisResult.name}</h2>
-                      <p className="text-white/80">{analysisResult.sector} • {analysisResult.industry}</p>
+                      <p className="text-white/80">
+                        {analysisResult.sector} • {analysisResult.industry}
+                        {(() => {
+                          const sc = getSectorContext(analysisResult.sector);
+                          if (!sc) return null;
+                          const qColors = { Leading: 'bg-green-700', Weakening: 'bg-yellow-700', Lagging: 'bg-red-700', Improving: 'bg-blue-700' };
+                          return (
+                            <span className={`ml-2 px-1.5 py-0.5 rounded text-xs font-medium text-white ${qColors[sc.quadrant] || 'bg-gray-600'}`}
+                              title={`${sc.name} (${sc.etf}) — RS: ${sc.rsRatio} | Mom: ${sc.rsMomentum > 0 ? '+' : ''}${sc.rsMomentum} | Rank: ${sc.rank}/11`}>
+                              {sc.etf} {sc.quadrant.toUpperCase()}
+                            </span>
+                          );
+                        })()}
+                      </p>
                     </div>
                     <div className="text-right">
                       <div className="text-4xl font-bold">
@@ -2423,6 +2464,7 @@ function App() {
                       <tr className="text-gray-400 border-b border-gray-700">
                         <th className="text-left py-3 px-2">Ticker</th>
                         <th className="text-left py-3 px-2">Name</th>
+                        <th className="text-left py-3 px-2">Sector</th>
                         <th className="text-right py-3 px-2">Price</th>
                         <th className="text-right py-3 px-2">Change</th>
                         <th className="text-right py-3 px-2">Volume</th>
@@ -2435,6 +2477,19 @@ function App() {
                         <tr key={stock.ticker} className="border-b border-gray-700/50 hover:bg-gray-700/30">
                           <td className="py-3 px-2 font-bold text-blue-400">{stock.ticker}</td>
                           <td className="py-3 px-2 text-gray-300">{stock.name?.slice(0, 30)}</td>
+                          <td className="py-3 px-2">
+                            {(() => {
+                              const sc = getSectorContext(stock.sector);
+                              if (!sc) return <span className="text-gray-500 text-xs">{stock.sector || '—'}</span>;
+                              const qColors = { Leading: 'text-green-400', Weakening: 'text-yellow-400', Lagging: 'text-red-400', Improving: 'text-blue-400' };
+                              return (
+                                <span className={`text-xs font-medium ${qColors[sc.quadrant] || 'text-gray-400'}`}
+                                  title={`${sc.name} (${sc.etf}) — RS: ${sc.rsRatio} | Mom: ${sc.rsMomentum > 0 ? '+' : ''}${sc.rsMomentum} | Rank: ${sc.rank}/11`}>
+                                  {sc.etf} {sc.quadrant}
+                                </span>
+                              );
+                            })()}
+                          </td>
                           <td className="py-3 px-2 text-right font-mono">{formatCurrency(stock.price)}</td>
                           <td className={`py-3 px-2 text-right ${stock.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                             {stock.change != null ? formatPercent(stock.change) : 'N/A'}

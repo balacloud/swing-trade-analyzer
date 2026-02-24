@@ -10,6 +10,7 @@
  * v2.5: Added Pattern Detection endpoint (Day 44)
  * v2.6: Added Fear & Greed Index endpoint (Day 44 - v4.5 Categorical Assessment)
  * v2.7: Added Earnings Calendar endpoint (Day 49 - v4.10)
+ * v2.8: Added Sector Rotation endpoint (Day 58 - v4.19)
  */
 
 const API_BASE_URL = 'http://localhost:5001/api';
@@ -719,5 +720,40 @@ export async function fetchEarnings(ticker, days = 7) {
       source: null,
       error: error.message
     };
+  }
+}
+
+// ============================================
+// SECTOR ROTATION (Day 58 - v4.19)
+// ============================================
+
+/**
+ * Fetch sector rotation data for all 11 SPDR sector ETFs
+ * Returns RS ratio vs SPY and RRG quadrant classification
+ *
+ * @returns {object} - { sectors[], mapping, sectorCount, timestamp }
+ */
+export async function fetchSectorRotation() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/sectors/rotation`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch sector rotation data');
+    }
+
+    const data = await response.json();
+
+    return {
+      sectors: data.sectors || [],
+      sectorCount: data.sectorCount,
+      mapping: data.mapping || {},
+      timestamp: data.timestamp,
+      period: data.period,
+    };
+
+  } catch (error) {
+    console.error('Error fetching sector rotation:', error);
+    return null;
   }
 }
