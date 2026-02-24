@@ -1656,6 +1656,9 @@ function App() {
                               <span className="text-blue-400 font-mono">${patternsData.patterns.vcp.pivot_price.toFixed(2)}</span>
                             </div>
                           )}
+                          <div className="text-gray-500 italic mt-1.5 pt-1.5 border-t border-gray-600">
+                            Sellers exhausted — each pullback smaller. Lowest risk breakout entry.
+                          </div>
                         </div>
                       </div>
 
@@ -1700,6 +1703,9 @@ function App() {
                               <span className="text-blue-400 font-mono">${patternsData.patterns.cupHandle.pivot_price.toFixed(2)}</span>
                             </div>
                           )}
+                          <div className="text-gray-500 italic mt-1.5 pt-1.5 border-t border-gray-600">
+                            Institutional accumulation. Handle shakes out weak hands before real move.
+                          </div>
                         </div>
                       </div>
 
@@ -1744,6 +1750,9 @@ function App() {
                               <span className="text-blue-400 font-mono">${patternsData.patterns.flatBase.pivot_price.toFixed(2)}</span>
                             </div>
                           )}
+                          <div className="text-gray-500 italic mt-1.5 pt-1.5 border-t border-gray-600">
+                            Digesting gains in tight range. Compression before next leg up.
+                          </div>
                         </div>
                       </div>
                     </div>

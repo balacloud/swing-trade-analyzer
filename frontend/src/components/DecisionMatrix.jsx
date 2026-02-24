@@ -403,6 +403,14 @@ function PatternCard({ name, pattern }) {
                       name === 'flatBase' ? 'Flat Base' :
                       name.charAt(0).toUpperCase() + name.slice(1);
 
+  const traderMeaning = name === 'vcp'
+    ? 'Sellers exhausted — each pullback smaller. Lowest risk breakout entry.'
+    : name === 'cupAndHandle'
+    ? 'Institutional accumulation. Handle shakes out weak hands before real move.'
+    : name === 'flatBase'
+    ? 'Digesting gains in tight range. Compression before next leg up.'
+    : '';
+
   return (
     <div className={`rounded-lg p-3 border ${
       detected
@@ -433,6 +441,13 @@ function PatternCard({ name, pattern }) {
             className={`h-full rounded-full ${actionable ? 'bg-green-500' : 'bg-yellow-500'}`}
             style={{ width: `${Math.min(confidence, 100)}%` }}
           />
+        </div>
+      )}
+
+      {/* Trader context */}
+      {traderMeaning && (
+        <div className="text-xs text-gray-500 mt-2 italic border-t border-gray-700 pt-1.5">
+          {traderMeaning}
         </div>
       )}
     </div>
