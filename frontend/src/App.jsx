@@ -320,6 +320,11 @@ function App() {
       setSimplifiedResult(simplified);
       setTicker(targetTicker);
 
+      // Day 58: Update sector rotation from analysis data (reliable — cached per trading day)
+      if (data.sectorRotation) {
+        setSectorRotation(data.sectorRotation);
+      }
+
       // v4.13: Store raw data for re-assessment when holding period changes
       setRawAnalysisData({
         stock: data.stock,
@@ -2435,8 +2440,10 @@ function App() {
 
             {/* Scan Error */}
             {scanError && (
-              <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-6 text-red-200">
-                {scanError}
+              <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-6">
+                <p className="text-red-200 font-medium">Backend Error</p>
+                <p className="text-red-300 text-sm mt-1">{scanError}</p>
+                <p className="text-red-400 text-xs mt-2">Check that the backend is running on port 5001 and TradingView screener is installed.</p>
               </div>
             )}
 
@@ -2511,6 +2518,19 @@ function App() {
                     </tbody>
                   </table>
                 </div>
+
+                {/* No matching stocks message */}
+                {(!scanResults.candidates || scanResults.candidates.length === 0) && (
+                  <div className="text-center py-8 text-gray-400">
+                    <div className="text-3xl mb-2">📭</div>
+                    <p className="font-medium">No stocks matched the {scanResults.strategy} criteria</p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {scanResults.marketIndex && scanResults.marketIndex !== 'all'
+                        ? `Try broadening the market filter (currently: ${scanResults.marketIndex === 'sp500' ? 'S&P 500' : scanResults.marketIndex === 'nasdaq100' ? 'NASDAQ 100' : 'Dow 30'}) or switching strategy.`
+                        : 'Try a different strategy or check back when market conditions change.'}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 

@@ -2081,13 +2081,24 @@ def get_sector_rotation():
     """
     Get sector rotation data for all 11 SPDR sector ETFs.
     Calculates Relative Strength vs SPY and determines RRG quadrant.
+    Cached per trading day (SQLite market_cache, expires at next market close).
 
     Returns:
     - sectors: Array of {etf, name, rsRatio, rsMomentum, quadrant, weekChange, monthChange}
     - mapping: GICS sector name → ETF ticker (for matching stocks to their sector)
     """
     try:
+        # Check cache first (expires at next market close)
+        if SQLITE_CACHE_AVAILABLE:
+            cached = cache_manager.get_cached_market('SECTOR_ROTATION')
+            if cached:
+                print("📦 Sector rotation cache HIT")
+                cached['cached'] = True
+                return jsonify(cached)
+
         period = request.args.get('period', '6mo')
+
+        print("🔄 Fetching fresh sector rotation data (11 ETFs)...")
 
         # Download SPY + all 11 sector ETFs in one batch
         etf_tickers = list(SECTOR_ETF_MAP.keys())
@@ -2184,6 +2195,11 @@ def get_sector_rotation():
             'timestamp': datetime.now().isoformat(),
             'period': period,
         }
+
+        # Cache until next market close
+        if SQLITE_CACHE_AVAILABLE:
+            cache_manager.set_cached_market('SECTOR_ROTATION', response)
+            print(f"💾 Sector rotation cached ({len(sectors)} sectors)")
 
         return jsonify(response)
 

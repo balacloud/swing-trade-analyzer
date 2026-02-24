@@ -373,7 +373,7 @@ export async function fetchSupportResistance(ticker) {
  */
 export async function fetchFullAnalysisData(ticker) {
   try {
-    const [stockData, fundamentals, spyData, vixData, srData, patterns, fearGreed, earnings] = await Promise.all([
+    const [stockData, fundamentals, spyData, vixData, srData, patterns, fearGreed, earnings, sectorData] = await Promise.all([
       fetchStockData(ticker),
       fetchFundamentals(ticker),
       fetchSPYData(),
@@ -381,7 +381,8 @@ export async function fetchFullAnalysisData(ticker) {
       fetchSupportResistance(ticker),
       fetchPatterns(ticker),
       fetchFearGreed(),
-      fetchEarnings(ticker)
+      fetchEarnings(ticker),
+      fetchSectorRotation()  // Day 58: Fetch sector rotation (cached per trading day)
     ]);
 
     // Attach fundamentals to stock data (single source: /api/fundamentals/)
@@ -408,7 +409,8 @@ export async function fetchFullAnalysisData(ticker) {
       sr: srData,
       patterns: patterns,
       fearGreed: fearGreed,
-      earnings: earnings
+      earnings: earnings,
+      sectorRotation: sectorData  // Day 58: Sector rotation data
     };
 
   } catch (error) {
