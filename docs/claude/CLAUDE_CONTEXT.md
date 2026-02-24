@@ -154,7 +154,7 @@ docs/claude/stable/ROADMAP.md                   (only if roadmap items changed)
 6. Update the CURRENT STATE table in this file (timestamps, day number, focus)
 7. Provide git commit command
 
-**IMPORTANT:** Auto-update ALL docs yourself — never ask the user to manually update files. Always update timestamps on every doc touched.
+**IMPORTANT:** Auto-update ALL docs yourself — never ask the user to manually update files. Always update timestamps on every doc touched. Commit and push yourself — don't provide git commands for the user to run.
 
 ---
 
