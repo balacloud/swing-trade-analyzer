@@ -217,11 +217,23 @@
   - Scan results: Sector column with quadrant label per stock
   - Hover tooltip: RS ratio, momentum, rank out of 11
   - Purely informational — does NOT change any trade signals or verdicts
-- **Phase 2 (later, only if Phase 1 insufficient):** Dedicated sector tab
+- **Phase 2 (Day 59):** Dedicated sector tab + scan integration
   - 11 sector cards ranked by RS with quadrant colors
+  - **"Scan for Rank 1"** — filter scan results by sector rank
   - "Show stocks in this sector" → pre-filter Scan tab
 - **Key insight:** 70% of stock price movement comes from sector leadership (Faber study)
 - **Files:** `backend/backend.py` (endpoint), `frontend/src/services/api.js`, `frontend/src/App.jsx`
+
+### v4.20: Cache Management Audit + UI Freshness Meter
+- **Priority:** MEDIUM (data quality concern)
+- **Status:** PLANNED (Day 59)
+- **Problem:** Multiple caching layers (SQLite stock cache, market cache, sector rotation) may serve stale data without user awareness
+- **Features:**
+  - Audit all cache TTLs and expiration logic
+  - UI freshness meter showing data age per source
+  - Visual indicator of staleness (green=fresh, yellow=aging, red=stale)
+  - Per-source timestamp display on hover
+- **Files:** `backend/cache_manager.py`, `frontend/src/App.jsx`
 
 ### v4.12: TradingView Lightweight Charts
 - **Priority:** MEDIUM
@@ -354,16 +366,22 @@
   - No multi-leg strategies, no naked selling, no real-time dashboards
 - **Prerequisite:** System must be in daily forward testing phase first
 
-### v4.20: Canadian Market Support (TSX) (LOW PRIORITY)
-- **Priority:** LOW — build when US market flow is stable
-- **Status:** RESEARCH COMPLETE (Day 56, live-tested)
-- **Verified:**
+### v4.21: Canadian Market Support (TSX 60 + CAD-Hedged US Tickers)
+- **Priority:** MEDIUM (user requested Day 58)
+- **Status:** RESEARCH COMPLETE (Day 56, live-tested) + CAD-hedged scope added Day 58
+- **Two scopes:**
+  - **Scope 1: TSX 60** — Native Canadian blue-chip stocks (RY, TD, SHOP, CNR, etc.)
+  - **Scope 2: CAD-Hedged US Tickers** — Canadian-listed versions of US giants (e.g., MSFT, AMZN, GOOGL traded in CAD on TSX/NEO). These are typically ETF wrappers or CDRs (Canadian Depository Receipts) that let Canadian investors hold US names in CAD without currency conversion.
+    - Examples: `HXS.TO` (S&P 500 hedged), CDRs like `MSFT.NE`, `AMZN.NE`, `GOOGL.NE`
+    - **Research needed:** Confirm which CAD-hedged tickers are available via TradingView scan + yfinance, and whether technical analysis applies (volume, patterns may differ from US originals)
+- **Verified (Day 56):**
   - TradingView `set_markets('canada')` → 8,408 stocks (TSX + NEO exchanges)
   - TSX 60 index: `set_index('SYML:TSX;TX60')` → 60 stocks
   - All technical columns (RSI, ADX, EMA50, SMA200, RVOL) available and identical to US
 - **Changes needed:**
   - **Scan tab (easy):** Add `tsx60` to INDEX_MAP, add `canada` to set_markets, frontend dropdown options
   - **Analysis tab (medium):** Ticker mapping `TSX:RY` → `RY.TO` for yfinance/TwelveData
+  - **CAD-hedged tickers:** Research CDR/ETF ticker conventions on NEO exchange (`.NE` suffix for yfinance)
   - **Benchmark decision:** RS vs SPY (keep) or RS vs XIU.TO (Canadian benchmark) — or auto-detect
   - **Currency:** CAD label on prices (no conversion needed)
   - **VIX/Regime:** US VIX still valid for global sentiment; Canadian VIXC optional
@@ -429,7 +447,7 @@ From backtesting:
 | 55 | v4.16 Holistic 3-Layer Backtest COMPLETE: 60 tickers, 3 configs, all statistically significant. Config C: 53.78% WR, PF 1.61, Sharpe 0.85. Walk-forward validated. Exit optimization: trailing 10 EMA + breakeven stop, DD reduced -13.3%. |
 | 56 | v4.17: 5th filter redesigned (Config C), coherence audit (39/42 match, pattern threshold 80→60), bear regime filter added. v4.18 S&P/NASDAQ/Dow index filter IMPLEMENTED. Options Tab research complete (v4.19, deferred). |
 | 57 | Bear regime backtest VALIDATED (bear WR 71.4%). Quick+Position periods backtested and walk-forward validated. Full coherence audit (71 params, 96%). sma50Declining wired backend→frontend. yfinance 0.2.28→1.2.0. Sector rotation plan RETHOUGHT (Phase 1: embed in views, not new tab). |
-| 58 | v4.19: Pattern trader descriptions (VCP/Cup&Handle/Flat Base). Sector Rotation Phase 1 COMPLETE: /api/sectors/rotation endpoint, RS ratio + RRG quadrant, badge on Analyze page + column in Scan results. |
+| 58 | v4.19: Pattern trader descriptions (VCP/Cup&Handle/Flat Base). Sector Rotation Phase 1 COMPLETE: /api/sectors/rotation endpoint, RS ratio + RRG quadrant, badge on Analyze page + column in Scan results. Fixed: sector badge reliability (race condition), SQLite cache for sector data, scan transparency (empty vs error). Added v4.20 Cache Audit + Freshness Meter to roadmap. |
 
 ---
 

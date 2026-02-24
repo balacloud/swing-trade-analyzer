@@ -12,6 +12,16 @@
 **Severity:** Low (no functional impact)
 **Description:** `backend/backend.py` still imports defeatbeta library
 
+### Medium: Cache Staleness Concern — Needs Audit
+**Severity:** Medium (potential data quality issue)
+**Description:** Multiple caching layers (SQLite stock cache, market cache, sector rotation cache) may serve stale data without user awareness. No UI indicator shows data freshness.
+**Action:** Day 59 — Audit all cache TTLs, add UI freshness meter to show data age per source
+
+### Medium: EPS/Revenue Growth Using QoQ Instead of YoY
+**Severity:** Medium (incorrect methodology)
+**Description:** `yfinance_provider.py` calculates revenueGrowth QoQ instead of YoY
+**Action:** Fix after backtest — methodology decision needed
+
 ### Info: epsGrowth Not Shown in Categorical Assessment
 **Severity:** Info (pre-existing from Day 53)
 
@@ -25,11 +35,6 @@
 **Severity:** Info (enhancement, not bug)
 **Description:** Simple Checklist has 4 criteria but lacks 52-week range, volume, ADX, market regime, ATR stops
 **Action:** Enhance next session — backtest now validates what criteria matter
-
-### Medium: EPS/Revenue Growth Using QoQ Instead of YoY
-**Severity:** Medium (incorrect methodology)
-**Description:** `yfinance_provider.py` calculates revenueGrowth QoQ instead of YoY
-**Action:** Fix after backtest — methodology decision needed
 
 ### Info: Fear & Greed Index — Questionable Value
 **Severity:** Info (architectural consideration)
@@ -55,7 +60,17 @@
 
 ## Resolved Issues (Day 58 - This Session)
 
-_No bugs resolved this session — only new features added._
+### Resolved: Sector Badge Not Showing on Analyze Page
+**Fix:** Added `fetchSectorRotation()` to `fetchFullAnalysisData()` as 9th parallel call. Previously depended on startup fetch which had race condition.
+**Commit:** `dcebdb9a`
+
+### Resolved: Scan Results Empty With No Explanation
+**Fix:** Added "No stocks matched criteria" message when candidates array is empty. Added "Backend Error" label with troubleshooting hint for exceptions.
+**Commit:** `dcebdb9a`
+
+### Resolved: Sector Rotation Fetched Fresh on Every App Load
+**Fix:** Added SQLite `market_cache` with key `SECTOR_ROTATION`, expires at next market close (4 PM ET + 30 min buffer).
+**Commit:** `dcebdb9a`
 
 ---
 
@@ -69,8 +84,8 @@ _No bugs resolved this session — only new features added._
 |----------|-------|
 | Open - Critical | 0 |
 | Open - High | 0 |
-| Open - Medium | 1 |
+| Open - Medium | 2 |
 | Open - Low | 2 |
 | Open - Info | 8 |
-| **Total Open** | **11** |
-| Resolved (Day 58 session) | 0 |
+| **Total Open** | **12** |
+| Resolved (Day 58 session) | 3 |

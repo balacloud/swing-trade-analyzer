@@ -27,7 +27,7 @@
 | Latest Status | PROJECT_STATUS_DAY58_SHORT.md |
 | Latest Issues | KNOWN_ISSUES_DAY58.md |
 | Latest API | API_CONTRACTS_DAY53.md (outdated — update when APIs change next) |
-| Focus | **v4.19 Sector Rotation Phase 1** — RS context in Analyze + Scan views |
+| Focus | **v4.19 Complete** — Sector Rotation Phase 1 + Pattern Descriptions + Fixes |
 
 ### Day 58 Summary (Current)
 - **v4.19 Pattern Descriptions + Sector Rotation Phase 1**
@@ -35,7 +35,9 @@
   - Sector Rotation Phase 1 COMPLETE:
     - Backend: `/api/sectors/rotation` endpoint — fetches 11 SPDR ETFs, calculates RS ratio vs SPY, RRG quadrant (Leading/Weakening/Lagging/Improving)
     - Frontend: Sector badge on Analyze page (color-coded quadrant next to sector/industry), Sector column in Scan results table
-    - Data loaded once on app startup, hover tooltip shows RS ratio, momentum, rank
+    - SQLite cache: sector data cached per trading day (expires at next market close)
+    - Sector badge reliability fix: added to `fetchFullAnalysisData()` as 9th parallel call
+  - Scan transparency: "No stocks matched criteria" vs "Backend Error" distinction
   - GICS sector mapping handles both yfinance and TradingView sector naming conventions
 
 ### Day 57 Summary
@@ -73,11 +75,12 @@
 | Standard (5-15d) | 244 | 53.69% | 1.62 | 0.85 | PASS (Day 55) |
 | Position (15-45d) | 362 | 38.67% | 1.51 | 0.61 | PASS (regime-sensitive, not overfitted) |
 
-### Next Session Priorities
-1. **Sector Rotation Phase 2** — full dedicated tab with sector ranking, quadrant colors, "show stocks in sector" filter (if Phase 1 insufficient)
-2. **Simple Checklist enhancements** — backtest now validates criteria, add 52-week range, volume, ADX, market regime, ATR stops
-3. **Position period regime gate** — show warning when selecting Position period outside bull regime
-4. **EPS/Revenue Growth methodology fix** — QoQ → YoY (Medium severity)
+### Next Session Priorities (Day 59)
+1. **Sector Rotation Phase 2** — dedicated tab with 11 sector cards ranked, quadrant colors, **"Scan for Rank 1"** filter (user requested)
+2. **Cache Management Audit + UI Freshness Meter** — audit all cache TTLs, add visual data freshness indicator (green/yellow/red staleness)
+3. **Canadian Market Support (v4.21)** — TSX 60 + CAD-hedged US tickers (CDRs like MSFT.NE, AMZN.NE, GOOGL.NE). Research CDR availability via TradingView/yfinance.
+4. **Simple Checklist enhancements** — backtest now validates criteria, add 52-week range, volume, ADX, market regime, ATR stops
+5. **EPS/Revenue Growth methodology fix** — QoQ → YoY (Medium severity)
 
 ---
 
@@ -148,9 +151,10 @@ docs/claude/stable/ROADMAP.md                   (only if roadmap items changed)
 3. Update API_CONTRACTS if any APIs added/changed
 4. Update GOLDEN_RULES if new lessons learned
 5. Update ROADMAP.md if roadmap items completed/added
-6. Provide git commit command
-7. Update the CURRENT STATE table in this file
-8. Tell user which files to update in Claude Project
+6. Update the CURRENT STATE table in this file (timestamps, day number, focus)
+7. Provide git commit command
+
+**IMPORTANT:** Auto-update ALL docs yourself — never ask the user to manually update files. Always update timestamps on every doc touched.
 
 ---
 
@@ -227,20 +231,23 @@ docs/claude/stable/ROADMAP.md                   (only if roadmap items changed)
 
 ## QUICK COMMANDS
 
+All commands run from the **project root**: `/Users/balajik/projects/swing-trade-analyzer/`
+
 ```bash
-# Start/Stop services (Day 37+)
+# Start/Stop services (Day 37+) — run from project root
 ./start.sh               # Start both backend and frontend
 ./start.sh backend       # Start only backend
+./start.sh frontend      # Start only frontend
 ./stop.sh                # Stop both services
 ./stop.sh backend        # Stop only backend
 
-# Find latest day number
+# Find latest day number — run from project root
 ls -la docs/claude/status/ | grep PROJECT_STATUS | tail -1
 
-# Git status
+# Git status — run from project root
 git status
 
-# Cache status (Day 37+)
+# Cache status (Day 37+) — run from anywhere
 curl http://localhost:5001/api/cache/status
 ```
 
@@ -278,7 +285,7 @@ curl http://localhost:5001/api/cache/status
 | 55 | v4.16 Holistic Backtest COMPLETE: 60 tickers, 3 configs, all statistically significant. Config C fixed (0→238 trades). Walk-forward validated (OOS>IS). Exit optimization: trailing 10 EMA + breakeven stop, DD 65.9%→52.6%. No unintended changes to production code. |
 | 56 | v4.17: 5th filter redesigned (Config C criteria), coherence audit (39/42 match, pattern threshold synced 80→60), bear regime filter (SPY 50 SMA declining), S&P 500 index filter researched (native TradingView support). |
 | 57 | v4.18: S&P 500/NASDAQ 100/Dow 30 index filter complete, bear regime coherence gap fixed (sma50Declining in backend+frontend), Options tab deferred (v4.19), TSX 60 deferred (v4.20), coherence audit document created. Backtest: bear regime validated (WR 71.4%), Quick+Position walk-forward passed, yfinance 0.2.28→1.2.0. Sector rotation rethought (Phase 1: embed in views). |
-| 58 | v4.19: Pattern trader descriptions (VCP/Cup&Handle/Flat Base), Sector Rotation Phase 1 complete (/api/sectors/rotation, RS ratio + RRG quadrant, badge on Analyze page + column in Scan results). |
+| 58 | v4.19: Pattern trader descriptions, Sector Rotation Phase 1 complete (endpoint + badge + scan column + SQLite cache), sector badge reliability fix, scan transparency (empty vs error). Day 59 priorities: Phase 2 dedicated tab with "Scan for Rank 1", Cache Audit + UI Freshness Meter. |
 
 ---
 
