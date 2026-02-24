@@ -2,7 +2,7 @@
 
 > **Purpose:** Stable reference document for all session rules
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 54 (February 16, 2026)
+> **Last Updated:** Day 58 (February 22, 2026)
 
 ---
 
@@ -55,7 +55,7 @@ When user says "session ending" or "close session":
 ### How Updates Work (Claude Code):
 - Claude uses Edit/Write tools to update files directly in the filesystem
 - No manual user action needed for local file updates
-- User commits to git after Claude makes changes
+- Claude commits AND pushes to git — don't provide commands for user to run
 
 ---
 
@@ -250,6 +250,13 @@ CLAUDE SESSION REMINDER:
 - **Dead code accumulates silently.** Three functions (~255 lines) were completely unused. Nobody noticed because they compiled fine.
 - **Phase-then-validate beats big-bang.** Phase 1 (stop corruption) → validate → Phase 2 (clean architecture) → validate. Each phase independently verifiable.
 - **After building enough features: STOP and PROVE.** Day 27 showed 49.7% win rate. All improvements since are untested. The next priority is always the backtest, not the next feature.
+
+### Day 58: Auto-Update Everything — Don't Ask, Just Do
+- **Never ask the user to manually update files** — Claude updates all docs directly (Edit/Write tools)
+- **Never provide git commands** — Claude commits AND pushes itself
+- **Always update timestamps** on every doc touched (`Last Updated` field)
+- **Don't create redundant files** — use existing structure (CLAUDE_CONTEXT.md, GOLDEN_RULES.md, SESSION_START.md). One file per purpose.
+- **Session close = Claude does everything** — update docs, commit, push. User just says "close session."
 
 ### Day 54: Silent Fallbacks — The Invisible Lie
 - **A hardcoded fallback value is worse than an error.** VIX=20 "normal" when API fails, Fear&Greed=50 "neutral" on error — the system makes decisions on phantom data and the trader never knows.

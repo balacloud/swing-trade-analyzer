@@ -152,9 +152,7 @@ docs/claude/stable/ROADMAP.md                   (only if roadmap items changed)
 4. Update GOLDEN_RULES if new lessons learned
 5. Update ROADMAP.md if roadmap items completed/added
 6. Update the CURRENT STATE table in this file (timestamps, day number, focus)
-7. Provide git commit command
-
-**IMPORTANT:** Auto-update ALL docs yourself — never ask the user to manually update files. Always update timestamps on every doc touched. Commit and push yourself — don't provide git commands for the user to run.
+7. Git commit and push (see Golden Rule Day 58: don't provide commands, just do it)
 
 ---
 
