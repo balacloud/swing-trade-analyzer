@@ -2,12 +2,12 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 57 (February 22, 2026)
+> **Last Updated:** Day 58 (February 22, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.18 (Backend v2.20, Frontend v4.6, Backtest v4.17)
+## Current Version: v4.19 (Backend v2.21, Frontend v4.7, Backtest v4.17)
 
 ---
 
@@ -207,21 +207,21 @@
 - **Backend:** `/api/earnings/<ticker>` endpoint with multiple yfinance fallback methods
 - **Files Modified:** `backend/backend.py`, `frontend/src/services/api.js`, `frontend/src/App.jsx`
 
-### v4.11: Sector Rotation (Day 49+, Rethought Day 57)
+### v4.11: Sector Rotation — Phase 1 ✅ COMPLETE (Day 58)
 - **Priority:** MEDIUM (verified - simple RS ranking is effective)
-- **Status:** PLANNED (Phase 1 approach — embed in existing views first)
+- **Status:** ✅ Phase 1 COMPLETE (Day 58)
 - **Research:** `docs/research/Sector_Rotation_analysis.md` (450+ lines, comprehensive)
-- **Phase 1 (1-2 hrs):** Sector context in existing views — NO new tab
-  - Backend: `/api/sectors/rotation` — fetch 11 SPDR ETFs, calculate RS vs SPY, cache daily
-  - Analyze page: Show "Technology (XLK) — LEADING" below stock header
-  - Scan results: Add sector strength badge
-  - Decision Matrix: Add sector as informational factor (no verdict change)
+- **Phase 1 (DONE):** Sector context in existing views — NO new tab
+  - Backend: `/api/sectors/rotation` — fetches 11 SPDR ETFs, calculates RS ratio vs SPY, RRG quadrant
+  - Analyze page: Color-coded sector badge (Leading=green, Weakening=yellow, Lagging=red, Improving=blue)
+  - Scan results: Sector column with quadrant label per stock
+  - Hover tooltip: RS ratio, momentum, rank out of 11
   - Purely informational — does NOT change any trade signals or verdicts
 - **Phase 2 (later, only if Phase 1 insufficient):** Dedicated sector tab
-  - 11 sector cards ranked by RS with quadrant colors (Leading/Improving/Weakening/Lagging)
+  - 11 sector cards ranked by RS with quadrant colors
   - "Show stocks in this sector" → pre-filter Scan tab
 - **Key insight:** 70% of stock price movement comes from sector leadership (Faber study)
-- **Effort:** Phase 1: 1-2 hours | Phase 2: 2-3 hours additional
+- **Files:** `backend/backend.py` (endpoint), `frontend/src/services/api.js`, `frontend/src/App.jsx`
 
 ### v4.12: TradingView Lightweight Charts
 - **Priority:** MEDIUM
@@ -429,6 +429,7 @@ From backtesting:
 | 55 | v4.16 Holistic 3-Layer Backtest COMPLETE: 60 tickers, 3 configs, all statistically significant. Config C: 53.78% WR, PF 1.61, Sharpe 0.85. Walk-forward validated. Exit optimization: trailing 10 EMA + breakeven stop, DD reduced -13.3%. |
 | 56 | v4.17: 5th filter redesigned (Config C), coherence audit (39/42 match, pattern threshold 80→60), bear regime filter added. v4.18 S&P/NASDAQ/Dow index filter IMPLEMENTED. Options Tab research complete (v4.19, deferred). |
 | 57 | Bear regime backtest VALIDATED (bear WR 71.4%). Quick+Position periods backtested and walk-forward validated. Full coherence audit (71 params, 96%). sma50Declining wired backend→frontend. yfinance 0.2.28→1.2.0. Sector rotation plan RETHOUGHT (Phase 1: embed in views, not new tab). |
+| 58 | v4.19: Pattern trader descriptions (VCP/Cup&Handle/Flat Base). Sector Rotation Phase 1 COMPLETE: /api/sectors/rotation endpoint, RS ratio + RRG quadrant, badge on Analyze page + column in Scan results. |
 
 ---
 

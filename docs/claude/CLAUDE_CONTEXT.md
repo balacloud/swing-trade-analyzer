@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 57 (February 22, 2026)
+> **Last Updated:** Day 58 (February 22, 2026)
 
 ---
 
@@ -22,25 +22,23 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 57 |
-| Version | v4.18 (Backend v2.20, Frontend v4.6, Backtest v4.17) |
-| Latest Status | PROJECT_STATUS_DAY57_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY57.md |
+| Current Day | 58 |
+| Version | v4.19 (Backend v2.21, Frontend v4.7, Backtest v4.17) |
+| Latest Status | PROJECT_STATUS_DAY58_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY58.md |
 | Latest API | API_CONTRACTS_DAY53.md (outdated — update when APIs change next) |
-| Focus | **Backtest COMPLETE** — All 3 holding periods validated, walk-forward passed |
+| Focus | **v4.19 Sector Rotation Phase 1** — RS context in Analyze + Scan views |
 
-### Day 57 Summary (Current)
-- **v4.18 S&P 500 Index Filter + Bear Regime Coherence + Audit + Backtest Validation**
-  - S&P 500 / NASDAQ 100 / Dow 30 index filter COMPLETE (dropdown in Scan Market)
-  - Bear regime coherence gap FIXED: backend SPY endpoint now returns `sma50Declining`, frontend `assessRiskMacro()` uses it
-  - Options research pinned (v4.19 deferred), TSX 60 Canadian support researched (v4.20 deferred)
-  - Full system coherence audit created (71 params, 96% coherence)
-  - **Backtest with bear regime**: Config C Standard = 244 trades, 53.69% WR, PF 1.615, p=0.001
-  - **Quick period**: 318 trades, 55.35% WR, PF 1.72, Sharpe 0.85 (BEST overall)
-  - **Position period**: 362 trades, 38.67% WR, PF 1.51, avg winner 8.05% (regime-sensitive)
-  - **Walk-forward validated**: Quick OOS all metrics improved (+6-18%); Position OOS dramatically improved (regime-dependent, not overfitted)
+### Day 58 Summary (Current)
+- **v4.19 Pattern Descriptions + Sector Rotation Phase 1**
+  - Pattern trader descriptions added to all 3 pattern cards (VCP, Cup & Handle, Flat Base) — visible in both DecisionMatrix and App.jsx
+  - Sector Rotation Phase 1 COMPLETE:
+    - Backend: `/api/sectors/rotation` endpoint — fetches 11 SPDR ETFs, calculates RS ratio vs SPY, RRG quadrant (Leading/Weakening/Lagging/Improving)
+    - Frontend: Sector badge on Analyze page (color-coded quadrant next to sector/industry), Sector column in Scan results table
+    - Data loaded once on app startup, hover tooltip shows RS ratio, momentum, rank
+  - GICS sector mapping handles both yfinance and TradingView sector naming conventions
 
-### Day 56 Summary
+### Day 57 Summary
 - **v4.17 Production Coherence + Bear Regime + 5th Filter Redesign**
   - 5th "Best Candidates" filter redesigned to match Config C criteria (ADX>=20, RSI 50-70, EMA momentum)
   - Frontend-backend coherence audit: 39/42 parameters match, fixed pattern threshold 80%→60%
@@ -65,7 +63,7 @@
 | P0 | Re-run Backtest with Bear Regime | 1 hr | ✅ **COMPLETE** (Day 57) |
 | P1 | S&P 500 / NASDAQ 100 / Dow 30 Index Filter | 1 hr | ✅ **COMPLETE** (Day 57, v4.18) |
 | P1 | Backtest Quick & Position Periods | 2 hrs | ✅ **COMPLETE** (Day 57, walk-forward validated) |
-| P2 | v4.11: Sector Rotation | 4-6 hrs | QUEUED |
+| P1 | v4.19: Sector Rotation Phase 1 | 1.5 hrs | ✅ **COMPLETE** (Day 58) |
 | P3 | v4.12: Charts (Own Tab) | 4-6 hrs | QUEUED |
 
 ### Backtest Results Summary (Day 57)
@@ -76,10 +74,10 @@
 | Position (15-45d) | 362 | 38.67% | 1.51 | 0.61 | PASS (regime-sensitive, not overfitted) |
 
 ### Next Session Priorities
-1. **Pattern trader descriptions** — visible human-readable context on pattern cards (30 min)
-2. **Sector Rotation Phase 1** — sector context in Analyze + Scan views (1-2 hrs, no new tab)
-3. **Simple Checklist enhancements** — backtest now validates criteria
-4. **Position period regime gate** — show warning when not in bull regime
+1. **Sector Rotation Phase 2** — full dedicated tab with sector ranking, quadrant colors, "show stocks in sector" filter (if Phase 1 insufficient)
+2. **Simple Checklist enhancements** — backtest now validates criteria, add 52-week range, volume, ADX, market regime, ATR stops
+3. **Position period regime gate** — show warning when selecting Position period outside bull regime
+4. **EPS/Revenue Growth methodology fix** — QoQ → YoY (Medium severity)
 
 ---
 
@@ -102,8 +100,8 @@
 ```
 docs/claude/stable/GOLDEN_RULES.md          <- Core rules (CRITICAL)
 docs/claude/stable/ROADMAP.md               <- What's planned (v4.0-v4.7) - DON'T LOSE TRACK
-docs/claude/status/PROJECT_STATUS_DAY57_SHORT.md   <- Current state
-docs/claude/versioned/KNOWN_ISSUES_DAY57.md        <- Active bugs
+docs/claude/status/PROJECT_STATUS_DAY58_SHORT.md   <- Current state
+docs/claude/versioned/KNOWN_ISSUES_DAY58.md        <- Active bugs
 docs/research/PERPLEXITY_RESEARCH_SYNTHESIS.md     <- Research validation findings
 docs/claude/versioned/API_CONTRACTS_DAY53.md       <- API reference (if needed)
 ```
@@ -280,6 +278,7 @@ curl http://localhost:5001/api/cache/status
 | 55 | v4.16 Holistic Backtest COMPLETE: 60 tickers, 3 configs, all statistically significant. Config C fixed (0→238 trades). Walk-forward validated (OOS>IS). Exit optimization: trailing 10 EMA + breakeven stop, DD 65.9%→52.6%. No unintended changes to production code. |
 | 56 | v4.17: 5th filter redesigned (Config C criteria), coherence audit (39/42 match, pattern threshold synced 80→60), bear regime filter (SPY 50 SMA declining), S&P 500 index filter researched (native TradingView support). |
 | 57 | v4.18: S&P 500/NASDAQ 100/Dow 30 index filter complete, bear regime coherence gap fixed (sma50Declining in backend+frontend), Options tab deferred (v4.19), TSX 60 deferred (v4.20), coherence audit document created. Backtest: bear regime validated (WR 71.4%), Quick+Position walk-forward passed, yfinance 0.2.28→1.2.0. Sector rotation rethought (Phase 1: embed in views). |
+| 58 | v4.19: Pattern trader descriptions (VCP/Cup&Handle/Flat Base), Sector Rotation Phase 1 complete (/api/sectors/rotation, RS ratio + RRG quadrant, badge on Analyze page + column in Scan results). |
 
 ---
 
