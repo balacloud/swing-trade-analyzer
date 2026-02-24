@@ -51,6 +51,12 @@
 **Description:** Position holding period (15-45d) has low WR (38.67%) but high avg winners (8.05%). Walk-forward showed IS profit factor of only 1.14 vs OOS 1.53 — highly dependent on market regime.
 **Action:** Consider adding UI warning when selecting Position period outside bull regime
 
+### Medium: Bottom Line Card Shows Wrong Entry Type
+**Severity:** Medium (user-facing contradiction)
+**Description:** DVN analysis: Trade Setup says "PULLBACK OK" with Pullback PREFERRED ($38.28, R:R 2.28), but Bottom Line card says "READY - MOMENTUM ENTRY". These contradict each other. Bottom Line should reflect the preferred entry from the Trade Setup card.
+**Observed:** DVN (ADX 39.1, Pullback preferred, R:R 2.28 pullback vs 0.20 momentum)
+**Action:** Day 59 — investigate how Bottom Line card determines entry type vs how Trade Setup determines preferred entry. Likely a disconnect between `categoricalAssessment.js` verdict logic and `BottomLineCard.jsx` display.
+
 ### Info: API_CONTRACTS_DAY53.md Outdated
 **Severity:** Info (documentation)
 **Description:** API contracts doc is behind. Missing: `sma50Declining` in SPY endpoint, `market_index` param in scan, `/api/sectors/rotation` endpoint, version v2.21
@@ -84,8 +90,8 @@
 |----------|-------|
 | Open - Critical | 0 |
 | Open - High | 0 |
-| Open - Medium | 2 |
+| Open - Medium | 3 |
 | Open - Low | 2 |
 | Open - Info | 8 |
-| **Total Open** | **12** |
+| **Total Open** | **13** |
 | Resolved (Day 58 session) | 3 |
