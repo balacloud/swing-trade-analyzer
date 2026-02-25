@@ -52,6 +52,16 @@
 **Source:** AI Fluency Critical Analysis (Day 59)
 **Action:** Not urgent — entry preference is advisory (doesn't change BUY/HOLD/AVOID verdict). Validate if entry logic is ever refined.
 
+### Medium: Canadian Market — Analyze Page Not Yet Supported
+**Severity:** Medium (incomplete feature)
+**Description:** v4.21 Canadian Market support only works for **Scan Market** tab. The full **Analyze** page does NOT work for Canadian tickers yet. Requires:
+- Data source redesign: TwelveData/Finnhub/FMP may not cover TSX tickers — need to verify coverage and add yfinance-first fallback for `.TO` tickers
+- Fundamentals: Canadian companies may not be in FMP/Finnhub free tier — need research
+- S&R engine, pattern detection, categorical assessment: likely work as-is (math is math) but untested
+- Sector rotation: Canadian sectors map to same SPDR ETFs? Or need TSX sector ETFs?
+- Fear & Greed: US-only indicator — may need Canadian equivalent or just use US as proxy
+**Action:** Separate task for future session — design data flow for Canadian Analyze page
+
 ### Info: yfinance Reliability for .TO Tickers
 **Severity:** Info (monitoring needed)
 **Description:** SHOP.TO returned price but null SMA/RSI on first fetch. Unclear if transient or systematic.
@@ -98,8 +108,8 @@
 |----------|-------|
 | Open - Critical | 0 |
 | Open - High | 0 |
-| Open - Medium | 1 |
+| Open - Medium | 2 |
 | Open - Low | 2 |
 | Open - Info | 10 |
-| **Total Open** | **13** |
+| **Total Open** | **14** |
 | Resolved (Day 59 session) | 3 |

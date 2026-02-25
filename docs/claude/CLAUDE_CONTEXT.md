@@ -33,7 +33,7 @@
 - **v4.20 Cache Freshness Meter + v4.21 Canadian Market + Bug Fixes**
   - Cache Audit complete: all TTLs reasonable. New `/api/data/freshness` endpoint + UI freshness dots (green/yellow/red)
   - DVN Bottom Line bug fix: `getEntryTypeLabel()` uses R:R viability (not just ADX) — matches Trade Setup card
-  - Canadian Market: TSX 60 scan + All Canadian scan working. 3 bugs fixed (.TO suffix filter, exchange validation, set_index combo)
+  - Canadian Market (SCAN ONLY): TSX 60 scan + All Canadian scan working. 3 bugs fixed. Analyze page NOT yet supported — needs data source redesign
   - Session protocol flowcharts added to CLAUDE_CONTEXT.md
   - AI Fluency Critical Analysis: `docs/research/AI_FLUENCY_CRITICAL_ANALYSIS.md` — mapped Anthropic research to project, no code changes needed
 
@@ -58,7 +58,7 @@
 | P1 | v4.18: Index Filters (S&P/NASDAQ/Dow) | 1 hr | ✅ **COMPLETE** (Day 57) |
 | P1 | v4.19: Sector Rotation Phase 1 | 1.5 hrs | ✅ **COMPLETE** (Day 58) |
 | P1 | v4.20: Cache Audit + Freshness Meter | 1 hr | ✅ **COMPLETE** (Day 59) |
-| P1 | v4.21: Canadian Market Support | 2 hrs | ✅ **COMPLETE** (Day 59) |
+| P1 | v4.21: Canadian Market (Scan Only) | 2 hrs | ✅ **SCAN TAB** (Day 59) — Analyze page NOT yet supported |
 | P1 | DVN Bottom Line Entry Type Fix | 0.5 hr | ✅ **COMPLETE** (Day 59) |
 | P3 | v4.12: Charts (Own Tab) | 4-6 hrs | QUEUED |
 
@@ -71,9 +71,10 @@
 
 ### Next Session Priorities (Day 60)
 1. **Sector Rotation Phase 2** — dedicated tab with 11 sector cards ranked, quadrant colors, **"Scan for Rank 1"** filter (user requested)
-2. **Simple Checklist enhancements** — backtest validates criteria, add 52-week range, volume, ADX, market regime, ATR stops
-3. **EPS/Revenue Growth methodology fix** — QoQ → YoY (Medium severity)
-4. **TradingView Lightweight Charts** — Interactive charts with S&R levels, RSI/MACD overlays
+2. **Canadian Market Analyze Page** — data source redesign for `.TO` tickers (TwelveData/Finnhub coverage, fundamentals, sector mapping)
+3. **Simple Checklist enhancements** — backtest validates criteria, add 52-week range, volume, ADX, market regime, ATR stops
+4. **EPS/Revenue Growth methodology fix** — QoQ → YoY (Medium severity)
+5. **TradingView Lightweight Charts** — Interactive charts with S&R levels, RSI/MACD overlays
 
 ---
 

@@ -18,7 +18,8 @@
    - **Fix:** New `getEntryTypeLabel()` function in BottomLineCard.jsx — calculates R:R for both entry types (mirrors Trade Setup logic), prefers whichever has better R:R
    - Falls back to ADX-based preference only if R:R data unavailable
 
-3. **Canadian Market Support (v4.21)** ✅
+3. **Canadian Market Support (v4.21) — SCAN TAB ONLY** ✅
+   - **NOTE:** Only Scan Market tab works for Canadian tickers. Analyze page NOT yet supported — needs data source redesign (TwelveData/Finnhub/FMP coverage for `.TO` tickers, fundamentals, sector mapping)
    - TSX 60 scan: `set_index('SYML:TSX;TX60')` works via TradingView
    - All Canadian market dropdown: `set_markets('canada')` for broader scan
    - Frontend: Added "TSX 60" and "All Canadian" to market index dropdown

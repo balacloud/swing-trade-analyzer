@@ -365,9 +365,9 @@
   - No multi-leg strategies, no naked selling, no real-time dashboards
 - **Prerequisite:** System must be in daily forward testing phase first
 
-### v4.21: Canadian Market Support (TSX 60 + All Canadian) ✅ COMPLETE (Day 59)
+### v4.21: Canadian Market Support (TSX 60 + All Canadian) — SCAN ONLY ✅ (Day 59)
 - **Priority:** MEDIUM (user requested Day 58)
-- **Status:** ✅ IMPLEMENTED (Scope 1: TSX 60 + All Canadian scan)
+- **Status:** ✅ SCAN TAB ONLY — Analyze page NOT yet supported
 - **Scope 1 (DONE):** TSX 60 + All Canadian scan
   - TSX 60 scan: `set_index('SYML:TSX;TX60')` — uses america scanner (handles TSX indices natively)
   - All Canadian: `set_markets('canada')` — broader scan (TSX + TSXV + NEO exchanges)
@@ -379,7 +379,13 @@
     2. `.TO` suffix triggered preferred stock filter — moved suffix append AFTER filter
     3. Hardcoded US exchanges — replaced with `valid_exchanges`
   - Verified: BMO.TO, SU.TO, NTR.TO returning correctly
-- **Scope 2 (DEFERRED):** CAD-Hedged US Tickers (CDRs on NEO exchange like MSFT.NE, AMZN.NE)
+- **Scope 2 (NOT STARTED): Analyze Page for Canadian Tickers**
+  - Data source redesign needed: TwelveData/Finnhub/FMP may not cover `.TO` tickers — need yfinance-first fallback
+  - Fundamentals: verify Canadian company coverage in free-tier APIs
+  - Sector rotation: need Canadian sector ETF mapping or use US SPDRs as proxy
+  - Fear & Greed: US-only — use as proxy or find Canadian equivalent
+  - S&R, patterns, categorical assessment: math works but untested on `.TO` data
+- **Scope 3 (DEFERRED):** CAD-Hedged US Tickers (CDRs on NEO exchange like MSFT.NE, AMZN.NE)
   - Research needed: CDR availability, technical analysis applicability (volume/patterns may differ)
 - **What doesn't change:** All technical analysis, S/R clustering, pattern detection, decision matrix
 - **Market hours:** TSX = same as NYSE (9:30-4:00 ET) — no timezone issues
