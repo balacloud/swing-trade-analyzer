@@ -2,12 +2,12 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 58 (February 22, 2026)
+> **Last Updated:** Day 59 (February 25, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.19 (Backend v2.21, Frontend v4.7, Backtest v4.17)
+## Current Version: v4.21 (Backend v2.22, Frontend v4.8, Backtest v4.17)
 
 ---
 
@@ -224,16 +224,15 @@
 - **Key insight:** 70% of stock price movement comes from sector leadership (Faber study)
 - **Files:** `backend/backend.py` (endpoint), `frontend/src/services/api.js`, `frontend/src/App.jsx`
 
-### v4.20: Cache Management Audit + UI Freshness Meter
+### v4.20: Cache Management Audit + UI Freshness Meter ✅ COMPLETE (Day 59)
 - **Priority:** MEDIUM (data quality concern)
-- **Status:** PLANNED (Day 59)
-- **Problem:** Multiple caching layers (SQLite stock cache, market cache, sector rotation) may serve stale data without user awareness
+- **Status:** ✅ IMPLEMENTED
 - **Features:**
-  - Audit all cache TTLs and expiration logic
-  - UI freshness meter showing data age per source
-  - Visual indicator of staleness (green=fresh, yellow=aging, red=stale)
-  - Per-source timestamp display on hover
-- **Files:** `backend/cache_manager.py`, `frontend/src/App.jsx`
+  - Audited all cache TTLs — all reasonable (OHLCV 4hr, fundamentals 24hr, sectors per trading day)
+  - New endpoint: `/api/data/freshness?ticker=AAPL` — returns cache age/status per data source
+  - UI freshness meter: colored dots (green=fresh, yellow=aging, red=stale) on Analyze page
+  - `fetchDataFreshness()` added as 10th parallel call in `fetchFullAnalysisData()`
+- **Files:** `backend/backend.py`, `frontend/src/services/api.js`, `frontend/src/App.jsx`
 
 ### v4.12: TradingView Lightweight Charts
 - **Priority:** MEDIUM
@@ -366,27 +365,25 @@
   - No multi-leg strategies, no naked selling, no real-time dashboards
 - **Prerequisite:** System must be in daily forward testing phase first
 
-### v4.21: Canadian Market Support (TSX 60 + CAD-Hedged US Tickers)
+### v4.21: Canadian Market Support (TSX 60 + All Canadian) ✅ COMPLETE (Day 59)
 - **Priority:** MEDIUM (user requested Day 58)
-- **Status:** RESEARCH COMPLETE (Day 56, live-tested) + CAD-hedged scope added Day 58
-- **Two scopes:**
-  - **Scope 1: TSX 60** — Native Canadian blue-chip stocks (RY, TD, SHOP, CNR, etc.)
-  - **Scope 2: CAD-Hedged US Tickers** — Canadian-listed versions of US giants (e.g., MSFT, AMZN, GOOGL traded in CAD on TSX/NEO). These are typically ETF wrappers or CDRs (Canadian Depository Receipts) that let Canadian investors hold US names in CAD without currency conversion.
-    - Examples: `HXS.TO` (S&P 500 hedged), CDRs like `MSFT.NE`, `AMZN.NE`, `GOOGL.NE`
-    - **Research needed:** Confirm which CAD-hedged tickers are available via TradingView scan + yfinance, and whether technical analysis applies (volume, patterns may differ from US originals)
-- **Verified (Day 56):**
-  - TradingView `set_markets('canada')` → 8,408 stocks (TSX + NEO exchanges)
-  - TSX 60 index: `set_index('SYML:TSX;TX60')` → 60 stocks
-  - All technical columns (RSI, ADX, EMA50, SMA200, RVOL) available and identical to US
-- **Changes needed:**
-  - **Scan tab (easy):** Add `tsx60` to INDEX_MAP, add `canada` to set_markets, frontend dropdown options
-  - **Analysis tab (medium):** Ticker mapping `TSX:RY` → `RY.TO` for yfinance/TwelveData
-  - **CAD-hedged tickers:** Research CDR/ETF ticker conventions on NEO exchange (`.NE` suffix for yfinance)
-  - **Benchmark decision:** RS vs SPY (keep) or RS vs XIU.TO (Canadian benchmark) — or auto-detect
-  - **Currency:** CAD label on prices (no conversion needed)
-  - **VIX/Regime:** US VIX still valid for global sentiment; Canadian VIXC optional
-- **What doesn't change:** All technical analysis, S/R clustering, pattern detection, decision matrix — math is math
+- **Status:** ✅ IMPLEMENTED (Scope 1: TSX 60 + All Canadian scan)
+- **Scope 1 (DONE):** TSX 60 + All Canadian scan
+  - TSX 60 scan: `set_index('SYML:TSX;TX60')` — uses america scanner (handles TSX indices natively)
+  - All Canadian: `set_markets('canada')` — broader scan (TSX + TSXV + NEO exchanges)
+  - Frontend: "TSX 60" and "All Canadian" dropdown options
+  - Ticker mapping: `TSX:RY` → `RY.TO` for yfinance/TwelveData
+  - Exchange filtering: `valid_exchanges` variable (TSX/TSXV/NEO for Canadian, NYSE/NASDAQ/AMEX for US)
+  - 3 bugs fixed during implementation:
+    1. `set_index` + `set_markets('canada')` combo fails — use `set_index` alone for tsx60
+    2. `.TO` suffix triggered preferred stock filter — moved suffix append AFTER filter
+    3. Hardcoded US exchanges — replaced with `valid_exchanges`
+  - Verified: BMO.TO, SU.TO, NTR.TO returning correctly
+- **Scope 2 (DEFERRED):** CAD-Hedged US Tickers (CDRs on NEO exchange like MSFT.NE, AMZN.NE)
+  - Research needed: CDR availability, technical analysis applicability (volume/patterns may differ)
+- **What doesn't change:** All technical analysis, S/R clustering, pattern detection, decision matrix
 - **Market hours:** TSX = same as NYSE (9:30-4:00 ET) — no timezone issues
+- **Files Modified:** `backend/backend.py`, `frontend/src/App.jsx`
 
 ---
 
@@ -448,6 +445,7 @@ From backtesting:
 | 56 | v4.17: 5th filter redesigned (Config C), coherence audit (39/42 match, pattern threshold 80→60), bear regime filter added. v4.18 S&P/NASDAQ/Dow index filter IMPLEMENTED. Options Tab research complete (v4.19, deferred). |
 | 57 | Bear regime backtest VALIDATED (bear WR 71.4%). Quick+Position periods backtested and walk-forward validated. Full coherence audit (71 params, 96%). sma50Declining wired backend→frontend. yfinance 0.2.28→1.2.0. Sector rotation plan RETHOUGHT (Phase 1: embed in views, not new tab). |
 | 58 | v4.19: Pattern trader descriptions (VCP/Cup&Handle/Flat Base). Sector Rotation Phase 1 COMPLETE: /api/sectors/rotation endpoint, RS ratio + RRG quadrant, badge on Analyze page + column in Scan results. Fixed: sector badge reliability (race condition), SQLite cache for sector data, scan transparency (empty vs error). Added v4.20 Cache Audit + Freshness Meter to roadmap. |
+| 59 | v4.20 Cache Freshness Meter COMPLETE (endpoint + UI dots). v4.21 Canadian Market COMPLETE (TSX 60 + All Canadian scan, 3 bugs fixed). DVN Bottom Line entry type fix (R:R-based). AI Fluency Critical Analysis document. ADX 25 threshold logged as unvalidated assumption. |
 
 ---
 

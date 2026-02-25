@@ -126,6 +126,9 @@ function App() {
   // Sector Rotation state (Day 58 - v4.19)
   const [sectorRotation, setSectorRotation] = useState(null);
 
+  // Data Freshness state (Day 59 - v4.20 Cache Audit)
+  const [dataFreshness, setDataFreshness] = useState(null);
+
   // Quick picks for testing
   const quickPicks = ['AVGO', 'NVDA', 'AAPL', 'META', 'MSFT', 'NFLX', 'PLTR']; 
 
@@ -323,6 +326,11 @@ function App() {
       // Day 58: Update sector rotation from analysis data (reliable — cached per trading day)
       if (data.sectorRotation) {
         setSectorRotation(data.sectorRotation);
+      }
+
+      // Day 59: Update data freshness for UI meter
+      if (data.freshness) {
+        setDataFreshness(data.freshness);
       }
 
       // v4.13: Store raw data for re-assessment when holding period changes
@@ -999,6 +1007,28 @@ function App() {
                           >
                             {earningsData.warning}
                           </span>
+                        )}
+                        {/* Day 59: Data Freshness Meter */}
+                        {dataFreshness?.sources?.length > 0 && (
+                          <div className="flex items-center gap-1 ml-2" title="Data freshness per source (hover dots for details)">
+                            <span className="text-gray-600 text-xs mr-0.5">Data:</span>
+                            {dataFreshness.sources.map((src, i) => {
+                              const dotColor = src.status === 'fresh' ? 'bg-green-500' :
+                                               src.status === 'aging' ? 'bg-yellow-500' :
+                                               src.status === 'stale' ? 'bg-red-500' :
+                                               src.status === 'live' ? 'bg-blue-500' : 'bg-gray-500';
+                              const ageLabel = src.ageMinutes === 0 ? 'Live' :
+                                              src.ageMinutes < 60 ? `${Math.round(src.ageMinutes)}m ago` :
+                                              src.ageMinutes < 1440 ? `${(src.ageMinutes / 60).toFixed(1)}h ago` :
+                                              `${(src.ageMinutes / 1440).toFixed(1)}d ago`;
+                              return (
+                                <span key={i}
+                                  className={`w-2 h-2 rounded-full ${dotColor} cursor-help`}
+                                  title={`${src.name}: ${ageLabel}${src.source ? ` (${src.source})` : ''}`}
+                                />
+                              );
+                            })}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -2427,6 +2457,9 @@ function App() {
                   <option value="sp500">S&P 500</option>
                   <option value="nasdaq100">NASDAQ 100</option>
                   <option value="dow30">Dow 30</option>
+                  <option disabled>──────────</option>
+                  <option value="tsx60">TSX 60 (Canada)</option>
+                  <option value="canada">All Canadian Stocks</option>
                 </select>
                 <button
                   onClick={runScan}
@@ -2455,7 +2488,7 @@ function App() {
                     📋 Scan Results: {scanResults.strategy}
                     {scanResults.marketIndex && scanResults.marketIndex !== 'all' && (
                       <span className="ml-2 text-sm font-normal text-yellow-400">
-                        ({scanResults.marketIndex === 'sp500' ? 'S&P 500' : scanResults.marketIndex === 'nasdaq100' ? 'NASDAQ 100' : scanResults.marketIndex === 'dow30' ? 'Dow 30' : scanResults.marketIndex})
+                        ({scanResults.marketIndex === 'sp500' ? 'S&P 500' : scanResults.marketIndex === 'nasdaq100' ? 'NASDAQ 100' : scanResults.marketIndex === 'dow30' ? 'Dow 30' : scanResults.marketIndex === 'tsx60' ? 'TSX 60' : scanResults.marketIndex === 'canada' ? 'All Canadian' : scanResults.marketIndex})
                       </span>
                     )}
                   </h3>
@@ -2526,7 +2559,7 @@ function App() {
                     <p className="font-medium">No stocks matched the {scanResults.strategy} criteria</p>
                     <p className="text-sm text-gray-500 mt-1">
                       {scanResults.marketIndex && scanResults.marketIndex !== 'all'
-                        ? `Try broadening the market filter (currently: ${scanResults.marketIndex === 'sp500' ? 'S&P 500' : scanResults.marketIndex === 'nasdaq100' ? 'NASDAQ 100' : 'Dow 30'}) or switching strategy.`
+                        ? `Try broadening the market filter (currently: ${scanResults.marketIndex === 'sp500' ? 'S&P 500' : scanResults.marketIndex === 'nasdaq100' ? 'NASDAQ 100' : scanResults.marketIndex === 'dow30' ? 'Dow 30' : scanResults.marketIndex === 'tsx60' ? 'TSX 60' : 'All Canadian'}) or switching strategy.`
                         : 'Try a different strategy or check back when market conditions change.'}
                     </p>
                   </div>

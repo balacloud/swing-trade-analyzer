@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 58 (February 22, 2026)
+> **Last Updated:** Day 59 (February 25, 2026)
 
 ---
 
@@ -22,50 +22,44 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 58 |
-| Version | v4.19 (Backend v2.21, Frontend v4.7, Backtest v4.17) |
-| Latest Status | PROJECT_STATUS_DAY58_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY58.md |
+| Current Day | 59 |
+| Version | v4.21 (Backend v2.22, Frontend v4.8, Backtest v4.17) |
+| Latest Status | PROJECT_STATUS_DAY59_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY59.md |
 | Latest API | API_CONTRACTS_DAY53.md (outdated — update when APIs change next) |
-| Focus | **v4.19 Complete** — Sector Rotation Phase 1 + Pattern Descriptions + Fixes |
+| Focus | **v4.20+v4.21 Complete** — Cache Freshness Meter + Canadian Market + DVN Fix + AI Fluency Analysis |
 
-### Day 58 Summary (Current)
+### Day 59 Summary (Current)
+- **v4.20 Cache Freshness Meter + v4.21 Canadian Market + Bug Fixes**
+  - Cache Audit complete: all TTLs reasonable. New `/api/data/freshness` endpoint + UI freshness dots (green/yellow/red)
+  - DVN Bottom Line bug fix: `getEntryTypeLabel()` uses R:R viability (not just ADX) — matches Trade Setup card
+  - Canadian Market: TSX 60 scan + All Canadian scan working. 3 bugs fixed (.TO suffix filter, exchange validation, set_index combo)
+  - Session protocol flowcharts added to CLAUDE_CONTEXT.md
+  - AI Fluency Critical Analysis: `docs/research/AI_FLUENCY_CRITICAL_ANALYSIS.md` — mapped Anthropic research to project, no code changes needed
+
+### Day 58 Summary
 - **v4.19 Pattern Descriptions + Sector Rotation Phase 1**
-  - Pattern trader descriptions added to all 3 pattern cards (VCP, Cup & Handle, Flat Base) — visible in both DecisionMatrix and App.jsx
-  - Sector Rotation Phase 1 COMPLETE:
-    - Backend: `/api/sectors/rotation` endpoint — fetches 11 SPDR ETFs, calculates RS ratio vs SPY, RRG quadrant (Leading/Weakening/Lagging/Improving)
-    - Frontend: Sector badge on Analyze page (color-coded quadrant next to sector/industry), Sector column in Scan results table
-    - SQLite cache: sector data cached per trading day (expires at next market close)
-    - Sector badge reliability fix: added to `fetchFullAnalysisData()` as 9th parallel call
-  - Scan transparency: "No stocks matched criteria" vs "Backend Error" distinction
-  - GICS sector mapping handles both yfinance and TradingView sector naming conventions
+  - Pattern trader descriptions added to all 3 pattern cards
+  - Sector Rotation Phase 1: `/api/sectors/rotation` endpoint, RS ratio + RRG quadrant, badge + scan column
+  - SQLite cache for sector data, sector badge reliability fix, scan transparency
 
 ### Day 57 Summary
 - **v4.17 Production Coherence + Bear Regime + 5th Filter Redesign**
-  - 5th "Best Candidates" filter redesigned to match Config C criteria (ADX>=20, RSI 50-70, EMA momentum)
-  - Frontend-backend coherence audit: 39/42 parameters match, fixed pattern threshold 80%→60%
-  - Bear market regime: SPY 50 SMA declining caps risk at "Neutral" (catches early bear)
-  - S&P 500 filter researched: TradingView native `set_index('SYML:SP;SPX')` — 1-line change
+  - 5th "Best Candidates" filter redesigned to match Config C criteria
+  - Frontend-backend coherence audit: 39/42 parameters match
+  - Bear market regime: SPY 50 SMA declining caps risk at "Neutral"
 
-### Day 55 Summary
-- v4.16 Holistic 3-Layer Backtest COMPLETE — all 3 configs statistically significant
-- Config C: 53.78% WR, PF 1.61, Sharpe 0.85 (238 trades, p=0.002)
-- Walk-forward validated (OOS > IS — NOT overfitted)
-- Exit optimization: trailing 10 EMA + breakeven stop, DD 65.9%→52.6%
-
-### Implementation Status (v4.9-v4.17)
+### Implementation Status (v4.9-v4.21)
 | Priority | Feature | Effort | Status |
 |----------|---------|--------|--------|
 | P1 | v4.9-v4.15: All features | — | ✅ **COMPLETE** |
 | P0 | v4.16: Holistic 3-Layer Backtest | 6-8 hrs | ✅ **COMPLETE** |
-| P0 | Exit Strategy Optimization | 2 hrs | ✅ **COMPLETE** |
-| P0 | Bear Market Regime Refinement | 2 hrs | ✅ **COMPLETE** (Day 56) |
-| P0 | Frontend-Backend Coherence Audit | 2 hrs | ✅ **COMPLETE** (Day 56) |
-| P0 | 5th Scan Filter Redesign | 1 hr | ✅ **COMPLETE** (Day 56) |
-| P0 | Re-run Backtest with Bear Regime | 1 hr | ✅ **COMPLETE** (Day 57) |
-| P1 | S&P 500 / NASDAQ 100 / Dow 30 Index Filter | 1 hr | ✅ **COMPLETE** (Day 57, v4.18) |
-| P1 | Backtest Quick & Position Periods | 2 hrs | ✅ **COMPLETE** (Day 57, walk-forward validated) |
+| P0 | v4.17: Coherence + Bear Regime | 2 hrs | ✅ **COMPLETE** (Day 56) |
+| P1 | v4.18: Index Filters (S&P/NASDAQ/Dow) | 1 hr | ✅ **COMPLETE** (Day 57) |
 | P1 | v4.19: Sector Rotation Phase 1 | 1.5 hrs | ✅ **COMPLETE** (Day 58) |
+| P1 | v4.20: Cache Audit + Freshness Meter | 1 hr | ✅ **COMPLETE** (Day 59) |
+| P1 | v4.21: Canadian Market Support | 2 hrs | ✅ **COMPLETE** (Day 59) |
+| P1 | DVN Bottom Line Entry Type Fix | 0.5 hr | ✅ **COMPLETE** (Day 59) |
 | P3 | v4.12: Charts (Own Tab) | 4-6 hrs | QUEUED |
 
 ### Backtest Results Summary (Day 57)
@@ -75,12 +69,11 @@
 | Standard (5-15d) | 244 | 53.69% | 1.62 | 0.85 | PASS (Day 55) |
 | Position (15-45d) | 362 | 38.67% | 1.51 | 0.61 | PASS (regime-sensitive, not overfitted) |
 
-### Next Session Priorities (Day 59)
+### Next Session Priorities (Day 60)
 1. **Sector Rotation Phase 2** — dedicated tab with 11 sector cards ranked, quadrant colors, **"Scan for Rank 1"** filter (user requested)
-2. **Cache Management Audit + UI Freshness Meter** — audit all cache TTLs, add visual data freshness indicator (green/yellow/red staleness)
-3. **Canadian Market Support (v4.21)** — TSX 60 + CAD-hedged US tickers (CDRs like MSFT.NE, AMZN.NE, GOOGL.NE). Research CDR availability via TradingView/yfinance.
-4. **Simple Checklist enhancements** — backtest now validates criteria, add 52-week range, volume, ADX, market regime, ATR stops
-5. **EPS/Revenue Growth methodology fix** — QoQ → YoY (Medium severity)
+2. **Simple Checklist enhancements** — backtest validates criteria, add 52-week range, volume, ADX, market regime, ATR stops
+3. **EPS/Revenue Growth methodology fix** — QoQ → YoY (Medium severity)
+4. **TradingView Lightweight Charts** — Interactive charts with S&R levels, RSI/MACD overlays
 
 ---
 
@@ -97,77 +90,140 @@
 
 ---
 
-## SCENARIO 1: SESSION_START
+## SESSION START PROTOCOL (Flowchart)
 
-### Files to Read (in order):
 ```
-docs/claude/stable/GOLDEN_RULES.md          <- Core rules (CRITICAL)
-docs/claude/stable/ROADMAP.md               <- What's planned (v4.0-v4.7) - DON'T LOSE TRACK
-docs/claude/status/PROJECT_STATUS_DAY58_SHORT.md   <- Current state
-docs/claude/versioned/KNOWN_ISSUES_DAY58.md        <- Active bugs
-docs/research/PERPLEXITY_RESEARCH_SYNTHESIS.md     <- Research validation findings
-docs/claude/versioned/API_CONTRACTS_DAY53.md       <- API reference (if needed)
+┌─────────────────────────────────────────┐
+│  1. READ FILES (in this exact order)     │
+│     □ GOLDEN_RULES.md                    │
+│     □ ROADMAP.md                         │
+│     □ PROJECT_STATUS_DAY[N]_SHORT.md     │
+│     □ KNOWN_ISSUES_DAY[N].md             │
+└──────────────┬──────────────────────────┘
+               ▼
+┌─────────────────────────────────────────┐
+│  2. CONFIRM TO USER (always say this)    │
+│     "Day [N] | v[X] | Backend v[Y]"     │
+│     "Last session: [1-line summary]"     │
+│     "Open bugs: [Medium+ count]"         │
+│     "Today's priorities: [from ROADMAP]" │
+└──────────────┬──────────────────────────┘
+               ▼
+┌─────────────────────────────────────────┐
+│  3. ASK USER                             │
+│     "What would you like to focus on?"   │
+│     (unless user already specified)      │
+└─────────────────────────────────────────┘
 ```
 
-### Startup Checklist:
-1. Read GOLDEN_RULES.md - internalize the rules
-2. Read ROADMAP.md - know what's planned (prevents losing track of items)
-3. Read PROJECT_STATUS - understand current state
-4. Read KNOWN_ISSUES - know active bugs
-5. Confirm to user:
-   - Current version and day
-   - What was accomplished last session
-   - Active priorities from ROADMAP
-6. Ask: "What would you like to focus on today?"
-
-### Rules to Follow:
-- STOP before coding - understand problem first
-- ASK for file content before modifying
-- RUN diagnostic queries before writing fixes
-- TEST incrementally - one change at a time
-- If fix fails, STOP and diagnose - don't chain guesses
+### Rules During Session:
+- STOP before coding — understand problem first
+- READ files before modifying them
+- RUN diagnostics before writing fixes
+- TEST incrementally — one change at a time
+- If fix fails, STOP and diagnose — don't chain guesses
+- NEVER ask user to manually update files — Claude does it
+- NEVER provide git commands — Claude commits AND pushes
 
 ---
 
-## SCENARIO 2: SESSION_CLOSE
+## SESSION CLOSE PROTOCOL (Flowchart)
 
-### Files to Create/Update:
+**CRITICAL: Follow EVERY step. Do NOT skip any. Do NOT ask user to do any step.**
+
 ```
-docs/claude/status/PROJECT_STATUS_DAY[N+1]_SHORT.md
-docs/claude/versioned/KNOWN_ISSUES_DAY[N+1].md
-docs/claude/versioned/API_CONTRACTS_DAY[N+1].md  (only if APIs changed)
-docs/claude/stable/GOLDEN_RULES.md              (only if new rules learned)
-docs/claude/stable/ROADMAP.md                   (only if roadmap items changed)
+┌──────────────────────────────────────────┐
+│  STEP 1: CREATE PROJECT_STATUS           │
+│  File: status/PROJECT_STATUS_DAY[N+1]    │
+│  _SHORT.md                               │
+│  Contents:                               │
+│    □ What was accomplished today          │
+│    □ Files modified + files created       │
+│    □ Git commits (hash + description)     │
+│    □ Version summary (FE/BE/BT)          │
+│    □ Next session priorities              │
+└──────────────┬───────────────────────────┘
+               ▼
+┌──────────────────────────────────────────┐
+│  STEP 2: CREATE KNOWN_ISSUES             │
+│  File: versioned/KNOWN_ISSUES_DAY[N+1]   │
+│  .md                                     │
+│  Contents:                               │
+│    □ Copy open issues from previous      │
+│    □ Move resolved issues to Resolved    │
+│    □ Add ANY new issues found today      │
+│    □ Update issue statistics table        │
+└──────────────┬───────────────────────────┘
+               ▼
+┌──────────────────────────────────────────┐
+│  STEP 3: CHECK — Did APIs change?        │
+│  ├─ YES → Update API_CONTRACTS_DAY[N+1]  │
+│  └─ NO  → Skip (note: currently DAY53)   │
+└──────────────┬───────────────────────────┘
+               ▼
+┌──────────────────────────────────────────┐
+│  STEP 4: CHECK — New lessons learned?    │
+│  ├─ YES → Add to GOLDEN_RULES.md         │
+│  │        Update "Last Updated" date     │
+│  └─ NO  → Skip                           │
+└──────────────┬───────────────────────────┘
+               ▼
+┌──────────────────────────────────────────┐
+│  STEP 5: CHECK — Roadmap items changed?  │
+│  ├─ YES → Update ROADMAP.md              │
+│  │        Update "Last Updated" date     │
+│  │        Update UPDATE LOG table        │
+│  └─ NO  → Skip                           │
+└──────────────┬───────────────────────────┘
+               ▼
+┌──────────────────────────────────────────┐
+│  STEP 6: UPDATE THIS FILE                │
+│  (CLAUDE_CONTEXT.md — MANDATORY)         │
+│    □ CURRENT STATE table:                │
+│      - Current Day → [N+1]               │
+│      - Version → [new version]           │
+│      - Latest Status → DAY[N+1]          │
+│      - Latest Issues → DAY[N+1]          │
+│      - Focus → [today's work]            │
+│    □ Day [N+1] Summary section           │
+│    □ Implementation Status table         │
+│    □ Next Session Priorities             │
+│    □ Files to Read paths (update day #)  │
+│    □ UPDATE LOG entry                    │
+│    □ "Last Updated" header               │
+└──────────────┬───────────────────────────┘
+               ▼
+┌──────────────────────────────────────────┐
+│  STEP 7: GIT COMMIT + PUSH              │
+│  (Claude does this — NEVER ask user)     │
+│    □ git add [specific files]            │
+│    □ git commit -m "Day [N+1]: ..."      │
+│    □ git push                            │
+│    □ Verify push succeeded               │
+└──────────────────────────────────────────┘
 ```
 
-### Close Checklist:
-1. Create PROJECT_STATUS_DAY[N+1]_SHORT.md with:
-   - What was accomplished today
-   - What's pending
-   - Next session priorities
-2. Create KNOWN_ISSUES_DAY[N+1].md with:
-   - Resolved issues (move from Open to Resolved)
-   - New issues discovered
-3. Update API_CONTRACTS if any APIs added/changed
-4. Update GOLDEN_RULES if new lessons learned
-5. Update ROADMAP.md if roadmap items completed/added
-6. Update the CURRENT STATE table in this file (timestamps, day number, focus)
-7. Git commit and push (see Golden Rule Day 58: don't provide commands, just do it)
+### Common Mistakes to Avoid at Close:
+- Forgetting to update "Last Updated" dates on stable docs
+- Forgetting to push after commit
+- Asking user to run git commands
+- Asking user to manually update any file
+- Missing KNOWN_ISSUES for bugs observed during session
+- Not updating CLAUDE_CONTEXT.md file paths (still pointing to old day)
 
 ---
 
-## SCENARIO 3: SESSION_RESUME (After Context Limit)
+## SESSION RESUME PROTOCOL (After Context Limit)
 
-### Recognition:
-- Conversation shows "summarized from previous context"
-- User says "pick up where we left off" or "continue"
-
-### Action:
-1. Read the summary provided
-2. Read PROJECT_STATUS for current context
-3. Read KNOWN_ISSUES for active bugs
-4. Resume the task that was in progress
-5. Do NOT ask user to re-explain - you have the summary
+```
+┌─────────────────────────────────────────┐
+│  1. READ the summary provided            │
+│  2. READ PROJECT_STATUS for context      │
+│  3. READ KNOWN_ISSUES for active bugs    │
+│  4. Resume the task in progress           │
+│  5. Do NOT ask user to re-explain        │
+└─────────────────────────────────────────┘
+```
 
 ---
 
@@ -284,6 +340,7 @@ curl http://localhost:5001/api/cache/status
 | 56 | v4.17: 5th filter redesigned (Config C criteria), coherence audit (39/42 match, pattern threshold synced 80→60), bear regime filter (SPY 50 SMA declining), S&P 500 index filter researched (native TradingView support). |
 | 57 | v4.18: S&P 500/NASDAQ 100/Dow 30 index filter complete, bear regime coherence gap fixed (sma50Declining in backend+frontend), Options tab deferred (v4.19), TSX 60 deferred (v4.20), coherence audit document created. Backtest: bear regime validated (WR 71.4%), Quick+Position walk-forward passed, yfinance 0.2.28→1.2.0. Sector rotation rethought (Phase 1: embed in views). |
 | 58 | v4.19: Pattern trader descriptions, Sector Rotation Phase 1 complete (endpoint + badge + scan column + SQLite cache), sector badge reliability fix, scan transparency (empty vs error). Day 59 priorities: Phase 2 dedicated tab with "Scan for Rank 1", Cache Audit + UI Freshness Meter. |
+| 59 | v4.20 Cache Freshness Meter (endpoint + UI dots), v4.21 Canadian Market (TSX 60 + All Canadian scan, 3 bugs fixed), DVN Bottom Line entry type fix (R:R-based getEntryTypeLabel), session protocol flowcharts, AI Fluency Critical Analysis document. |
 
 ---
 

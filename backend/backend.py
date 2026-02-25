@@ -651,6 +651,123 @@ def cache_status():
         return jsonify({'status': 'error', 'message': 'SQLite cache not available'}), 500
 
 
+@app.route('/api/data/freshness', methods=['GET'])
+def get_data_freshness():
+    """
+    Day 59: Data freshness endpoint for UI Freshness Meter.
+    Returns age/status of all cached data sources for a given ticker.
+    Lightweight — no data fetching, only cache metadata lookups.
+
+    Query params:
+      ?ticker=AAPL — optional, for ticker-specific OHLCV/fundamentals freshness
+
+    Returns:
+      { sources: [ { name, status, ageMinutes, cachedAt, expiresAt } ] }
+      status: 'fresh' (green) | 'aging' (yellow) | 'stale' (red) | 'live' (blue) | 'unknown' (gray)
+    """
+    ticker = request.args.get('ticker', '').upper()
+    sources = []
+    now = datetime.now(cache_manager.ET) if SQLITE_CACHE_AVAILABLE else datetime.now()
+
+    if SQLITE_CACHE_AVAILABLE:
+        # Ticker OHLCV
+        if ticker:
+            ohlcv_info = cache_manager.get_ticker_cache_info(ticker, 'ohlcv')
+            if ohlcv_info:
+                age_min = ohlcv_info.get('age_hours', 0) * 60
+                sources.append({
+                    'name': 'Price Data',
+                    'key': 'ohlcv',
+                    'status': _freshness_status(age_min, thresholds=(60, 240)),
+                    'ageMinutes': round(age_min, 1),
+                    'cachedAt': ohlcv_info.get('cached_at'),
+                    'expiresAt': ohlcv_info.get('expires_at'),
+                    'source': ohlcv_info.get('source', 'unknown'),
+                })
+            else:
+                sources.append({'name': 'Price Data', 'key': 'ohlcv', 'status': 'live', 'ageMinutes': 0, 'source': 'fetching fresh'})
+
+            # Ticker Fundamentals
+            fund_info = cache_manager.get_ticker_cache_info(ticker, 'fundamentals')
+            if fund_info:
+                age_min = fund_info.get('age_days', 0) * 1440
+                sources.append({
+                    'name': 'Fundamentals',
+                    'key': 'fundamentals',
+                    'status': _freshness_status(age_min, thresholds=(3 * 1440, 6 * 1440)),
+                    'ageMinutes': round(age_min, 1),
+                    'cachedAt': fund_info.get('cached_at'),
+                    'expiresAt': fund_info.get('expires_at'),
+                    'source': fund_info.get('source', 'unknown'),
+                })
+            else:
+                sources.append({'name': 'Fundamentals', 'key': 'fundamentals', 'status': 'live', 'ageMinutes': 0, 'source': 'fetching fresh'})
+
+        # SPY (market regime)
+        spy_info = cache_manager.get_ticker_cache_info('SPY', 'ohlcv')
+        if spy_info:
+            age_min = spy_info.get('age_hours', 0) * 60
+            sources.append({
+                'name': 'SPY (Market)',
+                'key': 'spy',
+                'status': _freshness_status(age_min, thresholds=(60, 240)),
+                'ageMinutes': round(age_min, 1),
+                'cachedAt': spy_info.get('cached_at'),
+                'source': spy_info.get('source', 'unknown'),
+            })
+        else:
+            sources.append({'name': 'SPY (Market)', 'key': 'spy', 'status': 'live', 'ageMinutes': 0})
+
+        # VIX — always live (not cached)
+        sources.append({'name': 'VIX', 'key': 'vix', 'status': 'live', 'ageMinutes': 0, 'source': 'live API'})
+
+        # Sector Rotation
+        try:
+            conn = cache_manager.get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT cached_at, expires_at FROM market_cache WHERE symbol = 'SECTOR_ROTATION'")
+            row = cursor.fetchone()
+            conn.close()
+            if row:
+                cached_at = datetime.fromisoformat(row['cached_at']).replace(tzinfo=cache_manager.ET)
+                age_min = (now - cached_at).total_seconds() / 60
+                sources.append({
+                    'name': 'Sector Rotation',
+                    'key': 'sector',
+                    'status': _freshness_status(age_min, thresholds=(120, 480)),
+                    'ageMinutes': round(age_min, 1),
+                    'cachedAt': row['cached_at'],
+                    'expiresAt': row['expires_at'],
+                    'source': 'yfinance batch',
+                })
+            else:
+                sources.append({'name': 'Sector Rotation', 'key': 'sector', 'status': 'unknown', 'ageMinutes': None})
+        except Exception:
+            sources.append({'name': 'Sector Rotation', 'key': 'sector', 'status': 'unknown', 'ageMinutes': None})
+
+        # Fear & Greed — always live
+        sources.append({'name': 'Fear & Greed', 'key': 'feargreed', 'status': 'live', 'ageMinutes': 0, 'source': 'CNN API'})
+
+    return jsonify({
+        'ticker': ticker or None,
+        'timestamp': now.isoformat(),
+        'sources': sources,
+    })
+
+
+def _freshness_status(age_minutes, thresholds=(60, 240)):
+    """
+    Determine freshness status based on age in minutes.
+    thresholds = (green_limit, yellow_limit) — beyond yellow = red.
+    """
+    if age_minutes <= thresholds[0]:
+        return 'fresh'
+    elif age_minutes <= thresholds[1]:
+        return 'aging'
+    else:
+        return 'stale'
+
+
 @app.route('/api/provenance/<ticker>', methods=['GET'])
 def get_data_provenance(ticker):
     """
@@ -1606,16 +1723,32 @@ def scan_tradingview():
             'sp500': 'SYML:SP;SPX',
             'nasdaq100': 'SYML:NASDAQ;NDX',
             'dow30': 'SYML:DJ;DJI',
+            'tsx60': 'SYML:TSX;TX60',         # Day 59: Canadian TSX 60
         }
+
+        # Canadian market identifiers
+        CANADIAN_MARKETS = {'tsx60', 'canada'}
+
+        is_canadian = market_index in CANADIAN_MARKETS
 
         print(f"🔍 TradingView Scan: strategy={strategy}, limit={limit}, market_index={market_index}")
 
-        # Build query — use set_index for index filtering, set_markets for "all"
+        # Build query — use set_index for index filtering, set_markets for market
+        # Day 59 fix: Canada scanner doesn't support index_components_market_pages preset,
+        # so for tsx60 use set_index ONLY (america scanner handles TSX indices fine).
+        # For 'canada' (all Canadian), use set_markets('canada') without set_index.
         query = Query()
         if market_index in INDEX_MAP:
             query = query.set_index(INDEX_MAP[market_index])
+        elif market_index == 'canada':
+            query = query.set_markets('canada')
         else:
             query = query.set_markets('america')
+
+        # Determine valid exchanges for filtering
+        CANADIAN_EXCHANGES = ['TSX', 'TSXV', 'NEO']
+        US_EXCHANGES = ['NYSE', 'NASDAQ', 'AMEX']
+        valid_exchanges = CANADIAN_EXCHANGES if is_canadian else US_EXCHANGES
 
         query = query.select('name', 'close', 'volume', 'market_cap_basic',
                     'price_52_week_high', 'price_52_week_low',
@@ -1629,9 +1762,10 @@ def scan_tradingview():
         # This was causing the exchange filter to be lost, returning OTC stocks
         
         # Strategy-specific filters - ALL filters in ONE .where() call
+        # Day 59: Uses valid_exchanges (US or Canadian) based on market_index
         if strategy == 'reddit':
             query = query.where(
-                col('exchange').isin(['NYSE', 'NASDAQ', 'AMEX']),
+                col('exchange').isin(valid_exchanges),
                 col('market_cap_basic') >= 2_000_000_000,
                 col('relative_volume_10d_calc') >= 1.5,
                 col('close') > col('SMA50'),
@@ -1639,7 +1773,7 @@ def scan_tradingview():
             )
         elif strategy == 'minervini':
             query = query.where(
-                col('exchange').isin(['NYSE', 'NASDAQ', 'AMEX']),
+                col('exchange').isin(valid_exchanges),
                 col('market_cap_basic') >= 10_000_000_000,
                 col('close') > col('SMA50'),
                 col('SMA50') > col('SMA200'),
@@ -1648,7 +1782,7 @@ def scan_tradingview():
             )
         elif strategy == 'momentum':
             query = query.where(
-                col('exchange').isin(['NYSE', 'NASDAQ', 'AMEX']),
+                col('exchange').isin(valid_exchanges),
                 col('market_cap_basic') >= 1_000_000_000,
                 col('close') > col('SMA50'),
                 col('SMA50') > col('SMA200'),
@@ -1657,7 +1791,7 @@ def scan_tradingview():
             )
         elif strategy == 'value':
             query = query.where(
-                col('exchange').isin(['NYSE', 'NASDAQ', 'AMEX']),
+                col('exchange').isin(valid_exchanges),
                 col('market_cap_basic') >= 5_000_000_000,
                 col('close') > col('SMA200'),
                 col('RSI') <= 60
@@ -1667,7 +1801,7 @@ def scan_tradingview():
             # Config C: 238 trades, 53.78% WR, PF 1.61, Sharpe 0.85, p=0.002
             # Note: "within 25% of 52W high" applied as post-filter (col() doesn't support arithmetic)
             query = query.where(
-                col('exchange').isin(['NYSE', 'NASDAQ', 'AMEX']),
+                col('exchange').isin(valid_exchanges),
                 col('market_cap_basic') >= 2_000_000_000,   # Mid-cap+ (not just large-cap)
                 col('close') > col('SMA50'),                # Stage 2: Price > 50 SMA
                 col('SMA50') > col('SMA200'),               # Stage 2: 50 SMA > 200 SMA
@@ -1694,11 +1828,14 @@ def scan_tradingview():
         for _, row in results.iterrows():
             try:
                 ticker = row.get('ticker', '')
+                exchange_prefix = ''
                 if ':' in str(ticker):
+                    exchange_prefix = str(ticker).split(':')[0]
                     ticker = str(ticker).split(':')[-1]
 
                 # Day 26: Filter out non-common stocks
-                # Skip preferred stocks (contain "/"), SPAC units (end in U), warrants (end in W)
+                # NOTE: Must run BEFORE appending .TO suffix (Day 59 fix)
+                # because .TO ends with 'O' which triggers preferred stock filter
                 if '/' in ticker:
                     continue  # Preferred stock (e.g., BAC/PL, KKR/PD)
                 if len(ticker) >= 4 and ticker.endswith('U'):
@@ -1712,6 +1849,11 @@ def scan_tradingview():
                 # Skip commodity ETFs/trusts
                 if ticker in ['PHYS', 'PSLV', 'GLD', 'SLV', 'IAU', 'GLDM', 'SGOL', 'SIVR']:
                     continue  # Commodity trusts - not equities
+
+                # Day 59: Append .TO suffix for Canadian TSX tickers (yfinance format)
+                # Must be AFTER non-common-stock filter above
+                if is_canadian and exchange_prefix == 'TSX' and not ticker.endswith('.TO'):
+                    ticker = ticker + '.TO'
 
                 current = row.get('close')
                 high52w = row.get('price_52_week_high')

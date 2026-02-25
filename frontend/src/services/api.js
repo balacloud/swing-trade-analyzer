@@ -373,7 +373,7 @@ export async function fetchSupportResistance(ticker) {
  */
 export async function fetchFullAnalysisData(ticker) {
   try {
-    const [stockData, fundamentals, spyData, vixData, srData, patterns, fearGreed, earnings, sectorData] = await Promise.all([
+    const [stockData, fundamentals, spyData, vixData, srData, patterns, fearGreed, earnings, sectorData, freshness] = await Promise.all([
       fetchStockData(ticker),
       fetchFundamentals(ticker),
       fetchSPYData(),
@@ -382,7 +382,8 @@ export async function fetchFullAnalysisData(ticker) {
       fetchPatterns(ticker),
       fetchFearGreed(),
       fetchEarnings(ticker),
-      fetchSectorRotation()  // Day 58: Fetch sector rotation (cached per trading day)
+      fetchSectorRotation(),  // Day 58: Fetch sector rotation (cached per trading day)
+      fetchDataFreshness(ticker),  // Day 59: Data freshness for UI meter
     ]);
 
     // Attach fundamentals to stock data (single source: /api/fundamentals/)
@@ -410,7 +411,8 @@ export async function fetchFullAnalysisData(ticker) {
       patterns: patterns,
       fearGreed: fearGreed,
       earnings: earnings,
-      sectorRotation: sectorData  // Day 58: Sector rotation data
+      sectorRotation: sectorData,  // Day 58: Sector rotation data
+      freshness: freshness,  // Day 59: Data freshness for UI meter
     };
 
   } catch (error) {
@@ -722,6 +724,36 @@ export async function fetchEarnings(ticker, days = 7) {
       source: null,
       error: error.message
     };
+  }
+}
+
+// ============================================
+// DATA FRESHNESS (Day 59 - v4.20 Cache Audit)
+// ============================================
+
+/**
+ * Fetch data freshness metadata for UI Freshness Meter
+ * Returns cache age/status for all data sources (OHLCV, fundamentals, SPY, VIX, sectors)
+ *
+ * @param {string} ticker - Optional ticker for ticker-specific freshness
+ * @returns {object} - { sources: [{ name, status, ageMinutes, cachedAt }], timestamp }
+ */
+export async function fetchDataFreshness(ticker = '') {
+  try {
+    const url = ticker
+      ? `${API_BASE_URL}/data/freshness?ticker=${ticker.toUpperCase()}`
+      : `${API_BASE_URL}/data/freshness`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return await response.json();
+
+  } catch (error) {
+    console.error('Error fetching data freshness:', error);
+    return null;
   }
 }
 
