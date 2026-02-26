@@ -63,7 +63,7 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 
 ## Features
 
-### ✅ Implemented (v4.17)
+### ✅ Implemented (v4.22)
 
 1. **Single Stock Analysis**
    - Enter any ticker symbol
@@ -125,7 +125,29 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
    - Provenance tracking (which provider supplied each data field)
    - ETF detection with special handling
 
-10. **SQLite Persistent Cache** (Day 37) ⭐ NEW
+10. **9-Criteria Simple Checklist** (Day 27, enhanced Day 60)
+    - Binary pass/fail system — ALL 9 must pass for TRADE verdict
+    - **Criteria:** Trend (P>50>200 SMA), Momentum (RS>1.0), Setup (stop within 7%), Risk/Reward (R:R>=2:1), 52-Wk Range (top 25%), Volume ($10M+ daily), ADX (>=20), Market Regime (SPY>200 SMA), 200 SMA Trend (rising)
+    - Based on Minervini SEPA criteria + holistic backtest validation
+
+11. **Sector Rotation** (Day 58 - v4.19)
+    - `/api/sectors/rotation` — 11 SPDR sector ETFs ranked by RS ratio vs SPY
+    - RRG quadrant classification (Leading, Weakening, Lagging, Improving)
+    - Color-coded sector badge on Analyze page + sector column in Scan results
+
+12. **Market Index Filters** (Day 56 - v4.18)
+    - S&P 500 / NASDAQ 100 / Dow 30 / All US Stocks dropdown
+    - TradingView native `set_index()` — no maintenance needed
+
+13. **Canadian Market Scanning** (Day 59 - v4.21)
+    - TSX 60 and All Canadian market scan support
+    - Ticker mapping: `TSX:RY` → `RY.TO` for data providers
+
+14. **Cache Freshness Meter** (Day 59 - v4.20)
+    - `/api/data/freshness` endpoint — returns cache age per data source
+    - UI freshness dots (green=fresh, yellow=aging, red=stale) on Analyze page
+
+15. **SQLite Persistent Cache** (Day 37)
     - 5.5x performance improvement
     - OHLCV cache with market-aware TTL (expires after market close)
     - Fundamentals cache with 7-day TTL
@@ -507,7 +529,7 @@ Returns backend health status including multi-source provider information.
 ```json
 {
   "status": "healthy",
-  "version": "2.19",
+  "version": "2.23",
   "data_provider_available": true,
   "providers": {
     "providers": {
@@ -853,7 +875,7 @@ TOLERANCES = {
 - v1.3: Validation Engine with UI
 - v2.0: Score breakdown with explanations
 - v2.5: Trade viability display
-- v2.9: Simplified Binary Scoring (4-criteria system)
+- v2.9: Simplified Binary Scoring (4→9 criteria, Day 60)
 - v3.0: Settings tab + Position Sizing Calculator
 - v3.1: Auto-fill integration (Analysis → Position Calculator)
 - v3.2: Session refresh, position controls (max position, manual override)
@@ -894,12 +916,17 @@ TOLERANCES = {
 - **v4.15: Decision Matrix** ✅ 3-step synthesis: Should I Trade? → When Enter? → Does Math Work?
 - **v4.16: Holistic 3-Layer Backtest** ✅ 60 tickers, statistically significant edge (p=0.002)
 - **v4.17: Production Coherence** ✅ Bear regime filter, threshold sync, 5th filter redesign
+- **v4.18: Index Filters** ✅ S&P 500 / NASDAQ 100 / Dow 30 scan filters (Day 56)
+- **v4.19: Sector Rotation Phase 1** ✅ RS ranking, RRG quadrant, badge + scan column (Day 58)
+- **v4.20: Cache Freshness Meter** ✅ Freshness endpoint + UI dots (Day 59)
+- **v4.21: Canadian Market (Scan)** ✅ TSX 60 + All Canadian scan (Day 59)
+- **v4.22: 9-Criteria Checklist + Growth Fix** ✅ Simple Checklist 4→9 criteria, EPS/Revenue YoY fix (Day 60)
 
 ### Planned 📅
 
-- **S&P 500 Index Filter** - Restrict scans to S&P 500 constituents
+- **Sector Rotation Phase 2** - Dedicated tab with 11 sector cards, "Scan for Rank 1" filter
+- **Canadian Market Analyze Page** - Full analysis for `.TO` tickers
 - **TradingView Lightweight Charts** - Interactive charts with RSI/MACD overlays
-- **Sector Rotation Tab** - Sector RS ranking vs SPY
 - **Options Tab** - If data sources become available
 
 ### Philosophy (Day 27 + Day 44 Update)
@@ -926,7 +953,7 @@ swing-trade-analyzer/
 ├── start.sh                   # Service starter script
 ├── stop.sh                    # Service stopper script
 ├── backend/
-│   ├── backend.py             # Flask server (v2.19)
+│   ├── backend.py             # Flask server (v2.23)
 │   ├── cache_manager.py       # SQLite persistent cache (with source tracking)
 │   ├── support_resistance.py  # S&R calculation (Agglomerative + MTF)
 │   ├── pattern_detection.py   # VCP, Cup & Handle, Flat Base
@@ -963,7 +990,7 @@ swing-trade-analyzer/
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx            # Main UI (v4.5)
+│   │   ├── App.jsx            # Main UI (v4.9)
 │   │   ├── services/
 │   │   │   └── api.js         # API client + health checks
 │   │   ├── components/
@@ -971,6 +998,7 @@ swing-trade-analyzer/
 │   │   │   └── BottomLineCard.jsx        # v4.13 Action plan summary
 │   │   └── utils/
 │   │       ├── categoricalAssessment.js  # v4.5 Categorical System
+│   │       ├── simplifiedScoring.js      # 9-criteria binary checklist (Day 60)
 │   │       ├── scoringEngine.js          # Legacy scoring + data quality
 │   │       ├── forwardTesting.js         # Paper trading (v4.7)
 │   │       ├── positionSizing.js         # Van Tharp calculator
@@ -1025,5 +1053,5 @@ MIT License - See LICENSE file for details.
 
 ---
 
-*Last Updated: February 19, 2026 (Day 56)*
-*Version: v4.17 (Backend v2.19, Frontend v4.5, Backtest v4.17)*
+*Last Updated: February 25, 2026 (Day 60)*
+*Version: v4.22 (Backend v2.23, Frontend v4.9, Backtest v4.17)*
