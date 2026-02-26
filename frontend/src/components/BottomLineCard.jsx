@@ -166,6 +166,16 @@ function getWhatsRisky(categoricalResult, srData, currentPrice, holdingPeriod) {
     if (!riskMacro.data?.spyAbove200EMA) points.push('SPY below 200 EMA - bear regime');
   }
 
+  // Trade setup NOT VIABLE — R:R < 1 for both entries
+  if (srData?.meta?.tradeViability?.viable !== 'YES') {
+    const rrContext = srData?.meta?.tradeViability?.riskRewardRatio;
+    if (rrContext) {
+      points.push(`R:R ${rrContext} - below 1.0 minimum. Entry not viable at current price`);
+    } else {
+      points.push('Trade setup not viable at current levels - wait for pullback to support');
+    }
+  }
+
   // Extended from support (use highest support = nearest to price)
   if (srData?.support?.length > 0 && currentPrice) {
     const nearestSupport = Math.max(...srData.support);
@@ -298,9 +308,11 @@ function getEntryTypeLabel(categoricalResult, srData, currentPrice) {
     } else if (momentumViable) {
       return 'MOMENTUM ENTRY';
     }
+    // Neither entry viable — R:R < 1 for both
+    return 'WAIT FOR ENTRY';
   }
 
-  // Fallback to ADX-based entry preference from categorical assessment
+  // No S&R data to compute R:R — fallback to ADX-based entry preference
   const entryPref = categoricalResult?.verdict?.entryPreference || '';
   if (entryPref.includes('Momentum')) return 'MOMENTUM ENTRY';
   if (entryPref.includes('Pullback')) return 'PULLBACK ENTRY';
@@ -368,22 +380,26 @@ export default function BottomLineCard({
   const whatsRisky = getWhatsRisky(categoricalResult, srData, currentPrice, holdingPeriod);
   const actionPlan = getActionPlan(categoricalResult, srData, currentPrice, holdingPeriod);
 
+  // Determine entry type and whether trade is currently viable
+  const entryTypeLabel = verdict === 'BUY' ? getEntryTypeLabel(categoricalResult, srData, currentPrice) : null;
+  const tradeNotViable = verdict === 'BUY' && entryTypeLabel === 'WAIT FOR ENTRY';
+
   // Signal weight indicator
   const techPct = Math.round(periodConfig.techWeight * 100);
   const fundPct = Math.round(periodConfig.fundWeight * 100);
 
   return (
-    <div className={`rounded-xl shadow-lg border-2 ${style.bg} ${style.border} overflow-hidden`}>
+    <div className={`rounded-xl shadow-lg border-2 ${tradeNotViable ? 'bg-gradient-to-r from-amber-700 to-yellow-700 border-amber-400' : `${style.bg} ${style.border}`} overflow-hidden`}>
       {/* Header */}
       <div className="px-5 pt-4 pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-3xl">
-              {verdict === 'BUY' ? '\u{1F3AF}' : verdict === 'HOLD' ? '\u{1F4CB}' : '\u{1F6AB}'}
+              {tradeNotViable ? '\u{26A0}\u{FE0F}' : verdict === 'BUY' ? '\u{1F3AF}' : verdict === 'HOLD' ? '\u{1F4CB}' : '\u{1F6AB}'}
             </span>
             <div>
               <div className={`text-xl font-bold ${style.text}`}>
-                {style.label} - {verdict === 'BUY' ? getEntryTypeLabel(categoricalResult, srData, currentPrice) :
+                {tradeNotViable ? 'BUY SIGNAL' : style.label} - {verdict === 'BUY' ? entryTypeLabel :
                  verdict === 'HOLD' ? 'WAIT FOR PULLBACK' : 'SKIP THIS ONE'}
               </div>
               <div className={`text-sm ${style.text} opacity-80`}>
