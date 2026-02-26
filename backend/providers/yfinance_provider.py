@@ -139,18 +139,36 @@ class YFinanceProvider(
             # Apply field map for basic fields
             data = apply_field_map(info, YFINANCE_FUNDAMENTALS)
 
-            # Enhance with calculated fields (matching backend.py logic)
-            # Calculate growth from quarterly financials
+            # Enhance with calculated fields
+            # Calculate YoY growth from quarterly financials (same-quarter year-over-year)
+            # Day 60 fix: was QoQ (iloc[0] vs iloc[1]), now YoY (iloc[0] vs iloc[4])
             try:
                 financials = stock.quarterly_financials
-                if financials is not None and len(financials.columns) >= 2:
-                    if 'Total Revenue' in financials.index:
+                if financials is not None and len(financials.columns) >= 5:
+                    # Revenue Growth YoY (same quarter, year-over-year)
+                    if 'Total Revenue' in financials.index and data.get('revenueGrowth') is None:
                         current_rev = _safe_float(financials.loc['Total Revenue'].iloc[0])
-                        prev_rev = _safe_float(financials.loc['Total Revenue'].iloc[1])
-                        if current_rev and prev_rev and prev_rev != 0:
-                            calc_rev_growth = round(((current_rev - prev_rev) / abs(prev_rev)) * 100, 2)
-                            if data.get('revenueGrowth') is None:
-                                data['revenueGrowth'] = calc_rev_growth
+                        year_ago_rev = _safe_float(financials.loc['Total Revenue'].iloc[4])
+                        if current_rev and year_ago_rev and year_ago_rev != 0:
+                            data['revenueGrowth'] = round(((current_rev - year_ago_rev) / abs(year_ago_rev)) * 100, 2)
+
+                    # EPS Growth YoY (same quarter, year-over-year)
+                    if data.get('epsGrowth') is None:
+                        eps_field = None
+                        for f in ['Diluted EPS', 'Basic EPS']:
+                            if f in financials.index:
+                                eps_field = f
+                                break
+                        if eps_field:
+                            current_eps = _safe_float(financials.loc[eps_field].iloc[0])
+                            year_ago_eps = _safe_float(financials.loc[eps_field].iloc[4])
+                            if current_eps and year_ago_eps and year_ago_eps != 0:
+                                data['epsGrowth'] = round(((current_eps - year_ago_eps) / abs(year_ago_eps)) * 100, 2)
+                        elif 'Net Income' in financials.index:
+                            current_ni = _safe_float(financials.loc['Net Income'].iloc[0])
+                            year_ago_ni = _safe_float(financials.loc['Net Income'].iloc[4])
+                            if current_ni and year_ago_ni and year_ago_ni != 0:
+                                data['epsGrowth'] = round(((current_ni - year_ago_ni) / abs(year_ago_ni)) * 100, 2)
             except Exception:
                 pass
 

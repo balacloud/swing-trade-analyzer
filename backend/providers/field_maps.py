@@ -20,6 +20,19 @@ def _pct_to_decimal(val):
         return None
 
 
+def _growth_to_pct(val):
+    """Convert growth decimal (0.15) to percentage (15.0).
+    APIs (FMP, yfinance) return growth as decimals. Categorical assessment expects percentages.
+    Uses abs(v) < 5 heuristic: values in [-5, 5] are treated as decimals (up to 500% growth)."""
+    if val is None:
+        return None
+    try:
+        v = float(val)
+        return round(v * 100, 2) if abs(v) < 5 else round(v, 2)
+    except (TypeError, ValueError):
+        return None
+
+
 def _identity(val):
     """Pass-through - no transformation"""
     if val is None:
@@ -93,8 +106,8 @@ FMP_FUNDAMENTALS = {
 # =============================================================================
 
 FMP_GROWTH = {
-    'epsGrowth':        ('epsgrowth', _identity),       # Decimal (0.15 = 15%)
-    'revenueGrowth':    ('revenueGrowth', _identity),   # Decimal (0.10 = 10%)
+    'epsGrowth':        ('epsgrowth', _growth_to_pct),       # Decimal → Percentage (0.15 → 15.0)
+    'revenueGrowth':    ('revenueGrowth', _growth_to_pct),   # Decimal → Percentage (0.10 → 10.0)
 }
 
 
@@ -111,8 +124,8 @@ YFINANCE_FUNDAMENTALS = {
     'roe':              ('returnOnEquity', lambda v: v * 100 if v and abs(v) < 1 else v),
     'roa':              ('returnOnAssets', lambda v: v * 100 if v and abs(v) < 1 else v),
     'roic':             (None, None),                   # Not in yfinance
-    'epsGrowth':        ('earningsGrowth', _identity),  # Already decimal
-    'revenueGrowth':    ('revenueGrowth', _identity),   # Already decimal
+    'epsGrowth':        ('earningsGrowth', _growth_to_pct),  # Decimal → Percentage (0.15 → 15.0)
+    'revenueGrowth':    ('revenueGrowth', _growth_to_pct),   # Decimal → Percentage (0.10 → 10.0)
     'debtToEquity':     ('debtToEquity', _identity),
     'profitMargin':     ('profitMargins', _identity),   # Already decimal
     'operatingMargin':  ('operatingMargins', _identity),

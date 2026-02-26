@@ -918,7 +918,7 @@ function App() {
                         : 'text-gray-400 hover:text-white'
                     }`}
                   >
-                    ✅ Simple Checklist (4 criteria)
+                    ✅ Simple Checklist (9 criteria)
                   </button>
                 </div>
               </div>
@@ -2283,13 +2283,13 @@ function App() {
                       <div className="text-4xl font-bold">
                         {simplifiedResult.verdict === 'TRADE' ? '✅ TRADE' : '⏸️ PASS'}
                       </div>
-                      <div className="text-xl">{simplifiedResult.passCount}/4 criteria met</div>
+                      <div className="text-xl">{simplifiedResult.passCount}/{simplifiedResult.totalCriteria} criteria met</div>
                     </div>
                   </div>
                 </div>
 
-                {/* 4 Binary Criteria Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 9 Binary Criteria Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {Object.entries(simplifiedResult.criteria).map(([key, criterion]) => (
                     <div
                       key={key}
@@ -2372,10 +2372,10 @@ function App() {
 
                 {/* Methodology Note */}
                 <div className="bg-gray-800/50 rounded-lg p-4 text-xs text-gray-500">
-                  <p><strong>Simplified Binary System</strong> - Day 27 Research-Backed Approach</p>
-                  <p className="mt-1">Based on: AQR Momentum Research • Turtle Trading Principles • Academic Factor Evidence</p>
+                  <p><strong>Simplified Binary System</strong> - Day 27, enhanced Day 60 with Minervini SEPA + backtest-validated filters</p>
+                  <p className="mt-1">Based on: AQR Momentum Research • Turtle Trading Principles • Minervini SEPA Criteria • Holistic 3-Layer Backtest</p>
                   <p className="mt-2 text-gray-400">
-                    <strong>Rule:</strong> ALL 4 criteria must be YES to take a trade. Any NO = PASS. No exceptions.
+                    <strong>Rule:</strong> ALL 9 criteria must be YES to take a trade. Any NO = PASS. No exceptions.
                   </p>
                 </div>
 
