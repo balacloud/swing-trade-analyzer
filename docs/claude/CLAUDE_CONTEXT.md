@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 59 (February 25, 2026)
+> **Last Updated:** Day 60 (February 25, 2026)
 
 ---
 
@@ -22,14 +22,21 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 59 |
-| Version | v4.21 (Backend v2.22, Frontend v4.8, Backtest v4.17) |
-| Latest Status | PROJECT_STATUS_DAY59_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY59.md |
+| Current Day | 60 |
+| Version | v4.22 (Backend v2.23, Frontend v4.9, Backtest v4.17) |
+| Latest Status | PROJECT_STATUS_DAY60_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY60.md |
 | Latest API | API_CONTRACTS_DAY53.md (outdated — update when APIs change next) |
-| Focus | **v4.20+v4.21 Complete** — Cache Freshness Meter + Canadian Market + DVN Fix + AI Fluency Analysis |
+| Focus | **Day 60 Complete** — Simple Checklist 9 criteria + EPS/Revenue YoY Fix + ADX Bug Fix |
 
-### Day 59 Summary (Current)
+### Day 60 Summary (Current)
+- **Simple Checklist 4→9 Criteria + EPS/Revenue Growth YoY Fix + ADX Bug Fix**
+  - Simple Checklist enhanced: added 52-Wk Range, Volume, ADX, Market Regime, 200 SMA Trend (Minervini SEPA + backtest-validated)
+  - EPS/Revenue Growth: fixed QoQ→YoY (`iloc[4]`), added `_growth_to_pct()` decimal→percentage normalization
+  - ADX `.toFixed()` crash fix: coerce API values to `Number()` with `isNaN()` guard
+  - Verified: AAPL/NVDA/JPM growth metrics correct, frontend build passes
+
+### Day 59 Summary
 - **v4.20 Cache Freshness Meter + v4.21 Canadian Market + Bug Fixes**
   - Cache Audit complete: all TTLs reasonable. New `/api/data/freshness` endpoint + UI freshness dots (green/yellow/red)
   - DVN Bottom Line bug fix: `getEntryTypeLabel()` uses R:R viability (not just ADX) — matches Trade Setup card
@@ -60,6 +67,8 @@
 | P1 | v4.20: Cache Audit + Freshness Meter | 1 hr | ✅ **COMPLETE** (Day 59) |
 | P1 | v4.21: Canadian Market (Scan Only) | 2 hrs | ✅ **SCAN TAB** (Day 59) — Analyze page NOT yet supported |
 | P1 | DVN Bottom Line Entry Type Fix | 0.5 hr | ✅ **COMPLETE** (Day 59) |
+| P1 | Simple Checklist 4→9 Criteria | 1 hr | ✅ **COMPLETE** (Day 60) |
+| P2 | EPS/Revenue Growth QoQ→YoY Fix | 1 hr | ✅ **COMPLETE** (Day 60) |
 | P3 | v4.12: Charts (Own Tab) | 4-6 hrs | QUEUED |
 
 ### Backtest Results Summary (Day 57)
@@ -69,12 +78,10 @@
 | Standard (5-15d) | 244 | 53.69% | 1.62 | 0.85 | PASS (Day 55) |
 | Position (15-45d) | 362 | 38.67% | 1.51 | 0.61 | PASS (regime-sensitive, not overfitted) |
 
-### Next Session Priorities (Day 60)
+### Next Session Priorities (Day 61)
 1. **Sector Rotation Phase 2** — dedicated tab with 11 sector cards ranked, quadrant colors, **"Scan for Rank 1"** filter (user requested)
 2. **Canadian Market Analyze Page** — data source redesign for `.TO` tickers (TwelveData/Finnhub coverage, fundamentals, sector mapping)
-3. **Simple Checklist enhancements** — backtest validates criteria, add 52-week range, volume, ADX, market regime, ATR stops
-4. **EPS/Revenue Growth methodology fix** — QoQ → YoY (Medium severity)
-5. **TradingView Lightweight Charts** — Interactive charts with S&R levels, RSI/MACD overlays
+3. **TradingView Lightweight Charts** — Interactive charts with S&R levels, RSI/MACD overlays
 
 ---
 
@@ -342,6 +349,7 @@ curl http://localhost:5001/api/cache/status
 | 57 | v4.18: S&P 500/NASDAQ 100/Dow 30 index filter complete, bear regime coherence gap fixed (sma50Declining in backend+frontend), Options tab deferred (v4.19), TSX 60 deferred (v4.20), coherence audit document created. Backtest: bear regime validated (WR 71.4%), Quick+Position walk-forward passed, yfinance 0.2.28→1.2.0. Sector rotation rethought (Phase 1: embed in views). |
 | 58 | v4.19: Pattern trader descriptions, Sector Rotation Phase 1 complete (endpoint + badge + scan column + SQLite cache), sector badge reliability fix, scan transparency (empty vs error). Day 59 priorities: Phase 2 dedicated tab with "Scan for Rank 1", Cache Audit + UI Freshness Meter. |
 | 59 | v4.20 Cache Freshness Meter (endpoint + UI dots), v4.21 Canadian Market (TSX 60 + All Canadian scan, 3 bugs fixed), DVN Bottom Line entry type fix (R:R-based getEntryTypeLabel), session protocol flowcharts, AI Fluency Critical Analysis document. |
+| 60 | Simple Checklist 4→9 criteria (52-Wk Range, Volume, ADX, Market Regime, 200 SMA Trend). EPS/Revenue Growth QoQ→YoY fix + `_growth_to_pct()` format normalization. ADX `.toFixed()` crash fix (Number coercion). |
 
 ---
 

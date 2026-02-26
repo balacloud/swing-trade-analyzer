@@ -2,12 +2,12 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 59 (February 25, 2026)
+> **Last Updated:** Day 60 (February 25, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.21 (Backend v2.22, Frontend v4.8, Backtest v4.17)
+## Current Version: v4.22 (Backend v2.23, Frontend v4.9, Backtest v4.17)
 
 ---
 
@@ -22,7 +22,7 @@
 | v1.3 | Validation Engine with UI | Day 14 |
 | v2.0 | Score breakdown with explanations | Day 23 |
 | v2.5 | Trade viability display (Option D) | Day 22 |
-| v2.9 | Simplified Binary Scoring (4-criteria) | Day 27 |
+| v2.9 | Simplified Binary Scoring (4→9 criteria, Day 60) | Day 27, 60 |
 | v3.0 | Settings tab + Position Sizing Calculator | Day 28 |
 | v3.1 | Auto-fill integration | Day 28 |
 | v3.2 | Session refresh, position controls | Day 29 |
@@ -452,6 +452,7 @@ From backtesting:
 | 57 | Bear regime backtest VALIDATED (bear WR 71.4%). Quick+Position periods backtested and walk-forward validated. Full coherence audit (71 params, 96%). sma50Declining wired backend→frontend. yfinance 0.2.28→1.2.0. Sector rotation plan RETHOUGHT (Phase 1: embed in views, not new tab). |
 | 58 | v4.19: Pattern trader descriptions (VCP/Cup&Handle/Flat Base). Sector Rotation Phase 1 COMPLETE: /api/sectors/rotation endpoint, RS ratio + RRG quadrant, badge on Analyze page + column in Scan results. Fixed: sector badge reliability (race condition), SQLite cache for sector data, scan transparency (empty vs error). Added v4.20 Cache Audit + Freshness Meter to roadmap. |
 | 59 | v4.20 Cache Freshness Meter COMPLETE (endpoint + UI dots). v4.21 Canadian Market COMPLETE (TSX 60 + All Canadian scan, 3 bugs fixed). DVN Bottom Line entry type fix (R:R-based). AI Fluency Critical Analysis document. ADX 25 threshold logged as unvalidated assumption. |
+| 60 | Simple Checklist 4→9 criteria COMPLETE (52-Wk Range, Volume, ADX, Market Regime, 200 SMA Trend — Minervini SEPA + backtest-validated). EPS/Revenue Growth QoQ→YoY fix COMPLETE + `_growth_to_pct()` format normalization. ADX `.toFixed()` crash fix. |
 
 ---
 
