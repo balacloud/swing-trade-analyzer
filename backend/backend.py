@@ -574,7 +574,7 @@ def health_check():
     response = {
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
-        'version': '2.17',
+        'version': '2.23',
         'defeatbeta_available': DEFEATBETA_AVAILABLE,
         'tradingview_available': TRADINGVIEW_AVAILABLE,
         'sr_engine_available': SR_ENGINE_AVAILABLE,

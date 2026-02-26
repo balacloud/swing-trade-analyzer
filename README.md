@@ -50,7 +50,7 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 
 | Parameter | Value |
 |-----------|-------|
-| Hold Period | 1-2 months |
+| Hold Period | Quick (5-10d) / Standard (15-30d) / Position (1-3mo) |
 | Target Returns | 10-20% per trade (2-3R) |
 | Position Risk | 2-5% of account per trade |
 | Risk/Reward | Minimum 2:1 required |
@@ -72,7 +72,7 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
    - Decision Matrix: 3-step synthesis (Should I Trade? → When Enter? → Does Math Work?)
    - Holding period selector: Quick (5-10d) / Standard (15-30d) / Position (1-3mo)
 
-3. **Position Sizing Calculator** (Day 28-29)
+2. **Position Sizing Calculator** (Day 28-29)
    - Van Tharp R-multiple principles
    - Configurable account size and risk % (2-5%)
    - Auto-calculates shares, R targets (1.5R, 2R, 3R)
@@ -80,7 +80,7 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
    - Manual override for custom entry/stop prices
    - Max position limit to prevent over-allocation
 
-4. **Advanced S&R Detection** (Day 31-34)
+3. **Advanced S&R Detection** (Day 31-34)
    - **Agglomerative Clustering** - Adaptive cluster count (replaced KMeans)
    - **ZigZag Pivot Detection** - 5% minimum price change threshold
    - **Touch-based Scoring** - Levels ranked by historical touches
@@ -89,33 +89,33 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
    - 100% detection rate (was 80% with KMeans)
    - Confluence badge shows % of levels confirmed by weekly data
 
-5. **Dual Entry Strategy** (Day 39-40) ⭐ NEW
+4. **Dual Entry Strategy** (Day 39-40)
    - **Conservative Entry** - Wait for pullback to support
    - **Aggressive Entry** - Enter at current price
    - Side-by-side comparison cards for ALL stocks
    - Shows R:R ratio, ADX trend strength, 4H RSI confirmation
    - Structural stop loss (below support) for both strategies
 
-6. **Trade Setup Generation**
+5. **Trade Setup Generation**
    - Support & Resistance detection (Pivot → Agglomerative → Volume Profile)
    - Suggested Entry, Stop Loss, Target
    - Risk/Reward ratio calculation
    - Pullback re-entry zones for extended stocks
    - **MTF Confluence indicators** (★ marks confluent levels)
 
-7. **Market Scanning** (TradingView Screener)
+6. **Market Scanning** (TradingView Screener)
    - 5 pre-built strategies: Reddit, Minervini, Momentum, Value, Best Candidates
    - **Best Candidates** aligned with backtested Config C criteria (ADX>=20, RSI 50-70, EMA momentum)
-   - Filters for institutional-quality stocks
+   - Market index filters: S&P 500 / NASDAQ 100 / Dow 30 / All US / TSX 60 / All Canadian
    - Stage 2 uptrend requirement (50 SMA > 200 SMA)
 
-8. **Data Validation Engine** (Day 42 - Enhanced)
+7. **Data Validation Engine** (Day 42)
    - Cross-references our data against StockAnalysis and Finviz
    - Quality Score = Coverage × Accuracy
    - **92.3% quality score** with methodology-aware tolerances
    - Identifies data discrepancies
 
-9. **Multi-Source Data Intelligence** (Day 52 - v4.14)
+8. **Multi-Source Data Intelligence** (Day 52 - v4.14)
    - **5 data providers** with automatic fallback chains
    - OHLCV: TwelveData → yfinance → Stooq
    - Fundamentals: Finnhub → FMP → yfinance (field-level merge)
@@ -125,50 +125,73 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
    - Provenance tracking (which provider supplied each data field)
    - ETF detection with special handling
 
-10. **9-Criteria Simple Checklist** (Day 27, enhanced Day 60)
+9. **9-Criteria Simple Checklist** (Day 27, enhanced Day 60)
     - Binary pass/fail system — ALL 9 must pass for TRADE verdict
     - **Criteria:** Trend (P>50>200 SMA), Momentum (RS>1.0), Setup (stop within 7%), Risk/Reward (R:R>=2:1), 52-Wk Range (top 25%), Volume ($10M+ daily), ADX (>=20), Market Regime (SPY>200 SMA), 200 SMA Trend (rising)
     - Based on Minervini SEPA criteria + holistic backtest validation
 
-11. **Sector Rotation** (Day 58 - v4.19)
+10. **Sector Rotation** (Day 58 - v4.19)
     - `/api/sectors/rotation` — 11 SPDR sector ETFs ranked by RS ratio vs SPY
     - RRG quadrant classification (Leading, Weakening, Lagging, Improving)
     - Color-coded sector badge on Analyze page + sector column in Scan results
 
-12. **Market Index Filters** (Day 56 - v4.18)
-    - S&P 500 / NASDAQ 100 / Dow 30 / All US Stocks dropdown
-    - TradingView native `set_index()` — no maintenance needed
+11. **Pattern Detection** (Day 44 - v4.2)
+    - VCP (Volatility Contraction Pattern), Cup & Handle, Flat Base
+    - Minervini's 8-point Trend Template
+    - Pattern confidence scoring with actionability threshold (>= 60%)
+    - Breakout quality assessment (High/Medium/Low)
 
-13. **Canadian Market Scanning** (Day 59 - v4.21)
-    - TSX 60 and All Canadian market scan support
-    - Ticker mapping: `TSX:RY` → `RY.TO` for data providers
+12. **Earnings Calendar Warning** (Day 49 - v4.10)
+    - Flags stocks with earnings within 7 days
+    - Red pulse badge for ≤ 3 days, yellow for 4-7 days
+    - Recommendation text (CAUTION / AWARE)
 
-14. **Cache Freshness Meter** (Day 59 - v4.20)
+13. **Enhanced Volume Analysis** (Day 49 - v4.9)
+    - OBV (On-Balance Volume) with trend detection (Rising/Falling/Flat)
+    - OBV vs Price divergence detection (Bullish/Bearish/None)
+    - Enhanced RVOL display ("2.3x avg")
+
+14. **Decision Matrix** (Day 53 - v4.15)
+    - 3-step synthesis: "Should I Trade?" → "When Enter?" → "Does Math Work?"
+    - Surfaces 10 computed-but-hidden fields
+    - Contradiction resolution with actionable items
+
+15. **Holding Period Selector** (Day 53 - v4.13)
+    - Quick (5-10d) / Standard (15-30d) / Position (1-3mo)
+    - Signal weighting by horizon (Quick=70% Tech, Position=70% Fund)
+    - Bottom Line Card with action plan summary
+
+16. **Forward Testing / Paper Trading** (Day 47 - v4.7)
+    - Add/close trades with entry, stop, target prices
+    - R-multiple tracking with Van Tharp statistics (Win Rate, Expectancy, SQN)
+    - Trade journal table, export to CSV, localStorage persistence
+
+17. **Cache Freshness Meter** (Day 59 - v4.20)
     - `/api/data/freshness` endpoint — returns cache age per data source
     - UI freshness dots (green=fresh, yellow=aging, red=stale) on Analyze page
 
-15. **SQLite Persistent Cache** (Day 37)
+18. **Canadian Market Scanning** (Day 59 - v4.21)
+    - TSX 60 and All Canadian market scan support
+    - Ticker mapping: `TSX:RY` → `RY.TO` for data providers
+
+19. **SQLite Persistent Cache** (Day 37)
     - 5.5x performance improvement
     - OHLCV cache with market-aware TTL (expires after market close)
     - Fundamentals cache with 7-day TTL
     - Survives backend restarts
     - Cache status endpoint for monitoring
 
-11. **Data Sources Tab** (Day 38)
+20. **Data Sources Tab** (Day 38)
     - Full transparency on data provenance
     - Shows which provider supplied each data field
     - Cache hit/miss status
     - Calculation formulas displayed
 
-12. **Service Management Scripts** (Day 37) ⭐ NEW
+21. **Service Management Scripts** (Day 37)
     - `./start.sh` - Start backend and/or frontend
     - `./stop.sh` - Stop services cleanly
 
-13. **Session Management** (Day 29)
-    - Session refresh button (clears backend cache + frontend state)
-    - Ensures fresh data without browser refresh
-
-14. **Settings & Configuration**
+22. **Settings & Configuration**
     - Persistent account settings (localStorage)
     - Risk percentage slider (2-5%)
     - Position sizing preferences
@@ -193,19 +216,20 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 │  │   Matrix    │  │   Analyze   │  │                         │  │
 │  └─────────────┘  └─────────────┘  └─────────────────────────┘  │
 │                                                                  │
-│  ┌─────────────────────────┐  ┌─────────────────────────────┐   │
-│  │    Data Sources Tab     │  │      Settings Tab           │   │
-│  │                         │  │                             │   │
-│  │ - Data provenance       │  │ - Account size              │   │
-│  │ - Cache status          │  │ - Risk percentage           │   │
-│  │ - Source transparency   │  │ - Position limits           │   │
-│  └─────────────────────────┘  └─────────────────────────────┘   │
+│  ┌─────────────────┐  ┌───────────────┐  ┌──────────────────┐   │
+│  │ Data Sources Tab │  │ Forward Test  │  │   Settings Tab   │   │
+│  │                  │  │               │  │                  │   │
+│  │ - Provenance     │  │ - Paper trade │  │ - Account size   │   │
+│  │ - Cache status   │  │ - R-multiples │  │ - Risk %         │   │
+│  │ - Transparency   │  │ - Van Tharp   │  │ - Position limits│   │
+│  └─────────────────┘  └───────────────┘  └──────────────────┘   │
 ├─────────────────────────────────────────────────────────────────┤
 │                      SERVICES & UTILS                           │
 │  ┌──────────────┐  ┌───────────────┐  ┌───────────────────┐     │
-│  │   api.js     │  │ categorical   │  │  rsCalculator.js  │     │
-│  │              │  │ Assessment.js │  │                   │     │
-│  │ API calls    │  │ Verdict logic │  │ RS vs S&P 500     │     │
+│  │   api.js     │  │ categorical   │  │ simplified        │     │
+│  │              │  │ Assessment.js │  │ Scoring.js        │     │
+│  │ 10 parallel  │  │ Verdict logic │  │ 9-criteria        │     │
+│  │ API calls    │  │ (4 categories)│  │ binary checklist   │     │
 │  └──────────────┘  └───────────────┘  └───────────────────┘     │
 └─────────────────────────────────────────────────────────────────┘
                               │
@@ -216,29 +240,43 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 │                       localhost:5001                            │
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌─────────────────────────────────────────────────────────┐    │
-│  │                    API ENDPOINTS                        │    │
+│  │                 API ENDPOINTS (22 routes)               │    │
 │  │                                                         │    │
-│  │  /api/stock/<ticker>      - Price data, basic info      │    │
-│  │  /api/fundamentals/<ticker> - Rich fundamental data     │    │
-│  │  /api/market/spy          - S&P 500 data for RS         │    │
-│  │  /api/market/vix          - VIX for risk assessment     │    │
-│  │  /api/sr/<ticker>         - Support & Resistance        │    │
-│  │  /api/scan/tradingview    - Batch market scanning       │    │
-│  │  /api/validation/run      - Data validation             │    │
-│  │  /api/provenance/<ticker> - Data source transparency    │    │
-│  │  /api/cache/status        - Cache monitoring            │    │
-│  │  /api/cache/clear         - Cache management            │    │
-│  │  /api/health              - Backend health check        │    │
+│  │  Core Analysis:                                         │    │
+│  │  /api/stock/<ticker>        - Price data, basic info    │    │
+│  │  /api/fundamentals/<ticker> - Fundamental data          │    │
+│  │  /api/sr/<ticker>           - Support & Resistance      │    │
+│  │  /api/patterns/<ticker>     - VCP, Cup&Handle, FlatBase │    │
+│  │  /api/earnings/<ticker>     - Earnings calendar warning │    │
+│  │                                                         │    │
+│  │  Market Data:                                           │    │
+│  │  /api/market/spy   /api/market/vix   /api/fear-greed    │    │
+│  │  /api/sectors/rotation  - 11 sector RS ranking          │    │
+│  │                                                         │    │
+│  │  Scanning & Forward Test:                               │    │
+│  │  /api/scan/tradingview     /api/scan/strategies         │    │
+│  │  /api/forward-test/record  /signals  /performance       │    │
+│  │                                                         │    │
+│  │  Validation & Infrastructure:                           │    │
+│  │  /api/validation/run  /results  /history                │    │
+│  │  /api/provenance/<ticker>  /api/data/freshness          │    │
+│  │  /api/cache/status  /api/cache/clear  /api/health       │    │
 │  └─────────────────────────────────────────────────────────┘    │
 ├─────────────────────────────────────────────────────────────────┤
 │                        MODULES                                  │
 │  ┌────────────────┐  ┌─────────────────┐  ┌─────────────────┐   │
-│  │ support_       │  │   validation/   │  │  cache_manager  │   │
-│  │ resistance.py  │  │   engine.py     │  │      .py        │   │
-│  │                │  │   scrapers.py   │  │                 │   │
-│  │ Agglomerative  │  │   comparators   │  │ SQLite cache    │   │
-│  │ + MTF S&R      │  │                 │  │ (5.5x speedup)  │   │
+│  │ support_       │  │ pattern_        │  │  cache_manager  │   │
+│  │ resistance.py  │  │ detection.py    │  │      .py        │   │
+│  │                │  │                 │  │                 │   │
+│  │ Agglomerative  │  │ VCP, Cup&Handle │  │ SQLite cache    │   │
+│  │ + MTF S&R      │  │ Trend Template  │  │ (5.5x speedup)  │   │
 │  └────────────────┘  └─────────────────┘  └─────────────────┘   │
+│  ┌────────────────┐  ┌─────────────────┐                        │
+│  │  providers/    │  │   validation/   │                        │
+│  │                │  │                 │                        │
+│  │ 5 data sources │  │ engine, scrapers│                        │
+│  │ + orchestrator │  │ forward_tracker │                        │
+│  └────────────────┘  └─────────────────┘                        │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -290,7 +328,12 @@ User enters ticker
         ├──► /api/fundamentals/AAPL ► Finnhub → FMP → yfinance (merge)
         ├──► /api/market/spy ──────► TwelveData → yfinance (for RS)
         ├──► /api/market/vix ──────► yfinance → Finnhub (VIX)
-        └──► /api/sr/AAPL ─────────► S&R Engine (Entry/Stop/Target)
+        ├──► /api/sr/AAPL ─────────► S&R Engine (Entry/Stop/Target)
+        ├──► /api/patterns/AAPL ───► VCP, Cup&Handle, Flat Base detection
+        ├──► /api/fear-greed ──────► CNN Fear & Greed Index
+        ├──► /api/earnings/AAPL ───► Earnings calendar (event risk)
+        ├──► /api/sectors/rotation ► 11 sector RS ranking vs SPY
+        └──► /api/data/freshness ──► Cache age per data source
         │
         ▼
 ┌───────────────────────────┐
@@ -704,6 +747,176 @@ GET /api/scan/tradingview?strategy=reddit&limit=50
 }
 ```
 
+### GET /api/patterns/<ticker>
+
+Detect chart patterns (VCP, Cup & Handle, Flat Base) and Minervini Trend Template.
+
+```json
+{
+  "ticker": "AAPL",
+  "patterns": {
+    "vcp": {"detected": false, "confidence": 0},
+    "cup_handle": {"detected": true, "confidence": 72.5},
+    "flat_base": {"detected": false, "confidence": 0}
+  },
+  "summary": {
+    "patterns_detected": ["cup_handle"],
+    "best_pattern": "cup_handle",
+    "confidence": 72.5,
+    "actionable": true
+  },
+  "trend_template": {
+    "criteria_met": 7,
+    "total_criteria": 8,
+    "details": [...]
+  }
+}
+```
+
+### GET /api/fear-greed
+
+Returns CNN Fear & Greed Index for sentiment assessment.
+
+```json
+{
+  "value": 62.5,
+  "rating": "Greed",
+  "assessment": "Strong",
+  "timestamp": "2026-02-25T16:00:00Z",
+  "previousClose": 58.2,
+  "source": "CNN Fear & Greed Index"
+}
+```
+
+**Assessment mapping:** Strong (55-75), Neutral (45-55), Weak (<45 or >75)
+
+### GET /api/earnings/<ticker>
+
+Flags upcoming earnings to avoid gap risk.
+
+```json
+{
+  "ticker": "AAPL",
+  "has_upcoming": true,
+  "earnings_date": "2026-04-30",
+  "days_until": 5,
+  "warning": "📅 Earnings in 5 days",
+  "recommendation": "AWARE - Consider exiting before earnings if position is taken.",
+  "source": "calendar"
+}
+```
+
+### GET /api/sectors/rotation
+
+Returns 11 SPDR sector ETFs ranked by RS ratio vs SPY with RRG quadrant classification.
+
+```json
+{
+  "sectors": [
+    {
+      "etf": "XLK",
+      "name": "Technology",
+      "rsRatio": 1.05,
+      "rsMomentum": 0.02,
+      "quadrant": "Leading",
+      "weekChange": 2.1,
+      "monthChange": 5.3
+    }
+  ],
+  "mapping": {
+    "Technology": "XLK",
+    "Information Technology": "XLK",
+    "Financials": "XLF"
+  }
+}
+```
+
+**Quadrants:** Leading (RS>1 + rising), Weakening (RS>1 + falling), Lagging (RS<1 + falling), Improving (RS<1 + rising)
+
+### GET /api/data/freshness
+
+Returns cache age and freshness status per data source for the UI freshness meter.
+
+```
+GET /api/data/freshness?ticker=AAPL
+```
+
+```json
+{
+  "sources": [
+    {
+      "name": "Price Data",
+      "key": "ohlcv",
+      "status": "fresh",
+      "ageMinutes": 45.2,
+      "source": "twelvedata"
+    },
+    {
+      "name": "Fundamentals",
+      "key": "fundamentals",
+      "status": "aging",
+      "ageMinutes": 4320.0,
+      "source": "finnhub"
+    }
+  ]
+}
+```
+
+**Status values:** `fresh` (green), `aging` (yellow), `stale` (red), `live` (blue), `unknown` (gray)
+
+### GET /api/scan/strategies
+
+Returns available scan strategy definitions.
+
+```json
+{
+  "strategies": [
+    {"id": "reddit", "name": "Reddit Style", "description": "Mid-cap+, high relative volume, momentum stocks"},
+    {"id": "minervini", "name": "Minervini SEPA", "description": "Large-cap momentum leaders in Stage 2 uptrend"},
+    {"id": "momentum", "name": "Momentum", "description": "Sustainable gains, RSI 50-75 (not overbought)"},
+    {"id": "value", "name": "Value", "description": "Quality stocks above 200 SMA at fair RSI levels"},
+    {"id": "best", "name": "Best Candidates", "description": "Stage 2 + ADX≥20 + RSI 50-70 + EMA momentum"}
+  ]
+}
+```
+
+### POST /api/forward-test/record
+
+Record a trading signal for forward testing / paper trading.
+
+```json
+// Request
+{
+  "ticker": "AAPL",
+  "signal_type": "BUY",
+  "score": 65,
+  "price_at_signal": 250.00,
+  "entry_price": 245.00,
+  "stop_price": 238.00,
+  "target_price": 270.00,
+  "risk_reward": 3.57
+}
+
+// Response
+{"success": true, "signal_id": "abc123", "message": "Recorded BUY signal for AAPL"}
+```
+
+### GET /api/forward-test/signals
+
+Get recent forward test signals. Params: `?days=30&limit=50&ticker=AAPL`
+
+### GET /api/forward-test/performance
+
+Get forward test performance summary (win rate, avg P&L, signal count).
+
+### GET /api/validation/results
+
+Get latest (or specific) validation results. Params: `?run_id=20260225_103000`
+
+### GET /api/validation/history
+
+Get list of all validation runs. Params: `?limit=10`
+
 ### POST /api/validation/run
 
 Cross-validate data against external sources.
@@ -859,9 +1072,10 @@ TOLERANCES = {
 | Feature | Reason for Deferral |
 |---------|---------------------|
 | Options Tab | Needs Greeks calculation (complex) |
-| Sector Rotation RRG | Complex, marginal v1 value |
+| Sector Rotation Phase 2 | Phase 1 done (v4.19); dedicated tab with 11 cards planned |
 | Candlestick Patterns | Low statistical accuracy |
 | Full Lightweight Charts | After backtest validation |
+| Canadian Analyze Page | Scan works; full analysis needs data source redesign |
 
 ---
 
@@ -975,6 +1189,9 @@ swing-trade-analyzer/
 │   │   └── backtest_adapter.py     # yf.download() replacement
 │   ├── backtest/              # v4.16-v4.17 Holistic Backtest System
 │   │   ├── backtest_holistic.py       # Main runner (60 tickers, 3 configs)
+│   │   ├── backtest_technical.py      # Technical exit strategies
+│   │   ├── backtest_simplified.py     # Simplified backtest runner
+│   │   ├── backtest_adx_rsi_thresholds.py # ADX/RSI threshold validation
 │   │   ├── categorical_engine.py      # Python port of categorical assessment
 │   │   ├── trade_simulator.py         # Exit models + market regime
 │   │   ├── metrics.py                 # Statistical metrics (Sharpe, Sortino, T-test)
@@ -985,7 +1202,9 @@ swing-trade-analyzer/
 │   ├── validation/
 │   │   ├── engine.py          # Validation orchestrator
 │   │   ├── scrapers.py        # StockAnalysis + Finviz
-│   │   └── comparators.py     # Tolerance checking
+│   │   ├── comparators.py     # Tolerance checking
+│   │   ├── forward_tracker.py # Forward test signal recording
+│   │   └── report_generator.py # Validation HTML reports
 │   └── venv/
 │
 ├── frontend/
@@ -999,6 +1218,7 @@ swing-trade-analyzer/
 │   │   └── utils/
 │   │       ├── categoricalAssessment.js  # v4.5 Categorical System
 │   │       ├── simplifiedScoring.js      # 9-criteria binary checklist (Day 60)
+│   │       ├── technicalIndicators.js    # RSI, MACD, ADX calculations
 │   │       ├── scoringEngine.js          # Legacy scoring + data quality
 │   │       ├── forwardTesting.js         # Paper trading (v4.7)
 │   │       ├── positionSizing.js         # Van Tharp calculator
