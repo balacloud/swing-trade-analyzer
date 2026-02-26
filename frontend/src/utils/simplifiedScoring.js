@@ -137,14 +137,16 @@ export function calculateSimplifiedAnalysis(stockData, spyData, srData) {
   // CRITERION 4: RISK/REWARD
   // R:R ratio >= 2:1
   // ============================================
-  if (srData?.riskReward !== null && srData?.riskReward !== undefined) {
-    if (srData.riskReward >= 2.0) {
+  const rrRaw = srData?.riskReward;
+  const rrValue = rrRaw != null ? Number(rrRaw) : null;
+  if (rrValue !== null && !isNaN(rrValue)) {
+    if (rrValue >= 2.0) {
       results.criteria.risk.pass = true;
-      results.criteria.risk.reason = `R:R ${srData.riskReward.toFixed(2)}:1 - favorable risk/reward`;
-    } else if (srData.riskReward >= 1.5) {
-      results.criteria.risk.reason = `R:R ${srData.riskReward.toFixed(2)}:1 - acceptable but not ideal (want >= 2:1)`;
+      results.criteria.risk.reason = `R:R ${rrValue.toFixed(2)}:1 - favorable risk/reward`;
+    } else if (rrValue >= 1.5) {
+      results.criteria.risk.reason = `R:R ${rrValue.toFixed(2)}:1 - acceptable but not ideal (want >= 2:1)`;
     } else {
-      results.criteria.risk.reason = `R:R ${srData.riskReward.toFixed(2)}:1 - unfavorable (want >= 2:1)`;
+      results.criteria.risk.reason = `R:R ${rrValue.toFixed(2)}:1 - unfavorable (want >= 2:1)`;
     }
   } else {
     results.criteria.risk.reason = 'Unable to calculate R:R';
@@ -213,8 +215,9 @@ export function calculateSimplifiedAnalysis(stockData, spyData, srData) {
   // CRITERION 7: ADX (Trend Strength)
   // ADX >= 20 (backtest-validated filter)
   // ============================================
-  const adxValue = srData?.meta?.adx;
-  if (adxValue !== null && adxValue !== undefined) {
+  const adxRaw = srData?.meta?.adx;
+  const adxValue = adxRaw != null ? Number(adxRaw) : null;
+  if (adxValue !== null && !isNaN(adxValue)) {
     if (adxValue >= 20) {
       results.criteria.adx.pass = true;
       results.criteria.adx.reason = `ADX ${adxValue.toFixed(1)} - confirmed trend (>= 20)`;
