@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 60 (February 25, 2026)
+> **Last Updated:** Day 61 (February 27, 2026)
 
 ---
 
@@ -22,19 +22,33 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 60 |
-| Version | v4.22 (Backend v2.23, Frontend v4.9, Backtest v4.17) |
-| Latest Status | PROJECT_STATUS_DAY60_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY60.md |
-| Latest API | API_CONTRACTS_DAY53.md (outdated — update when APIs change next) |
-| Focus | **Day 60 Complete** — Simple Checklist 9 criteria + EPS/Revenue YoY Fix + ADX Bug Fix |
+| Current Day | 61 |
+| Version | v4.23 (Backend v2.24, Frontend v4.10, Backtest v4.17) |
+| Latest Status | PROJECT_STATUS_DAY61_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY61.md |
+| Latest API | API_CONTRACTS_DAY61.md |
+| Focus | **Day 61 Complete** — 4-Layer Coherence Audit + 9 Bug Fixes + R:R DRY Refactor |
 
-### Day 60 Summary (Current)
+### Day 61 Summary (Current)
+- **4-Layer Coherence Audit + 9 Bug Fixes + R:R DRY Refactor**
+  - Systematic audit: 7 parallel code agents, 87 fields, 10 tickers × 10 endpoints
+  - Found: 3 CRITICAL + 2 MEDIUM + several info issues. Overall 89% coherence (78/87 clean)
+  - **Fix #1:** NaN→null in all transform functions (field_maps.py)
+  - **Fix #2:** F&G thresholds synced backend 55-75 → 60-80 to match frontend
+  - **Fix #3+4:** Cleared 56 stale cache entries + schema versioning v2 (auto-invalidation)
+  - **Fix #5:** Earnings endpoint 500 on error (was 200 — indistinguishable from "no earnings")
+  - **Fix #6:** `_sanitize()` NaN/Infinity defense in categoricalAssessment.js
+  - **Fix #7:** F&G `fallback: true` flag preserved through api.js
+  - **Fix #8:** R:R shared utility (riskRewardCalc.js) — extracted from 4 duplicated locations
+  - **Fix #9:** priceHistory NaN filtering + scalar price NaN safety
+  - Re-audit verified all 9 fixes correct. Backtest completely isolated.
+  - COHERENCE_AUDIT_DAY61.md created with full audit report
+
+### Day 60 Summary
 - **Simple Checklist 4→9 Criteria + EPS/Revenue Growth YoY Fix + ADX Bug Fix**
   - Simple Checklist enhanced: added 52-Wk Range, Volume, ADX, Market Regime, 200 SMA Trend (Minervini SEPA + backtest-validated)
   - EPS/Revenue Growth: fixed QoQ→YoY (`iloc[4]`), added `_growth_to_pct()` decimal→percentage normalization
   - ADX `.toFixed()` crash fix: coerce API values to `Number()` with `isNaN()` guard
-  - Verified: AAPL/NVDA/JPM growth metrics correct, frontend build passes
 
 ### Day 59 Summary
 - **v4.20 Cache Freshness Meter + v4.21 Canadian Market + Bug Fixes**
@@ -69,6 +83,7 @@
 | P1 | DVN Bottom Line Entry Type Fix | 0.5 hr | ✅ **COMPLETE** (Day 59) |
 | P1 | Simple Checklist 4→9 Criteria | 1 hr | ✅ **COMPLETE** (Day 60) |
 | P2 | EPS/Revenue Growth QoQ→YoY Fix | 1 hr | ✅ **COMPLETE** (Day 60) |
+| P0 | 4-Layer Coherence Audit + 9 Fixes | 4 hrs | ✅ **COMPLETE** (Day 61) |
 | P3 | v4.12: Charts (Own Tab) | 4-6 hrs | QUEUED |
 
 ### Backtest Results Summary (Day 57)
@@ -78,7 +93,7 @@
 | Standard (5-15d) | 244 | 53.69% | 1.62 | 0.85 | PASS (Day 55) |
 | Position (15-45d) | 362 | 38.67% | 1.51 | 0.61 | PASS (regime-sensitive, not overfitted) |
 
-### Next Session Priorities (Day 61)
+### Next Session Priorities (Day 62)
 1. **Sector Rotation Phase 2** — dedicated tab with 11 sector cards ranked, quadrant colors, **"Scan for Rank 1"** filter (user requested)
 2. **Canadian Market Analyze Page** — data source redesign for `.TO` tickers (TwelveData/Finnhub coverage, fundamentals, sector mapping)
 3. **TradingView Lightweight Charts** — Interactive charts with S&R levels, RSI/MACD overlays
@@ -350,6 +365,7 @@ curl http://localhost:5001/api/cache/status
 | 58 | v4.19: Pattern trader descriptions, Sector Rotation Phase 1 complete (endpoint + badge + scan column + SQLite cache), sector badge reliability fix, scan transparency (empty vs error). Day 59 priorities: Phase 2 dedicated tab with "Scan for Rank 1", Cache Audit + UI Freshness Meter. |
 | 59 | v4.20 Cache Freshness Meter (endpoint + UI dots), v4.21 Canadian Market (TSX 60 + All Canadian scan, 3 bugs fixed), DVN Bottom Line entry type fix (R:R-based getEntryTypeLabel), session protocol flowcharts, AI Fluency Critical Analysis document. |
 | 60 | Simple Checklist 4→9 criteria (52-Wk Range, Volume, ADX, Market Regime, 200 SMA Trend). EPS/Revenue Growth QoQ→YoY fix + `_growth_to_pct()` format normalization. ADX `.toFixed()` crash fix (Number coercion). |
+| 61 | 4-Layer Coherence Audit (87 fields, 10 tickers, 10 endpoints): 3 CRITICAL + 2 MEDIUM found, ALL 9 FIXED. NaN safety (3-layer defense), F&G thresholds synced, cache schema v2, earnings 500 on error, R:R DRY utility (riskRewardCalc.js). API_CONTRACTS updated Day 53→Day 61. |
 
 ---
 

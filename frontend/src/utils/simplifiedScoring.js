@@ -215,7 +215,7 @@ export function calculateSimplifiedAnalysis(stockData, spyData, srData) {
   // CRITERION 7: ADX (Trend Strength)
   // ADX >= 20 (backtest-validated filter)
   // ============================================
-  const adxRaw = srData?.meta?.adx;
+  const adxRaw = srData?.meta?.adx?.adx;
   const adxValue = adxRaw != null ? Number(adxRaw) : null;
   if (adxValue !== null && !isNaN(adxValue)) {
     if (adxValue >= 20) {

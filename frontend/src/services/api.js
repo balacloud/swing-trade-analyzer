@@ -664,7 +664,8 @@ export async function fetchFearGreed() {
       timestamp: data.timestamp,
       previousClose: data.previousClose,
       source: data.source,
-      error: data.error || null
+      error: data.error || null,
+      fallback: data.fallback || false  // Day 61: Preserve fallback flag for honest UI display
     };
 
   } catch (error) {
@@ -716,7 +717,7 @@ export async function fetchEarnings(ticker, days = 7) {
     // Return safe default on error
     return {
       ticker: ticker,
-      hasUpcoming: false,
+      hasUpcoming: null,  // Day 61: null = "unknown/error", false = "confirmed no earnings"
       earningsDate: null,
       daysUntil: null,
       warning: null,

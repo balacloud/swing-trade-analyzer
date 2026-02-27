@@ -2,12 +2,12 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 60 (February 25, 2026)
+> **Last Updated:** Day 61 (February 27, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.22 (Backend v2.23, Frontend v4.9, Backtest v4.17)
+## Current Version: v4.23 (Backend v2.24, Frontend v4.10, Backtest v4.17)
 
 ---
 
@@ -70,6 +70,7 @@
 | G5 | Frontend-Backend Threshold Sync | ✅ COMPLETE (Day 56) |
 | G6 | Quick & Position Period Backtest | ✅ COMPLETE (Day 57) — walk-forward validated |
 | G7 | Full System Coherence Audit | ✅ COMPLETE (Day 57) — 71 params, 96% coherence |
+| G8 | 4-Layer Deep Coherence Audit | ✅ COMPLETE (Day 61) — 87 fields, 89% coherence, 9 bugs fixed |
 
 **Test Command:** `python backend/backtest/backtest_holistic.py --configs C --walk-forward`
 
@@ -453,6 +454,7 @@ From backtesting:
 | 58 | v4.19: Pattern trader descriptions (VCP/Cup&Handle/Flat Base). Sector Rotation Phase 1 COMPLETE: /api/sectors/rotation endpoint, RS ratio + RRG quadrant, badge on Analyze page + column in Scan results. Fixed: sector badge reliability (race condition), SQLite cache for sector data, scan transparency (empty vs error). Added v4.20 Cache Audit + Freshness Meter to roadmap. |
 | 59 | v4.20 Cache Freshness Meter COMPLETE (endpoint + UI dots). v4.21 Canadian Market COMPLETE (TSX 60 + All Canadian scan, 3 bugs fixed). DVN Bottom Line entry type fix (R:R-based). AI Fluency Critical Analysis document. ADX 25 threshold logged as unvalidated assumption. |
 | 60 | Simple Checklist 4→9 criteria COMPLETE (52-Wk Range, Volume, ADX, Market Regime, 200 SMA Trend — Minervini SEPA + backtest-validated). EPS/Revenue Growth QoQ→YoY fix COMPLETE + `_growth_to_pct()` format normalization. ADX `.toFixed()` crash fix. |
+| 61 | 4-Layer Coherence Audit COMPLETE (87 fields, 10 tickers, 10 endpoints). 9 bugs fixed: NaN safety (3-layer defense), F&G thresholds synced, cache schema v2, earnings 500 on error, R:R DRY utility (riskRewardCalc.js), F&G fallback flag. API_CONTRACTS updated Day 53→Day 61. Version v4.23. |
 
 ---
 

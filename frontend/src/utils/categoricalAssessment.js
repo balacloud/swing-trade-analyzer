@@ -367,10 +367,12 @@ export function assessFundamental(fundamentals, ticker) {
   }
 
   // Extract fundamental metrics
-  const roe = fundamentals.roe;
-  const revenueGrowth = fundamentals.revenueGrowth;
-  const debtToEquity = fundamentals.debtToEquity;
-  const epsGrowth = fundamentals.epsGrowth;
+  // Day 61: Sanitize NaN values — NaN passes !== null checks but breaks scoring
+  const _sanitize = (v) => (v != null && !Number.isNaN(v) && Number.isFinite(v)) ? v : null;
+  const roe = _sanitize(fundamentals.roe);
+  const revenueGrowth = _sanitize(fundamentals.revenueGrowth);
+  const debtToEquity = _sanitize(fundamentals.debtToEquity);
+  const epsGrowth = _sanitize(fundamentals.epsGrowth);
 
   data.roe = roe;
   data.revenueGrowth = revenueGrowth;

@@ -9,6 +9,7 @@
  */
 
 import React from 'react';
+import { calculateRiskReward, hasViabilityContradiction } from '../utils/riskRewardCalc';
 
 const ASSESSMENT_COLORS = {
   Strong: { bg: 'bg-green-900/40', border: 'border-green-600', text: 'text-green-400', badge: 'bg-green-600' },
@@ -44,27 +45,12 @@ export default function DecisionMatrix({
   const verdict = categoricalResult.verdict || {};
   const holdingConfig = HOLDING_LABELS[holdingPeriod] || HOLDING_LABELS.standard;
 
-  // ─── R:R Calculations (same formula as App.jsx) ───
-  const nearestSupport = srData?.support?.length > 0 ? Math.max(...srData.support) : null;
-  const atr = srData?.meta?.atr || 0;
-  const target = srData?.suggestedTarget || (currentPrice ? currentPrice * 1.10 : 0);
-
-  const pullbackRR = nearestSupport && atr > 0
-    ? (target - nearestSupport) / (atr * 2)
-    : 0;
-
-  const momentumStop = nearestSupport ? nearestSupport - atr * 1.5 : 0;
-  const momentumRisk = currentPrice && momentumStop ? currentPrice - momentumStop : 0;
-  const momentumReward = currentPrice ? target - currentPrice : 0;
-  const momentumRR = momentumRisk > 0 ? momentumReward / momentumRisk : 0;
-
-  const pullbackViable = pullbackRR >= 1.0;
-  const momentumViable = momentumRR >= 1.0;
-  const anyViable = pullbackViable || momentumViable;
+  // ─── R:R Calculations (Day 61: shared utility — single source of truth) ───
+  const rr = calculateRiskReward(srData, currentPrice);
+  const { pullbackRR, momentumRR, pullbackViable, momentumViable, anyViable, nearestSupport, target, atr, momentumStop } = rr;
 
   // Backend viability vs frontend R:R contradiction
-  const backendViable = srData?.meta?.tradeViability?.viable;
-  const hasContradiction = backendViable === 'YES' && !anyViable;
+  const hasContradiction = hasViabilityContradiction(srData, rr);
 
   return (
     <div className="space-y-1">

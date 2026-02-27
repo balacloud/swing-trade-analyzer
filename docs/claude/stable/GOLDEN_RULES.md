@@ -2,7 +2,7 @@
 
 > **Purpose:** Stable reference document for all session rules
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 58 (February 22, 2026)
+> **Last Updated:** Day 61 (February 27, 2026)
 
 ---
 
@@ -257,6 +257,13 @@ CLAUDE SESSION REMINDER:
 - **Always update timestamps** on every doc touched (`Last Updated` field)
 - **Don't create redundant files** — use existing structure (CLAUDE_CONTEXT.md, GOLDEN_RULES.md, SESSION_START.md). One file per purpose.
 - **Session close = Claude does everything** — update docs, commit, push. User just says "close session."
+
+### Day 61: Cache Schema Versioning and NaN Defense
+- **Cache has no memory of transform changes.** When `_growth_to_pct()` was added (Day 60), 56 cached entries still had the old decimal format. 35 tickers got wrong categorical verdicts. Always version the cache schema — auto-invalidate on version mismatch.
+- **NaN is worse than null.** Python `float('nan')` passes through `!= None` checks, serializes to invalid JSON, and breaks JavaScript `.toFixed()`. Defense must be at 3 layers: backend transforms, cache, and frontend assessment.
+- **DRY for business logic.** R:R calculation was duplicated in 4 files. When one got a fix, others didn't. Extract shared calculations to a utility module — one source of truth, one place to fix.
+- **200-on-error is a silent lie.** Earnings endpoint returned HTTP 200 with `has_upcoming: false` on exception — indistinguishable from "confirmed no earnings." Return 500 and let the frontend distinguish error from absence.
+- **Periodic coherence audits find bugs that tests don't.** 89% coherence sounds good, but that 11% included 3 CRITICAL bugs affecting real trade decisions. Audit end-to-end: backend → transforms → cache → API → frontend → assessment → display.
 
 ### Day 54: Silent Fallbacks — The Invisible Lie
 - **A hardcoded fallback value is worse than an error.** VIX=20 "normal" when API fails, Fear&Greed=50 "neutral" on error — the system makes decisions on phantom data and the trader never knows.

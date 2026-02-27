@@ -14,6 +14,7 @@
  */
 
 import React from 'react';
+import { calculateRiskReward } from '../utils/riskRewardCalc';
 
 const HOLDING_PERIODS = {
   quick: { label: '5-10 days', name: 'Quick Swing', techWeight: 0.7, fundWeight: 0.3 },
@@ -280,32 +281,16 @@ function getWeightedVerdictInfo(categoricalResult, holdingPeriod) {
  * is better, says PULLBACK even when ADX is high.
  */
 function getEntryTypeLabel(categoricalResult, srData, currentPrice) {
-  const nearestSupport = srData?.support?.length > 0 ? Math.max(...srData.support) : null;
-  const atr = srData?.meta?.atr || 0;
-  const target = srData?.suggestedTarget || (currentPrice ? currentPrice * 1.10 : 0);
+  // Day 61: Use shared R:R utility (single source of truth)
+  const rr = calculateRiskReward(srData, currentPrice);
 
-  if (nearestSupport && currentPrice && atr > 0) {
-    // Calculate R:R for both entry types (mirrors Trade Setup card logic in App.jsx)
-    const pullbackEntry = nearestSupport;
-    const pullbackStop = pullbackEntry - (atr * 2);
-    const pullbackRisk = pullbackEntry - pullbackStop;
-    const pullbackReward = target - pullbackEntry;
-    const pullbackRR = pullbackRisk > 0 ? pullbackReward / pullbackRisk : 0;
-
-    const momentumStop = nearestSupport - (atr * 1.5);
-    const momentumRisk = currentPrice - momentumStop;
-    const momentumReward = target - currentPrice;
-    const momentumRR = momentumRisk > 0 ? momentumReward / momentumRisk : 0;
-
-    const pullbackViable = pullbackRR >= 1.0;
-    const momentumViable = momentumRR >= 1.0;
-
+  if (rr.nearestSupport && currentPrice && rr.atr > 0) {
     // Prefer whichever entry type has better R:R
-    if (pullbackViable && momentumViable) {
-      return pullbackRR > momentumRR ? 'PULLBACK ENTRY' : 'MOMENTUM ENTRY';
-    } else if (pullbackViable) {
+    if (rr.pullbackViable && rr.momentumViable) {
+      return rr.pullbackRR > rr.momentumRR ? 'PULLBACK ENTRY' : 'MOMENTUM ENTRY';
+    } else if (rr.pullbackViable) {
       return 'PULLBACK ENTRY';
-    } else if (momentumViable) {
+    } else if (rr.momentumViable) {
       return 'MOMENTUM ENTRY';
     }
     // Neither entry viable — R:R < 1 for both

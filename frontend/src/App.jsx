@@ -43,6 +43,7 @@ import { calculateScore } from './utils/scoringEngine';
 import { calculateSimplifiedAnalysis } from './utils/simplifiedScoring';
 import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings } from './utils/positionSizing';
 import { runCategoricalAssessment, getActionablePatterns } from './utils/categoricalAssessment';
+import { calculateRiskReward, hasViabilityContradiction, getViabilityBadge } from './utils/riskRewardCalc';
 import BottomLineCard, { HOLDING_PERIODS } from './components/BottomLineCard';
 import DecisionMatrix from './components/DecisionMatrix';
 import {
@@ -64,7 +65,7 @@ function App() {
   const [analysisResult, setAnalysisResult] = useState(null);
   const [srData, setSrData] = useState(null);
   const [patternsData, setPatternsData] = useState(null); // Day 44: Pattern detection
-  const [actionablePatternsData, setActionablePatternsData] = useState(null); // Day 47: Actionable patterns ≥80%
+  const [actionablePatternsData, setActionablePatternsData] = useState(null); // Day 47: Actionable patterns ≥60%
   const [fearGreedData, setFearGreedData] = useState(null); // Day 44: v4.5 Fear & Greed
   const [earningsData, setEarningsData] = useState(null); // Day 49: v4.10 Earnings Calendar
   const [categoricalResult, setCategoricalResult] = useState(null); // Day 44: v4.5 Categorical Assessment
@@ -312,7 +313,7 @@ function App() {
       setSrData(data.sr);
       setPatternsData(data.patterns); // Day 44: Pattern detection
 
-      // Day 47: v4.6.2 - Calculate actionable patterns (≥80% confidence only)
+      // Day 47: v4.6.2 - Calculate actionable patterns (≥60% confidence only)
       const atr = data.sr?.meta?.atr || null;
       const actionablePatterns = getActionablePatterns(data.patterns, atr);
       setActionablePatternsData(actionablePatterns);
@@ -1182,51 +1183,18 @@ function App() {
                 {srData && (
                   <div className="bg-gray-800 rounded-lg p-6">
                     {/* Day 49: Pre-calculate R:R for viability badge */}
+                    {/* Day 61: Uses shared riskRewardCalc utility (DRY) */}
                     {(() => {
-                      const nearestSupport = srData.support?.length > 0 ? Math.max(...srData.support) : null;
-                      const currentPrice = srData.currentPrice;
-                      const atr = srData.meta?.atr || 0;
-                      const pullbackTarget = srData.suggestedTarget || currentPrice * 1.10;
-
-                      // Pullback R:R
-                      const pullbackEntry = nearestSupport;
-                      const pullbackStop = nearestSupport ? nearestSupport - (atr * 2) : 0;
-                      const pullbackRisk = pullbackEntry ? pullbackEntry - pullbackStop : 0;
-                      const pullbackReward = pullbackEntry ? pullbackTarget - pullbackEntry : 0;
-                      const pullbackRRValue = pullbackRisk > 0 ? pullbackReward / pullbackRisk : 0;
-
-                      // Momentum R:R
-                      const momentumStop = nearestSupport ? nearestSupport - (atr * 1.5) : 0;
-                      const momentumRisk = currentPrice - momentumStop;
-                      const momentumReward = pullbackTarget - currentPrice;
-                      const momentumRRValue = momentumRisk > 0 ? momentumReward / momentumRisk : 0;
-
-                      const pullbackViable = pullbackRRValue >= 1.0;
-                      const momentumViable = momentumRRValue >= 1.0;
-                      const anyViable = pullbackViable || momentumViable;
-
-                      // Determine which strategy is viable for the badge
-                      let viabilityLabel = 'NOT VIABLE';
-                      let viabilityBg = 'bg-red-600';
-                      let viabilityIcon = '🚫';
-
-                      if (pullbackViable && momentumViable) {
-                        viabilityLabel = 'BOTH VIABLE';
-                        viabilityBg = 'bg-green-600';
-                        viabilityIcon = '✅';
-                      } else if (pullbackViable) {
-                        viabilityLabel = 'PULLBACK OK';
-                        viabilityBg = 'bg-green-700';
-                        viabilityIcon = '✅';
-                      } else if (momentumViable) {
-                        viabilityLabel = 'MOMENTUM OK';
-                        viabilityBg = 'bg-blue-600';
-                        viabilityIcon = '✅';
-                      }
+                      const rr = calculateRiskReward(srData, srData.currentPrice);
+                      const { pullbackRR: pullbackRRValue, momentumRR: momentumRRValue, pullbackViable, momentumViable, anyViable, nearestSupport } = rr;
+                      const badge = getViabilityBadge(rr);
+                      const viabilityLabel = badge.label;
+                      const viabilityBg = badge.bg;
+                      const viabilityIcon = badge.icon;
 
                       // Day 50: Check for AVOID verdict + VIABLE conflict
                       const verdictIsAvoid = categoricalResult?.verdict?.verdict === 'AVOID';
-                      const anyViableSetup = pullbackViable || momentumViable;
+                      const anyViableSetup = anyViable;
 
                       return (
                         <>
@@ -1251,18 +1219,11 @@ function App() {
 
                     {/* Viability Advice Banner (Day 22) */}
                     {/* Day 53 Bug #8: Backend viability (support distance) can contradict frontend R:R check */}
+                    {/* Day 61: Uses shared riskRewardCalc utility (DRY) */}
                     {srData.meta?.tradeViability && (() => {
-                      // Recalculate R:R to detect contradiction with backend "Good setup" advice
-                      const _sup = srData.support?.length > 0 ? Math.max(...srData.support) : null;
-                      const _atr = srData.meta?.atr || 0;
-                      const _tgt = srData.suggestedTarget || srData.currentPrice * 1.10;
-                      const _pullbackRR = _sup && _atr > 0 ? (_tgt - _sup) / (_atr * 2) : 0;
-                      const _momRR = _sup && srData.currentPrice && (srData.currentPrice - (_sup - _atr * 1.5)) > 0
-                        ? (_tgt - srData.currentPrice) / (srData.currentPrice - (_sup - _atr * 1.5)) : 0;
-                      const _rrFails = _pullbackRR < 1.0 && _momRR < 1.0;
-                      // If backend says "YES" (structural stop is sound) but R:R fails, override to yellow
+                      const _rr = calculateRiskReward(srData, srData.currentPrice);
+                      const hasContradiction = hasViabilityContradiction(srData, _rr);
                       const backendViable = srData.meta.tradeViability.viable;
-                      const hasContradiction = backendViable === 'YES' && _rrFails;
 
                       return (
                       <div className={`mb-4 p-3 rounded-lg text-sm ${
@@ -1820,12 +1781,12 @@ function App() {
                       </div>
                     </div>
 
-                    {/* Day 47: Actionable Patterns Section (≥80% confidence only) */}
+                    {/* Day 47: Actionable Patterns Section (≥60% confidence only) */}
                     {actionablePatternsData?.summary?.hasActionable && (
                       <div className="mt-4 p-3 bg-green-900/20 border border-green-600 rounded-lg">
                         <div className="flex items-center gap-2 mb-3">
                           <span className="text-green-400 font-semibold">✅ Actionable Patterns</span>
-                          <span className="text-xs text-gray-400">(≥80% confidence)</span>
+                          <span className="text-xs text-gray-400">(≥60% confidence)</span>
                         </div>
                         <div className="space-y-3">
                           {actionablePatternsData.actionablePatterns.map((pattern, idx) => (
@@ -1896,7 +1857,7 @@ function App() {
                     {actionablePatternsData?.belowThreshold?.length > 0 && (
                       <div className="mt-2 p-2 bg-gray-700/30 rounded-lg">
                         <div className="text-xs text-gray-500">
-                          Patterns below 80% threshold:{' '}
+                          Patterns below 60% threshold:{' '}
                           {actionablePatternsData.belowThreshold.map((p, i) => (
                             <span key={i} className="text-gray-400">
                               {p.name} ({p.confidence}%)
@@ -1914,13 +1875,13 @@ function App() {
                         <span className="font-semibold text-purple-200">{patternsData.summary.bestPattern}</span>
                         <span className="text-purple-300"> ({patternsData.summary.bestConfidence}% confidence)</span>
                         <div className="text-xs text-gray-400 mt-1">
-                          Below 80% actionability threshold
+                          Below 60% actionability threshold
                         </div>
                       </div>
                     )}
 
                     <div className="mt-3 text-xs text-gray-500 text-center">
-                      Data: Multi-Source (OHLCV) • Quality: algorithmic detection • Threshold: ≥80% for actionability
+                      Data: Multi-Source (OHLCV) • Quality: algorithmic detection • Threshold: ≥60% for actionability
                     </div>
                   </div>
                 )}

@@ -28,6 +28,11 @@ OHLCV_TTL_HOURS = 24  # Will be adjusted to market close
 FUNDAMENTALS_TTL_DAYS = 7
 SPY_VIX_TTL_HOURS = 24
 
+# Schema version — increment when field_maps.py transforms change
+# Day 61: Added to prevent stale cache serving wrong format after transform updates
+# v1 = original transforms, v2 = Day 60 _growth_to_pct + Day 61 NaN sanitization
+FUNDAMENTALS_SCHEMA_VERSION = 2
+
 # US Eastern timezone for market hours
 ET = pytz.timezone('US/Eastern')
 
@@ -74,6 +79,12 @@ def _init_tables(conn):
             expires_at TIMESTAMP NOT NULL
         )
     """)
+
+    # Day 61: Add schema_version column (migration for existing DBs)
+    try:
+        cursor.execute("ALTER TABLE fundamentals_cache ADD COLUMN schema_version INTEGER DEFAULT 1")
+    except Exception:
+        pass  # Column already exists
 
     # Market data cache (SPY, VIX)
     cursor.execute("""
@@ -225,14 +236,14 @@ def set_cached_ohlcv(ticker: str, df: pd.DataFrame, period: str = '2y', source: 
 # =============================================================================
 
 def get_cached_fundamentals(ticker: str) -> Optional[Dict[str, Any]]:
-    """Get fundamentals from cache if not expired"""
+    """Get fundamentals from cache if not expired and schema version matches"""
     ticker = ticker.upper()
     conn = get_db_connection()
     cursor = conn.cursor()
 
     try:
         cursor.execute("""
-            SELECT data, expires_at, cached_at, source
+            SELECT data, expires_at, cached_at, source, schema_version
             FROM fundamentals_cache
             WHERE ticker = ?
         """, (ticker,))
@@ -240,6 +251,16 @@ def get_cached_fundamentals(ticker: str) -> Optional[Dict[str, Any]]:
         row = cursor.fetchone()
         if not row:
             _log_cache_event(conn, 'miss', 'fundamentals', ticker)
+            return None
+
+        # Day 61: Check schema version — reject stale format entries
+        cached_version = row['schema_version'] if 'schema_version' in row.keys() else 1
+        if cached_version != FUNDAMENTALS_SCHEMA_VERSION:
+            print(f"🔄 Fundamentals cache STALE for {ticker} (schema v{cached_version} != v{FUNDAMENTALS_SCHEMA_VERSION})")
+            # Delete the stale entry
+            cursor.execute("DELETE FROM fundamentals_cache WHERE ticker = ?", (ticker,))
+            conn.commit()
+            _log_cache_event(conn, 'expire', 'fundamentals', ticker)
             return None
 
         expires_at = datetime.fromisoformat(row['expires_at'])
@@ -252,7 +273,7 @@ def get_cached_fundamentals(ticker: str) -> Optional[Dict[str, Any]]:
 
         data = json.loads(row['data'])
         age_days = (now - datetime.fromisoformat(row['cached_at']).replace(tzinfo=ET)).total_seconds() / 86400
-        print(f"📦 Fundamentals cache HIT for {ticker} ({age_days:.1f} days old)")
+        print(f"📦 Fundamentals cache HIT for {ticker} ({age_days:.1f} days old, schema v{cached_version})")
         _log_cache_event(conn, 'hit', 'fundamentals', ticker)
 
         return data
@@ -262,7 +283,7 @@ def get_cached_fundamentals(ticker: str) -> Optional[Dict[str, Any]]:
 
 
 def set_cached_fundamentals(ticker: str, data: Dict[str, Any], source: str = 'yfinance'):
-    """Store fundamentals in cache"""
+    """Store fundamentals in cache with current schema version"""
     ticker = ticker.upper()
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -271,19 +292,20 @@ def set_cached_fundamentals(ticker: str, data: Dict[str, Any], source: str = 'yf
         expires_at = calculate_fundamentals_expiry()
 
         cursor.execute("""
-            INSERT OR REPLACE INTO fundamentals_cache (ticker, data, source, cached_at, expires_at)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO fundamentals_cache (ticker, data, source, cached_at, expires_at, schema_version)
+            VALUES (?, ?, ?, ?, ?, ?)
         """, (
             ticker,
             json.dumps(data),
             source,
             datetime.now(ET).isoformat(),
-            expires_at.isoformat()
+            expires_at.isoformat(),
+            FUNDAMENTALS_SCHEMA_VERSION
         ))
 
         conn.commit()
         _log_cache_event(conn, 'store', 'fundamentals', ticker)
-        print(f"💾 Cached fundamentals for {ticker} (expires {expires_at.strftime('%Y-%m-%d')})")
+        print(f"💾 Cached fundamentals for {ticker} (schema v{FUNDAMENTALS_SCHEMA_VERSION}, expires {expires_at.strftime('%Y-%m-%d')})")
 
     finally:
         conn.close()

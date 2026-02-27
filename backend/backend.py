@@ -892,31 +892,50 @@ def get_stock_data(ticker):
             info = stock.info or {}
 
         # Prepare price history (using lowercase column names)
+        # Day 61: Filter out rows with NaN values to prevent propagation
+        # into SMA/EMA/RS calculations downstream
         price_history = []
+        nan_rows_skipped = 0
         for date, row in hist_data.iterrows():
+            close_val = row['close']
+            vol_val = row['volume']
+            # Skip rows where close is NaN (critical for all calculations)
+            if pd.isna(close_val):
+                nan_rows_skipped += 1
+                continue
             price_history.append({
                 'date': date.strftime('%Y-%m-%d'),
-                'open': round(float(row['open']), 2),
-                'high': round(float(row['high']), 2),
-                'low': round(float(row['low']), 2),
-                'close': round(float(row['close']), 2),
-                'volume': int(row['volume'])
+                'open': round(float(row['open']), 2) if not pd.isna(row['open']) else round(float(close_val), 2),
+                'high': round(float(row['high']), 2) if not pd.isna(row['high']) else round(float(close_val), 2),
+                'low': round(float(row['low']), 2) if not pd.isna(row['low']) else round(float(close_val), 2),
+                'close': round(float(close_val), 2),
+                'volume': int(vol_val) if not pd.isna(vol_val) else 0
             })
+        if nan_rows_skipped > 0:
+            print(f"⚠️ Skipped {nan_rows_skipped} NaN rows in price history for {ticker}")
 
         # Get 52-week ago price (approximately 252 trading days)
+        # Day 61: NaN-safe — check before converting
         price_52w_ago = None
         if len(hist_data) >= 252:
-            price_52w_ago = round(float(hist_data.iloc[-252]['close']), 2)
+            _val = hist_data.iloc[-252]['close']
+            price_52w_ago = round(float(_val), 2) if not pd.isna(_val) else None
         elif len(hist_data) > 200:
-            price_52w_ago = round(float(hist_data.iloc[0]['close']), 2)
+            _val = hist_data.iloc[0]['close']
+            price_52w_ago = round(float(_val), 2) if not pd.isna(_val) else None
 
         # Get 13-week ago price (approximately 63 trading days)
         price_13w_ago = None
         if len(hist_data) >= 63:
-            price_13w_ago = round(float(hist_data.iloc[-63]['close']), 2)
+            _val = hist_data.iloc[-63]['close']
+            price_13w_ago = round(float(_val), 2) if not pd.isna(_val) else None
 
-        # Current price
-        current_price = round(float(hist_data.iloc[-1]['close']), 2)
+        # Current price — use last non-NaN close if latest is NaN
+        _last_close = hist_data.iloc[-1]['close']
+        if pd.isna(_last_close):
+            _non_nan = hist_data['close'].dropna()
+            _last_close = _non_nan.iloc[-1] if len(_non_nan) > 0 else 0
+        current_price = round(float(_last_close), 2)
         
         # SRP: Fundamentals are NOT included here.
         # Single source of truth: /api/fundamentals/ via DataProvider
@@ -1188,16 +1207,17 @@ def get_fear_greed():
         historical = data.get('fear_and_greed_historical', {})
         previous_close = historical.get('previous_close')
 
-        # Determine assessment category for v4.5 categorical system
-        # Strong: 55-75 (Greed but not extreme - good for momentum)
-        # Neutral: 45-55 (Balanced sentiment)
-        # Weak: <45 (Fear - pullback setups risky) OR >75 (Extreme greed)
-        if value >= 55 and value <= 75:
+        # Determine assessment category for v4.6 categorical system
+        # Synced with frontend categoricalAssessment.js (Day 56 backtest-optimized)
+        # Strong: 60-80 (Greed but not extreme - good for momentum)
+        # Neutral: 35-60 (Balanced to cautiously optimistic)
+        # Weak: <35 (Fear - pullback setups risky) OR >80 (Extreme greed)
+        if value >= 60 and value <= 80:
             assessment = 'Strong'  # Greed but not extreme
-        elif value >= 45 and value < 55:
-            assessment = 'Neutral'  # Balanced
+        elif value >= 35 and value < 60:
+            assessment = 'Neutral'  # Balanced to cautiously optimistic
         else:
-            assessment = 'Weak'  # Fear (<45) or Extreme greed (>75)
+            assessment = 'Weak'  # Fear (<35) or Extreme greed (>80)
 
         return jsonify({
             'value': round(float(value), 1),
@@ -1371,15 +1391,18 @@ def get_earnings_calendar(ticker):
     except Exception as e:
         print(f"Error fetching earnings for {ticker}: {e}")
         traceback.print_exc()
+        # Day 61: Return 500 on error (not 200 with has_upcoming:false)
+        # Frontend api.js catch block distinguishes error from "no earnings"
         return jsonify({
             'ticker': ticker,
-            'has_upcoming': False,
+            'error': f'Failed to fetch earnings: {str(e)}',
+            'has_upcoming': None,
             'earnings_date': None,
             'days_until': None,
             'warning': None,
-            'recommendation': f'Error: {str(e)}',
+            'recommendation': None,
             'source': None
-        })
+        }), 500
 
 
 # ============================================

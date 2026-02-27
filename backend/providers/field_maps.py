@@ -8,10 +8,20 @@ Format: { 'canonical_name': ('raw_api_field', transform_function) }
 Transform is applied to the raw value. Use None for identity (no transform).
 """
 
+import math
+
+
+def _is_nan(val):
+    """Check if value is NaN (handles float, numpy, and pandas NaN)"""
+    try:
+        return math.isnan(float(val))
+    except (TypeError, ValueError):
+        return False
+
 
 def _pct_to_decimal(val):
     """Convert percentage (25.0) to decimal (0.25) if > 1"""
-    if val is None:
+    if val is None or _is_nan(val):
         return None
     try:
         v = float(val)
@@ -24,7 +34,7 @@ def _growth_to_pct(val):
     """Convert growth decimal (0.15) to percentage (15.0).
     APIs (FMP, yfinance) return growth as decimals. Categorical assessment expects percentages.
     Uses abs(v) < 5 heuristic: values in [-5, 5] are treated as decimals (up to 500% growth)."""
-    if val is None:
+    if val is None or _is_nan(val):
         return None
     try:
         v = float(val)
@@ -35,7 +45,7 @@ def _growth_to_pct(val):
 
 def _identity(val):
     """Pass-through - no transformation"""
-    if val is None:
+    if val is None or _is_nan(val):
         return None
     try:
         return float(val)
@@ -45,7 +55,7 @@ def _identity(val):
 
 def _to_int(val):
     """Convert to integer (for marketCap)"""
-    if val is None:
+    if val is None or _is_nan(val):
         return None
     try:
         return int(float(val))
@@ -86,9 +96,9 @@ FMP_FUNDAMENTALS = {
     'forwardPe':        (None, None),
     'pegRatio':         ('pegRatioTTM', _identity),
     'marketCap':        ('marketCapTTM', _to_int),
-    'roe':              ('roeTTM', lambda v: v * 100 if v and abs(v) < 1 else v),
-    'roa':              ('returnOnTangibleAssetsTTM', lambda v: v * 100 if v and abs(v) < 1 else v),
-    'roic':             ('roicTTM', lambda v: v * 100 if v and abs(v) < 1 else v),
+    'roe':              ('roeTTM', lambda v: v * 100 if v and not _is_nan(v) and abs(v) < 1 else (None if v is None or _is_nan(v) else v)),
+    'roa':              ('returnOnTangibleAssetsTTM', lambda v: v * 100 if v and not _is_nan(v) and abs(v) < 1 else (None if v is None or _is_nan(v) else v)),
+    'roic':             ('roicTTM', lambda v: v * 100 if v and not _is_nan(v) and abs(v) < 1 else (None if v is None or _is_nan(v) else v)),
     'epsGrowth':        (None, None),                   # Comes from /financial-growth endpoint
     'revenueGrowth':    (None, None),                   # Comes from /financial-growth endpoint
     'debtToEquity':     ('debtToEquityTTM', _identity),
@@ -121,8 +131,8 @@ YFINANCE_FUNDAMENTALS = {
     'forwardPe':        ('forwardPE', _identity),
     'pegRatio':         ('pegRatio', _identity),
     'marketCap':        ('marketCap', _to_int),
-    'roe':              ('returnOnEquity', lambda v: v * 100 if v and abs(v) < 1 else v),
-    'roa':              ('returnOnAssets', lambda v: v * 100 if v and abs(v) < 1 else v),
+    'roe':              ('returnOnEquity', lambda v: v * 100 if v and not _is_nan(v) and abs(v) < 1 else (None if v is None or _is_nan(v) else v)),
+    'roa':              ('returnOnAssets', lambda v: v * 100 if v and not _is_nan(v) and abs(v) < 1 else (None if v is None or _is_nan(v) else v)),
     'roic':             (None, None),                   # Not in yfinance
     'epsGrowth':        ('earningsGrowth', _growth_to_pct),  # Decimal → Percentage (0.15 → 15.0)
     'revenueGrowth':    ('revenueGrowth', _growth_to_pct),   # Decimal → Percentage (0.10 → 10.0)
