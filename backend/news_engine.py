@@ -1,8 +1,9 @@
 """
 news_engine.py — Context Tab Column C
-Day 62, v4.24
+Day 63, v4.25
 
 News sentiment (Alpha Vantage NEWS_SENTIMENT) + short interest (yfinance) per ticker.
+Option C Hybrid: fetch wide pool, filter to reputable sources, show top 3 per sentiment.
 
 Core STA engine is FROZEN. This file is additive / informational only.
 """
@@ -18,10 +19,43 @@ logger = logging.getLogger(__name__)
 ALPHAVANTAGE_API_KEY = os.environ.get('ALPHAVANTAGE_API_KEY')
 AV_BASE_URL = 'https://www.alphavantage.co/query'
 
+# ─── Reputable source keywords (Option C Hybrid) ──────────────────────────────
+# Matched case-insensitively as substrings of the AV `source` field.
+# Only articles from sources containing one of these terms are shown.
+REPUTABLE_SOURCE_KEYWORDS = {
+    'reuters',
+    'bloomberg',
+    'associated press',
+    ' ap ',          # "AP News" etc. — space-padded to avoid false matches
+    'wall street journal',
+    'wsj',
+    'financial times',
+    'barron',        # "Barron's", "Barrons"
+    'marketwatch',
+    'cnbc',
+    'yahoo finance',
+    'morningstar',
+    'seeking alpha',
+    'motley fool',
+    'investor\'s business daily',
+    'ibd ',          # "IBD" as standalone abbreviation
+    'thestreet',
+    'the street',
+    'benzinga',
+    'investor place',  # "InvestorPlace"
+}
+
+def _is_reputable(source: str) -> bool:
+    """Return True if source name contains any reputable keyword (case-insensitive)."""
+    s = source.lower()
+    return any(kw in s for kw in REPUTABLE_SOURCE_KEYWORDS)
+
+
 # ─── Alpha Vantage news fetch ─────────────────────────────────────────────────
-def _fetch_av_news(ticker: str, limit: int = 10):
+def _fetch_av_news(ticker: str, limit: int = 50):
     """
     Fetch NEWS_SENTIMENT from Alpha Vantage.
+    Larger limit (50) gives a bigger pool to filter reputable sources from.
     Returns list of raw article dicts or None on failure.
     """
     if not ALPHAVANTAGE_API_KEY:
@@ -57,11 +91,18 @@ def _score_to_emoji(score: float) -> str:
 def _parse_articles(feed: list, ticker: str) -> list:
     """
     Parse Alpha Vantage feed items into clean article dicts.
-    Filters to items that have a sentiment entry for the specific ticker.
+    Filters to items that:
+      1. Have a sentiment entry for the specific ticker.
+      2. Come from a reputable source (Option C Hybrid).
     """
     articles = []
     ticker_upper = ticker.upper()
     for item in feed:
+        source = item.get('source', '')
+        # Option C: skip non-reputable sources
+        if not _is_reputable(source):
+            continue
+
         # Find per-ticker sentiment entry
         ticker_sent = next(
             (t for t in item.get('ticker_sentiment', [])
@@ -76,20 +117,36 @@ def _parse_articles(feed: list, ticker: str) -> list:
             score = 0.0
 
         title = item.get('title', '')
-        if len(title) > 55:
-            title = title[:52] + '...'
+        if len(title) > 72:
+            title = title[:69] + '...'
 
         articles.append({
             'title': title,
             'url': item.get('url', ''),
-            'source': item.get('source', ''),
-            'date': item.get('time_published', '')[:10],  # YYYYMMDDTHHMMSS → YYYY-MM-DD
+            'source': source,
+            'date': (item.get('time_published', '') or '')[:10],  # YYYYMMDDTHHMMSS → YYYY-MM-DD
             'score': round(score, 3),
             'emoji': _score_to_emoji(score),
             'sentiment_label': ticker_sent.get('ticker_sentiment_label', 'Neutral'),
         })
 
     return articles
+
+
+def _curate_articles(articles: list, per_bucket: int = 3) -> list:
+    """
+    Option C Hybrid: return top N bullish + N neutral + N bearish articles.
+    Within each bucket, articles are sorted by absolute score (strongest signal first).
+    """
+    bullish  = sorted([a for a in articles if a['score'] >  0.15], key=lambda x: -x['score'])
+    bearish  = sorted([a for a in articles if a['score'] < -0.15], key=lambda x: x['score'])
+    neutral  = sorted([a for a in articles if -0.15 <= a['score'] <= 0.15],
+                      key=lambda x: abs(x['score']))
+
+    curated = bullish[:per_bucket] + neutral[:per_bucket] + bearish[:per_bucket]
+    # Re-sort by date descending so most-recent articles appear first
+    curated.sort(key=lambda x: x['date'], reverse=True)
+    return curated
 
 
 def _aggregate_sentiment(articles: list) -> dict:
@@ -164,9 +221,10 @@ def get_news(ticker: str) -> dict:
         aggregate = None
         error = 'Configure ALPHAVANTAGE_API_KEY to enable news sentiment'
     else:
-        articles = _parse_articles(feed, ticker)
-        aggregate = _aggregate_sentiment(articles)
-        error = None
+        all_reputable = _parse_articles(feed, ticker)   # already filtered to reputable sources
+        aggregate = _aggregate_sentiment(all_reputable)  # stats from full reputable pool
+        articles = _curate_articles(all_reputable)       # top 3 per sentiment bucket
+        error = None if all_reputable else 'No articles from reputable sources found'
 
     short_interest = _get_short_interest(ticker)
 
