@@ -792,3 +792,61 @@ export async function fetchSectorRotation() {
     return null;
   }
 }
+
+// ─── Context Tab API functions (Day 62, v4.24) ────────────────────────────────
+
+/**
+ * Fetch aggregated context data (cycles + econ + news) for a ticker.
+ */
+export async function fetchContextFull(ticker) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/context/${ticker.toUpperCase()}`);
+    if (!response.ok) throw new Error(`Context fetch failed: ${response.status}`);
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching context:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetch news sentiment + short interest for a ticker.
+ */
+export async function fetchContextNews(ticker) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/news/${ticker.toUpperCase()}`);
+    if (!response.ok) throw new Error(`News fetch failed: ${response.status}`);
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching news:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetch 6 calendar/yield cycle cards.
+ */
+export async function fetchCycles() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/cycles`);
+    if (!response.ok) throw new Error(`Cycles fetch failed: ${response.status}`);
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching cycles:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetch 4 economic indicator cards.
+ */
+export async function fetchEcon() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/econ`);
+    if (!response.ok) throw new Error(`Econ fetch failed: ${response.status}`);
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching econ:', error);
+    return null;
+  }
+}

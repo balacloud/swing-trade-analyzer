@@ -374,6 +374,55 @@ def set_cached_market(symbol: str, data: Dict[str, Any]):
 
 
 # =============================================================================
+# CONTEXT TAB CACHE WRAPPERS (Day 62)
+# Uses existing market_cache table with custom TTL instead of OHLCV expiry.
+# Pattern matches SECTOR_ROTATION cache (same table, distinct symbol keys).
+# =============================================================================
+
+def _set_cached_market_ttl(symbol: str, data: Dict[str, Any], ttl_hours: float):
+    """Store in market_cache with a custom TTL (hours from now)."""
+    symbol = symbol.upper()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        expires_at = datetime.now(ET) + timedelta(hours=ttl_hours)
+        cursor.execute("""
+            INSERT OR REPLACE INTO market_cache (symbol, data, cached_at, expires_at)
+            VALUES (?, ?, ?, ?)
+        """, (
+            symbol,
+            json.dumps(data),
+            datetime.now(ET).isoformat(),
+            expires_at.isoformat(),
+        ))
+        conn.commit()
+        _log_cache_event(conn, 'store', 'market', symbol)
+    finally:
+        conn.close()
+
+
+def get_cached_cycles():
+    return get_cached_market('CYCLES')
+
+def set_cached_cycles(data: Dict[str, Any], ttl_hours: float = 6):
+    _set_cached_market_ttl('CYCLES', data, ttl_hours)
+
+
+def get_cached_econ():
+    return get_cached_market('ECON_INDICATORS')
+
+def set_cached_econ(data: Dict[str, Any], ttl_hours: float = 6):
+    _set_cached_market_ttl('ECON_INDICATORS', data, ttl_hours)
+
+
+def get_cached_news(ticker: str):
+    return get_cached_market(f'NEWS_{ticker.upper()}')
+
+def set_cached_news(ticker: str, data: Dict[str, Any], ttl_hours: float = 4):
+    _set_cached_market_ttl(f'NEWS_{ticker.upper()}', data, ttl_hours)
+
+
+# =============================================================================
 # CACHE MANAGEMENT
 # =============================================================================
 

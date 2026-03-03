@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 61 (February 27, 2026)
+> **Last Updated:** Day 62 (March 1, 2026)
 
 ---
 
@@ -22,27 +22,31 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 61 |
-| Version | v4.23 (Backend v2.24, Frontend v4.10, Backtest v4.17) |
-| Latest Status | PROJECT_STATUS_DAY61_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY61.md |
-| Latest API | API_CONTRACTS_DAY61.md |
-| Focus | **Day 61 Complete** — 4-Layer Coherence Audit + 9 Bug Fixes + R:R DRY Refactor |
+| Current Day | 62 |
+| Version | v4.24 (Backend v2.25, Frontend v4.11, Backtest v4.17, API Service v2.9) |
+| Latest Status | PROJECT_STATUS_DAY62_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY62.md |
+| Latest API | API_CONTRACTS_DAY62.md |
+| Focus | **Day 62 Complete** — Sector Rotation Phase 2 + Context Tab (3 engines, 4 endpoints, 5 components) + FRED API activated + Sector filter bug fixed |
 
-### Day 61 Summary (Current)
+### Day 62 Summary (Current)
+- **Sector Rotation Phase 2 — Complete**
+  - New `SectorRotationTab.jsx`: 11 sector cards with rank badges, RS bars, quadrant color-coding
+  - "Scan for Rank #1 Sector" CTA → switches to Scan tab with sector filter banner
+  - **Bug fix:** TradingView uses SIC sector names ("Non-Energy Minerals") not GICS ("Materials"). Fixed by expanding `SECTOR_ETF_MAP.gics` to 49 entries + changing filter to ETF lookup.
+- **Context Tab (🔭) — Complete (PRE-FLIGHT CONTEXT ONLY)**
+  - **Backend:** `cycles_engine.py` (6 cycle cards: Yield Curve, Business Cycle, Presidential Year, Seasonal, FOMC Proximity, Quad Witching), `econ_engine.py` (4 econ cards: Fed Funds, CPI, PMI proxy, Unemployment), `news_engine.py` (Alpha Vantage news + yfinance short interest). 4 new endpoints: `/api/cycles`, `/api/econ`, `/api/news/<ticker>`, `/api/context/<ticker>`.
+  - **Frontend:** `ContextTab.jsx`, `RegimeBanner.jsx`, `CycleCard.jsx`, `ArticleRow.jsx`, `ConflictCheck.jsx`. 3-column layout. Overall regime banner. ConflictCheck: ALIGNED/CONFLICT/PARTIAL.
+  - FRED_API_KEY added by user → all 10 FRED cards now live.
+  - Cache: CYCLES/ECON 6h, NEWS_{ticker} 4h.
+- **Architecture maintained:** ZERO changes to categoricalAssessment.js, verdict logic, pattern_detection, existing scan/analyze endpoints.
+- **Decided (not yet implemented):** Option C Hybrid news filtering (reputable sources only, top 3 per category). Candlestick patterns as standalone post-flight check.
+
+### Day 61 Summary
 - **4-Layer Coherence Audit + 9 Bug Fixes + R:R DRY Refactor**
   - Systematic audit: 7 parallel code agents, 87 fields, 10 tickers × 10 endpoints
   - Found: 3 CRITICAL + 2 MEDIUM + several info issues. Overall 89% coherence (78/87 clean)
-  - **Fix #1:** NaN→null in all transform functions (field_maps.py)
-  - **Fix #2:** F&G thresholds synced backend 55-75 → 60-80 to match frontend
-  - **Fix #3+4:** Cleared 56 stale cache entries + schema versioning v2 (auto-invalidation)
-  - **Fix #5:** Earnings endpoint 500 on error (was 200 — indistinguishable from "no earnings")
-  - **Fix #6:** `_sanitize()` NaN/Infinity defense in categoricalAssessment.js
-  - **Fix #7:** F&G `fallback: true` flag preserved through api.js
-  - **Fix #8:** R:R shared utility (riskRewardCalc.js) — extracted from 4 duplicated locations
-  - **Fix #9:** priceHistory NaN filtering + scalar price NaN safety
-  - Re-audit verified all 9 fixes correct. Backtest completely isolated.
-  - COHERENCE_AUDIT_DAY61.md created with full audit report
+  - **Fix #1-9:** NaN safety (3-layer defense), F&G thresholds synced, cache schema v2, earnings 500 on error, R:R shared utility (riskRewardCalc.js), F&G fallback flag, priceHistory NaN filtering
 
 ### Day 60 Summary
 - **Simple Checklist 4→9 Criteria + EPS/Revenue Growth YoY Fix + ADX Bug Fix**
@@ -84,6 +88,10 @@
 | P1 | Simple Checklist 4→9 Criteria | 1 hr | ✅ **COMPLETE** (Day 60) |
 | P2 | EPS/Revenue Growth QoQ→YoY Fix | 1 hr | ✅ **COMPLETE** (Day 60) |
 | P0 | 4-Layer Coherence Audit + 9 Fixes | 4 hrs | ✅ **COMPLETE** (Day 61) |
+| P1 | v4.11 Sector Rotation Phase 2 | 2 hrs | ✅ **COMPLETE** (Day 62) |
+| P1 | v4.24 Context Tab (3 engines, 4 endpoints, 5 components) | 6 hrs | ✅ **COMPLETE** (Day 62) |
+| P2 | Option C Hybrid — News source filtering | 1 hr | QUEUED (Day 63) |
+| P2 | Candlestick patterns — standalone post-flight check | 3 hrs | QUEUED (Day 63, after Perplexity research) |
 | P3 | v4.12: Charts (Own Tab) | 4-6 hrs | QUEUED |
 
 ### Backtest Results Summary (Day 57)
@@ -93,10 +101,11 @@
 | Standard (5-15d) | 244 | 53.69% | 1.62 | 0.85 | PASS (Day 55) |
 | Position (15-45d) | 362 | 38.67% | 1.51 | 0.61 | PASS (regime-sensitive, not overfitted) |
 
-### Next Session Priorities (Day 62)
-1. **Sector Rotation Phase 2** — dedicated tab with 11 sector cards ranked, quadrant colors, **"Scan for Rank 1"** filter (user requested)
-2. **Canadian Market Analyze Page** — data source redesign for `.TO` tickers (TwelveData/Finnhub coverage, fundamentals, sector mapping)
-3. **TradingView Lightweight Charts** — Interactive charts with S&R levels, RSI/MACD overlays
+### Next Session Priorities (Day 63)
+1. **Option C Hybrid — News Source Filtering** — Filter Alpha Vantage articles to reputable sources only (Reuters, Bloomberg, AP, WSJ, FT, Barron's, MarketWatch, CNBC, Yahoo Finance, Morningstar, Seeking Alpha, Motley Fool). Show top 3 bullish + 3 neutral + 3 bearish. File: `backend/news_engine.py`.
+2. **Candlestick Patterns — Standalone Post-Flight Check** — Perplexity deep research first (prompts ready in `docs/research/CANDLESTICK_PATTERNS_PERPLEXITY_PROMPTS.md`). NOT integrated into full analysis or simple checklist.
+3. **TradingView Lightweight Charts** — Interactive charts with S&R levels, RSI/MACD overlays.
+4. **Canadian Market Analyze Page** — Data source redesign for `.TO` tickers.
 
 ---
 
@@ -366,6 +375,7 @@ curl http://localhost:5001/api/cache/status
 | 59 | v4.20 Cache Freshness Meter (endpoint + UI dots), v4.21 Canadian Market (TSX 60 + All Canadian scan, 3 bugs fixed), DVN Bottom Line entry type fix (R:R-based getEntryTypeLabel), session protocol flowcharts, AI Fluency Critical Analysis document. |
 | 60 | Simple Checklist 4→9 criteria (52-Wk Range, Volume, ADX, Market Regime, 200 SMA Trend). EPS/Revenue Growth QoQ→YoY fix + `_growth_to_pct()` format normalization. ADX `.toFixed()` crash fix (Number coercion). |
 | 61 | 4-Layer Coherence Audit (87 fields, 10 tickers, 10 endpoints): 3 CRITICAL + 2 MEDIUM found, ALL 9 FIXED. NaN safety (3-layer defense), F&G thresholds synced, cache schema v2, earnings 500 on error, R:R DRY utility (riskRewardCalc.js). API_CONTRACTS updated Day 53→Day 61. |
+| 62 | Sector Rotation Phase 2 COMPLETE (11 sector cards + "Scan for Rank 1" + TradingView SIC name fix). Context Tab COMPLETE (3 engines + 4 endpoints + 5 components). FRED API key activated. Next: Option C hybrid news + candlestick patterns. Version v4.24. API_CONTRACTS updated Day 61→Day 62. |
 
 ---
 

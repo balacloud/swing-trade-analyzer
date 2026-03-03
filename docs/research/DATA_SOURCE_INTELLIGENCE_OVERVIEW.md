@@ -18,6 +18,22 @@ Covered API surfaces:
 | VIX | yfinance | CNBC JSON-LD fallback | VIX quote + metadata | In-memory cache (1h fresh, 24h stale fallback) |
 | Options Chain | Alpaca | Memory cache -> SQLite cache -> hard-TTL cache (throttled mode) | strike, bid/ask, IV, OI, greeks (if present) | `OPTIONS_CACHE_TTL_SEC`, `OPTIONS_HARD_TTL_SEC`, `OPTIONS_MIN_REFRESH_SEC`, throttle window |
 
+## 2.1 Operational Reality (Field-by-Field)
+
+Configured fallbacks do not imply equal production reliability. This table captures current effective behavior.
+
+| Area | Field(s) | Effective Provider Reality | Status |
+|---|---|---|---|
+| Daily prices | `open, high, low, close, volume` | TwelveData -> Alpha Vantage -> yfinance -> Stooq | WORKING |
+| Daily prices | `adj_close` | Native adjusted close when available; otherwise normalized to `close` | PARTIAL (can be synthetic) |
+| 4H prices | 4H OHLCV + derived RSI/MACD | TwelveData/AlphaVantage/yfinance-resample with attempt logging | WORKING WITH GAPS (intraday limits/rate limits) |
+| Fundamentals | `peRatio, roe, roa, debtToEquity, marketCap, beta, margins, growth` | FMP first, then Finnhub and Alpha Vantage fill missing fields | WORKING |
+| Fundamentals | EODHD contribution | Endpoint called, but field mapping not finalized | NOT EFFECTIVE CURRENTLY |
+| VIX | `current, regime, isRisky` | yfinance first, CNBC fallback, cache fallback | WORKING |
+| Options chain | `strike, bid, ask, last, iv, oi` | Alpaca live + memory/SQLite caches | WORKING |
+| Options chain | `delta, gamma, theta, vega, rho` | Alpaca values when present in payload | PARTIAL (nullable by contract/snapshot) |
+| Options signals | `bias, recommended call/put, confidenceScore` | Local rule-based logic over stock indicators + chain quality | WORKING IF CHAIN NON-EMPTY |
+
 ## 3) Source Selection Rules
 
 ### 3.1 Daily/Benchmark price routing
@@ -130,6 +146,8 @@ Options recommendation is deterministic and explainable:
 - Greeks may be absent depending on chain payload
 - Fundamentals cache is in-memory only (resets on restart)
 - One integration test currently assumes running backend (`localhost:5010`)
+- `adj_close` may be normalized to `close` for providers that do not supply adjusted close
+- EODHD is queried in fundamentals flow but does not currently provide mapped field coverage
 
 ## 9) Operational Runbook
 

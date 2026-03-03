@@ -46,6 +46,8 @@ import { runCategoricalAssessment, getActionablePatterns } from './utils/categor
 import { calculateRiskReward, hasViabilityContradiction, getViabilityBadge } from './utils/riskRewardCalc';
 import BottomLineCard, { HOLDING_PERIODS } from './components/BottomLineCard';
 import DecisionMatrix from './components/DecisionMatrix';
+import SectorRotationTab from './components/SectorRotationTab'; // Day 62: v4.24 Sector Rotation Phase 2
+import ContextTab from './components/ContextTab'; // Day 62: v4.24 Context Tab
 import {
   createTrade, closeTrade, calculateStatistics, getSQNRating,
   loadTrades, saveTrades, addTrade, updateTrade, deleteTrade,
@@ -126,6 +128,15 @@ function App() {
 
   // Sector Rotation state (Day 58 - v4.19)
   const [sectorRotation, setSectorRotation] = useState(null);
+
+  // Sector filter state (Day 62 - v4.24 Phase 2: "Scan for Rank 1")
+  const [sectorFilter, setSectorFilter] = useState(null); // null = no filter, sector object = filtered
+
+  // Handle "Scan for [sector]" from SectorRotationTab
+  const handleScanForSector = (sector) => {
+    setSectorFilter(sector);
+    setActiveTab('scan');
+  };
 
   // Data Freshness state (Day 59 - v4.20 Cache Audit)
   const [dataFreshness, setDataFreshness] = useState(null);
@@ -794,6 +805,26 @@ function App() {
               }`}
             >
               🔍 Scan Market
+            </button>
+            <button
+              onClick={() => setActiveTab('sectors')}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'sectors'
+                  ? 'bg-green-600 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              🔄 Sectors
+            </button>
+            <button
+              onClick={() => setActiveTab('context')}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'context'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              🔭 Context
             </button>
             <button
               onClick={() => setActiveTab('validate')}
@@ -2432,6 +2463,28 @@ function App() {
               </div>
             </div>
 
+            {/* Day 62: Sector filter banner */}
+            {sectorFilter && (
+              <div className="bg-green-900/40 border border-green-600/60 rounded-lg p-3 mb-4 flex items-center justify-between">
+                <span className="text-green-300 text-sm">
+                  🔄 Filtering by: <span className="font-semibold">{sectorFilter.name} ({sectorFilter.etf})</span>
+                  <span className={`ml-2 text-xs px-2 py-0.5 rounded ${
+                    sectorFilter.quadrant === 'Leading' ? 'bg-green-700 text-green-100' :
+                    sectorFilter.quadrant === 'Improving' ? 'bg-blue-700 text-blue-100' :
+                    sectorFilter.quadrant === 'Weakening' ? 'bg-yellow-700 text-yellow-100' :
+                    'bg-red-700 text-red-100'
+                  }`}>{sectorFilter.quadrant} · Rank #{sectorFilter.rank}</span>
+                  <span className="text-green-500 ml-2 text-xs">— scan results filtered to this sector</span>
+                </span>
+                <button
+                  onClick={() => setSectorFilter(null)}
+                  className="text-green-400 hover:text-white text-sm px-2 py-0.5 rounded hover:bg-green-700/40 transition-colors"
+                >
+                  ✕ Clear
+                </button>
+              </div>
+            )}
+
             {/* Scan Error */}
             {scanError && (
               <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-6">
@@ -2442,7 +2495,17 @@ function App() {
             )}
 
             {/* Scan Results */}
-            {scanResults && !scanLoading && (
+            {scanResults && !scanLoading && (() => {
+              // Compute filtered candidates once — used for count AND rows
+              // Uses getSectorContext mapping (ETF lookup) instead of string-match,
+              // because TradingView sector names differ from GICS/SPDR names.
+              // e.g. TradingView "Non-Energy Minerals" → XLB (Materials)
+              const filteredCandidates = sectorFilter
+                ? (scanResults.candidates || []).filter(s =>
+                    getSectorContext(s.sector)?.etf === sectorFilter.etf
+                  )
+                : (scanResults.candidates || []);
+              return (
               <div className="bg-gray-800 rounded-lg p-6">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold text-blue-400">
@@ -2454,11 +2517,28 @@ function App() {
                     )}
                   </h3>
                   <span className="text-gray-400 text-sm">
-                    {scanResults.returned} of {scanResults.totalMatches} matches
+                    {sectorFilter
+                      ? `${filteredCandidates.length} of ${scanResults.returned} showing (${sectorFilter.name} filter)`
+                      : `${scanResults.returned} of ${scanResults.totalMatches} matches`}
                   </span>
                 </div>
 
+                {/* Empty-state when sector filter returns nothing */}
+                {sectorFilter && filteredCandidates.length === 0 && (
+                  <div className="text-center py-8 text-gray-400">
+                    <div className="text-3xl mb-2">🔍</div>
+                    <p className="font-medium">No <span className="text-yellow-400">{sectorFilter.name}</span> stocks in current scan results</p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      The current scan returned {scanResults.returned} candidates — none are in the {sectorFilter.name} sector.
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Run a new scan with the sector filter active to find {sectorFilter.name} stocks meeting the criteria.
+                    </p>
+                  </div>
+                )}
+
                 {/* Results Table */}
+                {filteredCandidates.length > 0 && (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -2474,7 +2554,7 @@ function App() {
                       </tr>
                     </thead>
                     <tbody>
-                      {scanResults.candidates?.map((stock) => (
+                      {filteredCandidates.map((stock) => (
                         <tr key={stock.ticker} className="border-b border-gray-700/50 hover:bg-gray-700/30">
                           <td className="py-3 px-2 font-bold text-blue-400">{stock.ticker}</td>
                           <td className="py-3 px-2 text-gray-300">{stock.name?.slice(0, 30)}</td>
@@ -2512,9 +2592,10 @@ function App() {
                     </tbody>
                   </table>
                 </div>
+                )}
 
-                {/* No matching stocks message */}
-                {(!scanResults.candidates || scanResults.candidates.length === 0) && (
+                {/* No matching stocks message (no sector filter, scan truly empty) */}
+                {!sectorFilter && (!scanResults.candidates || scanResults.candidates.length === 0) && (
                   <div className="text-center py-8 text-gray-400">
                     <div className="text-3xl mb-2">📭</div>
                     <p className="font-medium">No stocks matched the {scanResults.strategy} criteria</p>
@@ -2526,7 +2607,8 @@ function App() {
                   </div>
                 )}
               </div>
-            )}
+              );
+            })()}
 
             {/* Loading State */}
             {scanLoading && (
@@ -2550,6 +2632,21 @@ function App() {
               </div>
             )}
           </>
+        )}
+
+        {/* ==================== SECTORS TAB ==================== */}
+        {/* Day 62: v4.24 Sector Rotation Phase 2 */}
+        {activeTab === 'sectors' && (
+          <SectorRotationTab
+            sectorRotation={sectorRotation}
+            onScanForSector={handleScanForSector}
+          />
+        )}
+
+        {/* ==================== CONTEXT TAB ==================== */}
+        {/* Day 62: v4.24 Pre-flight macro context (FRED cycles + econ + AV news) */}
+        {activeTab === 'context' && (
+          <ContextTab ticker={analysisResult?.ticker || null} />
         )}
 
         {/* ==================== VALIDATE TAB ==================== */}

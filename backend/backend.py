@@ -2221,17 +2221,57 @@ def get_forward_test_performance():
 
 # GICS Sector → SPDR ETF mapping
 SECTOR_ETF_MAP = {
-    'XLK': {'name': 'Technology', 'gics': ['Technology', 'Information Technology']},
-    'XLF': {'name': 'Financials', 'gics': ['Financial Services', 'Financials', 'Financial']},
-    'XLV': {'name': 'Health Care', 'gics': ['Healthcare', 'Health Care']},
-    'XLI': {'name': 'Industrials', 'gics': ['Industrials', 'Industrial Goods']},
-    'XLY': {'name': 'Consumer Discretionary', 'gics': ['Consumer Cyclical', 'Consumer Discretionary']},
-    'XLP': {'name': 'Consumer Staples', 'gics': ['Consumer Defensive', 'Consumer Staples']},
-    'XLE': {'name': 'Energy', 'gics': ['Energy']},
-    'XLB': {'name': 'Materials', 'gics': ['Basic Materials', 'Materials']},
-    'XLU': {'name': 'Utilities', 'gics': ['Utilities']},
-    'XLRE': {'name': 'Real Estate', 'gics': ['Real Estate']},
-    'XLC': {'name': 'Communication Services', 'gics': ['Communication Services']},
+    # gics list covers: GICS names (yfinance), TradingView screener field values
+    # TradingView uses SIC-based names, NOT GICS — both sets listed to ensure mapping works
+    'XLK': {'name': 'Technology', 'gics': [
+        'Technology', 'Information Technology',                   # GICS / yfinance
+        'Electronic Technology', 'Technology Services',           # TradingView
+    ]},
+    'XLF': {'name': 'Financials', 'gics': [
+        'Financial Services', 'Financials', 'Financial',          # GICS / yfinance
+        'Finance', 'Financial Conglomerates', 'Investment Trusts/Mutual Funds',  # TradingView
+    ]},
+    'XLV': {'name': 'Health Care', 'gics': [
+        'Healthcare', 'Health Care',                              # GICS / yfinance
+        'Health Technology', 'Health Services',                   # TradingView
+    ]},
+    'XLI': {'name': 'Industrials', 'gics': [
+        'Industrials', 'Industrial Goods',                        # GICS / yfinance
+        'Producer Manufacturing', 'Industrial Services',          # TradingView
+        'Transportation', 'Aerospace & Defense',                  # TradingView
+    ]},
+    'XLY': {'name': 'Consumer Discretionary', 'gics': [
+        'Consumer Cyclical', 'Consumer Discretionary',            # GICS / yfinance
+        'Consumer Durables', 'Consumer Services', 'Retail Trade', # TradingView
+        'Apparel/Footwear', 'Auto Parts: O.E.M.',                 # TradingView
+    ]},
+    'XLP': {'name': 'Consumer Staples', 'gics': [
+        'Consumer Defensive', 'Consumer Staples',                 # GICS / yfinance
+        'Consumer Non-Durables', 'Food Distribution',             # TradingView
+        'Food: Specialty/Candy',                                  # TradingView
+    ]},
+    'XLE': {'name': 'Energy', 'gics': [
+        'Energy',                                                 # GICS / yfinance
+        'Energy Minerals', 'Oil Refining/Marketing',              # TradingView
+        'Oil/Gas Services',                                       # TradingView
+    ]},
+    'XLB': {'name': 'Materials', 'gics': [
+        'Basic Materials', 'Materials',                           # GICS / yfinance
+        'Non-Energy Minerals', 'Process Industries',              # TradingView
+        'Basic Industries',                                       # TradingView
+    ]},
+    'XLU': {'name': 'Utilities', 'gics': [
+        'Utilities',                                              # GICS / yfinance + TradingView
+        'Electric Utilities', 'Gas Distribution',                 # TradingView
+    ]},
+    'XLRE': {'name': 'Real Estate', 'gics': [
+        'Real Estate',                                            # GICS / yfinance + TradingView
+    ]},
+    'XLC': {'name': 'Communication Services', 'gics': [
+        'Communication Services',                                 # GICS / yfinance
+        'Communications', 'Publishing/Radio/TV',                  # TradingView
+        'Movies/Entertainment',                                   # TradingView
+    ]},
 }
 
 # Reverse mapping: yfinance sector string → ETF ticker
@@ -2370,6 +2410,131 @@ def get_sector_rotation():
 
     except Exception as e:
         print(f"Error fetching sector rotation: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+# ============================================
+# CONTEXT TAB ENGINES (Day 62, v4.24)
+# Additive modules — Core STA engine is FROZEN.
+# ============================================
+
+try:
+    import cycles_engine
+    import econ_engine
+    import news_engine
+    CONTEXT_AVAILABLE = True
+    print("✅ Context Tab engines loaded (cycles, econ, news)")
+except ImportError as e:
+    CONTEXT_AVAILABLE = False
+    print(f"⚠️ Context Tab engines not available: {e}")
+
+
+@app.route('/api/cycles')
+def get_cycles_endpoint():
+    """Returns 6 calendar/yield cycle cards. Cached 6h."""
+    if not CONTEXT_AVAILABLE:
+        return jsonify({'error': 'Context engines not available'}), 503
+    try:
+        if SQLITE_CACHE_AVAILABLE:
+            cached = cache_manager.get_cached_cycles()
+            if cached:
+                return jsonify({**cached, 'from_cache': True})
+        data = cycles_engine.get_cycles()
+        if SQLITE_CACHE_AVAILABLE:
+            cache_manager.set_cached_cycles(data, ttl_hours=6)
+        return jsonify({**data, 'from_cache': False})
+    except Exception as e:
+        print(f"Error in /api/cycles: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/econ')
+def get_econ_endpoint():
+    """Returns 4 economic indicator cards. Cached 6h."""
+    if not CONTEXT_AVAILABLE:
+        return jsonify({'error': 'Context engines not available'}), 503
+    try:
+        if SQLITE_CACHE_AVAILABLE:
+            cached = cache_manager.get_cached_econ()
+            if cached:
+                return jsonify({**cached, 'from_cache': True})
+        data = econ_engine.get_econ()
+        if SQLITE_CACHE_AVAILABLE:
+            cache_manager.set_cached_econ(data, ttl_hours=6)
+        return jsonify({**data, 'from_cache': False})
+    except Exception as e:
+        print(f"Error in /api/econ: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/news/<ticker>')
+def get_news_endpoint(ticker):
+    """Returns news sentiment + short interest for ticker. Cached 4h."""
+    if not CONTEXT_AVAILABLE:
+        return jsonify({'error': 'Context engines not available'}), 503
+    ticker = ticker.upper()
+    try:
+        if SQLITE_CACHE_AVAILABLE:
+            cached = cache_manager.get_cached_news(ticker)
+            if cached:
+                return jsonify({**cached, 'from_cache': True})
+        data = news_engine.get_news(ticker)
+        if SQLITE_CACHE_AVAILABLE:
+            cache_manager.set_cached_news(ticker, data, ttl_hours=4)
+        return jsonify({**data, 'from_cache': False})
+    except Exception as e:
+        print(f"Error in /api/news/{ticker}: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/context/<ticker>')
+def get_context_endpoint(ticker):
+    """Aggregates cycles + econ + news. Computes overall_regime + options_block."""
+    if not CONTEXT_AVAILABLE:
+        return jsonify({'error': 'Context engines not available'}), 503
+    ticker = ticker.upper()
+    try:
+        # Fetch all three (each uses its own cache internally)
+        cycles_resp = get_cycles_endpoint()
+        econ_resp = get_econ_endpoint()
+        news_resp = get_news_endpoint(ticker)
+
+        cycles = cycles_resp.get_json()
+        econ = econ_resp.get_json()
+        news = news_resp.get_json()
+
+        # Compute overall regime across all 10 indicators (6 cycles + 4 econ)
+        all_regimes = (
+            [c['regime'] for c in cycles.get('cards', [])] +
+            [c['regime'] for c in econ.get('cards', [])]
+        )
+        favorable = sum(1 for r in all_regimes if r == 'FAVORABLE')
+        adverse = sum(1 for r in all_regimes if r == 'ADVERSE')
+        neutral = len(all_regimes) - favorable - adverse
+
+        if adverse >= 4:
+            overall_regime = 'ADVERSE'
+        elif adverse >= 2 or favorable < 5:
+            overall_regime = 'NEUTRAL'
+        else:
+            overall_regime = 'FAVORABLE'
+
+        return jsonify({
+            'ticker': ticker,
+            'overall_regime': overall_regime,
+            'regime_counts': {'favorable': favorable, 'neutral': neutral, 'adverse': adverse},
+            'total_indicators': len(all_regimes),
+            'options_block': cycles.get('options_block', {'has_options_block': False, 'reason': None}),
+            'cycles': cycles,
+            'econ': econ,
+            'news': news,
+        })
+    except Exception as e:
+        print(f"Error in /api/context/{ticker}: {e}")
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 

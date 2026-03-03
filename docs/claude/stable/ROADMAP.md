@@ -2,12 +2,12 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 61 (February 27, 2026)
+> **Last Updated:** Day 62 (March 1, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.23 (Backend v2.24, Frontend v4.10, Backtest v4.17)
+## Current Version: v4.24 (Backend v2.25, Frontend v4.11, Backtest v4.17, API Service v2.9)
 
 ---
 
@@ -208,22 +208,24 @@
 - **Backend:** `/api/earnings/<ticker>` endpoint with multiple yfinance fallback methods
 - **Files Modified:** `backend/backend.py`, `frontend/src/services/api.js`, `frontend/src/App.jsx`
 
-### v4.11: Sector Rotation — Phase 1 ✅ COMPLETE (Day 58)
+### v4.11: Sector Rotation — Phase 1 + Phase 2 ✅ COMPLETE (Day 58 + Day 62)
 - **Priority:** MEDIUM (verified - simple RS ranking is effective)
-- **Status:** ✅ Phase 1 COMPLETE (Day 58)
+- **Status:** ✅ Phase 1 COMPLETE (Day 58) + Phase 2 COMPLETE (Day 62)
 - **Research:** `docs/research/Sector_Rotation_analysis.md` (450+ lines, comprehensive)
-- **Phase 1 (DONE):** Sector context in existing views — NO new tab
+- **Phase 1 (Day 58):** Sector context in existing views — NO new tab
   - Backend: `/api/sectors/rotation` — fetches 11 SPDR ETFs, calculates RS ratio vs SPY, RRG quadrant
   - Analyze page: Color-coded sector badge (Leading=green, Weakening=yellow, Lagging=red, Improving=blue)
   - Scan results: Sector column with quadrant label per stock
   - Hover tooltip: RS ratio, momentum, rank out of 11
   - Purely informational — does NOT change any trade signals or verdicts
-- **Phase 2 (Day 59):** Dedicated sector tab + scan integration
-  - 11 sector cards ranked by RS with quadrant colors
-  - **"Scan for Rank 1"** — filter scan results by sector rank
-  - "Show stocks in this sector" → pre-filter Scan tab
+- **Phase 2 (Day 62):** Dedicated 🔄 Sectors tab + "Scan for Rank 1" filter
+  - `SectorRotationTab.jsx` (NEW): 11 sector cards ranked by RS, quadrant color-coding, rank badges (1-3 green, 4-7 yellow, 8-11 red)
+  - RS Ratio + RS Momentum progress bars per card
+  - **"Scan for Rank #1 Sector"** CTA — switches to Scan tab with sector filter active
+  - Filter banner in Scan tab: "Showing: Technology sector (Rank #1 · Leading)" with ✕ to clear
+  - **Bug fixed (Day 62):** TradingView returns SIC sector names ("Non-Energy Minerals") not GICS. Fixed `SECTOR_ETF_MAP.gics` + filter logic.
 - **Key insight:** 70% of stock price movement comes from sector leadership (Faber study)
-- **Files:** `backend/backend.py` (endpoint), `frontend/src/services/api.js`, `frontend/src/App.jsx`
+- **Files:** `backend/backend.py` (endpoint), `frontend/src/components/SectorRotationTab.jsx` (NEW), `frontend/src/App.jsx`
 
 ### v4.20: Cache Management Audit + UI Freshness Meter ✅ COMPLETE (Day 59)
 - **Priority:** MEDIUM (data quality concern)
@@ -235,9 +237,38 @@
   - `fetchDataFreshness()` added as 10th parallel call in `fetchFullAnalysisData()`
 - **Files:** `backend/backend.py`, `frontend/src/services/api.js`, `frontend/src/App.jsx`
 
+### v4.24: Context Tab — Pre-Flight Macro Context ✅ COMPLETE (Day 62)
+- **Priority:** MEDIUM (user-requested: informed decision-making layer)
+- **Status:** ✅ COMPLETE (Day 62)
+- **Principle:** PRE-FLIGHT CONTEXT ONLY — informs human, does NOT modify verdicts or categorical assessment
+- **Architecture:** 3 new backend engines + 4 new endpoints + 5 new React components
+- **Column A: Calendar & Yield Cycles** — 6 cards (FRED T10Y2Y + INDPRO + 4 calendar computations)
+  - Yield Curve, Business Cycle, Presidential Year, Seasonal, FOMC Proximity, Quad Witching
+  - Regime thresholds: FAVORABLE / NEUTRAL / ADVERSE per card
+  - Options block detection: FOMC < 5d OR Quad Witching < 3d
+  - Cache: 6h (FRED monthly data, calendar computed)
+- **Column B: Economic Indicators** — 4 cards (FRED FEDFUNDS + CPIAUCSL + UNRATE + MANEMP)
+  - Fed Funds Rate (direction), CPI YoY, PMI proxy (MANEMP), Unemployment
+  - Historical composite box (regime combination → historical return description)
+  - Options Block Status banner (green/red)
+  - Cache: 6h
+- **Column C: News Sentiment** — per ticker (Alpha Vantage + yfinance)
+  - Aggregate sentiment: BULLISH / NEUTRAL / BEARISH with score breakdown
+  - Article feed (up to 10 articles with emoji, score badge, clickable title)
+  - Short interest: short % float + days to cover + assessment (High/Normal/Low)
+  - ConflictCheck banner: ALIGNED / CONFLICT / PARTIAL
+  - Cache: 4h per ticker (25 req/day Alpha Vantage free tier)
+- **Overall Regime Banner:** Counts favorable/neutral/adverse across all 10 indicators
+  - FAVORABLE if >= 5 favorable AND adverse < 2; ADVERSE if adverse >= 4; else NEUTRAL
+- **Auth:** FRED_API_KEY (free, 1000/day), ALPHAVANTAGE_API_KEY (free, 25/day)
+- **New Endpoints:** `/api/cycles`, `/api/econ`, `/api/news/<ticker>`, `/api/context/<ticker>`
+- **Files Created:** `backend/cycles_engine.py`, `backend/econ_engine.py`, `backend/news_engine.py`, `frontend/src/components/ContextTab.jsx`, `RegimeBanner.jsx`, `CycleCard.jsx`, `ArticleRow.jsx`, `ConflictCheck.jsx`
+- **Files Modified:** `backend/cache_manager.py` (+6 TTL wrappers), `backend/backend.py` (+4 endpoints), `frontend/src/App.jsx`, `frontend/src/services/api.js` (+4 fetch functions)
+- **Pending (Day 63):** Option C Hybrid — filter news articles to reputable sources only (Reuters, Bloomberg, WSJ, FT, Barron's, etc.), show top 3 per sentiment category
+
 ### v4.12: TradingView Lightweight Charts
 - **Priority:** MEDIUM
-- **Status:** PLANNED (after volume/earnings features)
+- **Status:** PLANNED
 - **Description:** Interactive charts with S&R levels, RSI/MACD overlays
 - **Technology:** TradingView Lightweight Charts (free, open source)
 - **Effort:** 4-6 hours
@@ -455,6 +486,7 @@ From backtesting:
 | 59 | v4.20 Cache Freshness Meter COMPLETE (endpoint + UI dots). v4.21 Canadian Market COMPLETE (TSX 60 + All Canadian scan, 3 bugs fixed). DVN Bottom Line entry type fix (R:R-based). AI Fluency Critical Analysis document. ADX 25 threshold logged as unvalidated assumption. |
 | 60 | Simple Checklist 4→9 criteria COMPLETE (52-Wk Range, Volume, ADX, Market Regime, 200 SMA Trend — Minervini SEPA + backtest-validated). EPS/Revenue Growth QoQ→YoY fix COMPLETE + `_growth_to_pct()` format normalization. ADX `.toFixed()` crash fix. |
 | 61 | 4-Layer Coherence Audit COMPLETE (87 fields, 10 tickers, 10 endpoints). 9 bugs fixed: NaN safety (3-layer defense), F&G thresholds synced, cache schema v2, earnings 500 on error, R:R DRY utility (riskRewardCalc.js), F&G fallback flag. API_CONTRACTS updated Day 53→Day 61. Version v4.23. |
+| 62 | Sector Rotation Phase 2 COMPLETE: 11 sector cards + "Scan for Rank 1" filter. Context Tab COMPLETE: 3 columns (Calendar/Yield Cycles + Econ + News Sentiment), 3 new engines, 4 new endpoints, 5 new components. FRED API key activated. TradingView SIC sector name mismatch fixed (49 mapping entries). Option C Hybrid news filtering queued. Candlestick patterns queued as standalone post-flight check. Version v4.24. |
 
 ---
 
