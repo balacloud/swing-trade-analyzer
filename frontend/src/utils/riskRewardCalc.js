@@ -21,14 +21,15 @@ export function calculateRiskReward(srData, currentPrice) {
   const target = srData?.suggestedTarget || (currentPrice ? currentPrice * 1.10 : 0);
 
   // Pullback R:R: entry at support, stop 2×ATR below
+  // Floor at $0.01 — stop price can never be negative or zero
   const pullbackEntry = nearestSupport;
-  const pullbackStop = nearestSupport ? nearestSupport - (atr * 2) : 0;
+  const pullbackStop = nearestSupport ? Math.max(0.01, nearestSupport - (atr * 2)) : 0;
   const pullbackRisk = pullbackEntry ? pullbackEntry - pullbackStop : 0;
   const pullbackReward = pullbackEntry ? target - pullbackEntry : 0;
   const pullbackRR = pullbackRisk > 0 ? pullbackReward / pullbackRisk : 0;
 
   // Momentum R:R: entry at current price, stop 1.5×ATR below support
-  const momentumStop = nearestSupport ? nearestSupport - (atr * 1.5) : 0;
+  const momentumStop = nearestSupport ? Math.max(0.01, nearestSupport - (atr * 1.5)) : 0;
   const momentumRisk = currentPrice && momentumStop ? currentPrice - momentumStop : 0;
   const momentumReward = currentPrice ? target - currentPrice : 0;
   const momentumRR = momentumRisk > 0 ? momentumReward / momentumRisk : 0;
@@ -65,7 +66,11 @@ export function calculateRiskReward(srData, currentPrice) {
  */
 export function hasViabilityContradiction(srData, rr) {
   const backendViable = srData?.meta?.tradeViability?.viable;
-  return backendViable === 'YES' && !rr.anyViable;
+  // Check both directions: backend YES but R:R fails, OR backend NO but R:R passes
+  return (
+    (backendViable === 'YES' && !rr.anyViable) ||
+    (backendViable === 'NO' && rr.anyViable)
+  );
 }
 
 /**

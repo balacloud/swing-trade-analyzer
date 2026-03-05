@@ -62,9 +62,11 @@ def _fetch_fred(series_id: str, limit: int = 13):
 
 # ─── Calendar helpers ─────────────────────────────────────────────────────────
 def _next_fomc(from_date: date):
-    """Next FOMC date on or after from_date."""
+    """Next FOMC date AFTER from_date (exclusive).
+    Using > not >= so that if today IS an FOMC day, we return the next one,
+    avoiding '0 days away' which falsely triggers the options block."""
     for d in FOMC_DATES:
-        if d >= from_date:
+        if d > from_date:
             return d
     return None
 

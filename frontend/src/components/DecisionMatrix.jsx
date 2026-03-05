@@ -135,7 +135,7 @@ export default function DecisionMatrix({
             </div>
             {verdict.signalWeights && (
               <div className="text-xs text-gray-500 text-right">
-                <div>Tech {Math.round(verdict.signalWeights.technical * 100)}% / Fund {Math.round(verdict.signalWeights.fundamental * 100)}%</div>
+                <div>Emphasis: Tech {Math.round(verdict.signalWeights.technical * 100)}% / Fund {Math.round(verdict.signalWeights.fundamental * 100)}%</div>
                 <div className="text-indigo-400">{holdingConfig.name}</div>
               </div>
             )}

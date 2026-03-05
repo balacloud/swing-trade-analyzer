@@ -61,19 +61,21 @@ def _yoy(series: list, periods: int = 12):
     return ((latest - year_ago) / abs(year_ago)) * 100
 
 
-def _trend(series: list, periods: int = 3):
+def _trend(series: list, periods: int = 3, threshold: float = 0.1):
     """
     Returns 'rising', 'falling', or 'flat' over last `periods` observations.
     series = [(date, val), ...] newest first.
+    threshold: minimum delta to call rising/falling (default 0.1 for Fed Funds bps;
+               pass 0.3 for unemployment per spec 'rapidly rising = >0.3% in 3 months')
     """
     if not series or len(series) < periods:
         return 'flat'
     latest = series[0][1]
     old = series[periods - 1][1]
     delta = latest - old
-    if delta > 0.1:
+    if delta > threshold:
         return 'rising'
-    elif delta < -0.1:
+    elif delta < -threshold:
         return 'falling'
     return 'flat'
 
@@ -212,7 +214,8 @@ def _unemployment_card():
     data = _fetch_fred('UNRATE', limit=5)
     if data:
         latest_date, latest = data[0]
-        trend_dir = _trend(data, periods=3)
+        # threshold=0.3: spec says 'rapidly rising' = >0.3% over 3 months
+        trend_dir = _trend(data, periods=3, threshold=0.3)
 
         if latest < 4.5 and trend_dir in ('falling', 'flat'):
             regime = 'FAVORABLE'

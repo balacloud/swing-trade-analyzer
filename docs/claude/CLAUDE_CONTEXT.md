@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 62 (March 1, 2026)
+> **Last Updated:** Day 64 end-of-session (March 5, 2026)
 
 ---
 
@@ -22,25 +22,43 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 62 |
-| Version | v4.24 (Backend v2.25, Frontend v4.11, Backtest v4.17, API Service v2.9) |
-| Latest Status | PROJECT_STATUS_DAY62_SHORT.md |
+| Current Day | 65 |
+| Version | v4.27 (Backend v2.30, Frontend v4.14, Backtest v4.17, API Service v2.9) |
+| Latest Status | PROJECT_STATUS_DAY65_SHORT.md |
 | Latest Issues | KNOWN_ISSUES_DAY62.md |
 | Latest API | API_CONTRACTS_DAY62.md |
-| Focus | **Day 62 Complete** — Sector Rotation Phase 2 + Context Tab (3 engines, 4 endpoints, 5 components) + FRED API activated + Sector filter bug fixed |
+| Focus | **Day 65** — Paper trading. Feature freeze in effect. |
 
-### Day 62 Summary (Current)
-- **Sector Rotation Phase 2 — Complete**
+### Day 64 Summary (Complete — 4 rounds, 18 bugs fixed → v4.27)
+- **Round 1 (initial audit — BE v2.27):** 5 bugs: news date parse, Cup&Handle index mismatch, W-FRI resample, ATR stop, unemployment threshold
+- **Round 2 (deferred items — BE v2.28):** VCP strictly decreasing (`>=`→`>`), VCP pivot = last swing high, Wilder EMA ATR
+- **Round 3 (remaining deferred — BE v2.29, FE v4.13):** FOMC today edge case, constants.py extracted (shared proximity), DecisionMatrix "Emphasis:" label
+- **Round 4 deep audit (BE v2.30, FE v4.14):** Stop price floor `max(0.01,...)`, VCP gate hybrid (volatility_contracting = confidence booster only), CAUTION='CAUTION ENTRY' vs NOT_VIABLE='WAIT FOR ENTRY', All-Decent+Neutral→HOLD, Cup handle_below_lip validation
+- **Total:** 18 bugs fixed across 9 backend files + 4 frontend files. 1 new file (constants.py)
+- **Cannot fix:** F&G in live vs backtest (needs historical data, not free)
+
+### Day 63 Summary
+- **Option C Hybrid news filtering — Complete** (`news_engine.py` v2.26)
+  - `REPUTABLE_SOURCE_KEYWORDS` set: 19 sources (Reuters, Bloomberg, CNBC, WSJ, FT, Barron's, etc.)
+  - `_is_reputable()`: case-insensitive substring match
+  - `_fetch_av_news()`: fetch pool of 50 articles (was 10) to allow reputable filtering
+  - `_parse_articles()`: skips non-reputable sources before processing
+  - `_curate_articles()`: top 3 bullish + 3 neutral + 3 bearish by signal strength, re-sorted by date desc
+  - Aggregate sentiment computed from full reputable pool; displayed articles limited to curated 9
+- **BottomLineCard coherence fix — Complete** (`BottomLineCard.jsx` v4.12)
+  - **Bug:** `getEntryTypeLabel()` returned 'MOMENTUM ENTRY' when support was empty (ADX fallback), even when backend said `tradeViability.viable = 'NO'`. Result: green "READY - MOMENTUM ENTRY" contradicted red "NOT VIABLE" trade card.
+  - **Fix:** Early return `'WAIT FOR ENTRY'` when `srData.meta.tradeViability.viable !== 'YES'`. Trade viability is now the single authority — card turns amber "BUY SIGNAL - WAIT FOR ENTRY" to be consistent.
+  - **Trigger:** LMT analysis showed 8/8 Trend Template + BUY verdict but "Extended 23% from support / NOT VIABLE" — Bottom Line was contradicting Trade Setup card.
+- **Candlestick patterns — Deferred** (Perplexity research complete, 4 viable patterns identified, pure NumPy required, not a priority)
+- **Next focus:** Paper trading — use the system to find bugs and tweak before adding features
+
+### Day 62 Summary
+- **Sector Rotation Phase 2 + Context Tab — Complete**
   - New `SectorRotationTab.jsx`: 11 sector cards with rank badges, RS bars, quadrant color-coding
   - "Scan for Rank #1 Sector" CTA → switches to Scan tab with sector filter banner
-  - **Bug fix:** TradingView uses SIC sector names ("Non-Energy Minerals") not GICS ("Materials"). Fixed by expanding `SECTOR_ETF_MAP.gics` to 49 entries + changing filter to ETF lookup.
-- **Context Tab (🔭) — Complete (PRE-FLIGHT CONTEXT ONLY)**
-  - **Backend:** `cycles_engine.py` (6 cycle cards: Yield Curve, Business Cycle, Presidential Year, Seasonal, FOMC Proximity, Quad Witching), `econ_engine.py` (4 econ cards: Fed Funds, CPI, PMI proxy, Unemployment), `news_engine.py` (Alpha Vantage news + yfinance short interest). 4 new endpoints: `/api/cycles`, `/api/econ`, `/api/news/<ticker>`, `/api/context/<ticker>`.
-  - **Frontend:** `ContextTab.jsx`, `RegimeBanner.jsx`, `CycleCard.jsx`, `ArticleRow.jsx`, `ConflictCheck.jsx`. 3-column layout. Overall regime banner. ConflictCheck: ALIGNED/CONFLICT/PARTIAL.
-  - FRED_API_KEY added by user → all 10 FRED cards now live.
-  - Cache: CYCLES/ECON 6h, NEWS_{ticker} 4h.
-- **Architecture maintained:** ZERO changes to categoricalAssessment.js, verdict logic, pattern_detection, existing scan/analyze endpoints.
-- **Decided (not yet implemented):** Option C Hybrid news filtering (reputable sources only, top 3 per category). Candlestick patterns as standalone post-flight check.
+  - **Bug fix:** TradingView SIC vs GICS sector name mismatch fixed (49 mapping entries)
+  - Context Tab: 3 engines, 4 endpoints, 5 components, FRED API activated
+  - Cache: CYCLES/ECON 6h, NEWS_{ticker} 4h
 
 ### Day 61 Summary
 - **4-Layer Coherence Audit + 9 Bug Fixes + R:R DRY Refactor**
@@ -101,11 +119,10 @@
 | Standard (5-15d) | 244 | 53.69% | 1.62 | 0.85 | PASS (Day 55) |
 | Position (15-45d) | 362 | 38.67% | 1.51 | 0.61 | PASS (regime-sensitive, not overfitted) |
 
-### Next Session Priorities (Day 63)
-1. **Option C Hybrid — News Source Filtering** — Filter Alpha Vantage articles to reputable sources only (Reuters, Bloomberg, AP, WSJ, FT, Barron's, MarketWatch, CNBC, Yahoo Finance, Morningstar, Seeking Alpha, Motley Fool). Show top 3 bullish + 3 neutral + 3 bearish. File: `backend/news_engine.py`.
-2. **Candlestick Patterns — Standalone Post-Flight Check** — Perplexity deep research first (prompts ready in `docs/research/CANDLESTICK_PATTERNS_PERPLEXITY_PROMPTS.md`). NOT integrated into full analysis or simple checklist.
-3. **TradingView Lightweight Charts** — Interactive charts with S&R levels, RSI/MACD overlays.
-4. **Canadian Market Analyze Page** — Data source redesign for `.TO` tickers.
+### Next Session Priorities (Day 65)
+1. **Paper trading** — Feature freeze in effect. Use the system on 5-10 real tickers. Watch for: CAUTION ENTRY label, correct ATR stops ($0.01 floor), VCP accuracy, news dates in Context Tab.
+2. **Log first Forward Test trade** in the Forward Test tab if BUY signal found.
+3. **Field bugs only** — no new features until a meaningful set of paper trades is logged.
 
 ---
 
@@ -376,6 +393,8 @@ curl http://localhost:5001/api/cache/status
 | 60 | Simple Checklist 4→9 criteria (52-Wk Range, Volume, ADX, Market Regime, 200 SMA Trend). EPS/Revenue Growth QoQ→YoY fix + `_growth_to_pct()` format normalization. ADX `.toFixed()` crash fix (Number coercion). |
 | 61 | 4-Layer Coherence Audit (87 fields, 10 tickers, 10 endpoints): 3 CRITICAL + 2 MEDIUM found, ALL 9 FIXED. NaN safety (3-layer defense), F&G thresholds synced, cache schema v2, earnings 500 on error, R:R DRY utility (riskRewardCalc.js). API_CONTRACTS updated Day 53→Day 61. |
 | 62 | Sector Rotation Phase 2 COMPLETE (11 sector cards + "Scan for Rank 1" + TradingView SIC name fix). Context Tab COMPLETE (3 engines + 4 endpoints + 5 components). FRED API key activated. Next: Option C hybrid news + candlestick patterns. Version v4.24. API_CONTRACTS updated Day 61→Day 62. |
+| 63 | Option C Hybrid news filter (reputable sources + 3-bucket curation). BottomLineCard coherence fix (viable authority). Version v4.25. |
+| 64 | Deep audit: 18 bugs fixed (4 rounds). VCP/ATR/W-FRI/stop floor/pattern validation/categorical verdict. 1 new file constants.py. Version v4.27 (BE v2.30, FE v4.14). |
 
 ---
 

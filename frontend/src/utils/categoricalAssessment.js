@@ -849,9 +849,10 @@ export function determineVerdict(technical, fundamental, sentiment, riskMacro, a
     return buildResult('HOLD', reason, 'yellow');
   }
 
-  // Decent across the board with favorable risk = HOLD (borderline)
-  if (technical === 'Decent' && riskMacro === 'Favorable') {
-    return buildResult('HOLD', 'Decent setup - consider with proper position sizing', 'yellow');
+  // Decent across the board = HOLD (not AVOID) as long as risk isn't Unfavorable
+  // Neutral risk + all Decent is not ideal but not a rejection — wait for breakout
+  if (technical === 'Decent' && (riskMacro === 'Favorable' || riskMacro === 'Neutral')) {
+    return buildResult('HOLD', 'Decent setup - wait for a strong catalyst or breakout', 'yellow');
   }
 
   // Default: AVOID

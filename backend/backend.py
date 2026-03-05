@@ -31,6 +31,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 
+from constants import SUPPORT_PROXIMITY_PCT, RESISTANCE_PROXIMITY_PCT  # shared with support_resistance.py
+
 # Day 51: Load environment variables for API keys
 try:
     from dotenv import load_dotenv
@@ -1522,9 +1524,7 @@ def get_support_resistance(ticker):
         # This fixes the bug where ancient support levels (e.g., $85 on $256 stock)
         # were being suggested as entry points
         # ============================================
-        SUPPORT_PROXIMITY_PCT = 0.20    # 20% below current price max
-        RESISTANCE_PROXIMITY_PCT = 0.30  # 30% above current price max
-        
+        # SUPPORT_PROXIMITY_PCT / RESISTANCE_PROXIMITY_PCT imported from constants.py
         support_floor = current_price * (1 - SUPPORT_PROXIMITY_PCT)
         resistance_ceiling = current_price * (1 + RESISTANCE_PROXIMITY_PCT)
         
@@ -1542,8 +1542,14 @@ def get_support_resistance(ticker):
         # Entry: Nearest ACTIONABLE support below current price
         if actionable_support:
             suggested_entry = round(max(actionable_support), 2)  # Nearest support
-            # Stop: 3% below entry
-            suggested_stop = round(suggested_entry * 0.97, 2)
+            # Stop: 2×ATR below entry (matches riskRewardCalc.js pullback stop formula)
+            # Falls back to 3% if ATR unavailable
+            atr_value = sr_levels.meta.get('atr') or 0
+            if atr_value > 0:
+                # Floor at $0.01 — stop can never be negative (e.g. low-price stock with high ATR)
+                suggested_stop = max(0.01, round(suggested_entry - (2 * atr_value), 2))
+            else:
+                suggested_stop = round(suggested_entry * 0.97, 2)  # 3% fallback
         
         # Target: Nearest ACTIONABLE resistance above current price
         if actionable_resistance:

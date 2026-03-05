@@ -88,6 +88,14 @@ def _score_to_emoji(score: float) -> str:
     return '🟡'
 
 
+def _parse_date(time_str: str) -> str:
+    """Convert AV time_published (YYYYMMDDTHHMMSS) to YYYY-MM-DD.
+    [:10] is wrong — it yields 'YYYYMMDDTH' not a date."""
+    if len(time_str) >= 8:
+        return f"{time_str[:4]}-{time_str[4:6]}-{time_str[6:8]}"
+    return ''
+
+
 def _parse_articles(feed: list, ticker: str) -> list:
     """
     Parse Alpha Vantage feed items into clean article dicts.
@@ -124,7 +132,7 @@ def _parse_articles(feed: list, ticker: str) -> list:
             'title': title,
             'url': item.get('url', ''),
             'source': source,
-            'date': (item.get('time_published', '') or '')[:10],  # YYYYMMDDTHHMMSS → YYYY-MM-DD
+            'date': _parse_date(item.get('time_published', '') or ''),  # YYYYMMDDTHHMMSS → YYYY-MM-DD
             'score': round(score, 3),
             'emoji': _score_to_emoji(score),
             'sentiment_label': ticker_sent.get('ticker_sentiment_label', 'Neutral'),

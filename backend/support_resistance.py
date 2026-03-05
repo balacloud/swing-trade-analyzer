@@ -34,6 +34,8 @@ import pandas as pd
 from sklearn.cluster import KMeans, AgglomerativeClustering
 import logging
 
+from constants import SUPPORT_PROXIMITY_PCT  # shared with backend.py
+
 
 logger = logging.getLogger(__name__)
 
@@ -123,9 +125,14 @@ def _calculate_atr(df: pd.DataFrame, period: int = 14) -> float:
         tr[0] = high[0] - low[0]  # First bar: just high - low
         tr[1:] = np.maximum(np.maximum(tr1[1:], tr2), tr3)
         
-        # ATR is the rolling average of True Range
-        atr = np.mean(tr[-period:])
-        
+        # ATR using Wilder's EMA (alpha = 1/period), not simple average
+        # Seed with simple mean of first `period` bars, then apply Wilder smoothing
+        atr_values = np.zeros(len(tr))
+        atr_values[period - 1] = np.mean(tr[:period])
+        for i in range(period, len(tr)):
+            atr_values[i] = (atr_values[i - 1] * (period - 1) + tr[i]) / period
+        atr = atr_values[-1]
+
         return float(atr)
     except Exception as exc:
         logger.warning("ATR calculation failed: %s", exc)
@@ -831,8 +838,8 @@ def _resample_to_weekly(df: pd.DataFrame) -> pd.DataFrame:
             df = df.copy()
             df.index = pd.date_range(end=pd.Timestamp.today(), periods=len(df), freq='D')
 
-        # Resample to weekly (W = week ending Sunday)
-        weekly = df.resample('W').agg({
+        # Resample to weekly (W-FRI = week ending Friday, matches market close)
+        weekly = df.resample('W-FRI').agg({
             'open': 'first',
             'high': 'max',
             'low': 'min',
@@ -1268,8 +1275,7 @@ def compute_sr_levels(df: pd.DataFrame, cfg: Optional[SRConfig] = None) -> SRLev
     # 1) Pivot-based (skip if volatility extreme)
     # Day 31: Modified to try agglomerative when pivot has no ACTIONABLE support
     # (support within 20% of current price - matching API proximity filter)
-    SUPPORT_PROXIMITY_PCT = 0.20  # Must match API_CONTRACTS/backend.py
-    support_floor = current_price * (1 - SUPPORT_PROXIMITY_PCT)
+    support_floor = current_price * (1 - SUPPORT_PROXIMITY_PCT)  # from constants.py
 
     if not high_vol:
         pivot_result = _pivot_sr(df, cfg)

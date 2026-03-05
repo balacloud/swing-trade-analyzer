@@ -363,9 +363,10 @@ def detect_vcp(df: pd.DataFrame, lookback_days: int = 90) -> Dict:
     if len(contractions) < 2:
         return {'detected': False, 'confidence': 0, 'reason': 'Fewer than 2 contractions found'}
 
-    # Check if contractions are decreasing (VCP characteristic)
+    # Check if contractions are strictly decreasing (VCP characteristic)
+    # >= allowed equal swings — use > so each must be SMALLER than the prior
     depths = [c['depth_pct'] for c in contractions[-4:]]  # Use last 4 contractions max
-    decreasing_contractions = all(depths[i] >= depths[i+1] for i in range(len(depths)-1))
+    decreasing_contractions = all(depths[i] > depths[i+1] for i in range(len(depths)-1))
 
     # Calculate volatility compression
     early_volatility = close.iloc[:lookback_days//3].std()
@@ -382,13 +383,17 @@ def detect_vcp(df: pd.DataFrame, lookback_days: int = 90) -> Dict:
     late_volume = volume.iloc[-lookback_days//4:].mean()
     volume_declining = late_volume < early_volume
 
-    # Calculate pivot price (highest point in pattern)
-    pivot_price = high.max()
+    # Calculate pivot price: most recent pivot high = actual breakout level
+    # high.max() was the 90-day maximum, which is misleading if stock peaked months ago
+    pivot_price = high.iloc[pivot_highs_idx[-1]] if pivot_highs_idx else high.max()
 
     # Determine VCP status
+    # Core gates: strictly decreasing contractions + tight base (Minervini essentials)
+    # volatility_contracting is NOT a gate — it's a confidence booster already (+15 pts)
+    # AND was too strict: a real VCP forming can have early-stage volatility before compression
     vcp_detected = (
         len(contractions) >= 2 and
-        (decreasing_contractions or volatility_contracting) and
+        decreasing_contractions and
         tight_base
     )
 
@@ -525,7 +530,7 @@ def detect_cup_handle(df: pd.DataFrame, lookback_days: int = 180) -> Dict:
         u_shaped = False
 
     # Look for handle (small pullback after right lip)
-    handle_data = df.iloc[right_lip_pos:]
+    handle_data = recent.iloc[right_lip_pos:]  # Fix: right_lip_pos is index into recent, not df
     if len(handle_data) < 5:
         handle_detected = False
         handle_info = None
@@ -537,8 +542,10 @@ def detect_cup_handle(df: pd.DataFrame, lookback_days: int = 180) -> Dict:
         # Handle should be shallow (less than half of cup depth)
         handle_valid = handle_depth_pct < cup_depth_pct / 2 and handle_depth_pct < 15
         handle_in_upper_half = handle_low > (cup_bottom_price + left_lip_price) / 2
+        # Handle high must NOT close above right lip (that's a breakout attempt, not a handle)
+        handle_below_lip = handle_high <= right_lip_price * 1.02  # 2% tolerance for wicks
 
-        handle_detected = handle_valid and handle_in_upper_half
+        handle_detected = handle_valid and handle_in_upper_half and handle_below_lip
         handle_info = {
             'depth_pct': round(handle_depth_pct, 1),
             'valid': handle_valid,

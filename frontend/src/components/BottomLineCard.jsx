@@ -281,6 +281,16 @@ function getWeightedVerdictInfo(categoricalResult, holdingPeriod) {
  * is better, says PULLBACK even when ADX is high.
  */
 function getEntryTypeLabel(categoricalResult, srData, currentPrice) {
+  const viable = srData?.meta?.tradeViability?.viable;
+  // CAUTION = viable but wide stop; show distinct label (not same as fully NOT VIABLE)
+  if (viable === 'CAUTION') {
+    return 'CAUTION ENTRY';
+  }
+  // NO or UNKNOWN or missing = not viable; agree with Trade Setup card
+  if (viable !== 'YES') {
+    return 'WAIT FOR ENTRY';
+  }
+
   // Day 61: Use shared R:R utility (single source of truth)
   const rr = calculateRiskReward(srData, currentPrice);
 
