@@ -101,6 +101,18 @@
 
 ---
 
+## Upcoming: New Parallel Project — Options Recommendation Engine
+
+> **Announced Day 64 close.** Full spec to be provided at Day 65 start.
+
+- **What it is:** A separate options recommendation engine that consumes STA outputs
+- **Input from STA:** ticker verdict (BUY/HOLD/AVOID), S&R levels, ATR, sector, macro regime from Context Tab
+- **Codex involvement:** User has been building this in parallel with OpenAI Codex — will share design/spec at next session
+- **STA impact:** NONE. STA stays frozen. Options engine consumes existing `/api/*` endpoints as-is.
+- **Architecture:** Separate codebase or module — to be decided when spec is shared
+
+---
+
 ## Next Session Priority: Paper Trading
 
 **Feature freeze is in effect.** Use the system for real analysis. Find bugs in the field.
