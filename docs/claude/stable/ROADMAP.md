@@ -2,12 +2,12 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 62 (March 1, 2026)
+> **Last Updated:** Day 64 (March 5, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.24 (Backend v2.25, Frontend v4.11, Backtest v4.17, API Service v2.9)
+## Current Version: v4.27 (Backend v2.30, Frontend v4.14, Backtest v4.17, API Service v2.9)
 
 ---
 
@@ -71,6 +71,7 @@
 | G6 | Quick & Position Period Backtest | ✅ COMPLETE (Day 57) — walk-forward validated |
 | G7 | Full System Coherence Audit | ✅ COMPLETE (Day 57) — 71 params, 96% coherence |
 | G8 | 4-Layer Deep Coherence Audit | ✅ COMPLETE (Day 61) — 87 fields, 89% coherence, 9 bugs fixed |
+| G9 | Comprehensive Module Audit (Day 64) | ✅ COMPLETE (Day 64) — 4 rounds, 18 bugs fixed, pattern/ATR/stop/categorical |
 
 **Test Command:** `python backend/backtest/backtest_holistic.py --configs C --walk-forward`
 
@@ -378,7 +379,7 @@
 | Feature | Reason for Deferral |
 |---------|---------------------|
 | Full RRG Charts | Overkill - simple RS ranking achieves same goal (Day 48 research) |
-| Candlestick Patterns | Low statistical accuracy per research |
+| Candlestick Patterns | Research complete (Day 63). 4 viable patterns identified (Hammer 59.86%, Bullish Engulfing 60-68%, Morning Star 58-65%, Doji). Pure NumPy implementation required (pandas-ta/TA-Lib NOT installed). Deferred — not a current priority. |
 | Full TradingView Integration | After Lightweight Charts validated |
 | H&S Pattern Detection | Academic research "scarce and inconclusive" (NY Fed) |
 | Seasonal Patterns | "Small edge", regime-dependent (ChatGPT) |
@@ -487,6 +488,8 @@ From backtesting:
 | 60 | Simple Checklist 4→9 criteria COMPLETE (52-Wk Range, Volume, ADX, Market Regime, 200 SMA Trend — Minervini SEPA + backtest-validated). EPS/Revenue Growth QoQ→YoY fix COMPLETE + `_growth_to_pct()` format normalization. ADX `.toFixed()` crash fix. |
 | 61 | 4-Layer Coherence Audit COMPLETE (87 fields, 10 tickers, 10 endpoints). 9 bugs fixed: NaN safety (3-layer defense), F&G thresholds synced, cache schema v2, earnings 500 on error, R:R DRY utility (riskRewardCalc.js), F&G fallback flag. API_CONTRACTS updated Day 53→Day 61. Version v4.23. |
 | 62 | Sector Rotation Phase 2 COMPLETE: 11 sector cards + "Scan for Rank 1" filter. Context Tab COMPLETE: 3 columns (Calendar/Yield Cycles + Econ + News Sentiment), 3 new engines, 4 new endpoints, 5 new components. FRED API key activated. TradingView SIC sector name mismatch fixed (49 mapping entries). Option C Hybrid news filtering queued. Candlestick patterns queued as standalone post-flight check. Version v4.24. |
+| 63 | Option C Hybrid COMPLETE: news_engine.py filters Alpha Vantage articles to 19 reputable sources (Reuters, Bloomberg, CNBC, WSJ, etc.), fetches pool of 50, curates top 3 per sentiment bucket. Candlestick research complete (4 viable patterns), deferred to low priority. PLTR force-fit analysis. Version v4.25 (BE v2.26). |
+| 64 | Deep Audit COMPLETE — 18 bugs fixed (4 rounds): VCP strictly-decreasing + gate hybrid + pivot fix, Wilder EMA ATR, W-FRI resample, ATR stop floor ($0.01), Cup handle_below_lip, FOMC edge case, constants.py (single source), CAUTION/NOT_VIABLE distinction, All-Decent+Neutral→HOLD, bidirectional contradiction. Version v4.27 (BE v2.30, FE v4.14). Feature freeze + paper trading phase. |
 
 ---
 
