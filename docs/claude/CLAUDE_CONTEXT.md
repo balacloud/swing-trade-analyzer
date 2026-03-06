@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 64 end-of-session (March 5, 2026)
+> **Last Updated:** Day 65 end-of-session (March 6, 2026)
 
 ---
 
@@ -22,12 +22,17 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 65 |
+| Current Day | 66 |
 | Version | v4.27 (Backend v2.30, Frontend v4.14, Backtest v4.17, API Service v2.9) |
-| Latest Status | PROJECT_STATUS_DAY65_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY62.md |
+| Latest Status | PROJECT_STATUS_DAY66_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY66.md |
 | Latest API | API_CONTRACTS_DAY62.md |
-| Focus | **Day 65** — Paper trading. Feature freeze in effect. |
+| Focus | **Day 66** — Paper trading. Feature freeze in effect. |
+
+### Day 65 Summary (Complete — README hybrid rewrite, no code changes)
+- **README rewritten** as hybrid: all original internal notes (Day-N history, architecture diagrams, methodology thresholds, backtest tables, full API reference with JSON, roadmap, project structure) + new developer-friendly additions (Environment Variables table with where-to-get-each-key + free tier + degradation notes, Running the App section, Troubleshooting section with 6 common issues)
+- **No code changes** — feature freeze maintained. v4.27 unchanged.
+- **Next:** Paper trading — run 5-10 real tickers, log first Forward Test trade if BUY signal found
 
 ### Day 64 Summary (Complete — 4 rounds, 18 bugs fixed → v4.27)
 - **Round 1 (initial audit — BE v2.27):** 5 bugs: news date parse, Cup&Handle index mismatch, W-FRI resample, ATR stop, unemployment threshold
@@ -119,7 +124,7 @@
 | Standard (5-15d) | 244 | 53.69% | 1.62 | 0.85 | PASS (Day 55) |
 | Position (15-45d) | 362 | 38.67% | 1.51 | 0.61 | PASS (regime-sensitive, not overfitted) |
 
-### Next Session Priorities (Day 65)
+### Next Session Priorities (Day 66)
 1. **Paper trading** — Feature freeze in effect. Use the system on 5-10 real tickers. Watch for: CAUTION ENTRY label, correct ATR stops ($0.01 floor), VCP accuracy, news dates in Context Tab.
 2. **Log first Forward Test trade** in the Forward Test tab if BUY signal found.
 3. **Field bugs only** — no new features until a meaningful set of paper trades is logged.
@@ -395,6 +400,7 @@ curl http://localhost:5001/api/cache/status
 | 62 | Sector Rotation Phase 2 COMPLETE (11 sector cards + "Scan for Rank 1" + TradingView SIC name fix). Context Tab COMPLETE (3 engines + 4 endpoints + 5 components). FRED API key activated. Next: Option C hybrid news + candlestick patterns. Version v4.24. API_CONTRACTS updated Day 61→Day 62. |
 | 63 | Option C Hybrid news filter (reputable sources + 3-bucket curation). BottomLineCard coherence fix (viable authority). Version v4.25. |
 | 64 | Deep audit: 18 bugs fixed (4 rounds). VCP/ATR/W-FRI/stop floor/pattern validation/categorical verdict. 1 new file constants.py. Version v4.27 (BE v2.30, FE v4.14). |
+| 65 | README hybrid rewrite — all original internal notes + developer-friendly setup guide. No code changes. Version v4.27 unchanged. |
 
 ---
 
