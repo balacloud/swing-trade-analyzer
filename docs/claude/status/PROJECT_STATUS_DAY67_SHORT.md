@@ -1,5 +1,5 @@
 # Project Status — Day 67 Starting Point
-> **Version:** v4.28 (Backend v2.31, Frontend v4.15, Backtest v4.17, API Service v2.9)
+> **Version:** v4.28 (Backend v2.31, Frontend v4.16, Backtest v4.17, API Service v2.9)
 > **Last session:** Day 66 (March 9, 2026)
 > **Next focus:** Paper trading — use the system daily to find real bugs
 
@@ -28,12 +28,19 @@ Added compact size rotation indicator to the Sectors tab. Shows IWM / MDY / QQQ 
 - Scan button logic → quadrant-based (`Leading || Improving`), was rank-based (`rank <= 4`)
 - "How to read" text corrected to 100-based thresholds
 
+### Size Rotation Reasoning Labels (v4.16)
+- Per-tile quadrant label: Leading·gaining / Weakening·fading / Improving·recovering / Lagging·falling
+- Plain-English hint under each tile ("Outperforming SPY but losing steam")
+- Momentum context note below headline (e.g. "⚠️ Small caps fading, large caps recovering — rotation may be shifting")
+- `api.js` bug fix: `fetchSectorRotation()` was silently dropping `size_rotation` / `size_signal` / `size_signal_detail` — strip never rendered until this was caught
+
 ### Infrastructure
 - `start.sh` / `stop.sh`: both now auto-kill ports 5001/3000 via `lsof` before starting
 
 **Files modified:**
 - `backend/backend.py` — size_rotation calc + new response fields
-- `frontend/src/components/SectorRotationTab.jsx` — SizeRotationStrip + sector card fixes
+- `frontend/src/components/SectorRotationTab.jsx` — SizeRotationStrip + reasoning labels
+- `frontend/src/services/api.js` — pass-through fix for size_rotation fields
 - `start.sh`, `stop.sh` — auto port kill
 
 ---
@@ -69,4 +76,4 @@ Added compact size rotation indicator to the Sectors tab. Shows IWM / MDY / QQQ 
 |-----|---------|----------|
 | 64 | v4.27 | Deep audit: 18 bugs fixed across 9 files (VCP, ATR, W-FRI, stops, patterns, labels) |
 | 65 | v4.27 | README hybrid rewrite (internal notes + developer setup guide) — no code changes |
-| 66 | v4.28 | Cap size rotation strip (IWM/MDY/QQQ vs SPY) + sector card audit fixes |
+| 66 | v4.28 | Cap size rotation strip (IWM/MDY/QQQ vs SPY) + sector card audit fixes + reasoning labels |
