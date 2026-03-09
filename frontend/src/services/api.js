@@ -785,6 +785,9 @@ export async function fetchSectorRotation() {
       mapping: data.mapping || {},
       timestamp: data.timestamp,
       period: data.period,
+      size_rotation: data.size_rotation || [],
+      size_signal: data.size_signal || 'Neutral',
+      size_signal_detail: data.size_signal_detail || '',
     };
 
   } catch (error) {

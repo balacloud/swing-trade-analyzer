@@ -65,16 +65,40 @@ const SIZE_SIGNAL_CONFIG = {
 // Size ETF display order: large → mid → small
 const SIZE_ORDER = ['QQQ', 'MDY', 'IWM'];
 
+// Per-tile interpretation: color + momentum → quadrant label + hint
+function tileInterpretation(rsRatio, rsMomentum) {
+  const out = rsRatio >= 100;
+  const up  = rsMomentum > 0;
+  if (out && up)   return { label: 'Leading · gaining',      color: 'text-green-400',  hint: 'Outperforming SPY & strengthening' };
+  if (out && !up)  return { label: 'Weakening · fading',     color: 'text-yellow-400', hint: 'Outperforming SPY but losing steam' };
+  if (!out && up)  return { label: 'Improving · recovering', color: 'text-blue-400',   hint: 'Lagging SPY but gaining momentum' };
+  return             { label: 'Lagging · falling',      color: 'text-red-400',    hint: 'Underperforming SPY & weakening' };
+}
+
+// Momentum-aware sub-note for the headline
+function momentumNote(sizeRotation) {
+  const iwm = sizeRotation.find(s => s.etf === 'IWM');
+  const qqq = sizeRotation.find(s => s.etf === 'QQQ');
+  if (!iwm || !qqq) return null;
+  const iwmUp = iwm.rsMomentum > 0;
+  const qqqUp = qqq.rsMomentum > 0;
+  if (!iwmUp && qqqUp)  return '⚠️ Small caps fading, large caps recovering — rotation may be shifting';
+  if (iwmUp && !qqqUp)  return '✅ Small cap momentum building — Risk-On strengthening';
+  if (iwmUp && qqqUp)   return '✅ Broad risk appetite — all sizes gaining vs SPY';
+  return '⚠️ Risk appetite fading across all cap sizes';
+}
+
 function SizeRotationStrip({ sizeRotation, sizeSignal, sizeSignalDetail }) {
   if (!sizeRotation || sizeRotation.length === 0) return null;
 
-  const sc = SIZE_SIGNAL_CONFIG[sizeSignal] || SIZE_SIGNAL_CONFIG['Neutral'];
+  const sc      = SIZE_SIGNAL_CONFIG[sizeSignal] || SIZE_SIGNAL_CONFIG['Neutral'];
   const ordered = SIZE_ORDER.map(etf => sizeRotation.find(s => s.etf === etf)).filter(Boolean);
+  const note    = momentumNote(sizeRotation);
 
   return (
     <div className={`rounded-lg border ${sc.border} ${sc.bg} p-4 mb-6`}>
       {/* Header row */}
-      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+      <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
         <div>
           <span className="text-gray-300 text-sm font-semibold">📐 Cap Size Rotation</span>
           <span className="text-gray-500 text-xs ml-2">Large → Mid → Small vs SPY</span>
@@ -84,16 +108,20 @@ function SizeRotationStrip({ sizeRotation, sizeSignal, sizeSignalDetail }) {
         </span>
       </div>
 
+      {/* Momentum context note */}
+      {note && (
+        <div className="text-xs text-gray-400 mb-3 pl-0.5">{note}</div>
+      )}
+
       {/* Three ETF tiles */}
       <div className="grid grid-cols-3 gap-3">
         {ordered.map(s => {
-          const isOutperforming = s.rsRatio >= 100;
-          const arrow = s.rsMomentum > 0 ? '↑' : s.rsMomentum < 0 ? '↓' : '→';
-          const valColor = isOutperforming ? 'text-green-400' : 'text-red-400';
-          // Bar: same scale as sector cards
-          const clamped = Math.max(85, Math.min(130, s.rsRatio));
-          const pct = ((clamped - 85) / 45) * 100;
-          const barColor = isOutperforming ? 'bg-green-500' : 'bg-red-500';
+          const interp  = tileInterpretation(s.rsRatio, s.rsMomentum);
+          const arrow   = s.rsMomentum > 0 ? '↑' : s.rsMomentum < 0 ? '↓' : '→';
+          const valColor = s.rsRatio >= 100 ? 'text-green-400' : 'text-red-400';
+          const clamped  = Math.max(85, Math.min(130, s.rsRatio));
+          const pct      = ((clamped - 85) / 45) * 100;
+          const barColor = s.rsRatio >= 100 ? 'bg-green-500' : 'bg-red-500';
 
           return (
             <div key={s.etf} className="bg-gray-800/60 rounded-lg p-3 text-center">
@@ -102,9 +130,11 @@ function SizeRotationStrip({ sizeRotation, sizeSignal, sizeSignalDetail }) {
               <div className={`text-sm font-mono font-semibold ${valColor}`}>
                 {s.rsRatio.toFixed(1)} {arrow}
               </div>
-              <div className="w-full bg-gray-700 rounded-full h-1 mt-1.5">
+              <div className="w-full bg-gray-700 rounded-full h-1 mt-1.5 mb-1.5">
                 <div className={`h-1 rounded-full ${barColor}`} style={{ width: `${pct}%` }} />
               </div>
+              <div className={`text-xs font-medium ${interp.color}`}>{interp.label}</div>
+              <div className="text-gray-600 text-xs mt-0.5">{interp.hint}</div>
             </div>
           );
         })}
