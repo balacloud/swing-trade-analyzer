@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 65 end-of-session (March 6, 2026)
+> **Last Updated:** Day 66 end-of-session (March 9, 2026)
 
 ---
 
@@ -22,12 +22,20 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 66 |
-| Version | v4.27 (Backend v2.30, Frontend v4.14, Backtest v4.17, API Service v2.9) |
-| Latest Status | PROJECT_STATUS_DAY66_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY66.md |
+| Current Day | 67 |
+| Version | v4.28 (Backend v2.31, Frontend v4.15, Backtest v4.17, API Service v2.9) |
+| Latest Status | PROJECT_STATUS_DAY67_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY67.md |
 | Latest API | API_CONTRACTS_DAY62.md |
-| Focus | **Day 66** — Paper trading. Feature freeze in effect. |
+| Focus | **Day 67** — Paper trading. Feature freeze in effect (size rotation added as isolated sector module). |
+
+### Day 66 Summary (Complete — Cap Size Rotation strip in Sectors tab)
+- **Size rotation indicator added** to Sectors tab: compact 3-tile horizontal strip showing QQQ / MDY / IWM RS vs SPY
+- **Backend** (`backend.py` v2.31): IWM/MDY/QQQ downloaded in same batch as 11 sector ETFs; identical RS Ratio + Momentum calculation; `size_rotation` + `size_signal` + `size_signal_detail` added to `/api/sectors/rotation` response
+- **Frontend** (`SectorRotationTab.jsx` v4.15): `SizeRotationStrip` component — 3-column grid (QQQ→MDY→IWM), RS bar, value+arrow, signal headline (RISK-ON/RISK-OFF/NEUTRAL) with color border tint; renders between main header and explanation row; gracefully absent if data missing
+- **Signal logic**: IWM−QQQ RS Ratio diff ≥ +2 → Risk-On (small caps leading); ≤ −2 → Risk-Off (large caps favored); else → Neutral
+- **Sector card audit also fixed** (Day 66 first half): rank badge neutral gray, RS bar scale corrected to 100-centered, scan buttons quadrant-based not rank-based, "How to read" text corrected
+- **start.sh / stop.sh**: auto kill-port added (no more manual port conflicts)
 
 ### Day 65 Summary (Complete — README hybrid rewrite, no code changes)
 - **README rewritten** as hybrid: all original internal notes (Day-N history, architecture diagrams, methodology thresholds, backtest tables, full API reference with JSON, roadmap, project structure) + new developer-friendly additions (Environment Variables table with where-to-get-each-key + free tier + degradation notes, Running the App section, Troubleshooting section with 6 common issues)

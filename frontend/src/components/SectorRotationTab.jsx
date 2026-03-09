@@ -11,20 +11,31 @@ const QUADRANT_CONFIG = {
   Lagging:   { color: 'text-red-400',    border: 'border-red-500',    bg: 'bg-red-500/10',    badge: 'bg-red-600/80 text-red-100',      icon: '🔴' },
 };
 
-// Rank badge color
-function rankBadgeClass(rank) {
-  if (rank <= 3) return 'bg-green-700 text-green-100';
-  if (rank <= 7) return 'bg-yellow-700 text-yellow-100';
-  return 'bg-red-800 text-red-200';
+// Rank badge — neutral, position only (quadrant badge + border carry color meaning)
+function rankBadgeClass() {
+  return 'bg-gray-600 text-gray-200';
 }
 
-// RS ratio bar — normalized around 1.0, clamped to [0.5, 1.5]
-function RsBar({ value, label }) {
-  const clamped = Math.max(0.5, Math.min(1.5, value ?? 1.0));
-  const pct = ((clamped - 0.5) / 1.0) * 100; // 0% = 0.5, 100% = 1.5, 50% = 1.0
-  const barColor = value >= 1.0 ? 'bg-green-500' : 'bg-red-500';
-  const arrow = value > 1.0 ? '↑' : value < 1.0 ? '↓' : '→';
-  const textColor = value >= 1.0 ? 'text-green-400' : 'text-red-400';
+// RS Ratio bar — 100-centered (backend returns RRG-style values, e.g. 95.88, 125.57)
+// RS Momentum bar — 0-centered (delta values, e.g. -5.36, +4.95)
+function RsBar({ value, label, isMomentum = false }) {
+  let pct, barColor, arrow, textColor;
+
+  if (isMomentum) {
+    // Momentum: 0 = neutral, range [-12, +12]
+    const clamped = Math.max(-12, Math.min(12, value ?? 0));
+    pct = ((clamped + 12) / 24) * 100; // 50% = 0 (neutral)
+    barColor  = value >= 0 ? 'bg-green-500' : 'bg-red-500';
+    arrow     = value > 0  ? '↑' : value < 0 ? '↓' : '→';
+    textColor = value >= 0 ? 'text-green-400' : 'text-red-400';
+  } else {
+    // RS Ratio: 100 = market parity, range [85, 130]
+    const clamped = Math.max(85, Math.min(130, value ?? 100));
+    pct = ((clamped - 85) / 45) * 100; // 33% = 100 (parity)
+    barColor  = value >= 100 ? 'bg-green-500' : 'bg-red-500';
+    arrow     = value > 100  ? '↑' : value < 100 ? '↓' : '→';
+    textColor = value >= 100 ? 'text-green-400' : 'text-red-400';
+  }
 
   return (
     <div className="mt-1">
@@ -39,6 +50,64 @@ function RsBar({ value, label }) {
           className={`h-1.5 rounded-full ${barColor}`}
           style={{ width: `${pct}%` }}
         />
+      </div>
+    </div>
+  );
+}
+
+// Size rotation signal config
+const SIZE_SIGNAL_CONFIG = {
+  'Risk-On':  { color: 'text-green-400',  bg: 'bg-green-500/10',  border: 'border-green-600/40', icon: '🟢', label: 'RISK-ON'  },
+  'Risk-Off': { color: 'text-red-400',    bg: 'bg-red-500/10',    border: 'border-red-600/40',   icon: '🔴', label: 'RISK-OFF' },
+  'Neutral':  { color: 'text-gray-400',   bg: 'bg-gray-700/40',   border: 'border-gray-600/40',  icon: '⚪', label: 'NEUTRAL'  },
+};
+
+// Size ETF display order: large → mid → small
+const SIZE_ORDER = ['QQQ', 'MDY', 'IWM'];
+
+function SizeRotationStrip({ sizeRotation, sizeSignal, sizeSignalDetail }) {
+  if (!sizeRotation || sizeRotation.length === 0) return null;
+
+  const sc = SIZE_SIGNAL_CONFIG[sizeSignal] || SIZE_SIGNAL_CONFIG['Neutral'];
+  const ordered = SIZE_ORDER.map(etf => sizeRotation.find(s => s.etf === etf)).filter(Boolean);
+
+  return (
+    <div className={`rounded-lg border ${sc.border} ${sc.bg} p-4 mb-6`}>
+      {/* Header row */}
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div>
+          <span className="text-gray-300 text-sm font-semibold">📐 Cap Size Rotation</span>
+          <span className="text-gray-500 text-xs ml-2">Large → Mid → Small vs SPY</span>
+        </div>
+        <span className={`text-sm font-bold ${sc.color}`}>
+          {sc.icon} {sc.label} · <span className="font-normal text-xs text-gray-400">{sizeSignalDetail}</span>
+        </span>
+      </div>
+
+      {/* Three ETF tiles */}
+      <div className="grid grid-cols-3 gap-3">
+        {ordered.map(s => {
+          const isOutperforming = s.rsRatio >= 100;
+          const arrow = s.rsMomentum > 0 ? '↑' : s.rsMomentum < 0 ? '↓' : '→';
+          const valColor = isOutperforming ? 'text-green-400' : 'text-red-400';
+          // Bar: same scale as sector cards
+          const clamped = Math.max(85, Math.min(130, s.rsRatio));
+          const pct = ((clamped - 85) / 45) * 100;
+          const barColor = isOutperforming ? 'bg-green-500' : 'bg-red-500';
+
+          return (
+            <div key={s.etf} className="bg-gray-800/60 rounded-lg p-3 text-center">
+              <div className="text-gray-500 text-xs font-mono mb-0.5">{s.etf}</div>
+              <div className="text-gray-300 text-xs mb-1 truncate">{s.name}</div>
+              <div className={`text-sm font-mono font-semibold ${valColor}`}>
+                {s.rsRatio.toFixed(1)} {arrow}
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-1 mt-1.5">
+                <div className={`h-1 rounded-full ${barColor}`} style={{ width: `${pct}%` }} />
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -68,10 +137,10 @@ function SectorCard({ sector, onScanForSector }) {
 
       {/* RS bars */}
       <RsBar value={sector.rsRatio} label="RS Ratio" />
-      <RsBar value={sector.rsMomentum} label="RS Momentum" />
+      <RsBar value={sector.rsMomentum} label="RS Momentum" isMomentum />
 
-      {/* Scan button (only top-3 quadrants or rank 1-4) */}
-      {sector.rank <= 4 && (
+      {/* Scan button — Leading (strong) or Improving (momentum turning up = best trade setup) */}
+      {(sector.quadrant === 'Leading' || sector.quadrant === 'Improving') && (
         <button
           onClick={() => onScanForSector(sector)}
           className="mt-3 w-full text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 border border-blue-700/50 rounded px-2 py-1 transition-colors"
@@ -84,6 +153,11 @@ function SectorCard({ sector, onScanForSector }) {
 }
 
 export default function SectorRotationTab({ sectorRotation, onScanForSector }) {
+  // Destructure size rotation fields (may be absent on old cached response)
+  const sizeRotation = sectorRotation?.size_rotation;
+  const sizeSignal = sectorRotation?.size_signal || 'Neutral';
+  const sizeSignalDetail = sectorRotation?.size_signal_detail || '';
+
   // Sort sectors by rank
   const sortedSectors = useMemo(() => {
     if (!sectorRotation?.sectors) return [];
@@ -164,15 +238,22 @@ export default function SectorRotationTab({ sectorRotation, onScanForSector }) {
         </div>
       </div>
 
+      {/* Size Rotation Strip */}
+      <SizeRotationStrip
+        sizeRotation={sizeRotation}
+        sizeSignal={sizeSignal}
+        sizeSignalDetail={sizeSignalDetail}
+      />
+
       {/* Explanation row */}
       <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 mb-6 text-xs text-gray-400">
         <span className="font-semibold text-gray-300">How to read this:</span>
         &nbsp;
-        <span className="text-green-400 font-medium">Leading</span> = RS Ratio &gt; 1.0 AND Momentum &gt; 1.0 (strong & improving) ·&nbsp;
-        <span className="text-blue-400 font-medium">Improving</span> = RS below market but gaining ·&nbsp;
-        <span className="text-yellow-400 font-medium">Weakening</span> = above market but fading ·&nbsp;
-        <span className="text-red-400 font-medium">Lagging</span> = below market and falling.
-        &nbsp;RS Ratio bar midpoint = 1.0 (market parity).
+        <span className="text-green-400 font-medium">Leading</span> = RS Ratio &gt; 100 AND Momentum &gt; 0 (strong & gaining) ·&nbsp;
+        <span className="text-blue-400 font-medium">Improving</span> = RS below 100 but gaining momentum ·&nbsp;
+        <span className="text-yellow-400 font-medium">Weakening</span> = RS above 100 but fading ·&nbsp;
+        <span className="text-red-400 font-medium">Lagging</span> = RS below 100 and falling.
+        &nbsp;Rank = RS Ratio magnitude · Quadrant = momentum direction · RS Ratio 100 = market parity (SPY).
       </div>
 
       {/* 11 Sector Cards — responsive grid */}
@@ -188,7 +269,7 @@ export default function SectorRotationTab({ sectorRotation, onScanForSector }) {
 
       {/* Footer note */}
       <div className="mt-6 text-center text-xs text-gray-600">
-        Data from TwelveData · RS Ratio = ETF / SPY 12-week performance ratio · Cached per trading day
+        Data from TwelveData · RS Ratio: 100 = market parity, &gt;100 = outperforming SPY · Momentum: positive = gaining, negative = fading · Cached per trading day
       </div>
     </div>
   );

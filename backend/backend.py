@@ -2311,9 +2311,10 @@ def get_sector_rotation():
 
         print("🔄 Fetching fresh sector rotation data (11 ETFs)...")
 
-        # Download SPY + all 11 sector ETFs in one batch
+        # Download SPY + all 11 sector ETFs + 3 size ETFs in one batch
         etf_tickers = list(SECTOR_ETF_MAP.keys())
-        all_tickers = ['SPY'] + etf_tickers
+        size_etfs = ['QQQ', 'MDY', 'IWM']
+        all_tickers = ['SPY'] + etf_tickers + size_etfs
 
         # Use yfinance batch download for efficiency
         data = yf.download(all_tickers, period=period, progress=False, group_by='ticker')
@@ -2399,10 +2400,54 @@ def get_sector_rotation():
         for i, s in enumerate(sectors):
             s['rank'] = i + 1
 
+        # Size rotation: QQQ (large-growth), MDY (mid), IWM (small) vs SPY
+        SIZE_ETF_NAMES = {'QQQ': 'Large Cap Growth', 'MDY': 'Mid Cap', 'IWM': 'Small Cap (R2000)'}
+        size_rotation = []
+        for etf in size_etfs:
+            try:
+                etf_close = data[etf]['Close'].dropna()
+                if len(etf_close) < 20:
+                    continue
+                common_idx = spy_close.index.intersection(etf_close.index)
+                if len(common_idx) < 20:
+                    continue
+                spy_al = spy_close.loc[common_idx]
+                etf_al = etf_close.loc[common_idx]
+                rs_line = (etf_al / spy_al)
+                midpoint = len(rs_line) // 2
+                rs_norm = (rs_line / rs_line.iloc[midpoint]) * 100
+                rs_ratio = round(float(rs_norm.iloc[-1]), 2)
+                rs_momentum = round(float(rs_norm.iloc[-1] - rs_norm.iloc[-10]), 2) if len(rs_norm) >= 10 else 0.0
+                size_rotation.append({
+                    'etf': etf,
+                    'name': SIZE_ETF_NAMES[etf],
+                    'rsRatio': rs_ratio,
+                    'rsMomentum': rs_momentum,
+                })
+            except Exception as e:
+                print(f"⚠️ Error processing size ETF {etf}: {e}")
+
+        # Size rotation signal: compare IWM vs QQQ RS Ratio
+        size_signal = 'Neutral'
+        size_signal_detail = 'Mixed signals across cap sizes'
+        iwm = next((s for s in size_rotation if s['etf'] == 'IWM'), None)
+        qqq = next((s for s in size_rotation if s['etf'] == 'QQQ'), None)
+        if iwm and qqq:
+            diff = iwm['rsRatio'] - qqq['rsRatio']
+            if diff >= 2:
+                size_signal = 'Risk-On'
+                size_signal_detail = 'Small caps outperforming — risk appetite elevated'
+            elif diff <= -2:
+                size_signal = 'Risk-Off'
+                size_signal_detail = 'Large caps favored — defensive posture'
+
         response = {
             'sectors': sectors,
             'sectorCount': len(sectors),
             'mapping': GICS_TO_ETF,
+            'size_rotation': size_rotation,
+            'size_signal': size_signal,
+            'size_signal_detail': size_signal_detail,
             'timestamp': datetime.now().isoformat(),
             'period': period,
         }
