@@ -59,7 +59,7 @@ export async function fetchStockData(ticker) {
 
 /**
  * Fetch rich fundamental data for scoring
- * Uses multi-source providers (Finnhub, FMP, yfinance) with fallback chain
+ * Uses multi-source providers (Finnhub, AlphaVantage, yfinance) with fallback chain
  * 
  * Returns:
  * - ROE, ROIC, ROA

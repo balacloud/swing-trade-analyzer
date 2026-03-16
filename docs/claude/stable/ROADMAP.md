@@ -2,12 +2,12 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 64 (March 5, 2026)
+> **Last Updated:** Day 68 (March 16, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.27 (Backend v2.30, Frontend v4.14, Backtest v4.17, API Service v2.9)
+## Current Version: v4.30 (Backend v2.32, Frontend v4.30, Backtest v4.17, API Service v2.9)
 
 ---
 
@@ -490,6 +490,8 @@ From backtesting:
 | 62 | Sector Rotation Phase 2 COMPLETE: 11 sector cards + "Scan for Rank 1" filter. Context Tab COMPLETE: 3 columns (Calendar/Yield Cycles + Econ + News Sentiment), 3 new engines, 4 new endpoints, 5 new components. FRED API key activated. TradingView SIC sector name mismatch fixed (49 mapping entries). Option C Hybrid news filtering queued. Candlestick patterns queued as standalone post-flight check. Version v4.24. |
 | 63 | Option C Hybrid COMPLETE: news_engine.py filters Alpha Vantage articles to 19 reputable sources (Reuters, Bloomberg, CNBC, WSJ, etc.), fetches pool of 50, curates top 3 per sentiment bucket. Candlestick research complete (4 viable patterns), deferred to low priority. PLTR force-fit analysis. Version v4.25 (BE v2.26). |
 | 64 | Deep Audit COMPLETE — 18 bugs fixed (4 rounds): VCP strictly-decreasing + gate hybrid + pivot fix, Wilder EMA ATR, W-FRI resample, ATR stop floor ($0.01), Cup handle_below_lip, FOMC edge case, constants.py (single source), CAUTION/NOT_VIABLE distinction, All-Decent+Neutral→HOLD, bidirectional contradiction. Version v4.27 (BE v2.30, FE v4.14). Feature freeze + paper trading phase. |
+| 66 | Size rotation strip added to Sectors tab (IWM/MDY/QQQ vs SPY RS). Sector card audit: RS bar scale, rank badge neutral gray, scan buttons quadrant-based. start.sh/stop.sh auto kill-port. Version v4.28 (BE v2.31). |
+| 67 | Data Sources transparency audit: Full Finnhub→AlphaVantage→yfinance chain confirmed. FMP v3 confirmed dead (Aug 2025). 8 text references updated. 3 UI correctness fixes (provenance path, TwelveData ACTIVE, circuit-open guard). 4 provenance bugs fixed (hardcoded source, negative age, bare "0", JUST FETCHED badge). Version v4.30 (BE v2.32, FE v4.30). |
 
 ---
 

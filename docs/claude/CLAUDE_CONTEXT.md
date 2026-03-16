@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 66 end-of-session (March 9, 2026)
+> **Last Updated:** Day 68 end-of-session (March 16, 2026)
 
 ---
 
@@ -22,12 +22,24 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 67 |
-| Version | v4.28 (Backend v2.31, Frontend v4.16, Backtest v4.17, API Service v2.9) |
-| Latest Status | PROJECT_STATUS_DAY67_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY67.md |
-| Latest API | API_CONTRACTS_DAY62.md |
-| Focus | **Day 67** — Paper trading. Feature freeze in effect (size rotation added as isolated sector module). |
+| Current Day | 68 |
+| Version | v4.30 (Backend v2.32, Frontend v4.30, Backtest v4.17, API Service v2.9) |
+| Latest Status | PROJECT_STATUS_DAY68_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY68.md |
+| Latest API | API_CONTRACTS_DAY62.md (updated Day 68) |
+| Focus | **Day 68** — Paper trading. Feature freeze. Data sources transparency complete. |
+
+### Day 67 Summary (Complete — Data Sources Transparency Audit & 7 Bug Fixes → v4.30)
+- **Full multi-provider chain audit:** Finnhub → AlphaVantage → yfinance confirmed working end-to-end. FMP v3 permanently dead (deprecated Aug 2025, returns 403 "Legacy Endpoint"). AlphaVantage already in `.env` fills FMP's role (revenueGrowth, epsGrowth).
+- **8 FMP text references updated** across App.jsx, scoringEngine.js, api.js, backend.py (×2), orchestrator.py.
+- **UI Fix A — Provenance placeholder never clearing:** Root cause: `analysisResult?.stock?.ticker` path doesn't exist. `calculateScore()` returns flat `{ ticker, name, ... }` — no nested `stock`. Fixed both `useEffect` and tab click handler to `analysisResult?.ticker`.
+- **UI Fix B — TwelveData not showing ACTIVE:** Market Data row serves 2 independent sub-types. Added `providerActiveKey` per-provider override (TwelveData=`'ohlcv'`, yfinance=`'quote'`). Both now show ACTIVE simultaneously.
+- **UI Fix C — Circuit-open on ACTIVE providers:** Added `!isActive` guard so circuit-open badge only shows when provider is not actively serving data.
+- **Provenance Bug A+D — source hardcoded 'yfinance':** Both OHLCV and fundamentals provenance now read actual source from cache metadata via `ohlcv_cache.get('source', 'unknown')`.
+- **Provenance Bug B — negative age_hours:** `expires_at` is tz-aware ISO; `cached_at` is naive. `_naive()` helper strips tzinfo from both; `datetime.now()` (naive) for comparison. All 3 datetimes consistently naive.
+- **Provenance Bug C — "0" bare text:** React `{age_days && <div>}` when `age_days=0` → renders "0". Fixed to `age_days != null && age_days > 0` pattern across all 4 conditionals.
+- **JUST FETCHED badge:** Added 3-state `_cache_status()`: 'just_fetched' (<5 min, cyan), 'cached' (≥5 min, green), 'live' (not cached, gray).
+- **Files modified:** App.jsx (v4.30), scoringEngine.js, api.js, backend.py (v2.32), orchestrator.py, cache_manager.py.
 
 ### Day 66 Summary (Complete — Cap Size Rotation strip in Sectors tab)
 - **Size rotation indicator added** to Sectors tab: compact 3-tile horizontal strip showing QQQ / MDY / IWM RS vs SPY

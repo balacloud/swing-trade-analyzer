@@ -546,7 +546,7 @@ def calculate_rsi_4h(ticker_symbol: str, period: int = 14) -> dict:
 
 # REMOVED: get_fundamentals_defeatbeta() and get_fundamentals_yfinance()
 # These legacy functions (~230 lines) were superseded by DataProvider
-# (providers/orchestrator.py) which handles Finnhub → FMP → yfinance
+# (providers/orchestrator.py) which handles Finnhub → AlphaVantage → yfinance
 # field-level merge with circuit breakers, rate limiting, and stale cache.
 # Removed in Phase 2C architectural cleanup.
 
@@ -787,28 +787,44 @@ def get_data_provenance(ticker):
         ohlcv_cache = cache_manager.get_ticker_cache_info(ticker, 'ohlcv')
         fund_cache = cache_manager.get_ticker_cache_info(ticker, 'fundamentals')
 
+    def _cache_status(age_hours=None, age_days=None, cache_entry=None):
+        """
+        'just_fetched' = in cache but < 5 min old (live call was just made this session)
+        'cached'       = in cache, >= 5 min old (served from cache, no API call made)
+        'live'         = not in cache (would trigger a fresh fetch)
+        """
+        if not cache_entry or cache_entry.get('expired'):
+            return 'live'
+        age_h = age_hours if age_hours is not None else (age_days * 24 if age_days is not None else None)
+        if age_h is not None and age_h < (5 / 60):  # < 5 minutes
+            return 'just_fetched'
+        return 'cached'
+
+    ohlcv_age_h  = ohlcv_cache.get('age_hours') if ohlcv_cache else None
+    fund_age_d   = fund_cache.get('age_days')   if fund_cache  else None
+
     # Build provenance response
     provenance = {
         'ticker': ticker,
         'timestamp': datetime.now().isoformat(),
         'ohlcv': {
-            'source': 'yfinance',
+            'source': ohlcv_cache.get('source', 'unknown') if ohlcv_cache else 'unknown',
             'cached': ohlcv_cache is not None,
             'cached_at': ohlcv_cache.get('cached_at') if ohlcv_cache else None,
             'expires_at': ohlcv_cache.get('expires_at') if ohlcv_cache else None,
             'expires_in': ohlcv_cache.get('expires_in') if ohlcv_cache else None,
             'rows': ohlcv_cache.get('rows') if ohlcv_cache else None,
-            'age_hours': ohlcv_cache.get('age_hours') if ohlcv_cache else None,
-            'status': 'cached' if ohlcv_cache and not ohlcv_cache.get('expired') else 'live'
+            'age_hours': ohlcv_age_h,
+            'status': _cache_status(age_hours=ohlcv_age_h, cache_entry=ohlcv_cache)
         },
         'fundamentals': {
-            'source': fund_cache.get('source', 'yfinance') if fund_cache else 'yfinance',
+            'source': fund_cache.get('source', 'unknown') if fund_cache else 'unknown',
             'cached': fund_cache is not None,
             'cached_at': fund_cache.get('cached_at') if fund_cache else None,
             'expires_at': fund_cache.get('expires_at') if fund_cache else None,
             'expires_in': fund_cache.get('expires_in') if fund_cache else None,
-            'age_days': fund_cache.get('age_days') if fund_cache else None,
-            'status': 'cached' if fund_cache and not fund_cache.get('expired') else 'live'
+            'age_days': fund_age_d,
+            'status': _cache_status(age_days=fund_age_d, cache_entry=fund_cache)
         },
         'indicators': [
             {'name': 'SMA 50', 'source': 'local', 'formula': 'Sum(Close, 50) / 50'},
@@ -941,7 +957,7 @@ def get_stock_data(ticker):
         
         # SRP: Fundamentals are NOT included here.
         # Single source of truth: /api/fundamentals/ via DataProvider
-        # (Finnhub → FMP → yfinance field-level merge + stale cache).
+        # (Finnhub → AlphaVantage → yfinance field-level merge + stale cache).
         # Previously this endpoint returned a fundamentals dict with hardcoded zeros
         # that corrupted categorical assessment scoring.
 
@@ -983,7 +999,7 @@ def _is_fundamentals_empty(data):
 def get_fundamentals(ticker):
     """
     Get rich fundamental data for scoring.
-    Uses DataProvider (Finnhub → FMP → yfinance field-level merge + stale cache).
+    Uses DataProvider (Finnhub → AlphaVantage → yfinance field-level merge + stale cache).
     Single source of truth for fundamentals — no legacy fallback paths.
     """
     try:

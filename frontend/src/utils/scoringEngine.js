@@ -231,12 +231,12 @@ function calculateFundamentalScore(fundamentals, ticker) {
   // v4.14: Check data quality from multi-source provider system
   if (fundamentals?.dataQuality === 'unavailable') {
     dataQuality = 'unavailable';
-    dataUnavailableReason = 'All data providers failed (Finnhub, FMP, yfinance). Fundamental score may be incomplete.';
+    dataUnavailableReason = 'All data providers failed (Finnhub, AlphaVantage, yfinance). Fundamental score may be incomplete.';
   } else if (fundamentals?.dataQuality === 'yfinance_fallback' || fundamentals?.fallbackUsed) {
     dataQuality = 'fallback';
     dataUnavailableReason = 'Primary providers unavailable. Using yfinance fallback with limited data.';
-  } else if (fundamentals?.enriched || fundamentals?.source === 'defeatbeta' || fundamentals?.source === 'finnhub' || fundamentals?.source === 'fmp' || fundamentals?.source === 'multi') {
-    // Rich data from multi-source providers (Finnhub, FMP, or merged)
+  } else if (fundamentals?.enriched || fundamentals?.source === 'defeatbeta' || fundamentals?.source === 'finnhub' || fundamentals?.source === 'fmp' || fundamentals?.source === 'alphavantage' || fundamentals?.source === 'multi') {
+    // Rich data from multi-source providers (Finnhub, AlphaVantage, or merged)
     dataQuality = 'rich';
   }
 

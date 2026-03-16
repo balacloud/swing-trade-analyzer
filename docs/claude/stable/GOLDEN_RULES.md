@@ -2,7 +2,7 @@
 
 > **Purpose:** Stable reference document for all session rules
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 61 (February 27, 2026)
+> **Last Updated:** Day 68 (March 16, 2026)
 
 ---
 
@@ -264,6 +264,11 @@ CLAUDE SESSION REMINDER:
 - **DRY for business logic.** R:R calculation was duplicated in 4 files. When one got a fix, others didn't. Extract shared calculations to a utility module — one source of truth, one place to fix.
 - **200-on-error is a silent lie.** Earnings endpoint returned HTTP 200 with `has_upcoming: false` on exception — indistinguishable from "confirmed no earnings." Return 500 and let the frontend distinguish error from absence.
 - **Periodic coherence audits find bugs that tests don't.** 89% coherence sounds good, but that 11% included 3 CRITICAL bugs affecting real trade decisions. Audit end-to-end: backend → transforms → cache → API → frontend → assessment → display.
+
+### Day 68: React Falsy and Wrong Result Path Assumptions
+- **`{value && <div>...</div>}` with `value=0` renders "0" as text.** JS evaluates `0 && (...)` = `0`; React renders `{0}` as a text node. Always use `value != null && value > 0` for numeric guards. This is especially dangerous for zero-valued metrics (age_hours, age_days, counts).
+- **Never assume a return object's structure — verify it.** `analysisResult?.stock?.ticker` was used for 67+ days when the actual shape is a flat object `{ ticker, name, ... }`. Before consuming a function's return value in multiple places, trace it back to the producer (`calculateScore()`) and read the actual return statement.
+- **Validate by testing with a real ticker before shipping.** Both bugs above were invisible until a user actually analyzed a stock and saw the provenance screen. UI-path bugs need integration testing, not just code review.
 
 ### Day 54: Silent Fallbacks — The Invisible Lie
 - **A hardcoded fallback value is worse than an error.** VIX=20 "normal" when API fails, Fear&Greed=50 "neutral" on error — the system makes decisions on phantom data and the trader never knows.

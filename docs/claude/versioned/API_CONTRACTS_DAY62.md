@@ -2,8 +2,10 @@
 
 > **Purpose:** Stable reference for all API contracts
 > **Location:** Claude Project + Git `/docs/claude/versioned/`
-> **Version:** Day 62 (March 1, 2026)
+> **Version:** Day 62 (March 1, 2026) — Last Updated: Day 68 (March 16, 2026)
 > **Total API Routes:** 26 (verify with `grep -n "@app.route" backend.py`)
+>
+> **Day 68 Changes:** FMP permanently deprecated (v3 retired Aug 2025) → AlphaVantage replaces it. `/api/provenance/<ticker>` status field now 3-state: 'just_fetched' / 'cached' / 'live'. Frontend v4.30, Backend v2.32.
 
 ---
 
@@ -18,7 +20,7 @@
 |-----------|---------|------------|------------|-------|
 | OHLCV (Daily) | TwelveData | yfinance | Stooq | SQLite (market-aware TTL) |
 | Intraday (4H RSI) | TwelveData | yfinance | - | Not cached |
-| Fundamentals | Finnhub | FMP | yfinance | SQLite (7-day TTL, schema v2) |
+| Fundamentals | Finnhub | AlphaVantage | yfinance | SQLite (7-day TTL, schema v2) |
 | VIX Quote | yfinance | Finnhub | stale cache | - |
 | Stock Info (name/sector) | yfinance | - | - | - |
 | Earnings | yfinance | - | - | - |
@@ -35,7 +37,7 @@
 |----------|---------|------------|
 | TwelveData | `TWELVEDATA_API_KEY` | 8/min, 800/day |
 | Finnhub | `FINNHUB_API_KEY` | 60/min |
-| FMP | `FMP_API_KEY` | 10/min, 250/day |
+| ~~FMP~~ | ~~`FMP_API_KEY`~~ | **Deprecated Aug 2025 — v3 API retired. AlphaVantage replaces it.** |
 | FRED | `FRED_API_KEY` | 1000/day (free) |
 | Alpha Vantage | `ALPHAVANTAGE_API_KEY` | 25/day (free) |
 | yfinance | None (free) | 30/min (self-imposed) |
@@ -127,7 +129,7 @@
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/api/stock/<ticker>` | GET | Stock metadata + prices (NO fundamentals) |
-| `/api/fundamentals/<ticker>` | GET | Fundamentals (Finnhub → FMP → yfinance) |
+| `/api/fundamentals/<ticker>` | GET | Fundamentals (Finnhub → AlphaVantage → yfinance) |
 
 ### Market Data
 | Endpoint | Method | Description |
@@ -627,8 +629,54 @@ sqlite3 backend/cache.db "DELETE FROM market_cache WHERE symbol IN ('CYCLES', 'E
 | 49 | Added `/api/earnings/<ticker>`, OBV in S&R response, RVOL enhanced |
 | 44 | Added `/api/patterns/<ticker>`, `/api/fear-greed`, Categorical Assessment system |
 | 38 | Added `/api/provenance/<ticker>` for data source transparency |
+| 68 | FMP deprecated → AlphaVantage. `/api/provenance/<ticker>` status now 3-state. Frontend v4.30, Backend v2.32. |
 
 ---
 
-*This file is versioned by day. Current version: DAY62*
+## PROVENANCE ENDPOINT CONTRACT (Updated Day 68)
+
+### GET `/api/provenance/<ticker>`
+Returns data source tracing for a ticker. Shows which provider actually supplied each data type, cache age, and cache status.
+
+**Response:**
+```json
+{
+  "ticker": "AAPL",
+  "ohlcv": {
+    "source": "twelvedata",
+    "cached_at": "2026-03-16T09:12:00",
+    "expires_at": "2026-03-16T13:12:00",
+    "age_hours": 1.4,
+    "expires_in": "2:35:00",
+    "rows": 252,
+    "status": "cached"
+  },
+  "fundamentals": {
+    "source": "finnhub+alphavantage+yfinance",
+    "cached_at": "2026-03-16T08:00:00",
+    "expires_at": "2026-03-23T08:00:00",
+    "age_days": 0,
+    "expires_in": "6 days, 22:45:00",
+    "fields_count": 12,
+    "status": "cached"
+  }
+}
+```
+
+**`status` field (3-state, updated Day 68):**
+| Value | Meaning | Badge Color |
+|-------|---------|-------------|
+| `just_fetched` | In cache, age < 5 minutes (live API call was just made) | Cyan |
+| `cached` | In cache, age ≥ 5 minutes (served from existing cache) | Green |
+| `live` | Not in cache (fresh API call would be triggered) | Gray |
+
+**Notes:**
+- `ohlcv.source` reads actual provider from cache metadata (was hardcoded 'yfinance' before Day 68)
+- `fundamentals.source` same — reads from cache metadata
+- `age_hours` is always ≥ 0 (timezone-naive comparison using `_naive()` helper, fixed Day 68)
+- `age_days` renders only when `> 0` (React falsy bug fixed Day 68: `0 && <div>` was rendering "0")
+
+---
+
+*This file is versioned by day. Current version: DAY62 (last updated DAY68)*
 *Previous version: API_CONTRACTS_DAY61.md*

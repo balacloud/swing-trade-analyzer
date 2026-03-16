@@ -629,9 +629,15 @@ def get_ticker_cache_info(ticker: str, cache_type: str) -> Optional[Dict[str, An
             if not row:
                 return None
 
-            expires = datetime.fromisoformat(row['expires_at'])
-            cached = datetime.fromisoformat(row['cached_at']).replace(tzinfo=ET)
-            is_expired = now >= expires
+            def _naive(dt_str):
+                """Parse ISO datetime and strip timezone for naive comparison."""
+                dt = datetime.fromisoformat(dt_str)
+                return dt.replace(tzinfo=None) if dt.tzinfo else dt
+
+            expires_dt = _naive(row['expires_at'])
+            cached_dt  = _naive(row['cached_at'])
+            now_naive  = datetime.now()
+            is_expired = now_naive >= expires_dt
 
             return {
                 'cached_at': row['cached_at'],
@@ -640,8 +646,8 @@ def get_ticker_cache_info(ticker: str, cache_type: str) -> Optional[Dict[str, An
                 'period': row['period'],
                 'source': row['source'] if 'source' in row.keys() else 'yfinance',
                 'expired': is_expired,
-                'age_hours': round((now - cached).total_seconds() / 3600, 1),
-                'expires_in': str(expires - now) if not is_expired else 'EXPIRED'
+                'age_hours': round((now_naive - cached_dt).total_seconds() / 3600, 1),
+                'expires_in': str(expires_dt - now_naive) if not is_expired else 'EXPIRED'
             }
 
         elif cache_type == 'fundamentals':
@@ -653,17 +659,22 @@ def get_ticker_cache_info(ticker: str, cache_type: str) -> Optional[Dict[str, An
             if not row:
                 return None
 
-            expires = datetime.fromisoformat(row['expires_at'])
-            cached = datetime.fromisoformat(row['cached_at']).replace(tzinfo=ET)
-            is_expired = now >= expires
+            def _naive(dt_str):
+                dt = datetime.fromisoformat(dt_str)
+                return dt.replace(tzinfo=None) if dt.tzinfo else dt
+
+            expires_dt = _naive(row['expires_at'])
+            cached_dt  = _naive(row['cached_at'])
+            now_naive  = datetime.now()
+            is_expired = now_naive >= expires_dt
 
             return {
                 'cached_at': row['cached_at'],
                 'expires_at': row['expires_at'],
                 'source': row['source'],
                 'expired': is_expired,
-                'age_days': round((now - cached).total_seconds() / 86400, 1),
-                'expires_in': str(expires - now) if not is_expired else 'EXPIRED'
+                'age_days': round((now_naive - cached_dt).total_seconds() / 86400, 1),
+                'expires_in': str(expires_dt - now_naive) if not is_expired else 'EXPIRED'
             }
 
         return None

@@ -125,6 +125,7 @@ function App() {
   const [provenanceData, setProvenanceData] = useState(null);
   const [provenanceLoading, setProvenanceLoading] = useState(false);
   const [cacheStatus, setCacheStatus] = useState(null);
+  const [providerHealth, setProviderHealth] = useState(null);
 
   // Sector Rotation state (Day 58 - v4.19)
   const [sectorRotation, setSectorRotation] = useState(null);
@@ -158,6 +159,16 @@ function App() {
     // Load saved settings
     setSettings(loadSettings());
   }, []);
+
+  // v4.30: Auto-refresh provenance when analysis result arrives while datasources tab is open
+  useEffect(() => {
+    if (activeTab === 'datasources' && analysisResult?.ticker) {
+      setProvenanceLoading(true);
+      fetchDataProvenance(analysisResult.ticker)
+        .then(setProvenanceData)
+        .finally(() => setProvenanceLoading(false));
+    }
+  }, [analysisResult, activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // v4.13: Re-run categorical assessment when holding period changes (no API re-fetch needed)
   useEffect(() => {
@@ -841,10 +852,12 @@ function App() {
                 setActiveTab('datasources');
                 // Fetch cache status when tab is selected
                 getCacheStatus().then(setCacheStatus);
+                // Fetch live provider health
+                checkBackendHealth().then(h => setProviderHealth(h?.providers || null));
                 // Fetch provenance for current ticker if analyzed
-                if (analysisResult?.stock?.ticker) {
+                if (analysisResult?.ticker) {
                   setProvenanceLoading(true);
-                  fetchDataProvenance(analysisResult.stock.ticker)
+                  fetchDataProvenance(analysisResult.ticker)
                     .then(setProvenanceData)
                     .finally(() => setProvenanceLoading(false));
                 }
@@ -1116,7 +1129,7 @@ function App() {
                       </div>
                       <div className="text-xs text-gray-400">
                         {analysisResult.breakdown.fundamental.dataQuality === 'unavailable'
-                          ? 'All data providers failed (Finnhub, FMP, yfinance). Fundamental score may be incomplete.'
+                          ? 'All data providers failed (Finnhub, AlphaVantage, yfinance). Fundamental score may be incomplete.'
                           : 'Primary providers unavailable. Using fallback source (limited data, may be slightly delayed).'}
                       </div>
                     </div>
@@ -3494,23 +3507,23 @@ function App() {
                   <div className="bg-gray-700/50 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-gray-300 font-medium">Price Data (OHLCV)</span>
-                      <span className={`px-2 py-0.5 rounded text-xs ${
-                        provenanceData.ohlcv.status === 'cached'
-                          ? 'bg-green-900/50 text-green-400'
-                          : 'bg-blue-900/50 text-blue-400'
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                        provenanceData.ohlcv.status === 'cached'       ? 'bg-green-900/50 text-green-400' :
+                        provenanceData.ohlcv.status === 'just_fetched' ? 'bg-cyan-900/50 text-cyan-300'  :
+                                                                          'bg-gray-700 text-gray-400'
                       }`}>
-                        {provenanceData.ohlcv.status.toUpperCase()}
+                        {provenanceData.ohlcv.status === 'just_fetched' ? 'JUST FETCHED' : provenanceData.ohlcv.status.toUpperCase()}
                       </span>
                     </div>
                     <div className="text-sm text-gray-400 space-y-1">
                       <div>Source: <span className="text-gray-300">{provenanceData.ohlcv.source}</span></div>
-                      {provenanceData.ohlcv.rows && (
+                      {provenanceData.ohlcv.rows != null && (
                         <div>Data points: <span className="text-gray-300">{provenanceData.ohlcv.rows}</span></div>
                       )}
-                      {provenanceData.ohlcv.age_hours && (
+                      {provenanceData.ohlcv.age_hours != null && provenanceData.ohlcv.age_hours >= 0 && (
                         <div>Age: <span className="text-gray-300">{provenanceData.ohlcv.age_hours}h</span></div>
                       )}
-                      {provenanceData.ohlcv.expires_in && (
+                      {provenanceData.ohlcv.expires_in && provenanceData.ohlcv.expires_in !== 'EXPIRED' && (
                         <div>Expires in: <span className="text-yellow-400">{provenanceData.ohlcv.expires_in.split('.')[0]}</span></div>
                       )}
                     </div>
@@ -3520,20 +3533,20 @@ function App() {
                   <div className="bg-gray-700/50 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-gray-300 font-medium">Fundamentals</span>
-                      <span className={`px-2 py-0.5 rounded text-xs ${
-                        provenanceData.fundamentals.status === 'cached'
-                          ? 'bg-green-900/50 text-green-400'
-                          : 'bg-blue-900/50 text-blue-400'
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                        provenanceData.fundamentals.status === 'cached'       ? 'bg-green-900/50 text-green-400' :
+                        provenanceData.fundamentals.status === 'just_fetched' ? 'bg-cyan-900/50 text-cyan-300'  :
+                                                                                 'bg-gray-700 text-gray-400'
                       }`}>
-                        {provenanceData.fundamentals.status.toUpperCase()}
+                        {provenanceData.fundamentals.status === 'just_fetched' ? 'JUST FETCHED' : provenanceData.fundamentals.status.toUpperCase()}
                       </span>
                     </div>
                     <div className="text-sm text-gray-400 space-y-1">
                       <div>Source: <span className="text-gray-300">{provenanceData.fundamentals.source}</span></div>
-                      {provenanceData.fundamentals.age_days && (
+                      {provenanceData.fundamentals.age_days != null && provenanceData.fundamentals.age_days > 0 && (
                         <div>Age: <span className="text-gray-300">{provenanceData.fundamentals.age_days} days</span></div>
                       )}
-                      {provenanceData.fundamentals.expires_in && (
+                      {provenanceData.fundamentals.expires_in && provenanceData.fundamentals.expires_in !== 'EXPIRED' && (
                         <div>Expires in: <span className="text-yellow-400">{provenanceData.fundamentals.expires_in.split(',')[0]}</span></div>
                       )}
                     </div>
@@ -3593,46 +3606,131 @@ function App() {
 
             {/* Data Sources Map */}
             <div className="bg-gray-800 rounded-lg p-6 mb-6">
-              <h4 className="text-md font-semibold text-cyan-400 mb-4">🗺️ Data Source Map</h4>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-gray-400 border-b border-gray-700 text-xs">
-                      <th className="text-left py-2 px-2">Data Type</th>
-                      <th className="text-left py-2 px-2">Primary Source</th>
-                      <th className="text-left py-2 px-2">Fallback</th>
-                      <th className="text-left py-2 px-2">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(provenanceData?.data_sources ? [
-                      {type: 'Price Data (OHLCV)', primary: provenanceData.data_sources.prices?.name, fallback: provenanceData.data_sources.prices?.fallback || '-', status: provenanceData.data_sources.prices?.status},
-                      {type: 'Fundamentals', primary: provenanceData.data_sources.fundamentals_primary?.name, fallback: provenanceData.data_sources.fundamentals_fallback?.name, status: provenanceData.data_sources.fundamentals_primary?.status},
-                      {type: 'Market Data (SPY/VIX)', primary: provenanceData.data_sources.market_data?.name, fallback: '-', status: provenanceData.data_sources.market_data?.status},
-                      {type: 'Market Scanning', primary: provenanceData.data_sources.scanning?.name, fallback: '-', status: provenanceData.data_sources.scanning?.status}
-                    ] : [
-                      {type: 'Price Data (OHLCV)', primary: 'TwelveData', fallback: 'yfinance → Stooq', status: 'available'},
-                      {type: 'Fundamentals', primary: 'Finnhub + FMP', fallback: 'yfinance', status: 'available'},
-                      {type: 'Market Data (SPY/VIX)', primary: 'TwelveData (SPY) / yfinance (VIX)', fallback: 'yfinance → Finnhub', status: 'available'},
-                      {type: 'Market Scanning', primary: 'TradingView Screener', fallback: '-', status: 'available'}
-                    ]).map((src, idx) => (
-                      <tr key={idx} className="border-b border-gray-700/30 hover:bg-gray-700/20">
-                        <td className="py-2 px-2 text-gray-300">{src.type}</td>
-                        <td className="py-2 px-2 text-gray-400">{src.primary}</td>
-                        <td className="py-2 px-2 text-gray-500">{src.fallback}</td>
-                        <td className="py-2 px-2">
-                          <span className={`px-2 py-0.5 rounded text-xs ${
-                            src.status === 'available'
-                              ? 'bg-green-900/50 text-green-400'
-                              : 'bg-red-900/50 text-red-400'
-                          }`}>
-                            {src.status?.toUpperCase()}
+              <h4 className="text-md font-semibold text-cyan-400 mb-1">🗺️ Data Source Map</h4>
+              <p className="text-xs text-gray-500 mb-4">Live circuit breaker health — refreshed each time you open this tab.</p>
+
+              {/* Cascade chains */}
+              <div className="space-y-3 mb-5">
+                {[
+                  {
+                    label: 'Price Data (OHLCV)',
+                    activeKey: 'ohlcv',
+                    chain: [
+                      { name: 'TwelveData', role: 'primary', fields: 'daily bars' },
+                      { name: 'yfinance',   role: 'fallback', fields: 'fallback' },
+                      { name: 'Stooq',      role: 'fallback', fields: 'last resort' },
+                    ],
+                  },
+                  {
+                    label: 'Fundamentals',
+                    activeKey: 'fundamentals',
+                    chain: [
+                      { name: 'Finnhub',       role: 'primary', fields: 'ROE, PE, margins, D/E, beta' },
+                      { name: 'AlphaVantage',  role: 'growth',  fields: 'revenueGrowth, epsGrowth (YoY)' },
+                      { name: 'yfinance',      role: 'fallback', fields: 'all remaining gaps' },
+                    ],
+                  },
+                  {
+                    label: 'Market Data (SPY / VIX)',
+                    activeKey: null, // handled per-provider below
+                    chain: [
+                      { name: 'TwelveData', role: 'primary', fields: 'SPY OHLCV', providerActiveKey: 'ohlcv' },
+                      { name: 'yfinance',   role: 'primary', fields: 'VIX quote',  providerActiveKey: 'quote' },
+                      { name: 'Finnhub',    role: 'fallback', fields: 'quote fallback' },
+                    ],
+                  },
+                  {
+                    label: 'Market Scanning',
+                    activeKey: null,
+                    chain: [
+                      { name: 'TradingView Screener', role: 'primary', fields: 'Reddit/momentum/growth scans' },
+                    ],
+                  },
+                ].map((row, i) => {
+                  const activeSource = row.activeKey
+                    ? providerHealth?.active_sources?.[row.activeKey]
+                    : null;
+                  return (
+                    <div key={i} className="bg-gray-700/40 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-semibold text-gray-300">{row.label}</span>
+                        {activeSource === 'cache' ? (
+                          <span className="text-xs text-gray-500">— <span className="text-gray-400">served from cache</span></span>
+                        ) : activeSource ? (
+                          <span className="text-xs text-gray-500">
+                            — live from <span className="text-cyan-400 font-medium">{activeSource}</span>
                           </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        ) : null}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {row.chain.map((p, j) => {
+                          const ph = providerHealth?.providers?.[p.name.toLowerCase().replace(/\s+/g, '')];
+                          const health = ph?.health || (p.name === 'TradingView Screener' ? 'ok' : null);
+                          const dailyLeft = ph?.daily_remaining;
+                          // Per-provider activeKey override (e.g. Market Data row)
+                          const resolvedActiveSource = p.providerActiveKey
+                            ? providerHealth?.active_sources?.[p.providerActiveKey]
+                            : activeSource;
+                          const isActive = !!(resolvedActiveSource &&
+                            resolvedActiveSource.toLowerCase() === p.name.toLowerCase().replace(/\s+/g, ''));
+
+                          const borderColor =
+                            isActive              ? 'border-cyan-500 ring-1 ring-cyan-500/40' :
+                            health === 'ok'       ? 'border-green-600/40' :
+                            health === 'degraded' ? 'border-yellow-600/50' :
+                            health === 'open'     ? 'border-red-600/50' :
+                                                    'border-gray-600/50';
+                          const bgColor =
+                            isActive              ? 'bg-cyan-900/20' :
+                            health === 'ok'       ? 'bg-green-900/10' :
+                            health === 'degraded' ? 'bg-yellow-900/20' :
+                            health === 'open'     ? 'bg-red-900/20' :
+                                                    'bg-gray-700/30';
+                          const dot =
+                            health === 'ok'       ? 'bg-green-400' :
+                            health === 'degraded' ? 'bg-yellow-400' :
+                            health === 'open'     ? 'bg-red-400' :
+                                                    'bg-gray-500';
+                          const roleLabel =
+                            p.role === 'primary'  ? 'text-cyan-500' :
+                            p.role === 'growth'   ? 'text-purple-400' :
+                                                    'text-gray-500';
+                          return (
+                            <div key={j} className={`border rounded-md px-3 py-2 flex-1 min-w-[140px] ${borderColor} ${bgColor}`}>
+                              <div className="flex items-center gap-1.5 mb-0.5">
+                                {health && <span className={`w-1.5 h-1.5 rounded-full inline-block flex-shrink-0 ${dot}`} />}
+                                <span className={`text-xs font-medium ${isActive ? 'text-cyan-300' : 'text-gray-200'}`}>
+                                  {p.name}
+                                </span>
+                                {isActive ? (
+                                  <span className="ml-auto text-xs font-bold text-cyan-400 bg-cyan-900/50 px-1.5 py-0.5 rounded">
+                                    ACTIVE
+                                  </span>
+                                ) : (
+                                  <span className={`text-xs ml-auto ${roleLabel}`}>{p.role}</span>
+                                )}
+                              </div>
+                              <div className="text-gray-500 text-xs">{p.fields}</div>
+                              {dailyLeft !== undefined && dailyLeft !== -1 && (
+                                <div className={`text-xs mt-0.5 ${dailyLeft < 5 ? 'text-yellow-400' : 'text-gray-500'}`}>
+                                  {dailyLeft} calls left today
+                                </div>
+                              )}
+                              {health === 'open' && !isActive && (
+                                <div className="text-red-400 text-xs mt-0.5">circuit open — skipped</div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* FMP deprecation notice */}
+              <div className="bg-yellow-900/20 border border-yellow-700/40 rounded-lg p-3 text-xs text-yellow-300">
+                ⚠️ <strong>FMP (Financial Modeling Prep)</strong> v3 API deprecated Aug 31 2025 for non-legacy accounts. Replaced by AlphaVantage for growth metrics. FMP is kept in the stack for a future paid-plan upgrade.
               </div>
             </div>
 
@@ -3646,8 +3744,8 @@ function App() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>v4.14 - Multi-Source Data Intelligence</p>
-          <p className="mt-1">TwelveData • Finnhub • FMP • yfinance • Stooq</p>
+          <p>v4.30 - Multi-Source Data Intelligence</p>
+          <p className="mt-1">TwelveData • Finnhub • AlphaVantage • yfinance • Stooq</p>
         </div>
       </div>
     </div>
