@@ -3,18 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 68 end-of-session (March 16, 2026)
-
----
-
-## HOW TO USE THIS FILE
-
-**For User:** Just add this ONE file to your Claude context/project. Done.
-
-**For Claude:** When you see this file:
-1. Detect the scenario (new session, resume, or close)
-2. Read the appropriate files listed below
-3. Follow the corresponding checklist
+> **Last Updated:** Day 68 (March 17, 2026)
 
 ---
 
@@ -27,167 +16,54 @@
 | Latest Status | PROJECT_STATUS_DAY68_SHORT.md |
 | Latest Issues | KNOWN_ISSUES_DAY68.md |
 | Latest API | API_CONTRACTS_DAY62.md (updated Day 68) |
-| Focus | **Day 68** — Paper trading. Feature freeze. Data sources transparency complete. |
+| Focus | **Paper trading. Feature freeze. Data sources transparency complete.** |
 
-### Day 67 Summary (Complete — Data Sources Transparency Audit & 7 Bug Fixes → v4.30)
-- **Full multi-provider chain audit:** Finnhub → AlphaVantage → yfinance confirmed working end-to-end. FMP v3 permanently dead (deprecated Aug 2025, returns 403 "Legacy Endpoint"). AlphaVantage already in `.env` fills FMP's role (revenueGrowth, epsGrowth).
-- **8 FMP text references updated** across App.jsx, scoringEngine.js, api.js, backend.py (×2), orchestrator.py.
-- **UI Fix A — Provenance placeholder never clearing:** Root cause: `analysisResult?.stock?.ticker` path doesn't exist. `calculateScore()` returns flat `{ ticker, name, ... }` — no nested `stock`. Fixed both `useEffect` and tab click handler to `analysisResult?.ticker`.
-- **UI Fix B — TwelveData not showing ACTIVE:** Market Data row serves 2 independent sub-types. Added `providerActiveKey` per-provider override (TwelveData=`'ohlcv'`, yfinance=`'quote'`). Both now show ACTIVE simultaneously.
-- **UI Fix C — Circuit-open on ACTIVE providers:** Added `!isActive` guard so circuit-open badge only shows when provider is not actively serving data.
-- **Provenance Bug A+D — source hardcoded 'yfinance':** Both OHLCV and fundamentals provenance now read actual source from cache metadata via `ohlcv_cache.get('source', 'unknown')`.
-- **Provenance Bug B — negative age_hours:** `expires_at` is tz-aware ISO; `cached_at` is naive. `_naive()` helper strips tzinfo from both; `datetime.now()` (naive) for comparison. All 3 datetimes consistently naive.
-- **Provenance Bug C — "0" bare text:** React `{age_days && <div>}` when `age_days=0` → renders "0". Fixed to `age_days != null && age_days > 0` pattern across all 4 conditionals.
-- **JUST FETCHED badge:** Added 3-state `_cache_status()`: 'just_fetched' (<5 min, cyan), 'cached' (≥5 min, green), 'live' (not cached, gray).
-- **Files modified:** App.jsx (v4.30), scoringEngine.js, api.js, backend.py (v2.32), orchestrator.py, cache_manager.py.
+---
 
-### Day 66 Summary (Complete — Cap Size Rotation strip in Sectors tab)
-- **Size rotation indicator added** to Sectors tab: compact 3-tile horizontal strip showing QQQ / MDY / IWM RS vs SPY
-- **Backend** (`backend.py` v2.31): IWM/MDY/QQQ downloaded in same batch as 11 sector ETFs; identical RS Ratio + Momentum calculation; `size_rotation` + `size_signal` + `size_signal_detail` added to `/api/sectors/rotation` response
-- **Frontend** (`SectorRotationTab.jsx` v4.16): `SizeRotationStrip` — per-tile quadrant label (Leading·gaining / Weakening·fading / Improving·recovering / Lagging·falling) + plain-English hint + momentum context note on headline; `api.js` bug fix: `fetchSectorRotation()` was silently dropping size_rotation fields
-- **Signal logic**: IWM−QQQ RS Ratio diff ≥ +2 → Risk-On; ≤ −2 → Risk-Off; else → Neutral
-- **Sector card audit also fixed** (Day 66 first half): rank badge neutral gray, RS bar scale corrected to 100-centered, scan buttons quadrant-based not rank-based, "How to read" text corrected
-- **start.sh / stop.sh**: auto kill-port added (no more manual port conflicts)
+## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
 
-### Day 65 Summary (Complete — README hybrid rewrite, no code changes)
-- **README rewritten** as hybrid: all original internal notes (Day-N history, architecture diagrams, methodology thresholds, backtest tables, full API reference with JSON, roadmap, project structure) + new developer-friendly additions (Environment Variables table with where-to-get-each-key + free tier + degradation notes, Running the App section, Troubleshooting section with 6 common issues)
-- **No code changes** — feature freeze maintained. v4.27 unchanged.
-- **Next:** Paper trading — run 5-10 real tickers, log first Forward Test trade if BUY signal found
+### Day 68 Summary (System Audit + Doc Cleanup — v4.30, no code changes)
+- **System audit Layer 1:** 15 README claims audited — 9 VERIFIED, 5 MISLEADING, 1 PLAUSIBLE. Key: stale FMP refs, wrong versions, Fundamental Strong mismatch, 200 EMA→SMA.
+- **Audit protocol established:** 2-layer approach (consistency + correctness). Added to GOLDEN_RULES.md.
+- **External LLM prompts:** 5 module-specific prompts (45 questions) for Perplexity/GPT/Gemini validation.
+- **Doc framework cleanup:** 62% reduction in brain files (934→354 lines). 59 old files archived. 3 legacy files deleted. Archiving step added to close protocol.
+- **Backup:** `docs/claude/backup_pre_cleanup_day68/docs_claude_full_backup.zip`
 
-### Day 64 Summary (Complete — 4 rounds, 18 bugs fixed → v4.27)
-- **Round 1 (initial audit — BE v2.27):** 5 bugs: news date parse, Cup&Handle index mismatch, W-FRI resample, ATR stop, unemployment threshold
-- **Round 2 (deferred items — BE v2.28):** VCP strictly decreasing (`>=`→`>`), VCP pivot = last swing high, Wilder EMA ATR
-- **Round 3 (remaining deferred — BE v2.29, FE v4.13):** FOMC today edge case, constants.py extracted (shared proximity), DecisionMatrix "Emphasis:" label
-- **Round 4 deep audit (BE v2.30, FE v4.14):** Stop price floor `max(0.01,...)`, VCP gate hybrid (volatility_contracting = confidence booster only), CAUTION='CAUTION ENTRY' vs NOT_VIABLE='WAIT FOR ENTRY', All-Decent+Neutral→HOLD, Cup handle_below_lip validation
-- **Total:** 18 bugs fixed across 9 backend files + 4 frontend files. 1 new file (constants.py)
-- **Cannot fix:** F&G in live vs backtest (needs historical data, not free)
+### Day 67 Summary (Data Sources Transparency Audit & 7 Bug Fixes → v4.30)
+- Full multi-provider chain audit: Finnhub → AlphaVantage → yfinance confirmed. FMP permanently dead.
+- 8 FMP text references updated. 7 UI/provenance bugs fixed. JUST FETCHED badge added.
 
-### Day 63 Summary
-- **Option C Hybrid news filtering — Complete** (`news_engine.py` v2.26)
-  - `REPUTABLE_SOURCE_KEYWORDS` set: 19 sources (Reuters, Bloomberg, CNBC, WSJ, FT, Barron's, etc.)
-  - `_is_reputable()`: case-insensitive substring match
-  - `_fetch_av_news()`: fetch pool of 50 articles (was 10) to allow reputable filtering
-  - `_parse_articles()`: skips non-reputable sources before processing
-  - `_curate_articles()`: top 3 bullish + 3 neutral + 3 bearish by signal strength, re-sorted by date desc
-  - Aggregate sentiment computed from full reputable pool; displayed articles limited to curated 9
-- **BottomLineCard coherence fix — Complete** (`BottomLineCard.jsx` v4.12)
-  - **Bug:** `getEntryTypeLabel()` returned 'MOMENTUM ENTRY' when support was empty (ADX fallback), even when backend said `tradeViability.viable = 'NO'`. Result: green "READY - MOMENTUM ENTRY" contradicted red "NOT VIABLE" trade card.
-  - **Fix:** Early return `'WAIT FOR ENTRY'` when `srData.meta.tradeViability.viable !== 'YES'`. Trade viability is now the single authority — card turns amber "BUY SIGNAL - WAIT FOR ENTRY" to be consistent.
-  - **Trigger:** LMT analysis showed 8/8 Trend Template + BUY verdict but "Extended 23% from support / NOT VIABLE" — Bottom Line was contradicting Trade Setup card.
-- **Candlestick patterns — Deferred** (Perplexity research complete, 4 viable patterns identified, pure NumPy required, not a priority)
-- **Next focus:** Paper trading — use the system to find bugs and tweak before adding features
-
-### Day 62 Summary
-- **Sector Rotation Phase 2 + Context Tab — Complete**
-  - New `SectorRotationTab.jsx`: 11 sector cards with rank badges, RS bars, quadrant color-coding
-  - "Scan for Rank #1 Sector" CTA → switches to Scan tab with sector filter banner
-  - **Bug fix:** TradingView SIC vs GICS sector name mismatch fixed (49 mapping entries)
-  - Context Tab: 3 engines, 4 endpoints, 5 components, FRED API activated
-  - Cache: CYCLES/ECON 6h, NEWS_{ticker} 4h
-
-### Day 61 Summary
-- **4-Layer Coherence Audit + 9 Bug Fixes + R:R DRY Refactor**
-  - Systematic audit: 7 parallel code agents, 87 fields, 10 tickers × 10 endpoints
-  - Found: 3 CRITICAL + 2 MEDIUM + several info issues. Overall 89% coherence (78/87 clean)
-  - **Fix #1-9:** NaN safety (3-layer defense), F&G thresholds synced, cache schema v2, earnings 500 on error, R:R shared utility (riskRewardCalc.js), F&G fallback flag, priceHistory NaN filtering
-
-### Day 60 Summary
-- **Simple Checklist 4→9 Criteria + EPS/Revenue Growth YoY Fix + ADX Bug Fix**
-  - Simple Checklist enhanced: added 52-Wk Range, Volume, ADX, Market Regime, 200 SMA Trend (Minervini SEPA + backtest-validated)
-  - EPS/Revenue Growth: fixed QoQ→YoY (`iloc[4]`), added `_growth_to_pct()` decimal→percentage normalization
-  - ADX `.toFixed()` crash fix: coerce API values to `Number()` with `isNaN()` guard
-
-### Day 59 Summary
-- **v4.20 Cache Freshness Meter + v4.21 Canadian Market + Bug Fixes**
-  - Cache Audit complete: all TTLs reasonable. New `/api/data/freshness` endpoint + UI freshness dots (green/yellow/red)
-  - DVN Bottom Line bug fix: `getEntryTypeLabel()` uses R:R viability (not just ADX) — matches Trade Setup card
-  - Canadian Market (SCAN ONLY): TSX 60 scan + All Canadian scan working. 3 bugs fixed. Analyze page NOT yet supported — needs data source redesign
-  - Session protocol flowcharts added to CLAUDE_CONTEXT.md
-  - AI Fluency Critical Analysis: `docs/research/AI_FLUENCY_CRITICAL_ANALYSIS.md` — mapped Anthropic research to project, no code changes needed
-
-### Day 58 Summary
-- **v4.19 Pattern Descriptions + Sector Rotation Phase 1**
-  - Pattern trader descriptions added to all 3 pattern cards
-  - Sector Rotation Phase 1: `/api/sectors/rotation` endpoint, RS ratio + RRG quadrant, badge + scan column
-  - SQLite cache for sector data, sector badge reliability fix, scan transparency
-
-### Day 57 Summary
-- **v4.17 Production Coherence + Bear Regime + 5th Filter Redesign**
-  - 5th "Best Candidates" filter redesigned to match Config C criteria
-  - Frontend-backend coherence audit: 39/42 parameters match
-  - Bear market regime: SPY 50 SMA declining caps risk at "Neutral"
-
-### Implementation Status (v4.9-v4.21)
-| Priority | Feature | Effort | Status |
-|----------|---------|--------|--------|
-| P1 | v4.9-v4.15: All features | — | ✅ **COMPLETE** |
-| P0 | v4.16: Holistic 3-Layer Backtest | 6-8 hrs | ✅ **COMPLETE** |
-| P0 | v4.17: Coherence + Bear Regime | 2 hrs | ✅ **COMPLETE** (Day 56) |
-| P1 | v4.18: Index Filters (S&P/NASDAQ/Dow) | 1 hr | ✅ **COMPLETE** (Day 57) |
-| P1 | v4.19: Sector Rotation Phase 1 | 1.5 hrs | ✅ **COMPLETE** (Day 58) |
-| P1 | v4.20: Cache Audit + Freshness Meter | 1 hr | ✅ **COMPLETE** (Day 59) |
-| P1 | v4.21: Canadian Market (Scan Only) | 2 hrs | ✅ **SCAN TAB** (Day 59) — Analyze page NOT yet supported |
-| P1 | DVN Bottom Line Entry Type Fix | 0.5 hr | ✅ **COMPLETE** (Day 59) |
-| P1 | Simple Checklist 4→9 Criteria | 1 hr | ✅ **COMPLETE** (Day 60) |
-| P2 | EPS/Revenue Growth QoQ→YoY Fix | 1 hr | ✅ **COMPLETE** (Day 60) |
-| P0 | 4-Layer Coherence Audit + 9 Fixes | 4 hrs | ✅ **COMPLETE** (Day 61) |
-| P1 | v4.11 Sector Rotation Phase 2 | 2 hrs | ✅ **COMPLETE** (Day 62) |
-| P1 | v4.24 Context Tab (3 engines, 4 endpoints, 5 components) | 6 hrs | ✅ **COMPLETE** (Day 62) |
-| P2 | Option C Hybrid — News source filtering | 1 hr | QUEUED (Day 63) |
-| P2 | Candlestick patterns — standalone post-flight check | 3 hrs | QUEUED (Day 63, after Perplexity research) |
-| P3 | v4.12: Charts (Own Tab) | 4-6 hrs | QUEUED |
-
-### Backtest Results Summary (Day 57)
-| Period | Trades | Win Rate | PF | Sharpe | Walk-Forward |
-|--------|--------|----------|----|--------|--------------|
-| Quick (1-5d) | 318 | 55.35% | 1.72 | 0.85 | PASS (all metrics improved OOS) |
-| Standard (5-15d) | 244 | 53.69% | 1.62 | 0.85 | PASS (Day 55) |
-| Position (15-45d) | 362 | 38.67% | 1.51 | 0.61 | PASS (regime-sensitive, not overfitted) |
-
-### Next Session Priorities (Day 66)
-1. **Paper trading** — Feature freeze in effect. Use the system on 5-10 real tickers. Watch for: CAUTION ENTRY label, correct ATR stops ($0.01 floor), VCP accuracy, news dates in Context Tab.
-2. **Log first Forward Test trade** in the Forward Test tab if BUY signal found.
-3. **Field bugs only** — no new features until a meaningful set of paper trades is logged.
+### Day 66 Summary (Cap Size Rotation strip → v4.28)
+- QQQ/MDY/IWM RS vs SPY in Sectors tab. Sector card audit fixes. start.sh/stop.sh auto kill-port.
 
 ---
 
 ## SCENARIO DETECTION
 
-**Claude:** Determine which scenario applies:
-
 | User Says | Scenario | Action |
 |-----------|----------|--------|
 | "Resume session" / "Continue" / "Start Day X" | SESSION_START | Read files, confirm context |
-| "Session ending" / "Close session" / "Wrap up" | SESSION_CLOSE | Create status files, provide git command |
+| "Session ending" / "Close session" / "Wrap up" | SESSION_CLOSE | Create status files, commit + push |
 | Context was summarized / "Pick up where we left" | SESSION_RESUME | Read summary + status files |
 | Nothing specific | SESSION_START | Default to startup checklist |
 
 ---
 
-## SESSION START PROTOCOL (Flowchart)
+## SESSION START PROTOCOL
 
 ```
-┌─────────────────────────────────────────┐
-│  1. READ FILES (in this exact order)     │
-│     □ GOLDEN_RULES.md                    │
-│     □ ROADMAP.md                         │
-│     □ PROJECT_STATUS_DAY[N]_SHORT.md     │
-│     □ KNOWN_ISSUES_DAY[N].md             │
-└──────────────┬──────────────────────────┘
-               ▼
-┌─────────────────────────────────────────┐
-│  2. CONFIRM TO USER (always say this)    │
-│     "Day [N] | v[X] | Backend v[Y]"     │
-│     "Last session: [1-line summary]"     │
-│     "Open bugs: [Medium+ count]"         │
-│     "Today's priorities: [from ROADMAP]" │
-└──────────────┬──────────────────────────┘
-               ▼
-┌─────────────────────────────────────────┐
-│  3. ASK USER                             │
-│     "What would you like to focus on?"   │
-│     (unless user already specified)      │
-└─────────────────────────────────────────┘
+1. READ FILES (in this exact order):
+   □ GOLDEN_RULES.md
+   □ ROADMAP.md
+   □ PROJECT_STATUS_DAY[N]_SHORT.md
+   □ KNOWN_ISSUES_DAY[N].md
+
+2. CONFIRM TO USER:
+   "Day [N] | v[X] | Backend v[Y]"
+   "Last session: [1-line summary]"
+   "Open bugs: [Medium+ count]"
+
+3. ASK: "What would you like to focus on?"
 ```
 
 ### Rules During Session:
@@ -201,137 +77,45 @@
 
 ---
 
-## SESSION CLOSE PROTOCOL (Flowchart)
+## SESSION CLOSE PROTOCOL
 
 **CRITICAL: Follow EVERY step. Do NOT skip any. Do NOT ask user to do any step.**
 
 ```
-┌──────────────────────────────────────────┐
-│  STEP 1: CREATE PROJECT_STATUS           │
-│  File: status/PROJECT_STATUS_DAY[N+1]    │
-│  _SHORT.md                               │
-│  Contents:                               │
-│    □ What was accomplished today          │
-│    □ Files modified + files created       │
-│    □ Git commits (hash + description)     │
-│    □ Version summary (FE/BE/BT)          │
-│    □ Next session priorities              │
-└──────────────┬───────────────────────────┘
-               ▼
-┌──────────────────────────────────────────┐
-│  STEP 2: CREATE KNOWN_ISSUES             │
-│  File: versioned/KNOWN_ISSUES_DAY[N+1]   │
-│  .md                                     │
-│  Contents:                               │
-│    □ Copy open issues from previous      │
-│    □ Move resolved issues to Resolved    │
-│    □ Add ANY new issues found today      │
-│    □ Update issue statistics table        │
-└──────────────┬───────────────────────────┘
-               ▼
-┌──────────────────────────────────────────┐
-│  STEP 3: CHECK — Did APIs change?        │
-│  ├─ YES → Update API_CONTRACTS_DAY[N+1]  │
-│  └─ NO  → Skip (note: currently DAY53)   │
-└──────────────┬───────────────────────────┘
-               ▼
-┌──────────────────────────────────────────┐
-│  STEP 4: CHECK — New lessons learned?    │
-│  ├─ YES → Add to GOLDEN_RULES.md         │
-│  │        Update "Last Updated" date     │
-│  └─ NO  → Skip                           │
-└──────────────┬───────────────────────────┘
-               ▼
-┌──────────────────────────────────────────┐
-│  STEP 5: CHECK — Roadmap items changed?  │
-│  ├─ YES → Update ROADMAP.md              │
-│  │        Update "Last Updated" date     │
-│  │        Update UPDATE LOG table        │
-│  └─ NO  → Skip                           │
-└──────────────┬───────────────────────────┘
-               ▼
-┌──────────────────────────────────────────┐
-│  STEP 6: UPDATE THIS FILE                │
-│  (CLAUDE_CONTEXT.md — MANDATORY)         │
-│    □ CURRENT STATE table:                │
-│      - Current Day → [N+1]               │
-│      - Version → [new version]           │
-│      - Latest Status → DAY[N+1]          │
-│      - Latest Issues → DAY[N+1]          │
-│      - Focus → [today's work]            │
-│    □ Day [N+1] Summary section           │
-│    □ Implementation Status table         │
-│    □ Next Session Priorities             │
-│    □ Files to Read paths (update day #)  │
-│    □ UPDATE LOG entry                    │
-│    □ "Last Updated" header               │
-└──────────────┬───────────────────────────┘
-               ▼
-┌──────────────────────────────────────────┐
-│  STEP 7: GIT COMMIT + PUSH              │
-│  (Claude does this — NEVER ask user)     │
-│    □ git add [specific files]            │
-│    □ git commit -m "Day [N+1]: ..."      │
-│    □ git push                            │
-│    □ Verify push succeeded               │
-└──────────────────────────────────────────┘
+STEP 1: CREATE status/PROJECT_STATUS_DAY[N+1]_SHORT.md
+STEP 2: CREATE versioned/KNOWN_ISSUES_DAY[N+1].md
+STEP 3: IF APIs changed → CREATE versioned/API_CONTRACTS_DAY[N+1].md
+STEP 4: IF lessons learned → UPDATE stable/GOLDEN_RULES.md (+ "Last Updated" date)
+STEP 5: IF roadmap changed → UPDATE stable/ROADMAP.md (+ "Last Updated" date)
+STEP 6: UPDATE THIS FILE (CLAUDE_CONTEXT.md):
+        □ CURRENT STATE table (Day, Version, Status, Issues, Focus)
+        □ Day [N+1] Summary (rotate: keep last 3, move oldest to archive)
+        □ Next Session Priorities
+        □ "Last Updated" header
+STEP 7: ARCHIVE if needed — move files older than 15 days to archive/ folders
+STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 ```
-
-### Common Mistakes to Avoid at Close:
-- Forgetting to update "Last Updated" dates on stable docs
-- Forgetting to push after commit
-- Asking user to run git commands
-- Asking user to manually update any file
-- Missing KNOWN_ISSUES for bugs observed during session
-- Not updating CLAUDE_CONTEXT.md file paths (still pointing to old day)
 
 ---
 
 ## SESSION RESUME PROTOCOL (After Context Limit)
 
 ```
-┌─────────────────────────────────────────┐
-│  1. READ the summary provided            │
-│  2. READ PROJECT_STATUS for context      │
-│  3. READ KNOWN_ISSUES for active bugs    │
-│  4. Resume the task in progress           │
-│  5. Do NOT ask user to re-explain        │
-└─────────────────────────────────────────┘
+1. READ the summary provided
+2. READ PROJECT_STATUS for context
+3. READ KNOWN_ISSUES for active bugs
+4. Resume the task in progress
+5. Do NOT ask user to re-explain
 ```
 
 ---
 
-## CORE RULES (Embedded - Always Apply)
+## NEXT SESSION PRIORITIES
 
-### The 12 Golden Rules:
-1. START of session: Read PROJECT_STATUS first
-2. BEFORE modifying any file: Read it first
-3. NEVER assume code structure - verify with actual file
-4. END of session: Create updated PROJECT_STATUS
-5. User will say "session ending" to trigger close
-6. NEVER HALLUCINATE - Don't claim results without running
-7. THINK THROUGH - Pause and reason before solutions
-8. ALWAYS VALIDATE - Fact-check against external sources
-9. GENERATE FILES ONE AT A TIME - Wait for confirmation
-10. FOLLOW CODE ARCHITECTURE RULES
-11. DEBUG APIS PROPERLY - Run diagnostic queries FIRST
-12. LOCAL FILES FIRST, THEN GIT - Update files locally, then commit
-
-### Debugging Workflow:
-1. Understand the symptom
-2. Form hypothesis about cause
-3. Write diagnostic query to TEST hypothesis
-4. Run diagnostic, analyze results
-5. Only THEN write the fix
-6. Test fix incrementally
-7. If fix fails, go back to step 2 (don't guess again)
-
-### Day 27 Critical Insights:
-- Entry signals = ~10% of trading results
-- Position sizing = ~90% of trading results
-- Backtest before believing any system
-- R-Multiples matter more than win rate
-- Expectancy = (Win% x Avg Win R) + (Loss% x Avg Loss R)
+1. **Paper trading** — Feature freeze. Use system on 5-10 real tickers.
+2. **Log first Forward Test trade** if BUY signal found.
+3. **README fixes** — 7 items from Day 68 audit (FMP refs, versions, Fundamental Strong desc, 200 EMA→SMA).
+4. **External LLM audit synthesis** — When user returns with Perplexity/GPT/Gemini answers.
 
 ---
 
@@ -341,88 +125,49 @@
 /docs/claude/
 ├── CLAUDE_CONTEXT.md              <- THIS FILE (single reference)
 ├── stable/                        <- Rarely change
-│   ├── GOLDEN_RULES.md           <- Core rules
-│   ├── ROADMAP.md                <- Canonical roadmap (v4.0-v4.5)
-│   ├── SESSION_START.md          <- Legacy (now in CLAUDE_CONTEXT)
-│   ├── SESSION_PROMPT_TEMPLATE.md <- Legacy (now in CLAUDE_CONTEXT)
-│   └── CLAUDE_CODE_GUIDE.md      <- Tool usage guide
-├── versioned/                     <- Day-versioned
+│   ├── GOLDEN_RULES.md           <- Core rules + lessons learned
+│   └── ROADMAP.md                <- Canonical roadmap
+├── versioned/                     <- Day-versioned (active last 15 days)
 │   ├── API_CONTRACTS_DAY[N].md   <- API reference
 │   ├── KNOWN_ISSUES_DAY[N].md    <- Bug tracker
+│   ├── COHERENCE_AUDIT_DAY[N].md <- Audit reports
 │   └── archive/                   <- Older than 15 days
-└── status/                        <- Daily status
-    ├── PROJECT_STATUS_DAY[N]_SHORT.md
-    └── archive/                   <- Older than 15 days
+├── status/                        <- Daily status
+│   ├── PROJECT_STATUS_DAY[N]_SHORT.md
+│   └── archive/                   <- Older than 15 days
+└── backup_pre_cleanup_day68/      <- Full backup before cleanup
 ```
 
 ---
 
 ## QUICK COMMANDS
 
-All commands run from the **project root**: `/Users/balajik/projects/swing-trade-analyzer/`
-
 ```bash
-# Start/Stop services (Day 37+) — run from project root
+# Start/Stop services — run from project root
 ./start.sh               # Start both backend and frontend
-./start.sh backend       # Start only backend
-./start.sh frontend      # Start only frontend
 ./stop.sh                # Stop both services
-./stop.sh backend        # Stop only backend
 
-# Find latest day number — run from project root
-ls -la docs/claude/status/ | grep PROJECT_STATUS | tail -1
+# Find latest day number
+ls docs/claude/status/ | grep PROJECT_STATUS | tail -1
 
-# Git status — run from project root
-git status
-
-# Cache status (Day 37+) — run from anywhere
+# Cache status
 curl http://localhost:5001/api/cache/status
 ```
 
 ---
 
-## UPDATE LOG
+## UPDATE LOG (Last 5 entries — full log in git history)
 
 | Day | Changes to this file |
 |-----|---------------------|
-| 28 | Created CLAUDE_CONTEXT.md as single reference point |
-| 29 | Updated for Day 29: Session Refresh + Position Controls |
-| 30 | Updated for Day 30: S&R Research + DBSCAN Plan |
-| 31 | Updated for Day 31: Agglomerative S&R + Fundamentals Failsafe |
-| 32 | Updated for Day 32: MTF Confluence + Fundamentals/TradingView Research |
-| 33 | Updated for Day 33: MTF Frontend + Fundamentals Transparency + README v3.4 |
-| 34 | Updated for Day 34: Week 4 Validation Complete + Fibonacci + S&R Research DONE |
-| 35 | Updated for Day 35: Data Provider Validation - yfinance 100% working, Defeat Beta blocked |
-| 36 | Updated for Day 36: pegRatio local calculation, Pine Script validation complete (9/9) |
-| 37 | Updated for Day 37: SQLite persistent cache (5.5x speedup), start.sh/stop.sh scripts, architecture cleanup |
-| 38 | Updated for Day 38: Data Sources tab (transparency UI), /api/provenance endpoint |
-| 39 | Updated for Day 39: Dual Entry Strategy Phases 1-3: structural stops, local RSI/ADX, 4H RSI |
-| 40 | Updated for Day 40: Dual Entry Strategy UI complete, side-by-side cards for ALL stocks |
-| 41 | Updated for Day 41: Perplexity research synthesis complete, TIER 1 gaps identified, baseline backtest priority |
-| 42 | Updated for Day 42: Defeat Beta confirmed working, validation tolerances fixed (92.3% quality), VIX fixed, README v3.9, ROADMAP.md created |
-| 43 | Updated for Day 43: Data source labels, Defeat Beta error handling (v2.13), ROADMAP.md added to startup checklist |
-| 44 | Updated for Day 44: v4.2-v4.5 complete (Pattern Detection, Sentiment, Categorical Assessment), Actionable Recommendation Card, 30-stock validation |
-| 45 | Updated for Day 45: v4.6 Perplexity Research (F&G thresholds, Structure > Sentiment), Comprehensive Test Plan, 100% baseline pass rate |
-| 46 | Updated for Day 46: Issue #0 fixed (Recommendation Card Mismatch), UI Test Report created, 2nd iteration validation 100% pass |
-| 48 | Updated for Day 48: Multi-AI research analysis complete, v4.9-v4.12 roadmap added, verified features vs deferred based on research |
-| 49 | Updated for Day 49: v4.9 OBV+RVOL, v4.10 Earnings, API_CONTRACTS_DAY49.md created (was 16 days outdated!) |
-| 50 | Exhaustive UI re-test: 21% true pass rate (not 92.8%), 5 open issues identified, Position Size banner is main culprit (64% affected) |
-| 52 | v4.14 Multi-Source Data Intelligence complete: 5 providers (TwelveData, Finnhub, FMP, yfinance, Stooq), 13 new files, backend v2.17, frontend labels updated |
-| 53 | v4.15 Decision Matrix, v4.13 Holding Period, Bugs #7/#8, Architectural cleanup (SRP: removed fundamentals from /api/stock/, ~255 lines dead code removed, backend v2.18). Focus shifted to v4.16 backtest. |
-| 54 | Pre-backtest audit: 3 CRITICAL hardcoded fallbacks fixed (sentiment 5→0, breadth 1→0, F&G 50→null, VIX 20→null). Decision Matrix coherence verified (ALL CLEAR). Simple Checklist gaps documented. Next: PLAN backtest. |
-| 55 | v4.16 Holistic Backtest COMPLETE: 60 tickers, 3 configs, all statistically significant. Config C fixed (0→238 trades). Walk-forward validated (OOS>IS). Exit optimization: trailing 10 EMA + breakeven stop, DD 65.9%→52.6%. No unintended changes to production code. |
-| 56 | v4.17: 5th filter redesigned (Config C criteria), coherence audit (39/42 match, pattern threshold synced 80→60), bear regime filter (SPY 50 SMA declining), S&P 500 index filter researched (native TradingView support). |
-| 57 | v4.18: S&P 500/NASDAQ 100/Dow 30 index filter complete, bear regime coherence gap fixed (sma50Declining in backend+frontend), Options tab deferred (v4.19), TSX 60 deferred (v4.20), coherence audit document created. Backtest: bear regime validated (WR 71.4%), Quick+Position walk-forward passed, yfinance 0.2.28→1.2.0. Sector rotation rethought (Phase 1: embed in views). |
-| 58 | v4.19: Pattern trader descriptions, Sector Rotation Phase 1 complete (endpoint + badge + scan column + SQLite cache), sector badge reliability fix, scan transparency (empty vs error). Day 59 priorities: Phase 2 dedicated tab with "Scan for Rank 1", Cache Audit + UI Freshness Meter. |
-| 59 | v4.20 Cache Freshness Meter (endpoint + UI dots), v4.21 Canadian Market (TSX 60 + All Canadian scan, 3 bugs fixed), DVN Bottom Line entry type fix (R:R-based getEntryTypeLabel), session protocol flowcharts, AI Fluency Critical Analysis document. |
-| 60 | Simple Checklist 4→9 criteria (52-Wk Range, Volume, ADX, Market Regime, 200 SMA Trend). EPS/Revenue Growth QoQ→YoY fix + `_growth_to_pct()` format normalization. ADX `.toFixed()` crash fix (Number coercion). |
-| 61 | 4-Layer Coherence Audit (87 fields, 10 tickers, 10 endpoints): 3 CRITICAL + 2 MEDIUM found, ALL 9 FIXED. NaN safety (3-layer defense), F&G thresholds synced, cache schema v2, earnings 500 on error, R:R DRY utility (riskRewardCalc.js). API_CONTRACTS updated Day 53→Day 61. |
-| 62 | Sector Rotation Phase 2 COMPLETE (11 sector cards + "Scan for Rank 1" + TradingView SIC name fix). Context Tab COMPLETE (3 engines + 4 endpoints + 5 components). FRED API key activated. Next: Option C hybrid news + candlestick patterns. Version v4.24. API_CONTRACTS updated Day 61→Day 62. |
-| 63 | Option C Hybrid news filter (reputable sources + 3-bucket curation). BottomLineCard coherence fix (viable authority). Version v4.25. |
-| 64 | Deep audit: 18 bugs fixed (4 rounds). VCP/ATR/W-FRI/stop floor/pattern validation/categorical verdict. 1 new file constants.py. Version v4.27 (BE v2.30, FE v4.14). |
-| 65 | README hybrid rewrite — all original internal notes + developer-friendly setup guide. No code changes. Version v4.27 unchanged. |
+| 64 | Deep audit: 18 bugs fixed, v4.27. |
+| 65 | README rewrite, no code changes. |
+| 66 | Cap size rotation strip, sector card fixes, v4.28. |
+| 67 | Data sources transparency, 7 bug fixes, v4.30. |
+| 68 | System audit (Layer 1+2), doc framework cleanup, archiving protocol added. |
 
 ---
 
 *This file replaces the need for SESSION_START.md + SESSION_PROMPT_TEMPLATE.md*
 *User only needs to reference this ONE file in Claude context*
+*For core rules and lessons learned → see GOLDEN_RULES.md*
