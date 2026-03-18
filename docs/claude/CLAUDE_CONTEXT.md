@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 68 (March 17, 2026)
+> **Last Updated:** Day 69 (March 18, 2026)
 
 ---
 
@@ -11,30 +11,30 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 68 |
+| Current Day | 69 |
 | Version | v4.30 (Backend v2.32, Frontend v4.30, Backtest v4.17, API Service v2.9) |
-| Latest Status | PROJECT_STATUS_DAY68_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY68.md |
+| Latest Status | PROJECT_STATUS_DAY69_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY69.md |
 | Latest API | API_CONTRACTS_DAY62.md (updated Day 68) |
-| Focus | **Paper trading. Feature freeze. Data sources transparency complete.** |
+| Focus | **Universal Principles evolution. 4-LLM synthesis complete. Implementation plan ready.** |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
 
+### Day 69 Summary (4-LLM Universal Principles Synthesis + Implementation Plan — no code changes)
+- **4-LLM synthesis complete:** Grok + Gemini + Perplexity + Claude independently audited 35 claims across 5 prompts. Cross-LLM verdict matrix at `docs/research/UNIVERSAL_PRINCIPLES_SYNTHESIS.md`.
+- **Key consensus:** Equal-weight factors (4/4), walk-forward not enough (4/4), factor decay ~58% (4/4), simplicity premium real (4/4), ATR stops primary (3/4), RSI(2)<10 for MR (3/4).
+- **Surgical implementation plan:** File-by-file, module-by-module at `docs/research/UNIVERSAL_PRINCIPLES_IMPLEMENTATION_PLAN.md`. 7 files modified, 3 new files, 5 test gates.
+- **Architecture confirmed:** ~85% of code survives. Evolution is in thresholds + position sizing + MR arm. No rebuild needed.
+- **Tiers:** T1 (ATR primary + equal weight + param stability), T2 (VIX sizing + blended RS), T3 (MR arm RSI(2)).
+
 ### Day 68 Summary (System Audit + Doc Cleanup — v4.30, no code changes)
-- **System audit Layer 1:** 15 README claims audited — 9 VERIFIED, 5 MISLEADING, 1 PLAUSIBLE. Key: stale FMP refs, wrong versions, Fundamental Strong mismatch, 200 EMA→SMA.
-- **Audit protocol established:** 2-layer approach (consistency + correctness). Added to GOLDEN_RULES.md.
-- **External LLM prompts:** 5 module-specific prompts (45 questions) for Perplexity/GPT/Gemini validation.
-- **Doc framework cleanup:** 62% reduction in brain files (934→354 lines). 59 old files archived. 3 legacy files deleted. Archiving step added to close protocol.
-- **Backup:** `docs/claude/backup_pre_cleanup_day68/docs_claude_full_backup.zip`
+- System audit Layer 1: 15 README claims audited — 9 VERIFIED, 5 MISLEADING, 1 PLAUSIBLE.
+- Audit protocol established. External LLM prompts created. Doc framework 62% reduction.
 
 ### Day 67 Summary (Data Sources Transparency Audit & 7 Bug Fixes → v4.30)
-- Full multi-provider chain audit: Finnhub → AlphaVantage → yfinance confirmed. FMP permanently dead.
-- 8 FMP text references updated. 7 UI/provenance bugs fixed. JUST FETCHED badge added.
-
-### Day 66 Summary (Cap Size Rotation strip → v4.28)
-- QQQ/MDY/IWM RS vs SPY in Sectors tab. Sector card audit fixes. start.sh/stop.sh auto kill-port.
+- Full multi-provider chain audit. 8 FMP text references updated. 7 UI/provenance bugs fixed.
 
 ---
 
@@ -112,10 +112,11 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 
 ## NEXT SESSION PRIORITIES
 
-1. **Paper trading** — Feature freeze. Use system on 5-10 real tickers.
-2. **Log first Forward Test trade** if BUY signal found.
-3. **README fixes** — 7 items from Day 68 audit (FMP refs, versions, Fundamental Strong desc, 200 EMA→SMA).
-4. **External LLM audit synthesis** — When user returns with Perplexity/GPT/Gemini answers.
+1. **Tier 0: Pre-work bug fixes** — 7 must-fix items from first audit (VCP volume, MTF 3.2x, TT 25→30%, RS threshold backtest, RRG normalization, F&G neutral zone). Fix these BEFORE any evolution.
+2. **Tier 1: Quick wins** — ATR stops primary (1A), equal-weight principle (1B), parameter stability script (1C).
+3. **Tier 2: High impact** — VIX position sizing (2A), blended 3-lookback RS (2B).
+4. **README fixes** — 7 items from Day 68 audit (FMP refs, versions, Fundamental Strong desc, 200 EMA→SMA).
+5. **Implementation plan:** `docs/research/UNIVERSAL_PRINCIPLES_IMPLEMENTATION_PLAN.md`
 
 ---
 
@@ -165,6 +166,7 @@ curl http://localhost:5001/api/cache/status
 | 66 | Cap size rotation strip, sector card fixes, v4.28. |
 | 67 | Data sources transparency, 7 bug fixes, v4.30. |
 | 68 | System audit (Layer 1+2), doc framework cleanup, archiving protocol added. |
+| 69 | 4-LLM Universal Principles synthesis + detailed implementation plan. |
 
 ---
 

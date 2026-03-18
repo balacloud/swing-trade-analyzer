@@ -2,7 +2,7 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 68 (March 16, 2026)
+> **Last Updated:** Day 69 (March 18, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
@@ -74,6 +74,30 @@
 | G9 | Comprehensive Module Audit (Day 64) | ✅ COMPLETE (Day 64) — 4 rounds, 18 bugs fixed, pattern/ATR/stop/categorical |
 
 **Test Command:** `python backend/backtest/backtest_holistic.py --configs C --walk-forward`
+
+---
+
+## IN PROGRESS — Universal Principles Evolution (Day 69+)
+
+**Source:** 4-LLM audit synthesis (`docs/research/UNIVERSAL_PRINCIPLES_SYNTHESIS.md`)
+**Plan:** `docs/research/UNIVERSAL_PRINCIPLES_IMPLEMENTATION_PLAN.md`
+**Principle:** ~85% code survives. Surgical changes only. One file, test, validate.
+
+| Tier | Change | Files | Status |
+|------|--------|-------|--------|
+| 0A | Remove "3.2x" hallucinated MTF claim | docs only | ⬜ |
+| 0B | VCP volume dry-up check | pattern_detection.py | ⬜ |
+| 0C | TT 25%→30% above 52w low | pattern_detection.py | ⬜ |
+| 0D | RS threshold backtest (1.0 vs 1.1 vs 1.2) | categorical_engine.py, categoricalAssessment.js | ⬜ |
+| 0E-F | RRG normalization + momentum center | sector rotation backend | ⬜ |
+| 0G | F&G neutral zone narrowing | categorical_engine.py, categoricalAssessment.js | ⬜ |
+| 1A | ATR stops primary, 7% as cap | trade_simulator.py | ⬜ |
+| 1B | Equal-weight principle (docs) | GOLDEN_RULES.md, comments | ⬜ |
+| 1C | Parameter stability test script | parameter_stability.py (NEW) | ⬜ |
+| 2A | VIX-based position sizing | positionSizing.js, trade_simulator.py, App.jsx | ⬜ |
+| 2B | Blend 3 momentum lookbacks | backend.py, categorical_engine.py, categoricalAssessment.js, backtest_holistic.py | ⬜ |
+| 3A | Mean-reversion engine RSI(2) | mean_reversion.py (NEW), mr_simulator.py (NEW), backend.py | ⬜ |
+| 3B | MR frontend display | App.jsx, api.js, new component | ⬜ |
 
 ---
 
