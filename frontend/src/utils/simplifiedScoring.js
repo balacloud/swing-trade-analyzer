@@ -11,11 +11,11 @@
  *
  * 9 Binary Criteria - ALL must be YES to trade:
  * 1. TREND: Price > 50 SMA > 200 SMA
- * 2. MOMENTUM: RS > 1.0 (outperforming SPY)
- * 3. SETUP: Entry near support (stop within 7%)
+ * 2. MOMENTUM: RS >= 1.2 (outperforming SPY by 20% — backtest-validated optimal)
+ * 3. SETUP: Entry near support (cap-aware stop: 7% large / 9% mid / 10% small)
  * 4. RISK: R:R ratio >= 2:1
  * 5. 52-WK RANGE: Price within top 25% of 52-week range (Minervini)
- * 6. VOLUME: Avg daily dollar volume >= $10M (swing trade liquidity)
+ * 6. VOLUME: Cap-aware liquidity ($2M small / $5M mid / $10M large)
  * 7. ADX: >= 20 (confirmed trend, backtest-validated)
  * 8. MARKET: SPY > 200 SMA (bull regime, backtest-validated)
  * 9. 200 SMA TREND: 200 SMA rising over 22 trading days (Minervini)
@@ -54,6 +54,10 @@ export function calculateSimplifiedAnalysis(stockData, spyData, srData) {
   const prices = stockData.priceHistory.map(d => d.close);
   const currentPrice = prices[prices.length - 1];
 
+  // Day 70: Market-cap-aware thresholds (used by criteria 3, 6)
+  const marketCap = stockData.marketCap || 0;
+  const capLabel = marketCap >= 10e9 ? 'large-cap' : marketCap >= 2e9 ? 'mid-cap' : 'small-cap';
+
   // ============================================
   // CRITERION 1: TREND
   // Price > 50 SMA > 200 SMA (Stage 2 uptrend)
@@ -78,7 +82,9 @@ export function calculateSimplifiedAnalysis(stockData, spyData, srData) {
 
   // ============================================
   // CRITERION 2: MOMENTUM (Relative Strength)
-  // Stock outperforming SPY over 52 weeks
+  // Day 70: Tightened from RS >= 1.0 to RS >= 1.2
+  // Backtest: RS 1.2 → PF 1.78, WR 52.6% vs RS 1.0 → PF 1.56, WR 49.7%
+  // Multi-LLM audit: RS 1.0 rated MISLEADING (too permissive for Minervini/O'Neil)
   // ============================================
   if (stockData.priceHistory.length >= 252 && spyData?.priceHistory?.length >= 252) {
     const stockPrices = stockData.priceHistory.map(d => d.close);
@@ -89,9 +95,11 @@ export function calculateSimplifiedAnalysis(stockData, spyData, srData) {
 
     const rsRatio = spyReturn !== 0 ? (1 + stockReturn) / (1 + spyReturn) : 1;
 
-    if (rsRatio >= 1.0) {
+    if (rsRatio >= 1.2) {
       results.criteria.momentum.pass = true;
-      results.criteria.momentum.reason = `RS ${rsRatio.toFixed(2)} - outperforming SPY (Stock: ${(stockReturn * 100).toFixed(1)}% vs SPY: ${(spyReturn * 100).toFixed(1)}%)`;
+      results.criteria.momentum.reason = `RS ${rsRatio.toFixed(2)} - outperforming SPY by ${((rsRatio - 1) * 100).toFixed(0)}% (Stock: ${(stockReturn * 100).toFixed(1)}% vs SPY: ${(spyReturn * 100).toFixed(1)}%)`;
+    } else if (rsRatio >= 1.0) {
+      results.criteria.momentum.reason = `RS ${rsRatio.toFixed(2)} - barely outperforming SPY (need >= 1.2 for quality momentum)`;
     } else {
       results.criteria.momentum.reason = `RS ${rsRatio.toFixed(2)} - underperforming SPY (Stock: ${(stockReturn * 100).toFixed(1)}% vs SPY: ${(spyReturn * 100).toFixed(1)}%)`;
     }
@@ -101,18 +109,22 @@ export function calculateSimplifiedAnalysis(stockData, spyData, srData) {
 
   // ============================================
   // CRITERION 3: SETUP (Entry Quality)
-  // Can set stop within 7% of entry
+  // Day 70: Cap-aware stop distance (ATR analysis: 7% = 1.4x ATR for small caps)
+  // Large (>$10B): 7% | Mid ($2-10B): 9% | Small (<$2B): 10%
+  // Ensures >= 2x ATR room across all cap tiers (LeBeau & Lucas 1992)
   // ============================================
+  const maxStopPct = marketCap >= 10e9 ? 7 : marketCap >= 2e9 ? 9 : 10;
+
   if (srData?.suggestedEntry && srData?.suggestedStop) {
     const entry = srData.suggestedEntry;
     const stop = srData.suggestedStop;
     const stopPct = ((entry - stop) / entry) * 100;
 
-    if (stopPct <= 7 && stopPct > 0) {
+    if (stopPct <= maxStopPct && stopPct > 0) {
       results.criteria.setup.pass = true;
       results.criteria.setup.reason = `Stop ${stopPct.toFixed(1)}% below entry - tight risk`;
-    } else if (stopPct > 7) {
-      results.criteria.setup.reason = `Stop ${stopPct.toFixed(1)}% below entry - too wide (max 7%)`;
+    } else if (stopPct > maxStopPct) {
+      results.criteria.setup.reason = `Stop ${stopPct.toFixed(1)}% below entry - too wide (max ${maxStopPct}% for ${capLabel})`;
     } else {
       results.criteria.setup.reason = 'Invalid stop placement';
     }
@@ -121,11 +133,11 @@ export function calculateSimplifiedAnalysis(stockData, spyData, srData) {
     const nearestSupport = Math.max(...srData.support);
     const stopPct = ((currentPrice - nearestSupport) / currentPrice) * 100;
 
-    if (stopPct <= 7 && stopPct > 0) {
+    if (stopPct <= maxStopPct && stopPct > 0) {
       results.criteria.setup.pass = true;
       results.criteria.setup.reason = `Support at $${nearestSupport.toFixed(2)} (${stopPct.toFixed(1)}% below) - good entry zone`;
-    } else if (stopPct > 7) {
-      results.criteria.setup.reason = `Nearest support ${stopPct.toFixed(1)}% below - extended from support`;
+    } else if (stopPct > maxStopPct) {
+      results.criteria.setup.reason = `Nearest support ${stopPct.toFixed(1)}% below - extended (max ${maxStopPct}% for ${capLabel})`;
     } else {
       results.criteria.setup.reason = 'Price at or below support';
     }
@@ -181,17 +193,21 @@ export function calculateSimplifiedAnalysis(stockData, spyData, srData) {
 
   // ============================================
   // CRITERION 6: VOLUME (Liquidity)
-  // Avg daily dollar volume >= $10M
+  // Day 70: Cap-aware thresholds (multi-LLM audit: flat $10M was MISLEADING)
+  // Large-cap (>$10B): $10M | Mid-cap ($2B-$10B): $5M | Small-cap (<$2B): $2M
   // ============================================
+  const volumeThreshold = marketCap >= 10e9 ? 10e6 : marketCap >= 2e9 ? 5e6 : 2e6;
+  const volumeThresholdLabel = marketCap >= 10e9 ? '$10M' : marketCap >= 2e9 ? '$5M' : '$2M';
+
   const avgVolume = stockData.avgVolume;
   if (avgVolume && avgVolume > 0) {
     const dollarVolume = avgVolume * currentPrice;
     const dollarVolM = dollarVolume / 1e6;
-    if (dollarVolume >= 10e6) {
+    if (dollarVolume >= volumeThreshold) {
       results.criteria.volume.pass = true;
-      results.criteria.volume.reason = `$${dollarVolM.toFixed(0)}M daily - sufficient liquidity`;
+      results.criteria.volume.reason = `$${dollarVolM.toFixed(dollarVolM >= 10 ? 0 : 1)}M daily - sufficient for ${capLabel}`;
     } else {
-      results.criteria.volume.reason = `$${dollarVolM.toFixed(1)}M daily - thin liquidity (need >= $10M)`;
+      results.criteria.volume.reason = `$${dollarVolM.toFixed(1)}M daily - thin liquidity (need >= ${volumeThresholdLabel} for ${capLabel})`;
     }
   } else {
     // Fallback: calculate from price history volume
@@ -200,11 +216,11 @@ export function calculateSimplifiedAnalysis(stockData, spyData, srData) {
       const avg50Vol = volumes.slice(-50).reduce((a, b) => a + b, 0) / 50;
       const dollarVolume = avg50Vol * currentPrice;
       const dollarVolM = dollarVolume / 1e6;
-      if (dollarVolume >= 10e6) {
+      if (dollarVolume >= volumeThreshold) {
         results.criteria.volume.pass = true;
-        results.criteria.volume.reason = `$${dollarVolM.toFixed(0)}M daily - sufficient liquidity`;
+        results.criteria.volume.reason = `$${dollarVolM.toFixed(dollarVolM >= 10 ? 0 : 1)}M daily - sufficient for ${capLabel}`;
       } else {
-        results.criteria.volume.reason = `$${dollarVolM.toFixed(1)}M daily - thin liquidity (need >= $10M)`;
+        results.criteria.volume.reason = `$${dollarVolM.toFixed(1)}M daily - thin liquidity (need >= ${volumeThresholdLabel} for ${capLabel})`;
       }
     } else {
       results.criteria.volume.reason = 'Volume data unavailable';

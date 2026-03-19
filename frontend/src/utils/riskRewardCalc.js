@@ -4,8 +4,10 @@
  *
  * Used by: App.jsx (viability badge + contradiction), DecisionMatrix.jsx, BottomLineCard.jsx
  *
+ * Tier 1A: ATR stops are PRIMARY. Percentage caps are safety floors only.
  * Pullback entry: Buy at nearest support, stop 2×ATR below support
  * Momentum entry: Buy at current price, stop 1.5×ATR below support
+ * Max stop cap: 7% from entry (backtest uses 5% quick, 7% standard, 8% position)
  */
 
 /**

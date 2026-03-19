@@ -383,6 +383,26 @@ def detect_vcp(df: pd.DataFrame, lookback_days: int = 90) -> Dict:
     late_volume = volume.iloc[-lookback_days//4:].mean()
     volume_declining = late_volume < early_volume
 
+    # Per-contraction volume dry-up check (Bug 0B: Minervini's volume signature)
+    # For each contraction, volume during the pullback should be lower than
+    # volume in the 10 days before the contraction's high
+    contractions_with_dryup = 0
+    for c in contractions[-4:]:
+        hi = c['high_idx']
+        lo = c['low_idx']
+        pre_high_start = max(0, hi - 10)
+        if pre_high_start < hi and hi < lo:
+            vol_before = volume.iloc[pre_high_start:hi].mean()
+            vol_during = volume.iloc[hi:lo + 1].mean()
+            if vol_before > 0 and vol_during < vol_before:
+                contractions_with_dryup += 1
+    # Dry-up in majority of contractions = positive signal
+    contraction_count_checked = min(len(contractions), 4)
+    volume_dryup_per_contraction = (
+        contractions_with_dryup >= (contraction_count_checked / 2)
+        if contraction_count_checked > 0 else False
+    )
+
     # Calculate pivot price: most recent pivot high = actual breakout level
     # high.max() was the 90-day maximum, which is misleading if stock peaked months ago
     pivot_price = high.iloc[pivot_highs_idx[-1]] if pivot_highs_idx else high.max()
@@ -411,6 +431,8 @@ def detect_vcp(df: pd.DataFrame, lookback_days: int = 90) -> Dict:
         confidence += 15
     if volume_declining:
         confidence += 5
+    if volume_dryup_per_contraction:
+        confidence += 10  # Bug 0B: per-contraction volume dry-up (Minervini signature)
 
     # Determine status
     current_price = close.iloc[-1]
@@ -431,6 +453,7 @@ def detect_vcp(df: pd.DataFrame, lookback_days: int = 90) -> Dict:
         'base_tightness_pct': round(base_tightness, 1),
         'tight_base': tight_base,
         'volume_declining': volume_declining,
+        'volume_dryup_per_contraction': volume_dryup_per_contraction,
         'pivot_price': round(pivot_price, 2),
         'current_price': round(current_price, 2),
         'distance_to_pivot_pct': round((pivot_price - current_price) / current_price * 100, 1),

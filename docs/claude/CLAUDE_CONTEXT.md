@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 69 (March 18, 2026)
+> **Last Updated:** Day 70B (March 19, 2026)
 
 ---
 
@@ -11,30 +11,30 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 69 |
-| Version | v4.30 (Backend v2.32, Frontend v4.30, Backtest v4.17, API Service v2.9) |
-| Latest Status | PROJECT_STATUS_DAY69_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY69.md |
-| Latest API | API_CONTRACTS_DAY62.md (updated Day 68) |
-| Focus | **Universal Principles evolution. 4-LLM synthesis complete. Implementation plan ready.** |
+| Current Day | 70B |
+| Version | v4.32 (Backend v2.33, Frontend v4.32, Backtest v4.17, API Service v2.10) |
+| Latest Status | PROJECT_STATUS_DAY70B_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY70.md |
+| Latest API | API_CONTRACTS_DAY70.md |
+| Focus | **Simplicity premium implemented. Cap-aware simple checklist. Feature freeze → paper trading.** |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
 
-### Day 69 Summary (4-LLM Universal Principles Synthesis + Implementation Plan — no code changes)
-- **4-LLM synthesis complete:** Grok + Gemini + Perplexity + Claude independently audited 35 claims across 5 prompts. Cross-LLM verdict matrix at `docs/research/UNIVERSAL_PRINCIPLES_SYNTHESIS.md`.
-- **Key consensus:** Equal-weight factors (4/4), walk-forward not enough (4/4), factor decay ~58% (4/4), simplicity premium real (4/4), ATR stops primary (3/4), RSI(2)<10 for MR (3/4).
-- **Surgical implementation plan:** File-by-file, module-by-module at `docs/research/UNIVERSAL_PRINCIPLES_IMPLEMENTATION_PLAN.md`. 7 files modified, 3 new files, 5 test gates.
-- **Architecture confirmed:** ~85% of code survives. Evolution is in thresholds + position sizing + MR arm. No rebuild needed.
-- **Tiers:** T1 (ATR primary + equal weight + param stability), T2 (VIX sizing + blended RS), T3 (MR arm RSI(2)).
+### Day 70B Summary (Simplicity Premium UI + Cap-Aware Simple Checklist — v4.32)
+- **Sentiment removed from verdict**: T+F only (backtest never validated sentiment). Risk/Macro gate intact.
+- **Progressive disclosure**: 3-tier collapsible full analysis. Decision Matrix + TradingView Chart removed.
+- **Simple checklist data-driven**: RS 1.0→1.2 (backtest: PF 1.78), volume cap-aware ($2M/$5M/$10M), stop cap-aware (7%/9%/10%).
+- **No API changes**. No backtest re-run needed (frontend checklist is independent of backtest engine).
+- 5 files modified, 0 files created.
 
-### Day 68 Summary (System Audit + Doc Cleanup — v4.30, no code changes)
-- System audit Layer 1: 15 README claims audited — 9 VERIFIED, 5 MISLEADING, 1 PLAUSIBLE.
-- Audit protocol established. External LLM prompts created. Doc framework 62% reduction.
+### Day 70 Summary (Universal Principles Implementation COMPLETE — v4.31)
+- All 4 tiers implemented across 2 sessions (Day 69-70). MR engine + VIX sizing + blended RS (info only).
+- Zero regression on existing backtest.
 
-### Day 67 Summary (Data Sources Transparency Audit & 7 Bug Fixes → v4.30)
-- Full multi-provider chain audit. 8 FMP text references updated. 7 UI/provenance bugs fixed.
+### Day 69 Summary (4-LLM Universal Principles Synthesis + Tier 0-1 — v4.30)
+- 4-LLM synthesis complete. Tier 0 bug fixes + Tier 1 quick wins. RS 1.0 validated. Parameter stability script.
 
 ---
 
@@ -112,11 +112,10 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 
 ## NEXT SESSION PRIORITIES
 
-1. **Tier 0: Pre-work bug fixes** — 7 must-fix items from first audit (VCP volume, MTF 3.2x, TT 25→30%, RS threshold backtest, RRG normalization, F&G neutral zone). Fix these BEFORE any evolution.
-2. **Tier 1: Quick wins** — ATR stops primary (1A), equal-weight principle (1B), parameter stability script (1C).
-3. **Tier 2: High impact** — VIX position sizing (2A), blended 3-lookback RS (2B).
+1. **Paper trading** — System is frozen. Start logging real trades using Forward Testing tab.
+2. **Gate 5: Combined momentum+MR system test** — Verify combined Sharpe > momentum-only.
+3. **Flip default view to simple** — Last remaining simplicity premium item (30 min).
 4. **README fixes** — 7 items from Day 68 audit (FMP refs, versions, Fundamental Strong desc, 200 EMA→SMA).
-5. **Implementation plan:** `docs/research/UNIVERSAL_PRINCIPLES_IMPLEMENTATION_PLAN.md`
 
 ---
 
@@ -167,6 +166,8 @@ curl http://localhost:5001/api/cache/status
 | 67 | Data sources transparency, 7 bug fixes, v4.30. |
 | 68 | System audit (Layer 1+2), doc framework cleanup, archiving protocol added. |
 | 69 | 4-LLM Universal Principles synthesis + detailed implementation plan. |
+| 70 | Universal Principles Tier 2+3 complete (VIX sizing, blended RS info-only, MR engine). |
+| 70B | Simplicity premium UI + cap-aware simple checklist. Sentiment informational-only. v4.32. |
 
 ---
 

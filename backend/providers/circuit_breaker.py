@@ -100,6 +100,14 @@ class CircuitBreaker:
                     print(f"🔴 Circuit breaker [{self.provider}]: CLOSED → OPEN "
                           f"({self._failure_count} consecutive failures)")
 
+    def trip(self):
+        """Immediately open the circuit breaker (permanent failure, e.g. deprecated API plan)"""
+        with self._lock:
+            self._state = CircuitState.OPEN
+            self._failure_count = self.failure_threshold
+            self._last_failure_time = time.monotonic()
+            print(f"⛔ Circuit breaker [{self.provider}]: tripped permanently (deprecated/auth failure)")
+
     def reset(self):
         """Manually reset circuit to CLOSED"""
         with self._lock:

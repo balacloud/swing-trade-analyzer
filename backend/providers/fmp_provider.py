@@ -86,6 +86,8 @@ class FMPProvider(FundamentalsProvider):
             normalized = apply_field_map(growth_data, FMP_GROWTH)
             breaker.record_success()
             return normalized
+        except (DataNotFoundError, RateLimitError, AuthenticationError, ProviderUnavailableError):
+            raise
         except Exception as e:
             breaker.record_failure()
             raise ProviderUnavailableError(self.name, str(e), ticker) from e
@@ -138,7 +140,16 @@ class FMPProvider(FundamentalsProvider):
             breaker.record_failure()
             raise RateLimitError(self.name, "HTTP 429", ticker)
         if resp.status_code == 401 or resp.status_code == 403:
-            breaker.record_failure()
+            # Check if this is a permanent plan incompatibility (FMP v3 deprecated Aug 2025)
+            try:
+                msg = resp.json().get('Error Message', '')
+            except Exception:
+                msg = ''
+            if 'Legacy' in msg or 'legacy' in msg:
+                print(f"⛔ FMP: v3 endpoints deprecated (Aug 2025) — disabling FMP for this session")
+                breaker.trip()
+            else:
+                breaker.record_failure()
             raise AuthenticationError(self.name, f"HTTP {resp.status_code}", ticker)
         if resp.status_code >= 500:
             breaker.record_failure()

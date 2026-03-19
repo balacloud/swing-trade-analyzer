@@ -68,10 +68,7 @@ function getWhatsGood(categoricalResult, srData, currentPrice, holdingPeriod) {
     points.push('Decent fundamentals - acceptable for position trade');
   }
 
-  // Sentiment positives
-  if (sentiment?.assessment === 'Strong') {
-    points.push(`Positive sentiment (F&G: ${sentiment.data?.value}) supports momentum`);
-  }
+  // Sentiment: informational only (Day 70) — not included in good/risky
 
   // Risk/Macro positives
   if (riskMacro?.assessment === 'Favorable') {
@@ -150,15 +147,7 @@ function getWhatsRisky(categoricalResult, srData, currentPrice, holdingPeriod) {
     }
   }
 
-  // Sentiment risk
-  if (sentiment?.assessment === 'Weak') {
-    const fgValue = sentiment.data?.value;
-    if (fgValue && fgValue > 80) {
-      points.push(`Extreme greed (F&G: ${fgValue}) - contrarian risk elevated`);
-    } else if (fgValue && fgValue < 35) {
-      points.push(`Fear in market (F&G: ${fgValue}) - pullback setups risky`);
-    }
-  }
+  // Sentiment: informational only (Day 70) — not included in good/risky
 
   // Risk/Macro
   if (riskMacro?.assessment === 'Unfavorable') {
@@ -227,7 +216,7 @@ function getActionPlan(categoricalResult, srData, currentPrice, holdingPeriod) {
     if (nearestSupport) {
       steps.push(`Set alert at $${nearestSupport.toFixed(2)} for pullback entry`);
     }
-    steps.push('Wait for improving technicals or sentiment');
+    steps.push('Wait for improving technicals or market conditions');
     if (holdingPeriod === 'position') {
       steps.push('Monitor quarterly earnings for fundamental confirmation');
     }

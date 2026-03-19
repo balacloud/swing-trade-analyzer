@@ -598,7 +598,12 @@ export function calculateScore(stockData, spyData, vixData) {
       stock52wReturn: rsData.stockReturn52w,  // UI expects stock52wReturn
       spy52wReturn: rsData.spyReturn52w,      // UI expects spy52wReturn
       interpretation: rsData.interpretation,
-      passesQualityGate: rsData.passesQualityGate
+      passesQualityGate: rsData.passesQualityGate,
+      // Tier 2B: Blended RS — informational only, NOT used for verdicts
+      rsBlended: rsData.rsBlended || null,
+      rs21d: rsData.rs21d || null,
+      rs63d: rsData.rs63d || null,
+      rs126d: rsData.rs126d || null,
     },
     
     // Technical indicators

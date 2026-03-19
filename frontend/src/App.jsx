@@ -38,16 +38,17 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation, clearBackendCache, fetchDataProvenance, getCacheStatus, fetchSectorRotation } from './services/api';
+import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation, clearBackendCache, fetchDataProvenance, getCacheStatus, fetchSectorRotation, fetchMRSignal } from './services/api';
 import { calculateScore } from './utils/scoringEngine';
 import { calculateSimplifiedAnalysis } from './utils/simplifiedScoring';
 import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings } from './utils/positionSizing';
 import { runCategoricalAssessment, getActionablePatterns } from './utils/categoricalAssessment';
 import { calculateRiskReward, hasViabilityContradiction, getViabilityBadge } from './utils/riskRewardCalc';
 import BottomLineCard, { HOLDING_PERIODS } from './components/BottomLineCard';
-import DecisionMatrix from './components/DecisionMatrix';
+// DecisionMatrix removed Day 70 — simplicity premium (full+simple views sufficient)
 import SectorRotationTab from './components/SectorRotationTab'; // Day 62: v4.24 Sector Rotation Phase 2
 import ContextTab from './components/ContextTab'; // Day 62: v4.24 Context Tab
+import MRSignalCard from './components/MRSignalCard'; // Tier 3B: Mean-Reversion Signal
 import {
   createTrade, closeTrade, calculateStatistics, getSQNRating,
   loadTrades, saveTrades, addTrade, updateTrade, deleteTrade,
@@ -73,6 +74,8 @@ function App() {
   const [categoricalResult, setCategoricalResult] = useState(null); // Day 44: v4.5 Categorical Assessment
   const [holdingPeriod, setHoldingPeriod] = useState('standard'); // Day 53: v4.13 Holding Period Selector
   const [rawAnalysisData, setRawAnalysisData] = useState(null); // Day 53: Stored for re-assessment on period change
+  const [mrSignalData, setMrSignalData] = useState(null); // Tier 3B: Mean-reversion signal
+  const [mrSignalLoading, setMrSignalLoading] = useState(false); // Tier 3B: MR loading state
 
   // Forward Testing state (Day 47: v4.7)
   const [forwardTrades, setForwardTrades] = useState(() => loadTrades());
@@ -118,8 +121,11 @@ function App() {
   const [lastRefresh, setLastRefresh] = useState(null);
   const [refreshMessage, setRefreshMessage] = useState(null); // Feedback message
 
-  // TradingView widget state (Day 34)
-  const [tvWidgetCollapsed, setTvWidgetCollapsed] = useState(true); // Collapsed by default
+  // Day 70: Collapsible sections for progressive disclosure (simplicity premium)
+  // Keys: 'holdingPeriod', 'priceRS', 'patterns', 'categorical', 'indicators'
+  // Default: all collapsed (undefined = falsy = collapsed)
+  const [expandedSections, setExpandedSections] = useState({});
+  const toggleSection = (key) => setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }));
 
   // Data Sources state (Day 38)
   const [provenanceData, setProvenanceData] = useState(null);
@@ -258,9 +264,13 @@ function App() {
       return;
     }
     // Day 29: Pass options for max position size and manual shares
+    // Tier 2A: VIX-based position scaling
+    const vixCurrent = rawAnalysisData?.vix?.current;
+    const vixMultiplier = vixCurrent == null ? 1.0 : vixCurrent < 20 ? 1.0 : vixCurrent <= 30 ? 0.75 : 0.50;
     const options = {
       maxPositionPercent: settings.maxPositionPercent || 25,
-      manualShares: settings.useManualShares ? (settings.manualShares || 0) : 0
+      manualShares: settings.useManualShares ? (settings.manualShares || 0) : 0,
+      vixMultiplier,
     };
     const result = calculatePositionSize(settings.accountSize, settings.riskPercent, entry, stop, options);
     setPositionResult(result);
@@ -276,9 +286,13 @@ function App() {
     setCalcStop(stop.toFixed(2));
 
     // Day 29: Pass options for max position size (don't use manual shares on auto-fill)
+    // Tier 2A: VIX-based position scaling
+    const vixCurrent = rawAnalysisData?.vix?.current;
+    const vixMultiplier = vixCurrent == null ? 1.0 : vixCurrent < 20 ? 1.0 : vixCurrent <= 30 ? 0.75 : 0.50;
     const options = {
       maxPositionPercent: settings.maxPositionPercent || 25,
-      manualShares: 0 // Auto-fill always uses calculated shares
+      manualShares: 0, // Auto-fill always uses calculated shares
+      vixMultiplier,
     };
     const result = calculatePositionSize(settings.accountSize, settings.riskPercent, entry, stop, options);
     setPositionResult(result);
@@ -303,7 +317,15 @@ function App() {
     setFearGreedData(null);
     setCategoricalResult(null);
     setSimplifiedResult(null);
+    setMrSignalData(null);
     setActiveTab('analyze');
+
+    // Tier 3B: Fetch MR signal in parallel (non-blocking)
+    setMrSignalLoading(true);
+    fetchMRSignal(targetTicker)
+      .then(data => setMrSignalData(data))
+      .catch(() => setMrSignalData(null))
+      .finally(() => setMrSignalLoading(false));
 
     try {
       const data = await fetchFullAnalysisData(targetTicker);
@@ -943,17 +965,7 @@ function App() {
                         : 'text-gray-400 hover:text-white'
                     }`}
                   >
-                    📊 Full Analysis (75-pt)
-                  </button>
-                  <button
-                    onClick={() => setAnalysisView('matrix')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      analysisView === 'matrix'
-                        ? 'bg-indigo-600 text-white'
-                        : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    🎯 Decision Matrix
+                    Full Analysis
                   </button>
                   <button
                     onClick={() => setAnalysisView('simple')}
@@ -995,28 +1007,36 @@ function App() {
             {/* Analysis Results */}
             {analysisResult && !loading && analysisView === 'full' && (
               <div className="space-y-6">
-                {/* v4.13: Holding Period Selector Toggle */}
-                <div className="flex items-center gap-3 bg-gray-800/50 rounded-lg px-4 py-3">
-                  <span className="text-sm text-gray-400 font-medium">Holding Period:</span>
-                  <div className="flex gap-1">
-                    {Object.entries(HOLDING_PERIODS).map(([key, config]) => (
-                      <button
-                        key={key}
-                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                          holdingPeriod === key
-                            ? 'bg-blue-600 text-white shadow-lg'
-                            : 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-gray-200'
-                        }`}
-                        onClick={() => setHoldingPeriod(key)}
-                        title={`${config.name}: Tech ${Math.round(config.techWeight * 100)}% / Fund ${Math.round(config.fundWeight * 100)}%`}
-                      >
-                        {config.label}
-                      </button>
-                    ))}
-                  </div>
-                  <span className="text-xs text-gray-500 ml-2">
-                    Tech {Math.round(HOLDING_PERIODS[holdingPeriod].techWeight * 100)}% / Fund {Math.round(HOLDING_PERIODS[holdingPeriod].fundWeight * 100)}%
-                  </span>
+                {/* v4.13: Holding Period Selector — Day 70: collapsed by default */}
+                <div className="bg-gray-800/50 rounded-lg">
+                  <button
+                    onClick={() => toggleSection('holdingPeriod')}
+                    className="flex items-center gap-2 w-full px-4 py-3 text-left hover:bg-gray-700/30 transition-colors rounded-lg"
+                  >
+                    <span className="text-sm text-gray-500">{expandedSections.holdingPeriod ? '▼' : '▶'}</span>
+                    <span className="text-sm text-gray-400 font-medium">Holding Period</span>
+                    <span className="ml-auto text-xs text-blue-400 font-medium">{HOLDING_PERIODS[holdingPeriod].label} — Tech {Math.round(HOLDING_PERIODS[holdingPeriod].techWeight * 100)}% / Fund {Math.round(HOLDING_PERIODS[holdingPeriod].fundWeight * 100)}%</span>
+                  </button>
+                  {expandedSections.holdingPeriod && (
+                    <div className="flex items-center gap-3 px-4 pb-3">
+                      <div className="flex gap-1">
+                        {Object.entries(HOLDING_PERIODS).map(([key, config]) => (
+                          <button
+                            key={key}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                              holdingPeriod === key
+                                ? 'bg-blue-600 text-white shadow-lg'
+                                : 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-gray-200'
+                            }`}
+                            onClick={() => setHoldingPeriod(key)}
+                            title={`${config.name}: Tech ${Math.round(config.techWeight * 100)}% / Fund ${Math.round(config.fundWeight * 100)}%`}
+                          >
+                            {config.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Verdict Card - v4.5 Categorical Assessment (Neutral design) */}
@@ -1143,7 +1163,20 @@ function App() {
                   </div>
                 )}
 
-                {/* Price & RS Info */}
+                {/* Price & RS Info — Day 70: collapsed by default */}
+                <div className="bg-gray-800 rounded-lg">
+                  <button
+                    onClick={() => toggleSection('priceRS')}
+                    className="flex items-center gap-2 w-full px-6 py-4 text-left hover:bg-gray-700/30 transition-colors rounded-lg"
+                  >
+                    <span className="text-sm text-gray-500">{expandedSections.priceRS ? '▼' : '▶'}</span>
+                    <span className="text-lg font-semibold text-blue-400">Price & Relative Strength</span>
+                    <span className="ml-auto text-xs text-gray-500">
+                      {formatCurrency(analysisResult.currentPrice)} | RS {analysisResult.rsData?.rs52Week?.toFixed(2) || 'N/A'}
+                    </span>
+                  </button>
+                </div>
+                {expandedSections.priceRS && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Price Card */}
                   <div className="bg-gray-800 rounded-lg p-6">
@@ -1221,6 +1254,7 @@ function App() {
                     </div>
                   </div>
                 </div>
+                )}
 
                 {/* Trade Setup Card (S&R) - Day 22: Enhanced with Viability */}
                 {/* Day 49: Calculate R:R viability for badge specificity */}
@@ -1638,16 +1672,28 @@ function App() {
                   </div>
                 )}
 
-                {/* Pattern Detection Card - Day 44: VCP, Cup & Handle, Flat Base */}
+                {/* Pattern Detection Card — Day 70: collapsed by default */}
                 {patternsData && (
-                  <div className="bg-gray-800 rounded-lg p-6">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold text-purple-400">📐 Pattern Detection</h3>
+                  <div className="bg-gray-800 rounded-lg">
+                    <button
+                      onClick={() => toggleSection('patterns')}
+                      className="flex items-center gap-2 w-full px-6 py-4 text-left hover:bg-gray-700/30 transition-colors rounded-lg"
+                    >
+                      <span className="text-sm text-gray-500">{expandedSections.patterns ? '▼' : '▶'}</span>
+                      <span className="text-lg font-semibold text-purple-400">Pattern Detection</span>
                       {patternsData.summary?.count > 0 && (
-                        <div className="px-3 py-1 rounded-full text-sm font-bold bg-purple-900/50 text-purple-300 border border-purple-600">
-                          {patternsData.summary.count} Pattern{patternsData.summary.count > 1 ? 's' : ''} Found
-                        </div>
+                        <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-purple-900/50 text-purple-300 border border-purple-600">
+                          {patternsData.summary.count} Pattern{patternsData.summary.count > 1 ? 's' : ''}
+                        </span>
                       )}
+                      <span className="ml-auto text-xs text-gray-500">
+                        {patternsData.summary?.bestPattern || 'No strong patterns'}
+                      </span>
+                    </button>
+                    {expandedSections.patterns && (
+                    <div className="px-6 pb-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold text-purple-400">VCP, Cup & Handle, Flat Base</h3>
                     </div>
 
                     {/* Trend Template Score */}
@@ -1927,45 +1973,12 @@ function App() {
                     <div className="mt-3 text-xs text-gray-500 text-center">
                       Data: Multi-Source (OHLCV) • Quality: algorithmic detection • Threshold: ≥60% for actionability
                     </div>
-                  </div>
-                )}
-
-                {/* TradingView Widget - Day 34: Supplementary RSI/MACD view */}
-                {analysisResult && (
-                  <div className="bg-gray-800 rounded-lg p-4">
-                    <button
-                      onClick={() => setTvWidgetCollapsed(!tvWidgetCollapsed)}
-                      className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors w-full text-left"
-                    >
-                      <span className="text-lg">{tvWidgetCollapsed ? '▶' : '▼'}</span>
-                      <span className="font-medium">📺 TradingView Chart</span>
-                      <span className="text-xs text-gray-500 ml-auto">RSI, MACD, Volume</span>
-                    </button>
-
-                    {!tvWidgetCollapsed && (
-                      <div className="mt-3">
-                        <div className="border border-gray-700 rounded-lg overflow-hidden">
-                          {/* TradingView Advanced Chart Widget */}
-                          <div
-                            className="tradingview-widget-container"
-                            style={{ height: '400px' }}
-                          >
-                            <iframe
-                              key={analysisResult.ticker} // Force re-render on ticker change
-                              src={`https://www.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=${analysisResult.ticker}&interval=D&hidesidetoolbar=0&symboledit=0&saveimage=0&toolbarbg=f1f3f6&studies=%5B%22RSI%40tv-basicstudies%22%2C%22MACD%40tv-basicstudies%22%5D&theme=dark&style=1&timezone=America%2FNew_York&withdateranges=1&showpopupbutton=0&studies_overrides=%7B%7D&overrides=%7B%7D&enabled_features=%5B%5D&disabled_features=%5B%5D&locale=en&utm_source=localhost&utm_medium=widget_new&utm_campaign=chart&utm_term=${analysisResult.ticker}`}
-                              style={{ width: '100%', height: '400px', border: 'none' }}
-                              title={`TradingView Chart for ${analysisResult.ticker}`}
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            />
-                          </div>
-                        </div>
-                        <div className="bg-yellow-900/20 text-yellow-400/80 text-xs p-2 text-center rounded-b-lg border-x border-b border-yellow-700/30 mt-0">
-                          ⚠️ Our S&R levels are shown in Trade Setup above. This widget provides supplementary RSI/MACD indicators.
-                        </div>
-                      </div>
+                    </div>
                     )}
                   </div>
                 )}
+
+                {/* TradingView Chart removed Day 70 — simplicity premium (S&R in Trade Setup is sufficient) */}
 
                 {/* v4.13: Bottom Line Card - replaces old Actionable Recommendation (Day 44) */}
                 <BottomLineCard
@@ -1975,10 +1988,28 @@ function App() {
                   holdingPeriod={holdingPeriod}
                 />
 
-                {/* Categorical Assessment - v4.5 (Day 44) */}
+                {/* Tier 3B: Mean-Reversion Signal Card (separate from momentum analysis) */}
+                <MRSignalCard mrData={mrSignalData} loading={mrSignalLoading} />
+
+                {/* Categorical Assessment — Day 70: collapsed by default */}
                 {categoricalResult && (
-                <div className="bg-gray-800 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold mb-4 text-blue-400">📊 Assessment <span className="text-xs text-gray-500 font-normal ml-2">Click to expand</span></h3>
+                <div className="bg-gray-800 rounded-lg">
+                  <button
+                    onClick={() => toggleSection('categorical')}
+                    className="flex items-center gap-2 w-full px-6 py-4 text-left hover:bg-gray-700/30 transition-colors rounded-lg"
+                  >
+                    <span className="text-sm text-gray-500">{expandedSections.categorical ? '▼' : '▶'}</span>
+                    <span className="text-lg font-semibold text-blue-400">Assessment Breakdown</span>
+                    <span className="ml-auto flex gap-2 text-xs">
+                      <span className={categoricalResult.technical.assessment === 'Strong' ? 'text-green-400' : categoricalResult.technical.assessment === 'Decent' ? 'text-yellow-400' : 'text-red-400'}>T:{categoricalResult.technical.assessment}</span>
+                      <span className={categoricalResult.fundamental.assessment === 'Strong' ? 'text-green-400' : categoricalResult.fundamental.assessment === 'Decent' ? 'text-yellow-400' : 'text-red-400'}>F:{categoricalResult.fundamental.assessment}</span>
+                      <span className="text-gray-500">S:{categoricalResult.sentiment.assessment}</span>
+                      <span className={categoricalResult.riskMacro.assessment === 'Favorable' ? 'text-green-400' : categoricalResult.riskMacro.assessment === 'Neutral' ? 'text-yellow-400' : 'text-red-400'}>R:{categoricalResult.riskMacro.assessment}</span>
+                    </span>
+                  </button>
+                  {expandedSections.categorical && (
+                  <div className="px-6 pb-6">
+                  <h3 className="text-sm font-medium mb-4 text-gray-400">Click any card to expand details</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {/* Technical Card */}
                     <div
@@ -2013,13 +2044,13 @@ function App() {
                         {categoricalResult.fundamental.assessment}
                       </div>
                     </div>
-                    {/* Sentiment Card */}
+                    {/* Sentiment Card — Day 70: informational only (not in verdict) */}
                     <div
-                      className={`bg-gray-700/50 rounded-lg p-4 cursor-pointer transition-all hover:bg-gray-700 ${expandedScore === 'sentiment' ? 'ring-2 ring-blue-500' : ''}`}
+                      className={`bg-gray-700/50 rounded-lg p-4 cursor-pointer transition-all hover:bg-gray-700 opacity-75 ${expandedScore === 'sentiment' ? 'ring-2 ring-blue-500' : ''}`}
                       onClick={() => setExpandedScore(expandedScore === 'sentiment' ? null : 'sentiment')}
                     >
                       <div className="flex justify-between items-center">
-                        <div className="text-gray-400 text-sm">Sentiment</div>
+                        <div className="text-gray-400 text-sm">Sentiment <span className="text-gray-600 text-xs">(info)</span></div>
                         <span className="text-gray-500 text-xs">{expandedScore === 'sentiment' ? '▼' : '▶'}</span>
                       </div>
                       <div className={`text-xl font-bold ${
@@ -2165,46 +2196,67 @@ function App() {
                     </div>
                     <p className="text-gray-400 mb-2">{categoricalResult.verdict.reason}</p>
                     <div className="text-xs text-gray-500">
-                      Criteria: Need 2+ Strong categories with Favorable/Neutral risk for BUY
+                      Criteria: Need 2+ Strong categories (T+F) with Favorable/Neutral risk for BUY
                     </div>
                   </div>
+                  </div>
+                  )}
                 </div>
                 )}
 
-                {/* Technical Indicators */}
-                <div className="bg-gray-800 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold mb-4 text-blue-400">📉 Technical Indicators</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-400">RSI (14): </span>
-                      <span className={getRsiColor(analysisResult.indicators?.rsi)}>
-                        {analysisResult.indicators?.rsi?.toFixed(1) || 'N/A'}
-                      </span>
+                {/* Technical Indicators — Day 70: hidden until requested (Tier 3) */}
+                {!expandedSections.indicators ? (
+                  <div className="text-center">
+                    <button
+                      onClick={() => toggleSection('indicators')}
+                      className="text-xs text-gray-600 hover:text-gray-400 transition-colors py-2"
+                    >
+                      Show Raw Indicators (RSI, EMA, SMA, ATR)
+                    </button>
+                  </div>
+                ) : (
+                  <div className="bg-gray-800 rounded-lg p-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold text-blue-400">Technical Indicators</h3>
+                      <button
+                        onClick={() => toggleSection('indicators')}
+                        className="text-xs text-gray-500 hover:text-gray-300"
+                      >
+                        Hide
+                      </button>
                     </div>
-                    <div>
-                      <span className="text-gray-400">8 EMA: </span>
-                      <span className="text-green-400">{formatCurrency(analysisResult.indicators?.ema8)}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">21 EMA: </span>
-                      <span className="text-green-400">{formatCurrency(analysisResult.indicators?.ema21)}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">50 SMA: </span>
-                      <span className="text-green-400">{formatCurrency(analysisResult.indicators?.sma50)}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">200 SMA: </span>
-                      <span className="text-green-400">{formatCurrency(analysisResult.indicators?.sma200)}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">ATR: </span>
-                      <span className="text-yellow-400">
-                        {analysisResult.indicators?.atr ? formatCurrency(analysisResult.indicators.atr) : 'N/A'}
-                      </span>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-400">RSI (14): </span>
+                        <span className={getRsiColor(analysisResult.indicators?.rsi)}>
+                          {analysisResult.indicators?.rsi?.toFixed(1) || 'N/A'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">8 EMA: </span>
+                        <span className="text-green-400">{formatCurrency(analysisResult.indicators?.ema8)}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">21 EMA: </span>
+                        <span className="text-green-400">{formatCurrency(analysisResult.indicators?.ema21)}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">50 SMA: </span>
+                        <span className="text-green-400">{formatCurrency(analysisResult.indicators?.sma50)}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">200 SMA: </span>
+                        <span className="text-green-400">{formatCurrency(analysisResult.indicators?.sma200)}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">ATR: </span>
+                        <span className="text-yellow-400">
+                          {analysisResult.indicators?.atr ? formatCurrency(analysisResult.indicators.atr) : 'N/A'}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Quality Gates */}
                 {analysisResult.qualityGates && analysisResult.qualityGates.gates?.length > 0 && (
@@ -2221,41 +2273,6 @@ function App() {
                     </div>
                   </div>
                 )}
-              </div>
-            )}
-
-            {/* ==================== DECISION MATRIX VIEW (Day 53) ==================== */}
-            {analysisResult && !loading && analysisView === 'matrix' && (
-              <div className="space-y-6">
-                {/* Day 53: Holding Period Selector (same as full view) */}
-                <div className="flex items-center gap-3 bg-gray-800/50 rounded-lg px-4 py-3">
-                  <span className="text-sm text-gray-400 font-medium">Holding Period:</span>
-                  <div className="flex gap-1">
-                    {Object.entries(HOLDING_PERIODS).map(([key, config]) => (
-                      <button
-                        key={key}
-                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                          holdingPeriod === key
-                            ? 'bg-blue-600 text-white shadow-lg'
-                            : 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-gray-200'
-                        }`}
-                        onClick={() => setHoldingPeriod(key)}
-                        title={`${config.name}: Tech ${Math.round(config.techWeight * 100)}% / Fund ${Math.round(config.fundWeight * 100)}%`}
-                      >
-                        {config.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <DecisionMatrix
-                  categoricalResult={categoricalResult}
-                  analysisResult={analysisResult}
-                  srData={srData}
-                  patternsData={patternsData}
-                  holdingPeriod={holdingPeriod}
-                  currentPrice={analysisResult?.currentPrice}
-                />
               </div>
             )}
 

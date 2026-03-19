@@ -141,7 +141,23 @@ export function calculateRelativeStrength(stockData, spyData) {
       
       // Quality gate check
       passesQualityGate: rs52Week >= 0.8,
-      
+
+      // Tier 2B: Blended RS (informational only — backtest showed degradation:
+      // PF 1.90→1.51, Sharpe 1.17→0.68. rs52Week remains the verdict driver.)
+      ...(() => {
+        const stockPrices = stockData?.priceHistory?.map(d => d.close);
+        const spyPrices = spyData?.priceHistory?.map(d => d.close);
+        const blended = calculateBlendedRS(stockPrices, spyPrices);
+        return blended ? {
+          rsBlended: blended.rsBlended,
+          rs21d: blended.rs21d,
+          rs63d: blended.rs63d,
+          rs126d: blended.rs126d,
+        } : {
+          rsBlended: null, rs21d: null, rs63d: null, rs126d: null,
+        };
+      })(),
+
       error: null
     };
   } catch (error) {
@@ -154,6 +170,47 @@ export function calculateRelativeStrength(stockData, spyData) {
       error: error.message
     };
   }
+}
+
+/**
+ * Tier 2B: Calculate blended RS using 3 lookbacks (21d, 63d, 126d).
+ * INFORMATIONAL ONLY — backtest showed blended RS degrades verdict quality
+ * (PF 1.90→1.51, Sharpe 1.17→0.68). rs52Week remains the verdict driver.
+ *
+ * @param {number[]} stockPrices - Array of stock close prices (oldest first)
+ * @param {number[]} spyPrices - Array of SPY close prices (oldest first)
+ * @returns {Object|null} { rsBlended, rs21d, rs63d, rs126d } or null if insufficient data
+ */
+function calculateBlendedRS(stockPrices, spyPrices) {
+  if (!stockPrices || !spyPrices || stockPrices.length < 127 || spyPrices.length < 127) {
+    return null;
+  }
+
+  const n = stockPrices.length;
+  const spyN = spyPrices.length;
+
+  // 21-day: stock ROC normalized to RS-like scale (1 + ROC)
+  const rs21 = n > 21 ? stockPrices[n - 1] / stockPrices[n - 22] : 1.0;
+
+  // 63-day RS vs SPY
+  const stockRet63 = n > 63 ? (stockPrices[n - 1] / stockPrices[n - 64]) - 1 : 0;
+  const spyRet63 = spyN > 63 ? (spyPrices[spyN - 1] / spyPrices[spyN - 64]) - 1 : 0;
+  const rs63 = (1 + spyRet63) !== 0 ? (1 + stockRet63) / (1 + spyRet63) : 1.0;
+
+  // 126-day RS vs SPY
+  const stockRet126 = n > 126 ? (stockPrices[n - 1] / stockPrices[n - 127]) - 1 : 0;
+  const spyRet126 = spyN > 126 ? (spyPrices[spyN - 1] / spyPrices[spyN - 127]) - 1 : 0;
+  const rs126 = (1 + spyRet126) !== 0 ? (1 + stockRet126) / (1 + spyRet126) : 1.0;
+
+  // Equal-weight blend
+  const rsBlended = (rs21 + rs63 + rs126) / 3.0;
+
+  return {
+    rsBlended: Math.round(rsBlended * 1000) / 1000,
+    rs21d: Math.round(rs21 * 1000) / 1000,
+    rs63d: Math.round(rs63 * 1000) / 1000,
+    rs126d: Math.round(rs126 * 1000) / 1000,
+  };
 }
 
 /**

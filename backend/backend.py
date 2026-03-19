@@ -2362,20 +2362,25 @@ def get_sector_rotation():
                 etf_aligned = etf_close.loc[common_idx]
 
                 # RS Ratio: (ETF / SPY) normalized to 100 at midpoint
+                # NOTE: This is a swing-trading variant of RRG, NOT standard de Kempenaer RRG.
+                # Standard RRG uses 12-26 week EMA as 100-center; we use static midpoint.
+                # RS-Momentum is 0-centered (delta), not 100-centered as in standard RRG.
+                # Quadrants: (RS≥100, Mom≥0)=Leading — functionally equivalent to standard.
+                # See: docs/research/UNIVERSAL_PRINCIPLES_IMPLEMENTATION_PLAN.md Bug 0E-F
                 rs_line = (etf_aligned / spy_aligned)
                 midpoint = len(rs_line) // 2
                 rs_normalized = (rs_line / rs_line.iloc[midpoint]) * 100
 
-                # Current RS Ratio (latest value)
+                # Current RS Ratio (latest value, centered at 100)
                 rs_ratio = round(float(rs_normalized.iloc[-1]), 2)
 
-                # RS Momentum: RS change over last 10 trading days
+                # RS Momentum: 10-day delta of normalized RS (centered at 0, not 100)
                 if len(rs_normalized) >= 10:
                     rs_momentum = round(float(rs_normalized.iloc[-1] - rs_normalized.iloc[-10]), 2)
                 else:
                     rs_momentum = 0.0
 
-                # Determine RRG Quadrant
+                # Determine RRG Quadrant (RS≥100 horizontal, Momentum≥0 vertical)
                 if rs_ratio >= 100 and rs_momentum >= 0:
                     quadrant = 'Leading'
                 elif rs_ratio >= 100 and rs_momentum < 0:
@@ -2429,6 +2434,8 @@ def get_sector_rotation():
                     continue
                 spy_al = spy_close.loc[common_idx]
                 etf_al = etf_close.loc[common_idx]
+                # Same swing-trading RRG variant as sector rotation above (Bug 0E-F)
+                # Static midpoint normalization (100-centered ratio, 0-centered momentum)
                 rs_line = (etf_al / spy_al)
                 midpoint = len(rs_line) // 2
                 rs_norm = (rs_line / rs_line.iloc[midpoint]) * 100
@@ -2603,6 +2610,92 @@ def get_context_endpoint(ticker):
     except Exception as e:
         print(f"Error in /api/context/{ticker}: {e}")
         traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+# ============================================
+# MEAN-REVERSION ENGINE (Tier 3A, Day 69)
+# ============================================
+
+try:
+    import mean_reversion
+    MR_AVAILABLE = True
+    print("✅ Mean-reversion engine loaded")
+except ImportError as e:
+    MR_AVAILABLE = False
+    print(f"⚠️ Mean-reversion engine not available: {e}")
+
+
+@app.route('/api/mr/signal/<ticker>')
+def get_mr_signal(ticker):
+    """Check if ticker has active MR signal (RSI(2) < 10 + above 200 SMA)."""
+    if not MR_AVAILABLE:
+        return jsonify({'error': 'Mean-reversion engine not available'}), 503
+
+    try:
+        ticker = ticker.upper()
+        hist = yf.Ticker(ticker).history(period='1y', auto_adjust=True)
+        if hist is None or hist.empty or len(hist) < 200:
+            return jsonify({'error': f'Insufficient data for {ticker}', 'signal': False}), 200
+
+        # Flatten MultiIndex if present (yfinance quirk)
+        if isinstance(hist.columns, pd.MultiIndex):
+            hist.columns = hist.columns.get_level_values(0)
+
+        result = mean_reversion.detect_mr_signal(hist)
+        result['ticker'] = ticker
+        return jsonify(result)
+
+    except Exception as e:
+        print(f"Error in /api/mr/signal/{ticker}: {e}")
+        return jsonify({'error': str(e), 'signal': False}), 500
+
+
+@app.route('/api/mr/scan')
+def scan_mr_signals():
+    """Scan universe for MR signals. Returns tickers with RSI(2)<10 + above 200 SMA."""
+    if not MR_AVAILABLE:
+        return jsonify({'error': 'Mean-reversion engine not available'}), 503
+
+    try:
+        # Use a default watchlist or accept tickers param
+        tickers_param = request.args.get('tickers', '')
+        if tickers_param:
+            tickers = [t.strip().upper() for t in tickers_param.split(',') if t.strip()]
+        else:
+            # Default: scan a broad set of liquid stocks
+            tickers = [
+                'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA',
+                'AMD', 'NFLX', 'CRM', 'ADBE', 'INTC', 'QCOM', 'AVGO', 'TXN',
+                'JPM', 'BAC', 'GS', 'MS', 'V', 'MA', 'PYPL',
+                'UNH', 'JNJ', 'PFE', 'ABBV', 'MRK', 'LLY', 'BMY',
+                'XOM', 'CVX', 'COP', 'SLB',
+                'HD', 'LOW', 'TGT', 'WMT', 'COST',
+                'DIS', 'CMCSA', 'T', 'VZ',
+                'CAT', 'DE', 'BA', 'RTX', 'LMT', 'GE',
+                'COIN', 'SQ', 'SHOP', 'PLTR', 'SOFI', 'AFRM',
+            ]
+
+        def fetch_data(ticker, period):
+            try:
+                hist = yf.Ticker(ticker).history(period=period, auto_adjust=True)
+                if hist is not None and not hist.empty:
+                    if isinstance(hist.columns, pd.MultiIndex):
+                        hist.columns = hist.columns.get_level_values(0)
+                    return hist
+            except Exception:
+                pass
+            return None
+
+        signals = mean_reversion.scan_universe_for_mr(tickers, fetch_data)
+        return jsonify({
+            'signals': signals,
+            'scanned': len(tickers),
+            'found': len(signals),
+        })
+
+    except Exception as e:
+        print(f"Error in /api/mr/scan: {e}")
         return jsonify({'error': str(e)}), 500
 
 

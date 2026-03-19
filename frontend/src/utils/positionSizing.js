@@ -42,15 +42,23 @@ export function calculatePositionSize(accountSize, riskPercent, entryPrice, stop
   let shares = Math.floor(maxRiskAmount / riskPerShare);
 
   // Day 29: Apply max position size limit if specified
-  const maxPositionPercent = options.maxPositionPercent || 100; // Default: no limit
-  const maxPositionValue = accountSize * (maxPositionPercent / 100);
+  // Tier 2A: VIX-based position scaling — applied to maxPositionPercent BEFORE cap
+  // VIX < 20: 1.0 (full size), VIX 20-30: 0.75, VIX > 30: 0.50
+  const vixMultiplier = options.vixMultiplier || 1.0;
+  const baseMaxPositionPercent = options.maxPositionPercent || 100; // Default: no limit
+  const effectiveMaxPositionPercent = baseMaxPositionPercent * vixMultiplier;
+  const maxPositionValue = accountSize * (effectiveMaxPositionPercent / 100);
   const maxSharesByPosition = Math.floor(maxPositionValue / entryPrice);
 
   // Use the smaller of risk-based or position-limit shares
   let limitApplied = null;
   if (shares > maxSharesByPosition) {
     shares = maxSharesByPosition;
-    limitApplied = `Position capped at ${maxPositionPercent}% of account`;
+    if (vixMultiplier < 1.0) {
+      limitApplied = `Position capped at ${effectiveMaxPositionPercent.toFixed(1)}% (VIX scaling: ${(vixMultiplier * 100).toFixed(0)}% of ${baseMaxPositionPercent}%)`;
+    } else {
+      limitApplied = `Position capped at ${baseMaxPositionPercent}% of account`;
+    }
   }
 
   // Day 29: Allow manual share override
@@ -83,6 +91,7 @@ export function calculatePositionSize(accountSize, riskPercent, entryPrice, stop
     stopPercent,
     targets,
     rMultiple: 1, // Initial R is always 1
+    vixMultiplier, // Tier 2A: VIX-based position scaling factor
     limitApplied, // Day 29: Shows if position was capped or manual
     summary: {
       position: `${shares} shares @ $${entryPrice.toFixed(2)}`,

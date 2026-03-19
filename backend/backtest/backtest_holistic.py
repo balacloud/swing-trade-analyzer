@@ -142,6 +142,40 @@ def calculate_rs_52w(stock_close, spy_close):
     return rs
 
 
+def calculate_rs_blended(stock_close, spy_close):
+    """
+    Tier 2B: Blended RS using 3 lookbacks — equal-weight average of 21d, 63d, 126d.
+
+    - rs_21d: 21-day ROC normalized to RS-like scale (1.0 = neutral)
+    - rs_63d: 63-day RS vs SPY
+    - rs_126d: 126-day RS vs SPY
+    - rs_blended: average of the three
+
+    Returns a pandas Series (same index as input).
+    """
+    if len(stock_close) < 127 or len(spy_close) < 127:
+        return None
+
+    # 21-day: stock ROC normalized to RS-like scale (1 + ROC)
+    stock_roc_21 = stock_close / stock_close.shift(21) - 1
+    rs_21 = 1.0 + stock_roc_21
+
+    # 63-day RS vs SPY
+    stock_ret_63 = stock_close / stock_close.shift(63) - 1
+    spy_ret_63 = spy_close / spy_close.shift(63) - 1
+    rs_63 = (1 + stock_ret_63) / (1 + spy_ret_63)
+
+    # 126-day RS vs SPY
+    stock_ret_126 = stock_close / stock_close.shift(126) - 1
+    spy_ret_126 = spy_close / spy_close.shift(126) - 1
+    rs_126 = (1 + stock_ret_126) / (1 + spy_ret_126)
+
+    # Equal-weight blend
+    rs_blended = (rs_21 + rs_63 + rs_126) / 3.0
+
+    return rs_blended
+
+
 # ─── Data Loading ────────────────────────────────────────────────────────────
 
 def download_data(ticker, start_date, end_date, buffer_days=400):
@@ -171,7 +205,8 @@ def get_vix_at_date(vix_df, date_idx):
 
 def check_entry_signals(stock_df, spy_df, vix_df, date_idx,
                         rsi_series, adx_series, rs_series,
-                        holding_period, ticker, fundamentals_cache):
+                        holding_period, ticker, fundamentals_cache,
+                        rs_blended_series=None):
     """
     Check all entry signals at a specific date for all configs.
 
@@ -212,6 +247,13 @@ def check_entry_signals(stock_df, spy_df, vix_df, date_idx,
 
     rs_val = rs_val if (rs_val is not None and not pd.isna(rs_val)) else 1.0
 
+    # Tier 2B: Blended RS (fallback to None if unavailable)
+    rs_blended_val = None
+    if rs_blended_series is not None and date_idx < len(rs_blended_series):
+        rs_blended_val = rs_blended_series.iloc[date_idx]
+        if rs_blended_val is not None and pd.isna(rs_blended_val):
+            rs_blended_val = None
+
     # VIX and SPY regime
     vix_val = get_vix_at_date(vix_df, date_idx) if vix_df is not None else None
     spy_above = is_spy_above_200sma(spy_df, date_idx) if spy_df is not None else True
@@ -244,6 +286,9 @@ def check_entry_signals(stock_df, spy_df, vix_df, date_idx,
     eps_growth = fund['eps_growth_yoy'] if fund else None
 
     # Run categorical assessment
+    # Tier 2B: rs_blended computed but NOT used for verdict (backtest showed degradation:
+    # PF 1.90→1.51, Sharpe 1.17→0.68, lost statistical significance).
+    # Kept as informational field. rs_52w remains the verdict driver.
     assessment = run_assessment(
         trend_template_score=tt_score,
         rsi=rsi_val,
@@ -257,6 +302,7 @@ def check_entry_signals(stock_df, spy_df, vix_df, date_idx,
         debt_equity=de_ratio,
         eps_growth=eps_growth,
         holding_period=holding_period,
+        # rs_blended=rs_blended_val,  # DISABLED: degrades backtest metrics
     )
 
     result['assessment'] = assessment
@@ -269,6 +315,7 @@ def check_entry_signals(stock_df, spy_df, vix_df, date_idx,
         'rsi': round(rsi_val, 1),
         'adx': round(adx_val, 1),
         'rs_52w': round(rs_val, 3),
+        'rs_blended': round(rs_blended_val, 3) if rs_blended_val is not None else None,
         'vix': round(vix_val, 1) if vix_val else None,
         'spy_above_200sma': spy_above,
         'roe': roe,
@@ -448,6 +495,7 @@ def run_holistic_backtest(tickers, start='2020-01-01', end='2025-12-31',
         rsi_series = calculate_rsi(stock_df['Close'])
         adx_series = calculate_adx(stock_df['High'], stock_df['Low'], stock_df['Close'])
         rs_series = calculate_rs_52w(stock_df['Close'], spy_aligned['Close'])
+        rs_blended_series = calculate_rs_blended(stock_df['Close'], spy_aligned['Close'])
 
         # Find the actual start index (after warmup, within start date)
         start_ts = pd.Timestamp(start)
@@ -476,7 +524,8 @@ def run_holistic_backtest(tickers, start='2020-01-01', end='2025-12-31',
                     signals = check_entry_signals(
                         stock_df, spy_aligned, vix_aligned, i,
                         rsi_series, adx_series, rs_series,
-                        hp, ticker, fundamentals_cache
+                        hp, ticker, fundamentals_cache,
+                        rs_blended_series=rs_blended_series,
                     )
 
                     # Determine if this config fires

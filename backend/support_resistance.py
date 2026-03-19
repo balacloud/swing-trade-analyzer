@@ -20,7 +20,7 @@ Day 30: Replaced KMeans with AgglomerativeClustering
 Day 32: Added Multi-Timeframe Confluence
         - Computes S&R on daily + weekly timeframes
         - Confluence = level appears on both timeframes (stronger)
-        - Research shows 3.2x stronger predictive power
+        - Confluent levels are stronger (exact multiplier unverified)
         - New meta fields: mtf.weekly_support, mtf.weekly_resistance, mtf.confluence_map
 """
 
@@ -1232,7 +1232,7 @@ def compute_sr_levels(df: pd.DataFrame, cfg: Optional[SRConfig] = None) -> SRLev
     Day 32 Enhancement (Multi-Timeframe Confluence):
     - Computes S&R on both daily and weekly timeframes
     - Levels appearing on both timeframes = stronger (confluent)
-    - Research shows 3.2x stronger predictive power for confluent levels
+    - Confluent levels are stronger (exact multiplier unverified)
     - Feature flag cfg.use_mtf for rollback
     - Meta includes: weekly_support, weekly_resistance, confluence_map
 

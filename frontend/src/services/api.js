@@ -853,3 +853,34 @@ export async function fetchEcon() {
     return null;
   }
 }
+
+/**
+ * Tier 3A: Fetch mean-reversion signal for a single ticker.
+ * Returns RSI(2), 200 SMA, entry/stop/target, conditions.
+ */
+export async function fetchMRSignal(ticker) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/mr/signal/${ticker.toUpperCase()}`);
+    if (!response.ok) throw new Error(`MR signal fetch failed: ${response.status}`);
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching MR signal:', error);
+    return null;
+  }
+}
+
+/**
+ * Tier 3A: Scan universe for mean-reversion signals (RSI(2) < 10 + above 200 SMA).
+ * @param {string[]} [tickers] - Optional custom ticker list (comma-separated string)
+ */
+export async function fetchMRScan(tickers) {
+  try {
+    const params = tickers ? `?tickers=${tickers}` : '';
+    const response = await fetch(`${API_BASE_URL}/mr/scan${params}`);
+    if (!response.ok) throw new Error(`MR scan failed: ${response.status}`);
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching MR scan:', error);
+    return null;
+  }
+}

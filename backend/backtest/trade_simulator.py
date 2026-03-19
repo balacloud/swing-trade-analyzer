@@ -145,6 +145,27 @@ def is_spy_50sma_declining(spy_df, date_idx):
     return sma50_change < -1.0
 
 
+# ─── VIX Position Sizing (Tier 2A) ──────────────────────────────────────────
+
+def get_vix_multiplier(vix_value):
+    """
+    Position sizing multiplier based on VIX regime.
+    Moreira & Muir (2017): scale position inversely with volatility.
+
+    VIX < 20:  1.0  (full size — low vol)
+    VIX 20-30: 0.75 (reduce 25% — elevated vol)
+    VIX > 30:  0.50 (half size — high vol / crisis)
+    """
+    if vix_value is None:
+        return 1.0
+    if vix_value < 20:
+        return 1.0
+    elif vix_value <= 30:
+        return 0.75
+    else:
+        return 0.50
+
+
 # ─── Trade Simulation ────────────────────────────────────────────────────────
 
 def simulate_trade(stock_df, entry_idx, holding_period,
@@ -191,14 +212,21 @@ def simulate_trade(stock_df, entry_idx, holding_period,
         if target_price is None:
             target_price = entry_price * 1.07  # +7%
         if stop_price is None:
-            stop_price = entry_price * 0.95    # -5%
+            # Tier 1A: ATR stops primary, 5% as maximum cap
+            # max() picks the higher (tighter) stop — less risk
+            fixed_stop = entry_price * 0.95    # -5% cap
+            if atr is not None and atr > 0:
+                atr_stop = entry_price - (atr * 2)
+                stop_price = max(fixed_stop, atr_stop)
+            else:
+                stop_price = fixed_stop
 
     elif holding_period == 'position':
         max_hold = 45
         if target_price is None:
             target_price = entry_price * 1.15  # +15%
         if stop_price is None:
-            # Structural stop: swing low - 2×ATR
+            # Tier 1A: ATR stops primary (swing low - 2×ATR), percentage as cap
             swing_low = find_swing_low(stock_df, lookback=20, date_idx=entry_idx)
             if swing_low is not None and atr is not None:
                 stop_price = swing_low - (atr * 2)
@@ -213,7 +241,7 @@ def simulate_trade(stock_df, entry_idx, holding_period,
         if target_price is None:
             target_price = entry_price * 1.08  # +8% (lowered from 10%, data shows 0 MFE >= 10%)
         if stop_price is None:
-            # Structural stop: swing low - 2×ATR
+            # Tier 1A: ATR stops primary (swing low - 2×ATR), percentage as cap
             swing_low = find_swing_low(stock_df, lookback=20, date_idx=entry_idx)
             if swing_low is not None and atr is not None:
                 stop_price = swing_low - (atr * 2)

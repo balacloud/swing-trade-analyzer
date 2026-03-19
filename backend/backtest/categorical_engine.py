@@ -13,10 +13,15 @@ Categories:
   - Risk/Macro: Favorable / Neutral / Unfavorable
 
 Verdict: BUY / HOLD / AVOID
+
+EQUAL-WEIGHT PRINCIPLE (Tier 1B, Day 69):
+All categories carry equal weight. Never optimize category weights.
+DeMiguel et al. (2009): equal weights beat optimized weights out-of-sample.
+238 trades is insufficient to optimize 4+ weights without overfitting.
 """
 
 
-def assess_technical(trend_template_score, rsi, rs_52w=1.0, adx=None, total_criteria=8):
+def assess_technical(trend_template_score, rsi, rs_52w=1.0, rs_blended=None, adx=None, total_criteria=8):
     """
     Assess technical strength.
 
@@ -30,17 +35,23 @@ def assess_technical(trend_template_score, rsi, rs_52w=1.0, adx=None, total_crit
         trend_template_score: Number of Minervini criteria passed (0-8)
         rsi: RSI(14) value
         rs_52w: 52-week relative strength vs SPY (default 1.0)
+        rs_blended: Blended RS (21d/63d/126d avg), falls back to rs_52w if None (Tier 2B)
         adx: ADX value (stored in data, not used for assessment)
         total_criteria: Total criteria count (default 8)
 
     Returns:
         dict with assessment, reasons, data
     """
+    # Tier 2B: Use blended RS when available, fallback to 52-week RS
+    rs = rs_blended if rs_blended is not None else rs_52w
+
     reasons = []
     data = {
         'trend_template_score': f"{trend_template_score}/{total_criteria}",
         'rsi': rsi,
         'rs_52w': rs_52w,
+        'rs_blended': rs_blended,
+        'rs_used': round(rs, 3),
         'adx': adx,
     }
 
@@ -48,9 +59,10 @@ def assess_technical(trend_template_score, rsi, rs_52w=1.0, adx=None, total_crit
     rsi_val = rsi if rsi is not None else 50
 
     # Strong: 7-8/8 trend template, RSI 50-70, good RS
-    if pass_count >= 7 and 50 <= rsi_val <= 70 and rs_52w >= 1.0:
+    if pass_count >= 7 and 50 <= rsi_val <= 70 and rs >= 1.0:
         assessment = 'Strong'
-        reasons.append(f"TT {pass_count}/8, RSI {rsi_val:.1f} (50-70), RS {rs_52w:.2f}")
+        rs_label = 'RS_blend' if rs_blended is not None else 'RS_52w'
+        reasons.append(f"TT {pass_count}/8, RSI {rsi_val:.1f} (50-70), {rs_label} {rs:.2f}")
     # Decent: 5-6/8 trend template, RSI 40-80
     elif pass_count >= 5 and 40 <= rsi_val <= 80:
         assessment = 'Decent'
@@ -276,8 +288,9 @@ def determine_verdict(technical, fundamental, risk_macro, adx=None,
     """
     signal_weights = get_signal_weight(holding_period)
 
-    # Count strong assessments (tech, fund, sentiment — same as JS)
-    assessments = [technical, fundamental, sentiment]
+    # Count strong assessments (T + F only — Sentiment is informational, Risk is gate)
+    # Day 70: Removed sentiment from verdict. Backtest hardcoded sentiment='Neutral'.
+    assessments = [technical, fundamental]
     strong_count = sum(1 for a in assessments if a == 'Strong')
 
     # ADX-based entry preference
@@ -369,7 +382,7 @@ def determine_verdict(technical, fundamental, risk_macro, adx=None,
 def run_assessment(trend_template_score, rsi, rs_52w, adx,
                    vix, spy_above_200sma, spy_50sma_declining=False,
                    roe=None, revenue_growth=None, debt_equity=None, eps_growth=None,
-                   holding_period='standard'):
+                   holding_period='standard', rs_blended=None):
     """
     Convenience wrapper — runs all assessments and returns complete result.
 
@@ -387,11 +400,12 @@ def run_assessment(trend_template_score, rsi, rs_52w, adx,
         debt_equity: D/E ratio (optional)
         eps_growth: YoY EPS growth percentage (optional)
         holding_period: 'quick', 'standard', or 'position'
+        rs_blended: Blended RS (21d/63d/126d avg), Tier 2B (optional)
 
     Returns:
         dict with technical, fundamental, risk_macro, verdict, holding_period
     """
-    technical = assess_technical(trend_template_score, rsi, rs_52w, adx)
+    technical = assess_technical(trend_template_score, rsi, rs_52w, rs_blended=rs_blended, adx=adx)
     fundamental = assess_fundamental(roe, revenue_growth, debt_equity, eps_growth)
     risk_macro = assess_risk_macro(vix, spy_above_200sma, spy_50sma_declining)
 

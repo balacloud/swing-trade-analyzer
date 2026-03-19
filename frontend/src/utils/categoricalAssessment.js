@@ -2,7 +2,7 @@
  * Categorical Assessment System for Swing Trade Analyzer
  * v4.5: Replaces 75-point numerical scoring with categorical assessments
  * v4.6: Perplexity research recommendations (Day 45)
- *       - F&G thresholds: Expanded neutral zone (35-60) to eliminate cliff at 45
+ *       - F&G thresholds: Neutral zone 40-55 (Bug 0G narrowed from original 35-60)
  *       - Structure > Sentiment hierarchy: Risk/Macro determines IF, Sentiment determines HOW
  *       - Entry preference guidance: Pullback vs Momentum based on sentiment
  * v4.6.2: ADX-based entry preference (Day 47)
@@ -31,6 +31,12 @@
  * - Score-to-return correlation = 0.011 (essentially ZERO)
  * - System works as a FILTER, not a RANKER
  * - Categorical assessments honestly represent this reality
+ *
+ * EQUAL-WEIGHT PRINCIPLE (Tier 1B, Day 69):
+ * All 4 categories carry equal weight. Never optimize category weights.
+ * DeMiguel et al. (2009): equal weights beat optimized weights out-of-sample.
+ * 238 trades is insufficient to optimize 4+ weights without overfitting.
+ * Verdict logic: count of Strong categories → BUY/HOLD/AVOID.
  */
 
 // Known ETF tickers - these don't have traditional fundamentals
@@ -491,33 +497,34 @@ export function assessSentiment(fearGreedData) {
   let assessment = 'Neutral';
   let subLabel = ''; // For more nuanced messaging
 
-  // Strong: Greed but not extreme (60-80) - good for momentum trades
-  // Tightened from 55-75 to require more confident greed
-  if (value >= 60 && value <= 80) {
+  // Strong: Greed but not extreme (55-80) - good for momentum trades
+  // Bug 0G: Widened from 60-80 to 55-80 (narrowing neutral zone from 35-60 to 40-55)
+  if (value >= 55 && value <= 80) {
     assessment = 'Strong';
     reasons.push(`Fear & Greed: ${value} (${rating})`);
     reasons.push('Positive sentiment supports momentum entries');
     reasons.push('Good conditions for both pullback and momentum trades');
   }
-  // Neutral (Optimistic): Mild greed (50-60) - supports momentum
-  else if (value >= 50 && value < 60) {
+  // Neutral (Optimistic): Mild greed (50-55) - supports momentum
+  else if (value >= 50 && value < 55) {
     assessment = 'Neutral';
     subLabel = 'Optimistic';
     reasons.push(`Fear & Greed: ${value} (${rating})`);
     reasons.push('Mild greed - sentiment slightly positive');
     reasons.push('Focus on stock-specific technicals');
   }
-  // Neutral (Cautious): Mild fear (35-50) - neither extreme
-  // KEY FIX: 44.7 is now Neutral, not Weak (eliminates cliff at 45)
-  else if (value >= 35 && value < 50) {
+  // Neutral (Cautious): Mild fear (40-50) - neither extreme
+  // Bug 0G: Narrowed from 35-50 to 40-50 (35-40 is now Weak)
+  else if (value >= 40 && value < 50) {
     assessment = 'Neutral';
     subLabel = 'Cautious';
     reasons.push(`Fear & Greed: ${value} (${rating})`);
     reasons.push('Mild fear - sentiment cautious but not extreme');
     reasons.push('Pullback entries still viable if structure is bullish');
   }
-  // Weak: Fear zone (<35) - pullback setups often fail
-  else if (value < 35) {
+  // Weak: Fear zone (<40) - pullback setups often fail
+  // Bug 0G: Raised from <35 to <40 (moderate fear is now Weak, not Neutral)
+  else if (value < 40) {
     assessment = 'Weak';
     reasons.push(`Fear & Greed: ${value} (${rating})`);
     if (value < 20) {
@@ -694,8 +701,10 @@ export function getSignalWeight(holdingPeriod) {
  * @returns {object} { verdict, reason, color, entryPreference, adxAnalysis, holdingPeriod, signalWeights }
  */
 export function determineVerdict(technical, fundamental, sentiment, riskMacro, adxData = null, holdingPeriod = 'standard') {
-  // Count strong assessments (excluding Risk which uses different scale)
-  const assessments = [technical, fundamental, sentiment];
+  // Count strong assessments (T + F only — Sentiment is informational, Risk is gate)
+  // Day 70: Removed sentiment from verdict. Backtest hardcoded sentiment='Neutral' (never validated).
+  // Removing aligns live system with validated backtest. Sentiment still passed & displayed in UI.
+  const assessments = [technical, fundamental];
   const strongCount = assessments.filter(a => a === 'Strong').length;
 
   // v4.13: Get signal weights for this holding period

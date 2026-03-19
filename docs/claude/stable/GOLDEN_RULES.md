@@ -2,12 +2,12 @@
 
 > **Purpose:** Core rules and cumulative lessons learned — stable reference
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 68 (March 17, 2026)
+> **Last Updated:** Day 69 (March 18, 2026)
 > **Session protocols:** See `CLAUDE_CONTEXT.md` for startup/close checklists
 
 ---
 
-## CORE RULES (15 Golden Rules)
+## CORE RULES (16 Golden Rules)
 
 1. **START of session:** Read PROJECT_STATUS_DAY[N].md first
 2. **BEFORE modifying any file:** READ it first using Read tool
@@ -24,6 +24,7 @@
 13. **EXHAUSTIVE VERIFICATION** — Check EVERY item, not a sample
 14. **UPDATE "LAST UPDATED" DATES** — On any file in `docs/claude/stable/`
 15. **NEVER IMPLEMENT WITHOUT VALIDATION** — Require research, backtest, or practitioner consensus
+16. **EQUAL WEIGHT — Never optimize category weights.** DeMiguel et al. (2009): equal weights beat optimized out-of-sample. 238 trades is insufficient to optimize 4+ weights. If future evolution moves to continuous scoring, start with equal weights. (Day 69, Tier 1B)
 
 ---
 

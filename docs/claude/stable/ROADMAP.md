@@ -2,12 +2,12 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 69 (March 18, 2026)
+> **Last Updated:** Day 70B (March 19, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.30 (Backend v2.32, Frontend v4.30, Backtest v4.17, API Service v2.9)
+## Current Version: v4.32 (Backend v2.33, Frontend v4.32, Backtest v4.17, API Service v2.10)
 
 ---
 
@@ -77,7 +77,7 @@
 
 ---
 
-## IN PROGRESS — Universal Principles Evolution (Day 69+)
+## COMPLETE — Universal Principles Evolution (Day 69-70)
 
 **Source:** 4-LLM audit synthesis (`docs/research/UNIVERSAL_PRINCIPLES_SYNTHESIS.md`)
 **Plan:** `docs/research/UNIVERSAL_PRINCIPLES_IMPLEMENTATION_PLAN.md`
@@ -85,23 +85,40 @@
 
 | Tier | Change | Files | Status |
 |------|--------|-------|--------|
-| 0A | Remove "3.2x" hallucinated MTF claim | docs only | ⬜ |
-| 0B | VCP volume dry-up check | pattern_detection.py | ⬜ |
-| 0C | TT 25%→30% above 52w low | pattern_detection.py | ⬜ |
-| 0D | RS threshold backtest (1.0 vs 1.1 vs 1.2) | categorical_engine.py, categoricalAssessment.js | ⬜ |
-| 0E-F | RRG normalization + momentum center | sector rotation backend | ⬜ |
-| 0G | F&G neutral zone narrowing | categorical_engine.py, categoricalAssessment.js | ⬜ |
-| 1A | ATR stops primary, 7% as cap | trade_simulator.py | ⬜ |
-| 1B | Equal-weight principle (docs) | GOLDEN_RULES.md, comments | ⬜ |
-| 1C | Parameter stability test script | parameter_stability.py (NEW) | ⬜ |
-| 2A | VIX-based position sizing | positionSizing.js, trade_simulator.py, App.jsx | ⬜ |
-| 2B | Blend 3 momentum lookbacks | backend.py, categorical_engine.py, categoricalAssessment.js, backtest_holistic.py | ⬜ |
-| 3A | Mean-reversion engine RSI(2) | mean_reversion.py (NEW), mr_simulator.py (NEW), backend.py | ⬜ |
-| 3B | MR frontend display | App.jsx, api.js, new component | ⬜ |
+| 0A | Remove "3.2x" hallucinated MTF claim | support_resistance.py | ✅ Day 69 |
+| 0B | VCP volume dry-up check | pattern_detection.py | ✅ Day 69 |
+| 0C | TT 25%→30% above 52w low | Already correct (no change) | ✅ Day 69 |
+| 0D | RS threshold backtest (1.0 vs 1.1 vs 1.2) | Validated 1.0 optimal | ✅ Day 69 |
+| 0E-F | RRG normalization + momentum center | backend.py (docs only) | ✅ Day 69 |
+| 0G | F&G neutral zone narrowing (35-60→40-55) | categoricalAssessment.js | ✅ Day 69 |
+| 1A | ATR stops primary, 5% as cap | trade_simulator.py, riskRewardCalc.js | ✅ Day 69 |
+| 1B | Equal-weight principle (docs + code) | GOLDEN_RULES.md, categorical_engine.py, categoricalAssessment.js | ✅ Day 69 |
+| 1C | Parameter stability test script | parameter_stability.py (NEW) | ✅ Day 69 |
+| 2A | VIX-based position sizing | positionSizing.js, trade_simulator.py, App.jsx | ✅ Day 70 |
+| 2B | Blend 3 momentum lookbacks (informational) | rsCalculator.js, scoringEngine.js, categorical_engine.py, backtest_holistic.py | ✅ Day 70 |
+| 3A | Mean-reversion engine RSI(2) | mean_reversion.py (NEW), mr_simulator.py (NEW), backend.py, api.js | ✅ Day 70 |
+| 3B | MR frontend display | MRSignalCard.jsx (NEW), App.jsx | ✅ Day 70 |
+
+**Key findings during implementation:**
+- Blended RS (2B) **degrades** backtest metrics (PF 1.90→1.51, Sharpe 1.17→0.68). Kept as informational only. rs52Week remains verdict driver.
+- Parameter stability (1C): rsi_low fragile at 55 (PF 0.83), stop_atr_multiple fragile at 1.5x (PF 0.98). Validates current parameter choices.
+- RS threshold (0D): 1.0 optimal (5 trades, 80% WR, PF 2.18). 1.2 breaks (3 trades, 33% WR, PF 0.50).
 
 ---
 
 ## PLANNED
+
+### Simplicity Premium UI (Day 70B — PARTIALLY COMPLETE)
+- **Priority:** MEDIUM
+- **Source:** 4-LLM consensus: "simplicity premium" is real — fewer indicators, faster decisions, better execution
+- **Completed (Day 70B):**
+  1. ~~Progressive disclosure~~ — ✅ 3-tier collapsible sections implemented. Tier 1 always visible (Verdict, Trade Setup, Bottom Line, MR Signal, Quality Gates). Tier 2 collapsed. Tier 3 hidden until requested.
+  2. ~~Decision Matrix view removed~~ — ✅ Full+simple views sufficient.
+  3. ~~TradingView Chart removed~~ — ✅ Not adding value.
+  4. ~~Sentiment informational-only~~ — ✅ "(info)" label + reduced opacity.
+- **Remaining:**
+  1. **Flip default view** — Make `analysisView: 'simple'` the default. Full analysis = "Show details" toggle.
+- **Effort:** Low (30 min for remaining item)
 
 ### v4.0: Forward Testing UI
 - **Priority:** HIGH (tracked since Day 25 as CRITICAL)
@@ -516,6 +533,10 @@ From backtesting:
 | 64 | Deep Audit COMPLETE — 18 bugs fixed (4 rounds): VCP strictly-decreasing + gate hybrid + pivot fix, Wilder EMA ATR, W-FRI resample, ATR stop floor ($0.01), Cup handle_below_lip, FOMC edge case, constants.py (single source), CAUTION/NOT_VIABLE distinction, All-Decent+Neutral→HOLD, bidirectional contradiction. Version v4.27 (BE v2.30, FE v4.14). Feature freeze + paper trading phase. |
 | 66 | Size rotation strip added to Sectors tab (IWM/MDY/QQQ vs SPY RS). Sector card audit: RS bar scale, rank badge neutral gray, scan buttons quadrant-based. start.sh/stop.sh auto kill-port. Version v4.28 (BE v2.31). |
 | 67 | Data Sources transparency audit: Full Finnhub→AlphaVantage→yfinance chain confirmed. FMP v3 confirmed dead (Aug 2025). 8 text references updated. 3 UI correctness fixes (provenance path, TwelveData ACTIVE, circuit-open guard). 4 provenance bugs fixed (hardcoded source, negative age, bare "0", JUST FETCHED badge). Version v4.30 (BE v2.32, FE v4.30). |
+| 68 | System audit Layer 1+2: 15 README claims audited — 9 VERIFIED, 5 MISLEADING, 1 PLAUSIBLE. Doc framework 62% reduction. |
+| 69 | 4-LLM Universal Principles synthesis. Tier 0 bug fixes + Tier 1 quick wins implemented. |
+| 70 | Universal Principles Tier 2+3 complete. VIX sizing, blended RS (info only), MR engine + MRSignalCard. Version v4.31. |
+| 70B | Simplicity premium UI: 3-tier progressive disclosure, Decision Matrix + TradingView Chart removed. Sentiment informational-only. Simple checklist: RS 1.0→1.2, cap-aware volume + stop distance. Version v4.32. |
 
 ---
 

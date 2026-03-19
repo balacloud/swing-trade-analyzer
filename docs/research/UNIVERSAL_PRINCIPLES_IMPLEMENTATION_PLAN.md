@@ -71,58 +71,71 @@ Every change in this plan follows 5 rules:
 
 **Critical sync pairs:**
 - `categoricalAssessment.js` ↔ `categorical_engine.py` (MUST match)
+- `scoringEngine.js` → `categoricalAssessment.js` (RS data flows through `rsData` object)
+- `scoringEngine.js` RS quality gates ↔ `categoricalAssessment.js` RS thresholds (MUST agree)
 - `riskRewardCalc.js` ↔ `trade_simulator.py` (stop logic must be consistent)
 - `api.js` ↔ `backend.py` routes (API contract)
 
 ---
 
-## PRE-WORK: 7 MUST-FIX BUGS (From First Audit)
+## PRE-WORK: 6 MUST-FIX BUGS (From First Audit — was 7, Bug 0C removed as already correct)
 
 These are correctness bugs, not architecture changes. Fix BEFORE any evolution.
 
 ### Bug 0A: Remove "3.2x" Hallucinated MTF Claim
-- **File:** Search all `.md` files for "3.2x" or "MTF" claims
-- **Change:** Remove or correct the hallucinated claim
-- **Blast radius:** Documentation only, zero code impact
-- **Test:** Grep for "3.2x" returns 0 matches
+- **File:** `backend/support_resistance.py` — lines 23 and 1235 (docstring comments)
+- **CORRECTION (self-review round 3):** The source is in a Python file's docstrings, NOT .md files. The .md files (audit docs, known issues, implementation plan) only REFERENCE the bug as a finding — those references should remain.
+- **Change:** Remove or correct the "3.2x stronger predictive power" claim in both docstring locations
+- **Blast radius:** Docstrings only, zero functional code impact
+- **Test:** `grep -r "3\.2x" backend/ --include="*.py" --exclude-dir=venv` returns 0 matches (exclude .md audit docs from test scope)
 
 ### Bug 0B: VCP Volume Dry-Up Check
-- **File:** `backend/pattern_detection.py` — `detect_vcp()` function
-- **Change:** Add volume contraction check (volume should decrease across each contraction)
-- **Blast radius:** Pattern detection results may change → affects Scan tab + Analyze tab
+- **File:** `backend/pattern_detection.py` — `detect_vcp()` function (lines 298-439)
+- **Change:** Add per-contraction volume dry-up check (volume should decrease across each contraction, not just overall)
+- **IMPORTANT (self-review round 3):** Add as a **confidence booster** (+10 pts), NOT a gate. Current VCP uses 3 gates (contractions ≥ 2, strictly decreasing depths, tight_base < 10%) + confidence boosters (volatility +15, volume +5). Per-contraction volume check should follow the booster pattern. Current overall volume decline is +5; per-contraction check replaces it with +10 when validated.
+- **Blast radius:** VCP confidence scores change → some borderline VCPs may drop below 60% actionability threshold → affects Scan tab + Analyze tab. Main verdict (BUY/HOLD/AVOID) is NOT affected (patterns are separate from categorical verdict).
 - **Test:** Run `backtest_holistic.py --configs C` → compare before/after metrics
-- **Acceptance:** Pattern count may decrease (fewer false VCPs), but PF should stay ≥1.5
+- **Acceptance:** PF should stay ≥1.5. Trade count may decrease slightly (expected: fewer false VCPs).
 
-### Bug 0C: Trend Template 25%→30% Above 52-Week Low
-- **File:** `backend/pattern_detection.py` — `check_trend_template()`
-- **Change:** Change the "price at least 25% above 52-week low" to 30%
-- **Blast radius:** TT scores may decrease for borderline stocks → fewer "Strong" technical assessments
-- **Test:** Run backtest → verify WR and PF don't collapse. If they do, revert.
+### ~~Bug 0C: Trend Template 25%→30% Above 52-Week Low~~ — **ALREADY CORRECT (No Change Needed)**
+- **File:** `backend/pattern_detection.py` — `check_trend_template()` line 271
+- **Current code:** `'above_30pct_52w_low': current_price >= low_52w * 1.30` — already uses 30%
+- **Status:** ~~Bug~~ → **VERIFIED CORRECT** (self-review Day 69, round 2)
+- **Action:** NONE. Remove from Tier 0 checklist.
 
 ### Bug 0D: RS Threshold — Backtest 1.0 vs 1.1 vs 1.2
-- **Files:** `categorical_engine.py` line 51, `categoricalAssessment.js` (matching line)
+- **Files (3 — not 2!):**
+  1. `categorical_engine.py` line 51 — backtest assessment
+  2. `categoricalAssessment.js` line 263 — frontend assessment (reads `technicalData?.rsData?.rs52Week`)
+  3. `scoringEngine.js` lines 412, 466, 477 — quality gates + auto-AVOID at RS<0.8, BUY requires RS≥1.0
+- **CRITICAL NOTE:** RS flows through `scoringEngine.js` → `calculateRelativeStrength()` → `rsData.rs52Week` → `categoricalAssessment.js`. The scoring engine ALSO enforces RS thresholds independently via quality gates. ALL THREE files must be updated together.
 - **Change:** Test RS ≥ 1.0 vs ≥ 1.1 vs ≥ 1.2 for Strong Technical threshold
 - **Blast radius:** Directly affects BUY signal frequency. Higher threshold = fewer BUYs
-- **Test:** Run `backtest_adx_rsi_thresholds.py` (modify for RS sweep)
+- **Test approach (self-review round 3):** `backtest_adx_rsi_thresholds.py` exists but is hardcoded for ADX/RSI with no CLI args. **Simpler approach:** Edit RS threshold in `categorical_engine.py` line 51 manually, run `backtest_holistic.py --configs C` three times (once per threshold value), compare results. This avoids modifying an unrelated test script.
 - **Decision:** Pick the threshold that maximizes PF without dropping trade count below 150
 
-### Bug 0E: RRG Normalization Baseline
-- **File:** Backend sector rotation calculation
-- **Change:** Verify RS-Ratio and RS-Momentum use correct 100 baseline (not 0)
-- **Blast radius:** Sector rotation quadrant assignments
-- **Test:** Compare current output vs manual calculation for XLK
-
-### Bug 0F: RRG Momentum Center (0 vs 100)
-- **File:** Same as 0E
-- **Change:** Ensure momentum values center around 100, not 0
-- **Test:** All sectors should cluster around 100 when market is flat
+### Bug 0E-F: RRG Normalization — Convention Issue, Not Math Error
+- **File:** `backend/backend.py` lines 2364-2402 (sector rotation), 2432-2436 (size rotation)
+- **Current state (verified Day 69, round 2):**
+  - RS-Ratio: normalized to 100 via static midpoint → `(rs_line / rs_line.iloc[midpoint]) * 100`
+  - RS-Momentum: 0-centered delta → `rs_normalized[-1] - rs_normalized[-10]`
+  - Quadrants: `(RS ≥ 100, Momentum ≥ 0)` — Leading, Weakening, Lagging, Improving
+- **Standard RRG convention:** Both axes centered at 100, using EMA-based normalization (not static midpoint)
+- **Audit verdict:** "Functionally equivalent but mislabeled" — this is a linear reparameterization, NOT a logic error
+- **Recommended fix:** TWO options:
+  1. **(Easy, low risk):** Add code comment documenting this as a deliberate swing-trading variant, not standard RRG. Update any docs that claim "standard RRG."
+  2. **(Harder, medium risk):** Rewrite to use EMA-based normalization + 100-centered momentum. Would change all sector quadrant assignments.
+- **Blast radius:** Option 1 = zero. Option 2 = all sector rotation displays change
+- **Test:** Option 1: N/A. Option 2: Compare before/after quadrant assignments for all 11 sectors
+- **Recommendation:** Option 1 (documentation fix). The current implementation works correctly for swing trading purposes.
 
 ### Bug 0G: F&G Neutral Zone Narrowing
-- **Files:** `categoricalAssessment.js` (line with F&G thresholds), `categorical_engine.py`
-- **Change:** Current neutral is 35-60 (Day 45). Consider narrowing to 40-55
-- **Blast radius:** More stocks get non-Neutral sentiment → affects verdicts
-- **Test:** Backtest with narrow vs current → pick better PF
-- **Note:** Both JS and Python files MUST be updated together
+- **File:** `categoricalAssessment.js` ONLY (lines 495-518) — **NOT categorical_engine.py**
+- **CRITICAL NOTE (self-review Day 69, round 2):** `categorical_engine.py` has NO `assess_sentiment()` function. Line 376: *"Sentiment is always 'Neutral' for backtesting"*. F&G thresholds are **frontend-only**.
+- **Change:** Current neutral is 35-60. Consider narrowing to 40-55
+- **Blast radius:** Frontend verdicts only — backtest results UNAFFECTED (backtest hardcodes sentiment=Neutral)
+- **Test:** Cannot backtest this change (backtest ignores F&G). Manual review: analyze 5 stocks with current F&G value and verify Neutral/Strong/Weak assignment is reasonable
+- **Note:** This is a frontend-only change. No backend sync required.
 
 ---
 
@@ -132,13 +145,12 @@ These are correctness bugs, not architecture changes. Fix BEFORE any evolution.
 
 **Rationale:** VERIFIED 3/4 LLMs. We already compute ATR stops. Just change the priority.
 
-**Files affected (3):**
+**Files affected (2):**
 
 | File | Change | Lines |
 |------|--------|-------|
-| `backend/backtest/trade_simulator.py` | Reorder stop logic: ATR first, 7% cap | ~lines 100-180 |
+| `backend/backtest/trade_simulator.py` | Quick mode: use tighter of 5% or 2×ATR | ~lines 189-194 |
 | `frontend/src/utils/riskRewardCalc.js` | Already uses ATR × 2 — add 7% max cap comment | ~line 26 |
-| `frontend/src/utils/categoricalAssessment.js` | Update stop description text if displayed | minimal |
 
 **Detailed changes:**
 
@@ -157,17 +169,36 @@ NEW:
 ```
 
 This is actually ALREADY how it works in Standard/Position mode. The "Quick" mode uses a fixed 5% stop. The change is:
-- Quick mode: Change from fixed 5% to min(5%, 2×ATR) — use ATR if it gives a tighter stop
+- Quick mode: Use tighter of (5% fixed, 2×ATR) — `max(stop_prices)` not `min`
+- ATR is already computed at lines 180-186 (before holding period check), so no signature changes needed
 - Documentation: Clarify that ATR is primary, percentage is cap
+
+**CRITICAL (self-review round 4): Use `max()` not `min()` for stop prices.**
+"Tighter stop" = closer to entry = higher price. `max(fixed_stop, atr_stop)` picks the higher (tighter) stop.
+```python
+# CORRECT implementation:
+fixed_stop = entry_price * 0.95
+if atr is not None and atr > 0:
+    atr_stop = entry_price - (atr * 2)
+    stop_price = max(fixed_stop, atr_stop)  # max = tighter = less risk
+else:
+    stop_price = fixed_stop
+```
 
 **Blast radius:**
 - Backtest results will change slightly for Quick mode trades
 - Frontend R:R display unchanged (already ATR-based)
 - Position sizing calculator unchanged (uses R = entry - stop)
 
+**NOTE (self-review Day 69, round 2): Known ATR multiplier mismatch (not in scope):**
+- `riskRewardCalc.js` uses **1.5×ATR** for momentum stops, **2×ATR** for pullback stops
+- `trade_simulator.py` uses **2×ATR** for ALL entry types (no pullback/momentum distinction)
+- This mismatch means frontend R:R display may show different stop than what backtest would use for momentum entries
+- **Decision:** Document but don't fix in this evolution. Aligning would require backtest architecture changes.
+
 **Test protocol:**
-1. Run `backtest_holistic.py --configs C --walk-forward` BEFORE change → save metrics
-2. Make change
+1. Run `backtest_holistic.py --configs C` BEFORE change → save metrics
+2. Make change to trade_simulator.py (Quick mode block, lines 189-194)
 3. Run same command AFTER → compare
 4. Acceptance: PF stays ≥1.5, WR stays ≥50%, Max DD doesn't increase >3%
 
@@ -261,17 +292,28 @@ PARAMETERS_TO_TEST = {
 ```javascript
 // positionSizing.js — NEW parameter
 export function calculatePositionSize(accountSize, riskPercent, entryPrice, stopPrice, options = {}) {
-  // ... existing code ...
+  // ... existing validation ...
 
-  // NEW: VIX-based position scaling
+  const riskPerShare = entryPrice - stopPrice;
+  const maxRiskAmount = accountSize * (riskPercent / 100);
+  let shares = Math.floor(maxRiskAmount / riskPerShare);
+
+  // NEW: VIX-based position scaling — applied to maxPositionPercent BEFORE cap check
+  // (self-review round 4: apply BEFORE cap, not after, so cap still works correctly)
   const vixMultiplier = options.vixMultiplier || 1.0;
-  // VIX < 20: 1.0 (full size)
-  // VIX 20-30: 0.75
-  // VIX > 30: 0.50
-  shares = Math.floor(shares * vixMultiplier);
+  // VIX < 20: 1.0 (full size), VIX 20-30: 0.75, VIX > 30: 0.50
+  const effectiveMaxPositionPercent = (options.maxPositionPercent || 100) * vixMultiplier;
+  const maxPositionValue = accountSize * (effectiveMaxPositionPercent / 100);
+  const maxSharesByPosition = Math.floor(maxPositionValue / entryPrice);
 
+  // ... existing cap logic uses maxSharesByPosition ...
   // ... rest unchanged ...
 }
+```
+**Why apply to maxPositionPercent (not shares directly):**
+- If applied AFTER the cap: VIX reduction fights against position limits
+- If applied BEFORE: VIX scales the maximum allowed position, cap still applies cleanly
+- Default `vixMultiplier = 1.0` preserves existing behavior exactly
 ```
 
 ```python
@@ -330,69 +372,99 @@ categoricalAssessment.js → display text only (optional)
 
 **Rationale:** MISLEADING 3/4 that 12-1 is best. Blending is more robust than single lookback.
 
-**Files affected (4):**
+**Files affected (5):**
 
 | File | Change | Blast Radius |
 |------|--------|--------------|
-| `backend/backend.py` | Add 21d ROC + 63d RS calculation alongside existing 52w RS | New data in API response |
-| `backend/backtest/backtest_holistic.py` | Calculate blended RS for backtest | Backtest results change |
+| `frontend/src/utils/rsCalculator.js` | Add blended RS calculation (21d/63d/126d) | RS data changes |
+| `frontend/src/utils/scoringEngine.js` | Pass rsBlended through rsData object | Quality gates may change |
 | `frontend/src/utils/categoricalAssessment.js` | Use blended RS in technical assessment | Verdict logic changes |
+| `backend/backtest/backtest_holistic.py` | Calculate blended RS for backtest | Backtest results change |
 | `backend/backtest/categorical_engine.py` | Mirror frontend change | MUST match JS |
 
-**Design — Backend (`backend.py`):**
-```python
-# In the /api/stock/<ticker> response, ADD alongside existing rs_52w:
-def calculate_momentum_blend(df, spy_df):
-    """
-    Blend 3 momentum lookbacks (equal weight):
-    - 21-day ROC (short-term persistence)
-    - 63-day RS vs SPY (3-month intermediate drift)
-    - 126-day RS vs SPY (6-month momentum)
+**ARCHITECTURE NOTE (self-review Day 69, round 2):**
+RS is computed ENTIRELY CLIENT-SIDE in `rsCalculator.js`, NOT in `backend.py`. The backend only returns raw prices (`price52wAgo`, `price13wAgo`, `priceHistory`). The original plan incorrectly targeted `backend.py` for blended RS. The correct approach:
 
-    Returns composite RS score (1.0 = market perform)
-    """
-    close = df['Close']
-    spy_close = spy_df['Close']
+**Option A (preferred): Compute in rsCalculator.js from existing priceHistory**
+The frontend already receives full price history. Compute blended lookbacks from it:
+```javascript
+// rsCalculator.js — ADD to calculateRelativeStrength()
+function calculateBlendedRS(stockPrices, spyPrices) {
+    // 21-day ROC (short-term persistence)
+    const roc21 = stockPrices.length > 22
+        ? (stockPrices[stockPrices.length - 1] / stockPrices[stockPrices.length - 22]) - 1 : 0;
 
-    # 21-day ROC: (price_now / price_21d_ago) - 1
-    roc_21 = (close.iloc[-1] / close.iloc[-22]) - 1 if len(close) > 22 else 0
+    // 63-day RS vs SPY
+    const stock63d = stockPrices.length > 64
+        ? (stockPrices[stockPrices.length - 1] / stockPrices[stockPrices.length - 64]) - 1 : 0;
+    const spy63d = spyPrices.length > 64
+        ? (spyPrices[spyPrices.length - 1] / spyPrices[spyPrices.length - 64]) - 1 : 0;
+    const rs63 = (1 + spy63d) !== 0 ? (1 + stock63d) / (1 + spy63d) : 1.0;
 
-    # 63-day RS vs SPY: (stock_63d_return / spy_63d_return)
-    stock_63d = (close.iloc[-1] / close.iloc[-64]) - 1 if len(close) > 64 else 0
-    spy_63d = (spy_close.iloc[-1] / spy_close.iloc[-64]) - 1 if len(spy_close) > 64 else 0
-    rs_63 = (1 + stock_63d) / (1 + spy_63d) if (1 + spy_63d) != 0 else 1.0
+    // 126-day RS vs SPY
+    const stock126d = stockPrices.length > 127
+        ? (stockPrices[stockPrices.length - 1] / stockPrices[stockPrices.length - 127]) - 1 : 0;
+    const spy126d = spyPrices.length > 127
+        ? (spyPrices[spyPrices.length - 1] / spyPrices[spyPrices.length - 127]) - 1 : 0;
+    const rs126 = (1 + spy126d) !== 0 ? (1 + stock126d) / (1 + spy126d) : 1.0;
 
-    # 126-day RS vs SPY (what we currently use as approximate 52-week RS)
-    stock_126d = (close.iloc[-1] / close.iloc[-127]) - 1 if len(close) > 127 else 0
-    spy_126d = (spy_close.iloc[-1] / spy_close.iloc[-127]) - 1 if len(spy_close) > 127 else 0
-    rs_126 = (1 + stock_126d) / (1 + spy_126d) if (1 + spy_126d) != 0 else 1.0
+    // Normalize 21d ROC to RS-like scale (1.0 = neutral)
+    const rs21 = 1.0 + roc21;
 
-    # Normalize 21d ROC to RS-like scale (1.0 = neutral)
-    # ROC of +10% → RS of 1.10, ROC of -5% → RS of 0.95
-    rs_21 = 1.0 + roc_21
-
-    # Equal-weight blend
-    blended = (rs_21 + rs_63 + rs_126) / 3.0
-
+    // Equal-weight blend
     return {
-        'rs_blended': round(blended, 3),
-        'rs_21d': round(rs_21, 3),
-        'rs_63d': round(rs_63, 3),
-        'rs_126d': round(rs_126, 3),
-        'rs_52w': existing_rs_52w  # KEEP existing for backward compat
-    }
+        rsBlended: Math.round(((rs21 + rs63 + rs126) / 3.0) * 1000) / 1000,
+        rs21d: Math.round(rs21 * 1000) / 1000,
+        rs63d: Math.round(rs63 * 1000) / 1000,
+        rs126d: Math.round(rs126 * 1000) / 1000,
+    };
+}
 ```
 
-**Critical decision:** Keep `rs_52w` in API response for backward compatibility. Add `rs_blended` alongside it. Frontend uses `rs_blended` for assessment, displays both.
+**Option B: Backend adds blended RS to API response** — adds server-side computation, NOT needed since priceHistory is already available client-side. Avoid this to keep backend changes minimal.
+
+**Critical decision:** Keep `rs52Week` everywhere for backward compatibility. Add `rsBlended` alongside it. Frontend assessment uses `rsBlended` when available, falls back to `rs52Week`.
 
 **Frontend (`categoricalAssessment.js`):**
+
+**CRITICAL DATA FLOW (verified by code audit):**
+```
+scoringEngine.js → calculateRelativeStrength(stockData, spyData)
+    → returns rsData { rs52Week, rs13Week, rsRating, ... }
+    → attaches to technicalResult.rsData
+categoricalAssessment.js line 256:
+    const rs52Week = technicalData?.rsData?.rs52Week || 1.0;
+```
+
+RS blended must flow through the SAME path:
 ```javascript
+// scoringEngine.js — MODIFY calculateRelativeStrength() or its caller
+// Add rsBlended to the rsData object:
+rsData: {
+    rs52Week: rsData.rs52Week,       // KEEP (backward compat)
+    rsBlended: rsData.rsBlended,     // NEW (from backend or computed here)
+    rs13Week: rsData.rs13Week,
+    ...
+}
+
+// categoricalAssessment.js line 256 — CHANGE:
 // CURRENT:
-if (pass_count >= 7 && rsi >= 50 && rsi <= 70 && rs_52w >= 1.0)  → Strong
+const rs52Week = technicalData?.rsData?.rs52Week || 1.0;
 
 // NEW:
-const rs = stockData.rs_blended || stockData.rs_52w || 1.0;  // fallback chain
-if (pass_count >= 7 && rsi >= 50 && rsi <= 70 && rs >= 1.0)  → Strong
+const rsValue = technicalData?.rsData?.rsBlended || technicalData?.rsData?.rs52Week || 1.0;
+```
+
+**Also update `scoringEngine.js` quality gates + verdict (3 places):**
+```javascript
+// Line 412: Quality gate RS check
+if (rsData?.rsBlended && rsData.rsBlended < 0.8) { ... }  // or keep rs52Week here for safety
+
+// Line 466: Auto-AVOID
+if (rsData?.rs52Week && rsData.rs52Week < 0.8) { ... }  // keep 52w for hard floor
+
+// Line 477: BUY requires RS≥1.0
+if (rsData?.rsBlended && rsData.rsBlended >= 1.0) { ... }  // use blended for BUY gate
 ```
 
 **Backend (`categorical_engine.py`):**
@@ -416,31 +488,36 @@ def assess_technical(trend_template_score, rsi, rs_52w=1.0, rs_blended=None, adx
 - Pattern detection: unaffected
 - Context tab: unaffected
 
-**Test protocol:**
+**Test protocol (corrected — self-review round 5):**
 1. Run backtest BEFORE → save full metrics
-2. Add `calculate_momentum_blend()` to backend.py → test with `curl localhost:5001/api/stock/AMD`
-3. Verify `rs_blended` appears in response alongside `rs_52w`
-4. Update `categorical_engine.py` to accept `rs_blended`
-5. Update `backtest_holistic.py` to compute and pass `rs_blended`
-6. Run backtest AFTER → compare
-7. Acceptance: PF ≥ 1.5, WR ≥ 50%. If blended RS degrades metrics, REVERT and keep 52w only
-8. If backtest passes → update `categoricalAssessment.js` to use `rs_blended`
+2. Add `calculate_rs_blended()` to `backtest_holistic.py` (not backend.py — RS is client-side for live, backtest computes its own)
+3. Update `categorical_engine.py` to accept `rs_blended` parameter with fallback to `rs_52w`
+4. Run backtest AFTER → compare
+5. Acceptance: PF ≥ 1.5, WR ≥ 50%. If blended RS degrades metrics, REVERT and keep 52w only
+6. If backtest passes → update `rsCalculator.js` to compute blended RS from priceHistory
+7. Update `scoringEngine.js` to pass `rsBlended` through rsData object
+8. Update `categoricalAssessment.js` to use `rsBlended` with `rs52Week` fallback
 9. Manual test: analyze AAPL, NVDA, TSLA → verify blended RS appears and assessment is reasonable
 
-**Dependency chain:**
+**Dependency chain (CORRECTED — Day 69 self-review round 2):**
 ```
-backend.py (add calculation) → test API response
+BACKTEST VALIDATION FIRST (isolated from frontend):
+categorical_engine.py (accept rs_blended param) → unit test
     ↓
-categorical_engine.py (accept new param) → test backtest
+backtest_holistic.py (compute blended RS from price data & pass) → full backtest
+    ↓ (ONLY if backtest PF ≥ 1.5 and WR ≥ 50%)
+
+FRONTEND (only after backtest validates):
+rsCalculator.js (add calculateBlendedRS) → unit test with known prices
     ↓
-backtest_holistic.py (compute & pass) → run full backtest validation
-    ↓ (ONLY if backtest passes)
-categoricalAssessment.js (use rs_blended) → test frontend
+scoringEngine.js (pass rsBlended through rsData) → verify rsData object
     ↓
-api.js → NO CHANGE (already fetches stock data, new fields come free)
+categoricalAssessment.js (use rsBlended with rs52Week fallback) → test assessment
+    ↓
+backend.py / api.js → NO CHANGE (priceHistory already available)
 ```
 
-**Rollback:** Revert all 4 files. `rs_52w` still exists as fallback everywhere.
+**Rollback:** Revert all 5 files. `rs52Week` still exists as fallback everywhere.
 
 ---
 
@@ -478,12 +555,17 @@ import pandas as pd
 import numpy as np
 
 def calculate_rsi_short(closes, period=2):
-    """RSI with very short period (Connors approach)."""
+    """RSI with very short period (Connors approach).
+
+    IMPORTANT (self-review round 4): Uses Wilder's EMA (ewm), NOT SMA (rolling).
+    Both backend.py:247 and backtest_holistic.py:105 use ewm(alpha=1/period).
+    For RSI(2): alpha = 1/2 = 0.5. Using SMA would give different values.
+    """
     delta = closes.diff()
     gain = delta.where(delta > 0, 0.0)
     loss = (-delta).where(delta < 0, 0.0)
-    avg_gain = gain.rolling(window=period).mean()
-    avg_loss = loss.rolling(window=period).mean()
+    avg_gain = gain.ewm(alpha=1/period, min_periods=period).mean()  # Wilder's, NOT rolling
+    avg_loss = loss.ewm(alpha=1/period, min_periods=period).mean()  # Wilder's, NOT rolling
     rs = avg_gain / avg_loss
     rsi = 100 - (100 / (1 + rs))
     return rsi
@@ -648,22 +730,39 @@ All other 25 endpoints remain unchanged. Categorical assessment endpoints, S&R, 
 
 ## FILE-LEVEL CHANGE MATRIX
 
-### Summary: 7 files modified, 3 files created, all existing tests must pass
+### Summary: 14 files modified, 3 files created, all existing tests must pass
 
 | # | File | Tier | Action | Lines Changed | Risk |
 |---|------|------|--------|---------------|------|
-| 1 | `backend/backtest/trade_simulator.py` | 1A, 2A | Modify | ~20 lines | LOW — stop logic + VIX multiplier |
-| 2 | `frontend/src/utils/categoricalAssessment.js` | 1B, 2B | Modify | ~10 lines | MEDIUM — verdict logic |
-| 3 | `backend/backtest/categorical_engine.py` | 1B, 2B | Modify | ~10 lines | MEDIUM — MUST match JS |
-| 4 | `docs/claude/stable/GOLDEN_RULES.md` | 1B | Modify | ~5 lines | ZERO |
-| 5 | `backend/backtest/parameter_stability.py` | 1C | NEW | ~200 lines | ZERO — standalone script |
-| 6 | `frontend/src/utils/positionSizing.js` | 2A | Modify | ~10 lines | LOW — additive param |
-| 7 | `frontend/src/App.jsx` | 2A, 3B | Modify | ~15 lines | LOW — wiring only |
-| 8 | `backend/backend.py` | 2B, 3A | Modify | ~50 lines | LOW — new calc + new endpoints |
-| 9 | `backend/backtest/backtest_holistic.py` | 2B | Modify | ~20 lines | MEDIUM — affects backtest |
-| 10 | `backend/mean_reversion.py` | 3A | NEW | ~150 lines | ZERO — standalone |
-| 11 | `backend/backtest/mr_simulator.py` | 3A | NEW | ~200 lines | ZERO — standalone |
-| 12 | `frontend/src/services/api.js` | 3A | Modify | ~15 lines | LOW — additive functions |
+| 1 | `backend/support_resistance.py` | 0A | Modify | ~2 lines (docstrings) | ZERO — remove hallucinated claim |
+| 2 | `backend/pattern_detection.py` | 0B | Modify | ~15 lines | LOW — VCP confidence booster |
+| 3 | `backend/backtest/trade_simulator.py` | 1A, 2A | Modify | ~20 lines | LOW — stop logic + VIX multiplier |
+| 4 | `frontend/src/utils/riskRewardCalc.js` | 1A | Modify | ~2 lines (comment) | ZERO — document ATR-primary, 7% cap |
+| 5 | `frontend/src/utils/categoricalAssessment.js` | 0D, 0G, 1B, 2B | Modify | ~15 lines | MEDIUM — verdict logic + F&G thresholds |
+| 6 | `backend/backtest/categorical_engine.py` | 0D, 1B, 2B | Modify | ~10 lines | MEDIUM — MUST match JS |
+| 7 | `frontend/src/utils/scoringEngine.js` | 0D, 2B | Modify | ~15 lines | MEDIUM — RS quality gates + rsData flow |
+| 8 | `frontend/src/utils/rsCalculator.js` | 2B | Modify | ~40 lines | MEDIUM — blended RS computation |
+| 9 | `docs/claude/stable/GOLDEN_RULES.md` | 1B | Modify | ~5 lines | ZERO |
+| 10 | `backend/backtest/parameter_stability.py` | 1C | NEW | ~200 lines | ZERO — standalone script |
+| 11 | `frontend/src/utils/positionSizing.js` | 2A | Modify | ~10 lines | LOW — additive param |
+| 12 | `frontend/src/App.jsx` | 2A, 3B | Modify | ~15 lines | LOW — wiring only |
+| 13 | `backend/backend.py` | 0E-F, 3A | Modify | ~30 lines | LOW — RRG comment + new MR endpoints |
+| 14 | `backend/backtest/backtest_holistic.py` | 2B | Modify | ~30 lines | MEDIUM — blended RS + affects backtest |
+| 15 | `backend/mean_reversion.py` | 3A | NEW | ~150 lines | ZERO — standalone |
+| 16 | `backend/backtest/mr_simulator.py` | 3A | NEW | ~200 lines | ZERO — standalone |
+| 17 | `frontend/src/services/api.js` | 3A | Modify | ~15 lines | LOW — additive functions |
+
+**SELF-REVIEW LOG (5 rounds, Day 69):**
+
+**Round 1:** `scoringEngine.js` was MISSING. RS flows through it to `categoricalAssessment.js`. Added.
+
+**Round 2:** `rsCalculator.js` MISSING (RS is client-side, not backend). Bug 0C already correct (removed). Bug 0G frontend-only. Bug 0E-F is convention issue. ATR 1.5x/2x mismatch documented.
+
+**Round 3:** Bug 0A targets `support_resistance.py` (Python), not .md files. Bug 0B should be confidence booster, not gate. Bug 0D test simplified to manual threshold + 3 runs.
+
+**Round 4:** `min()` → `max()` for stop prices (CRITICAL — was backwards). RSI(2) must use `ewm()` not `rolling()`. VIX multiplier placement: apply to maxPositionPercent BEFORE cap. Removed phantom categoricalAssessment.js line item from 1A.
+
+**Round 5:** Fixed document inconsistencies — file count (9→14 modified), commit count (7→6), Change 1A header (3→2), Tier 2B test protocol (backend.py→rsCalculator.js), added missing files to matrix (support_resistance.py, pattern_detection.py, riskRewardCalc.js).
 
 ---
 
@@ -725,7 +824,7 @@ After each tier completion, update:
 ## COMMIT STRATEGY
 
 ```
-Tier 0 (Pre-work bugs): 1 commit per bug fix (7 commits)
+Tier 0 (Pre-work bugs): 1 commit per bug fix (6 commits — Bug 0C removed as already correct)
 Tier 1A: "Make ATR stops primary, 7% as maximum cap"
 Tier 1B: "Document equal-weight factor principle"
 Tier 1C: "Add parameter stability analysis script"
