@@ -55,7 +55,8 @@ export function calculateSimplifiedAnalysis(stockData, spyData, srData) {
   const currentPrice = prices[prices.length - 1];
 
   // Day 70: Market-cap-aware thresholds (used by criteria 3, 6)
-  const marketCap = stockData.marketCap || 0;
+  // Day 71: Fix — marketCap lives in fundamentals, not stockData root
+  const marketCap = stockData.fundamentals?.marketCap || stockData.marketCap || 0;
   const capLabel = marketCap >= 10e9 ? 'large-cap' : marketCap >= 2e9 ? 'mid-cap' : 'small-cap';
 
   // ============================================
