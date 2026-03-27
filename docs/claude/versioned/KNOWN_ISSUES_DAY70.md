@@ -26,9 +26,8 @@
 **Severity:** Low (no functional impact)
 **Description:** `backend/backend.py` still imports defeatbeta library
 
-### Low: README Audit Fixes Pending (Day 68)
-**Severity:** Low (documentation)
-**Description:** 7 items from Day 68 audit: FMP refs, version numbers, Fundamental Strong description, 200 EMA->SMA label.
+### ~~Resolved: README Audit Fixes~~ (Day 71)
+FMP → AlphaVantage throughout, version numbers updated (v4.32/v2.33/v2.10), Fundamental Strong description corrected (2+ of 3 metrics), 200 EMA → 200 SMA, verdict logic reflects Day 70 sentiment change, Decision Matrix → progressive disclosure, changelog extended through v4.32.
 
 ### Info: Blended RS Degrades Verdict Quality
 **Severity:** Info (by design — informational only)
