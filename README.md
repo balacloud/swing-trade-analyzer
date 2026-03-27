@@ -32,8 +32,8 @@ An institutional-grade stock analysis system for swing traders, built on proven 
 ### What is This?
 
 A **data-driven swing trade recommendation engine** that analyzes stocks and provides:
-- **Categorical Assessment System** (v4.5) - Strong/Decent/Weak ratings across Technical, Fundamental, Sentiment, and Risk
-- **BUY / HOLD / AVOID verdicts** based on categorical criteria (2+ Strong categories with favorable risk = BUY)
+- **Categorical Assessment System** (v4.5+) - Strong/Decent/Weak ratings across Technical, Fundamental, Sentiment (info-only), and Risk
+- **BUY / HOLD / AVOID verdicts** based on Technical + Fundamental categories (2 Strong = BUY, Risk/Macro = gate)
 - **Pattern Detection** - VCP, Cup & Handle, Flat Base + Minervini Trend Template
 - **Fear & Greed Index** - Real market sentiment data (replaces placeholder)
 - **Trade setups** with Entry, Stop Loss, Target, and Risk/Reward ratios
@@ -66,13 +66,13 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 
 ## Features
 
-### ✅ Implemented (v4.27)
+### ✅ Implemented (v4.32)
 
 1. **Single Stock Analysis**
    - Enter any ticker symbol
    - Get categorical assessment (Strong/Decent/Weak) across 4 dimensions
    - BUY / HOLD / AVOID verdict with detailed reasoning
-   - Decision Matrix: 3-step synthesis (Should I Trade? → When Enter? → Does Math Work?)
+   - 3-tier progressive disclosure (always visible / collapsed / hidden)
    - Holding period selector: Quick (5-10d) / Standard (15-30d) / Position (1-3mo)
 
 2. **Position Sizing Calculator** (Day 28-29)
@@ -108,7 +108,7 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 
 6. **Market Scanning** (TradingView Screener)
    - 5 pre-built strategies: Reddit, Minervini, Momentum, Value, Best Candidates
-   - **Best Candidates** aligned with backtested Config C criteria (ADX>=20, RSI 50-70, EMA momentum)
+   - **Best Candidates** aligned with backtested Config C criteria (ADX>=20, RSI 50-70, SMA momentum)
    - Market index filters: S&P 500 / NASDAQ 100 / Dow 30 / All US / TSX 60 / All Canadian
    - Stage 2 uptrend requirement (50 SMA > 200 SMA)
 
@@ -121,7 +121,7 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 8. **Multi-Source Data Intelligence** (Day 52 - v4.14)
    - **5 data providers** with automatic fallback chains
    - OHLCV: TwelveData → yfinance → Stooq
-   - Fundamentals: Finnhub → FMP → yfinance (field-level merge)
+   - Fundamentals: Finnhub → AlphaVantage → yfinance (field-level merge)
    - Circuit breaker per provider (3 failures → 5min cooldown)
    - Token-bucket rate limiting per provider
    - Cache-first with stale cache fallback when all providers fail
@@ -155,10 +155,8 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
     - OBV vs Price divergence detection (Bullish/Bearish/None)
     - Enhanced RVOL display ("2.3x avg")
 
-14. **Decision Matrix** (Day 53 - v4.15)
-    - 3-step synthesis: "Should I Trade?" → "When Enter?" → "Does Math Work?"
-    - Surfaces 10 computed-but-hidden fields
-    - Contradiction resolution with actionable items
+14. **~~Decision Matrix~~ (Removed Day 70 — Simplicity Premium)**
+    - Replaced by 3-tier progressive disclosure in full analysis view
 
 15. **Holding Period Selector** (Day 53 - v4.13)
     - Quick (5-10d) / Standard (15-30d) / Position (1-3mo)
@@ -299,7 +297,7 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 │                      DATA SOURCES                               │
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐           │
-│  │  TwelveData  │  │   Finnhub    │  │     FMP      │           │
+│  │  TwelveData  │  │   Finnhub    │  │ AlphaVantage │           │
 │  │              │  │              │  │              │           │
 │  │ - OHLCV      │  │ - ROE, ROA   │  │ - EPS Growth │           │
 │  │ - Intraday   │  │ - PE, Margins│  │ - Rev Growth │           │
@@ -348,7 +346,7 @@ User enters ticker
         │         └──► Cache MISS: Fetch from sources ──┐
         │                                                │
         ├──► /api/stock/AAPL ──────► TwelveData → yfinance → Stooq
-        ├──► /api/fundamentals/AAPL ► Finnhub → FMP → yfinance (merge)
+        ├──► /api/fundamentals/AAPL ► Finnhub → AlphaVantage → yfinance (merge)
         ├──► /api/market/spy ──────► TwelveData → yfinance (for RS)
         ├──► /api/market/vix ──────► yfinance → Finnhub (VIX)
         ├──► /api/sr/AAPL ─────────► S&R Engine (Entry/Stop/Target)
@@ -399,7 +397,7 @@ Replaced the original 75-point numerical scoring (which had 0.011 score-to-retur
 | **Technical** | Strong / Decent / Weak | Trend Template (8-point), RSI, RS vs SPY, ADX |
 | **Fundamental** | Strong / Decent / Weak | ROE, Revenue Growth, Debt/Equity |
 | **Sentiment** | Strong / Neutral / Weak | CNN Fear & Greed Index |
-| **Risk/Macro** | Favorable / Neutral / Unfavorable | VIX level, SPY regime (above 200 EMA) |
+| **Risk/Macro** | Favorable / Neutral / Unfavorable | VIX level, SPY regime (above 200 SMA) |
 
 #### Technical Assessment Thresholds
 
@@ -413,17 +411,19 @@ Replaced the original 75-point numerical scoring (which had 0.011 score-to-retur
 
 | Level | Criteria |
 |-------|----------|
-| **Strong** | ROE > 15% AND Revenue Growth > 10% AND D/E < 1.0 |
-| **Decent** | ROE 8-15% OR Revenue Growth 0-10% OR D/E 1.0-2.0 |
-| **Weak** | ROE < 8% OR negative growth OR D/E > 2.0 |
+| **Strong** | 2+ strong metrics (ROE > 15%, RevGrowth > 10%, D/E < 1.0) AND 0 weak |
+| **Decent** | Mixed — some strong, some moderate (ROE 8-15%, RevGrowth 0-10%, D/E 1-2) |
+| **Weak** | 2+ weak metrics (ROE < 8%, negative growth, D/E > 2.0) |
 
 ### Verdict Logic
 
 | Verdict | Conditions |
 |---------|------------|
-| **BUY** | 2+ Strong categories + Favorable/Neutral risk + ADX >= 20 |
-| **HOLD** | Mixed signals, ADX < 20 (no trend), or Unfavorable risk |
+| **BUY** | 2 Strong categories (Technical + Fundamental) + Favorable/Neutral risk + ADX >= 20 |
+| **HOLD** | Mixed signals, ADX < 20 (no trend), or Unfavorable risk gate |
 | **AVOID** | Weak Technical (non-negotiable) OR 2+ Weak categories |
+
+> **Note:** Sentiment (Fear & Greed) is displayed as informational only — it does not affect the verdict. Backtest validated T+F as verdict drivers and Risk/Macro as a gate. Sentiment was never validated (hardcoded Neutral in backtest).
 
 ### Additional Filters
 
@@ -458,7 +458,7 @@ Walk-forward validation: Out-of-sample outperforms in-sample — system is NOT o
 - **Multi-Source Provider System** (v4.14):
   - **TwelveData** - Primary OHLCV + Intraday
   - **Finnhub** - Primary Fundamentals + Quote
-  - **FMP** - Growth metrics (epsGrowth, revenueGrowth)
+  - **AlphaVantage** - Growth metrics (epsGrowth, revenueGrowth) + News Sentiment
   - **yfinance** - Universal fallback
   - **Stooq** (pandas_datareader) - Last resort OHLCV
 - **tradingview-screener** - Batch scanning
@@ -473,7 +473,7 @@ Walk-forward validation: Out-of-sample outperforms in-sample — system is NOT o
 |--------|-----------|------------|------|
 | TwelveData | OHLCV, Intraday | 8/min, 800/day | Primary OHLCV |
 | Finnhub | Fundamentals, Quote | 60/min | Primary Fundamentals |
-| FMP | Growth metrics | 10/min, 250/day | Fundamentals backup |
+| AlphaVantage | Growth metrics, News | 25/day (free) | Fundamentals backup + News |
 | yfinance | All types | ~30/min | Universal fallback |
 | Stooq | OHLCV only | ~5/min | Last resort OHLCV |
 | TradingView Screener | Batch scanning | Real-time | Market scanning |
@@ -545,16 +545,15 @@ Create `backend/.env` based on `backend/.env.example`. Here is every variable, w
 |----------|----------------|-----------|
 | `TWELVEDATA_API_KEY` | [twelvedata.com](https://twelvedata.com) → Sign up → API Keys | 800 credits/day, 8/min |
 | `FINNHUB_API_KEY` | [finnhub.io](https://finnhub.io) → Sign up → Dashboard | 60 calls/min |
-| `FMP_API_KEY` | [financialmodelingprep.com](https://financialmodelingprep.com) → Get API Key | 250 calls/day |
+| `ALPHAVANTAGE_API_KEY` | [alphavantage.co](https://www.alphavantage.co/support/#api-key) | 25 calls/day (free) |
 
 ### Optional (graceful degradation if not set)
 
 | Variable | Where to Get It | Without It |
 |----------|----------------|------------|
 | `FRED_API_KEY` | [fred.stlouisfed.org/docs/api/api_key.html](https://fred.stlouisfed.org/docs/api/api_key.html) — instant, no credit card | Context tab shows no macro data |
-| `ALPHA_VANTAGE_API_KEY` | [alphavantage.co](https://www.alphavantage.co/support/#api-key) | News column shows empty state |
 
-> **Without FMP_API_KEY:** EPS growth and revenue growth fall back to yfinance data.
+> **Without ALPHAVANTAGE_API_KEY:** EPS growth, revenue growth, and news sentiment fall back to yfinance data.
 
 ### Example `.env` file
 
@@ -562,7 +561,7 @@ Create `backend/.env` based on `backend/.env.example`. Here is every variable, w
 # Required
 TWELVEDATA_API_KEY=your_twelvedata_key_here
 FINNHUB_API_KEY=your_finnhub_key_here
-FMP_API_KEY=your_fmp_key_here
+ALPHAVANTAGE_API_KEY=your_alphavantage_key_here
 
 # Optional
 FRED_API_KEY=your_fred_key_here
@@ -630,7 +629,7 @@ npm start
    - **Minervini**: Large-cap momentum leaders
    - **Momentum**: Sustainable 5-50% monthly gains
    - **Value**: Quality at fair price (P/E 5-25)
-   - **Best Candidates**: Backtested Config C picks (ADX>=20, RSI 50-70, EMA momentum)
+   - **Best Candidates**: Backtested Config C picks (ADX>=20, RSI 50-70, SMA momentum)
 3. Select index (S&P 500, NASDAQ 100, Dow 30, All US)
 4. Click "Scan for Opportunities"
 5. Click any result to run full analysis
@@ -677,13 +676,13 @@ Returns backend health status including multi-source provider information.
 ```json
 {
   "status": "healthy",
-  "version": "2.30",
+  "version": "2.33",
   "data_provider_available": true,
   "providers": {
     "providers": {
       "twelvedata": {"configured": true, "type": "OHLCV + Intraday"},
       "finnhub": {"configured": true, "type": "Fundamentals + Quote"},
-      "fmp": {"configured": true, "type": "Fundamentals (growth)"},
+      "alphavantage": {"configured": true, "type": "Fundamentals (growth) + News"},
       "yfinance": {"configured": true, "type": "All (fallback)"},
       "stooq": {"configured": true, "type": "OHLCV (last resort)"}
     }
@@ -710,7 +709,7 @@ Returns price data and basic info.
 
 ### GET /api/fundamentals/\<ticker\>
 
-Returns fundamental data with multi-source fallback (Finnhub → FMP → yfinance).
+Returns fundamental data with multi-source fallback (Finnhub → AlphaVantage → yfinance).
 
 ```json
 {
@@ -727,8 +726,8 @@ Returns fundamental data with multi-source fallback (Finnhub → FMP → yfinanc
   "_field_sources": {
     "pe": "finnhub",
     "roe": "finnhub",
-    "epsGrowth": "fmp",
-    "revenueGrowth": "fmp"
+    "epsGrowth": "alphavantage",
+    "revenueGrowth": "alphavantage"
   }
 }
 ```
@@ -788,7 +787,7 @@ Returns detailed data source provenance for transparency.
     "cache_age_seconds": 86400,
     "fields": {
       "roe": {"source": "finnhub", "formula": "Net Income / Shareholders Equity"},
-      "epsGrowth": {"source": "fmp", "formula": "(Current EPS - Previous EPS) / Previous EPS"}
+      "epsGrowth": {"source": "alphavantage", "formula": "(Current EPS - Previous EPS) / Previous EPS"}
     }
   }
 }
@@ -1025,7 +1024,7 @@ Returns available scan strategy definitions.
     {"id": "minervini", "name": "Minervini SEPA", "description": "Large-cap momentum leaders in Stage 2 uptrend"},
     {"id": "momentum", "name": "Momentum", "description": "Sustainable gains, RSI 50-75 (not overbought)"},
     {"id": "value", "name": "Value", "description": "Quality stocks above 200 SMA at fair RSI levels"},
-    {"id": "best", "name": "Best Candidates", "description": "Stage 2 + ADX≥20 + RSI 50-70 + EMA momentum"}
+    {"id": "best", "name": "Best Candidates", "description": "Stage 2 + ADX≥20 + RSI 50-70 + SMA momentum"}
   ]
 }
 ```
@@ -1109,13 +1108,13 @@ STA uses a multi-source data architecture with automatic fallback chains, elimin
 - **What:** PE, ROE, ROA, Debt/Equity, Profit Margin, Beta, Current Ratio
 - **Rate Limit:** 60 requests/min (free tier, unlimited daily)
 - **API Key:** Required (`FINNHUB_API_KEY` in `.env`)
-- **Note:** Lacks epsGrowth and revenueGrowth — filled by FMP
+- **Note:** Lacks epsGrowth and revenueGrowth — filled by AlphaVantage
 
-### FMP (Backup - Growth Metrics)
+### AlphaVantage (Backup - Growth Metrics + News)
 
-- **What:** EPS Growth, Revenue Growth (fills Finnhub gaps)
-- **Rate Limit:** 10/min, 250/day (free tier)
-- **API Key:** Required (`FMP_API_KEY` in `.env`)
+- **What:** EPS Growth, Revenue Growth (fills Finnhub gaps) + News Sentiment for Context Tab
+- **Rate Limit:** 25/day (free tier)
+- **API Key:** Required (`ALPHAVANTAGE_API_KEY` in `.env`)
 
 ### yfinance (Universal Fallback)
 
@@ -1135,14 +1134,14 @@ STA uses a multi-source data architecture with automatic fallback chains, elimin
 
 ```python
 # Finnhub provides most fundamental fields
-# FMP fills growth gaps (epsGrowth, revenueGrowth)
+# AlphaVantage fills growth gaps (epsGrowth, revenueGrowth)
 # yfinance fills any remaining gaps
 # Result includes _field_sources for transparency
 merged = {
     "pe": "finnhub",
     "roe": "finnhub",
-    "epsGrowth": "fmp",        # Finnhub lacks this
-    "revenueGrowth": "fmp",    # Finnhub lacks this
+    "epsGrowth": "alphavantage",    # Finnhub lacks this
+    "revenueGrowth": "alphavantage", # Finnhub lacks this
     "pegRatio": "yfinance"     # Only yfinance has this
 }
 ```
@@ -1200,7 +1199,7 @@ TOLERANCES = {
 ### Data Limitations
 
 1. **Price delay** - 15-30 minute delay (acceptable for swing trading)
-2. **FMP free tier** - 250 calls/day, may return 403 on some tickers
+2. **AlphaVantage free tier** - 25 calls/day (4h cache mitigates this)
 3. **TwelveData free tier** - 800 credits/day, 8/min (sufficient for ~100 tickers/day)
 4. **Field-level gaps** - Some fundamental fields may come from fallback providers
 5. **Alpha Vantage free tier** - 25 calls/day; news sentiment cache (4h TTL) is mandatory
@@ -1267,6 +1266,9 @@ TOLERANCES = {
 - **v4.22: 9-Criteria Checklist + Growth Fix** ✅ Simple Checklist 4→9 criteria, EPS/Revenue YoY fix (Day 60)
 - **v4.24: Sector Rotation Phase 2 + Context Tab** ✅ Dedicated Sectors tab, FRED macro, news sentiment (Day 62)
 - **v4.27: Deep Audit + 18 Bug Fixes** ✅ VCP, ATR, W-FRI, stops, patterns, labels, constants (Day 64)
+- **v4.30: Universal Principles Tier 0-1** ✅ 4-LLM audit, bug fixes, ATR-primary stops, parameter stability (Day 69)
+- **v4.31: Universal Principles Tier 2-3** ✅ VIX position sizing, blended RS (info), MR engine (Day 70)
+- **v4.32: Simplicity Premium** ✅ Sentiment info-only, progressive disclosure, cap-aware checklist (Day 70B)
 
 ### Philosophy (Day 27 + Day 44 Update)
 
@@ -1292,7 +1294,7 @@ swing-trade-analyzer/
 ├── start.sh                   # Service starter script
 ├── stop.sh                    # Service stopper script
 ├── backend/
-│   ├── backend.py             # Flask server (v2.30)
+│   ├── backend.py             # Flask server (v2.33)
 │   ├── cache_manager.py       # SQLite persistent cache (with source tracking)
 │   ├── support_resistance.py  # S&R calculation (Agglomerative + MTF)
 │   ├── pattern_detection.py   # VCP, Cup & Handle, Flat Base
@@ -1312,7 +1314,7 @@ swing-trade-analyzer/
 │   │   ├── circuit_breaker.py # Circuit breaker pattern
 │   │   ├── twelvedata_provider.py  # Primary OHLCV
 │   │   ├── finnhub_provider.py     # Primary Fundamentals
-│   │   ├── fmp_provider.py         # Growth metrics
+│   │   ├── alphavantage_provider.py # Growth metrics + News
 │   │   ├── yfinance_provider.py    # Universal fallback
 │   │   ├── stooq_provider.py       # Last resort OHLCV
 │   │   └── backtest_adapter.py     # yf.download() replacement
@@ -1338,15 +1340,15 @@ swing-trade-analyzer/
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx            # Main UI (v4.14)
+│   │   ├── App.jsx            # Main UI (v4.32)
 │   │   ├── services/
-│   │   │   └── api.js         # API client + health checks (v2.9)
+│   │   │   └── api.js         # API client + health checks (v2.10)
 │   │   ├── components/
 │   │   │   ├── AnalyzeTab/
 │   │   │   ├── ScanTab/
 │   │   │   ├── SectorRotationTab/
 │   │   │   ├── ContextTab/
-│   │   │   ├── DecisionMatrix.jsx        # v4.15 3-step decision synthesis
+│   │   │   ├── MRSignalCard.jsx           # Mean-reversion signal (Day 70)
 │   │   │   ├── BottomLineCard.jsx        # v4.13 Action plan summary
 │   │   │   ├── CycleCard.jsx             # Context tab card (Column A+B)
 │   │   │   ├── ArticleRow.jsx            # News article row
@@ -1435,7 +1437,7 @@ MIT License - See LICENSE file for details.
 - **William O'Neil** - CAN SLIM strategy
 - **TwelveData** - Primary OHLCV data
 - **Finnhub** - Primary fundamentals data
-- **Financial Modeling Prep (FMP)** - Growth metrics
+- **Alpha Vantage** - Growth metrics + News Sentiment
 - **yfinance** - Universal fallback data
 - **TradingView** - Screener library
 - **FRED (St. Louis Fed)** - Macro economic data
