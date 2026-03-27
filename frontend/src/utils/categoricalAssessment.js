@@ -558,9 +558,9 @@ export function assessSentiment(fearGreedData) {
  * Assess Risk/Macro Environment
  *
  * Criteria:
- * - Favorable: VIX < 20, SPY > 200 EMA (Bull regime)
- * - Neutral: VIX 20-30, SPY near 200 EMA
- * - Unfavorable: VIX > 30 OR SPY < 200 EMA (Bear regime)
+ * - Favorable: VIX < 20, SPY > 200 SMA (Bull regime)
+ * - Neutral: VIX 20-30, SPY near 200 SMA
+ * - Unfavorable: VIX > 30 OR SPY < 200 SMA (Bear regime)
  *
  * @param {object} vixData - VIX data from backend
  * @param {object} spyData - SPY data from backend
@@ -588,11 +588,11 @@ export function assessRiskMacro(vixData, spyData) {
     reasons.push('VIX data unavailable');
     if (!spyAbove200EMA) {
       assessment = 'Unfavorable';
-      reasons.push('SPY below 200 EMA (Bear regime)');
+      reasons.push('SPY below 200 SMA (Bear regime)');
       reasons.push('Caution: Most pullback setups fail in bear markets');
     } else {
       assessment = 'Neutral';
-      reasons.push('SPY above 200 EMA (Bull regime intact)');
+      reasons.push('SPY above 200 SMA (Bull regime intact)');
       reasons.push('VIX unknown — proceed with caution');
     }
   }
@@ -603,7 +603,7 @@ export function assessRiskMacro(vixData, spyData) {
       reasons.push(`VIX at ${vix.toFixed(1)} (Extreme volatility > 30)`);
     }
     if (!spyAbove200EMA) {
-      reasons.push('SPY below 200 EMA (Bear regime)');
+      reasons.push('SPY below 200 SMA (Bear regime)');
       reasons.push('Caution: Most pullback setups fail in bear markets');
     }
   }
@@ -611,7 +611,7 @@ export function assessRiskMacro(vixData, spyData) {
   else if (vix < 20 && spyAbove200EMA) {
     assessment = 'Favorable';
     reasons.push(`VIX at ${vix.toFixed(1)} (Low volatility < 20)`);
-    reasons.push('SPY above 200 EMA (Bull regime)');
+    reasons.push('SPY above 200 SMA (Bull regime)');
     reasons.push('Favorable conditions for swing trades');
   }
   // Neutral: Elevated VIX but still bull regime
@@ -619,12 +619,12 @@ export function assessRiskMacro(vixData, spyData) {
     assessment = 'Neutral';
     reasons.push(`VIX at ${vix.toFixed(1)} (Elevated 20-30)`);
     if (spyAbove200EMA) {
-      reasons.push('SPY above 200 EMA (Bull regime intact)');
+      reasons.push('SPY above 200 SMA (Bull regime intact)');
     }
     reasons.push('Proceed with caution');
   }
 
-  // Day 57: Early bear regime cap — SPY above 200 EMA but 50 SMA declining >1%
+  // Day 57: Early bear regime cap — SPY above 200 SMA but 50 SMA declining >1%
   // Catches 2022-style slow deterioration before 200 SMA crosses
   // Mirrors backtest categorical_engine.py lines 219-221
   if (sma50Declining && assessment === 'Favorable') {

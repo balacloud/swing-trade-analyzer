@@ -153,7 +153,7 @@ function getWhatsRisky(categoricalResult, srData, currentPrice, holdingPeriod) {
   if (riskMacro?.assessment === 'Unfavorable') {
     const vix = riskMacro.data?.vix;
     if (vix && vix > 30) points.push(`High VIX (${vix.toFixed(1)}) - extreme volatility`);
-    if (!riskMacro.data?.spyAbove200EMA) points.push('SPY below 200 EMA - bear regime');
+    if (!riskMacro.data?.spyAbove200EMA) points.push('SPY below 200 SMA - bear regime');
   }
 
   // Trade setup NOT VIABLE — R:R < 1 for both entries
