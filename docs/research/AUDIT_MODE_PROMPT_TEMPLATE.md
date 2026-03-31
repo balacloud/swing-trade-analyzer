@@ -1,7 +1,8 @@
 # Audit Mode Prompt Template
 
-> **Purpose:** Reusable prompt for rigorous auditing — feed to any LLM (Claude, Perplexity, GPT, Gemini)
+> **Purpose:** Copy-paste prompt for external LLM audits (Perplexity, GPT, Gemini, Grok)
 > **Created:** Day 68 (March 17, 2026)
+> **Master Framework:** `docs/claude/stable/MASTER_AUDIT_FRAMEWORK.md` (5 audit types, full protocol)
 > **Usage:** Copy the block below, paste into target LLM, replace `[PASTE YOUR CONTENT HERE]` with the system/module/claim to audit
 
 ---

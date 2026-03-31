@@ -49,6 +49,8 @@ import BottomLineCard, { HOLDING_PERIODS } from './components/BottomLineCard';
 import SectorRotationTab from './components/SectorRotationTab'; // Day 62: v4.24 Sector Rotation Phase 2
 import ContextTab from './components/ContextTab'; // Day 62: v4.24 Context Tab
 import MRSignalCard from './components/MRSignalCard'; // Tier 3B: Mean-Reversion Signal
+import PriceStructureCard from './components/PriceStructureCard'; // Day 72: Price Structure narrative
+import { generatePriceStructure } from './utils/priceStructureNarrative'; // Day 72
 import {
   createTrade, closeTrade, calculateStatistics, getSQNRating,
   loadTrades, saveTrades, addTrade, updateTrade, deleteTrade,
@@ -76,6 +78,7 @@ function App() {
   const [rawAnalysisData, setRawAnalysisData] = useState(null); // Day 53: Stored for re-assessment on period change
   const [mrSignalData, setMrSignalData] = useState(null); // Tier 3B: Mean-reversion signal
   const [mrSignalLoading, setMrSignalLoading] = useState(false); // Tier 3B: MR loading state
+  const [priceStructure, setPriceStructure] = useState(null); // Day 72: Price Structure narrative
 
   // Forward Testing state (Day 47: v4.7)
   const [forwardTrades, setForwardTrades] = useState(() => loadTrades());
@@ -318,6 +321,7 @@ function App() {
     setCategoricalResult(null);
     setSimplifiedResult(null);
     setMrSignalData(null);
+    setPriceStructure(null);
     setActiveTab('analyze');
 
     // Tier 3B: Fetch MR signal in parallel (non-blocking)
@@ -365,6 +369,9 @@ function App() {
       setFearGreedData(data.fearGreed); // Day 44: v4.5 Fear & Greed
       setEarningsData(data.earnings); // Day 49: v4.10 Earnings Calendar
       setCategoricalResult(categorical); // Day 44: v4.5 Categorical Assessment
+
+      // Day 72: Price Structure narrative (display-only, no verdict impact)
+      setPriceStructure(generatePriceStructure(data.sr, data.patterns));
       setSimplifiedResult(simplified);
       setTicker(targetTicker);
 
@@ -1671,6 +1678,14 @@ function App() {
                     </div>
                   </div>
                 )}
+
+                {/* Price Structure Card — Day 72: Tier 2, between Trade Setup and Pattern Detection */}
+                <PriceStructureCard
+                  srData={srData}
+                  priceStructure={priceStructure}
+                  expanded={!!expandedSections.priceStructure}
+                  onToggle={() => toggleSection('priceStructure')}
+                />
 
                 {/* Pattern Detection Card — Day 70: collapsed by default */}
                 {patternsData && (

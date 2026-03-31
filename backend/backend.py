@@ -1618,6 +1618,8 @@ def get_support_resistance(ticker):
                 },
                 # Day 33: Add MTF confluence data
                 'mtf': sr_levels.meta.get('mtf'),
+                # Day 72: Expose touch counts per level (for Price Structure card)
+                'levelScores': sr_levels.meta.get('level_scores', {}),
                 # Day 39: Add trend strength and momentum indicators
                 'adx': adx_data,
                 'rsi_4h': rsi_4h_data,

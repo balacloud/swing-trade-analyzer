@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 70B (March 19, 2026)
+> **Last Updated:** Day 72 (March 31, 2026)
 
 ---
 
@@ -11,30 +11,32 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 70B |
-| Version | v4.32 (Backend v2.33, Frontend v4.32, Backtest v4.17, API Service v2.10) |
-| Latest Status | PROJECT_STATUS_DAY70B_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY70.md |
-| Latest API | API_CONTRACTS_DAY70.md |
-| Focus | **Simplicity premium implemented. Cap-aware simple checklist. Feature freeze → paper trading.** |
+| Current Day | 72 |
+| Version | v4.33 (Backend v2.34, Frontend v4.33, Backtest v4.17, API Service v2.10) |
+| Latest Status | PROJECT_STATUS_DAY72_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY72.md |
+| Latest API | API_CONTRACTS_DAY72.md |
+| Focus | **Price Structure card Phase 1 built. Master Audit Framework created. Paper trading active.** |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
 
+### Day 72 Summary (Master Audit Framework + Price Structure Card Phase 1 — v4.33)
+- **Master Audit Framework** created: `docs/claude/stable/MASTER_AUDIT_FRAMEWORK.md` — 5 audit types (Claim, Coherence, Behavioral, Design, External LLM). Wired into GOLDEN_RULES.md.
+- **Price Structure card built**: `PriceStructureCard.jsx` + `priceStructureNarrative.js`. Teal-400 Tier 2, collapsed by default. Structured narrative (structure state, key levels with touches/confluence, watch items). Zero impact on verdict/scoring.
+- **API change**: `meta.levelScores` added to `/api/sr/<ticker>` (1 line, backend.py). Touch counts now passed through from `_score_levels()`.
+- **Audit findings applied**: ATR-relative proximity (2x ATR), 12-rule priority tree, RSI<30 Wilder threshold, frontend architecture (follows categoricalAssessment.js pattern).
+- 5 files created, 6 files modified.
+
 ### Day 70B Summary (Simplicity Premium UI + Cap-Aware Simple Checklist — v4.32)
-- **Sentiment removed from verdict**: T+F only (backtest never validated sentiment). Risk/Macro gate intact.
+- **Sentiment removed from verdict**: T+F only. Risk/Macro gate intact.
 - **Progressive disclosure**: 3-tier collapsible full analysis. Decision Matrix + TradingView Chart removed.
-- **Simple checklist data-driven**: RS 1.0→1.2 (backtest: PF 1.78), volume cap-aware ($2M/$5M/$10M), stop cap-aware (7%/9%/10%).
-- **No API changes**. No backtest re-run needed (frontend checklist is independent of backtest engine).
+- **Simple checklist data-driven**: RS 1.0→1.2 (PF 1.78), volume cap-aware, stop cap-aware.
 - 5 files modified, 0 files created.
 
 ### Day 70 Summary (Universal Principles Implementation COMPLETE — v4.31)
-- All 4 tiers implemented across 2 sessions (Day 69-70). MR engine + VIX sizing + blended RS (info only).
-- Zero regression on existing backtest.
-
-### Day 69 Summary (4-LLM Universal Principles Synthesis + Tier 0-1 — v4.30)
-- 4-LLM synthesis complete. Tier 0 bug fixes + Tier 1 quick wins. RS 1.0 validated. Parameter stability script.
+- All 4 tiers implemented. MR engine + VIX sizing + blended RS (info only). Zero regression on existing backtest.
 
 ---
 
@@ -112,10 +114,11 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 
 ## NEXT SESSION PRIORITIES
 
-1. **Paper trading** — System is frozen. Start logging real trades using Forward Testing tab.
-2. **Gate 5: Combined momentum+MR system test** — Verify combined Sharpe > momentum-only.
-3. **Flip default view to simple** — Last remaining simplicity premium item (30 min).
-4. **README fixes** — 7 items from Day 68 audit (FMP refs, versions, Fundamental Strong desc, 200 EMA→SMA).
+1. **Behavioral test: Price Structure card** — Run NVDA, F, SPY, AAPL, SMCI. Verify narrative matches TradingView chart read before paper trading use.
+2. **Paper trading** — System is frozen. Log real trades using Forward Testing tab.
+3. **Gate 5: Combined momentum+MR system test** — Verify combined Sharpe > momentum-only.
+4. **Flip default view to simple** — Last remaining simplicity premium item (30 min).
+5. **Phase 2 (deferred)** — HH/HL/LH/LL market structure engine using `find_pivot_points()` — after paper trading validation.
 
 ---
 
@@ -126,7 +129,11 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 ├── CLAUDE_CONTEXT.md              <- THIS FILE (single reference)
 ├── stable/                        <- Rarely change
 │   ├── GOLDEN_RULES.md           <- Core rules + lessons learned
-│   └── ROADMAP.md                <- Canonical roadmap
+│   ├── ROADMAP.md                <- Canonical roadmap
+│   └── MASTER_AUDIT_FRAMEWORK.md <- Canonical audit protocol (5 types)
+├── design/                        <- Feature design specs + audit reports
+│   ├── PRICE_STRUCTURE_CARD_SPEC.md  <- v2, audited (Day 72)
+│   └── PRICE_STRUCTURE_CARD_AUDIT.md <- 10 findings self-audit (Day 72)
 ├── versioned/                     <- Day-versioned (active last 15 days)
 │   ├── API_CONTRACTS_DAY[N].md   <- API reference
 │   ├── KNOWN_ISSUES_DAY[N].md    <- Bug tracker
@@ -168,6 +175,7 @@ curl http://localhost:5001/api/cache/status
 | 69 | 4-LLM Universal Principles synthesis + detailed implementation plan. |
 | 70 | Universal Principles Tier 2+3 complete (VIX sizing, blended RS info-only, MR engine). |
 | 70B | Simplicity premium UI + cap-aware simple checklist. Sentiment informational-only. v4.32. |
+| 72 | Master Audit Framework + Price Structure card Phase 1. levelScores API. v4.33. |
 
 ---
 

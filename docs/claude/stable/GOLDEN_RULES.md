@@ -2,7 +2,7 @@
 
 > **Purpose:** Core rules and cumulative lessons learned — stable reference
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 69 (March 18, 2026)
+> **Last Updated:** Day 72 (March 30, 2026)
 > **Session protocols:** See `CLAUDE_CONTEXT.md` for startup/close checklists
 
 ---
@@ -54,20 +54,28 @@
 
 ---
 
-## SYSTEM AUDIT PROTOCOL (Day 68)
+## SYSTEM AUDIT PROTOCOL (Day 68, consolidated Day 72)
 
-**When user asks "audit the system":**
-1. **Layer 1 — Consistency:** Does documentation match code? (fast, catches stale docs)
+**Master framework:** `docs/claude/stable/MASTER_AUDIT_FRAMEWORK.md`
+
+5 audit types — use the right one for the situation:
+
+| Situation | Audit Type |
+|-----------|-----------|
+| Validate a specific claim/threshold | **Claim Audit** (verdict labels per assertion) |
+| After code changes / before release | **Coherence Audit** (Layer 1 consistency + Layer 2 correctness) |
+| After major feature implementation | **Behavioral Audit** (runtime verification with real tickers) |
+| Before building a new feature | **Design Audit** (spec vs architecture vs correctness) |
+| Domain/research validation | **External LLM Audit** (multi-LLM consensus) |
+
+Core principles:
+1. **Layer 1 — Consistency:** Does documentation match code?
 2. **Layer 2 — Correctness:** Is the logic sound? Thresholds justified? Correct on real data?
-
-Layer 2 approach:
-- Extract EXACT logic/thresholds/formulas from code
-- Question every threshold against: (a) academic research, (b) backtest evidence, (c) practitioner methodology
-- Test with real data — run actual tickers and verify outputs
-- Use external LLMs for domain expertise validation
+3. **Layer 3 — Behavior:** Does runtime output match what the code claims to produce?
 
 > "README is marketing. Code is truth. But even true code can implement wrong logic."
-> Audit prompt template: `docs/research/AUDIT_MODE_PROMPT_TEMPLATE.md`
+> Master audit framework: `docs/claude/stable/MASTER_AUDIT_FRAMEWORK.md`
+> External audit prompts: `docs/research/EXTERNAL_LLM_AUDIT_PROMPTS.md`
 
 ---
 
