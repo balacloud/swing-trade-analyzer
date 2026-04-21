@@ -117,14 +117,16 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 
 ## NEXT SESSION PRIORITIES
 
-1. **Behavioral test: Price Structure card** — Run NVDA, F, SPY, AAPL, SMCI. Verify narrative matches TradingView chart read before paper trading use.
-2. **Paper trading** — System is frozen. Log real trades using Forward Testing tab.
-3. **Two-price entry labels** — Trade Setup card: Primary Entry + Averaging Entry. Very Low effort, High UX value (~2 hours).
-4. **Nirmal watchlist preset** — Add to Scan tab dropdown. 30 min, purely additive.
-5. **Gate 5: Combined momentum+MR system test** — Verify combined Sharpe > momentum-only.
-6. **Flip default view to simple** — Last remaining simplicity premium item (30 min).
-7. **Gap-fill detection (GAP 1)** — Deferred post paper-trading. `detect_gaps()` in backend, output to Price Structure card or Trade Setup.
-8. **Phase 2 (deferred)** — HH/HL/LH/LL market structure engine using `find_pivot_points()` — after paper trading validation.
+1. **Gate 5: Combined momentum+MR backtest** — Quant discipline. Can't paper trade both arms without knowing if they improve or cannibalize. Fast (1 session).
+2. **Behavioral test: Price Structure card** — Prerequisite before trusting it in paper trades. Run NVDA, F, SPY, AAPL, SMCI.
+3. **Paper trading** — PRIMARY FOCUS. But Gates 1+2 must clear first.
+4. **Research + validate N4: Market Phase synthesis** — Highest leverage feature. VIX direction + sector rotation + breadth → 5-phase label. Needs validation before building (Golden Rule #15).
+5. **Build N4: Market Phase synthesis** — After research validates it. Changes quality of every output.
+6. **N1: Two-price entry labels** — Trade Setup card: Primary Entry + Averaging Entry (~2 hours, approved).
+7. **N2: Nirmal watchlist preset** — Scan tab dropdown. 30 min, approved.
+8. **Flip default view to simple** — 30 min, approved.
+9. **Gap-fill detection (N3)** — Deferred post paper-trading.
+10. **Canadian Analyze page** — Medium bug, high complexity. Data source redesign for `.TO` tickers.
 
 ---
 

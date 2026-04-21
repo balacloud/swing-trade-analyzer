@@ -124,6 +124,23 @@
 
 ---
 
+## ACTIVE PRIORITY ORDER (Day 73 — Quant/Trader Reorder)
+
+| # | Item | Why | Effort |
+|---|------|-----|--------|
+| 1 | **Gate 5: Combined momentum+MR backtest** | Quant discipline — validate combined system before paper trading both arms | 1 session |
+| 2 | **Behavioral test: Price Structure card** | Prerequisite — verify narrative vs TradingView on 5 tickers | ~1hr |
+| 3 | **Paper trading** | PRIMARY FOCUS — but Gates 1+2 must clear first | Ongoing |
+| 4 | **Research + validate N4: Market Phase synthesis** | Highest leverage feature — regime detection changes quality of every signal | 1 session |
+| 5 | **Build N4: Market Phase synthesis** | After validation. 5-phase label (Bull Rally/Profit Taking/Rotation/Consolidation/Correction) | 1 session |
+| 6 | **N1: Two-price entry labels** | Approved, ~2hrs, improves execution discipline during paper trading | Very Low |
+| 7 | **N2: Nirmal watchlist preset** | Approved, 30 min | Very Low |
+| 8 | **Flip default view to simple** | Approved, 30 min | Very Low |
+| 9 | **N3: Gap-fill detection** | Deferred post paper trading | Medium |
+| 10 | **Canadian Analyze page** | Medium bug, data source redesign needed | High |
+
+---
+
 ## PLANNED
 
 ### Simplicity Premium UI (Day 70B — PARTIALLY COMPLETE)
@@ -443,6 +460,31 @@
 
 ---
 
+---
+
+### Value Investing Tab (Buffett/Damodaran Style — Day 73 IDEA, Research Needed)
+- **Priority:** MEDIUM — post paper-trading, after N4
+- **Status:** IDEA STAGE — needs research validation before any implementation
+- **Purpose:** Separate "quality at a fair price" lens for long-term value buys. Zero impact on STA swing verdicts.
+- **Design principle:** Branch off STA as a new tab — reuse existing data pipeline, add 2-3 new computed fields. Never touch categorical assessment or swing verdict.
+- **What existing STA already has:** ROE, D/E, revenue growth (reusable)
+- **Minimal new additions needed:**
+  1. **Graham Number** — `sqrt(22.5 × EPS_ttm × BookValuePerShare)`. If price < Graham Number → potentially undervalued. Simple, reliable, no new data needed (EPS + BV already in Finnhub/yfinance).
+  2. **DCF Lite** — Use FCF + 5yr growth rate estimate → discounted at 10%. Approximate intrinsic value. `yfinance.freeCashflow` available.
+  3. **PEG Ratio** — P/E ÷ 5yr EPS growth. PEG < 1 = potentially undervalued relative to growth. Data available.
+  4. **Quality Checklist** — ROE > 15% (consistent), D/E < 0.5, FCF positive, net margin stable. Reuses existing fundamentals.
+  5. **Margin of Safety** — `(Intrinsic - CurrentPrice) / Intrinsic × 100`. Output: "28% margin of safety" or "Overvalued by 15%".
+- **What NOT to build (too complex for v1):**
+  - Full Damodaran 10-K DCF (needs multi-year income/balance/cashflow statements)
+  - Moat analysis (qualitative, not automatable)
+  - Sector-adjusted valuation multiples
+- **New backend endpoint:** `/api/value/<ticker>`
+- **New frontend:** `ValueTab.jsx` — standalone tab, no wiring into swing scoring
+- **Research question:** Do Graham Number + DCF Lite + PEG correlate with actual 3-5yr returns? Need to validate against Damodaran's published datasets before building.
+- **Source reference:** Damodaran's free datasets at `pages.stern.nyu.edu/~adamodar/` — valuation multiples by sector
+
+---
+
 ## RESEARCH REQUIRED (Before Implementation)
 
 ### RSI/MACD Divergence Detection
@@ -581,7 +623,7 @@ From backtesting:
 | 70 | Universal Principles Tier 2+3 complete. VIX sizing, blended RS (info only), MR engine + MRSignalCard. Version v4.31. |
 | 70B | Simplicity premium UI: 3-tier progressive disclosure, Decision Matrix + TradingView Chart removed. Sentiment informational-only. Simple checklist: RS 1.0→1.2, cap-aware volume + stop distance. Version v4.32. |
 | 72 | Price Structure Card Phase 1 COMPLETE: `PriceStructureCard.jsx` + `priceStructureNarrative.js`. Master Audit Framework created (5 audit types). levelScores in S/R API. Version v4.33. |
-| 73 | Nirmal validation complete (378 calls). Integration gaps N1-N4 defined. N1+N2 approved. N3 deferred. N4 needs validation. Roadmap updated. |
+| 73 | Nirmal validation complete (378 calls). Integration gaps N1-N4 defined. N1+N2 approved. N3 deferred. N4 needs validation. Priority reordered (quant/trader lens). Value Investing tab idea documented. |
 
 ---
 
