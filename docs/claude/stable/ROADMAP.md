@@ -2,12 +2,12 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 70B (March 19, 2026)
+> **Last Updated:** Day 73 (April 21, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.32 (Backend v2.33, Frontend v4.32, Backtest v4.17, API Service v2.10)
+## Current Version: v4.33 (Backend v2.34, Frontend v4.33, Backtest v4.17, API Service v2.10)
 
 ---
 
@@ -103,6 +103,24 @@
 - Blended RS (2B) **degrades** backtest metrics (PF 1.90→1.51, Sharpe 1.17→0.68). Kept as informational only. rs52Week remains verdict driver.
 - Parameter stability (1C): rsi_low fragile at 55 (PF 0.83), stop_atr_multiple fragile at 1.5x (PF 0.98). Validates current parameter choices.
 - RS threshold (0D): 1.0 optimal (5 trades, 80% WR, PF 2.18). 1.2 breaks (3 trades, 33% WR, PF 0.50).
+
+---
+
+## COMPLETE — Price Structure Card Phase 1 (Day 72 — v4.33)
+
+**Purpose:** Replace subjective TradingView chart-reading with structured narrative (S/R levels + touch counts + watch items). Zero impact on verdict/scoring.
+
+| Component | File | Status |
+|-----------|------|--------|
+| Backend: expose levelScores | `backend.py` (+1 line in `/api/sr/<ticker>`) | ✅ Day 72 |
+| Narrative utility | `frontend/src/utils/priceStructureNarrative.js` (165 lines) | ✅ Day 72 |
+| Card component | `frontend/src/components/PriceStructureCard.jsx` (110 lines) | ✅ Day 72 |
+| Design spec + self-audit | `docs/claude/design/PRICE_STRUCTURE_CARD_SPEC.md` (v2) | ✅ Day 72 |
+
+**Key design decisions:** ATR-relative proximity (2x ATR), 12-rule priority tree, Wilder RSI thresholds, frontend generation (follows `categoricalAssessment.js` pattern). Tier 2, teal-400, collapsed by default.
+
+**Phase 2 (deferred):** HH/HL/LH/LL market structure engine using existing `find_pivot_points()`.
+**Phase 3 (deferred):** Visual chart via lightweight-charts.
 
 ---
 
@@ -403,6 +421,28 @@
 
 ---
 
+## NIRMAL INTEGRATION OPPORTUNITIES (Day 73 — Research Complete)
+
+**Source:** `docs/research/NIRMAL_STA_INTEGRATION_OPPORTUNITIES.md`
+**Validation:** `docs/research/NIRMAL_STA_VALIDATION_RESULTS.md` — 378 calls, BUY 15.3%, HOLD 40.2%, AVOID 44.4%
+**Key finding:** Style difference, not system failure. STA covers Nirmal's Minervini-quality momentum plays perfectly. MR engine covers his oversold-recovery subset. Gaps are in gap-fill and market phase synthesis.
+
+| # | Gap | Effort | Status |
+|---|-----|--------|--------|
+| N1 | **Two-price entry labels** in Trade Setup (Primary Entry + Averaging Entry) | Very Low (~2h) | **Approved — build next sprint** |
+| N2 | **Nirmal watchlist preset** in Scan tab dropdown (15 core tickers) | Very Low (30 min) | **Approved — build next sprint** |
+| N3 | **Gap-fill detection** — `detect_gaps()` backend, output to Price Structure Card or Trade Setup | Medium (1 session) | **Deferred — post paper trading** |
+| N4 | **Market Phase synthesis** — synthesize VIX + SPY trend + sector RS + F&G into 5-phase label (Bull Rally / Profit Taking / Sector Rotation / Consolidation / Correction) | Medium (1 session) | **Needs validation first (Golden Rule #15)** |
+
+**What NOT to build (per Nirmal's explicit cautions):**
+- No auto-averaging losers
+- No "it'll bounce back" signals on broken setups
+- No overriding stop loss
+
+**OptionsIQ note:** Nirmal's 223 options calls (`nirmal_options_recommendations.csv`) can validate OptionsIQ's recommendation logic before shipping.
+
+---
+
 ## RESEARCH REQUIRED (Before Implementation)
 
 ### RSI/MACD Divergence Detection
@@ -480,6 +520,9 @@
 | RESEARCH_ANALYSIS_CRITICAL_REVIEW.md | Critical analysis of research - verified vs unverified | Day 48 |
 | ACTION_PLAN_FROM_RESEARCH.md | Implementation priorities from research | Day 48 |
 | OPTIONS_TAB_PERPLEXITY_PROMPT.md | Options Tab: data sources, checklists, Greeks, decision matrix | Day 56 |
+| UNIVERSAL_PRINCIPLES_SYNTHESIS.md | 4-LLM audit (35 claims, 5 domains) — surgical evolution from Minervini to universal quant framework | Day 69 |
+| NIRMAL_STA_INTEGRATION_OPPORTUNITIES.md | Nirmal system gap analysis — 4 gaps, N1+N2 approved, N3-N4 deferred | Day 73 |
+| NIRMAL_STA_VALIDATION_RESULTS.md | 378 calls validated — 15.3% BUY, style difference confirmed, not system failure | Day 73 |
 
 ---
 
@@ -537,6 +580,8 @@ From backtesting:
 | 69 | 4-LLM Universal Principles synthesis. Tier 0 bug fixes + Tier 1 quick wins implemented. |
 | 70 | Universal Principles Tier 2+3 complete. VIX sizing, blended RS (info only), MR engine + MRSignalCard. Version v4.31. |
 | 70B | Simplicity premium UI: 3-tier progressive disclosure, Decision Matrix + TradingView Chart removed. Sentiment informational-only. Simple checklist: RS 1.0→1.2, cap-aware volume + stop distance. Version v4.32. |
+| 72 | Price Structure Card Phase 1 COMPLETE: `PriceStructureCard.jsx` + `priceStructureNarrative.js`. Master Audit Framework created (5 audit types). levelScores in S/R API. Version v4.33. |
+| 73 | Nirmal validation complete (378 calls). Integration gaps N1-N4 defined. N1+N2 approved. N3 deferred. N4 needs validation. Roadmap updated. |
 
 ---
 
