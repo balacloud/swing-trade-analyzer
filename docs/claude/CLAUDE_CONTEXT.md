@@ -16,17 +16,18 @@
 | Latest Status | PROJECT_STATUS_DAY73_SHORT.md |
 | Latest Issues | KNOWN_ISSUES_DAY73.md |
 | Latest API | API_CONTRACTS_DAY72.md |
-| Focus | **Research session. Positional vs swing trading concepts. No code changes. Paper trading active.** |
+| Focus | **Nirmal validation (378 calls, 15.3% BUY). Integration gaps identified. Paper trading active.** |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
 
-### Day 73 Summary (Research Session — Positional vs Swing Trading)
-- **No code changes.** Concept/research session only.
-- Analyzed Finvezto "20 Ways to Play in the Indian Market" — 4 winning strategies (Investing, Positional, Hedged Options, Portfolio Hedge). 97% of intraday traders lose.
-- Positional trading = momentum factor, weeks–months, unleveraged. Swing = tighter timing, 3–10 days.
-- STA's Config C (PF 1.61) validates swing layer. Positional = natural extension post paper trading.
+### Day 73 Summary (Nirmal Validation + STA Integration Analysis — research only, no code changes)
+- **Nirmal validation completed:** 378 calls scored — BUY 15.3%, HOLD 40.2%, AVOID 44.4%.
+- **Key finding:** Style Discovery, not system failure. STA = Minervini filter; Nirmal = multi-style (momentum + value recovery + gap-fill + news). STA correctly ignores his non-Minervini plays.
+- **Gap analysis:** 4 gaps identified. Two-price entry labels + Nirmal watchlist preset approved (additive, low effort). Gap-fill detection deferred post paper trading. Market phase needs validation.
+- **Positional vs swing:** Finvezto article — positional = momentum factor, weeks-months, unleveraged. STA's PF 1.61 validates swing layer. Positional = natural extension.
+- 4 files created (validation script, results CSV, results MD, integration opportunities doc).
 
 ### Day 72 Summary (Master Audit Framework + Price Structure Card Phase 1 — v4.33)
 - **Master Audit Framework** created: `docs/claude/stable/MASTER_AUDIT_FRAMEWORK.md` — 5 audit types (Claim, Coherence, Behavioral, Design, External LLM). Wired into GOLDEN_RULES.md.
@@ -118,10 +119,12 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 
 1. **Behavioral test: Price Structure card** — Run NVDA, F, SPY, AAPL, SMCI. Verify narrative matches TradingView chart read before paper trading use.
 2. **Paper trading** — System is frozen. Log real trades using Forward Testing tab.
-3. **Gate 5: Combined momentum+MR system test** — Verify combined Sharpe > momentum-only.
-4. **Flip default view to simple** — Last remaining simplicity premium item (30 min).
-5. **Phase 2 (deferred)** — HH/HL/LH/LL market structure engine using `find_pivot_points()` — after paper trading validation.
-6. **Positional trading extension (research)** — Same stock universe, wider stops, longer hold. Natural post-paper-trading evolution.
+3. **Two-price entry labels** — Trade Setup card: Primary Entry + Averaging Entry. Very Low effort, High UX value (~2 hours).
+4. **Nirmal watchlist preset** — Add to Scan tab dropdown. 30 min, purely additive.
+5. **Gate 5: Combined momentum+MR system test** — Verify combined Sharpe > momentum-only.
+6. **Flip default view to simple** — Last remaining simplicity premium item (30 min).
+7. **Gap-fill detection (GAP 1)** — Deferred post paper-trading. `detect_gaps()` in backend, output to Price Structure card or Trade Setup.
+8. **Phase 2 (deferred)** — HH/HL/LH/LL market structure engine using `find_pivot_points()` — after paper trading validation.
 
 ---
 
