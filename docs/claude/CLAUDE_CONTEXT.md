@@ -16,18 +16,18 @@
 | Latest Status | PROJECT_STATUS_DAY73_SHORT.md |
 | Latest Issues | KNOWN_ISSUES_DAY73.md |
 | Latest API | API_CONTRACTS_DAY72.md |
-| Focus | **Nirmal validation (378 calls, 15.3% BUY). Integration gaps identified. Paper trading active.** |
+| Focus | **Nirmal recovered + validated. Priority reordered. Value investing research prompts ready to run.** |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
 
-### Day 73 Summary (Nirmal Validation + STA Integration Analysis — research only, no code changes)
-- **Nirmal validation completed:** 378 calls scored — BUY 15.3%, HOLD 40.2%, AVOID 44.4%.
-- **Key finding:** Style Discovery, not system failure. STA = Minervini filter; Nirmal = multi-style (momentum + value recovery + gap-fill + news). STA correctly ignores his non-Minervini plays.
-- **Gap analysis:** 4 gaps identified. Two-price entry labels + Nirmal watchlist preset approved (additive, low effort). Gap-fill detection deferred post paper trading. Market phase needs validation.
-- **Positional vs swing:** Finvezto article — positional = momentum factor, weeks-months, unleveraged. STA's PF 1.61 validates swing layer. Positional = natural extension.
-- 4 files created (validation script, results CSV, results MD, integration opportunities doc).
+### Day 73 Summary (Nirmal Recovery + Regime Clarity + Priority Reorder + Value Investing Research)
+- **Nirmal validation recovered** (uncommitted from prev session): 378 calls, BUY 15.3%. Style difference, not system failure. STA = universal quant framework (NOT Minervini). Corrected in all docs.
+- **Regime awareness clarified:** VIX level alone is lagging. Full regime = VIX direction + sector rotation + breadth. April 2026 tariff crash proved STA was blind until VIX>30. N4 Market Phase synthesis = highest leverage feature.
+- **Priority reordered (quant/trader lens):** Gate 5 → behavioral test → paper trading → N4 research → N4 build → N1/N2/flip → N3 → Canadian.
+- **Value Investing Tab:** Buffett/Damodaran/Graham/Lynch/Greenblatt style. Separate tab, zero swing impact. Graham Number + DCF Lite + PEG + quality checklist. Research prompts created (`VALUE_INVESTING_RESEARCH_PROMPT.md` — 4 prompts for 4 LLMs).
+- 6 files created, 4 modified. Roadmap fully updated.
 
 ### Day 72 Summary (Master Audit Framework + Price Structure Card Phase 1 — v4.33)
 - **Master Audit Framework** created: `docs/claude/stable/MASTER_AUDIT_FRAMEWORK.md` — 5 audit types (Claim, Coherence, Behavioral, Design, External LLM). Wired into GOLDEN_RULES.md.
