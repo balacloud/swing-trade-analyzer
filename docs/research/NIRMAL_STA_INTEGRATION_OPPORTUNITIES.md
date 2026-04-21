@@ -194,7 +194,7 @@ Full results: `docs/research/nirmal_validation_results.csv` + `NIRMAL_STA_VALIDA
 
 The 44.4% contradiction rate is dominated by "Weak technical setup" (low TT score). This reveals a fundamental style difference, not a signal gap:
 
-- **STA's categorical engine** = pure Minervini momentum filter (TT 6-8/8, RS>1.0)
+- **STA's categorical engine** = universal quant framework — momentum arm (Trend Template + RS>1.2) + MR arm (RSI(2)<10) + quality gate + regime filter
 - **Nirmal's system** = multi-style: momentum + value recovery + gap-fill + news catalyst
 
 Breakdown of Nirmal's trade types (estimated from data):

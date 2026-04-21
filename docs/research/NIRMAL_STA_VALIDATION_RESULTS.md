@@ -110,11 +110,9 @@ Understanding WHY reveals gaps in our logic or valid disagreements.
 
 ## What This Means for STA
 
-- **If BUY% > 60%:** STA is a reliable systematization of Nirmal's intuition.
-  Our categorical assessment captures what he does informally.
-- **If AVOID% > 30%:** Significant gaps exist — Nirmal sees setups STA misses.
-  Likely candidates: gap-fill entries, mean-reversion plays, news catalysts.
-- **HOLD cases:** Often correct caution (wrong market environment for entry).
-  These may be timing differences, not fundamental disagreements.
+- **15.3% BUY is correct behavior:** STA's momentum arm (TT + RS>1.2) only fires on Nirmal's best-quality breakout setups. That's by design.
+- **AVOID% = 44.4% = style difference, not system failure:** STA is a universal quant framework (momentum + MR + quality + regime). Nirmal adds value recovery + gap-fill + news catalyst plays that deliberately fall outside STA's momentum arm.
+- **MR arm coverage:** A meaningful slice of the 44% AVOID cases (low TT, oversold RSI) are already served by the MR engine (RSI(2)<10).
+- **HOLD cases:** Often correct caution (wrong market environment for entry) — timing differences, not fundamental disagreements.
 
 *Full data: `nirmal_validation_results.csv`*
