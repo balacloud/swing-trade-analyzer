@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 72 (March 31, 2026)
+> **Last Updated:** Day 73 (April 20, 2026)
 
 ---
 
@@ -11,22 +11,27 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 72 |
+| Current Day | 73 |
 | Version | v4.33 (Backend v2.34, Frontend v4.33, Backtest v4.17, API Service v2.10) |
-| Latest Status | PROJECT_STATUS_DAY72_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY72.md |
+| Latest Status | PROJECT_STATUS_DAY73_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY73.md |
 | Latest API | API_CONTRACTS_DAY72.md |
-| Focus | **Price Structure card Phase 1 built. Master Audit Framework created. Paper trading active.** |
+| Focus | **Research session. Positional vs swing trading concepts. No code changes. Paper trading active.** |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
 
+### Day 73 Summary (Research Session — Positional vs Swing Trading)
+- **No code changes.** Concept/research session only.
+- Analyzed Finvezto "20 Ways to Play in the Indian Market" — 4 winning strategies (Investing, Positional, Hedged Options, Portfolio Hedge). 97% of intraday traders lose.
+- Positional trading = momentum factor, weeks–months, unleveraged. Swing = tighter timing, 3–10 days.
+- STA's Config C (PF 1.61) validates swing layer. Positional = natural extension post paper trading.
+
 ### Day 72 Summary (Master Audit Framework + Price Structure Card Phase 1 — v4.33)
 - **Master Audit Framework** created: `docs/claude/stable/MASTER_AUDIT_FRAMEWORK.md` — 5 audit types (Claim, Coherence, Behavioral, Design, External LLM). Wired into GOLDEN_RULES.md.
 - **Price Structure card built**: `PriceStructureCard.jsx` + `priceStructureNarrative.js`. Teal-400 Tier 2, collapsed by default. Structured narrative (structure state, key levels with touches/confluence, watch items). Zero impact on verdict/scoring.
 - **API change**: `meta.levelScores` added to `/api/sr/<ticker>` (1 line, backend.py). Touch counts now passed through from `_score_levels()`.
-- **Audit findings applied**: ATR-relative proximity (2x ATR), 12-rule priority tree, RSI<30 Wilder threshold, frontend architecture (follows categoricalAssessment.js pattern).
 - 5 files created, 6 files modified.
 
 ### Day 70B Summary (Simplicity Premium UI + Cap-Aware Simple Checklist — v4.32)
@@ -34,9 +39,6 @@
 - **Progressive disclosure**: 3-tier collapsible full analysis. Decision Matrix + TradingView Chart removed.
 - **Simple checklist data-driven**: RS 1.0→1.2 (PF 1.78), volume cap-aware, stop cap-aware.
 - 5 files modified, 0 files created.
-
-### Day 70 Summary (Universal Principles Implementation COMPLETE — v4.31)
-- All 4 tiers implemented. MR engine + VIX sizing + blended RS (info only). Zero regression on existing backtest.
 
 ---
 
@@ -119,6 +121,7 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 3. **Gate 5: Combined momentum+MR system test** — Verify combined Sharpe > momentum-only.
 4. **Flip default view to simple** — Last remaining simplicity premium item (30 min).
 5. **Phase 2 (deferred)** — HH/HL/LH/LL market structure engine using `find_pivot_points()` — after paper trading validation.
+6. **Positional trading extension (research)** — Same stock universe, wider stops, longer hold. Natural post-paper-trading evolution.
 
 ---
 
@@ -176,6 +179,7 @@ curl http://localhost:5001/api/cache/status
 | 70 | Universal Principles Tier 2+3 complete (VIX sizing, blended RS info-only, MR engine). |
 | 70B | Simplicity premium UI + cap-aware simple checklist. Sentiment informational-only. v4.32. |
 | 72 | Master Audit Framework + Price Structure card Phase 1. levelScores API. v4.33. |
+| 73 | Research session. Positional vs swing trading concepts. No code changes. |
 
 ---
 
