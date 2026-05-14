@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 73 (April 20, 2026)
+> **Last Updated:** Day 74 (May 14, 2026)
 
 ---
 
@@ -11,16 +11,21 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 73 |
+| Current Day | 74 |
 | Version | v4.33 (Backend v2.34, Frontend v4.33, Backtest v4.17, API Service v2.10) |
-| Latest Status | PROJECT_STATUS_DAY73_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY73.md |
+| Latest Status | PROJECT_STATUS_DAY74_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY74.md |
 | Latest API | API_CONTRACTS_DAY72.md |
-| Focus | **Nirmal recovered + validated. Priority reordered. Value investing research prompts ready to run.** |
+| Focus | **Context session. Next: Gate 5 + Price Structure behavioral test + paper trading.** |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 74 Summary (Context Session — Scanner Explanation)
+- **No code changes.** Pure context session.
+- **TradingView scanner brief prepared**: User needed to explain STA's scanner to another LLM/project. Key file: `backend/backend.py` lines 1747–1990. Brief covers library (`tradingview-screener`), 5 strategies, 17 fields, 7 critical gotchas (col() arithmetic, single .where(), Perf.Y, set_index resets market, ticker prefix stripping, .TO suffix ordering, Canadian split).
+- 0 files created, 0 files modified.
 
 ### Day 73 Summary (Nirmal Recovery + Regime Clarity + Priority Reorder + Value Investing Research)
 - **Nirmal validation recovered** (uncommitted from prev session): 378 calls, BUY 15.3%. Style difference, not system failure. STA = universal quant framework (NOT Minervini). Corrected in all docs.
@@ -34,12 +39,6 @@
 - **Price Structure card built**: `PriceStructureCard.jsx` + `priceStructureNarrative.js`. Teal-400 Tier 2, collapsed by default. Structured narrative (structure state, key levels with touches/confluence, watch items). Zero impact on verdict/scoring.
 - **API change**: `meta.levelScores` added to `/api/sr/<ticker>` (1 line, backend.py). Touch counts now passed through from `_score_levels()`.
 - 5 files created, 6 files modified.
-
-### Day 70B Summary (Simplicity Premium UI + Cap-Aware Simple Checklist — v4.32)
-- **Sentiment removed from verdict**: T+F only. Risk/Macro gate intact.
-- **Progressive disclosure**: 3-tier collapsible full analysis. Decision Matrix + TradingView Chart removed.
-- **Simple checklist data-driven**: RS 1.0→1.2 (PF 1.78), volume cap-aware, stop cap-aware.
-- 5 files modified, 0 files created.
 
 ---
 
@@ -185,6 +184,7 @@ curl http://localhost:5001/api/cache/status
 | 70B | Simplicity premium UI + cap-aware simple checklist. Sentiment informational-only. v4.32. |
 | 72 | Master Audit Framework + Price Structure card Phase 1. levelScores API. v4.33. |
 | 73 | Research session. Positional vs swing trading concepts. No code changes. |
+| 74 | Context session. TradingView scanner brief for external LLM. No code changes. |
 
 ---
 
