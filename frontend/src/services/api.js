@@ -884,3 +884,19 @@ export async function fetchMRScan(tickers) {
     return null;
   }
 }
+
+/**
+ * Day 75: Value investing analysis (Buffett/Graham/Lynch/Damodaran/Greenblatt).
+ * Phase 1: ROIC, ROE, Graham Number, FCF Yield, P/E, PEG/PEGY.
+ * Fetched on-demand when Value tab is opened — not part of parallel analyze fetch.
+ */
+export async function fetchValueData(ticker) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/value/${ticker.toUpperCase()}`);
+    if (!response.ok) throw new Error(`Value analysis failed: ${response.status}`);
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching value data:', error);
+    return null;
+  }
+}

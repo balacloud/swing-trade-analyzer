@@ -2,12 +2,12 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 73 (April 21, 2026)
+> **Last Updated:** Day 75 (May 15, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.33 (Backend v2.34, Frontend v4.33, Backtest v4.17, API Service v2.10)
+## Current Version: v4.34 (Backend v2.35, Frontend v4.34, Backtest v4.18, API Service v2.11)
 
 ---
 
@@ -124,18 +124,52 @@
 
 ---
 
-## ACTIVE PRIORITY ORDER (Day 73 — Quant/Trader Reorder)
+## COMPLETE — Gate 5: Combined Momentum + MR Backtest (Day 75)
+
+**Script:** `backend/backtest/gate5_combined.py`
+**Run:** 60 tickers, 5 years (2021–2026)
+
+| System | Trades | Win Rate | Profit Factor |
+|--------|--------|----------|---------------|
+| MR | 1,968 | 63.4% | 1.27 |
+| Momentum proxy | 968 | 52.2% | 1.34 |
+
+**Overlap:** 1.9% (negligible — systems fire on opposite conditions)
+**P&L correlation:** 0.274 (genuinely independent)
+**Verdict: PASS.** Run both with 50/50 capital split.
+
+---
+
+## COMPLETE — Value Investing Tab Phase 1 (Day 75 — v4.34)
+
+**Purpose:** Standalone value lens (Buffett/Graham/Lynch/Damodaran). Zero impact on swing verdict.
+
+| Component | File | Status |
+|-----------|------|--------|
+| Backend endpoint | `backend/backend.py` — `/api/value/<ticker>` | ✅ Day 75 |
+| API service | `frontend/src/services/api.js` — `fetchValueData()` | ✅ Day 75 |
+| Tab component | `frontend/src/components/ValueTab.jsx` | ✅ Day 75 |
+| Tab wiring | `frontend/src/App.jsx` — 💎 Value tab | ✅ Day 75 |
+| Design spec | `docs/claude/design/VALUE_TAB_SPEC.md` | ✅ Day 75 |
+
+**Metrics (Phase 1):** ROIC, ROE (DuPont leverage flag), Graham Number, P/E, PEG/PEGY, FCF yield.
+**Phase 2 (deferred):** AV earnings history, interest coverage, EV/EBIT, ROE 5yr median.
+**Phase 3 (deferred):** DCF Lite + Margin of Safety.
+
+---
+
+## ACTIVE PRIORITY ORDER (Day 75)
 
 | # | Item | Why | Effort |
 |---|------|-----|--------|
-| 1 | **Gate 5: Combined momentum+MR backtest** | Quant discipline — validate combined system before paper trading both arms | 1 session |
-| 2 | **Behavioral test: Price Structure card** | Prerequisite — verify narrative vs TradingView on 5 tickers | ~1hr |
-| 3 | **Paper trading** | PRIMARY FOCUS — but Gates 1+2 must clear first | Ongoing |
-| 4 | **Research + validate N4: Market Phase synthesis** | Highest leverage feature — regime detection changes quality of every signal | 1 session |
-| 5 | **Build N4: Market Phase synthesis** | After validation. 5-phase label (Bull Rally/Profit Taking/Rotation/Consolidation/Correction) | 1 session |
-| 6 | **N1: Two-price entry labels** | Approved, ~2hrs, improves execution discipline during paper trading | Very Low |
-| 7 | **N2: Nirmal watchlist preset** | Approved, 30 min | Very Low |
-| 8 | **Flip default view to simple** | Approved, 30 min | Very Low |
+| 1 | **Behavioral test: Price Structure card** | Prerequisite — verify narrative vs TradingView on 5 tickers before using in paper trades | ~1hr |
+| 2 | **Paper trading** | PRIMARY FOCUS — all gates cleared | Ongoing |
+| 3 | **Research + validate N4: Market Phase synthesis** | Highest leverage feature — regime detection changes quality of every signal | 1 session |
+| 4 | **Build N4: Market Phase synthesis** | After validation. 5-phase label (Bull Rally/Profit Taking/Rotation/Consolidation/Correction) | 1 session |
+| 5 | **N1: Two-price entry labels** | Approved, ~2hrs, improves execution discipline during paper trading | Very Low |
+| 6 | **N2: Nirmal watchlist preset** | Approved, 30 min | Very Low |
+| 7 | **Flip default view to simple** | Approved, 30 min | Very Low |
+| 8 | **Value Tab Phase 2** | AV-derived metrics (interest coverage, EV/EBIT, ROE 5yr median) | Low |
 | 9 | **N3: Gap-fill detection** | Deferred post paper trading | Medium |
 | 10 | **Canadian Analyze page** | Medium bug, data source redesign needed | High |
 

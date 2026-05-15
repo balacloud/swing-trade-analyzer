@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 74 (May 14, 2026)
+> **Last Updated:** Day 75 (May 15, 2026)
 
 ---
 
@@ -11,34 +11,33 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 74 |
-| Version | v4.33 (Backend v2.34, Frontend v4.33, Backtest v4.17, API Service v2.10) |
-| Latest Status | PROJECT_STATUS_DAY74_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY74.md |
-| Latest API | API_CONTRACTS_DAY72.md |
-| Focus | **Context session. Next: Gate 5 + Price Structure behavioral test + paper trading.** |
+| Current Day | 75 |
+| Version | v4.34 (Backend v2.35, Frontend v4.34, Backtest v4.18, API Service v2.11) |
+| Latest Status | PROJECT_STATUS_DAY75_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY75.md |
+| Latest API | API_CONTRACTS_DAY75.md |
+| Focus | **All gates cleared. Next: Price Structure behavioral test → paper trading.** |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
 
+### Day 75 Summary (Value Tab Phase 1 + Gate 5 PASSED — v4.34)
+- **Value Investing Tab built** (Phase 1): `/api/value/<ticker>` endpoint + `ValueTab.jsx` + `api.js` + `App.jsx`. Amber theme, isolated lens — zero impact on swing verdict. Metrics: ROIC, ROE (DuPont leverage flag), Graham Number, P/E, PEG/PEGY, FCF yield. Cap-size adjusted thresholds.
+- **Bug fix**: AAPL dividend yield 36.22% → 0.35% (switched from `dividendYield` to `trailingAnnualDividendYield` in yfinance).
+- **Gate 5 PASSED**: Combined momentum+MR backtest on 60 tickers, 5 years. 1.9% overlap, 0.274 P&L correlation. Systems are complementary. All gates cleared — paper trading is unblocked.
+- 3 files created, 3 files modified.
+
 ### Day 74 Summary (Context Session — Scanner Explanation)
 - **No code changes.** Pure context session.
-- **TradingView scanner brief prepared**: User needed to explain STA's scanner to another LLM/project. Key file: `backend/backend.py` lines 1747–1990. Brief covers library (`tradingview-screener`), 5 strategies, 17 fields, 7 critical gotchas (col() arithmetic, single .where(), Perf.Y, set_index resets market, ticker prefix stripping, .TO suffix ordering, Canadian split).
+- **TradingView scanner brief prepared**: Key file `backend/backend.py` lines 1747–1990. Library `tradingview-screener`, 5 strategies, 17 fields, 7 critical gotchas.
 - 0 files created, 0 files modified.
 
 ### Day 73 Summary (Nirmal Recovery + Regime Clarity + Priority Reorder + Value Investing Research)
-- **Nirmal validation recovered** (uncommitted from prev session): 378 calls, BUY 15.3%. Style difference, not system failure. STA = universal quant framework (NOT Minervini). Corrected in all docs.
-- **Regime awareness clarified:** VIX level alone is lagging. Full regime = VIX direction + sector rotation + breadth. April 2026 tariff crash proved STA was blind until VIX>30. N4 Market Phase synthesis = highest leverage feature.
-- **Priority reordered (quant/trader lens):** Gate 5 → behavioral test → paper trading → N4 research → N4 build → N1/N2/flip → N3 → Canadian.
-- **Value Investing Tab:** Buffett/Damodaran/Graham/Lynch/Greenblatt style. Separate tab, zero swing impact. Graham Number + DCF Lite + PEG + quality checklist. Research prompts created (`VALUE_INVESTING_RESEARCH_PROMPT.md` — 4 prompts for 4 LLMs).
-- 6 files created, 4 modified. Roadmap fully updated.
-
-### Day 72 Summary (Master Audit Framework + Price Structure Card Phase 1 — v4.33)
-- **Master Audit Framework** created: `docs/claude/stable/MASTER_AUDIT_FRAMEWORK.md` — 5 audit types (Claim, Coherence, Behavioral, Design, External LLM). Wired into GOLDEN_RULES.md.
-- **Price Structure card built**: `PriceStructureCard.jsx` + `priceStructureNarrative.js`. Teal-400 Tier 2, collapsed by default. Structured narrative (structure state, key levels with touches/confluence, watch items). Zero impact on verdict/scoring.
-- **API change**: `meta.levelScores` added to `/api/sr/<ticker>` (1 line, backend.py). Touch counts now passed through from `_score_levels()`.
-- 5 files created, 6 files modified.
+- **Nirmal validation recovered**: 378 calls, BUY 15.3%. Style difference, not system failure. STA = universal quant framework.
+- **Priority reordered (quant/trader lens):** Gate 5 → behavioral test → paper trading → N4 research → N4 build → N1/N2/flip.
+- **Value Investing Tab research**: 4 LLM research prompts created (`VALUE_INVESTING_RESEARCH_PROMPT.md`).
+- 6 files created, 4 modified.
 
 ---
 
@@ -116,14 +115,14 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 
 ## NEXT SESSION PRIORITIES
 
-1. **Gate 5: Combined momentum+MR backtest** — Quant discipline. Can't paper trade both arms without knowing if they improve or cannibalize. Fast (1 session).
-2. **Behavioral test: Price Structure card** — Prerequisite before trusting it in paper trades. Run NVDA, F, SPY, AAPL, SMCI.
-3. **Paper trading** — PRIMARY FOCUS. But Gates 1+2 must clear first.
-4. **Research + validate N4: Market Phase synthesis** — Highest leverage feature. VIX direction + sector rotation + breadth → 5-phase label. Needs validation before building (Golden Rule #15).
-5. **Build N4: Market Phase synthesis** — After research validates it. Changes quality of every output.
-6. **N1: Two-price entry labels** — Trade Setup card: Primary Entry + Averaging Entry (~2 hours, approved).
-7. **N2: Nirmal watchlist preset** — Scan tab dropdown. 30 min, approved.
-8. **Flip default view to simple** — 30 min, approved.
+1. **Behavioral test: Price Structure card** — Run NVDA, F, SPY, AAPL, SMCI through PriceStructureCard. Verify narrative matches TradingView chart read before using in paper trades.
+2. **Paper trading** — PRIMARY FOCUS. All gates cleared — this is the real work now.
+3. **Research + validate N4: Market Phase synthesis** — Highest leverage feature. VIX direction + sector rotation + breadth → 5-phase label. Needs validation before building (Golden Rule #15).
+4. **Build N4: Market Phase synthesis** — After research validates it. 5-phase label changes quality of every output.
+5. **N1: Two-price entry labels** — Trade Setup card: Primary Entry + Averaging Entry (~2 hours, approved).
+6. **N2: Nirmal watchlist preset** — Scan tab dropdown. 30 min, approved.
+7. **Flip default view to simple** — 30 min, approved.
+8. **Value Tab Phase 2** — AV earnings history, interest coverage, EV/EBIT, ROE 5yr median.
 9. **Gap-fill detection (N3)** — Deferred post paper-trading.
 10. **Canadian Analyze page** — Medium bug, high complexity. Data source redesign for `.TO` tickers.
 
@@ -185,6 +184,7 @@ curl http://localhost:5001/api/cache/status
 | 72 | Master Audit Framework + Price Structure card Phase 1. levelScores API. v4.33. |
 | 73 | Research session. Positional vs swing trading concepts. No code changes. |
 | 74 | Context session. TradingView scanner brief for external LLM. No code changes. |
+| 75 | Value Tab Phase 1 (isolated lens) + Gate 5 PASSED (1.9% overlap). All gates cleared. v4.34. |
 
 ---
 

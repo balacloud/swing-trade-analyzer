@@ -48,6 +48,7 @@ import BottomLineCard, { HOLDING_PERIODS } from './components/BottomLineCard';
 // DecisionMatrix removed Day 70 — simplicity premium (full+simple views sufficient)
 import SectorRotationTab from './components/SectorRotationTab'; // Day 62: v4.24 Sector Rotation Phase 2
 import ContextTab from './components/ContextTab'; // Day 62: v4.24 Context Tab
+import ValueTab from './components/ValueTab'; // Day 75: Value investing lens
 import MRSignalCard from './components/MRSignalCard'; // Tier 3B: Mean-Reversion Signal
 import PriceStructureCard from './components/PriceStructureCard'; // Day 72: Price Structure narrative
 import { generatePriceStructure } from './utils/priceStructureNarrative'; // Day 72
@@ -865,6 +866,16 @@ function App() {
               }`}
             >
               🔭 Context
+            </button>
+            <button
+              onClick={() => setActiveTab('value')}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'value'
+                  ? 'bg-amber-600 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              💎 Value
             </button>
             <button
               onClick={() => setActiveTab('validate')}
@@ -2692,6 +2703,12 @@ function App() {
         {/* Day 62: v4.24 Pre-flight macro context (FRED cycles + econ + AV news) */}
         {activeTab === 'context' && (
           <ContextTab ticker={analysisResult?.ticker || null} />
+        )}
+
+        {/* ==================== VALUE TAB ==================== */}
+        {/* Day 75: Value investing lens — Buffett/Graham/Lynch/Damodaran/Greenblatt */}
+        {activeTab === 'value' && (
+          <ValueTab ticker={analysisResult?.ticker || null} />
         )}
 
         {/* ==================== VALIDATE TAB ==================== */}

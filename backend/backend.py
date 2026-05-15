@@ -2702,6 +2702,277 @@ def scan_mr_signals():
 
 
 # ============================================
+# VALUE INVESTING TAB (Day 75 — Phase 1)
+# ============================================
+
+@app.route('/api/value/<ticker>')
+def get_value_analysis(ticker):
+    """
+    Value investing analysis: quality + valuation metrics.
+    Frameworks: Buffett / Graham / Lynch / Damodaran / Greenblatt.
+    Phase 1: Live-tier only (Finnhub ROIC/ROE + yfinance Graham/FCF/PE/PEG).
+    Phase 2 (future): adds AV earnings history, interest coverage, EV/EBIT.
+    Zero impact on swing verdict or categorical assessment.
+    """
+    try:
+        ticker = ticker.upper()
+
+        # --- 1. Fundamentals via DataProvider (Finnhub chain) ---
+        fundamentals = {}
+        if DATA_PROVIDER_AVAILABLE:
+            try:
+                dp = get_data_provider()
+                fundamentals = dp.get_fundamentals(ticker) or {}
+            except Exception as e:
+                print(f"DataProvider error for /api/value/{ticker}: {e}")
+
+        # --- 2. yfinance info for Graham Number + FCF ---
+        info = {}
+        try:
+            yf_ticker = yf.Ticker(ticker)
+            info = yf_ticker.info or {}
+        except Exception as e:
+            print(f"yfinance info error for /api/value/{ticker}: {e}")
+
+        # --- Extract values ---
+        roic = fundamentals.get('roic')                     # % already (Finnhub roicTTM)
+        roe  = fundamentals.get('roe')                      # % already (Finnhub roeTTM)
+        roa  = fundamentals.get('roa')                      # % already (Finnhub roaTTM)
+        pe   = fundamentals.get('pe')
+        peg_raw = fundamentals.get('pegRatio')
+        debt_to_equity = fundamentals.get('debtToEquity')
+        profit_margin = fundamentals.get('profitMargin')    # decimal
+
+        market_cap    = info.get('marketCap') or fundamentals.get('marketCap')
+        eps_ttm       = info.get('trailingEps')
+        book_value    = info.get('bookValue')               # BVPS
+        fcf           = info.get('freeCashflow')
+        current_price = info.get('currentPrice') or info.get('regularMarketPrice')
+        sector        = info.get('sector', 'Unknown')
+        earnings_growth = info.get('earningsGrowth')        # decimal (1yr yfinance)
+        # trailingAnnualDividendYield is reliable (e.g. 0.0035 = 0.35%).
+        # info['dividendYield'] can be wrong — e.g. yfinance returns 0.36 for AAPL (~36% — bad data).
+        div_yield_raw = info.get('trailingAnnualDividendYield')  # decimal, trailing 12m
+
+        # --- Cap size ---
+        if market_cap and market_cap > 10_000_000_000:
+            cap_size = 'large'
+        elif market_cap and market_cap > 2_000_000_000:
+            cap_size = 'mid'
+        elif market_cap and market_cap > 0:
+            cap_size = 'small'
+        else:
+            cap_size = 'unknown'
+
+        # WACC approximation (sector-specific in Phase 2; reasonable proxy for Phase 1)
+        wacc_approx = {'large': 9.0, 'mid': 10.0, 'small': 11.0, 'unknown': 10.0}[cap_size]
+        # ROE quality threshold by cap size (ChatGPT research validated)
+        roe_threshold = {'large': 15.0, 'mid': 12.0, 'small': 10.0, 'unknown': 12.0}[cap_size]
+
+        # Sectors where standard metrics are less reliable (suppress rather than red)
+        asset_light_sectors = {'Technology', 'Communication Services', 'Consumer Cyclical'}
+        financial_sectors   = {'Financial Services', 'Financial', 'Banks', 'Insurance'}
+        biotech_sectors     = {'Healthcare', 'Biotechnology'}
+        high_leverage_sectors = {'Utilities', 'Real Estate', 'Energy', 'Industrials'}
+
+        # --- Graham Number ---
+        if eps_ttm is not None and book_value is not None and eps_ttm > 0 and book_value > 0:
+            g_val = (22.5 * eps_ttm * book_value) ** 0.5
+            if current_price:
+                pct_diff = (current_price - g_val) / g_val * 100
+                g_verdict = 'below_ceiling' if current_price <= g_val else 'above_ceiling'
+            else:
+                pct_diff = None
+                g_verdict = 'no_price'
+            graham = {
+                'applicable': True,
+                'value': round(g_val, 2),
+                'current_price': round(current_price, 2) if current_price else None,
+                'pct_diff': round(pct_diff, 1) if pct_diff is not None else None,
+                'verdict': g_verdict,
+                'sector_warning': sector in asset_light_sectors,
+                'sector': sector
+            }
+        elif eps_ttm is not None and eps_ttm <= 0:
+            graham = {'applicable': False, 'reason': 'negative_eps', 'value': None}
+        elif book_value is not None and book_value <= 0:
+            graham = {'applicable': False, 'reason': 'negative_book_value', 'value': None}
+        else:
+            graham = {'applicable': None, 'reason': 'data_missing', 'value': None}
+
+        # --- ROIC ---
+        if roic is not None:
+            spread = roic - wacc_approx
+            roic_data = {
+                'value': round(roic, 1),
+                'wacc_approx': wacc_approx,
+                'spread': round(spread, 1),
+                'verdict': 'strong' if spread > 5 else ('decent' if spread > 0 else 'weak'),
+                'source': 'finnhub'
+            }
+        else:
+            roic_data = {'value': None, 'verdict': 'na', 'wacc_approx': wacc_approx}
+
+        # --- ROE ---
+        if roe is not None:
+            roic_driven = (roa is not None and roe > 0 and roa > 0 and roe / roa > 3.5)
+            roe_data = {
+                'value': round(roe, 1),
+                'threshold': roe_threshold,
+                'leverage_flag': roic_driven,
+                'verdict': 'strong' if roe >= roe_threshold * 1.2 else ('decent' if roe >= roe_threshold else 'weak'),
+                'source': 'finnhub'
+            }
+        else:
+            roe_data = {'value': None, 'verdict': 'na', 'threshold': roe_threshold}
+
+        # --- FCF Yield ---
+        # Fallback: compute from cashflow dataframe if info field is missing
+        if fcf is None:
+            try:
+                cf = yf.Ticker(ticker).cashflow
+                if cf is not None and not cf.empty:
+                    ocf_row = next((r for r in cf.index if 'Operating' in str(r) and 'Cash' in str(r)), None)
+                    cap_row = next((r for r in cf.index if 'Capital' in str(r)), None)
+                    if ocf_row and cap_row:
+                        ocf = cf.loc[ocf_row].iloc[0]
+                        cap = cf.loc[cap_row].iloc[0]
+                        if ocf is not None and cap is not None:
+                            fcf = float(ocf) - abs(float(cap))
+            except Exception:
+                pass
+
+        if fcf is not None and market_cap and market_cap > 0:
+            fcf_yield_pct = fcf / market_cap * 100
+            fcf_data = {
+                'value': round(fcf_yield_pct, 1),
+                'verdict': 'strong' if fcf_yield_pct > 5 else ('decent' if fcf_yield_pct > 2 else ('negative' if fcf_yield_pct < 0 else 'weak')),
+                'note': 'Single-year estimate — use directionally only'
+            }
+        else:
+            fcf_data = {'value': None, 'verdict': 'na', 'reason': 'data_missing'}
+
+        # --- P/E ---
+        if pe is not None and pe > 0:
+            pe_data = {
+                'value': round(pe, 1),
+                'verdict': 'attractive' if pe < 15 else ('fair' if pe < 25 else 'stretched'),
+                'note': 'Absolute P/E — sector-relative comparison in Phase 2'
+            }
+        elif pe is not None and pe <= 0:
+            pe_data = {'value': None, 'verdict': 'na', 'reason': 'negative_earnings'}
+        else:
+            pe_data = {'value': None, 'verdict': 'na'}
+
+        # --- PEG / PEGY ---
+        div_yield_pct = round((div_yield_raw or 0) * 100, 2)
+        use_pegy = div_yield_pct > 1.5
+
+        if peg_raw is not None and peg_raw > 0:
+            if use_pegy and pe is not None and pe > 0 and earnings_growth:
+                g_pct = earnings_growth * 100 if abs(earnings_growth) < 5 else earnings_growth
+                denom = g_pct + div_yield_pct
+                effective_peg = pe / denom if denom > 0 else None
+                peg_type = 'pegy'
+            else:
+                effective_peg = peg_raw
+                peg_type = 'peg'
+
+            if effective_peg and effective_peg > 0:
+                peg_data = {
+                    'value': round(effective_peg, 2),
+                    'type': peg_type,
+                    'verdict': 'attractive' if effective_peg < 1.0 else ('fair' if effective_peg < 1.5 else 'stretched'),
+                    'source': 'finnhub' if peg_type == 'peg' else 'computed'
+                }
+            else:
+                peg_data = {'value': None, 'verdict': 'na'}
+        else:
+            peg_data = {'value': None, 'verdict': 'na'}
+
+        # --- Overall quality verdict (ROIC + ROE) ---
+        q_scores = []
+        for v in [roic_data.get('verdict'), roe_data.get('verdict')]:
+            if v == 'strong':   q_scores.append(2)
+            elif v == 'decent': q_scores.append(1)
+            elif v == 'weak':   q_scores.append(0)
+        quality_verdict = (
+            'strong' if q_scores and sum(q_scores)/len(q_scores) >= 1.7 else
+            'decent' if q_scores and sum(q_scores)/len(q_scores) >= 0.8 else
+            'weak'   if q_scores else 'insufficient_data'
+        )
+
+        # --- Overall valuation verdict (Graham + PE) ---
+        v_scores = []
+        if graham.get('verdict') == 'below_ceiling':      v_scores.append(2)
+        elif graham.get('verdict') == 'above_ceiling':
+            v_scores.append(0 if abs(graham.get('pct_diff') or 0) > 30 else 1)
+        if pe_data.get('verdict') == 'attractive':    v_scores.append(2)
+        elif pe_data.get('verdict') == 'fair':        v_scores.append(1)
+        elif pe_data.get('verdict') == 'stretched':   v_scores.append(0)
+        valuation_verdict = (
+            'attractive' if v_scores and sum(v_scores)/len(v_scores) >= 1.7 else
+            'fair'       if v_scores and sum(v_scores)/len(v_scores) >= 0.8 else
+            'stretched'  if v_scores else 'insufficient_data'
+        )
+
+        # --- Summary text ---
+        summary_map = {
+            ('strong',  'attractive'): 'High quality business at a compelling valuation.',
+            ('strong',  'fair'):       'High quality business at a fair price.',
+            ('strong',  'stretched'):  'High quality business — currently priced above conservative estimates.',
+            ('decent',  'attractive'): 'Decent quality at an attractive price.',
+            ('decent',  'fair'):       'Decent quality at a fair price.',
+            ('decent',  'stretched'):  'Decent quality — valuation appears stretched.',
+            ('weak',    'attractive'): 'Cheap on valuation, but quality is weak. Potential value trap.',
+            ('weak',    'fair'):       'Weak quality metrics at a fair price. Exercise caution.',
+            ('weak',    'stretched'):  'Weak quality and stretched valuation.',
+        }
+        summary = summary_map.get(
+            (quality_verdict, valuation_verdict),
+            'Insufficient data for a complete assessment.'
+        )
+
+        return jsonify({
+            'ticker': ticker,
+            'cap_size': cap_size,
+            'sector': sector,
+            'quality': {
+                'roic':          roic_data,
+                'roe':           roe_data,
+                'roa':           round(roa, 1) if roa is not None else None,
+                'fcf_yield':     fcf_data,
+                'debt_to_equity': round(debt_to_equity, 2) if debt_to_equity is not None else None,
+                'profit_margin_pct': round(profit_margin * 100, 1) if profit_margin is not None else None,
+                'verdict':       quality_verdict
+            },
+            'valuation': {
+                'graham_number': graham,
+                'pe':            pe_data,
+                'peg':           peg_data,
+                'dividend_yield_pct': div_yield_pct if div_yield_pct else None,
+                'verdict':       valuation_verdict
+            },
+            'overall': {
+                'quality_verdict':   quality_verdict,
+                'valuation_verdict': valuation_verdict,
+                'summary':           summary
+            },
+            'meta': {
+                'wacc_approx':    wacc_approx,
+                'roe_threshold':  roe_threshold,
+                'phase':          1,
+                'phase_note':     'Phase 1: Finnhub + yfinance only. Phase 2 adds AV earnings history, interest coverage, EV/EBIT, DCF.'
+            }
+        })
+
+    except Exception as e:
+        print(f"Error in /api/value/{ticker}: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+# ============================================
 # MAIN
 # ============================================
 
