@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 75 (May 15, 2026)
+> **Last Updated:** Day 76 — end of day (May 18, 2026)
 
 ---
 
@@ -11,33 +11,35 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 75 |
-| Version | v4.34 (Backend v2.35, Frontend v4.34, Backtest v4.18, API Service v2.11) |
-| Latest Status | PROJECT_STATUS_DAY75_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY75.md |
+| Current Day | 76 |
+| Version | v4.36 (Backend v2.35, Frontend v4.35, Backtest v4.18, API Service v2.11) |
+| Latest Status | PROJECT_STATUS_DAY76_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY76.md |
 | Latest API | API_CONTRACTS_DAY75.md |
-| Focus | **All gates cleared. Next: Price Structure behavioral test → paper trading.** |
+| Focus | **N4 Market Phase synthesis — research done, build next. Paper trading unblocked.** |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
 
-### Day 75 Summary (Value Tab Phase 1 + Gate 5 PASSED — v4.34)
-- **Value Investing Tab built** (Phase 1): `/api/value/<ticker>` endpoint + `ValueTab.jsx` + `api.js` + `App.jsx`. Amber theme, isolated lens — zero impact on swing verdict. Metrics: ROIC, ROE (DuPont leverage flag), Graham Number, P/E, PEG/PEGY, FCF yield. Cap-size adjusted thresholds.
-- **Bug fix**: AAPL dividend yield 36.22% → 0.35% (switched from `dividendYield` to `trailingAnnualDividendYield` in yfinance).
-- **Gate 5 PASSED**: Combined momentum+MR backtest on 60 tickers, 5 years. 1.9% overlap, 0.274 P&L correlation. Systems are complementary. All gates cleared — paper trading is unblocked.
-- 3 files created, 3 files modified.
+### Day 76 Summary (Session Protocol Fix + N4 Research + Skills Built — v4.36)
+- **Session start protocol failure diagnosed**: CLAUDE_CONTEXT.md must be read first (not just GOLDEN_RULES.md). GOLDEN_RULES Rule 17 added. Memory updated.
+- **N4 Market Phase synthesis — research done**: 5-phase framework designed (Bull Rally / Late Bull / Distribution / Correction / Recovery). `^SPXA200R` dead on yfinance — RSP/SPY ratio confirmed as breadth proxy. DataProvider OHLCV chain confirmed for price signals. Existing context engines feed macro signals. Not yet built.
+- **Two project skills built**: `/sta-start` (`.claude/commands/sta-start.md`) + `/sta-end` (`.claude/commands/sta-end.md`). Automate full session open/close protocols.
+- 2 skill files created, 3 docs updated, 2 memory files updated.
+
+### Day 75 Summary (Value Tab + Gate 5 + Behavioral Test + N1/N2/Flip — v4.35)
+- **Value Investing Tab built** (Phase 1): `/api/value/<ticker>` + `ValueTab.jsx`. Amber theme, isolated lens. Metrics: ROIC, ROE, Graham Number, P/E, PEG/PEGY, FCF yield. Cap-size adjusted thresholds.
+- **Bug fix**: AAPL dividend yield 36.22% → 0.35% (switched to `trailingAnnualDividendYield` in yfinance).
+- **Gate 5 PASSED**: Combined momentum+MR backtest, 60 tickers, 5 years. 1.9% overlap, 0.274 P&L correlation. All gates cleared.
+- **Price Structure behavioral test PASSED 5/5**: NVDA, SPY, SMCI, AAPL, F. Two bugs fixed: ATH breakout now requires TT≥5; RSI overbought Priority 6 watch item added.
+- **N1/N2/Flip**: Two-price entry labels, Nirmal watchlist preset, default view flipped to simple.
+- 4 files created, 4 files modified.
 
 ### Day 74 Summary (Context Session — Scanner Explanation)
 - **No code changes.** Pure context session.
 - **TradingView scanner brief prepared**: Key file `backend/backend.py` lines 1747–1990. Library `tradingview-screener`, 5 strategies, 17 fields, 7 critical gotchas.
 - 0 files created, 0 files modified.
-
-### Day 73 Summary (Nirmal Recovery + Regime Clarity + Priority Reorder + Value Investing Research)
-- **Nirmal validation recovered**: 378 calls, BUY 15.3%. Style difference, not system failure. STA = universal quant framework.
-- **Priority reordered (quant/trader lens):** Gate 5 → behavioral test → paper trading → N4 research → N4 build → N1/N2/flip.
-- **Value Investing Tab research**: 4 LLM research prompts created (`VALUE_INVESTING_RESEARCH_PROMPT.md`).
-- 6 files created, 4 modified.
 
 ---
 
@@ -115,16 +117,12 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 
 ## NEXT SESSION PRIORITIES
 
-1. **Behavioral test: Price Structure card** — Run NVDA, F, SPY, AAPL, SMCI through PriceStructureCard. Verify narrative matches TradingView chart read before using in paper trades.
-2. **Paper trading** — PRIMARY FOCUS. All gates cleared — this is the real work now.
-3. **Research + validate N4: Market Phase synthesis** — Highest leverage feature. VIX direction + sector rotation + breadth → 5-phase label. Needs validation before building (Golden Rule #15).
-4. **Build N4: Market Phase synthesis** — After research validates it. 5-phase label changes quality of every output.
-5. **N1: Two-price entry labels** — Trade Setup card: Primary Entry + Averaging Entry (~2 hours, approved).
-6. **N2: Nirmal watchlist preset** — Scan tab dropdown. 30 min, approved.
-7. **Flip default view to simple** — 30 min, approved.
-8. **Value Tab Phase 2** — AV earnings history, interest coverage, EV/EBIT, ROE 5yr median.
-9. **Gap-fill detection (N3)** — Deferred post paper-trading.
-10. **Canadian Analyze page** — Medium bug, high complexity. Data source redesign for `.TO` tickers.
+1. **Paper trading** — PRIMARY FOCUS. All gates cleared, all prereqs done.
+2. **Build N4: Market Phase synthesis** — Research done (Day 76). New file `market_phase_engine.py` + `/api/market/phase` endpoint. DataProvider for price signals, existing context engines for macro. Display in Context tab.
+3. **Value Tab Phase 2** — AV earnings history, interest coverage, EV/EBIT, ROE 5yr median.
+4. **Price Structure Phase 2** — HH/HL/LH/LL engine using `find_pivot_points()`.
+5. **Gap-fill detection (N3)** — Deferred post paper-trading.
+6. **Canadian Analyze page** — Medium bug, high complexity. Data source redesign for `.TO` tickers.
 
 ---
 
@@ -184,7 +182,8 @@ curl http://localhost:5001/api/cache/status
 | 72 | Master Audit Framework + Price Structure card Phase 1. levelScores API. v4.33. |
 | 73 | Research session. Positional vs swing trading concepts. No code changes. |
 | 74 | Context session. TradingView scanner brief for external LLM. No code changes. |
-| 75 | Value Tab Phase 1 (isolated lens) + Gate 5 PASSED (1.9% overlap). All gates cleared. v4.34. |
+| 75 | Value Tab Phase 1 + Gate 5 PASSED + Behavioral test 5/5 (2 bugs fixed) + N1/N2/flip. All gates cleared. v4.35. |
+| 76 | Session protocol fix (CLAUDE_CONTEXT.md first — Rule 17). N4 research done (RSP/SPY breadth proxy, 5-phase framework). /sta-start + /sta-end skills built. v4.36. |
 
 ---
 

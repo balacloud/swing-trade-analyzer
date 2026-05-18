@@ -2,7 +2,7 @@
 
 > **Purpose:** Core rules and cumulative lessons learned — stable reference
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 72 (March 30, 2026)
+> **Last Updated:** Day 76 (May 18, 2026)
 > **Session protocols:** See `CLAUDE_CONTEXT.md` for startup/close checklists
 
 ---
@@ -25,6 +25,7 @@
 14. **UPDATE "LAST UPDATED" DATES** — On any file in `docs/claude/stable/`
 15. **NEVER IMPLEMENT WITHOUT VALIDATION** — Require research, backtest, or practitioner consensus
 16. **EQUAL WEIGHT — Never optimize category weights.** DeMiguel et al. (2009): equal weights beat optimized out-of-sample. 238 trades is insufficient to optimize 4+ weights. If future evolution moves to continuous scoring, start with equal weights. (Day 69, Tier 1B)
+17. **SESSION START = Read CLAUDE_CONTEXT.md first.** It defines the mandatory 4-file startup checklist (GOLDEN_RULES → ROADMAP → STATUS → KNOWN_ISSUES). Reading only GOLDEN_RULES.md and stopping there is incomplete — CLAUDE_CONTEXT.md is the orchestrating file. Use `/sta-start` skill to enforce this. (Day 76)
 
 ---
 
