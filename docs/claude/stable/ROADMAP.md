@@ -2,12 +2,12 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 75 (May 15, 2026)
+> **Last Updated:** Day 75 — end of day (May 15, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.34 (Backend v2.35, Frontend v4.34, Backtest v4.18, API Service v2.11)
+## Current Version: v4.35 (Backend v2.35, Frontend v4.35, Backtest v4.18, API Service v2.11)
 
 ---
 
@@ -158,20 +158,33 @@
 
 ---
 
-## ACTIVE PRIORITY ORDER (Day 75)
+## COMPLETE — Price Structure Card Behavioral Test (Day 75 — v4.35)
+
+**5/5 tickers passed.** Two bugs found and fixed in `priceStructureNarrative.js`:
+1. ATH breakout rule now requires TT >= 5 (was firing on any no-resistance case)
+2. RSI overbought watch item (Priority 6) added — fires when RSI > 70 and not near support
+
+## COMPLETE — N1 + N2 + Flip Default View (Day 75 — v4.35)
+
+| Item | Change | File |
+|------|--------|------|
+| N1: Two-price entry labels | Primary Entry (white) + Averaging Entry (blue) in both Trade Setup cards | `App.jsx` |
+| N2: Nirmal watchlist preset | "👁 Nirmal's Watchlist" at top of Scan dropdown — 20 tickers, parallel cached SR fetches | `App.jsx` |
+| Flip default view | `analysisView` default `'full'` → `'simple'` — simple checklist shown first | `App.jsx` |
+
+---
+
+## ACTIVE PRIORITY ORDER (Day 77 updated)
 
 | # | Item | Why | Effort |
 |---|------|-----|--------|
-| 1 | **Behavioral test: Price Structure card** | Prerequisite — verify narrative vs TradingView on 5 tickers before using in paper trades | ~1hr |
-| 2 | **Paper trading** | PRIMARY FOCUS — all gates cleared | Ongoing |
-| 3 | **Research + validate N4: Market Phase synthesis** | Highest leverage feature — regime detection changes quality of every signal | 1 session |
-| 4 | **Build N4: Market Phase synthesis** | After validation. 5-phase label (Bull Rally/Profit Taking/Rotation/Consolidation/Correction) | 1 session |
-| 5 | **N1: Two-price entry labels** | Approved, ~2hrs, improves execution discipline during paper trading | Very Low |
-| 6 | **N2: Nirmal watchlist preset** | Approved, 30 min | Very Low |
-| 7 | **Flip default view to simple** | Approved, 30 min | Very Low |
-| 8 | **Value Tab Phase 2** | AV-derived metrics (interest coverage, EV/EBIT, ROE 5yr median) | Low |
-| 9 | **N3: Gap-fill detection** | Deferred post paper trading | Medium |
-| 10 | **Canadian Analyze page** | Medium bug, data source redesign needed | High |
+| 1 | **Paper trading** | PRIMARY FOCUS — all gates cleared, all prereqs done | Ongoing |
+| 2 | **Build N4: Market Phase synthesis** | Research done (Day 76). `market_phase_engine.py` + `/api/market/phase`. DataProvider + existing context engines. | 1 session |
+| 3 | **Build `/ibkr-scan` skill** | Research done (Day 77). 3-LLM validated filters. Verify 52W High Proximity in IBKR first. | 1 session |
+| 4 | **Value Tab Phase 2** | AV-derived metrics (interest coverage, EV/EBIT, ROE 5yr median) | Low |
+| 5 | **Price Structure Phase 2** | HH/HL/LH/LL market structure engine using `find_pivot_points()` | Medium |
+| 6 | **N3: Gap-fill detection** | Deferred post paper trading | Medium |
+| 7 | **Canadian Analyze page** | Medium bug, data source redesign needed | High |
 
 ---
 
@@ -658,6 +671,28 @@ From backtesting:
 | 70B | Simplicity premium UI: 3-tier progressive disclosure, Decision Matrix + TradingView Chart removed. Sentiment informational-only. Simple checklist: RS 1.0→1.2, cap-aware volume + stop distance. Version v4.32. |
 | 72 | Price Structure Card Phase 1 COMPLETE: `PriceStructureCard.jsx` + `priceStructureNarrative.js`. Master Audit Framework created (5 audit types). levelScores in S/R API. Version v4.33. |
 | 73 | Nirmal validation complete (378 calls). Integration gaps N1-N4 defined. N1+N2 approved. N3 deferred. N4 needs validation. Priority reordered (quant/trader lens). Value Investing tab idea documented. |
+| 74 | Context session. TradingView scanner brief. No code changes. |
+| 75 | Value Tab Phase 1 (isolated lens, v4.34). Gate 5 PASSED (1.9% overlap, 0.274 corr). Price Structure behavioral test PASSED 5/5 (2 bugs fixed). N1+N2+flip default view implemented. Version v4.35. |
+
+---
+
+---
+
+## IBKR Screener Integration (Day 77 — Research Complete)
+
+**Purpose:** Two-stage candidate pipeline. IBKR pre-screens 7,000+ stocks in real-time → `/ibkr-scan` skill runs survivors through STA → top 5–10 candidates.
+
+**Research docs:**
+- `docs/research/IBKR_SCREENER_INTEGRATION.md` — full factor reference + filter design
+- `docs/research/IBKR_SCREENER_EXTERNAL_AUDIT_PROMPT.md` — external audit prompt
+- `docs/research/IBKR_SCREENER_LLM_AUDIT.md` — 3-LLM synthesis (Perplexity + GPT + Gemini)
+
+**Final 10 filters (3-LLM validated):**
+Market Cap ≥1B · AvgVol($) ≥5M · Price/EMA(200) 1.05–1.65 · Price/EMA(50) 1.00–1.20 · ROE ≥15 · EarnGrw% ≥20 · Inst.Held 25–90 · 52W High Proximity ≤-25% · MACD Histogram ≥0 · Change% -2 to +8
+
+**Skill design:** User pastes IBKR screenshot(s) → Claude reads tickers via vision → calls STA API → scores → outputs top 5–10.
+
+**Status:** Research COMPLETE. Build pending verification of 52W High Proximity field in IBKR.
 
 ---
 

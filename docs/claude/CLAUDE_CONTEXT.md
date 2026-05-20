@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 76 — end of day (May 18, 2026)
+> **Last Updated:** Day 77 — end of day (May 20, 2026)
 
 ---
 
@@ -11,35 +11,37 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 76 |
+| Current Day | 77 |
 | Version | v4.36 (Backend v2.35, Frontend v4.35, Backtest v4.18, API Service v2.11) |
-| Latest Status | PROJECT_STATUS_DAY76_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY76.md |
+| Latest Status | PROJECT_STATUS_DAY77_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY77.md |
 | Latest API | API_CONTRACTS_DAY75.md |
-| Focus | **N4 Market Phase synthesis — research done, build next. Paper trading unblocked.** |
+| Focus | **IBKR screener pipeline research done. N4 research done. Both ready to build.** |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
 
+### Day 77 Summary (IBKR Screener Pipeline — Research Complete)
+- **Pure research session.** No code changes.
+- **IBKR 2.0 screener integration**: documented all factors from screenshots, designed 10-filter configuration derived from STA's Minervini/SEPA thesis.
+- **3-LLM audit** (Perplexity + GPT + Gemini): all three raised EarnGrw% floor, tightened EMA caps, replaced Quick Ratio with 52W High Proximity.
+- **Final 10 filters validated**: Market Cap ≥1B, AvgVol ≥$5M, Price/EMA(200) 1.05–1.65, Price/EMA(50) 1.00–1.20, ROE ≥15, EarnGrw% ≥20, Inst.Held 25–90, 52W High Proximity ≤-25%, MACD Histogram ≥0, Change% -2 to +8.
+- **`/ibkr-scan` skill design complete** — parses IBKR screenshots via Claude vision, calls STA API, ranks top 5–10.
+- 3 research docs created.
+
 ### Day 76 Summary (Session Protocol Fix + N4 Research + Skills Built — v4.36)
-- **Session start protocol failure diagnosed**: CLAUDE_CONTEXT.md must be read first (not just GOLDEN_RULES.md). GOLDEN_RULES Rule 17 added. Memory updated.
-- **N4 Market Phase synthesis — research done**: 5-phase framework designed (Bull Rally / Late Bull / Distribution / Correction / Recovery). `^SPXA200R` dead on yfinance — RSP/SPY ratio confirmed as breadth proxy. DataProvider OHLCV chain confirmed for price signals. Existing context engines feed macro signals. Not yet built.
-- **Two project skills built**: `/sta-start` (`.claude/commands/sta-start.md`) + `/sta-end` (`.claude/commands/sta-end.md`). Automate full session open/close protocols.
-- 2 skill files created, 3 docs updated, 2 memory files updated.
+- **Session start protocol fixed**: CLAUDE_CONTEXT.md must be read first. GOLDEN_RULES Rule 17 added.
+- **N4 research done**: 5-phase framework, RSP/SPY breadth proxy, DataProvider architecture confirmed.
+- **`/sta-start` + `/sta-end` skills built**: full session open/close automation.
+- 2 skill files created, 3 docs updated.
 
 ### Day 75 Summary (Value Tab + Gate 5 + Behavioral Test + N1/N2/Flip — v4.35)
-- **Value Investing Tab built** (Phase 1): `/api/value/<ticker>` + `ValueTab.jsx`. Amber theme, isolated lens. Metrics: ROIC, ROE, Graham Number, P/E, PEG/PEGY, FCF yield. Cap-size adjusted thresholds.
-- **Bug fix**: AAPL dividend yield 36.22% → 0.35% (switched to `trailingAnnualDividendYield` in yfinance).
-- **Gate 5 PASSED**: Combined momentum+MR backtest, 60 tickers, 5 years. 1.9% overlap, 0.274 P&L correlation. All gates cleared.
-- **Price Structure behavioral test PASSED 5/5**: NVDA, SPY, SMCI, AAPL, F. Two bugs fixed: ATH breakout now requires TT≥5; RSI overbought Priority 6 watch item added.
+- **Value Investing Tab Phase 1**: `/api/value/<ticker>` + `ValueTab.jsx`. ROIC, ROE, Graham Number, P/E, PEG/PEGY, FCF yield.
+- **Gate 5 PASSED**: 1.9% overlap, 0.274 P&L correlation. All gates cleared.
+- **Price Structure behavioral test PASSED 5/5**: 2 bugs fixed (ATH breakout TT≥5, RSI overbought watch item).
 - **N1/N2/Flip**: Two-price entry labels, Nirmal watchlist preset, default view flipped to simple.
 - 4 files created, 4 files modified.
-
-### Day 74 Summary (Context Session — Scanner Explanation)
-- **No code changes.** Pure context session.
-- **TradingView scanner brief prepared**: Key file `backend/backend.py` lines 1747–1990. Library `tradingview-screener`, 5 strategies, 17 fields, 7 critical gotchas.
-- 0 files created, 0 files modified.
 
 ---
 
@@ -117,12 +119,13 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 
 ## NEXT SESSION PRIORITIES
 
-1. **Paper trading** — PRIMARY FOCUS. All gates cleared, all prereqs done.
-2. **Build N4: Market Phase synthesis** — Research done (Day 76). New file `market_phase_engine.py` + `/api/market/phase` endpoint. DataProvider for price signals, existing context engines for macro. Display in Context tab.
-3. **Value Tab Phase 2** — AV earnings history, interest coverage, EV/EBIT, ROE 5yr median.
-4. **Price Structure Phase 2** — HH/HL/LH/LL engine using `find_pivot_points()`.
-5. **Gap-fill detection (N3)** — Deferred post paper-trading.
-6. **Canadian Analyze page** — Medium bug, high complexity. Data source redesign for `.TO` tickers.
+1. **Paper trading** — PRIMARY FOCUS. All gates cleared.
+2. **Build N4: Market Phase synthesis** — Research done (Day 76). `market_phase_engine.py` + `/api/market/phase`. DataProvider + existing context engines.
+3. **Build `/ibkr-scan` skill** — Research done (Day 77). Verify 52W High Proximity in IBKR first, then build `.claude/commands/ibkr-scan.md`.
+4. **Value Tab Phase 2** — Interest coverage, EV/EBIT, ROE 5yr median.
+5. **Price Structure Phase 2** — HH/HL/LH/LL engine using `find_pivot_points()`.
+6. **Gap-fill detection (N3)** — Deferred post paper-trading.
+7. **Canadian Analyze page** — Medium bug, data source redesign for `.TO` tickers.
 
 ---
 
@@ -184,6 +187,7 @@ curl http://localhost:5001/api/cache/status
 | 74 | Context session. TradingView scanner brief for external LLM. No code changes. |
 | 75 | Value Tab Phase 1 + Gate 5 PASSED + Behavioral test 5/5 (2 bugs fixed) + N1/N2/flip. All gates cleared. v4.35. |
 | 76 | Session protocol fix (CLAUDE_CONTEXT.md first — Rule 17). N4 research done (RSP/SPY breadth proxy, 5-phase framework). /sta-start + /sta-end skills built. v4.36. |
+| 77 | IBKR screener pipeline research complete. 3-LLM audit (Perplexity+GPT+Gemini). 10 validated filters. /ibkr-scan skill design done. No code changes. |
 
 ---
 

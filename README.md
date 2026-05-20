@@ -106,11 +106,12 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
    - Pullback re-entry zones for extended stocks
    - **MTF Confluence indicators** (★ marks confluent levels)
 
-6. **Market Scanning** (TradingView Screener)
+6. **Market Scanning** (TradingView Screener + IBKR Pipeline)
    - 5 pre-built strategies: Reddit, Minervini, Momentum, Value, Best Candidates
    - **Best Candidates** aligned with backtested Config C criteria (ADX>=20, RSI 50-70, SMA momentum)
    - Market index filters: S&P 500 / NASDAQ 100 / Dow 30 / All US / TSX 60 / All Canadian
    - Stage 2 uptrend requirement (50 SMA > 200 SMA)
+   - **IBKR two-stage pipeline** (planned): 10-factor real-time screener → `/ibkr-scan` Claude skill → top 5–10 STA candidates. 3-LLM validated filters (Minervini/SEPA-derived).
 
 7. **Data Validation Engine** (Day 42)
    - Cross-references our data against StockAnalysis and Finviz
