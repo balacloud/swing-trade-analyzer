@@ -1,11 +1,19 @@
 //@version=5
-indicator("STA Breakout Companion — Human-in-the-Loop", overlay=true, max_lines_count=100, max_labels_count=100)
+indicator("STA Breakout Companion — Human-in-the-Loop v2", overlay=true, max_lines_count=100, max_labels_count=100)
 
 // -----------------------------------------------------------------------------
-// STA Breakout Companion
+// STA Breakout Companion v2
 // Purpose: Visual TradingView companion for Swing Trade Analyzer (STA).
 // This is NOT a standalone trading system. It is a charting/alert layer that
 // helps a human review breakout candidates before sending screenshots to Claude/GPT.
+//
+// v2 adds chartist-style candle quality and supply/rejection checks:
+// - close location value
+// - body quality
+// - upper wick rejection
+// - wide-range breakout candle
+// - high-volume red supply candle near resistance
+// - extension risk from SMA50
 // -----------------------------------------------------------------------------
 
 // === Inputs ===
@@ -21,8 +29,10 @@ atrLen           = input.int(14, "ATR length", minval=5, maxval=50)
 atrMaLen         = input.int(50, "ATR average length", minval=10, maxval=200)
 atrTightRatio    = input.float(0.85, "ATR contraction ratio", minval=0.3, maxval=1.5, step=0.05)
 rsSymbol         = input.symbol("SPY", "Relative strength benchmark")
+maxExtFrom50Pc   = input.float(12.0, "Max extension from SMA50 %", minval=3.0, maxval=30.0, step=0.5)
 showTable        = input.bool(true, "Show decision checklist table")
 showZones        = input.bool(true, "Show support/resistance zones")
+showWarnings     = input.bool(true, "Show candle/supply warnings")
 
 // === Core indicators ===
 ema20  = ta.ema(close, 20)
@@ -35,11 +45,28 @@ atr    = ta.atr(atrLen)
 atrAvg = ta.sma(atr, atrMaLen)
 atrPct = close > 0 ? atr / close * 100 : na
 
-// Relative strength vs benchmark. Ratio rising means stock outperforming benchmark.
 benchClose = request.security(rsSymbol, timeframe.period, close)
 rsRatio    = benchClose > 0 ? close / benchClose : na
 rsMa       = ta.sma(rsRatio, 20)
 rsStrong   = not na(rsRatio) and not na(rsMa) and rsRatio > rsMa
+
+// === Candle quality ===
+candleRange = high - low
+bodySize = math.abs(close - open)
+upperWick = high - math.max(open, close)
+lowerWick = math.min(open, close) - low
+closeLocation = candleRange > 0 ? (close - low) / candleRange : na
+bodyPct = candleRange > 0 ? bodySize / candleRange : na
+upperWickPct = candleRange > 0 ? upperWick / candleRange : na
+
+strongClose = not na(closeLocation) and closeLocation >= 0.75
+strongBody = not na(bodyPct) and bodyPct >= 0.50
+lowUpperWick = not na(upperWickPct) and upperWickPct <= 0.35
+wideRange = candleRange >= atr * 1.20
+candleQualityOk = strongClose and strongBody and lowUpperWick and wideRange
+
+rejectionCandle = not na(closeLocation) and closeLocation <= 0.50 and upperWickPct >= 0.45
+highVolumeRed = close < open and not na(rvol) and rvol >= 1.50
 
 // === Pivot-based support/resistance ===
 pH = ta.pivothigh(high, pivotLeft, pivotRight)
@@ -53,7 +80,6 @@ if not na(pH)
 if not na(pL)
     support := pL
 
-// Fallback levels when pivots are not available yet.
 rangeHigh = ta.highest(high, lookbackBars)
 rangeLow  = ta.lowest(low, lookbackBars)
 activeResistance = not na(resistance) ? resistance : rangeHigh
@@ -63,18 +89,20 @@ breakoutLevel = activeResistance
 breakoutBuffer = breakoutLevel * breakoutBufferPc / 100.0
 nearResistance = not na(breakoutLevel) and close >= breakoutLevel * (1 - nearLevelPc / 100.0) and close <= breakoutLevel * (1 + breakoutBufferPc / 100.0)
 
-// === Professional-style gates, mirrored from STA philosophy ===
+// === Professional-style gates ===
 trendOk = close > sma50 and sma50 > sma200 and sma200 > sma200[20]
 priceAbove20 = close > ema20
 atrContracting = not na(atrAvg) and atr < atrAvg * atrTightRatio
 volumeDryUp = ta.sma(volume, 5) < ta.sma(volume, 20)
 volumeExpansion = not na(rvol) and rvol >= rvolConfirm
+extensionFrom50 = sma50 > 0 ? (close - sma50) / sma50 * 100 : na
+notExtended = not na(extensionFrom50) and extensionFrom50 <= maxExtFrom50Pc
+supplyWarning = nearResistance and (rejectionCandle or highVolumeRed)
 
-breakoutConfirmed = not na(breakoutLevel) and close > breakoutLevel + breakoutBuffer and trendOk and volumeExpansion and rsStrong
-breakoutWatch = nearResistance and trendOk and (atrContracting or volumeDryUp) and rsStrong and not breakoutConfirmed
+breakoutConfirmed = not na(breakoutLevel) and close > breakoutLevel + breakoutBuffer and trendOk and volumeExpansion and rsStrong and candleQualityOk and notExtended and not supplyWarning
+breakoutWatch = nearResistance and trendOk and (atrContracting or volumeDryUp) and rsStrong and not breakoutConfirmed and not supplyWarning
 buildingBase = close > sma50 and close < breakoutLevel and (atrContracting or volumeDryUp)
 
-// Retest logic after a confirmed breakout.
 var float lastConfirmedBreakoutLevel = na
 var int lastBreakoutBar = na
 if breakoutConfirmed
@@ -91,31 +119,31 @@ failedBreakout = not na(lastConfirmedBreakoutLevel) and barsSinceBreakout > 0 an
 plot(ema20, "EMA 20", color=color.new(color.yellow, 0), linewidth=1)
 plot(sma50, "SMA 50", color=color.new(color.blue, 0), linewidth=2)
 plot(sma200, "SMA 200", color=color.new(color.purple, 0), linewidth=2)
-
-resPlot = plot(showZones ? activeResistance : na, "Active Resistance", color=color.new(color.red, 0), linewidth=2, style=plot.style_linebr)
-supPlot = plot(showZones ? activeSupport : na, "Active Support", color=color.new(color.green, 0), linewidth=2, style=plot.style_linebr)
-
+plot(showZones ? activeResistance : na, "Active Resistance", color=color.new(color.red, 0), linewidth=2, style=plot.style_linebr)
+plot(showZones ? activeSupport : na, "Active Support", color=color.new(color.green, 0), linewidth=2, style=plot.style_linebr)
 plot(showZones and not na(lastConfirmedBreakoutLevel) ? lastConfirmedBreakoutLevel : na, "Last Breakout Level", color=color.new(color.orange, 0), linewidth=2, style=plot.style_linebr)
 
-bgcolor(breakoutConfirmed ? color.new(color.green, 86) : breakoutWatch ? color.new(color.yellow, 88) : retestEntry ? color.new(color.blue, 86) : failedBreakout ? color.new(color.red, 86) : na)
+bgcolor(breakoutConfirmed ? color.new(color.green, 86) : breakoutWatch ? color.new(color.yellow, 88) : retestEntry ? color.new(color.blue, 86) : failedBreakout ? color.new(color.red, 86) : supplyWarning ? color.new(color.red, 91) : na)
 
 plotshape(buildingBase, title="Building Base", style=shape.circle, location=location.belowbar, color=color.new(color.gray, 0), size=size.tiny, text="BASE")
 plotshape(breakoutWatch, title="Breakout Watch", style=shape.labelup, location=location.belowbar, color=color.new(color.yellow, 0), textcolor=color.black, text="WATCH")
 plotshape(breakoutConfirmed, title="Breakout Confirmed", style=shape.labelup, location=location.belowbar, color=color.new(color.green, 0), textcolor=color.white, text="BO")
 plotshape(retestEntry, title="Retest Entry", style=shape.labelup, location=location.belowbar, color=color.new(color.blue, 0), textcolor=color.white, text="RETEST")
 plotshape(failedBreakout, title="Failed Breakout", style=shape.labeldown, location=location.abovebar, color=color.new(color.red, 0), textcolor=color.white, text="FAIL")
+plotshape(showWarnings and supplyWarning, title="Supply/Rejection Warning", style=shape.labeldown, location=location.abovebar, color=color.new(color.red, 0), textcolor=color.white, text="SUPPLY")
+plotshape(showWarnings and notExtended == false, title="Extension Warning", style=shape.labeldown, location=location.abovebar, color=color.new(color.orange, 0), textcolor=color.white, text="EXT")
 
 // === Human-in-the-loop checklist table ===
-var table t = table.new(position.top_right, 2, 9, border_width=1)
-statusText = breakoutConfirmed ? "BREAKOUT CONFIRMED" : retestEntry ? "RETEST ENTRY" : failedBreakout ? "FAILED BREAKOUT" : breakoutWatch ? "BREAKOUT WATCH" : buildingBase ? "BUILDING BASE" : "NOT READY"
-statusColor = breakoutConfirmed ? color.green : retestEntry ? color.blue : failedBreakout ? color.red : breakoutWatch ? color.orange : buildingBase ? color.gray : color.new(color.red, 20)
+var table t = table.new(position.top_right, 2, 13, border_width=1)
+statusText = breakoutConfirmed ? "BREAKOUT CONFIRMED" : retestEntry ? "RETEST ENTRY" : failedBreakout ? "FAILED BREAKOUT" : supplyWarning ? "SUPPLY WARNING" : breakoutWatch ? "BREAKOUT WATCH" : buildingBase ? "BUILDING BASE" : "NOT READY"
+statusColor = breakoutConfirmed ? color.green : retestEntry ? color.blue : failedBreakout ? color.red : supplyWarning ? color.red : breakoutWatch ? color.orange : buildingBase ? color.gray : color.new(color.red, 20)
 
 f_cell(_row, _name, _ok) =>
     table.cell(t, 0, _row, _name, text_color=color.white, bgcolor=color.new(color.black, 0))
     table.cell(t, 1, _row, _ok ? "PASS" : "WAIT", text_color=color.white, bgcolor=_ok ? color.new(color.green, 0) : color.new(color.red, 0))
 
 if showTable and barstate.islast
-    table.cell(t, 0, 0, "STA Breakout", text_color=color.white, bgcolor=statusColor)
+    table.cell(t, 0, 0, "STA Breakout v2", text_color=color.white, bgcolor=statusColor)
     table.cell(t, 1, 0, statusText, text_color=color.white, bgcolor=statusColor)
     f_cell(1, "Trend: P > 50 > 200", trendOk)
     f_cell(2, "RS > 20-bar RS avg", rsStrong)
@@ -123,12 +151,17 @@ if showTable and barstate.islast
     f_cell(4, "ATR contraction", atrContracting)
     f_cell(5, "Volume dry-up", volumeDryUp)
     f_cell(6, "RVOL confirm", volumeExpansion)
-    f_cell(7, "Price > EMA20", priceAbove20)
-    table.cell(t, 0, 8, "Level / RVOL / ATR%", text_color=color.white, bgcolor=color.new(color.black, 0))
-    table.cell(t, 1, 8, str.tostring(breakoutLevel, format.mintick) + " / " + str.tostring(rvol, "#.##") + "x / " + str.tostring(atrPct, "#.##") + "%", text_color=color.white, bgcolor=color.new(color.black, 0))
+    f_cell(7, "Strong close", strongClose)
+    f_cell(8, "Strong body", strongBody)
+    f_cell(9, "Low upper wick", lowUpperWick)
+    f_cell(10, "Wide-range candle", wideRange)
+    f_cell(11, "Not extended", notExtended)
+    table.cell(t, 0, 12, "Level / RVOL / ATR%", text_color=color.white, bgcolor=color.new(color.black, 0))
+    table.cell(t, 1, 12, str.tostring(breakoutLevel, format.mintick) + " / " + str.tostring(rvol, "#.##") + "x / " + str.tostring(atrPct, "#.##") + "%", text_color=color.white, bgcolor=color.new(color.black, 0))
 
 // === Alerts ===
 alertcondition(breakoutWatch, title="STA Breakout Watch", message="{{ticker}}: Breakout Watch — near resistance with trend/RS/compression. Human review required.")
-alertcondition(breakoutConfirmed, title="STA Breakout Confirmed", message="{{ticker}}: Breakout Confirmed — close above resistance with trend, RS, and RVOL confirmation. Human review required.")
+alertcondition(breakoutConfirmed, title="STA Breakout Confirmed", message="{{ticker}}: Breakout Confirmed — close above resistance with trend, RS, RVOL, and candle quality. Human review required.")
 alertcondition(retestEntry, title="STA Retest Entry", message="{{ticker}}: Retest Entry — old resistance appears to be holding as support. Human review required.")
 alertcondition(failedBreakout, title="STA Failed Breakout", message="{{ticker}}: Failed Breakout — closed back below breakout level. Avoid or reassess.")
+alertcondition(supplyWarning, title="STA Supply Warning", message="{{ticker}}: Supply warning near resistance — rejection candle or high-volume red candle detected. Human review required.")
