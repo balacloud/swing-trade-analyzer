@@ -1,6 +1,6 @@
 # Project Status — Day 75 (May 15, 2026)
 
-## Version: v4.34 (Backend v2.35, Frontend v4.34, Backtest v4.18, API Service v2.11)
+## Version: v4.35 (Backend v2.35, Frontend v4.35, Backtest v4.18, API Service v2.11)
 
 ---
 
@@ -60,6 +60,34 @@
 
 ---
 
+### 3. Behavioral Test: Price Structure Card — PASSED (5/5)
+
+| Ticker | State | Result | Notes |
+|--------|-------|--------|-------|
+| NVDA | Uptrend — between levels | ✅ | TT 8/8, ADX 31 Strong |
+| SPY | Uptrend — between levels | ✅ | RSI 79 overbought flagged (new watch item) |
+| SMCI | No overhead resistance — weak trend | ✅ (fixed) | Was wrongly "ATH breakout" — TT 2/8 + no resistance ≠ ATH |
+| AAPL | Uptrend — between levels | ✅ | RSI 76 overbought flagged |
+| F | Uptrend testing resistance | ✅ | "R1 $13.50 tested 17x — needs vol >1.5x" — accurate |
+
+**Two bugs found and fixed:**
+- Rule 2 (ATH breakout) now requires TT >= 5. TT < 5 with no overhead resistance → "No overhead resistance — weak trend" (yellow, not green)
+- Added RSI overbought watch item (Priority 6): fires when RSI > 70 and not near support
+
+---
+
+### 4. UI Polish: N1 + N2 + Default View Flip
+
+**N1: Two-price entry labels** — Both Trade Setup cards (Pullback + Momentum) now show:
+- Entry (Primary): original entry price (white)
+- Entry (Avg): averaging entry in blue. Pullback = S2 or S1×0.97. Momentum = S1 (the pullback level).
+
+**N2: Nirmal watchlist preset** — "👁 Nirmal's Watchlist" at top of Scan tab dropdown. Runs 20 parallel cached SR fetches. 20 tickers: SMCI, NVDA, AAPL, MSFT, GOOGL, AMZN, AMD, TSLA, PLTR, ORCL, CRM, MU, MARA, JNJ, JPM, VZ, TXN, HOOD, COP, PYPL.
+
+**Flip default view** — `analysisView` default changed from `'full'` → `'simple'`. Simple checklist is now the first thing you see after analyzing a ticker.
+
+---
+
 ## All Gates Status
 
 | Gate | Description | Status |
@@ -74,8 +102,8 @@
 
 ## Next Session Priorities
 
-1. **Behavioral test: Price Structure card** — Run NVDA, F, SPY, AAPL, SMCI. Verify narrative matches TradingView before using in paper trades.
-2. **Paper trading** — PRIMARY FOCUS. All gates cleared.
-3. **Research + validate N4: Market Phase synthesis** — VIX direction + sector rotation + breadth → 5-phase label. Highest leverage feature.
-4. **N1/N2/flip** — All approved, fast (2-3 hrs total).
-5. **Value Tab Phase 2** — AV earnings history, interest coverage, EV/EBIT, ROE 5yr median.
+1. **Paper trading** — PRIMARY FOCUS. All gates cleared, all prereqs done.
+2. **Research + validate N4: Market Phase synthesis** — VIX direction + sector rotation + breadth → 5-phase label. Highest leverage feature.
+3. **Build N4** — After research validates it.
+4. **Value Tab Phase 2** — AV earnings history, interest coverage, EV/EBIT, ROE 5yr median.
+5. **Price Structure Phase 2** — HH/HL/LH/LL market structure engine using `find_pivot_points()`.

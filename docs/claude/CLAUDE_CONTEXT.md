@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 77 — end of day (May 20, 2026)
+> **Last Updated:** Day 78 — end of day (July 5, 2026)
 
 ---
 
@@ -11,16 +11,24 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 77 |
+| Current Day | 78 |
 | Version | v4.36 (Backend v2.35, Frontend v4.35, Backtest v4.18, API Service v2.11) |
-| Latest Status | PROJECT_STATUS_DAY77_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY77.md |
+| Latest Status | PROJECT_STATUS_DAY78_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY78.md |
 | Latest API | API_CONTRACTS_DAY75.md |
-| Focus | **IBKR screener pipeline research done. N4 research done. Both ready to build.** |
+| Focus | **Fable audit remediation Session 1 (RS decision → config freeze → hygiene), then paper trading starts.** |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 78 Summary (Fable 5 Full-System Audit + Two Remediation Plans)
+- **No code changes** — audit + planning session (Claude Fable 5).
+- **Full-system review verdict**: engineering honesty is real, but Config C PF 1.61 is likely overstated — survivorship-biased 60-ticker universe (hand-picked 2026) + walk-forward window reused across ~20 tuning sessions (OOS no longer OOS). Honest live expectation: PF ~1.1–1.3. Also found: MR/Gate 5 backtests have zero transaction costs, stop fills ignore gap-downs, RS 1.0 vs 1.2 contradiction (default view unbacktested), SimFin key hardcoded in git, venv tracked.
+- **`FABLE_REVIEW_REMEDIATION_PLAN.md` created** (design/): 6 phases, Sonnet-executable. Session 1 = RS decision + config freeze/pre-registration + hygiene → unblocks paper trading.
+- **`BREAKOUT_ENHANCEMENT_PLAN.md` created** (design/): breakout inventory (already core entry model) + 4 gated phases (Config D/E backtest → scan preset → at-pivot badges → /breakout-watch skill).
+- **Golden Rule 18 added**: "Reused OOS is not OOS — freeze before forward test."
+- ROADMAP priority order rebuilt (remediation #1); README mirrored.
 
 ### Day 77 Summary (IBKR Screener Pipeline — Research Complete)
 - **Pure research session.** No code changes.
@@ -35,13 +43,6 @@
 - **N4 research done**: 5-phase framework, RSP/SPY breadth proxy, DataProvider architecture confirmed.
 - **`/sta-start` + `/sta-end` skills built**: full session open/close automation.
 - 2 skill files created, 3 docs updated.
-
-### Day 75 Summary (Value Tab + Gate 5 + Behavioral Test + N1/N2/Flip — v4.35)
-- **Value Investing Tab Phase 1**: `/api/value/<ticker>` + `ValueTab.jsx`. ROIC, ROE, Graham Number, P/E, PEG/PEGY, FCF yield.
-- **Gate 5 PASSED**: 1.9% overlap, 0.274 P&L correlation. All gates cleared.
-- **Price Structure behavioral test PASSED 5/5**: 2 bugs fixed (ATH breakout TT≥5, RSI overbought watch item).
-- **N1/N2/Flip**: Two-price entry labels, Nirmal watchlist preset, default view flipped to simple.
-- 4 files created, 4 files modified.
 
 ---
 
@@ -119,13 +120,13 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 
 ## NEXT SESSION PRIORITIES
 
-1. **Paper trading** — PRIMARY FOCUS. All gates cleared.
-2. **Build N4: Market Phase synthesis** — Research done (Day 76). `market_phase_engine.py` + `/api/market/phase`. DataProvider + existing context engines.
-3. **Build `/ibkr-scan` skill** — Research done (Day 77). Verify 52W High Proximity in IBKR first, then build `.claude/commands/ibkr-scan.md`.
-4. **Value Tab Phase 2** — Interest coverage, EV/EBIT, ROE 5yr median.
-5. **Price Structure Phase 2** — HH/HL/LH/LL engine using `find_pivot_points()`.
-6. **Gap-fill detection (N3)** — Deferred post paper-trading.
-7. **Canadian Analyze page** — Medium bug, data source redesign for `.TO` tickers.
+1. **Fable Remediation Session 1** — `docs/claude/design/FABLE_REVIEW_REMEDIATION_PLAN.md`: Task 0.2 (RS 1.0 vs 1.2 decision) → Task 0.1 (config pre-registration) → Phase 1 hygiene (key, venv, version, dead code).
+2. **Paper trading** — PRIMARY FOCUS. Starts immediately after remediation Session 1 (frozen, pre-registered config).
+3. **Remediation Sessions 2–3** — MR transaction costs, gap-aware fills, stats fixes, JS↔Python parity grid.
+4. **Breakout Plan Phase 0** — `docs/claude/design/BREAKOUT_ENHANCEMENT_PLAN.md`: Config D/E backtest. Gated on remediation Phase 2. Phases 1–3 need user approval / post-freeze.
+5. **Build N4: Market Phase synthesis** — Research done (Day 76). Queued behind remediation + paper trading.
+6. **Build `/ibkr-scan` skill** — Research done (Day 77). Verify 52W High Proximity in IBKR first.
+7. **Value Tab Phase 2 / Price Structure Phase 2 / N3 / Canadian Analyze page** — queued.
 
 ---
 
@@ -188,6 +189,7 @@ curl http://localhost:5001/api/cache/status
 | 75 | Value Tab Phase 1 + Gate 5 PASSED + Behavioral test 5/5 (2 bugs fixed) + N1/N2/flip. All gates cleared. v4.35. |
 | 76 | Session protocol fix (CLAUDE_CONTEXT.md first — Rule 17). N4 research done (RSP/SPY breadth proxy, 5-phase framework). /sta-start + /sta-end skills built. v4.36. |
 | 77 | IBKR screener pipeline research complete. 3-LLM audit (Perplexity+GPT+Gemini). 10 validated filters. /ibkr-scan skill design done. No code changes. |
+| 78 | Fable 5 full-system audit. Remediation plan + Breakout enhancement plan created (design/). Golden Rule 18 (reused OOS). Priorities rebuilt — remediation #1, then paper trading. No code changes. |
 
 ---
 

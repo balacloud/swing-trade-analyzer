@@ -14,9 +14,15 @@
 **Severity:** Medium (incomplete feature)
 **Description:** v4.21 Canadian Market support only works for **Scan Market** tab. Full **Analyze** page needs data source redesign for `.TO` tickers.
 
-### Info: Price Structure Card — Behavioral Test Pending (Day 72)
-**Severity:** Info (needs verification)
-**Description:** Phase 1 built and compiles clean. Behavioral test against 5 real tickers (NVDA, SPY, SMCI, AAPL, F) not yet run. Narrative should be verified to match TradingView chart read before paper trading use. **This is the next session's first task.**
+### Info: Price Structure Card — Behavioral Test PASSED 5/5 (Day 75)
+**Severity:** Info (resolved)
+**Description:** Behavioral test run on NVDA, SPY, SMCI, AAPL, F — all 5 passed. Two bugs found and fixed:
+1. **ATH breakout rule** — Rule 2 in `deriveStructureState()` now requires TT >= 5. TT < 5 with no overhead resistance → "No overhead resistance — weak trend" (yellow). SMCI was wrongly showing "ATH breakout" (green) with TT 2/8.
+2. **RSI overbought watch item** — Added Priority 6 to `generateWatchItems()`: fires when RSI > 70 and not near support. SPY (RSI 78.5) and AAPL (RSI 75.7) were silently ignoring overbought conditions.
+
+### Info: Price Structure Card — SMCI SR Engine Limitation (Day 75)
+**Severity:** Info (known limitation)
+**Description:** SMCI's overhead resistance (prior $100+ highs) is outside the SR engine's 30% proximity window at current post-crash prices. Card correctly shows "No overhead resistance — weak trend" (yellow, TT 2/8) — factually accurate given the current price context. Not a bug — the SR engine is working as designed; this is a data coverage edge case.
 
 ### Info: Price Structure Card — Phase 1 Only (Day 72)
 **Severity:** Info (known limitation)

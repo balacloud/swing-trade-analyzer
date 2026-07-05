@@ -1286,6 +1286,15 @@ Current focus:
 - **Categorical filtering** over numerical ranking
 - **System measurement** through forward testing and SQN tracking
 
+### Current Priorities (Day 78)
+
+A full-system audit (Day 78) found the backtested edge is likely overstated — the test universe carries survivorship bias and the walk-forward window was reused across many tuning sessions. Priorities reordered accordingly:
+
+1. **Validation remediation** — freeze & pre-register the config, add missing transaction costs to the mean-reversion backtest, gap-aware stop fills, survivorship-free re-validation (`docs/claude/design/FABLE_REVIEW_REMEDIATION_PLAN.md`)
+2. **Paper trading** — begins once the config is frozen; 50+ logged trades before judging the system
+3. **Breakout enhancements** — validation-first: isolate confirmed-breakout-only entries in backtest before building new surfaces (`docs/claude/design/BREAKOUT_ENHANCEMENT_PLAN.md`)
+4. N4 Market Phase synthesis, `/ibkr-scan` skill, Value Tab Phase 2 — queued behind the above
+
 ---
 
 ## Project Structure

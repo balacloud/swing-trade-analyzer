@@ -2,12 +2,12 @@
 
 > **Purpose:** Core rules and cumulative lessons learned — stable reference
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 76 (May 18, 2026)
+> **Last Updated:** Day 78 (July 5, 2026)
 > **Session protocols:** See `CLAUDE_CONTEXT.md` for startup/close checklists
 
 ---
 
-## CORE RULES (16 Golden Rules)
+## CORE RULES (18 Golden Rules)
 
 1. **START of session:** Read PROJECT_STATUS_DAY[N].md first
 2. **BEFORE modifying any file:** READ it first using Read tool
@@ -26,6 +26,7 @@
 15. **NEVER IMPLEMENT WITHOUT VALIDATION** — Require research, backtest, or practitioner consensus
 16. **EQUAL WEIGHT — Never optimize category weights.** DeMiguel et al. (2009): equal weights beat optimized out-of-sample. 238 trades is insufficient to optimize 4+ weights. If future evolution moves to continuous scoring, start with equal weights. (Day 69, Tier 1B)
 17. **SESSION START = Read CLAUDE_CONTEXT.md first.** It defines the mandatory 4-file startup checklist (GOLDEN_RULES → ROADMAP → STATUS → KNOWN_ISSUES). Reading only GOLDEN_RULES.md and stopping there is incomplete — CLAUDE_CONTEXT.md is the orchestrating file. Use `/sta-start` skill to enforce this. (Day 76)
+18. **REUSED OOS IS NOT OOS — freeze before forward test.** Every tuning pass that peeks at the same walk-forward window converts out-of-sample into in-sample. Days 55–75 reused the same 2020–2025 split across ~20 tuning sessions, so "OOS outperforms IS" no longer certifies robustness. Before paper/forward testing: pre-register the exact config (all thresholds + success/failure criteria), then never re-tune against the same historical window to "fix" a validation result. (Day 78, Fable review)
 
 ---
 

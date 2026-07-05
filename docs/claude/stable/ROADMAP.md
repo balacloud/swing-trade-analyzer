@@ -2,7 +2,7 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 75 — end of day (May 15, 2026)
+> **Last Updated:** Day 78 (July 5, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
@@ -174,17 +174,19 @@
 
 ---
 
-## ACTIVE PRIORITY ORDER (Day 77 updated)
+## ACTIVE PRIORITY ORDER (Day 78 updated)
 
 | # | Item | Why | Effort |
 |---|------|-----|--------|
-| 1 | **Paper trading** | PRIMARY FOCUS — all gates cleared, all prereqs done | Ongoing |
-| 2 | **Build N4: Market Phase synthesis** | Research done (Day 76). `market_phase_engine.py` + `/api/market/phase`. DataProvider + existing context engines. | 1 session |
-| 3 | **Build `/ibkr-scan` skill** | Research done (Day 77). 3-LLM validated filters. Verify 52W High Proximity in IBKR first. | 1 session |
-| 4 | **Value Tab Phase 2** | AV-derived metrics (interest coverage, EV/EBIT, ROE 5yr median) | Low |
-| 5 | **Price Structure Phase 2** | HH/HL/LH/LL market structure engine using `find_pivot_points()` | Medium |
-| 6 | **N3: Gap-fill detection** | Deferred post paper trading | Medium |
-| 7 | **Canadian Analyze page** | Medium bug, data source redesign needed | High |
+| 1 | **Fable Review Remediation Plan** | Day 78 audit: backtest edge likely overstated (survivorship universe, reused OOS, MR costs missing). Plan: `docs/claude/design/FABLE_REVIEW_REMEDIATION_PLAN.md`. Session 1 (config freeze + pre-registration + hygiene) unblocks paper trading. | 7 sessions (phased) |
+| 2 | **Paper trading** | PRIMARY FOCUS — starts immediately after remediation Session 1 (frozen, pre-registered config) | Ongoing |
+| 3 | **Breakout Enhancement Plan Phase 0** | Config D/E backtest (confirmed-breakout-only vs mixed entries). Plan: `docs/claude/design/BREAKOUT_ENHANCEMENT_PLAN.md`. Gated on remediation Phase 2. Phases 1–3 are post-freeze features. | 1 session (P0) |
+| 4 | **Build N4: Market Phase synthesis** | Research done (Day 76). `market_phase_engine.py` + `/api/market/phase`. | 1 session |
+| 5 | **Build `/ibkr-scan` skill** | Research done (Day 77). Verify 52W High Proximity in IBKR first. | 1 session |
+| 6 | **Value Tab Phase 2** | AV-derived metrics (interest coverage, EV/EBIT, ROE 5yr median) | Low |
+| 7 | **Price Structure Phase 2** | HH/HL/LH/LL market structure engine using `find_pivot_points()` | Medium |
+| 8 | **N3: Gap-fill detection** | Deferred post paper trading (feeds Breakout Plan Phase 4) | Medium |
+| 9 | **Canadian Analyze page** | Medium bug, data source redesign needed | High |
 
 ---
 
@@ -673,6 +675,7 @@ From backtesting:
 | 73 | Nirmal validation complete (378 calls). Integration gaps N1-N4 defined. N1+N2 approved. N3 deferred. N4 needs validation. Priority reordered (quant/trader lens). Value Investing tab idea documented. |
 | 74 | Context session. TradingView scanner brief. No code changes. |
 | 75 | Value Tab Phase 1 (isolated lens, v4.34). Gate 5 PASSED (1.9% overlap, 0.274 corr). Price Structure behavioral test PASSED 5/5 (2 bugs fixed). N1+N2+flip default view implemented. Version v4.35. |
+| 78 | Fable 5 full-system audit: backtest edge likely overstated (survivorship universe, reused OOS, MR costs missing, RS 1.0/1.2 contradiction). Remediation plan + Breakout enhancement plan created. Golden Rule 18 added. Priority order rebuilt — remediation #1. No code changes. |
 
 ---
 
