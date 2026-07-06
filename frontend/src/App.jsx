@@ -109,7 +109,7 @@ function App() {
 
   // Simplified analysis state (Day 27)
   const [simplifiedResult, setSimplifiedResult] = useState(null);
-  const [analysisView, setAnalysisView] = useState('full'); // 'full' or 'simple'
+  const [analysisView, setAnalysisView] = useState('simple'); // 'full' or 'simple' — default simple (Day 75)
 
   // Settings state (Day 28)
   const [settings, setSettings] = useState(getDefaultSettings);
@@ -407,12 +407,50 @@ function App() {
   };
 
   // Scan for candidates
+  // N2: Nirmal's curated watchlist — extracted from Nirmals_Trading_April2026.md
+  const NIRMAL_WATCHLIST = [
+    'SMCI', 'NVDA', 'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'AMD', 'TSLA',
+    'PLTR', 'ORCL', 'CRM', 'MU', 'MARA', 'JNJ', 'JPM', 'VZ', 'TXN',
+    'HOOD', 'COP', 'PYPL',
+  ];
+
   const runScan = async () => {
     setScanLoading(true);
     setScanError(null);
     setScanResults(null);
 
     try {
+      // N2: Nirmal watchlist — batch SR fetch (all cached), no backend strategy needed
+      if (selectedStrategy === 'nirmal') {
+        const results = await Promise.all(
+          NIRMAL_WATCHLIST.map(async (ticker) => {
+            try {
+              const res = await fetch(`http://localhost:5001/api/sr/${ticker}`);
+              if (!res.ok) return null;
+              const d = await res.json();
+              return {
+                ticker,
+                name: ticker,
+                sector: null,
+                price: d.currentPrice ?? null,
+                change: null,
+                volume: null,
+                marketCap: null,
+              };
+            } catch { return null; }
+          })
+        );
+        const candidates = results.filter(Boolean);
+        setScanResults({
+          strategy: "Nirmal's Watchlist",
+          marketIndex: 'all',
+          totalMatches: candidates.length,
+          returned: candidates.length,
+          candidates,
+        });
+        return;
+      }
+
       const results = await fetchScanResults(selectedStrategy, 50, selectedMarketIndex);
       setScanResults(results);
     } catch (err) {
@@ -1432,7 +1470,10 @@ function App() {
                         {(() => {
                           // Day 49: Fix - use nearest support (highest value below current price)
                           // Support array is not sorted, so find max to get nearest
-                          const nearestSupport = Math.max(...srData.support);
+                          const sortedSupports = [...srData.support].sort((a, b) => b - a);
+                          const nearestSupport = sortedSupports[0];
+                          // N1: Averaging entry — S2 if exists, else 3% below S1
+                          const avgSupport = sortedSupports[1] ?? nearestSupport * 0.97;
                           const currentPrice = srData.currentPrice;
                           const adx = srData.meta?.adx;
                           const rsi4h = srData.meta?.rsi_4h;
@@ -1499,8 +1540,12 @@ function App() {
                                 </div>
                                 <div className="space-y-2 text-sm">
                                   <div className="flex justify-between">
-                                    <span className="text-gray-400">Entry</span>
+                                    <span className="text-gray-400">Entry (Primary)</span>
                                     <span className="text-gray-200 font-mono">{formatCurrency(pullbackEntry)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-400">Entry (Avg)</span>
+                                    <span className="text-blue-300 font-mono">{formatCurrency(avgSupport)}</span>
                                   </div>
                                   <div className="flex justify-between">
                                     <span className="text-gray-400">Stop</span>
@@ -1550,8 +1595,12 @@ function App() {
                                 </div>
                                 <div className="space-y-2 text-sm">
                                   <div className="flex justify-between">
-                                    <span className="text-gray-400">Entry</span>
+                                    <span className="text-gray-400">Entry (Primary)</span>
                                     <span className="text-gray-200 font-mono">{formatCurrency(momentumEntry)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-400">Entry (Avg)</span>
+                                    <span className="text-blue-300 font-mono">{formatCurrency(nearestSupport)}</span>
                                   </div>
                                   <div className="flex justify-between">
                                     <span className="text-gray-400">Stop</span>
@@ -2122,7 +2171,7 @@ function App() {
                             <div className="grid grid-cols-2 gap-2 text-xs text-gray-500 mt-3 pt-2 border-t border-gray-600">
                               <div>Trend Template: {categoricalResult.technical.data.trendTemplateScore}</div>
                               <div>RSI: {categoricalResult.technical.data.rsi?.toFixed(1)}</div>
-                              <div>RS vs SPY: {categoricalResult.technical.data.rs52Week?.toFixed(2)}x</div>
+                              <div>RS vs SPY: {categoricalResult.technical.data.rs52Week != null ? `${categoricalResult.technical.data.rs52Week.toFixed(2)}x` : 'N/A (unavailable)'}</div>
                             </div>
                           )}
                           <div className="text-xs text-gray-500 mt-2">Data: Multi-Source OHLCV + Pattern Detection</div>
@@ -2482,6 +2531,7 @@ function App() {
                   onChange={(e) => setSelectedStrategy(e.target.value)}
                   className="flex-1 bg-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
+                  <option value="nirmal">👁 Nirmal's Watchlist — 20 curated picks</option>
                   {strategies ? (
                     (strategies.strategies || []).map((strategy) => (
                       <option key={strategy.id} value={strategy.id}>{strategy.name}: {strategy.description}</option>

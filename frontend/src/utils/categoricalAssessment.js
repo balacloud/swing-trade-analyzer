@@ -259,14 +259,22 @@ export function assessTechnical(technicalData, trendTemplate, rsi) {
   data.trendScore = `${trendScore}/${trendMax}`;
 
   // Get RS data
-  const rs52Week = technicalData?.rsData?.rs52Week || 1.0;
+  // Day 78 (Fable Remediation Task 3.3): do not fabricate RS=1.0 when the
+  // value is missing. Silently substituting a neutral value let a stock
+  // with no RS data qualify for "Strong" — an invisible lie (Golden Rule:
+  // "Return null, not a plausible fake", Day 54). Missing RS now visibly
+  // caps the assessment below Strong instead of silently passing.
+  const rs52WeekRaw = technicalData?.rsData?.rs52Week;
+  const rs52WeekAvailable = rs52WeekRaw !== null && rs52WeekRaw !== undefined;
+  const rs52Week = rs52WeekAvailable ? rs52WeekRaw : null;
   data.rs52Week = rs52Week;
+  data.rs52WeekAvailable = rs52WeekAvailable;
 
   // Determine assessment
   let assessment = 'Weak';
 
-  // Strong: 7-8/8 trend template, RSI 50-70, good RS
-  if (passCount >= 7 && rsiValue >= 50 && rsiValue <= 70 && rs52Week >= 1.0) {
+  // Strong: 7-8/8 trend template, RSI 50-70, good RS (RS must be available)
+  if (passCount >= 7 && rsiValue >= 50 && rsiValue <= 70 && rs52WeekAvailable && rs52Week >= 1.0) {
     assessment = 'Strong';
     reasons.push(`Trend Template: ${passCount}/8 Minervini criteria passed`);
     reasons.push(`RSI ${rsiValue.toFixed(1)} in optimal pullback range (50-70)`);
@@ -278,7 +286,9 @@ export function assessTechnical(technicalData, trendTemplate, rsi) {
   else if (passCount >= 5 && rsiValue >= 40 && rsiValue <= 80) {
     assessment = 'Decent';
     reasons.push(`Trend Template: ${passCount}/8 criteria passed (needs 7+ for Strong)`);
-    if (rsiValue < 50) {
+    if (!rs52WeekAvailable) {
+      reasons.push('RS data unavailable — Strong rating requires RS ≥ 1.0');
+    } else if (rsiValue < 50) {
       reasons.push(`RSI ${rsiValue.toFixed(1)} slightly weak but acceptable`);
     } else if (rsiValue > 70) {
       reasons.push(`RSI ${rsiValue.toFixed(1)} elevated - watch for reversal`);
@@ -309,8 +319,10 @@ export function assessTechnical(technicalData, trendTemplate, rsi) {
       reasons.push(`RSI ${rsiValue.toFixed(1)} overbought - risky entry point`);
     }
 
-    // RS issues
-    if (rs52Week < 0.8) {
+    // RS issues (guard: only evaluate if RS is available — Day 78)
+    if (!rs52WeekAvailable) {
+      reasons.push('RS data unavailable — Strong rating requires RS ≥ 1.0');
+    } else if (rs52Week < 0.8) {
       reasons.push(`Weak RS: ${rs52Week.toFixed(2)}x vs SPY (significantly underperforming)`);
     } else if (rs52Week < 1.0) {
       reasons.push(`Below-average RS: ${rs52Week.toFixed(2)}x vs SPY`);

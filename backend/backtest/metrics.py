@@ -15,7 +15,17 @@ Benchmarks from Perplexity research (Feb 16, 2026):
 """
 
 import math
+import random
 from collections import defaultdict
+from datetime import datetime
+
+# Day 78 (Fable Remediation Task 2.3): prefer scipy's t-test over the
+# hand-rolled p-value approximation; fall back only if scipy is unavailable.
+try:
+    from scipy import stats as _scipy_stats
+    SCIPY_AVAILABLE = True
+except ImportError:
+    SCIPY_AVAILABLE = False
 
 
 # Transaction cost model
@@ -114,16 +124,26 @@ def compute_metrics(trades, risk_free_rate=0.05):
     gross_loss = abs(sum(r for r in returns if r < 0))
     profit_factor = (gross_profit / gross_loss) if gross_loss > 0 else float('inf')
 
+    # Day 78 (Fable Remediation Task 2.3): actual trade frequency from data,
+    # replacing the hardcoded 25 trades/year assumption in Sharpe/Sortino.
+    trades_per_year_actual = _compute_trades_per_year(trades)
+
     # Sharpe Ratio (annualized)
-    sharpe = _compute_sharpe(returns, risk_free_rate)
+    sharpe = _compute_sharpe(returns, risk_free_rate, trades_per_year_actual)
 
     # Sortino Ratio (annualized, only downside deviation)
-    sortino = _compute_sortino(returns, risk_free_rate)
+    sortino = _compute_sortino(returns, risk_free_rate, trades_per_year_actual)
 
     # Max Drawdown (sequential equity curve, chronologically sorted)
+    # Day 78: relabeled — this compounds the FULL trade return at 100% of
+    # equity per trade. It is neither a realistic portfolio DD nor a
+    # per-trade DD; it's an artifact of pooling trades this way. Kept for
+    # continuity, but `max_drawdown_fixed_risk_pct` below is the more honest
+    # figure (fixed 2% risk per trade, Van Tharp sizing).
     sorted_trades = sorted(trades, key=lambda t: t.get('entry_date', ''))
     sorted_returns = [t.get('return_pct_net', t.get('return_pct', 0)) for t in sorted_trades]
     max_dd_pct = _compute_max_drawdown(sorted_returns)
+    max_dd_fixed_risk_pct = _compute_max_drawdown_fixed_risk(sorted_trades)
 
     # Consecutive wins/losses
     max_consec_wins, max_consec_losses = _compute_streaks(trades)
@@ -144,7 +164,16 @@ def compute_metrics(trades, risk_free_rate=0.05):
     r_distribution = _compute_r_distribution(r_multiples)
 
     # T-test: is the mean return statistically different from zero?
+    # Day 78: this assumes i.i.d. trades — violated when trades cluster by
+    # regime/correlated tickers, so treat this as an upper bound on
+    # significance, not the robust number. See block bootstrap below.
     t_stat, t_pvalue = _compute_t_test(returns)
+
+    # Day 78 (Fable Remediation Task 2.3): block bootstrap p-value — resamples
+    # whole calendar-month blocks (not individual trades) to preserve
+    # within-month correlation structure. Reports fraction of resampled means
+    # <= 0 as an empirical one-tailed p-value. None if too few distinct months.
+    bootstrap_pvalue = _compute_block_bootstrap_pvalue(trades)
 
     # Sanity check warnings
     warnings = _sanity_checks(win_rate, sharpe, max_dd_pct, n, profit_factor)
@@ -163,7 +192,9 @@ def compute_metrics(trades, risk_free_rate=0.05):
         'profit_factor': round(profit_factor, 4) if profit_factor != float('inf') else 'inf',
         'sharpe_ratio': round(sharpe, 4) if sharpe is not None else None,
         'sortino_ratio': round(sortino, 4) if sortino is not None else None,
-        'max_drawdown_pct': round(max_dd_pct, 4),
+        'max_drawdown_pct': round(max_dd_pct, 4),  # sequential 100%-equity DD — see note above
+        'sequential_100pct_equity_dd_pct': round(max_dd_pct, 4),  # Day 78: explicit alias, same value
+        'max_drawdown_fixed_risk_pct': round(max_dd_fixed_risk_pct, 4) if max_dd_fixed_risk_pct is not None else None,  # Day 78: honest 2%-risk-per-trade DD
         'avg_r_multiple': round(avg_r, 4),
         'median_r_multiple': round(median_r, 4),
         'r_distribution': r_distribution,
@@ -172,20 +203,26 @@ def compute_metrics(trades, risk_free_rate=0.05):
         'avg_days_held': round(avg_days, 1),
         'exit_reasons': dict(exit_reasons),
         'regime_breakdown': regime_metrics,
+        'trades_per_year_actual': round(trades_per_year_actual, 1),  # Day 78: replaces hardcoded 25 in Sharpe/Sortino
         't_statistic': round(t_stat, 4) if t_stat is not None else None,
-        't_pvalue': round(t_pvalue, 6) if t_pvalue is not None else None,
+        't_pvalue': round(t_pvalue, 6) if t_pvalue is not None else None,  # kept for backward compat
+        't_pvalue_iid_assumption': round(t_pvalue, 6) if t_pvalue is not None else None,  # Day 78: explicit label — assumes i.i.d. trades
+        't_pvalue_block_bootstrap': round(bootstrap_pvalue, 6) if bootstrap_pvalue is not None else None,  # Day 78: robust to trade clustering
         't_significant': t_pvalue < 0.05 if t_pvalue is not None else None,
         'warnings': warnings,
     }
 
 
-def _compute_sharpe(returns_pct, risk_free_rate):
-    """Annualized Sharpe ratio from per-trade percentage returns."""
+def _compute_sharpe(returns_pct, risk_free_rate, trades_per_year=25):
+    """
+    Annualized Sharpe ratio from per-trade percentage returns.
+
+    Day 78 (Fable Remediation Task 2.3): trades_per_year now defaults to the
+    actual observed frequency (see _compute_trades_per_year), replacing the
+    previous hardcoded assumption of 25 trades/year regardless of real data.
+    """
     if len(returns_pct) < 2:
         return None
-
-    # Assume ~252 trading days, average holding ~10 days → ~25 trades/year
-    trades_per_year = 25
 
     mean_return = _mean(returns_pct) / 100
     std_return = _stdev(returns_pct) / 100
@@ -200,12 +237,11 @@ def _compute_sharpe(returns_pct, risk_free_rate):
     return sharpe
 
 
-def _compute_sortino(returns_pct, risk_free_rate):
-    """Annualized Sortino ratio (downside deviation only)."""
+def _compute_sortino(returns_pct, risk_free_rate, trades_per_year=25):
+    """Annualized Sortino ratio (downside deviation only). See _compute_sharpe re: trades_per_year."""
     if len(returns_pct) < 2:
         return None
 
-    trades_per_year = 25
     rf_per_trade = risk_free_rate / trades_per_year
 
     mean_return = _mean(returns_pct) / 100
@@ -226,7 +262,16 @@ def _compute_sortino(returns_pct, risk_free_rate):
 
 
 def _compute_max_drawdown(returns_pct):
-    """Max drawdown from sequential equity curve (starting at $10,000)."""
+    """
+    Sequential 100%-equity drawdown (starting at $10,000).
+
+    NOTE (Day 78, Fable Remediation Task 2.3): this compounds each trade's
+    FULL return at 100% of equity, one after another — it is neither a
+    realistic portfolio drawdown (no diversification/concurrency modeled)
+    nor a genuine per-trade drawdown. It's a modeling artifact of pooling
+    trades this way. See _compute_max_drawdown_fixed_risk for a more honest
+    figure that sizes each trade at a fixed % risk of equity.
+    """
     if not returns_pct:
         return 0
 
@@ -243,6 +288,118 @@ def _compute_max_drawdown(returns_pct):
             max_dd = dd
 
     return max_dd
+
+
+def _compute_max_drawdown_fixed_risk(sorted_trades, risk_pct=2.0):
+    """
+    Day 78 (Fable Remediation Task 2.3): honest per-trade-risk drawdown.
+
+    Sizes every trade at a fixed risk_pct of equity (default 2%, Van Tharp),
+    scaled by the trade's R-multiple, compounded in entry-date order — the
+    drawdown a trader who risks a fixed % per trade would actually see.
+
+    Args:
+        sorted_trades: trades already sorted by entry_date (ascending).
+        risk_pct: fixed risk per trade as % of equity (default 2.0).
+
+    Returns:
+        Max drawdown %, or None if no trades have a usable return_r.
+    """
+    r_multiples = [t.get('return_r') for t in sorted_trades if t.get('return_r') is not None]
+    if not r_multiples:
+        return None
+
+    equity = 10000
+    peak = equity
+    max_dd = 0
+
+    for r in r_multiples:
+        equity *= (1 + (r * risk_pct / 100))
+        if equity > peak:
+            peak = equity
+        dd = (peak - equity) / peak * 100
+        if dd > max_dd:
+            max_dd = dd
+
+    return max_dd
+
+
+def _compute_trades_per_year(trades):
+    """
+    Day 78 (Fable Remediation Task 2.3): actual trade frequency from data.
+
+    Replaces the previous hardcoded assumption of 25 trades/year used in
+    Sharpe/Sortino regardless of the backtest's real holding periods or
+    trade count. Computed from the span between the earliest entry_date and
+    the latest exit_date across all trades.
+
+    Returns 25 (the old default) as a graceful fallback when dates are
+    missing or the span is degenerate (e.g. a single-day backtest).
+    """
+    FALLBACK = 25
+    dates = []
+    for t in trades:
+        for key in ('entry_date', 'exit_date'):
+            val = t.get(key)
+            if val:
+                try:
+                    dates.append(datetime.strptime(val, '%Y-%m-%d'))
+                except (ValueError, TypeError):
+                    pass
+
+    if len(dates) < 2:
+        return FALLBACK
+
+    span_days = (max(dates) - min(dates)).days
+    span_years = span_days / 365.25
+
+    if span_years <= 0:
+        return FALLBACK
+
+    return len(trades) / span_years
+
+
+def _compute_block_bootstrap_pvalue(trades, n_resamples=10000, seed=42):
+    """
+    Day 78 (Fable Remediation Task 2.3): block bootstrap p-value.
+
+    The plain t-test (_compute_t_test) assumes i.i.d. trades. In practice,
+    trades cluster by market regime and by correlated tickers entering
+    around the same time — the effective sample size is smaller than the
+    raw trade count, so the t-test's p-value is overstated.
+
+    This resamples whole calendar-month blocks (grouping trades by
+    entry_date's year-month), with replacement, preserving whatever
+    within-month correlation exists. Reports the fraction of resampled
+    means <= 0 as an empirical one-tailed p-value: "if the true edge were
+    zero or negative, how often would resampling produce a mean this low
+    or lower" — reversed here to report how often resampled means fall
+    at/below zero directly.
+
+    Returns None if there are fewer than 2 distinct months (can't
+    meaningfully block-resample from a single block).
+    """
+    blocks = {}
+    for t in trades:
+        entry = t.get('entry_date')
+        ret = t.get('return_pct_net', t.get('return_pct', 0))
+        month_key = entry[:7] if entry else 'unknown'  # 'YYYY-MM'
+        blocks.setdefault(month_key, []).append(ret)
+
+    block_list = list(blocks.values())
+    if len(block_list) < 2:
+        return None
+
+    rng = random.Random(seed)
+    n_below_zero = 0
+
+    for _ in range(n_resamples):
+        sampled_blocks = [rng.choice(block_list) for _ in range(len(block_list))]
+        pooled = [r for block in sampled_blocks for r in block]
+        if pooled and _mean(pooled) <= 0:
+            n_below_zero += 1
+
+    return n_below_zero / n_resamples
 
 
 def _compute_t_test(returns_pct):
@@ -267,6 +424,13 @@ def _compute_t_test(returns_pct):
 
     if std_r == 0:
         return None, None
+
+    # Day 78 (Fable Remediation Task 2.3): prefer scipy's exact t-distribution
+    # CDF over the hand-rolled normal-CDF approximation. Fallback only if
+    # scipy is unavailable in the running environment.
+    if SCIPY_AVAILABLE:
+        t_stat, p_value = _scipy_stats.ttest_1samp(returns_pct, popmean=0)
+        return float(t_stat), float(p_value)
 
     t_stat = mean_r * math.sqrt(n) / std_r
     df = n - 1
@@ -430,6 +594,8 @@ def _empty_metrics():
         'sharpe_ratio': None,
         'sortino_ratio': None,
         'max_drawdown_pct': 0,
+        'sequential_100pct_equity_dd_pct': 0,
+        'max_drawdown_fixed_risk_pct': None,
         'avg_r_multiple': 0,
         'median_r_multiple': 0,
         'r_distribution': {},
@@ -438,8 +604,11 @@ def _empty_metrics():
         'avg_days_held': 0,
         'exit_reasons': {},
         'regime_breakdown': {},
+        'trades_per_year_actual': 0,
         't_statistic': None,
         't_pvalue': None,
+        't_pvalue_iid_assumption': None,
+        't_pvalue_block_bootstrap': None,
         't_significant': None,
         'warnings': ['No trades to analyze'],
     }

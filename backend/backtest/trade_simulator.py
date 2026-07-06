@@ -286,6 +286,7 @@ def simulate_trade(stock_df, entry_idx, holding_period,
         high_day = stock_df['High'].iloc[check_idx]
         low_day = stock_df['Low'].iloc[check_idx]
         close_day = stock_df['Close'].iloc[check_idx]
+        open_day = stock_df['Open'].iloc[check_idx]
 
         # Track excursions
         favorable = (high_day - entry_price) / entry_price * 100
@@ -294,6 +295,16 @@ def simulate_trade(stock_df, entry_idx, holding_period,
         max_adverse = max(max_adverse, adverse)
 
         # Check STOP LOSS first (conservative: assume stop hit if low touches)
+        # Day 78 (Fable Remediation Task 2.2): gap-aware fill. A gap-down that
+        # opens through the stop fills at the open, not the stop price —
+        # previously this simulator always filled exactly at stop_price,
+        # which is optimistic versus real overnight gap risk.
+        if open_day <= stop_price:
+            return _build_result(
+                entry_price, open_day, initial_risk, day,
+                stock_df.index[entry_idx], stock_df.index[check_idx],
+                'stop_hit_gap', max_favorable, max_adverse
+            )
         if low_day <= stop_price:
             return _build_result(
                 entry_price, stop_price, initial_risk, day,
@@ -301,7 +312,14 @@ def simulate_trade(stock_df, entry_idx, holding_period,
                 'stop_hit', max_favorable, max_adverse
             )
 
-        # Check TARGET
+        # Check TARGET — gap-up fills at open too (favorable direction,
+        # kept symmetric with the stop-side gap handling for honesty).
+        if open_day >= target_price:
+            return _build_result(
+                entry_price, open_day, initial_risk, day,
+                stock_df.index[entry_idx], stock_df.index[check_idx],
+                'target_hit_gap', max_favorable, max_adverse
+            )
         if high_day >= target_price:
             return _build_result(
                 entry_price, target_price, initial_risk, day,

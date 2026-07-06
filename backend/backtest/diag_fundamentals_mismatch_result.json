@@ -1,0 +1,294 @@
+{
+  "run_date": "2026-07-06",
+  "n_compared": 15,
+  "n_match": 9,
+  "n_mismatch": 6,
+  "disagreement_rate_pct": 40.0,
+  "rows": [
+    {
+      "ticker": "AAPL",
+      "live": {
+        "roe": 146.69,
+        "revenue_growth": 16.6,
+        "debt_equity": 0.7955
+      },
+      "simfin": {
+        "roe": 142.39,
+        "revenue_growth": 9.63,
+        "debt_equity": 1.54,
+        "publish_date": "2025-08-01",
+        "fiscal_period": "Q3",
+        "fiscal_year": "2025"
+      },
+      "live_label": "Strong",
+      "simfin_label": "Decent",
+      "match": false
+    },
+    {
+      "ticker": "MSFT",
+      "live": {
+        "roe": 33.129999999999995,
+        "revenue_growth": 18.3,
+        "debt_equity": 0.249
+      },
+      "simfin": {
+        "roe": 31.71,
+        "revenue_growth": 18.1,
+        "debt_equity": 0.13,
+        "publish_date": "2025-07-30",
+        "fiscal_period": "Q4",
+        "fiscal_year": "2025"
+      },
+      "live_label": "Strong",
+      "simfin_label": "Strong",
+      "match": true
+    },
+    {
+      "ticker": "AMZN",
+      "live": {
+        "roe": 23.34,
+        "revenue_growth": 16.6,
+        "debt_equity": 0.2695
+      },
+      "simfin": {
+        "roe": 21.77,
+        "revenue_growth": 13.33,
+        "debt_equity": null,
+        "publish_date": "2025-08-01",
+        "fiscal_period": "Q2",
+        "fiscal_year": "2025"
+      },
+      "live_label": "Strong",
+      "simfin_label": "Strong",
+      "match": true
+    },
+    {
+      "ticker": "META",
+      "live": {
+        "roe": 33.22,
+        "revenue_growth": 33.1,
+        "debt_equity": 0.2411
+      },
+      "simfin": {
+        "roe": 37.6,
+        "revenue_growth": 21.61,
+        "debt_equity": null,
+        "publish_date": "2025-07-31",
+        "fiscal_period": "Q2",
+        "fiscal_year": "2025"
+      },
+      "live_label": "Strong",
+      "simfin_label": "Strong",
+      "match": true
+    },
+    {
+      "ticker": "NVDA",
+      "live": {
+        "roe": 111.66,
+        "revenue_growth": 85.2,
+        "debt_equity": 0.0433
+      },
+      "simfin": {
+        "roe": 89.57,
+        "revenue_growth": 69.18,
+        "debt_equity": null,
+        "publish_date": "2025-05-28",
+        "fiscal_period": "Q1",
+        "fiscal_year": "2025"
+      },
+      "live_label": "Strong",
+      "simfin_label": "Strong",
+      "match": true
+    },
+    {
+      "ticker": "TSLA",
+      "live": {
+        "roe": 4.77,
+        "revenue_growth": 15.8,
+        "debt_equity": 0.1097
+      },
+      "simfin": {
+        "roe": 6.0,
+        "revenue_growth": -11.78,
+        "debt_equity": 0.09,
+        "publish_date": "2025-07-24",
+        "fiscal_period": "Q2",
+        "fiscal_year": "2025"
+      },
+      "live_label": "Decent",
+      "simfin_label": "Weak",
+      "match": false
+    },
+    {
+      "ticker": "V",
+      "live": {
+        "roe": 58.9,
+        "revenue_growth": 17.1,
+        "debt_equity": 0.6723
+      },
+      "simfin": {
+        "roe": 54.06,
+        "revenue_growth": 14.29,
+        "debt_equity": 0.64,
+        "publish_date": "2025-07-30",
+        "fiscal_period": "Q3",
+        "fiscal_year": "2025"
+      },
+      "live_label": "Strong",
+      "simfin_label": "Strong",
+      "match": true
+    },
+    {
+      "ticker": "MA",
+      "live": {
+        "roe": 206.14,
+        "revenue_growth": 15.8,
+        "debt_equity": 2.8218
+      },
+      "simfin": {
+        "roe": 188.01,
+        "revenue_growth": 16.84,
+        "debt_equity": null,
+        "publish_date": "2025-07-31",
+        "fiscal_period": "Q2",
+        "fiscal_year": "2025"
+      },
+      "live_label": "Decent",
+      "simfin_label": "Strong",
+      "match": false
+    },
+    {
+      "ticker": "UNH",
+      "live": {
+        "roe": 12.4,
+        "revenue_growth": 2.0,
+        "debt_equity": 0.75
+      },
+      "simfin": {
+        "roe": 13.0,
+        "revenue_growth": 12.91,
+        "debt_equity": 0.76,
+        "publish_date": "2025-08-11",
+        "fiscal_period": "Q2",
+        "fiscal_year": "2025"
+      },
+      "live_label": "Decent",
+      "simfin_label": "Strong",
+      "match": false
+    },
+    {
+      "ticker": "LLY",
+      "live": {
+        "roe": 101.30999999999999,
+        "revenue_growth": 55.5,
+        "debt_equity": 1.3902
+      },
+      "simfin": {
+        "roe": 123.4,
+        "revenue_growth": 37.64,
+        "debt_equity": 2.17,
+        "publish_date": "2025-08-07",
+        "fiscal_period": "Q2",
+        "fiscal_year": "2025"
+      },
+      "live_label": "Strong",
+      "simfin_label": "Decent",
+      "match": false
+    },
+    {
+      "ticker": "PG",
+      "live": {
+        "roe": 31.230000000000004,
+        "revenue_growth": 7.4,
+        "debt_equity": 0.6793
+      },
+      "simfin": {
+        "roe": 29.95,
+        "revenue_growth": 1.74,
+        "debt_equity": 0.8,
+        "publish_date": "2025-08-04",
+        "fiscal_period": "Q4",
+        "fiscal_year": "2025"
+      },
+      "live_label": "Strong",
+      "simfin_label": "Strong",
+      "match": true
+    },
+    {
+      "ticker": "HD",
+      "live": {
+        "roe": 113.3,
+        "revenue_growth": 4.8,
+        "debt_equity": 3.8568
+      },
+      "simfin": {
+        "roe": 172.62,
+        "revenue_growth": 9.44,
+        "debt_equity": 6.57,
+        "publish_date": "2025-05-28",
+        "fiscal_period": "Q1",
+        "fiscal_year": "2025"
+      },
+      "live_label": "Decent",
+      "simfin_label": "Decent",
+      "match": true
+    },
+    {
+      "ticker": "WMT",
+      "live": {
+        "roe": 23.919999999999998,
+        "revenue_growth": 7.3,
+        "debt_equity": 0.6162
+      },
+      "simfin": {
+        "roe": 19.8,
+        "revenue_growth": 2.54,
+        "debt_equity": 0.72,
+        "publish_date": "2025-06-06",
+        "fiscal_period": "Q1",
+        "fiscal_year": "2025"
+      },
+      "live_label": "Strong",
+      "simfin_label": "Strong",
+      "match": true
+    },
+    {
+      "ticker": "KO",
+      "live": {
+        "roe": 43.62,
+        "revenue_growth": 12.1,
+        "debt_equity": 1.305
+      },
+      "simfin": {
+        "roe": 50.49,
+        "revenue_growth": 1.39,
+        "debt_equity": 1.64,
+        "publish_date": "2025-07-24",
+        "fiscal_period": "Q2",
+        "fiscal_year": "2025"
+      },
+      "live_label": "Strong",
+      "simfin_label": "Decent",
+      "match": false
+    },
+    {
+      "ticker": "XOM",
+      "live": {
+        "roe": 9.77,
+        "revenue_growth": 2.6,
+        "debt_equity": 0.1874
+      },
+      "simfin": {
+        "roe": 10.49,
+        "revenue_growth": null,
+        "debt_equity": 0.14,
+        "publish_date": "2025-08-04",
+        "fiscal_period": "Q2",
+        "fiscal_year": "2025"
+      },
+      "live_label": "Decent",
+      "simfin_label": "Decent",
+      "match": true
+    }
+  ]
+}

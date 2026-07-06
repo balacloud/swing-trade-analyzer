@@ -5,3 +5,14 @@ Files_Archives/
 # Environment variables (API keys - never commit)
 .env
 backend/.env
+
+# Python virtual environment (Day 78: untracked — was accidentally committed)
+backend/venv/
+
+# Verdict parity grid test artifacts (Day 78) — large, fully regenerable via
+# `python backend/backtest/test_verdict_parity.py`. Findings are documented
+# in docs/claude/versioned/ instead of committing raw JSON dumps.
+backend/backtest/verdict_grid_inputs.json
+backend/backtest/verdict_grid_py_output.json
+backend/backtest/verdict_parity_mismatches.json
+frontend/scripts/verdict_grid_js_output.json

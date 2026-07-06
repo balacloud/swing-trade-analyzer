@@ -3,8 +3,8 @@
 > **Purpose:** Actionable plan to address findings from the Day 78 Fable 5 full-system review (intent, code, docs, live-market viability). Written to be executed by Claude (Sonnet) across multiple sessions with no additional context needed.
 > **Source:** Fable 5 deep review, Day 78 (July 5, 2026) — backtest engine, verdict logic, MR engine, live-data path, docs.
 > **Location:** `docs/claude/design/`
-> **Status:** NOT STARTED
-> **Last Updated:** Day 78 (July 5, 2026)
+> **Status:** Phase 0 + Phase 1 + Phase 2 + Phase 3 DONE (Day 78, sessions 2–4). Phase 3 surfaced a significant finding (40% fundamentals disagreement rate, Task 3.2 — mitigation choice awaits user decision) and one more fixed bug (Task 3.3 RS fallback, both sides, verified identical behavior). Phase 4 (survivorship-free re-validation — the big one) is next.
+> **Last Updated:** Day 78, session 4 (July 6, 2026) — pending next `/sta-end` to formalize day number
 
 ---
 
@@ -35,7 +35,7 @@ The Fable review concluded:
 **Why first:** every backtest metric already suffers from iterative tuning. The paper-trading experiment is only valid if the configuration is written down *before* trades are logged and never touched mid-stream. Any threshold change after this point restarts the 50-trade clock.
 
 ### Task 0.1 — Create the pre-registration document
-- **Status:** NOT STARTED
+- **Status:** DONE (Day 78, session 2) — `docs/claude/stable/PAPER_TRADING_PREREGISTRATION.md` created, frozen at commit `933ad297ed14ca3c2aad2fb16ca453890d7c43fa`.
 - **Effort:** 1–2 hours
 - **Action:** Create `docs/claude/stable/PAPER_TRADING_PREREGISTRATION.md` containing the EXACT frozen configuration:
   - Verdict logic version: file + git commit hash of `frontend/src/utils/categoricalAssessment.js` and `frontend/src/utils/simplifiedScoring.js`.
@@ -45,7 +45,7 @@ The Fable review concluded:
 - **Acceptance:** file exists, contains every threshold with its current value, and includes the frozen commit hash.
 
 ### Task 0.2 — Resolve the RS threshold contradiction (BLOCKER for 0.1)
-- **Status:** NOT STARTED
+- **Status:** DONE (Day 78, session 2) — Simple checklist reverted 1.2→1.0 in `simplifiedScoring.js`. Found the 1.2 claim has no reproducible backtest script in the repo (`backtest_simplified.py` tests 1.0 with unrelated params, predates this checklist). Aligned to Config C's validated 1.0. ROADMAP annotated.
 - **Effort:** 30 min decision + 15 min code
 - **Finding:** The default view (simple checklist, `frontend/src/utils/simplifiedScoring.js:99`) requires **RS ≥ 1.2**. The full view's Strong-Technical (`frontend/src/utils/categoricalAssessment.js:269`) requires **RS ≥ 1.0**, which is what Config C (PF 1.61) actually backtested. ROADMAP records both "RS 1.0 optimal / 1.2 breaks" (Tier 0D — on 5 and 3 trades, samples too small to mean anything) and "1.2 improves simplified backtest" (Day 70B). Two contradictory "validated" thresholds ship simultaneously, and the default screen is the unbacktested one.
 - **Action:**
@@ -61,7 +61,7 @@ The Fable review concluded:
 All tasks independent. None affect trading logic.
 
 ### Task 1.1 — Remove hardcoded SimFin API key
-- **Status:** NOT STARTED
+- **Status:** DONE (Day 78, session 2) — key moved to `backend/.env` as `SIMFIN_API_KEY`, `simfin_loader.py` loads via env with fail-fast check, `.env.example` updated. ⚠️ Key rotation at simfin.com still required by the user — removing from HEAD doesn't un-leak git history.
 - **Effort:** 30 min
 - **Finding:** Live API key hardcoded at `backend/backtest/simfin_loader.py:20` (`_API_KEY = '38f0...'`), committed to git.
 - **Action:**
@@ -71,7 +71,7 @@ All tasks independent. None affect trading logic.
 - **Acceptance:** `grep -rn "38f09db0" backend/` returns nothing; backtest still loads SimFin data with the env key.
 
 ### Task 1.2 — Untrack backend/venv from git
-- **Status:** NOT STARTED
+- **Status:** DONE (Day 78, session 2) — added to `.gitignore`, `git rm -r --cached` (9,315 files), venv confirmed intact on disk. NOTE: `frontend/node_modules/` (40,801 tracked files) has the same problem but was NOT touched — out of this task's scope, flagged separately for a user decision.
 - **Effort:** 20 min
 - **Finding:** `backend/venv/` (thousands of site-packages files) is tracked in git — bloats the repo, produces noisy status, and pip upgrades show as modified source.
 - **Action:**
@@ -81,14 +81,14 @@ All tasks independent. None affect trading logic.
 - **Acceptance:** `git status` shows no `backend/venv/` entries; backend still starts via `./start.sh`.
 
 ### Task 1.3 — Fix backend version string drift
-- **Status:** NOT STARTED
+- **Status:** DONE (Day 78, session 2) — added `BACKEND_VERSION = '2.35'` constant near top of `backend.py`, `/api/health` now references it instead of hardcoding.
 - **Effort:** 10 min
 - **Finding:** `backend/backend.py:579` reports `'version': '2.23'`; docs say Backend v2.35.
 - **Action:** Update the string to the current documented backend version. Better: define `BACKEND_VERSION` once near the top of `backend.py` and reference it, then add a line to the SESSION CLOSE PROTOCOL notes that version bumps must touch this constant.
 - **Acceptance:** `curl localhost:5001/api/health` reports the same version as CLAUDE_CONTEXT.md.
 
 ### Task 1.4 — Delete dead frontend code
-- **Status:** NOT STARTED
+- **Status:** DONE (Day 78, session 2) — deleted `DecisionMatrix.jsx`, `scoringEngine_day4.js`, `scoringEngine_v2.1.js` (confirmed zero imports first). Fixed a stale "Used by: DecisionMatrix.jsx" comment in `riskRewardCalc.js`. Verified with `npm run build` — compiles clean, no missing-module errors.
 - **Effort:** 30 min
 - **Finding:** `frontend/src/components/DecisionMatrix.jsx` unwired since Day 70 (`App.jsx:48` comment confirms removal); `frontend/src/utils/scoringEngine_day4.js` and `scoringEngine_v2.1.js` are legacy versions.
 - **Action:** For each file: `grep -rn "<name>" frontend/src/` to confirm zero imports, then delete. If any import exists, STOP and report instead of deleting.
@@ -101,7 +101,7 @@ All tasks independent. None affect trading logic.
 Do these BEFORE Phase 4, so the re-validation run uses the corrected simulator. These change *measurement*, not strategy.
 
 ### Task 2.1 — Add transaction costs to the MR backtest
-- **Status:** NOT STARTED
+- **Status:** DONE (Day 78, session 4). Added `apply_transaction_costs()` to `mr_simulator.py` (`simulate_mr_trade`, `backtest_mr_strategy`) and to the momentum-proxy leg in `gate5_combined.py` (which also had zero costs — now consistent with the MR leg). Both legs report net figures as primary, gross kept alongside for delta visibility. Full 60-ticker, 5-year re-run: **MR PF 1.26→1.23 net, WR 63.3%→63.0%. Momentum proxy PF 1.36→1.35 net.** Gate 5 verdict unchanged: PASS (3/4 criteria, Combined PF still ≥1.2 net of costs). Edge survives costs — small, expected erosion, not collapse. Note: trade count in this re-run (1947 MR trades) differs materially from the previously-cited Gate 4 figure (520 trades) — cause not diagnosed, flagged for separate investigation, not a Task 2.1 concern (costs don't affect trade count or timing, only fill price).
 - **Effort:** 1–2 hours
 - **Finding:** `backend/backtest/mr_simulator.py` and `backend/backtest/gate5_combined.py` apply **zero** transaction costs (verified: no cost/slippage references in either file), while the momentum backtest uses `apply_transaction_costs()` from `metrics.py`. Gate 4's PF 1.26 on 4.1-day holds is gross; the edge may be materially thinner net.
 - **Action:**
@@ -111,7 +111,7 @@ Do these BEFORE Phase 4, so the re-validation run uses the corrected simulator. 
 - **Acceptance:** re-run outputs show net-of-cost PF/WR for MR. **Report the delta honestly** — if net PF drops below ~1.10, flag to the user that the 50/50 capital split decision should be revisited (do not change the split yourself; that's a user decision under the freeze).
 
 ### Task 2.2 — Gap-aware stop fills in both simulators
-- **Status:** NOT STARTED
+- **Status:** DONE (Day 78, session 4). Added gap-check (open-price fill) before the intraday stop/target checks in both `trade_simulator.py` (`simulate_trade` — stop side + symmetric target-side gap-up) and `mr_simulator.py` (`simulate_mr_trade` — stop side only, MR has no fixed target). New exit reasons `stop_hit_gap`/`target_hit_gap` added; fixed a downstream cooldown-classification bug in `backtest_holistic.py` that would have misclassified `target_hit_gap` wins as losses for cooldown purposes. Verified: `trade_simulator.py` self-test passes, `backtest_holistic.py --quick-test` runs clean end-to-end, full Gate 5 re-run (combined with Task 2.1) shows the honest net-of-cost-and-gap numbers above. Momentum-proxy leg in `gate5_combined.py` was NOT given the same gap treatment — it's a third, separate simplified proxy not named in this task's scope (diagnostic-only, doesn't affect Config C validity).
 - **Effort:** 2–3 hours
 - **Finding:** Both `trade_simulator.py` (`low_day <= stop_price → exit at stop_price`) and `mr_simulator.py` (same pattern) fill stops at the exact stop price. Real gap-downs fill at the open, below the stop. This optimism is worst for MR (buying 2-period-oversold stocks — the population most prone to gap-downs).
 - **Action:** In both simulators, before the intraday stop check, add a gap check:
@@ -126,7 +126,15 @@ Do these BEFORE Phase 4, so the re-validation run uses the corrected simulator. 
 - **Acceptance:** self-tests in both files still pass; re-run `--quick-test`; document the metric deltas vs. previous run in the results JSON/HTML. Expect WR/PF to drop slightly — that is the point.
 
 ### Task 2.3 — Fix statistical methodology in metrics.py
-- **Status:** NOT STARTED
+- **Status:** DONE (Day 78, session 4). All 4 sub-items implemented in `backend/backtest/metrics.py`:
+  a. `_compute_t_test` now uses `scipy.stats.ttest_1samp` when scipy is available (confirmed present, v1.13.1), hand-rolled approximation kept as fallback only.
+  b. New `_compute_trades_per_year(trades)` derives actual frequency from entry/exit date span, replacing the hardcoded 25. Verified on real quick-test data: 4 trades over the test window → 2.8 trades/yr actual (not 25) → Sharpe dropped from 1.37 (old, inflated) to 0.06 (honest) — this is the exact over-annualization bug the review flagged, now fixed and directly observed.
+  c. New `_compute_block_bootstrap_pvalue()` — resamples calendar-month blocks (10,000 resamples), reports fraction of resampled means ≤0. Exposed as `t_pvalue_block_bootstrap`; existing t-test aliased as `t_pvalue_iid_assumption` (original `t_pvalue` key kept unchanged for backward compat — `backtest_holistic.py` hard-indexes it).
+  d. New `_compute_max_drawdown_fixed_risk()` (2% fixed risk per trade, R-multiple scaled) exposed as `max_drawdown_fixed_risk_pct`. Original `max_drawdown_pct` kept unchanged (hard-indexed downstream) with an explicit alias `sequential_100pct_equity_dd_pct` and an in-code docstring clarifying it's a modeling artifact.
+  - Verified via synthetic multi-month test: `max_drawdown_fixed_risk_pct` (3.68%) genuinely differs from `max_drawdown_pct` (5.69%); bootstrap p-value (0.0) sensible for a clearly-positive synthetic sample.
+  - `metrics.py` self-test still passes unchanged (no dates in its synthetic trades → new fields gracefully fall back, no regression).
+  - `backtest_holistic.py` print output and HTML report updated to surface all new fields (not just buried in JSON) — verified via `--quick-test` run, confirmed both DD figures and both p-values render correctly in the saved HTML.
+- **Acceptance:** MET — self-test passes; Config C re-run reports both p-values and both DD figures (verified in print output + HTML). Docs citing "p=0.002"/"max DD 52.6%" NOT yet updated in STATUS/ROADMAP/README — flagged for the next full 60-ticker/5-year Config C re-run + doc update pass (not done this session; this session validated the mechanism on quick-test data only).
 - **Effort:** 2–3 hours
 - **Findings:**
   a. `_compute_t_test` assumes i.i.d. trades; trades cluster by regime and by correlated tickers, so p=0.002 is overstated.
@@ -141,7 +149,13 @@ Do these BEFORE Phase 4, so the re-validation run uses the corrected simulator. 
 - **Acceptance:** `python backend/backtest/metrics.py` self-test passes; a Config C re-run reports both p-values and both DD figures; docs updated wherever "p=0.002" or "max DD 52.6%" are cited (STATUS, ROADMAP, README if present).
 
 ### Task 2.4 — Strengthen JS↔Python verdict parity testing
-- **Status:** NOT STARTED
+- **Status:** DONE — test built and run (Day 78, session 4). Created `backend/backtest/test_verdict_parity.py` (86,400-combo grid generator + Python runner + comparison) and `frontend/scripts/verdict_grid.mjs` (JS runner via Node's native ESM loader). **Result: 1 confirmed bug found**, full analysis in `docs/claude/versioned/VERDICT_PARITY_GRID_FINDINGS_DAY78.md`.
+  - technical/fundamental/risk_macro: 0 mismatches (perfect parity).
+  - verdict: 6,120/86,400 (7.08%) mismatches, ALL reducing to one root cause: `categorical_engine.py`'s final HOLD-fallback only checks `risk_macro == 'Favorable'`, missing the `'Neutral'` branch that `categoricalAssessment.js` has. Python returns AVOID where JS returns HOLD for (Decent technical, non-Strong fundamental, Neutral risk).
+  - **Impact: does NOT affect Config C's backtested PF 1.61 / 238 trades** — AVOID and HOLD are both no-entry outcomes, so no historical trade classification changes. Matters for future correctness/consistency, not past results.
+  - **Fix approved by user and applied** — one-line change in `categorical_engine.py` (`risk_macro == 'Favorable'` → `risk_macro in ('Favorable', 'Neutral')`). Re-ran the full grid afterward: **0/86,400 mismatches** — full parity achieved. 5-vector self-test still passes too.
+  - Large regenerable JSON artifacts (~34MB) gitignored, not committed; findings written to a proper doc instead.
+- **Acceptance:** MET — comparison ran clean; the one mismatch found was documented, approved, fixed, and reverified at 100% parity. Add `test_verdict_parity.py` to the pre-close checklist for any session touching verdict logic (per this task's original acceptance wording).
 - **Effort:** 2–3 hours
 - **Finding:** Verdict logic exists twice — `categoricalAssessment.js` (live truth, 900+ lines) and `categorical_engine.py` (the version that was backtested). Parity is held by only 5 hand-written vectors in `_verify_parity()`. Five vectors cannot cover a 9-rule verdict tree × 3 holding periods.
 - **Action:**
@@ -157,7 +171,10 @@ Do these BEFORE Phase 4, so the re-validation run uses the corrected simulator. 
 ### Task 3.1 — (moved to Phase 0 as Task 0.2 — RS threshold. Do not do twice.)
 
 ### Task 3.2 — Document and measure the fundamentals data-source mismatch
-- **Status:** NOT STARTED
+- **Status:** DONE (Day 78, session 4). Built `backend/backtest/diag_fundamentals_mismatch.py` — 20 liquid tickers, live (DataProvider: Finnhub→AlphaVantage→yfinance TTM) vs SimFin (quarterly, point-in-time) fundamentals, both run through `assess_fundamental()`. **Result: 40.0% disagreement rate** (6/15 comparable tickers mismatched — AAPL, TSLA, MA, UNH, LLY, KO; 5/20 skipped, no SimFin data available). Revenue growth is the dominant driver of disagreement (TSLA even sign-flips: +15.8% live vs −11.78% SimFin). SimFin also has debt/equity gaps on several mega-caps (AMZN, META, NVDA, MA) that live data doesn't have.
+  - **FLAGGED per acceptance criteria** — 40% far exceeds the 20% threshold. Recorded in `KNOWN_ISSUES_DAY78.md` (escalated Low→Medium). Full per-ticker data in `backend/backtest/diag_fundamentals_mismatch_result.json`.
+  - **Mitigation choice NOT made** — this is explicitly a user decision per the task: (a) align live to SimFin's annualized-quarterly method, or (b) re-run the backtest with TTM-style fundamentals.
+- **Acceptance:** MET — disagreement rate measured (40.0%) and documented; no silent assumption remains.
 - **Effort:** 2 hours
 - **Finding:** Backtest ROE = SimFin quarterly net income ×4 / equity (`simfin_loader.py:98`); live ROE = Finnhub TTM. YoY growth computed by different code from different sources. The same stock can be Fundamental-Strong in the backtest and Decent live → live Config C ≠ backtested Config C.
 - **Action:**
@@ -167,7 +184,12 @@ Do these BEFORE Phase 4, so the re-validation run uses the corrected simulator. 
 - **Acceptance:** disagreement rate measured and documented; no silent assumption remains.
 
 ### Task 3.3 — Fix silent RS fallback in live assessment
-- **Status:** NOT STARTED
+- **Status:** DONE (Day 78, session 4). Fixed on BOTH sides as required:
+  - `categoricalAssessment.js` (`assessTechnical`): `rs52Week` no longer fabricated to 1.0 when missing (`|| 1.0` removed). Missing RS now visibly caps the assessment below Strong via an `rs52WeekAvailable` gate, and pushes a reason ("RS data unavailable — Strong rating requires RS ≥ 1.0") instead of failing silently. Guarded the two other RS-dependent reason branches (Weak path) that would have crashed on `null.toFixed()`.
+  - `App.jsx:2174` display site fixed too (`rs52Week` display would have rendered "undefinedx" now that null is a real possible value) → shows "N/A (unavailable)".
+  - `categorical_engine.py` (Python side — matched per the task's explicit instruction): `assess_technical()`'s default changed `rs_52w=1.0` → `rs_52w=None`, Strong-check gated on `rs_available`, Weak-branch RS reason guarded and given the same "unavailable" message. `backtest_holistic.py:248` no longer fakes `rs_val` to 1.0 when missing/NaN — passes `None` through; the `trade_meta['rs_52w']` dict write guarded against `round(None, ...)`.
+  - **Verified:** `categorical_engine.py`'s 5-vector self-test still passes. Full 86,400-combo parity grid re-run: still 0 mismatches (this fix doesn't touch any RS value the grid tests, since the grid never exercises "RS missing" — confirmed no regression). Targeted manual test on both sides with RS missing + otherwise-Strong inputs (TT=8, RSI=60): **both JS and Python identically return Decent with the same "RS data unavailable" reason.** Frontend `npm run build` clean.
+- **Acceptance:** MET — missing RS produces a visible reason in the UI (not a silent neutral); JS and Python treat missing RS identically (directly verified).
 - **Effort:** 15 min
 - **Finding:** `categoricalAssessment.js:262` — `const rs52Week = technicalData?.rsData?.rs52Week || 1.0;` silently substitutes neutral 1.0 when RS is missing (also converts an impossible-but-defensive 0 to 1.0). Violates the project's own rule: "Return null, not a plausible fake" / "silent fallbacks are invisible lies" (Day 54).
 - **Action:** When rs52Week is null/undefined, do not fabricate 1.0 — either exclude RS from the Strong check and append a visible reason ("RS unavailable — Strong rating requires RS data"), or cap Technical at Decent when RS is missing. Match whichever treatment the backtest used (`backtest_holistic.py:248` also defaults to 1.0 — if you change one side, change both and note it in the parity test of Task 2.4).

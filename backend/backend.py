@@ -1,6 +1,10 @@
 """
-Swing Trade Analyzer Backend - v2.17
+Swing Trade Analyzer Backend
 Flask API server with Multi-Source Data Intelligence (v4.14)
+
+See BACKEND_VERSION below for the current version — update it on every
+version bump (Day 78: fixed drift where /api/health reported '2.23' while
+docs said v2.35, per Fable Review Remediation Plan Task 1.3).
 
 Day 6: Fixed numpy type serialization issues
 Day 8: Fixed Defeat Beta .data attribute usage
@@ -30,6 +34,9 @@ import numpy as np
 import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
+
+# Day 78: single source of truth for /api/health — bump this on every backend version change
+BACKEND_VERSION = '2.35'
 
 from constants import SUPPORT_PROXIMITY_PCT, RESISTANCE_PROXIMITY_PCT  # shared with support_resistance.py
 
@@ -96,8 +103,22 @@ except ImportError:
     PATTERN_DETECTION_AVAILABLE = False
     print("⚠️  Pattern Detection not available - place pattern_detection.py in backend folder")
 
+# Day 78: Breakout Detection Engine (standalone classifier, no verdict/scoring impact)
+try:
+    from breakout_routes import register_breakout_routes
+    BREAKOUT_ROUTES_AVAILABLE = True
+    print("✅ Breakout Routes loaded successfully")
+except ImportError as e:
+    BREAKOUT_ROUTES_AVAILABLE = False
+    print(f"⚠️ Breakout Routes not available: {e}")
+
 app = Flask(__name__)
 CORS(app)
+
+# Day 78: Register breakout detection routes (Fable Review Remediation /
+# Breakout Enhancement Plan, Phase 1.5)
+if BREAKOUT_ROUTES_AVAILABLE:
+    register_breakout_routes(app, get_data_provider, yf, DATA_PROVIDER_AVAILABLE)
 
 # ============================================
 # CACHE CONFIGURATION (Day 36 - SQLite Persistent)
@@ -576,7 +597,7 @@ def health_check():
     response = {
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
-        'version': '2.23',
+        'version': BACKEND_VERSION,
         'defeatbeta_available': DEFEATBETA_AVAILABLE,
         'tradingview_available': TRADINGVIEW_AVAILABLE,
         'sr_engine_available': SR_ENGINE_AVAILABLE,

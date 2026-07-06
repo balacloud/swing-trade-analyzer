@@ -77,8 +77,12 @@ function deriveStructureState(currentPrice, resistance, support, trendCriteria, 
   // Rule 1: No levels at all
   if (!R1 && !S1) return { state: 'Insufficient data', color: 'gray', rule: 1 };
 
-  // Rule 2: ATH breakout — no resistance above price
-  if (!R1 && S1) return { state: 'ATH breakout — blue sky', color: 'green', rule: 2 };
+  // Rule 2: No resistance above price — only call it ATH breakout if TT >= 5
+  // (TT < 5 means weak trend; no overhead resistance after a crash ≠ ATH breakout)
+  if (!R1 && S1) {
+    if (tt >= 5) return { state: 'ATH breakout — blue sky', color: 'green', rule: 2 };
+    return { state: 'No overhead resistance — weak trend', color: 'yellow', rule: 2 };
+  }
 
   // Rule 3: Below all support
   if (R1 && !S1) return { state: 'Below all support', color: 'red', rule: 3 };
@@ -189,6 +193,13 @@ function generateWatchItems(currentPrice, resistance, support, atr, rvol, rsiDai
     const best = actionable[0];
     const pivot = best.triggerPrice ? ` — pivot at $${parseFloat(best.triggerPrice).toFixed(2)}` : '';
     items.push(`${best.name} forming (${best.confidence}%)${pivot}`);
+  }
+
+  // Priority 6: RSI overbought when not near support (factual, not directional)
+  // Only add if no support-related item already covers RSI context
+  const nearS1 = S1 && isNearLevel(currentPrice, S1, atr);
+  if (!nearS1 && rsiDaily != null && rsiDaily > 70 && items.length < 3) {
+    items.push(`RSI ${rsiDaily.toFixed(0)} — momentum extended (Wilder overbought > 70)`);
   }
 
   // Fallback: Mid-range, nothing imminent

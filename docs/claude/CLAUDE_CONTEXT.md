@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 78 — end of day (July 5, 2026)
+> **Last Updated:** Day 79 — end of day (July 6, 2026)
 
 ---
 
@@ -11,16 +11,25 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 78 |
-| Version | v4.36 (Backend v2.35, Frontend v4.35, Backtest v4.18, API Service v2.11) |
-| Latest Status | PROJECT_STATUS_DAY78_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY78.md |
-| Latest API | API_CONTRACTS_DAY75.md |
-| Focus | **Fable audit remediation Session 1 (RS decision → config freeze → hygiene), then paper trading starts.** |
+| Current Day | 79 |
+| Version | v4.37 (Backend v2.36, Frontend v4.36, Backtest v4.18, API Service v2.11) |
+| Latest Status | PROJECT_STATUS_DAY79_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY79.md |
+| Latest API | API_CONTRACTS_DAY79.md |
+| Focus | **Fable Remediation Phases 0–3 complete. Phase 4 (survivorship-free re-validation) is next. Paper trading unblocked — config frozen.** |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 79 Summary (Fable Remediation Phases 0–3 Executed + Breakout Wired — v4.37)
+- **Phase 0**: RS threshold resolved (simple checklist 1.2→1.0, matching Config C). `PAPER_TRADING_PREREGISTRATION.md` created — config frozen.
+- **Phase 1**: SimFin key → `.env`, `backend/venv` untracked, `BACKEND_VERSION` constant, 3 dead files deleted.
+- **Phase 2**: MR transaction costs added (PF 1.26→1.23 net, edge survives). Gap-aware stop/target fills in both simulators. `metrics.py` stats overhaul (scipy t-test, actual trades/year, block bootstrap, fixed-risk DD). **JS↔Python verdict parity: 86,400-combo grid found 1 real bug (HOLD-fallback missing `Neutral` risk branch) — fixed, now 100% parity.**
+- **Phase 3**: Fundamentals mismatch measured at **40.0% disagreement** (live vs backtested) — mitigation choice pending user decision. Silent RS fallback fixed on both JS and Python sides.
+- **Breakout engine wired**: `/api/breakout/<ticker>` (built by a parallel session, never registered) is now live and validated on 5 tickers + 1 edge case. `BREAKOUT_ENHANCEMENT_PLAN.md` reconciled.
+- **Golden Rule 19 added**: systematic grid-test parity, not hand-picked vectors.
+- Paper trading unblocked (config frozen). Remediation Phase 4 (survivorship-free re-validation) is next.
 
 ### Day 78 Summary (Fable 5 Full-System Audit + Two Remediation Plans)
 - **No code changes** — audit + planning session (Claude Fable 5).
@@ -37,12 +46,6 @@
 - **Final 10 filters validated**: Market Cap ≥1B, AvgVol ≥$5M, Price/EMA(200) 1.05–1.65, Price/EMA(50) 1.00–1.20, ROE ≥15, EarnGrw% ≥20, Inst.Held 25–90, 52W High Proximity ≤-25%, MACD Histogram ≥0, Change% -2 to +8.
 - **`/ibkr-scan` skill design complete** — parses IBKR screenshots via Claude vision, calls STA API, ranks top 5–10.
 - 3 research docs created.
-
-### Day 76 Summary (Session Protocol Fix + N4 Research + Skills Built — v4.36)
-- **Session start protocol fixed**: CLAUDE_CONTEXT.md must be read first. GOLDEN_RULES Rule 17 added.
-- **N4 research done**: 5-phase framework, RSP/SPY breadth proxy, DataProvider architecture confirmed.
-- **`/sta-start` + `/sta-end` skills built**: full session open/close automation.
-- 2 skill files created, 3 docs updated.
 
 ---
 
@@ -120,13 +123,16 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 
 ## NEXT SESSION PRIORITIES
 
-1. **Fable Remediation Session 1** — `docs/claude/design/FABLE_REVIEW_REMEDIATION_PLAN.md`: Task 0.2 (RS 1.0 vs 1.2 decision) → Task 0.1 (config pre-registration) → Phase 1 hygiene (key, venv, version, dead code).
-2. **Paper trading** — PRIMARY FOCUS. Starts immediately after remediation Session 1 (frozen, pre-registered config).
-3. **Remediation Sessions 2–3** — MR transaction costs, gap-aware fills, stats fixes, JS↔Python parity grid.
-4. **Breakout Plan Phase 0** — `docs/claude/design/BREAKOUT_ENHANCEMENT_PLAN.md`: Config D/E backtest. Gated on remediation Phase 2. Phases 1–3 need user approval / post-freeze.
-5. **Build N4: Market Phase synthesis** — Research done (Day 76). Queued behind remediation + paper trading.
-6. **Build `/ibkr-scan` skill** — Research done (Day 77). Verify 52W High Proximity in IBKR first.
-7. **Value Tab Phase 2 / Price Structure Phase 2 / N3 / Canadian Analyze page** — queued.
+1. **Fable Remediation Phase 4** — `docs/claude/design/FABLE_REVIEW_REMEDIATION_PLAN.md`: survivorship-free re-validation (the big one — rebuild backtest universe without hindsight bias, 1–2 dedicated sessions).
+2. **Fable Remediation Phase 5** — paper-trading instrumentation (entry-slippage logging, regime snapshots).
+3. **Decide fundamentals mitigation** — Task 3.2 measured 40.0% live↔backtest disagreement; user decision pending (align live-to-SimFin or backtest-to-TTM).
+4. **Confirm SimFin key rotation** — user to verify the old leaked key was rotated at simfin.com; a possible new key was shared in conversation but not yet applied.
+5. **Paper trading** — PRIMARY FOCUS. Config is frozen and pre-registered — can start any time.
+6. **Breakout Plan Phase 0** — Config D/E backtest, now unblocked (remediation Phase 2 done).
+7. **Breakout Plan Phases 2–3** — scan badges + `/breakout-watch` skill, unblocked (engine wired Day 79).
+8. **Build N4: Market Phase synthesis** — Research done (Day 76). Queued behind the above.
+9. **Build `/ibkr-scan` skill** — Research done (Day 77). Verify 52W High Proximity in IBKR first.
+10. **Value Tab Phase 2 / Price Structure Phase 2 / N3 / Canadian Analyze page** — queued.
 
 ---
 
@@ -190,6 +196,7 @@ curl http://localhost:5001/api/cache/status
 | 76 | Session protocol fix (CLAUDE_CONTEXT.md first — Rule 17). N4 research done (RSP/SPY breadth proxy, 5-phase framework). /sta-start + /sta-end skills built. v4.36. |
 | 77 | IBKR screener pipeline research complete. 3-LLM audit (Perplexity+GPT+Gemini). 10 validated filters. /ibkr-scan skill design done. No code changes. |
 | 78 | Fable 5 full-system audit. Remediation plan + Breakout enhancement plan created (design/). Golden Rule 18 (reused OOS). Priorities rebuilt — remediation #1, then paper trading. No code changes. |
+| 79 | Fable Remediation Phases 0-3 executed: RS threshold resolved, config frozen, repo hygiene, MR transaction costs, gap-aware fills, metrics.py stats overhaul, JS/Python verdict parity fixed (86,400-combo grid, 1 bug found+fixed), fundamentals mismatch measured (40.0%), RS fallback fixed both sides. Breakout engine wired + validated. Golden Rule 19 (grid-test parity). Version v4.37 (BE v2.36, FE v4.36). |
 
 ---
 

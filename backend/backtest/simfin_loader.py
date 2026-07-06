@@ -13,11 +13,17 @@ import os
 import pandas as pd
 import numpy as np
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env'))
+except ImportError:
+    pass
+
 # Lazy-loaded SimFin data (module-level cache)
 _income_df = None
 _balance_df = None
 _data_dir = os.path.join(os.path.dirname(__file__), '..', 'data', 'simfin')
-_API_KEY = '38f09db0-8ad3-4d87-b5fa-e57fcc8fceb3'
+_API_KEY = os.environ.get('SIMFIN_API_KEY')
 
 
 def _load_datasets():
@@ -26,6 +32,12 @@ def _load_datasets():
 
     if _income_df is not None and _balance_df is not None:
         return
+
+    if not _API_KEY:
+        raise RuntimeError(
+            "SIMFIN_API_KEY not set. Add it to backend/.env "
+            "(see backend/.env.example) — get a free key at simfin.com."
+        )
 
     import simfin as sf
     sf.set_api_key(_API_KEY)

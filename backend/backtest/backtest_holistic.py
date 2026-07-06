@@ -245,7 +245,11 @@ def check_entry_signals(stock_df, spy_df, vix_df, date_idx,
     if adx_val is None or pd.isna(adx_val):
         return result
 
-    rs_val = rs_val if (rs_val is not None and not pd.isna(rs_val)) else 1.0
+    # Day 78 (Fable Remediation Task 3.3): was silently faked to 1.0 when
+    # missing — same invisible-lie bug as categoricalAssessment.js:262 (now
+    # fixed there too). Pass through None so assess_technical() treats RS as
+    # genuinely unavailable (caps below Strong) instead of neutral.
+    rs_val = rs_val if (rs_val is not None and not pd.isna(rs_val)) else None
 
     # Tier 2B: Blended RS (fallback to None if unavailable)
     rs_blended_val = None
@@ -314,7 +318,7 @@ def check_entry_signals(stock_df, spy_df, vix_df, date_idx,
         'tt_score': tt_score,
         'rsi': round(rsi_val, 1),
         'adx': round(adx_val, 1),
-        'rs_52w': round(rs_val, 3),
+        'rs_52w': round(rs_val, 3) if rs_val is not None else None,
         'rs_blended': round(rs_blended_val, 3) if rs_blended_val is not None else None,
         'vix': round(vix_val, 1) if vix_val else None,
         'spy_above_200sma': spy_above,
@@ -565,7 +569,9 @@ def run_holistic_backtest(tickers, start='2020-01-01', end='2025-12-31',
                     ticker_trade_count += 1
 
                     # Dynamic cooldown: shorter after wins, longer after losses
-                    if trade_result.get('exit_reason') in ('target_hit',):
+                    # Day 78: 'target_hit_gap' added (gap-aware fills, Task 2.2) —
+                    # a gap-up through target is still a win for cooldown purposes.
+                    if trade_result.get('exit_reason') in ('target_hit', 'target_hit_gap'):
                         cooldowns[cd_key] = ENTRY_COOLDOWN_AFTER_WIN
                     else:
                         cooldowns[cd_key] = ENTRY_COOLDOWN_AFTER_LOSS
@@ -618,12 +624,17 @@ def run_holistic_backtest(tickers, start='2020-01-01', end='2025-12-31',
                 print(f"    Profit Factor: {metrics['profit_factor']}")
                 print(f"    Avg R-Multiple: {metrics['avg_r_multiple']}")
                 if metrics.get('sharpe_ratio') is not None:
-                    print(f"    Sharpe: {metrics['sharpe_ratio']}")
-                print(f"    Max Drawdown: {metrics['max_drawdown_pct']}%")
+                    print(f"    Sharpe: {metrics['sharpe_ratio']} (annualized using "
+                          f"{metrics.get('trades_per_year_actual', '?')} trades/yr actual, not a fixed assumption)")
+                print(f"    Max Drawdown: {metrics['max_drawdown_pct']}% (sequential 100%-equity — see fixed-risk below)")
+                if metrics.get('max_drawdown_fixed_risk_pct') is not None:
+                    print(f"    Max Drawdown (2% fixed risk/trade): {metrics['max_drawdown_fixed_risk_pct']}%")
                 if metrics.get('t_statistic') is not None:
                     sig = "YES" if metrics.get('t_significant') else "NO"
-                    print(f"    T-test: t={metrics['t_statistic']}, p={metrics['t_pvalue']} "
-                          f"(significant: {sig})")
+                    print(f"    T-test (i.i.d. assumption): t={metrics['t_statistic']}, "
+                          f"p={metrics.get('t_pvalue_iid_assumption', metrics['t_pvalue'])} (significant: {sig})")
+                if metrics.get('t_pvalue_block_bootstrap') is not None:
+                    print(f"    Block bootstrap p-value (robust to clustering): {metrics['t_pvalue_block_bootstrap']}")
                 if metrics['warnings']:
                     for w in metrics['warnings']:
                         print(f"    WARNING: {w}")
@@ -777,7 +788,8 @@ Elapsed: {meta['elapsed_seconds']}s
 <p><b>Config C:</b> B + Trade Viable + R:R &ge; 1.2 (full 3-layer system)</p>
 <table>
 <tr><th>Config / Period</th><th>Trades</th><th>Win Rate</th><th>Avg Return</th>
-<th>Profit Factor</th><th>Avg R</th><th>Sharpe</th><th>Max DD</th><th>T-stat</th><th>p-value</th></tr>
+<th>Profit Factor</th><th>Avg R</th><th>Sharpe</th><th>Max DD (100% eq.)</th><th>Max DD (2% risk)</th>
+<th>T-stat</th><th>p (i.i.d.)</th><th>p (block bootstrap)</th></tr>
 """
 
     for key, metrics in results['results'].items():
@@ -795,11 +807,19 @@ Elapsed: {meta['elapsed_seconds']}s
 <td>{metrics['avg_r_multiple']}</td>
 <td>{metrics.get('sharpe_ratio', 'N/A')}</td>
 <td>{metrics['max_drawdown_pct']}%</td>
+<td>{metrics.get('max_drawdown_fixed_risk_pct', 'N/A')}%</td>
 <td>{metrics.get('t_statistic', 'N/A')}</td>
-<td>{metrics.get('t_pvalue', 'N/A')}</td>
+<td>{metrics.get('t_pvalue_iid_assumption', metrics.get('t_pvalue', 'N/A'))}</td>
+<td>{metrics.get('t_pvalue_block_bootstrap', 'N/A')}</td>
 </tr>"""
 
-    html += """</table></div>"""
+    html += """</table>
+<p class="meta">Day 78 (Fable Remediation Task 2.3): Sharpe now uses actual observed trades/year
+(not a hardcoded 25). Max DD shown two ways — sequential 100%-equity (a modeling artifact,
+kept for continuity) and a fixed 2%-risk-per-trade version (more honest). p-values shown two
+ways — i.i.d. t-test (overstates significance when trades cluster by regime/ticker) and a
+block bootstrap resampling whole calendar-month blocks (robust to that clustering).</p>
+</div>"""
 
     # Warnings section
     all_warnings = []

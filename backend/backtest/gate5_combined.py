@@ -42,6 +42,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import yfinance as yf
 
 from backtest.mr_simulator import backtest_mr_strategy
+from backtest.metrics import apply_transaction_costs  # Day 78: Fable Remediation Task 2.1
 
 
 # ─── Universe ────────────────────────────────────────────────────────────────
@@ -255,6 +256,11 @@ def backtest_momentum_proxy(stock_df, spy_df, ticker='UNKNOWN'):
 
         pnl_pct = ((exit_price - entry_price) / entry_price) * 100
 
+        # Day 78 (Fable Remediation Task 2.1): this leg had zero transaction
+        # costs modeled — inconsistent with the MR leg. Net figures now primary.
+        costs = apply_transaction_costs(entry_price, exit_price)
+        pnl_pct_net = costs['net_return_pct']
+
         entry_date = str(stock_df.index[i].date()) if hasattr(stock_df.index[i], 'date') else str(stock_df.index[i])
         exit_date = str(stock_df.index[exit_idx].date()) if hasattr(stock_df.index[exit_idx], 'date') else str(stock_df.index[exit_idx])
 
@@ -266,10 +272,12 @@ def backtest_momentum_proxy(stock_df, spy_df, ticker='UNKNOWN'):
             'exit_date': exit_date,
             'entry_price': round(entry_price, 2),
             'exit_price': round(exit_price, 2),
-            'pnl_pct': round(pnl_pct, 2),
+            'pnl_pct': round(pnl_pct, 2),                  # gross (legacy/reference only)
+            'pnl_pct_net': round(pnl_pct_net, 4),          # net of transaction costs — primary
+            'transaction_cost': costs['total_cost'],
             'hold_days': exit_idx - i,
             'exit_reason': exit_reason,
-            'win': pnl_pct > 0,
+            'win': pnl_pct_net > 0,  # Day 78: net-of-costs (was gross)
             'tt_score': tt_score,
             'rsi': round(rsi_val, 1),
             'adx': round(adx_val, 1),
@@ -331,13 +339,14 @@ def analyze_overlap(mr_trades, mom_trades):
 def build_daily_pnl_series(all_trades, all_dates):
     """
     Build a daily P&L series from a list of trades.
-    Each trade contributes pnl_pct to its exit date (mark-to-exit).
-    Dates are the union of all trading dates across the universe.
+    Each trade contributes pnl_pct_net (net of transaction costs, Day 78) to
+    its exit date (mark-to-exit). Dates are the union of all trading dates
+    across the universe.
     """
     pnl_by_date = {}
     for t in all_trades:
         date = t['exit_date']
-        pnl_by_date[date] = pnl_by_date.get(date, 0) + t['pnl_pct']
+        pnl_by_date[date] = pnl_by_date.get(date, 0) + t.get('pnl_pct_net', t['pnl_pct'])
 
     series = pd.Series(pnl_by_date, name='pnl')
     series.index = pd.to_datetime(series.index)
@@ -348,20 +357,36 @@ def build_daily_pnl_series(all_trades, all_dates):
 # ─── Summary Stats ────────────────────────────────────────────────────────────
 
 def compute_summary(trades, label):
+    """
+    Day 78 (Fable Remediation Task 2.1): all figures are now net of
+    transaction costs — 'win' is net-based at trade-creation time in both
+    backtest_mr_strategy() and backtest_momentum_proxy(). Gross comparison
+    figures are included so the before/after delta is always visible.
+    """
     if not trades:
         return {
             'label': label,
             'total_trades': 0,
             'win_rate': 0,
+            'win_rate_gross': 0,
             'avg_pnl': 0,
+            'avg_pnl_gross': 0,
             'profit_factor': 0,
+            'profit_factor_gross': 0,
             'sharpe': 0,
         }
     wins = [t for t in trades if t['win']]
-    pnls = [t['pnl_pct'] for t in trades]
-    gross_profit = sum(t['pnl_pct'] for t in wins) if wins else 0
-    gross_loss = abs(sum(t['pnl_pct'] for t in trades if not t['win']))
+    pnls = [t.get('pnl_pct_net', t['pnl_pct']) for t in trades]
+    gross_profit = sum(t.get('pnl_pct_net', t['pnl_pct']) for t in wins) if wins else 0
+    gross_loss = abs(sum(t.get('pnl_pct_net', t['pnl_pct']) for t in trades if not t['win']))
     pf = gross_profit / gross_loss if gross_loss > 0 else float('inf') if gross_profit > 0 else 0
+
+    # Gross-of-cost comparison (pre-remediation methodology)
+    wins_gross = [t for t in trades if t['pnl_pct'] > 0]
+    pnls_gross = [t['pnl_pct'] for t in trades]
+    gp_gross = sum(t['pnl_pct'] for t in wins_gross) if wins_gross else 0
+    gl_gross = abs(sum(t['pnl_pct'] for t in trades if t['pnl_pct'] <= 0))
+    pf_gross = gp_gross / gl_gross if gl_gross > 0 else float('inf') if gp_gross > 0 else 0
 
     pnl_arr = np.array(pnls)
     sharpe = (np.mean(pnl_arr) / np.std(pnl_arr) * np.sqrt(252)) if np.std(pnl_arr) > 0 else 0
@@ -370,8 +395,11 @@ def compute_summary(trades, label):
         'label': label,
         'total_trades': len(trades),
         'win_rate': round(len(wins) / len(trades) * 100, 1),
+        'win_rate_gross': round(len(wins_gross) / len(trades) * 100, 1),
         'avg_pnl': round(np.mean(pnls), 2),
-        'profit_factor': round(pf, 2),
+        'avg_pnl_gross': round(np.mean(pnls_gross), 2),
+        'profit_factor': round(pf, 2) if pf != float('inf') else 'inf',
+        'profit_factor_gross': round(pf_gross, 2) if pf_gross != float('inf') else 'inf',
         'sharpe': round(sharpe, 2),
     }
 
@@ -426,9 +454,9 @@ def run_gate5(tickers, start_date, end_date):
     for s in [mr_summary, mom_summary]:
         print(f"\n{s['label']}:")
         print(f"  Total trades:  {s['total_trades']}")
-        print(f"  Win rate:      {s['win_rate']}%")
-        print(f"  Avg P&L:       {s['avg_pnl']}%")
-        print(f"  Profit Factor: {s['profit_factor']}")
+        print(f"  Win rate:      {s['win_rate']}%  (gross: {s['win_rate_gross']}%)")
+        print(f"  Avg P&L:       {s['avg_pnl']}%  (gross: {s['avg_pnl_gross']}%)")
+        print(f"  Profit Factor: {s['profit_factor']}  (gross: {s['profit_factor_gross']})  <- Day 78: net of transaction costs")
         print(f"  Sharpe (ann):  {s['sharpe']}")
 
     # ── Overlap Analysis ──────────────────────────────────────────────────────
@@ -487,10 +515,14 @@ def run_gate5(tickers, start_date, end_date):
     print(f"GATE 5 VERDICT")
     print(f"{'='*60}")
 
+    # 'inf' is a valid profit_factor string (zero losing trades) — treat as pass
+    combined_pf = combined_summary['profit_factor']
+    combined_pf_numeric = float('inf') if combined_pf == 'inf' else combined_pf
+
     criteria = {
         'Overlap rate < 30%': overlap_rate < 30,
         'Combined Sharpe >= best × 0.9': sharpe_ratio >= 0.9,
-        'Combined PF >= 1.2': combined_summary['profit_factor'] >= 1.2,
+        'Combined PF >= 1.2 (net of costs)': combined_pf_numeric >= 1.2,
         'P&L correlation < 0.4': corr < 0.4,
     }
 

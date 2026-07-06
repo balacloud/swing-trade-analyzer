@@ -2,9 +2,10 @@
 
 > **Purpose:** Actionable plan to close STA's breakout-trading gaps: candidates are found too late (no pivot-proximity scan), heard about too late (no EOD breakout watch), and the breakout-only entry variant has never been isolated in a backtest. Written to be executed by Claude (Sonnet) across sessions with no additional context needed.
 > **Source:** Day 78 repo sweep (July 5, 2026) — inventory of existing breakout capability + gap analysis.
+> **Reconciled:** Day 78, session 2 (July 6, 2026) — a parallel session independently built a standalone breakout classification engine (`backend/breakout_detection.py` + `breakout_routes.py` + `BREAKOUT_ENGINE_SPEC.md` + Pine companion + human-in-the-loop workflow docs). See "Reconciliation" section below for what changed in this plan as a result.
 > **Location:** `docs/claude/design/`
-> **Status:** NOT STARTED
-> **Last Updated:** Day 78 (July 5, 2026)
+> **Status:** Phase 1.5 DONE (Day 78, session 3) — `/api/breakout/<ticker>` wired and behaviorally validated on 5 tickers + 1 edge case. Phase 0 NOT STARTED. Phase 1 NOT STARTED. Phases 2–3 ready to start (prerequisite met).
+> **Last Updated:** Day 78, session 3 (July 6, 2026)
 
 ---
 
@@ -25,11 +26,14 @@
 |-------|-------------------|--------------|
 | 0 — Breakout-only backtest validation | ✅ Yes (research/validation, no product code) | **Fable Remediation Plan Phase 2 complete** (gap-aware fills + MR costs) — validating on the optimistic simulator would repeat the mistake the remediation plan fixes |
 | 1 — Breakout scan preset | ⚠️ Small feature — needs explicit user approval to build during freeze | User go-ahead |
-| 2 — At-pivot flags in scan results | ❌ Feature — post-freeze | Phase 0 done + user lifts freeze (or explicitly approves) |
-| 3 — EOD breakout watch skill | ❌ Feature — post-freeze | Phase 0 done + Phase 2 done |
+| **1.5 — Wire `/api/breakout/<ticker>`** (NEW, Day 78 reconciliation) | ✅ Yes — read-only classification endpoint, zero verdict/scoring impact | ✅ **DONE (Day 78, session 3)** — wired + validated |
+| 2 — At-pivot flags in scan results (REDESIGNED) | ❌ Feature — post-freeze | Phase 1.5 done (✅ met) + Phase 0 done |
+| 3 — EOD breakout watch skill (REDESIGNED) | ❌ Feature — post-freeze | Phase 1.5 done + Phase 2 done |
 | 4 — Gap-breakout detection (N3 tie-in) | ❌ Deferred post paper trading (already on roadmap as N3) | Paper trading underway + N3 research |
 
 If the user says "start the breakout plan" without qualification: do Phase 0 now (if remediation Phase 2 is done), then ASK before building Phase 1+.
+
+**Cross-reference:** a follow-on "Institutional Flow" context layer (`backend/institutional_flow.py`, `/api/flow/<ticker>` — states like `CONSTRUCTIVE_FLOW`/`DISTRIBUTION_WARNING`) is proposed in `docs/claude/design/BREAKOUT_FLOW_NEXT_STEPS_HANDOFF.md` §9–12, explicitly gated on Phase 1.5 being wired and validated first. It is NOT part of this plan — don't build it here, just don't duplicate it either if picked up later.
 
 ---
 
@@ -48,11 +52,26 @@ Breakout trading is already STA's core momentum entry model:
 | Backtested | Config B/C require actionable pattern (`at_pivot`/`broken_out`/`forming`, ≥60% conf) | PF 1.61 is substantially a breakout-pattern result |
 | IBKR pre-screen tie-in | Filter #8 "52W High Proximity" in `docs/research/IBKR_SCREENER_INTEGRATION.md` | Breakout-proximity filter at funnel stage |
 
-**The gaps this plan closes:**
-- **G1:** No scan preset that finds *near-pivot* candidates market-wide — user finds breakouts only by analyzing tickers one at a time.
-- **G2:** No visibility in scan results of which survivors are `at_pivot` right now.
-- **G3:** No end-of-day "which watchlist stocks broke out today with volume" check.
-- **G4:** Never isolated whether entering ONLY on confirmed breakouts (`broken_out` + volume confirmed) beats the current mixed entry (`forming` counts too).
+### NEW (Day 78, session 2 reconciliation) — Standalone Breakout Classification Engine
+
+A parallel session independently built a second, more sophisticated breakout classifier. It is **fully additive** — separate endpoint, does not touch `pattern_detection.py`, S&R engine, categorical assessment, or Config C. Zero collision with the frozen paper-trading config.
+
+| Capability | Where | Notes |
+|------------|-------|-------|
+| 8-state breakout classifier | `backend/breakout_detection.py` — `detect_breakout()` | States: `NOT_READY`, `BUILDING_BASE`, `BREAKOUT_WATCH`, `BREAKOUT_CONFIRMED`, `RETEST_ENTRY`, `SUPPLY_WARNING`, `FAILED_BREAKOUT`, `EXTENDED_CHASE_RISK` — richer than `pattern_detection.py`'s 3-state lifecycle |
+| Gates used | Trend (SMA50>SMA200 rising), RS vs SPY (ratio > 20-bar avg), volume (RVOL ≥1.5x, dry-up), ATR contraction, **candle quality** (close location, body%, upper wick%, range vs ATR), extension-from-SMA50 cap (12%), retest zone, failed-breakout detection | Candle-quality and RS-ratio-vs-its-own-MA gates are new — not present anywhere else in STA |
+| Route (not wired) | `backend/breakout_routes.py` — `register_breakout_routes()`, target `GET /api/breakout/<ticker>` | **⚠️ NOT called from `backend.py` — confirmed via grep, zero matches. The endpoint does not work yet.** |
+| Spec | `docs/claude/design/BREAKOUT_ENGINE_SPEC.md` | Single source of truth for state definitions — v1, explicitly "not yet performance-validated" (spec's own §19 audit verdict: PLAUSIBLE) |
+| Handoff / next-steps doc | `docs/claude/design/BREAKOUT_FLOW_NEXT_STEPS_HANDOFF.md` | Says wiring the route is the smallest next step; explicitly defers frontend badge, institutional flow, IBKR automation until wired + validated on IBM/MSFT/NVDA/PLTR |
+| Visual companion | `pine/sta_breakout_companion.pine` (v2, 167 lines) | TradingView Pine script mirroring the same states, for manual chart review |
+| Manual review workflow | `docs/STA_BREAKOUT_HUMAN_IN_LOOP_WORKFLOW.md` + `prompts/STA_CLAUDE_CHART_REVIEW_PROMPT.md` | Screenshot → Claude/GPT review flow — a **different, manual modality** from this plan's Phase 3 (which is API-driven, not screenshot-driven). Complementary, not duplicated. |
+| Responsibility split (per spec §2) | Screener = candidate discovery; Breakout Engine = state classification; Pine = visual mirror; Claude/GPT = contextual chart review; Human = decision; Forward Test = validation | Confirms Phase 1 (scan preset = discovery) and this engine (classification) are different layers, not duplicates |
+
+**The gaps this plan closes (updated):**
+- **G1:** No scan preset that finds *near-pivot* candidates market-wide — user finds breakouts only by analyzing tickers one at a time. **(Unaffected by the new engine — still a real gap; see spec's own responsibility-split table above.)**
+- **G2:** No visibility in scan results of which survivors have an actionable breakout setup right now. **(REDESIGNED — Phase 2 now surfaces the new engine's 8-state classification instead of the plainer pattern-status data, once wired.)**
+- **G3:** No end-of-day "which watchlist stocks broke out today with volume" check. **(REDESIGNED — Phase 3's skill now calls `/api/breakout/<ticker>` and buckets by its state vocabulary instead of pattern status.)**
+- **G4:** Never isolated whether entering ONLY on confirmed breakouts (`broken_out` + volume confirmed) beats the current mixed entry (`forming` counts too). **(Unaffected — this tests the existing `pattern_detection.py`-based Config C entries, a different system from the new engine, which isn't backtested or wired yet.)**
 
 ---
 
@@ -111,47 +130,91 @@ Breakout trading is already STA's core momentum entry model:
 
 ---
 
-## Phase 2 — At-Pivot Flags in Scan Results (post-freeze)
+## Phase 1.5 — Wire the Standalone Breakout Engine (NEW, Day 78 reconciliation)
 
-**Goal (G2):** after any scan, show which survivors have an actionable breakout setup *right now*, so the user analyzes the right 5 instead of eyeballing 50.
+**Why this comes first:** a parallel session built `backend/breakout_detection.py` (8-state classifier — see inventory above) but never registered its route. Everything downstream in this plan's Phase 2–3 is redesigned to consume this engine instead of `pattern_detection.py`, so it must be wired and behaviorally validated before Phase 2 starts. This is also literally the next action specified in `BREAKOUT_FLOW_NEXT_STEPS_HANDOFF.md` §6, §16 — executing it here keeps both plans in sync instead of duplicating the instruction in two files.
 
-### Task 2.1 — Batch pattern-status endpoint
+### Task 1.5.1 — Register the breakout route in backend.py
+- **Status:** DONE (Day 78, session 3) — wired exactly as specified: optional import block after the `pattern_detection` import (backend.py ~line 106), `register_breakout_routes(app, get_data_provider, yf, DATA_PROVIDER_AVAILABLE)` called right after `CORS(app)`. Backend starts clean, log shows "✅ Breakout Routes loaded successfully", `/api/health` still returns 200.
+- **Effort:** 15 min
+- **Files:** `backend/backend.py`
+- **Action:** Read `backend/backend.py` in full first (Golden Rule #2/#3 — do not patch from the handoff doc's snippet alone). Add the optional import near the other optional-feature imports (same try/except pattern as `DATA_PROVIDER_AVAILABLE`, `VALIDATION_AVAILABLE`, etc.):
+  ```python
+  try:
+      from breakout_routes import register_breakout_routes
+      BREAKOUT_ROUTES_AVAILABLE = True
+      print("✅ Breakout Routes loaded successfully")
+  except ImportError as e:
+      BREAKOUT_ROUTES_AVAILABLE = False
+      print(f"⚠️ Breakout Routes not available: {e}")
+  ```
+  Then, after `app = Flask(__name__)` / `CORS(app)`:
+  ```python
+  if BREAKOUT_ROUTES_AVAILABLE:
+      register_breakout_routes(app, get_data_provider, yf, DATA_PROVIDER_AVAILABLE)
+  ```
+  Do not refactor unrelated code. Do not modify `/api/sr/<ticker>` or `/api/patterns/<ticker>`.
+- **Acceptance:** backend starts without crash; `curl localhost:5001/api/health` still returns 200.
+
+### Task 1.5.2 — Behavioral validation on real tickers
+- **Status:** DONE (Day 78, session 3). All 6 tickers returned HTTP 200 with complete, non-fabricated JSON (`status`/`checks`/`warnings`/`evidence` present; missing fields like `retestZoneLow/High` correctly `null`, not 0, when no recent breakout existed):
+  - **IBM** → `FAILED_BREAKOUT` (recent breakout to 327.98 21 bars ago, current 289.52 well below retest tolerance — sane)
+  - **MSFT** → `FAILED_BREAKOUT` (recent breakout to 450.33, pulled back hard to 390.49 — sane)
+  - **NVDA** → `NOT_READY` (trendOk=false, rsStrong=false — no bullish signal fabricated)
+  - **PLTR** → `NOT_READY` (weak candle, rejectionCandle=true — consistent, no false positive)
+  - **INTC** (weak-downtrend pick) → `FAILED_BREAKOUT`, rsStrong=false, `breakoutConfirmed=false` — correctly did NOT return `BREAKOUT_CONFIRMED`
+  - **Invalid ticker** (edge case, not in spec's matrix but checked anyway) → clean HTTP 404 `{"error": "No data found..."}`, no crash, no fabricated 200
+  - Pine cross-check: NOT done (optional per the task; skip is acceptable per the plan's own wording).
+- **Acceptance:** MET. No discrepancies found requiring diagnosis. Engine considered validated for Phase 2 badge consumption.
+
+---
+
+## Phase 2 — Breakout State Badges in Scan Results (post-freeze) — REDESIGNED Day 78
+
+**Goal (G2):** after any scan, show which survivors have an actionable breakout setup *right now*, so the user analyzes the right 5 instead of eyeballing 50. **Now consumes the new 8-state `breakout_detection.py` engine instead of the plainer `pattern_detection.py` status** — richer signal (candle quality, RS-vs-benchmark, supply warnings, retest/failed-breakout), same UI slot.
+
+### Task 2.1 — Batch breakout-status endpoint
 - **Status:** NOT STARTED
 - **Effort:** 1 session
-- **Files:** `backend/backend.py` (new endpoint `/api/patterns/batch`), reuse `detect_patterns()` unchanged
+- **Prerequisite:** Phase 1.5 complete (route wired + behaviorally validated).
+- **Files:** `backend/backend.py` (new endpoint `/api/breakout/batch`), reuse `breakout_detection.detect_breakout()` unchanged
 - **Design:**
   - POST with `{"tickers": [...]}`, hard cap 20 tickers per request (rate-limit protection).
-  - For each ticker: fetch OHLCV through the existing DataProvider/cache path (cache-first — most scan survivors were just fetched), run `detect_patterns()`, return per ticker: best pattern name, status, confidence, pivot price, distance-to-pivot %, volume_confirmed.
+  - For each ticker: fetch OHLCV + SPY benchmark through the existing DataProvider/cache path (cache-first — most scan survivors were just fetched — mirror `_fetch_ohlcv()` in `breakout_routes.py`), run `detect_breakout()`, return per ticker: `status`, `humanAction`, `breakoutLevel`, `rvol`, key `checks`/`warnings`.
   - Return partial results with per-ticker error entries rather than failing the batch (500-on-total-failure only, per Day 61 rule).
   - Respect provider rate limits: sequential with the existing rate limiter, or small thread pool ONLY if the N2 watchlist parallel-fetch pattern in `App.jsx`/backend already established one — read that code first and copy its approach.
-- **Acceptance:** batch call for 10 known tickers returns statuses matching individual `/api/patterns/<ticker>` calls for at least 3 spot-checked tickers.
+- **Acceptance:** batch call for 10 known tickers returns statuses matching individual `/api/breakout/<ticker>` calls for at least 3 spot-checked tickers.
 
 ### Task 2.2 — Scan results badge column
 - **Status:** NOT STARTED
 - **Effort:** half session
-- **Files:** `frontend/src/App.jsx` (scan results table), `frontend/src/services/api.js` (new `fetchPatternsBatch()`)
+- **Files:** `frontend/src/App.jsx` (scan results table), `frontend/src/services/api.js` (new `fetchBreakoutBatch()`)
 - **Design:**
   - After scan results render, fire ONE batch call for the top 20 rows (don't block initial render — badge column fills in when ready, mirroring the sector-badge async pattern already in the scan table).
-  - Badge: `🎯 At Pivot` (yellow) / `🚀 Broken Out` (green, only if volume_confirmed — else gray "unconfirmed") / `— ` for none. Weight the emphasis per the Task 0.2 outcome (update this line after Phase 0).
+  - Badge per `BREAKOUT_ENGINE_SPEC.md` §13 frontend display rules: `BREAKOUT_CONFIRMED` green, `RETEST_ENTRY` blue, `BREAKOUT_WATCH` amber, `BUILDING_BASE` gray, `SUPPLY_WARNING`/`FAILED_BREAKOUT` red, `EXTENDED_CHASE_RISK` orange, `NOT_READY` muted/hidden. **Do not display a green badge as a buy recommendation** (spec's explicit rule) — badge text should read as state, not signal (e.g. "Breakout Confirmed" not "Buy").
   - React falsy gotcha: use explicit `!= null` checks, never `{value && ...}` with numeric distance values (Day 68 lesson).
-- **Acceptance:** run a real scan; badges appear; clicking a badged row and opening full analysis shows the same pattern status (frontend-backend coherence spot-check on 3 tickers).
+- **Acceptance:** run a real scan; badges appear; clicking a badged row and opening full analysis is consistent with the badge state (frontend-backend coherence spot-check on 3 tickers).
 
 ---
 
-## Phase 3 — `/breakout-watch` EOD Skill (post-freeze)
+## Phase 3 — `/breakout-watch` EOD Skill (post-freeze) — REDESIGNED Day 78
 
-**Goal (G3):** answer "which of my watchlist stocks broke out today?" on demand — no push infrastructure, no cron, deliberately minimal.
+**Goal (G3):** answer "which of my watchlist stocks broke out today?" on demand — no push infrastructure, no cron, deliberately minimal. **Now buckets by the new engine's 8-state vocabulary.** This is a different, API-driven modality from the parallel session's screenshot-based `STA_CLAUDE_CHART_REVIEW_PROMPT.md` workflow — both are useful; this skill is faster for a daily watchlist sweep, the screenshot workflow is deeper for one ticker under real chart-visual review.
+
+**Naming note:** the engine has a literal state called `BREAKOUT_WATCH`; the skill is named `/breakout-watch`. Not a real conflict (the skill reports across all 8 states, not just that one) but worth being precise about in the skill's own help text so a user doesn't conflate "run `/breakout-watch`" with "show me only `BREAKOUT_WATCH` tickers."
 
 ### Task 3.1 — Build the skill
 - **Status:** NOT STARTED
 - **Effort:** half session
+- **Prerequisite:** Phase 1.5 complete.
 - **Files:** `.claude/commands/breakout-watch.md` (follow the structure of `.claude/commands/sta-start.md`)
 - **Design (skill instructions, executed by Claude at runtime):**
   1. Ticker source: argument list if given, else the Nirmal watchlist preset (read the ticker array from `App.jsx` — grep `Nirmal`), else ask.
-  2. For each ticker call `/api/patterns/<ticker>` (backend must be running — check `/api/health` first, offer `./start.sh` if down).
-  3. Report three buckets, most actionable first: **Broke out today/recently** (status `broken_out`, include volume confirmed Y/N + quality badge), **At pivot** (include distance-to-pivot %), **Approaching** (within 5% below pivot). Everything else: one summary line ("12 others: no setup").
-  4. For broken-out names, append the verdict from `/api/mr`-style quick check? NO — keep scope tight: patterns only, then suggest "run full analysis on X" as the follow-up.
-- **Acceptance:** `/breakout-watch AAPL NVDA PLTR` produces the three-bucket report against the live backend; a ticker with no pattern lands in the summary line, not an error.
+  2. For each ticker call `/api/breakout/<ticker>` (backend must be running — check `/api/health` first, offer `./start.sh` if down).
+  3. Report bucketed by state priority, most actionable first: **Confirmed breakouts** (`BREAKOUT_CONFIRMED` — include RVOL, human-readable action text), **Retest entries** (`RETEST_ENTRY`), **Watch** (`BREAKOUT_WATCH`), **Warnings** (`SUPPLY_WARNING`/`FAILED_BREAKOUT`/`EXTENDED_CHASE_RISK` — surface these prominently, they're risk flags not opportunities), **Building base** (`BUILDING_BASE`). Everything `NOT_READY`: one summary line ("12 others: not ready").
+  4. Always append the engine's own `humanAction` text verbatim per ticker — do not paraphrase it into a stronger claim. Never state a green badge as a buy recommendation (per spec §13/§15 — this is a hard rule, not a style choice).
+  5. Keep scope tight: breakout state only, then suggest "run full analysis on X" as the follow-up.
+- **Acceptance:** `/breakout-watch AAPL NVDA PLTR` produces the bucketed report against the live backend; a ticker returning `NOT_READY` lands in the summary line, not treated as an error.
 
 ---
 
@@ -165,7 +228,8 @@ Breakout trading is already STA's core momentum entry model:
 
 ## Explicitly OUT of Scope
 
-- **No changes to verdict logic, Config C thresholds, stops, targets, sizing** — the paper-trading config is frozen (see `docs/claude/stable/PAPER_TRADING_PREREGISTRATION.md` once created by the remediation plan).
+- **No changes to verdict logic, Config C thresholds, stops, targets, sizing** — the paper-trading config is frozen (see `docs/claude/stable/PAPER_TRADING_PREREGISTRATION.md`, created Day 78 session 2). The new breakout engine (Phase 1.5–3) is exempt from this constraint since it's a read-only classification endpoint with no wiring into verdict/scoring — but do not let it grow into a verdict input without an explicit backtest + user decision.
+- **No building the Institutional Flow layer** (`institutional_flow.py`, `/api/flow/<ticker>`) — proposed in the handoff doc but explicitly gated on Phase 1.5 being wired + validated. Not in scope for this plan.
 - **No intraday/real-time alerting, no push notifications, no cron jobs** — EOD on-demand only. Real-time is a different system with different data costs; requires its own research doc first.
 - **No new pattern types** (H&S etc. — already rejected Day 48 research) and no changes to `pattern_detection.py` detection logic itself.
 - **No auto-trading / order placement** via IBKR tools — analysis and surfacing only.
@@ -177,9 +241,10 @@ Breakout trading is already STA's core momentum entry model:
 | Session | Tasks | Gate |
 |---------|-------|------|
 | 1 | 0.1 + 0.2 (Config D/E backtest + interpretation) | After remediation Phase 2 |
-| 2 | 1.1 + 1.2 (scan preset, backend + frontend) | User approves building during freeze — otherwise post-freeze |
-| 3 | 2.1 (batch endpoint) | Post-freeze |
-| 4 | 2.2 (badges) + 3.1 (skill) | Post-freeze |
+| 2 | **1.5.1 + 1.5.2 (wire + validate the existing breakout engine)** | None — smallest, highest-leverage next step; freeze-compatible |
+| 3 | 1.1 + 1.2 (scan preset, backend + frontend) | User approves building during freeze — otherwise post-freeze |
+| 4 | 2.1 (batch endpoint) | Post-freeze, needs Phase 1.5 done |
+| 5 | 2.2 (badges) + 3.1 (skill) | Post-freeze |
 
 **Relative priority:** the Fable Remediation Plan (`FABLE_REVIEW_REMEDIATION_PLAN.md`) outranks this entire plan. Paper trading outranks Phases 1–3. Phase 0 can slot into any backtest-focused session after remediation Phase 2.
 
@@ -190,3 +255,5 @@ Breakout trading is already STA's core momentum entry model:
 | Day | Tasks Completed | Notes |
 |-----|-----------------|-------|
 | — | — | Plan created Day 78, nothing executed yet |
+| 78, session 2 | Reconciliation only (no plan tasks executed) | Discovered parallel session's standalone breakout engine (`breakout_detection.py`/`breakout_routes.py`/spec/Pine/handoff docs). Added new Phase 1.5 (wire + validate the engine — NOT STARTED). Redesigned Phase 2/3 to consume its 8-state classification instead of `pattern_detection.py` status. Phase 0/1/4 unaffected. Confirmed via grep: route is NOT wired into `backend.py` — `/api/breakout/<ticker>` does not work yet. |
+| 78, session 3 | Tasks 1.5.1 + 1.5.2 (Phase 1.5 complete) | Wired `register_breakout_routes()` into `backend.py` per spec. Started backend, confirmed clean load ("✅ Breakout Routes loaded successfully"), validated `/api/breakout/<ticker>` on IBM/MSFT/NVDA/PLTR/INTC + 1 invalid-ticker edge case — all HTTP 200 (404 for invalid), no fabricated values, no false `BREAKOUT_CONFIRMED` on weak names. Stopped the test backend process cleanly afterward. Phase 2/3 now unblocked. |

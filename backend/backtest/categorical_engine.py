@@ -21,20 +21,27 @@ DeMiguel et al. (2009): equal weights beat optimized weights out-of-sample.
 """
 
 
-def assess_technical(trend_template_score, rsi, rs_52w=1.0, rs_blended=None, adx=None, total_criteria=8):
+def assess_technical(trend_template_score, rsi, rs_52w=None, rs_blended=None, adx=None, total_criteria=8):
     """
     Assess technical strength.
 
-    Strong: TT >= 7/8 AND RSI 50-70 AND RS >= 1.0
+    Strong: TT >= 7/8 AND RSI 50-70 AND RS >= 1.0 (RS must be available)
     Decent: TT >= 5/8 AND RSI 40-80
     Weak:   below thresholds
 
     Source: categoricalAssessment.js lines 229-328
 
+    Day 78 (Fable Remediation Task 3.3): rs_52w default changed from 1.0 to
+    None. Silently substituting a neutral 1.0 when RS was missing let a stock
+    qualify for "Strong" on fabricated data — an invisible lie (Golden Rule:
+    "Return null, not a plausible fake", Day 54). Missing RS now visibly caps
+    the assessment below Strong instead, matching the same fix applied to
+    categoricalAssessment.js.
+
     Args:
         trend_template_score: Number of Minervini criteria passed (0-8)
         rsi: RSI(14) value
-        rs_52w: 52-week relative strength vs SPY (default 1.0)
+        rs_52w: 52-week relative strength vs SPY, or None if unavailable
         rs_blended: Blended RS (21d/63d/126d avg), falls back to rs_52w if None (Tier 2B)
         adx: ADX value (stored in data, not used for assessment)
         total_criteria: Total criteria count (default 8)
@@ -44,6 +51,7 @@ def assess_technical(trend_template_score, rsi, rs_52w=1.0, rs_blended=None, adx
     """
     # Tier 2B: Use blended RS when available, fallback to 52-week RS
     rs = rs_blended if rs_blended is not None else rs_52w
+    rs_available = rs is not None
 
     reasons = []
     data = {
@@ -51,15 +59,16 @@ def assess_technical(trend_template_score, rsi, rs_52w=1.0, rs_blended=None, adx
         'rsi': rsi,
         'rs_52w': rs_52w,
         'rs_blended': rs_blended,
-        'rs_used': round(rs, 3),
+        'rs_used': round(rs, 3) if rs_available else None,
+        'rs_available': rs_available,
         'adx': adx,
     }
 
     pass_count = trend_template_score or 0
     rsi_val = rsi if rsi is not None else 50
 
-    # Strong: 7-8/8 trend template, RSI 50-70, good RS
-    if pass_count >= 7 and 50 <= rsi_val <= 70 and rs >= 1.0:
+    # Strong: 7-8/8 trend template, RSI 50-70, good RS (RS must be available)
+    if pass_count >= 7 and 50 <= rsi_val <= 70 and rs_available and rs >= 1.0:
         assessment = 'Strong'
         rs_label = 'RS_blend' if rs_blended is not None else 'RS_52w'
         reasons.append(f"TT {pass_count}/8, RSI {rsi_val:.1f} (50-70), {rs_label} {rs:.2f}")
@@ -67,6 +76,8 @@ def assess_technical(trend_template_score, rsi, rs_52w=1.0, rs_blended=None, adx
     elif pass_count >= 5 and 40 <= rsi_val <= 80:
         assessment = 'Decent'
         reasons.append(f"TT {pass_count}/8 (needs 7+ for Strong), RSI {rsi_val:.1f}")
+        if not rs_available:
+            reasons.append("RS data unavailable — Strong rating requires RS >= 1.0")
     # Weak
     else:
         assessment = 'Weak'
@@ -78,7 +89,9 @@ def assess_technical(trend_template_score, rsi, rs_52w=1.0, rs_blended=None, adx
             reasons.append(f"RSI {rsi_val:.1f} oversold")
         elif rsi_val > 80:
             reasons.append(f"RSI {rsi_val:.1f} overbought")
-        if rs_52w < 0.8:
+        if not rs_available:
+            reasons.append("RS data unavailable — Strong rating requires RS >= 1.0")
+        elif rs_52w is not None and rs_52w < 0.8:
             reasons.append(f"Weak RS {rs_52w:.2f} vs SPY")
 
     if not reasons:
@@ -372,7 +385,12 @@ def determine_verdict(technical, fundamental, risk_macro, adx=None,
     if strong_count >= 1:
         return result('HOLD', 'Mixed signals — wait for better setup')
 
-    if technical == 'Decent' and risk_macro == 'Favorable':
+    # Day 78 (Fable Remediation Task 2.4): was 'Favorable' only — missing the
+    # 'Neutral' branch that categoricalAssessment.js has, causing this port to
+    # return AVOID where production returns HOLD (found via 86,400-combo
+    # parity grid, 6,120 mismatches, single root cause). Does not affect
+    # Config C's historical PF/trade-count — both AVOID and HOLD are no-entry.
+    if technical == 'Decent' and risk_macro in ('Favorable', 'Neutral'):
         return result('HOLD', 'Decent setup — consider with proper sizing')
 
     # Default: AVOID

@@ -19,6 +19,7 @@ import os
 # Add parent directory for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from mean_reversion import calculate_rsi_short
+from backtest.metrics import apply_transaction_costs  # Day 78: Fable Remediation Task 2.1
 
 
 def simulate_mr_trade(stock_df, entry_idx, stop_pct=0.05, max_days=10):
@@ -71,9 +72,19 @@ def simulate_mr_trade(stock_df, entry_idx, stop_pct=0.05, max_days=10):
 
         bar_low = float(stock_df['Low'].iloc[bar_idx])
         bar_close = float(stock_df['Close'].iloc[bar_idx])
+        bar_open = float(stock_df['Open'].iloc[bar_idx])
         bar_rsi2 = float(rsi2_series.iloc[bar_idx])
 
-        # Check stop first (intraday)
+        # Check stop first (intraday).
+        # Day 78 (Fable Remediation Task 2.2): gap-aware fill. MR entries buy
+        # 2-period-oversold stocks — precisely the population most prone to
+        # gap-downs, so this optimism mattered most here. A gap-down that
+        # opens through the stop fills at the open, not the stop price.
+        if bar_open <= stop_price:
+            exit_price = bar_open
+            exit_idx = bar_idx
+            exit_reason = 'stop_hit_gap'
+            break
         if bar_low <= stop_price:
             exit_price = stop_price
             exit_idx = bar_idx
@@ -100,17 +111,26 @@ def simulate_mr_trade(stock_df, entry_idx, stop_pct=0.05, max_days=10):
     pnl_pct = ((exit_price - entry_price) / entry_price) * 100
     hold_days = exit_idx - entry_idx
 
+    # Day 78 (Fable Remediation Task 2.1): apply transaction costs.
+    # This backtest previously reported PF 1.26 gross-of-cost — no slippage/
+    # commission was modeled anywhere in the MR path. Net figures are now primary.
+    costs = apply_transaction_costs(entry_price, exit_price)
+    pnl_pct_net = costs['net_return_pct']
+
     return {
         'entry_price': round(entry_price, 2),
         'exit_price': round(exit_price, 2),
         'stop_price': round(stop_price, 2),
-        'pnl_pct': round(pnl_pct, 2),
-        'pnl_r': round(pnl_pct / (stop_pct * 100), 2) if stop_pct > 0 else 0,
+        'pnl_pct': round(pnl_pct, 2),                  # gross (legacy/reference only)
+        'pnl_pct_net': round(pnl_pct_net, 4),          # net of transaction costs — primary
+        'transaction_cost': costs['total_cost'],
+        'pnl_r': round(pnl_pct / (stop_pct * 100), 2) if stop_pct > 0 else 0,          # gross R (legacy/reference)
+        'pnl_r_net': round(pnl_pct_net / (stop_pct * 100), 4) if stop_pct > 0 else 0,  # net R-multiple — primary
         'hold_days': hold_days,
         'exit_reason': exit_reason,
         'entry_idx': entry_idx,
         'exit_idx': exit_idx,
-        'win': pnl_pct > 0,
+        'win': pnl_pct_net > 0,  # Day 78: win classification is now net-of-costs (was gross)
     }
 
 
@@ -181,21 +201,31 @@ def backtest_mr_strategy(stock_df, ticker='UNKNOWN', stop_pct=0.05, max_days=10,
             }
         }
 
+    # Day 78 (Fable Remediation Task 2.1): net-of-cost figures are now primary.
+    # 'win' is net-based (see simulate_mr_trade). Gross figures kept alongside
+    # for an honest before/after delta — do not delete these when reporting.
     wins = [t for t in trades if t['win']]
-    pnls = [t['pnl_pct'] for t in trades]
+    pnls_net = [t.get('pnl_pct_net', t['pnl_pct']) for t in trades]
+    pnls_gross = [t['pnl_pct'] for t in trades]
     hold_days = [t['hold_days'] for t in trades]
     exit_reasons = {}
     for t in trades:
         reason = t['exit_reason']
         exit_reasons[reason] = exit_reasons.get(reason, 0) + 1
 
-    avg_win = np.mean([t['pnl_pct'] for t in wins]) if wins else 0
-    avg_loss = np.mean([t['pnl_pct'] for t in trades if not t['win']]) if len(trades) > len(wins) else 0
+    avg_win = np.mean([t.get('pnl_pct_net', t['pnl_pct']) for t in wins]) if wins else 0
+    avg_loss = np.mean([t.get('pnl_pct_net', t['pnl_pct']) for t in trades if not t['win']]) if len(trades) > len(wins) else 0
 
-    # Profit Factor
-    gross_profit = sum(t['pnl_pct'] for t in wins) if wins else 0
-    gross_loss = abs(sum(t['pnl_pct'] for t in trades if not t['win'])) if len(trades) > len(wins) else 0
+    # Profit Factor (net of costs — primary)
+    gross_profit = sum(t.get('pnl_pct_net', t['pnl_pct']) for t in wins) if wins else 0
+    gross_loss = abs(sum(t.get('pnl_pct_net', t['pnl_pct']) for t in trades if not t['win'])) if len(trades) > len(wins) else 0
     profit_factor = gross_profit / gross_loss if gross_loss > 0 else float('inf') if gross_profit > 0 else 0
+
+    # Gross-of-cost comparison figures (pre-remediation methodology)
+    wins_gross = [t for t in trades if t['pnl_pct'] > 0]
+    gp_gross = sum(t['pnl_pct'] for t in wins_gross) if wins_gross else 0
+    gl_gross = abs(sum(t['pnl_pct'] for t in trades if t['pnl_pct'] <= 0))
+    profit_factor_gross = gp_gross / gl_gross if gl_gross > 0 else float('inf') if gp_gross > 0 else 0
 
     return {
         'ticker': ticker,
@@ -205,12 +235,16 @@ def backtest_mr_strategy(stock_df, ticker='UNKNOWN', stop_pct=0.05, max_days=10,
             'wins': len(wins),
             'losses': len(trades) - len(wins),
             'win_rate': round(len(wins) / len(trades) * 100, 1),
-            'avg_pnl': round(np.mean(pnls), 2),
+            'win_rate_gross': round(len(wins_gross) / len(trades) * 100, 1),
+            'avg_pnl': round(np.mean(pnls_net), 2),
+            'avg_pnl_gross': round(np.mean(pnls_gross), 2),
             'avg_win': round(avg_win, 2),
             'avg_loss': round(avg_loss, 2),
             'avg_hold_days': round(np.mean(hold_days), 1),
-            'profit_factor': round(profit_factor, 2),
+            'profit_factor': round(profit_factor, 2) if profit_factor != float('inf') else 'inf',
+            'profit_factor_gross': round(profit_factor_gross, 2) if profit_factor_gross != float('inf') else 'inf',
             'exit_reasons': exit_reasons,
-            'total_pnl': round(sum(pnls), 2),
+            'total_pnl': round(sum(pnls_net), 2),
+            'total_pnl_gross': round(sum(pnls_gross), 2),
         }
     }

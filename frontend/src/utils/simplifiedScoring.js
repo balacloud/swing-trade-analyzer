@@ -83,9 +83,14 @@ export function calculateSimplifiedAnalysis(stockData, spyData, srData) {
 
   // ============================================
   // CRITERION 2: MOMENTUM (Relative Strength)
-  // Day 70: Tightened from RS >= 1.0 to RS >= 1.2
-  // Backtest: RS 1.2 → PF 1.78, WR 52.6% vs RS 1.0 → PF 1.56, WR 49.7%
-  // Multi-LLM audit: RS 1.0 rated MISLEADING (too permissive for Minervini/O'Neil)
+  // Day 78 (Fable remediation, Task 0.2): Reverted to RS >= 1.0.
+  // The Day 70 tightening to 1.2 cited "Backtest: PF 1.56->1.78, WR 49.7%->52.6%,
+  // 20 tickers" but no reproducible script for that run exists in the repo —
+  // backend/backtest/backtest_simplified.py (the only candidate) tests RS >= 1.0
+  // with entirely different params (target/stop/hold) and predates this checklist.
+  // RS >= 1.0 is what Config C actually uses (238 trades, 60 tickers, 5yr,
+  // walk-forward validated, PF 1.61) — the only rigorously backtested threshold
+  // in the system. Simple checklist (default view since Day 75) now matches it.
   // ============================================
   if (stockData.priceHistory.length >= 252 && spyData?.priceHistory?.length >= 252) {
     const stockPrices = stockData.priceHistory.map(d => d.close);
@@ -96,11 +101,9 @@ export function calculateSimplifiedAnalysis(stockData, spyData, srData) {
 
     const rsRatio = spyReturn !== 0 ? (1 + stockReturn) / (1 + spyReturn) : 1;
 
-    if (rsRatio >= 1.2) {
+    if (rsRatio >= 1.0) {
       results.criteria.momentum.pass = true;
       results.criteria.momentum.reason = `RS ${rsRatio.toFixed(2)} - outperforming SPY by ${((rsRatio - 1) * 100).toFixed(0)}% (Stock: ${(stockReturn * 100).toFixed(1)}% vs SPY: ${(spyReturn * 100).toFixed(1)}%)`;
-    } else if (rsRatio >= 1.0) {
-      results.criteria.momentum.reason = `RS ${rsRatio.toFixed(2)} - barely outperforming SPY (need >= 1.2 for quality momentum)`;
     } else {
       results.criteria.momentum.reason = `RS ${rsRatio.toFixed(2)} - underperforming SPY (Stock: ${(stockReturn * 100).toFixed(1)}% vs SPY: ${(spyReturn * 100).toFixed(1)}%)`;
     }

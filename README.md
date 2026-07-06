@@ -1270,6 +1270,7 @@ TOLERANCES = {
 - **v4.30: Universal Principles Tier 0-1** ✅ 4-LLM audit, bug fixes, ATR-primary stops, parameter stability (Day 69)
 - **v4.31: Universal Principles Tier 2-3** ✅ VIX position sizing, blended RS (info), MR engine (Day 70)
 - **v4.32: Simplicity Premium** ✅ Sentiment info-only, progressive disclosure, cap-aware checklist (Day 70B)
+- **v4.37: Fable Remediation + Breakout Wiring** ✅ MR transaction costs + gap-aware fills, backtest statistics overhaul, JS↔Python verdict parity fix (86,400-combo grid), fundamentals mismatch measured, breakout classification engine wired (`/api/breakout/<ticker>`) (Day 78-79)
 
 ### Philosophy (Day 27 + Day 44 Update)
 
@@ -1286,13 +1287,13 @@ Current focus:
 - **Categorical filtering** over numerical ranking
 - **System measurement** through forward testing and SQN tracking
 
-### Current Priorities (Day 78)
+### Current Priorities (Day 79)
 
-A full-system audit (Day 78) found the backtested edge is likely overstated — the test universe carries survivorship bias and the walk-forward window was reused across many tuning sessions. Priorities reordered accordingly:
+A full-system audit (Day 78) found the backtested edge was likely overstated — survivorship bias in the test universe and a reused walk-forward window. Remediation Phases 0–3 are now complete: the config is frozen and pre-registered, transaction costs and gap-aware fills were added to the mean-reversion backtest (edge survives: PF 1.26→1.23 net), the statistics were overhauled (proper t-test, actual trade frequency, block-bootstrap p-value, honest drawdown), a systematic 86,400-combo test found and fixed a real parity bug between the live and backtested verdict logic, and a measured 40% disagreement between live and backtested fundamentals data sources was documented (mitigation choice pending).
 
-1. **Validation remediation** — freeze & pre-register the config, add missing transaction costs to the mean-reversion backtest, gap-aware stop fills, survivorship-free re-validation (`docs/claude/design/FABLE_REVIEW_REMEDIATION_PLAN.md`)
-2. **Paper trading** — begins once the config is frozen; 50+ logged trades before judging the system
-3. **Breakout enhancements** — validation-first: isolate confirmed-breakout-only entries in backtest before building new surfaces (`docs/claude/design/BREAKOUT_ENHANCEMENT_PLAN.md`)
+1. **Survivorship-free re-validation** — rebuild the backtest universe without hindsight bias (`docs/claude/design/FABLE_REVIEW_REMEDIATION_PLAN.md`, Phase 4)
+2. **Paper trading** — config is frozen; can begin now. 50+ logged trades before judging the system
+3. **Breakout enhancements** — the classification engine is now wired (`/api/breakout/<ticker>`) and validated; scan badges and a `/breakout-watch` skill are next (`docs/claude/design/BREAKOUT_ENHANCEMENT_PLAN.md`)
 4. N4 Market Phase synthesis, `/ibkr-scan` skill, Value Tab Phase 2 — queued behind the above
 
 ---

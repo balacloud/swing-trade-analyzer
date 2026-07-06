@@ -2,12 +2,12 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 78 (July 5, 2026)
+> **Last Updated:** Day 79 (July 6, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.35 (Backend v2.35, Frontend v4.35, Backtest v4.18, API Service v2.11)
+## Current Version: v4.37 (Backend v2.36, Frontend v4.36, Backtest v4.18, API Service v2.11)
 
 ---
 
@@ -102,7 +102,7 @@
 **Key findings during implementation:**
 - Blended RS (2B) **degrades** backtest metrics (PF 1.90→1.51, Sharpe 1.17→0.68). Kept as informational only. rs52Week remains verdict driver.
 - Parameter stability (1C): rsi_low fragile at 55 (PF 0.83), stop_atr_multiple fragile at 1.5x (PF 0.98). Validates current parameter choices.
-- RS threshold (0D): 1.0 optimal (5 trades, 80% WR, PF 2.18). 1.2 breaks (3 trades, 33% WR, PF 0.50).
+- RS threshold (0D): 1.0 optimal (5 trades, 80% WR, PF 2.18). 1.2 breaks (3 trades, 33% WR, PF 0.50). **[Day 78: this is the threshold now shared by both full view and simple checklist — see resolution below.]**
 
 ---
 
@@ -174,19 +174,43 @@
 
 ---
 
-## ACTIVE PRIORITY ORDER (Day 78 updated)
+## ACTIVE PRIORITY ORDER (Day 79 updated)
 
 | # | Item | Why | Effort |
 |---|------|-----|--------|
-| 1 | **Fable Review Remediation Plan** | Day 78 audit: backtest edge likely overstated (survivorship universe, reused OOS, MR costs missing). Plan: `docs/claude/design/FABLE_REVIEW_REMEDIATION_PLAN.md`. Session 1 (config freeze + pre-registration + hygiene) unblocks paper trading. | 7 sessions (phased) |
-| 2 | **Paper trading** | PRIMARY FOCUS — starts immediately after remediation Session 1 (frozen, pre-registered config) | Ongoing |
-| 3 | **Breakout Enhancement Plan Phase 0** | Config D/E backtest (confirmed-breakout-only vs mixed entries). Plan: `docs/claude/design/BREAKOUT_ENHANCEMENT_PLAN.md`. Gated on remediation Phase 2. Phases 1–3 are post-freeze features. | 1 session (P0) |
-| 4 | **Build N4: Market Phase synthesis** | Research done (Day 76). `market_phase_engine.py` + `/api/market/phase`. | 1 session |
-| 5 | **Build `/ibkr-scan` skill** | Research done (Day 77). Verify 52W High Proximity in IBKR first. | 1 session |
-| 6 | **Value Tab Phase 2** | AV-derived metrics (interest coverage, EV/EBIT, ROE 5yr median) | Low |
-| 7 | **Price Structure Phase 2** | HH/HL/LH/LL market structure engine using `find_pivot_points()` | Medium |
-| 8 | **N3: Gap-fill detection** | Deferred post paper trading (feeds Breakout Plan Phase 4) | Medium |
-| 9 | **Canadian Analyze page** | Medium bug, data source redesign needed | High |
+| 1 | **Fable Review Remediation Plan — Phase 4** | Phases 0–3 COMPLETE (Day 79). Phase 4 = survivorship-free re-validation (the big one — rebuild backtest universe without hindsight bias). Plan: `docs/claude/design/FABLE_REVIEW_REMEDIATION_PLAN.md`. | 1–2 sessions |
+| 2 | **Fable Review Remediation Plan — Phase 5** | Paper-trading instrumentation (entry-slippage logging, regime snapshots). | 1 session |
+| 3 | **Decide fundamentals mitigation** | Task 3.2 measured 40.0% live↔backtest disagreement — user decision pending: align live-to-SimFin or backtest-to-TTM. | Decision + implementation |
+| 4 | **Paper trading** | PRIMARY FOCUS — config frozen and pre-registered (`PAPER_TRADING_PREREGISTRATION.md`). Can start any time. | Ongoing |
+| 5 | **Breakout Enhancement Plan Phase 0** | Config D/E backtest (confirmed-breakout-only vs mixed entries). Now unblocked — remediation Phase 2's gap-aware fills are done. | 1 session |
+| 6 | **Breakout Enhancement Plan Phases 2–3** | Scan badges + `/breakout-watch` skill. Unblocked — engine wired and validated Day 79. | 1–2 sessions |
+| 7 | **Build N4: Market Phase synthesis** | Research done (Day 76). `market_phase_engine.py` + `/api/market/phase`. | 1 session |
+| 8 | **Build `/ibkr-scan` skill** | Research done (Day 77). Verify 52W High Proximity in IBKR first. | 1 session |
+| 9 | **Value Tab Phase 2** | AV-derived metrics (interest coverage, EV/EBIT, ROE 5yr median) | Low |
+| 10 | **Price Structure Phase 2** | HH/HL/LH/LL market structure engine using `find_pivot_points()` | Medium |
+| 11 | **N3: Gap-fill detection** | Deferred post paper trading (feeds Breakout Plan Phase 4) | Medium |
+| 12 | **Canadian Analyze page** | Medium bug, data source redesign needed | High |
+
+---
+
+## COMPLETE — Fable Review Remediation Phases 0–3 (Day 78–79)
+
+**Source:** Fable 5 full-system review, Day 78. Plan: `docs/claude/design/FABLE_REVIEW_REMEDIATION_PLAN.md`.
+
+| Phase | Result |
+|-------|--------|
+| 0 — Freeze & pre-register | RS threshold contradiction resolved (simple checklist 1.2→1.0, matching Config C). `PAPER_TRADING_PREREGISTRATION.md` created. |
+| 1 — Repo hygiene | SimFin key → `.env`, `backend/venv` untracked, `BACKEND_VERSION` constant, 3 dead files deleted. |
+| 2 — Backtest integrity | MR transaction costs added (PF 1.26→1.23 net). Gap-aware stop/target fills. `metrics.py` stats overhaul (scipy t-test, actual trades/year, block bootstrap, fixed-risk DD). JS↔Python verdict parity: 86,400-combo grid found 1 real bug (HOLD-fallback missing `Neutral` branch), fixed, now 100% parity. |
+| 3 — Backtest↔live coherence | Fundamentals mismatch measured at 40.0% disagreement (mitigation pending user decision). Silent RS fallback fixed on both JS and Python sides. |
+
+**Remaining:** Phase 4 (survivorship-free re-validation) and Phase 5 (paper-trading instrumentation) — not yet started.
+
+---
+
+## COMPLETE — Breakout Engine Wired (Day 79)
+
+A parallel session built a standalone 8-state breakout classifier (`backend/breakout_detection.py`, spec, Pine companion) but never registered its Flask route. Wired (`register_breakout_routes()` in `backend.py`) and validated on 5 real tickers + 1 edge case — see `API_CONTRACTS_DAY79.md` for the full contract. `docs/claude/design/BREAKOUT_ENHANCEMENT_PLAN.md` reconciled and updated; Phases 2–3 now unblocked.
 
 ---
 
@@ -676,6 +700,8 @@ From backtesting:
 | 74 | Context session. TradingView scanner brief. No code changes. |
 | 75 | Value Tab Phase 1 (isolated lens, v4.34). Gate 5 PASSED (1.9% overlap, 0.274 corr). Price Structure behavioral test PASSED 5/5 (2 bugs fixed). N1+N2+flip default view implemented. Version v4.35. |
 | 78 | Fable 5 full-system audit: backtest edge likely overstated (survivorship universe, reused OOS, MR costs missing, RS 1.0/1.2 contradiction). Remediation plan + Breakout enhancement plan created. Golden Rule 18 added. Priority order rebuilt — remediation #1. No code changes. |
+| 78B | Remediation Session 1: RS threshold RESOLVED — simple checklist reverted 1.2→1.0 (`simplifiedScoring.js`). The Day 70B "1.2" claim (PF 1.56→1.78, 20 tickers) has no reproducible script in the repo; `backtest_simplified.py` — the only candidate — tests 1.0 with unrelated params and predates the 9-criteria checklist. RS 1.0 is what Config C's 238-trade walk-forward-validated backtest actually uses. Full view and simple checklist now agree. Pre-registration doc, repo hygiene (SimFin key→.env, venv untracked, version string fixed, dead code removed) also completed this session. |
+| 79 | Fable Remediation Phases 2–3 complete: MR transaction costs (PF 1.26→1.23 net), gap-aware fills, `metrics.py` stats overhaul (scipy t-test, actual trades/year, block bootstrap, fixed-risk DD), JS↔Python verdict parity grid (86,400 combos, 1 bug found + fixed, now 100% parity), fundamentals mismatch measured (40.0% disagreement — mitigation pending), silent RS fallback fixed both sides. Breakout engine wired (`/api/breakout/<ticker>` now functional) and validated on 5 tickers + edge case. Golden Rule 19 added (systematic grid-test parity). Version v4.37 (BE v2.36, FE v4.36). |
 
 ---
 
