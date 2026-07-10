@@ -3006,6 +3006,20 @@ function App() {
                       </div>
                       <div className="text-xs text-gray-500">{sqnRating.rating}</div>
                     </div>
+                    {/* Day 79 (Fable Remediation Task 5.1): execution gap — signal-close vs actual fill */}
+                    <div className="bg-gray-700/50 rounded-lg p-3 text-center" title="Avg % difference between your actual entry price and the signal's close price at analysis time">
+                      <div className="text-gray-400 text-xs">Avg Entry Slippage</div>
+                      <div className={`text-2xl font-bold ${
+                        stats.avgEntrySlippagePct == null ? 'text-gray-500' :
+                        stats.avgEntrySlippagePct > 0.3 ? 'text-red-400' :
+                        stats.avgEntrySlippagePct < -0.3 ? 'text-green-400' : 'text-yellow-400'
+                      }`}>
+                        {stats.avgEntrySlippagePct != null ? `${stats.avgEntrySlippagePct > 0 ? '+' : ''}${stats.avgEntrySlippagePct}%` : 'N/A'}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {stats.slippageSampleSize > 0 ? `n=${stats.slippageSampleSize}` : 'no data yet'}
+                      </div>
+                    </div>
                   </div>
                 );
               })()}
@@ -3195,7 +3209,21 @@ function App() {
                             targetPrice: parseFloat(newTradeForm.targetPrice) || parseFloat(newTradeForm.entryPrice) * 1.1,
                             shares: parseInt(newTradeForm.shares),
                             notes: newTradeForm.notes,
-                            categoricalVerdict: categoricalResult?.verdict?.verdict
+                            categoricalVerdict: categoricalResult?.verdict?.verdict,
+                            // Day 79 (Fable Remediation Task 5.1): signal-close price is only
+                            // meaningful if the loaded analysis is for the SAME ticker being
+                            // logged — a manual/different-ticker entry has no comparable signal.
+                            signalClosePrice: (analysisResult?.ticker?.toUpperCase() === newTradeForm.ticker.toUpperCase())
+                              ? (analysisResult?.currentPrice ?? null)
+                              : null,
+                            // Day 79 (Fable Remediation Task 5.2): regime snapshot — reuses the
+                            // existing categoricalResult.riskMacro output, not reimplemented.
+                            regimeSnapshot: categoricalResult?.riskMacro ? {
+                              vix: categoricalResult.riskMacro.data?.vix ?? null,
+                              spyAbove200EMA: categoricalResult.riskMacro.data?.spyAbove200EMA ?? null,
+                              sma50Declining: categoricalResult.riskMacro.data?.sma50Declining ?? null,
+                              assessment: categoricalResult.riskMacro.assessment ?? null
+                            } : null
                           });
                           setForwardTrades(addTrade(forwardTrades, trade));
                           setNewTradeForm({ ticker: '', entryPrice: '', stopPrice: '', targetPrice: '', shares: '', notes: '' });

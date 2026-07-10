@@ -3,8 +3,8 @@
 > **Purpose:** Actionable plan to address findings from the Day 78 Fable 5 full-system review (intent, code, docs, live-market viability). Written to be executed by Claude (Sonnet) across multiple sessions with no additional context needed.
 > **Source:** Fable 5 deep review, Day 78 (July 5, 2026) — backtest engine, verdict logic, MR engine, live-data path, docs.
 > **Location:** `docs/claude/design/`
-> **Status:** Phase 0 + Phase 1 + Phase 2 + Phase 3 DONE (Day 78, sessions 2–4). Phase 3 surfaced a significant finding (40% fundamentals disagreement rate, Task 3.2 — mitigation choice awaits user decision) and one more fixed bug (Task 3.3 RS fallback, both sides, verified identical behavior). Phase 4 (survivorship-free re-validation — the big one) is next.
-> **Last Updated:** Day 78, session 4 (July 6, 2026) — pending next `/sta-end` to formalize day number
+> **Status:** ✅ ALL 5 PHASES DONE (Day 78–79). The plan's central question is answered: **momentum edge survives directionally (PF 1.61→1.40, not yet significant) but MR's edge does NOT survive on an unbiased universe (PF 1.23 net→0.99, net losing, 6,151 trades — well-powered null result).** Paper trading is instrumented (entry-slippage + regime snapshot logging) and can proceed. **Two decisions remain for the user, not resolved in code:** (1) MR capital allocation given Phase 4's finding, (2) fundamentals mitigation given Task 3.2's 40% disagreement measurement.
+> **Last Updated:** Day 79, session 3 (July 8, 2026)
 
 ---
 
@@ -200,38 +200,36 @@ Do these BEFORE Phase 4, so the re-validation run uses the corrected simulator. 
 ## Phase 4 — Survivorship-Free Re-Validation (the big one; 1–2 dedicated sessions)
 
 ### Task 4.1 — Rebuild the backtest universe without hindsight
-- **Status:** NOT STARTED
-- **Effort:** 1–2 sessions
-- **Finding:** The 60-ticker universe (`backtest_holistic.py:55-80`) was hand-picked in 2026 and is dominated by 2020–2025 mega-winners (NVDA, LLY, AVGO, PLTR, CRWD, COIN...). A momentum-BUY filter tested on hindsight-selected momentum winners looks good almost by construction. This is the single biggest threat to PF 1.61 being real.
-- **Action:**
-  1. Build the universe from **SimFin's own coverage** (already local, free, point-in-time): all US tickers in the SimFin dataset (`get_available_tickers()`), filtered per-date only by criteria knowable at the time: price > $5 and 20d average dollar volume > $5M **as of each entry date** (compute from the OHLCV already being downloaded). Include tickers that later died or faded — SimFin's dataset includes delisted names; yfinance may lack OHLCV for some delisted tickers — log the count skipped for missing prices and report it as residual survivorship (it will not be zero; the goal is *much less* bias, honestly measured, not perfection).
-  2. If the full universe is too slow, use a random sample of 300–500 qualifying tickers, seeded (`random.seed(42)`) for reproducibility — random selection is the point; no hand-picking.
-  3. Run Config C, standard period, WITH the Phase 2 fixes (gap fills, corrected stats). Also run the MR strategy on the same universe.
-  4. Use `--scan-interval 2` or 3 if runtime demands; note it in results.
-- **Acceptance:** results JSON/HTML produced for the unbiased universe; skipped-ticker count reported.
+- **Status:** DONE (Day 79, session 2). Built `backend/backtest/backtest_survivorship_free.py`: random sample (seed=42, reproducible) of 400 tickers from SimFin's full 3,788-ticker US coverage — no hand-picking. Liquidity gate (price > $5, 20d avg $ volume > $5M) added directly to `check_entry_signals()` in `backtest_holistic.py`, checked per-date (not pre-selected) — verified zero effect on the original 60-ticker megacap universe. Ran Config C (standard) + MR on the same universe, `--scan-interval 2`.
+  - **Residual survivorship measured, not zero, as anticipated**: 140/400 (35%) had no usable OHLCV (mostly delisted, yfinance coverage gaps).
+  - Caught and fixed a real bug during this task: MR trades use different field names (`win`/`pnl_pct_net`) than `compute_metrics()` expects (`result`/`return_pct_net`) — was silently producing "0% WR, PF inf" nonsense before a translation layer was added. Found via a 30-ticker smoke test before committing to the full run.
+- **Acceptance:** MET — results JSON/HTML produced (`backend/backtest_results_holistic/survivorship_free_20260706_131040.json`); skipped-ticker count reported (140/400 momentum, 137/400 MR).
 
 ### Task 4.2 — Interpret and document the re-validation honestly
-- **Status:** NOT STARTED
-- **Effort:** half session (with 4.1)
-- **Action:** Create `docs/claude/versioned/SURVIVORSHIP_FREE_BACKTEST_DAY[N].md` comparing original vs unbiased-universe results. Interpretation guide (pre-committed so the conclusion isn't fitted to the result):
-  - Net PF ≥ 1.3 with p (block bootstrap) < 0.05 → edge substantially confirmed; proceed with paper trading as planned.
-  - Net PF 1.1–1.3 → edge real but modest; paper trade with expectations reset (this is still a tradeable system with 2% risk sizing).
-  - Net PF < 1.1 → the filter still has defensive value, but the alpha claim is unsupported; discuss with user before allocating capital. **Do not** re-tune thresholds to fix the number — that is precisely the data-snooping failure mode this plan exists to end.
-- **Acceptance:** comparison doc exists; STATUS/ROADMAP headline metrics updated to cite the unbiased numbers as canonical; old numbers kept but labeled "hindsight-universe."
+- **Status:** DONE (Day 79, session 2). Created `docs/claude/versioned/SURVIVORSHIP_FREE_BACKTEST_DAY79.md` applying the pre-committed interpretation criteria to both systems:
+  - **Config C (momentum): PF 1.61→1.40.** Clears the PF≥1.3 magnitude bar but fails BOTH significance tests (i.i.d. p=0.145, block bootstrap p=0.094) — the criteria require both conditions for "substantially confirmed," so this lands at "edge real but modest," not confirmed. 114 trades. Consistent with — arguably slightly better than — the Fable review's original PF ~1.1–1.3 estimate.
+  - **MR: PF 1.23 net→0.99.** Falls decisively into "PF < 1.1 → alpha claim unsupported," and is actually net losing. 6,151 trades — a well-powered sample, not a small-n fluke. Block bootstrap p=0.518 confirms no detectable edge. **This is the single most important finding of Phase 4: MR's apparent edge appears to have been a hand-picked-universe artifact.**
+  - ROADMAP headline metrics updated: Day 55/75 hindsight-universe numbers kept for history, explicitly labeled as such; Day 79 unbiased numbers now cited as canonical in a new "COMPLETE — Survivorship-Free Re-Validation" section. Gate 5's 50/50 capital-split verdict annotated as not holding on unbiased data.
+  - **No thresholds were re-tuned** to improve either number, per the plan's explicit instruction.
+- **Acceptance:** MET — comparison doc exists; ROADMAP updated with unbiased numbers as canonical, old numbers labeled hindsight-universe.
 
 ---
 
 ## Phase 5 — Paper-Trading Instrumentation (measure the execution gap)
 
 ### Task 5.1 — Log signal-vs-fill slippage in the Forward Test tab
-- **Status:** NOT STARTED
+- **Status:** DONE (Day 79, session 3). `createTrade()` in `forwardTesting.js` now accepts `signalClosePrice` + auto-computes `entrySlippagePct`. Wired at the single `createTrade()` call site in `App.jsx`: pulls `analysisResult.currentPrice` **only when the loaded analysis matches the ticker being logged** (a manual/different-ticker entry correctly gets `null`, not a fabricated value). `calculateStatistics()` reports `avgEntrySlippagePct` + `slippageSampleSize`, displayed as a 7th stat tile in the Van Tharp block (color-coded: red >0.3% unfavorable slippage, green <-0.3% favorable, yellow near zero). CSV export includes both new columns.
+  - **Caught and fixed a real bug during verification**: the slippage aggregate was computed inside the "zero closed trades" early-return branch, so it incorrectly showed `null`/`0` whenever no trade had been *closed* yet — even if open trades already had valid entry-slippage data. Slippage is an entry-time metric, independent of exit status. Fixed by computing it before the early-return branch; verified via direct Node execution with both all-open and mixed open/closed trade sets.
+- **Acceptance:** MET — new trades store both prices; stats block shows running average; CSV export includes it. Exit-side slippage (optional per the task) not implemented — no rule-implied exit price is currently computed/stored to compare against.
 - **Effort:** 1–2 hours
 - **Finding:** Backtest enters at the signal bar's close; a human enters manually later, possibly at a dual-entry price never modeled. For single-digit-% average winners, ~0.5% entry slippage per trade meaningfully erodes PF. No backtest can measure this — only live logging can.
 - **Action:** In `frontend/src/utils/forwardTesting.js` + the Forward Test tab: when a trade is added, also record `signal_close_price` (the close price shown at analysis time) alongside the actual `entry` the user got. Add a computed `entry_slippage_pct` column and show its running average in the Van Tharp stats block. Same for exits vs. the rule-implied exit price if feasible (optional).
 - **Acceptance:** new trades store both prices; stats block shows average entry slippage; CSV export includes it.
 
 ### Task 5.2 — Add regime tag to every paper trade
-- **Status:** NOT STARTED
+- **Status:** DONE (Day 79, session 3). `createTrade()` accepts `regimeSnapshot` — reuses `categoricalResult.riskMacro` (existing categorical logic) unchanged, not reimplemented: `{vix, spyAbove200EMA, sma50Declining, assessment}`. Wired at the single `createTrade()` call site. Included in CSV export (4 new columns). Verified via direct Node execution.
+  - **Honest null handling**: if no analysis is loaded when a trade is logged (`categoricalResult` unavailable), `regimeSnapshot` is `null` rather than a fabricated value — consistent with the project's "return null, not a plausible fake" rule (Day 54). "Every new paper trade carries a regime snapshot" is satisfied as "the field exists and is populated whenever the data is genuinely available," not as "always non-null regardless of context."
+- **Acceptance:** MET (with the null-when-unavailable caveat noted above, which is the correct behavior, not a shortfall).
 - **Effort:** 1 hour
 - **Why:** 2020–2025 was one long bull + one orderly bear. Live results must be attributable by regime to know whether deviation from backtest is regime-driven or system-driven.
 - **Action:** When a paper trade is logged, snapshot: VIX value, SPY vs 200 SMA, 50 SMA declining flag, and the resulting regime label (reuse existing categorical logic — do not reimplement). Store on the trade record; include in CSV export.
@@ -268,3 +266,9 @@ Paper trading can and should **start immediately after Session 1** (freeze + pre
 | Day | Tasks Completed | Notes |
 |-----|-----------------|-------|
 | — | — | Plan created Day 78, nothing executed yet |
+| 78, s2 | 0.1, 0.2 | RS resolved, config frozen |
+| 78, s2 | 1.1, 1.2, 1.3, 1.4 | Repo hygiene complete |
+| 78, s4 | 2.1, 2.2, 2.3, 2.4 | MR costs+gaps, stats fixed, verdict parity bug found+fixed (100%) |
+| 78, s4 | 3.2, 3.3 | Fundamentals mismatch measured (40%), RS fallback fixed both sides |
+| 79, s2 | 4.1, 4.2 | Survivorship-free re-validation: **MR edge does not survive (PF 0.99). Momentum edge survives, not yet significant (PF 1.40).** |
+| 79, s3 | 5.1, 5.2 | Entry-slippage + regime-snapshot logging wired into Forward Test tab. **Plan complete.** |

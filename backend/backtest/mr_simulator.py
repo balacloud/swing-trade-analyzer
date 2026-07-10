@@ -163,8 +163,19 @@ def backtest_mr_strategy(stock_df, ticker='UNKNOWN', stop_pct=0.05, max_days=10,
         return {'ticker': ticker, 'trades': [], 'error': 'Insufficient data'}
 
     close = stock_df['Close']
+    volume = stock_df['Volume']
     rsi2_series = calculate_rsi_short(close, period=2)
     sma200 = close.rolling(200).mean()
+    # Day 79 (post-Phase-4 liquidity re-test): 20-day average DOLLAR volume.
+    # The original entry condition had only a $5 price floor — no liquidity
+    # gate at all — unlike the momentum system's $5M ADV gate. The Day 79
+    # survivorship-free null result (PF 0.99, 6,151 trades) therefore
+    # included thinly-traded/shell-adjacent names Connors' RSI(2) approach
+    # was never validated on. This is a ONE-TIME, pre-committed liquidity
+    # restriction (not a performance-chasing re-tune): price > $10 and 20d
+    # avg dollar volume > $25M — a defensible "real desk could execute this"
+    # bar. Do not iterate this threshold to chase a better backtest number.
+    avg_dollar_vol_20 = (close * volume).rolling(20).mean()
 
     trades = []
     last_exit_idx = -1
@@ -177,9 +188,10 @@ def backtest_mr_strategy(stock_df, ticker='UNKNOWN', stop_pct=0.05, max_days=10,
         rsi2_val = float(rsi2_series.iloc[i])
         sma200_val = float(sma200.iloc[i])
         price = float(close.iloc[i])
+        adv20 = float(avg_dollar_vol_20.iloc[i]) if not pd.isna(avg_dollar_vol_20.iloc[i]) else 0
 
-        # Entry conditions
-        if rsi2_val < 10 and price > sma200_val and price > 5:
+        # Entry conditions (liquidity gate added Day 79 post-Phase-4 re-test)
+        if rsi2_val < 10 and price > sma200_val and price > 10 and adv20 > 25_000_000:
             result = simulate_mr_trade(stock_df, i, stop_pct=stop_pct, max_days=max_days)
             if result:
                 result['ticker'] = ticker

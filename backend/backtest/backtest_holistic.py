@@ -235,6 +235,19 @@ def check_entry_signals(stock_df, spy_df, vix_df, date_idx,
     if len(df_slice) < WARMUP_BARS:
         return result
 
+    # Day 79 (Fable Remediation Task 4.1): liquidity gate for survivorship-
+    # free re-validation. Filters per-date on criteria knowable at the time
+    # (no hindsight) — price > $5 and 20-day avg dollar volume > $5M. Has
+    # ~zero effect on the original hand-picked 60-ticker universe (all
+    # large/mega caps clear this trivially) but is essential for a broader,
+    # unbiased universe that may include illiquid/penny names.
+    current_price = df_slice['Close'].iloc[-1]
+    avg_dollar_vol_20 = (df_slice['Close'] * df_slice['Volume']).tail(20).mean()
+    if pd.isna(current_price) or current_price <= 5:
+        return result
+    if pd.isna(avg_dollar_vol_20) or avg_dollar_vol_20 <= 5_000_000:
+        return result
+
     # Get indicators at current bar
     rsi_val = rsi_series.iloc[date_idx] if rsi_series is not None and date_idx < len(rsi_series) else None
     adx_val = adx_series.iloc[date_idx] if adx_series is not None and date_idx < len(adx_series) else None

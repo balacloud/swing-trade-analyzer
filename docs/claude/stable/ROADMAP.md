@@ -2,12 +2,12 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 79 (July 6, 2026)
+> **Last Updated:** Day 80 (July 8, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.37 (Backend v2.36, Frontend v4.36, Backtest v4.18, API Service v2.11)
+## Current Version: v4.38 (Backend v2.37, Frontend v4.37, Backtest v4.18, API Service v2.11)
 
 ---
 
@@ -124,10 +124,10 @@
 
 ---
 
-## COMPLETE — Gate 5: Combined Momentum + MR Backtest (Day 75)
+## COMPLETE — Gate 5: Combined Momentum + MR Backtest (Day 75) — ⚠️ HINDSIGHT-UNIVERSE, see Day 79 below
 
 **Script:** `backend/backtest/gate5_combined.py`
-**Run:** 60 tickers, 5 years (2021–2026)
+**Run:** 60 tickers (hand-picked), 5 years (2021–2026)
 
 | System | Trades | Win Rate | Profit Factor |
 |--------|--------|----------|---------------|
@@ -136,7 +136,32 @@
 
 **Overlap:** 1.9% (negligible — systems fire on opposite conditions)
 **P&L correlation:** 0.274 (genuinely independent)
-**Verdict: PASS.** Run both with 50/50 capital split.
+**Verdict at the time: PASS.** Run both with 50/50 capital split.
+
+**⚠️ Day 79 update: this verdict does NOT hold on an unbiased universe.** MR's PF collapses to 0.99 (net losing) when re-tested on a random 400-ticker sample instead of the hand-picked 60. **Update (session 4): a one-time liquidity restriction (price>$10, 20d ADV>$25M) recovered PF 1.16** — see below. Still not statistically confirmed by the robust test; requires live paper-trading before any capital allocation.
+
+---
+
+## COMPLETE — Survivorship-Free Re-Validation (Day 79 — Fable Remediation Phase 4)
+
+**Script:** `backend/backtest/backtest_survivorship_free.py`
+**Doc:** `docs/claude/versioned/SURVIVORSHIP_FREE_BACKTEST_DAY79.md` (full analysis)
+**Run:** 400 tickers, randomly sampled (seed=42) from SimFin's full 3,788-ticker US coverage — no hand-picking. Same 2020–2025 period. 140/400 (35%) had no usable data (mostly delisted) — honest residual survivorship, not zero, as expected.
+
+**These are now the canonical headline numbers** (the Day 55/75 figures above are hindsight-universe and kept for history only):
+
+| System | Trades | Win Rate | Profit Factor | Sharpe | Significant? |
+|--------|--------|----------|----------------|--------|--------------|
+| **Config C (momentum)** | 114 | 49.12% | **1.40** (was 1.61) | 0.52 (was 0.85) | No — block bootstrap p=0.094 |
+| **MR, unrestricted universe** | 6,151 | 53.03% | 0.99 (was 1.23 net) | −0.10 | No — p=0.518, net losing |
+| **MR, liquidity-restricted (session 4)** | 3,210 | 57.35% | **1.16** | **1.30** | No — block bootstrap p=0.064 (close, not confirmed) |
+
+**MR verdict updated (session 4):** the original MR entry had no dollar-volume liquidity gate at all (only price>$5) — a legitimate, principled, ONE-TIME re-test (price>$10, 20d ADV>$25M — pre-committed before seeing the result, not a performance-chasing re-tune) recovered a positive, Sharpe-1.3 result. Still not confirmed by the robust significance test, and fixed-risk drawdown is high (78%). **Current status: same tier as momentum — real but modest, requires live paper-trading confirmation (50+ trades) before capital allocation.** No further MR backtest iteration; see `docs/claude/versioned/SURVIVORSHIP_FREE_BACKTEST_DAY79.md` addendum for full detail.
+
+**Verdict:**
+- **Momentum (Config C):** edge survives directionally (PF > 1, positive Sharpe) but is NOT yet statistically distinguishable from chance at only 114 trades. Consistent with the Fable review's estimate of "honest live PF ~1.1–1.3" — proceed to paper trading per the pre-registered plan; that live test is the real confirmation, not this backtest.
+- **MR:** unrestricted result was a clean null (PF 0.99, 6,151 trades). A one-time, pre-committed liquidity restriction (session 4 — see table above) recovered PF 1.16, Sharpe 1.30 — real but modest, same tier as momentum. **Not yet statistically confirmed** (block bootstrap p=0.064) and fixed-risk drawdown is high (78%). Treat identically to momentum: paper trade first, no capital allocation until 50+ live trades clear the pre-registered bar.
+- **Per Golden Rule 18/19 and this plan's own instruction: no further re-tuning of either system's thresholds.** The MR liquidity change was the one allowed re-test, pre-committed before the result was known — not a repeatable pattern for future disappointing numbers.
 
 ---
 
@@ -178,11 +203,11 @@
 
 | # | Item | Why | Effort |
 |---|------|-----|--------|
-| 1 | **Fable Review Remediation Plan — Phase 4** | Phases 0–3 COMPLETE (Day 79). Phase 4 = survivorship-free re-validation (the big one — rebuild backtest universe without hindsight bias). Plan: `docs/claude/design/FABLE_REVIEW_REMEDIATION_PLAN.md`. | 1–2 sessions |
-| 2 | **Fable Review Remediation Plan — Phase 5** | Paper-trading instrumentation (entry-slippage logging, regime snapshots). | 1 session |
+| 1 | **Start paper trading** | PRIMARY FOCUS — Fable Remediation Plan ALL 5 PHASES COMPLETE (Day 80). Config frozen and instrumented (`PAPER_TRADING_PREREGISTRATION.md`). Both momentum (PF 1.40) and MR (PF 1.16, post liquidity re-test) are real-but-unconfirmed — 50+ live trades each is the actual test now. | Ongoing |
+| 2 | **Add liquidity gate to live MR detector** | `mean_reversion.py` still only has `price > $5` — the backtest's new $10/$25M ADV gate isn't in production yet. Needed before MR paper trading reflects what was actually validated. | Small |
 | 3 | **Decide fundamentals mitigation** | Task 3.2 measured 40.0% live↔backtest disagreement — user decision pending: align live-to-SimFin or backtest-to-TTM. | Decision + implementation |
-| 4 | **Paper trading** | PRIMARY FOCUS — config frozen and pre-registered (`PAPER_TRADING_PREREGISTRATION.md`). Can start any time. | Ongoing |
-| 5 | **Breakout Enhancement Plan Phase 0** | Config D/E backtest (confirmed-breakout-only vs mixed entries). Now unblocked — remediation Phase 2's gap-aware fills are done. | 1 session |
+| 4 | **Confirm SimFin key rotation** | A possible new key was shared in conversation Day 79 but never confirmed as intentional or applied. | Small |
+| 5 | **Breakout Enhancement Plan Phase 0** | Config D/E backtest (confirmed-breakout-only vs mixed entries). Unblocked — remediation Phase 2's gap-aware fills are done. | 1 session |
 | 6 | **Breakout Enhancement Plan Phases 2–3** | Scan badges + `/breakout-watch` skill. Unblocked — engine wired and validated Day 79. | 1–2 sessions |
 | 7 | **Build N4: Market Phase synthesis** | Research done (Day 76). `market_phase_engine.py` + `/api/market/phase`. | 1 session |
 | 8 | **Build `/ibkr-scan` skill** | Research done (Day 77). Verify 52W High Proximity in IBKR first. | 1 session |
@@ -193,9 +218,9 @@
 
 ---
 
-## COMPLETE — Fable Review Remediation Phases 0–3 (Day 78–79)
+## COMPLETE — Fable Review Remediation, ALL 5 PHASES (Day 78–80)
 
-**Source:** Fable 5 full-system review, Day 78. Plan: `docs/claude/design/FABLE_REVIEW_REMEDIATION_PLAN.md`.
+**Source:** Fable 5 full-system review, Day 78. Plan: `docs/claude/design/FABLE_REVIEW_REMEDIATION_PLAN.md` (now historical/reference — all tasks done).
 
 | Phase | Result |
 |-------|--------|
@@ -203,8 +228,11 @@
 | 1 — Repo hygiene | SimFin key → `.env`, `backend/venv` untracked, `BACKEND_VERSION` constant, 3 dead files deleted. |
 | 2 — Backtest integrity | MR transaction costs added (PF 1.26→1.23 net). Gap-aware stop/target fills. `metrics.py` stats overhaul (scipy t-test, actual trades/year, block bootstrap, fixed-risk DD). JS↔Python verdict parity: 86,400-combo grid found 1 real bug (HOLD-fallback missing `Neutral` branch), fixed, now 100% parity. |
 | 3 — Backtest↔live coherence | Fundamentals mismatch measured at 40.0% disagreement (mitigation pending user decision). Silent RS fallback fixed on both JS and Python sides. |
+| 4 — Survivorship-free re-validation | 400-ticker random sample (seed=42) from SimFin's 3,788-ticker coverage. **Config C: PF 1.61→1.40 (edge survives directionally, not yet statistically significant). MR unrestricted: PF 1.23→0.99 (clean null).** |
+| 5 — Paper-trading instrumentation | Entry-slippage logging (`signalClosePrice`/`entrySlippagePct`) + regime snapshot on every paper trade, wired into the Forward Test tab. |
+| + MR liquidity re-test (Day 80, user-directed, one-time) | MR backtest entry had no dollar-volume gate at all. Added price>$10, 20d ADV>$25M (pre-committed, not a re-tune). **Result: PF 0.99→1.16, Sharpe -0.10→1.30 — real but still not significant (block bootstrap p=0.064).** MR now same tier as momentum. Live detector (`mean_reversion.py`) not yet updated with this gate. |
 
-**Remaining:** Phase 4 (survivorship-free re-validation) and Phase 5 (paper-trading instrumentation) — not yet started.
+**Bottom line:** both momentum and MR are directionally positive, backtest-validated, and **not yet statistically confirmed**. Neither gets capital until 50+ live paper trades clear the pre-registered bar. Full detail: `docs/claude/versioned/SURVIVORSHIP_FREE_BACKTEST_DAY79.md` (including addendum).
 
 ---
 
@@ -446,14 +474,15 @@ A parallel session built a standalone 8-state breakout classifier (`backend/brea
   - 3rd view toggle between Full Analysis and Simple Checklist
 - **Files:** `frontend/src/components/DecisionMatrix.jsx` (new), `App.jsx` (3 edits)
 
-### v4.16: Holistic 3-Layer System Backtest ✅ COMPLETE (Day 55)
+### v4.16: Holistic 3-Layer System Backtest ✅ COMPLETE (Day 55) — ⚠️ see Day 79 re-validation below
 - **Priority:** HIGH (cannot validate system without historical outcome testing)
 - **Status:** ✅ IMPLEMENTED
-- **Results (60 tickers, 2020-2025):**
+- **Results (60 tickers, 2020-2025) — HINDSIGHT-UNIVERSE, kept for history, not canonical:**
   - Config A (Categorical only): 1108 trades, 51.53% WR, PF 1.41, p<0.000001
   - Config B (A + Patterns): 406 trades, 51.72% WR, PF 1.43, p=0.002
   - Config C (Full 3-layer): 238 trades, 53.78% WR, PF 1.61, Sharpe 0.85, p=0.002
   - **All 3 configs statistically significant — NOT random**
+  - **⚠️ Day 79: this 60-ticker universe was hand-picked in 2026 and is dominated by 2020-2025 mega-winners. See "COMPLETE — Survivorship-Free Re-Validation (Day 79)" below for the canonical, unbiased-universe numbers.**
 - **Walk-Forward:** OOS outperforms IS — system is NOT overfitted
 - **Exit Optimization:** 10-day EMA trailing stop + breakeven stop, max drawdown 65.9% → 52.6%
 - **Files:** `backend/backtest/` (5 new files: simfin_loader, categorical_engine, metrics, trade_simulator, backtest_holistic)
@@ -702,6 +731,7 @@ From backtesting:
 | 78 | Fable 5 full-system audit: backtest edge likely overstated (survivorship universe, reused OOS, MR costs missing, RS 1.0/1.2 contradiction). Remediation plan + Breakout enhancement plan created. Golden Rule 18 added. Priority order rebuilt — remediation #1. No code changes. |
 | 78B | Remediation Session 1: RS threshold RESOLVED — simple checklist reverted 1.2→1.0 (`simplifiedScoring.js`). The Day 70B "1.2" claim (PF 1.56→1.78, 20 tickers) has no reproducible script in the repo; `backtest_simplified.py` — the only candidate — tests 1.0 with unrelated params and predates the 9-criteria checklist. RS 1.0 is what Config C's 238-trade walk-forward-validated backtest actually uses. Full view and simple checklist now agree. Pre-registration doc, repo hygiene (SimFin key→.env, venv untracked, version string fixed, dead code removed) also completed this session. |
 | 79 | Fable Remediation Phases 2–3 complete: MR transaction costs (PF 1.26→1.23 net), gap-aware fills, `metrics.py` stats overhaul (scipy t-test, actual trades/year, block bootstrap, fixed-risk DD), JS↔Python verdict parity grid (86,400 combos, 1 bug found + fixed, now 100% parity), fundamentals mismatch measured (40.0% disagreement — mitigation pending), silent RS fallback fixed both sides. Breakout engine wired (`/api/breakout/<ticker>` now functional) and validated on 5 tickers + edge case. Golden Rule 19 added (systematic grid-test parity). Version v4.37 (BE v2.36, FE v4.36). |
+| 80 | Fable Remediation Phase 4 (survivorship-free re-validation: Config C PF 1.61→1.40, MR PF 0.99 clean null) + Phase 5 (paper-trading instrumentation: entry slippage + regime snapshot logging) — **plan complete, all 5 phases**. User-directed one-time MR liquidity re-test (price>$10, 20d ADV>$25M): PF 0.99→1.16, Sharpe -0.10→1.30, still not significant (p=0.064) — MR now same "real but modest, unconfirmed" tier as momentum. Golden Rule 20 added (pre-committed restriction vs re-tune distinction). Version v4.38 (BE v2.37, FE v4.37). |
 
 ---
 

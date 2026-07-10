@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 79 — end of day (July 6, 2026)
+> **Last Updated:** Day 80 — end of day (July 8, 2026)
 
 ---
 
@@ -11,16 +11,23 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 79 |
-| Version | v4.37 (Backend v2.36, Frontend v4.36, Backtest v4.18, API Service v2.11) |
-| Latest Status | PROJECT_STATUS_DAY79_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY79.md |
-| Latest API | API_CONTRACTS_DAY79.md |
-| Focus | **Fable Remediation Phases 0–3 complete. Phase 4 (survivorship-free re-validation) is next. Paper trading unblocked — config frozen.** |
+| Current Day | 80 |
+| Version | v4.38 (Backend v2.37, Frontend v4.37, Backtest v4.18, API Service v2.11) |
+| Latest Status | PROJECT_STATUS_DAY80_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY80.md |
+| Latest API | API_CONTRACTS_DAY79.md (no API changes Day 80) |
+| Focus | **Fable Remediation Plan — ALL 5 PHASES COMPLETE. Both momentum (PF 1.40) and MR (PF 1.16, post liquidity re-test) are real-but-unconfirmed. Paper trading is the next real test — config frozen and instrumented.** |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 80 Summary (Fable Remediation Phases 4–5 Complete + MR Liquidity Re-Test — v4.38)
+- **Phase 4**: survivorship-free re-validation. Random 400-ticker sample (seed=42) from SimFin's 3,788-ticker coverage — no hand-picking. **Config C: PF 1.61→1.40 (real, not yet significant, p=0.094). MR unrestricted: PF 0.99 (clean null, 6,151 trades).**
+- **Phase 5**: paper-trading instrumentation. `signalClosePrice`/`entrySlippagePct` + `regimeSnapshot` now logged on every paper trade (Forward Test tab), reusing existing categorical logic. **This completes all 5 phases of the Fable Remediation Plan.**
+- **MR liquidity re-test (user-directed, one-time)**: original MR backtest had no dollar-volume gate at all. Added price>$10, 20d ADV>$25M (pre-committed, not a re-tune). **Result: PF 0.99→1.16, Sharpe -0.10→1.30 — real but still not significant (block bootstrap p=0.064).** MR now same tier as momentum: unconfirmed, needs live paper trading. Live detector (`mean_reversion.py`) not yet updated with this gate — flagged as an open item.
+- **Golden Rule 20 added**: a pre-committed, principled restriction decided before seeing results is a legitimate one-time re-test, distinct from re-tuning to chase a number.
+- Both trading systems now require 50+ live paper trades before capital allocation — neither is backtest-confirmed. Paper trading is the next real test.
 
 ### Day 79 Summary (Fable Remediation Phases 0–3 Executed + Breakout Wired — v4.37)
 - **Phase 0**: RS threshold resolved (simple checklist 1.2→1.0, matching Config C). `PAPER_TRADING_PREREGISTRATION.md` created — config frozen.
@@ -38,14 +45,6 @@
 - **`BREAKOUT_ENHANCEMENT_PLAN.md` created** (design/): breakout inventory (already core entry model) + 4 gated phases (Config D/E backtest → scan preset → at-pivot badges → /breakout-watch skill).
 - **Golden Rule 18 added**: "Reused OOS is not OOS — freeze before forward test."
 - ROADMAP priority order rebuilt (remediation #1); README mirrored.
-
-### Day 77 Summary (IBKR Screener Pipeline — Research Complete)
-- **Pure research session.** No code changes.
-- **IBKR 2.0 screener integration**: documented all factors from screenshots, designed 10-filter configuration derived from STA's Minervini/SEPA thesis.
-- **3-LLM audit** (Perplexity + GPT + Gemini): all three raised EarnGrw% floor, tightened EMA caps, replaced Quick Ratio with 52W High Proximity.
-- **Final 10 filters validated**: Market Cap ≥1B, AvgVol ≥$5M, Price/EMA(200) 1.05–1.65, Price/EMA(50) 1.00–1.20, ROE ≥15, EarnGrw% ≥20, Inst.Held 25–90, 52W High Proximity ≤-25%, MACD Histogram ≥0, Change% -2 to +8.
-- **`/ibkr-scan` skill design complete** — parses IBKR screenshots via Claude vision, calls STA API, ranks top 5–10.
-- 3 research docs created.
 
 ---
 
@@ -123,16 +122,15 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 
 ## NEXT SESSION PRIORITIES
 
-1. **Fable Remediation Phase 4** — `docs/claude/design/FABLE_REVIEW_REMEDIATION_PLAN.md`: survivorship-free re-validation (the big one — rebuild backtest universe without hindsight bias, 1–2 dedicated sessions).
-2. **Fable Remediation Phase 5** — paper-trading instrumentation (entry-slippage logging, regime snapshots).
+1. **Start paper trading** — PRIMARY FOCUS. Fable Remediation Plan is fully complete; config frozen and instrumented. Both momentum (PF 1.40) and MR (PF 1.16) need 50+ live trades each before capital allocation.
+2. **Add liquidity gate to live MR detector** — `mean_reversion.py` still only has `price > $5`; the backtest's new $10/$25M ADV gate needs to reach production before MR paper trading reflects what was validated.
 3. **Decide fundamentals mitigation** — Task 3.2 measured 40.0% live↔backtest disagreement; user decision pending (align live-to-SimFin or backtest-to-TTM).
 4. **Confirm SimFin key rotation** — user to verify the old leaked key was rotated at simfin.com; a possible new key was shared in conversation but not yet applied.
-5. **Paper trading** — PRIMARY FOCUS. Config is frozen and pre-registered — can start any time.
-6. **Breakout Plan Phase 0** — Config D/E backtest, now unblocked (remediation Phase 2 done).
-7. **Breakout Plan Phases 2–3** — scan badges + `/breakout-watch` skill, unblocked (engine wired Day 79).
-8. **Build N4: Market Phase synthesis** — Research done (Day 76). Queued behind the above.
-9. **Build `/ibkr-scan` skill** — Research done (Day 77). Verify 52W High Proximity in IBKR first.
-10. **Value Tab Phase 2 / Price Structure Phase 2 / N3 / Canadian Analyze page** — queued.
+5. **Breakout Plan Phase 0** — Config D/E backtest, unblocked.
+6. **Breakout Plan Phases 2–3** — scan badges + `/breakout-watch` skill, unblocked (engine wired Day 79).
+7. **Build N4: Market Phase synthesis** — Research done (Day 76). Queued behind the above.
+8. **Build `/ibkr-scan` skill** — Research done (Day 77). Verify 52W High Proximity in IBKR first.
+9. **Value Tab Phase 2 / Price Structure Phase 2 / N3 / Canadian Analyze page** — queued.
 
 ---
 
@@ -197,6 +195,7 @@ curl http://localhost:5001/api/cache/status
 | 77 | IBKR screener pipeline research complete. 3-LLM audit (Perplexity+GPT+Gemini). 10 validated filters. /ibkr-scan skill design done. No code changes. |
 | 78 | Fable 5 full-system audit. Remediation plan + Breakout enhancement plan created (design/). Golden Rule 18 (reused OOS). Priorities rebuilt — remediation #1, then paper trading. No code changes. |
 | 79 | Fable Remediation Phases 0-3 executed: RS threshold resolved, config frozen, repo hygiene, MR transaction costs, gap-aware fills, metrics.py stats overhaul, JS/Python verdict parity fixed (86,400-combo grid, 1 bug found+fixed), fundamentals mismatch measured (40.0%), RS fallback fixed both sides. Breakout engine wired + validated. Golden Rule 19 (grid-test parity). Version v4.37 (BE v2.36, FE v4.36). |
+| 80 | Fable Remediation Phases 4-5 complete (survivorship-free re-validation + paper-trading instrumentation) — plan finished. MR liquidity re-test (user-directed, one-time): PF 0.99→1.16, still unconfirmed. Golden Rule 20 (pre-committed restriction vs re-tune). Version v4.38 (BE v2.37, FE v4.37). |
 
 ---
 

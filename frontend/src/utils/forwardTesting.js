@@ -40,10 +40,23 @@ export function createTrade({
   entryType = 'momentum',  // 'momentum' or 'pullback'
   pattern = null,
   categoricalVerdict = null,
-  notes = ''
+  notes = '',
+  // Day 79 (Fable Remediation Task 5.1): signal-close price vs actual fill —
+  // measures the execution gap no backtest can measure. Pass the price shown
+  // at analysis time (e.g. analysisResult.currentPrice); null if unavailable
+  // (manual entry with no loaded analysis) rather than faking a value.
+  signalClosePrice = null,
+  // Day 79 (Fable Remediation Task 5.2): regime snapshot at entry — reuses
+  // the existing categoricalResult.riskMacro output, not reimplemented.
+  // Shape: { vix, spyAbove200EMA, sma50Declining, assessment }
+  regimeSnapshot = null
 }) {
   const initialRisk = entryPrice - stopPrice;
   const potentialReward = targetPrice - entryPrice;
+
+  const entrySlippagePct = (signalClosePrice != null && signalClosePrice !== 0)
+    ? Math.round(((entryPrice - signalClosePrice) / signalClosePrice) * 10000) / 100
+    : null;
 
   return {
     id: Date.now().toString(36) + Math.random().toString(36).substr(2),
@@ -57,6 +70,13 @@ export function createTrade({
     pattern,
     categoricalVerdict,
     notes,
+
+    // Day 79: execution gap measurement
+    signalClosePrice,
+    entrySlippagePct,
+
+    // Day 79: regime snapshot at entry (null if categoricalResult unavailable)
+    regimeSnapshot,
 
     // Calculated fields
     initialRisk,
@@ -123,6 +143,16 @@ export function calculateStatistics(trades) {
     t.status !== TradeStatus.OPEN && t.status !== TradeStatus.CANCELLED
   );
 
+  // Day 79 (Fable Remediation Task 5.1): entry slippage is measured at
+  // ENTRY time, independent of whether the trade has closed — computed
+  // before the closed-trades early-return so open trades count too.
+  const tradesWithSlippage = trades.filter(t => t.entrySlippagePct != null);
+  const avgEntrySlippagePct = tradesWithSlippage.length > 0
+    ? Math.round(
+        (tradesWithSlippage.reduce((sum, t) => sum + t.entrySlippagePct, 0) / tradesWithSlippage.length) * 100
+      ) / 100
+    : null;
+
   if (closedTrades.length === 0) {
     return {
       totalTrades: trades.length,
@@ -140,7 +170,9 @@ export function calculateStatistics(trades) {
       sqn: 0,
       largestWin: 0,
       largestLoss: 0,
-      avgHoldingDays: 0
+      avgHoldingDays: 0,
+      avgEntrySlippagePct,
+      slippageSampleSize: tradesWithSlippage.length
     };
   }
 
@@ -215,7 +247,9 @@ export function calculateStatistics(trades) {
     sqn: Math.round(sqn * 100) / 100,
     largestWin: Math.round(largestWin * 100) / 100,
     largestLoss: Math.round(largestLoss * 100) / 100,
-    avgHoldingDays: Math.round(avgHoldingDays * 10) / 10
+    avgHoldingDays: Math.round(avgHoldingDays * 10) / 10,
+    avgEntrySlippagePct,
+    slippageSampleSize: tradesWithSlippage.length
   };
 }
 
@@ -323,7 +357,10 @@ export function exportToCSV(trades) {
   const headers = [
     'ID', 'Ticker', 'Entry Date', 'Entry Price', 'Stop Price', 'Target Price',
     'Shares', 'Entry Type', 'Pattern', 'Exit Date', 'Exit Price', 'Exit Reason',
-    'Status', 'R-Multiple', 'P/L $', 'P/L %', 'Notes'
+    'Status', 'R-Multiple', 'P/L $', 'P/L %', 'Notes',
+    // Day 79 (Fable Remediation Task 5.1 + 5.2)
+    'Signal Close Price', 'Entry Slippage %',
+    'VIX at Entry', 'SPY Above 200SMA', 'SPY 50SMA Declining', 'Regime at Entry'
   ];
 
   const rows = trades.map(t => [
@@ -343,7 +380,13 @@ export function exportToCSV(trades) {
     t.rMultiple || '',
     t.profitLoss || '',
     t.profitLossPct || '',
-    t.notes || ''
+    t.notes || '',
+    t.signalClosePrice != null ? t.signalClosePrice : '',
+    t.entrySlippagePct != null ? t.entrySlippagePct : '',
+    t.regimeSnapshot?.vix != null ? t.regimeSnapshot.vix : '',
+    t.regimeSnapshot?.spyAbove200EMA != null ? t.regimeSnapshot.spyAbove200EMA : '',
+    t.regimeSnapshot?.sma50Declining != null ? t.regimeSnapshot.sma50Declining : '',
+    t.regimeSnapshot?.assessment || ''
   ]);
 
   const csvContent = [
