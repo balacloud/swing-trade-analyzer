@@ -16,6 +16,21 @@ Tier 3A (Day 69): NEW file — zero impact on existing code.
 import pandas as pd
 import numpy as np
 
+# Day 81: shared with backend.py's /api/mr/scan default watchlist and the
+# automated paper-trading engine (paper_trading/live_signals.py) — one list,
+# not two that can drift.
+DEFAULT_MR_UNIVERSE = [
+    'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA',
+    'AMD', 'NFLX', 'CRM', 'ADBE', 'INTC', 'QCOM', 'AVGO', 'TXN',
+    'JPM', 'BAC', 'GS', 'MS', 'V', 'MA', 'PYPL',
+    'UNH', 'JNJ', 'PFE', 'ABBV', 'MRK', 'LLY', 'BMY',
+    'XOM', 'CVX', 'COP', 'SLB',
+    'HD', 'LOW', 'TGT', 'WMT', 'COST',
+    'DIS', 'CMCSA', 'T', 'VZ',
+    'CAT', 'DE', 'BA', 'RTX', 'LMT', 'GE',
+    'COIN', 'SQ', 'SHOP', 'PLTR', 'SOFI', 'AFRM',
+]
+
 
 def calculate_rsi_short(closes, period=2):
     """RSI with very short period (Connors approach).
@@ -78,8 +93,15 @@ def detect_mr_signal(df):
     Conditions:
     1. RSI(2) < 10 (oversold on short timeframe)
     2. Price > 200 SMA (long-term uptrend intact — don't catch falling knives)
-    3. Price > $5 (liquidity filter)
-    4. Volume > 500K avg (tradeable)
+    3. Price > $10 (liquidity filter)
+    4. 20-day avg dollar volume > $25M (tradeable)
+
+    Day 81: liquidity gate tightened from (price>$5, avg share volume>500K)
+    to match mr_simulator.py's backtest_mr_strategy() gate exactly — the
+    one-time, pre-committed re-test (Golden Rule 20) that recovered MR's
+    PF 0.99->1.16 was run on price>$10 + 20d ADV>$25M. The live detector
+    previously used a looser, untested gate; this closes that gap so live
+    signals reflect the config that was actually validated.
 
     Parameters
     ----------
@@ -106,6 +128,7 @@ def detect_mr_signal(df):
     sma200 = float(close.rolling(200).mean().iloc[-1])
     current_price = float(close.iloc[-1])
     avg_volume = float(df['Volume'].rolling(20).mean().iloc[-1])
+    avg_dollar_volume = float((close * df['Volume']).rolling(20).mean().iloc[-1])
 
     # ADX for range-bound context
     adx_series = calculate_adx(high, low, close)
@@ -114,8 +137,8 @@ def detect_mr_signal(df):
     conditions = {
         'rsi2_oversold': rsi2 < 10,
         'above_200sma': current_price > sma200,
-        'price_filter': current_price > 5,
-        'volume_filter': avg_volume > 500000,
+        'price_filter': current_price > 10,
+        'volume_filter': avg_dollar_volume > 25_000_000,
     }
 
     signal = all(conditions.values())
@@ -143,6 +166,7 @@ def detect_mr_signal(df):
         'adx': round(adx_value, 2) if adx_value is not None else None,
         'range_bound': adx_value is not None and adx_value < 20,
         'avg_volume': int(avg_volume),
+        'avg_dollar_volume': int(avg_dollar_volume),
         'conditions': conditions,
         'stop': round(stop, 2),
         'target': round(target, 2),

@@ -22,7 +22,7 @@ from mean_reversion import calculate_rsi_short
 from backtest.metrics import apply_transaction_costs  # Day 78: Fable Remediation Task 2.1
 
 
-def simulate_mr_trade(stock_df, entry_idx, stop_pct=0.05, max_days=10):
+def simulate_mr_trade(stock_df, entry_idx, stop_pct=0.05, max_days=10, live_mode=False):
     """
     Simulate a mean-reversion trade.
 
@@ -41,6 +41,12 @@ def simulate_mr_trade(stock_df, entry_idx, stop_pct=0.05, max_days=10):
         Stop loss percentage below entry (default 5%)
     max_days : int
         Maximum holding period in trading days (default 10)
+    live_mode : bool
+        If True, running out of price history (today's bar is the latest
+        available) means the position is still open — returns a
+        'status': 'open' snapshot instead of forcing a data_end exit. Lets
+        the live paper-trading engine replay this same function fresh every
+        day instead of maintaining a separate state machine.
 
     Returns
     -------
@@ -48,6 +54,16 @@ def simulate_mr_trade(stock_df, entry_idx, stop_pct=0.05, max_days=10):
         Trade result with entry, exit, pnl, exit_reason, hold_days
     """
     if entry_idx >= len(stock_df) - 1:
+        if live_mode:
+            entry_date = stock_df.index[entry_idx]
+            return {
+                'status': 'open',
+                'entry_price': round(float(stock_df['Close'].iloc[entry_idx]), 2),
+                'stop_price': round(float(stock_df['Close'].iloc[entry_idx]) * (1 - stop_pct), 2),
+                'entry_date': str(entry_date.date()) if hasattr(entry_date, 'date') else str(entry_date),
+                'last_bar_date': str(entry_date.date()) if hasattr(entry_date, 'date') else str(entry_date),
+                'days_held': 0,
+            }
         return None
 
     entry_price = float(stock_df['Close'].iloc[entry_idx])
@@ -64,6 +80,17 @@ def simulate_mr_trade(stock_df, entry_idx, stop_pct=0.05, max_days=10):
     for day in range(1, max_days + 1):
         bar_idx = entry_idx + day
         if bar_idx >= len(stock_df):
+            if live_mode:
+                entry_date = stock_df.index[entry_idx]
+                last_bar_date = stock_df.index[-1]
+                return {
+                    'status': 'open',
+                    'entry_price': round(entry_price, 2),
+                    'stop_price': round(stop_price, 2),
+                    'entry_date': str(entry_date.date()) if hasattr(entry_date, 'date') else str(entry_date),
+                    'last_bar_date': str(last_bar_date.date()) if hasattr(last_bar_date, 'date') else str(last_bar_date),
+                    'days_held': day - 1,
+                }
             # Ran out of data — exit at last available bar
             exit_idx = len(stock_df) - 1
             exit_price = float(stock_df['Close'].iloc[exit_idx])
@@ -118,6 +145,7 @@ def simulate_mr_trade(stock_df, entry_idx, stop_pct=0.05, max_days=10):
     pnl_pct_net = costs['net_return_pct']
 
     return {
+        'status': 'closed',
         'entry_price': round(entry_price, 2),
         'exit_price': round(exit_price, 2),
         'stop_price': round(stop_price, 2),

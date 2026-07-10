@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 80 — end of day (July 8, 2026)
+> **Last Updated:** Day 81 — end of day (July 10, 2026)
 
 ---
 
@@ -11,16 +11,26 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 80 |
-| Version | v4.38 (Backend v2.37, Frontend v4.37, Backtest v4.18, API Service v2.11) |
-| Latest Status | PROJECT_STATUS_DAY80_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY80.md |
-| Latest API | API_CONTRACTS_DAY79.md (no API changes Day 80) |
-| Focus | **Fable Remediation Plan — ALL 5 PHASES COMPLETE. Both momentum (PF 1.40) and MR (PF 1.16, post liquidity re-test) are real-but-unconfirmed. Paper trading is the next real test — config frozen and instrumented.** |
+| Current Day | 81 |
+| Version | v4.39 (Backend v2.38, Frontend v4.37, Backtest v4.19, API Service v2.11) |
+| Latest Status | PROJECT_STATUS_DAY81_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY81.md |
+| Latest API | API_CONTRACTS_DAY79.md (no API contract changes Day 81 — /api/scan/tradingview refactored internally, response shape unchanged) |
+| Focus | **Automated paper trading engine built and live (Day 81) — daily unattended job now takes every qualifying signal with zero human filtering, more rigorous than manual Forward Test logging. Both momentum (PF 1.40) and MR (PF 1.16) still need 50+ live trades before capital allocation; the engine is now accumulating them automatically.** |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 81 Summary (Automated Paper Trading Engine Built + Live MR Liquidity Gate Fix — v4.39)
+- **User-directed, same-session build** (not a pre-planned roadmap item): asked whether the system could generate paper-trading signals and a ledger itself rather than relying on manual Forward Test logging. Answer: yes, and it's strictly more rigorous — a daily unattended job that takes every qualifying signal from the frozen config with zero human filtering removes the exact selection bias the whole remediation effort was fighting.
+- **New `backend/paper_trading/` package**: `ledger.py` (SQLite, `validation_results/paper_trading_ledger.db`, stats via the same `metrics.py` the backtest uses), `live_signals.py` (momentum candidates via the exact `/api/scan/tradingview?strategy=best` query, filtered through live `categorical_engine.run_assessment()` + R:R>=1.2; MR candidates via `detect_mr_signal()`), `daily_job.py` (activate pending signals at the real next-day open → step open positions → generate new signals; idempotent).
+- **`scan_queries.py`** (new): factored the Config C TradingView query out of `backend.py`'s scan route so the live Scan tab and the paper-trading engine use one implementation, not two that can drift (Golden Rule 19's lesson applied preemptively). Verified the refactored route returns identical results.
+- **`trade_simulator.py`/`mr_simulator.py` gained a `live_mode` parameter**: lets the live engine replay the exact backtested exit logic (stop/target/trailing-EMA/breakeven) one day at a time instead of reimplementing it as a separate state machine. Verified byte-for-byte identical to the batch backtest on 40 synthetic trades (30 momentum + 10 MR) before wiring it in.
+- **Live MR liquidity gate fixed** (closes the Day 80 known gap / old Next-Session-Priority #2): `mean_reversion.py`'s `detect_mr_signal()` now requires price>$10 + 20-day avg dollar volume>$25M (was price>$5 + 500K share-volume), matching the backtest's Day 79 re-test gate exactly.
+- **macOS launchd agent installed and confirmed firing**: `com.sta.papertrading.daily.plist`, weekdays 16:30 CT (~90min after close). Idempotent (checks `job_runs` table) and self-healing for missed days on already-open positions (full historical replay) — but cannot retroactively reconstruct entry signals for days the screener wasn't queried live (TradingView has no point-in-time API). Documented as a known limitation, not treated as a bug.
+- **First live run (2026-07-10)**: 0 momentum signals (2 TradingView candidates found, both correctly rejected on the fundamentals/R:R leg), 2 MR signals queued (GOOGL, ABBV) — cross-checked against `/api/mr/scan` directly, matched.
+- Not done: no UI surfacing of the new ledger (separate from the manual Forward Test tab's localStorage) — deferred until trades accumulate.
 
 ### Day 80 Summary (Fable Remediation Phases 4–5 Complete + MR Liquidity Re-Test — v4.38)
 - **Phase 4**: survivorship-free re-validation. Random 400-ticker sample (seed=42) from SimFin's 3,788-ticker coverage — no hand-picking. **Config C: PF 1.61→1.40 (real, not yet significant, p=0.094). MR unrestricted: PF 0.99 (clean null, 6,151 trades).**
@@ -37,14 +47,6 @@
 - **Breakout engine wired**: `/api/breakout/<ticker>` (built by a parallel session, never registered) is now live and validated on 5 tickers + 1 edge case. `BREAKOUT_ENHANCEMENT_PLAN.md` reconciled.
 - **Golden Rule 19 added**: systematic grid-test parity, not hand-picked vectors.
 - Paper trading unblocked (config frozen). Remediation Phase 4 (survivorship-free re-validation) is next.
-
-### Day 78 Summary (Fable 5 Full-System Audit + Two Remediation Plans)
-- **No code changes** — audit + planning session (Claude Fable 5).
-- **Full-system review verdict**: engineering honesty is real, but Config C PF 1.61 is likely overstated — survivorship-biased 60-ticker universe (hand-picked 2026) + walk-forward window reused across ~20 tuning sessions (OOS no longer OOS). Honest live expectation: PF ~1.1–1.3. Also found: MR/Gate 5 backtests have zero transaction costs, stop fills ignore gap-downs, RS 1.0 vs 1.2 contradiction (default view unbacktested), SimFin key hardcoded in git, venv tracked.
-- **`FABLE_REVIEW_REMEDIATION_PLAN.md` created** (design/): 6 phases, Sonnet-executable. Session 1 = RS decision + config freeze/pre-registration + hygiene → unblocks paper trading.
-- **`BREAKOUT_ENHANCEMENT_PLAN.md` created** (design/): breakout inventory (already core entry model) + 4 gated phases (Config D/E backtest → scan preset → at-pivot badges → /breakout-watch skill).
-- **Golden Rule 18 added**: "Reused OOS is not OOS — freeze before forward test."
-- ROADMAP priority order rebuilt (remediation #1); README mirrored.
 
 ---
 
@@ -122,15 +124,15 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 
 ## NEXT SESSION PRIORITIES
 
-1. **Start paper trading** — PRIMARY FOCUS. Fable Remediation Plan is fully complete; config frozen and instrumented. Both momentum (PF 1.40) and MR (PF 1.16) need 50+ live trades each before capital allocation.
-2. **Add liquidity gate to live MR detector** — `mean_reversion.py` still only has `price > $5`; the backtest's new $10/$25M ADV gate needs to reach production before MR paper trading reflects what was validated.
-3. **Decide fundamentals mitigation** — Task 3.2 measured 40.0% live↔backtest disagreement; user decision pending (align live-to-SimFin or backtest-to-TTM).
-4. **Confirm SimFin key rotation** — user to verify the old leaked key was rotated at simfin.com; a possible new key was shared in conversation but not yet applied.
-5. **Breakout Plan Phase 0** — Config D/E backtest, unblocked.
-6. **Breakout Plan Phases 2–3** — scan badges + `/breakout-watch` skill, unblocked (engine wired Day 79).
-7. **Build N4: Market Phase synthesis** — Research done (Day 76). Queued behind the above.
-8. **Build `/ibkr-scan` skill** — Research done (Day 77). Verify 52W High Proximity in IBKR first.
-9. **Value Tab Phase 2 / Price Structure Phase 2 / N3 / Canadian Analyze page** — queued.
+1. **Let paper trading accumulate** — PRIMARY FOCUS. The automated engine (`backend/paper_trading/`) now runs unattended daily (launchd, weekdays 16:30 CT) and is the primary path to the 50-trade bar for both momentum (PF 1.40) and MR (PF 1.16). Check progress with `venv/bin/python paper_trading/daily_job.py --report`. Nothing to build here — just let it run and periodically check in.
+2. **Decide fundamentals mitigation** — Task 3.2 measured 40.0% live↔backtest disagreement; user decision pending (align live-to-SimFin or backtest-to-TTM). Now also affects the automated engine's momentum leg.
+3. **Confirm SimFin key rotation** — user to verify the old leaked key was rotated at simfin.com; a possible new key was shared in conversation but not yet applied.
+4. **Breakout Plan Phase 0** — Config D/E backtest, unblocked.
+5. **Breakout Plan Phases 2–3** — scan badges + `/breakout-watch` skill, unblocked (engine wired Day 79).
+6. **Build N4: Market Phase synthesis** — Research done (Day 76). Queued behind the above.
+7. **Build `/ibkr-scan` skill** — Research done (Day 77). Verify 52W High Proximity in IBKR first.
+8. **Value Tab Phase 2 / Price Structure Phase 2 / N3 / Canadian Analyze page** — queued.
+9. **(Optional, low priority) Surface the paper-trading ledger in the UI** — currently CLI/DB-only (`--report` flag); a Forward-Test-tab display would be a nice-to-have once trades accumulate, not a prerequisite.
 
 ---
 
@@ -171,6 +173,16 @@ ls docs/claude/status/ | grep PROJECT_STATUS | tail -1
 
 # Cache status
 curl http://localhost:5001/api/cache/status
+
+# Paper trading ledger status (Day 81 — automated engine)
+cd backend && venv/bin/python paper_trading/daily_job.py --report
+
+# Manually trigger the daily paper-trading job (normally runs via launchd)
+cd backend && venv/bin/python paper_trading/daily_job.py --force
+
+# Check/disable the launchd scheduler
+launchctl list | grep sta.papertrading
+launchctl unload ~/Library/LaunchAgents/com.sta.papertrading.daily.plist
 ```
 
 ---
@@ -196,6 +208,7 @@ curl http://localhost:5001/api/cache/status
 | 78 | Fable 5 full-system audit. Remediation plan + Breakout enhancement plan created (design/). Golden Rule 18 (reused OOS). Priorities rebuilt — remediation #1, then paper trading. No code changes. |
 | 79 | Fable Remediation Phases 0-3 executed: RS threshold resolved, config frozen, repo hygiene, MR transaction costs, gap-aware fills, metrics.py stats overhaul, JS/Python verdict parity fixed (86,400-combo grid, 1 bug found+fixed), fundamentals mismatch measured (40.0%), RS fallback fixed both sides. Breakout engine wired + validated. Golden Rule 19 (grid-test parity). Version v4.37 (BE v2.36, FE v4.36). |
 | 80 | Fable Remediation Phases 4-5 complete (survivorship-free re-validation + paper-trading instrumentation) — plan finished. MR liquidity re-test (user-directed, one-time): PF 0.99→1.16, still unconfirmed. Golden Rule 20 (pre-committed restriction vs re-tune). Version v4.38 (BE v2.37, FE v4.37). |
+| 81 | Automated paper trading engine built (`backend/paper_trading/`): daily unattended job, no human signal filtering, launchd-scheduled. Shared TradingView query (`scan_queries.py`) and `live_mode` exit replay (`trade_simulator.py`/`mr_simulator.py`) prevent drift between backtest and live logic. Live MR liquidity gate fixed to match the backtested one. Version v4.39 (BE v2.38, Backtest v4.19). |
 
 ---
 

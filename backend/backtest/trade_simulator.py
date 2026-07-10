@@ -166,39 +166,21 @@ def get_vix_multiplier(vix_value):
         return 0.50
 
 
-# ─── Trade Simulation ────────────────────────────────────────────────────────
+# ─── Entry-Level Computation (stop/target/max_hold by holding period) ───────
 
-def simulate_trade(stock_df, entry_idx, holding_period,
-                   entry_price=None, stop_price=None, target_price=None):
+def compute_entry_levels(stock_df, entry_idx, holding_period, entry_price,
+                         stop_price=None, target_price=None):
     """
-    Simulate a trade with exit strategy based on holding period.
+    Compute stop/target/max_hold for a new position, per the frozen
+    holding-period rules (PAPER_TRADING_PREREGISTRATION.md section 7).
 
-    Quick (1-5 days):
-      Fixed target: +7% | Fixed stop: -5% | Max hold: 5 days
+    Factored out of simulate_trade() (Day 81) so the live paper-trading
+    engine can compute R:R and initial stop/target AT SIGNAL TIME — before
+    an entry_idx even has a "tomorrow" bar to loop over — using the exact
+    same thresholds the backtest uses, rather than a second implementation.
 
-    Standard (5-15 days):
-      Structural stop (swing low - 2×ATR) | Target +8% | Max hold: 15 days
-      + 10 EMA trailing stop (day 5+, gain >= 3%) | Breakeven stop (gain >= 5%)
-
-    Position (15-45 days):
-      Trailing 21 EMA stop (activates after day 5) | Target +15% | Max hold: 45 days
-
-    Args:
-        stock_df: DataFrame with OHLCV
-        entry_idx: index of entry bar
-        holding_period: 'quick', 'standard', or 'position'
-        entry_price: override entry price (default: close at entry_idx)
-        stop_price: override stop price (default: computed from holding_period)
-        target_price: override target price (default: computed from holding_period)
-
-    Returns:
-        dict with result, exit_price, exit_date, days_held, return_pct,
-             return_r, exit_reason, max_favorable_excursion, max_adverse_excursion
+    Returns (stop_price, target_price, max_hold).
     """
-    if entry_price is None:
-        entry_price = stock_df['Close'].iloc[entry_idx]
-
-    # Compute ATR for structural calculations
     lookback_start = max(0, entry_idx - 50)
     atr = calculate_atr_at(
         stock_df['High'].iloc[lookback_start:entry_idx + 1],
@@ -206,7 +188,6 @@ def simulate_trade(stock_df, entry_idx, holding_period,
         stock_df['Close'].iloc[lookback_start:entry_idx + 1],
     )
 
-    # Set defaults per holding period
     if holding_period == 'quick':
         max_hold = 5
         if target_price is None:
@@ -251,6 +232,53 @@ def simulate_trade(stock_df, entry_idx, holding_period,
             else:
                 stop_price = entry_price * 0.93  # Fallback -7%
 
+    return stop_price, target_price, max_hold
+
+
+# ─── Trade Simulation ────────────────────────────────────────────────────────
+
+def simulate_trade(stock_df, entry_idx, holding_period,
+                   entry_price=None, stop_price=None, target_price=None,
+                   live_mode=False):
+    """
+    Simulate a trade with exit strategy based on holding period.
+
+    Quick (1-5 days):
+      Fixed target: +7% | Fixed stop: -5% | Max hold: 5 days
+
+    Standard (5-15 days):
+      Structural stop (swing low - 2×ATR) | Target +8% | Max hold: 15 days
+      + 10 EMA trailing stop (day 5+, gain >= 3%) | Breakeven stop (gain >= 5%)
+
+    Position (15-45 days):
+      Trailing 21 EMA stop (activates after day 5) | Target +15% | Max hold: 45 days
+
+    Args:
+        stock_df: DataFrame with OHLCV
+        entry_idx: index of entry bar
+        holding_period: 'quick', 'standard', or 'position'
+        entry_price: override entry price (default: close at entry_idx)
+        stop_price: override stop price (default: computed from holding_period)
+        target_price: override target price (default: computed from holding_period)
+        live_mode: if True, running out of price history (today's bar is the
+            latest one available) means the position is still open — returns
+            a 'status': 'open' snapshot instead of forcing a data_end exit.
+            Lets the live paper-trading engine call this same function fresh
+            every day (deterministic replay from entry_idx) instead of a
+            separate state machine — one exit-logic implementation, not two.
+
+    Returns:
+        dict with result, exit_price, exit_date, days_held, return_pct,
+             return_r, exit_reason, max_favorable_excursion, max_adverse_excursion
+    """
+    if entry_price is None:
+        entry_price = stock_df['Close'].iloc[entry_idx]
+
+    stop_price, target_price, max_hold = compute_entry_levels(
+        stock_df, entry_idx, holding_period, entry_price,
+        stop_price=stop_price, target_price=target_price
+    )
+
     # Initial risk for R-multiple calculation
     initial_risk = entry_price - stop_price
     if initial_risk <= 0:
@@ -275,6 +303,12 @@ def simulate_trade(stock_df, entry_idx, holding_period,
         check_idx = entry_idx + day
 
         if check_idx >= len(stock_df):
+            if live_mode:
+                return _build_open_snapshot(
+                    entry_price, stop_price, target_price, day - 1,
+                    stock_df.index[entry_idx], stock_df.index[-1],
+                    max_favorable, max_adverse
+                )
             # Ran out of data
             exit_price = stock_df['Close'].iloc[-1]
             return _build_result(
@@ -390,6 +424,7 @@ def _build_result(entry_price, exit_price, initial_risk, days_held,
         result = 'breakeven'
 
     return {
+        'status': 'closed',
         'result': result,
         'entry_price': round(entry_price, 2),
         'exit_price': round(exit_price, 2),
@@ -402,6 +437,22 @@ def _build_result(entry_price, exit_price, initial_risk, days_held,
         'max_favorable_excursion': round(max_favorable, 4),
         'max_adverse_excursion': round(max_adverse, 4),
         'initial_risk_pct': round((initial_risk / entry_price) * 100, 4) if initial_risk else 0,
+    }
+
+
+def _build_open_snapshot(entry_price, stop_price, target_price, days_held,
+                         entry_date, last_bar_date, max_favorable, max_adverse):
+    """Build a 'still open' snapshot for live_mode when history runs out mid-hold."""
+    return {
+        'status': 'open',
+        'entry_price': round(entry_price, 2),
+        'stop_price': round(stop_price, 2),
+        'target_price': round(target_price, 2),
+        'entry_date': str(entry_date.date()) if hasattr(entry_date, 'date') else str(entry_date),
+        'last_bar_date': str(last_bar_date.date()) if hasattr(last_bar_date, 'date') else str(last_bar_date),
+        'days_held': days_held,
+        'max_favorable_excursion': round(max_favorable, 4),
+        'max_adverse_excursion': round(max_adverse, 4),
     }
 
 

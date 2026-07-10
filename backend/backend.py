@@ -85,6 +85,8 @@ except ImportError:
     print("⚠️  TradingView Screener not installed - batch scanning unavailable")
     print("   Install with: pip install tradingview-screener")
 
+import scan_queries  # Day 81: shared Config C query builder (backend.py + paper_trading engine)
+
 # Try to import support_resistance engine - graceful fallback
 try:
     from support_resistance import compute_sr_levels, SRConfig, SRFailure
@@ -1868,20 +1870,10 @@ def scan_tradingview():
             # Day 55: Redesigned to match backtested Config C criteria (v4.16)
             # Config C: 238 trades, 53.78% WR, PF 1.61, Sharpe 0.85, p=0.002
             # Note: "within 25% of 52W high" applied as post-filter (col() doesn't support arithmetic)
-            query = query.where(
-                col('exchange').isin(valid_exchanges),
-                col('market_cap_basic') >= 2_000_000_000,   # Mid-cap+ (not just large-cap)
-                col('close') > col('SMA50'),                # Stage 2: Price > 50 SMA
-                col('SMA50') > col('SMA200'),               # Stage 2: 50 SMA > 200 SMA
-                col('ADX') >= 20,                           # Trend strength (Config C requirement)
-                col('RSI') >= 50,                           # Bullish momentum
-                col('RSI') <= 70,                           # Not overbought (tighter: was 75)
-                col('EMA10') > col('EMA21'),                # Short-term momentum confirmation
-                col('Perf.Y') > 0,                          # Positive 52W performance (RS proxy)
-                col('relative_volume_10d_calc') >= 1.0      # At least average volume
-            )
-            # Sort by ADX descending (strongest trends first)
-            query = query.order_by('ADX', ascending=False)
+            # Day 81: query construction moved to scan_queries.build_best_query()
+            # so the automated paper-trading engine (paper_trading/live_signals.py)
+            # uses this EXACT same query — one implementation, not two (Golden Rule 19).
+            query, _ = scan_queries.build_best_query(limit=limit, market_index=market_index)
         else:
             return jsonify({'error': f'Unknown strategy: {strategy}'}), 400
         
@@ -2687,17 +2679,9 @@ def scan_mr_signals():
             tickers = [t.strip().upper() for t in tickers_param.split(',') if t.strip()]
         else:
             # Default: scan a broad set of liquid stocks
-            tickers = [
-                'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA',
-                'AMD', 'NFLX', 'CRM', 'ADBE', 'INTC', 'QCOM', 'AVGO', 'TXN',
-                'JPM', 'BAC', 'GS', 'MS', 'V', 'MA', 'PYPL',
-                'UNH', 'JNJ', 'PFE', 'ABBV', 'MRK', 'LLY', 'BMY',
-                'XOM', 'CVX', 'COP', 'SLB',
-                'HD', 'LOW', 'TGT', 'WMT', 'COST',
-                'DIS', 'CMCSA', 'T', 'VZ',
-                'CAT', 'DE', 'BA', 'RTX', 'LMT', 'GE',
-                'COIN', 'SQ', 'SHOP', 'PLTR', 'SOFI', 'AFRM',
-            ]
+            # Day 81: moved to mean_reversion.DEFAULT_MR_UNIVERSE (shared with
+            # the automated paper-trading engine — one list, not two).
+            tickers = mean_reversion.DEFAULT_MR_UNIVERSE
 
         def fetch_data(ticker, period):
             try:

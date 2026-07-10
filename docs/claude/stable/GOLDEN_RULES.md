@@ -2,7 +2,7 @@
 
 > **Purpose:** Core rules and cumulative lessons learned — stable reference
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 80 (July 8, 2026)
+> **Last Updated:** Day 81 (July 10, 2026)
 > **Session protocols:** See `CLAUDE_CONTEXT.md` for startup/close checklists
 
 ---
@@ -29,6 +29,7 @@
 18. **REUSED OOS IS NOT OOS — freeze before forward test.** Every tuning pass that peeks at the same walk-forward window converts out-of-sample into in-sample. Days 55–75 reused the same 2020–2025 split across ~20 tuning sessions, so "OOS outperforms IS" no longer certifies robustness. Before paper/forward testing: pre-register the exact config (all thresholds + success/failure criteria), then never re-tune against the same historical window to "fix" a validation result. (Day 78, Fable review)
 19. **SYSTEMATIC GRID-TEST PARITY, NOT HAND-PICKED VECTORS.** `categorical_engine.py`'s 5 hand-written parity vectors passed for years while a real bug sat undetected: the Python HOLD-fallback was missing a `risk_macro == 'Neutral'` branch that live JS had, silently defaulting to AVOID instead. A systematic 86,400-combo grid (`test_verdict_parity.py`) found it in one run — a 7.08% mismatch rate that 5 spot-checked vectors could never have surfaced by chance. When two independent implementations of the same logic must stay in sync (e.g., a Python backtest port vs the live JS it's meant to validate), build an exhaustive input grid over the decision boundaries, not a handful of "representative" examples. (Day 78, Fable Remediation Task 2.4)
 20. **A PRE-COMMITTED RESTRICTION IS NOT A RE-TUNE.** Rule 18 forbids re-tuning thresholds to chase a better backtest number — but MR's original entry condition had NO liquidity gate at all (only `price > $5`, unlike momentum's $5M ADV gate). Adding a liquidity floor (price>$10, 20d ADV>$25M) decided *before* seeing the result, for a defensible, principled reason (execution realism — Connors' RSI(2) research was validated on liquid large-caps, not shell/SPAC names), is a legitimate one-time re-test — not data-snooping. It flipped MR from a clean null (PF 0.99) to a real-but-modest result (PF 1.16, still not significant at p=0.064). The distinguishing test: was the change decided *because of* the disappointing number (forbidden), or was it a *quality/execution constraint* that happened to also be untested (legitimate, once)? Either way: run it once, accept the answer, don't iterate further. (Day 79/80, Fable Remediation MR liquidity re-test)
+21. **WHEN BUILDING A LIVE COUNTERPART TO AN EXISTING BACKTEST ENGINE, DRY THE SHARED LOGIC BEFORE WRITING THE SECOND IMPLEMENTATION — not after finding a parity bug.** Rule 19 found the JS/Python verdict-parity bug after it had shipped for years. Building the automated paper-trading engine (Day 81) was a chance to apply that lesson proactively: instead of writing a second exit-logic state machine for live positions, `trade_simulator.py`/`mr_simulator.py` gained a `live_mode` parameter so the live engine replays the *exact same* backtested function, and the Config C TradingView query was factored into `scan_queries.py` so the live Scan tab and the paper-trading engine can't drift apart. Verify the extraction is behavior-preserving (byte-for-byte identical output on real/synthetic trades) before relying on it — a refactor that "looks equivalent" is not the same as one that's been diffed against the original. (Day 81, automated paper trading engine)
 
 ---
 
@@ -98,6 +99,7 @@ Core principles:
 - **Silent fallbacks are invisible lies** — VIX=20 on failure, F&G=50 on error mask real problems (Day 54)
 - **Backend caching** — Restart backend periodically; 93% null fundamentals → 7% after restart (Day 25)
 - **Timezone normalization** — yfinance tz-aware, TwelveData naive; normalize at boundaries (Day 52)
+- **Live screeners have no point-in-time query** — TradingView's screener (and the live categorical assessment fed by it) only reflects the current market. A daily automated job that misses a scheduled run can correctly replay historical OHLCV to resolve what happened to *already-open* positions, but cannot retroactively reconstruct what a live screener *would have* returned on a missed past day — those entry signals are simply not generated, not backfilled. Design catch-up logic around this asymmetry rather than assuming full recoverability (Day 81, paper trading engine)
 
 ### Code Quality
 - **Dual endpoints = guaranteed corruption** — Same data from 2 endpoints diverged silently (Day 53)

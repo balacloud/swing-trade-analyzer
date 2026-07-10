@@ -2,12 +2,12 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 80 (July 8, 2026)
+> **Last Updated:** Day 81 (July 10, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.38 (Backend v2.37, Frontend v4.37, Backtest v4.18, API Service v2.11)
+## Current Version: v4.39 (Backend v2.38, Frontend v4.37, Backtest v4.19, API Service v2.11)
 
 ---
 
@@ -199,22 +199,44 @@
 
 ---
 
-## ACTIVE PRIORITY ORDER (Day 79 updated)
+## ACTIVE PRIORITY ORDER (Day 81 updated)
 
 | # | Item | Why | Effort |
 |---|------|-----|--------|
-| 1 | **Start paper trading** | PRIMARY FOCUS — Fable Remediation Plan ALL 5 PHASES COMPLETE (Day 80). Config frozen and instrumented (`PAPER_TRADING_PREREGISTRATION.md`). Both momentum (PF 1.40) and MR (PF 1.16, post liquidity re-test) are real-but-unconfirmed — 50+ live trades each is the actual test now. | Ongoing |
-| 2 | **Add liquidity gate to live MR detector** | `mean_reversion.py` still only has `price > $5` — the backtest's new $10/$25M ADV gate isn't in production yet. Needed before MR paper trading reflects what was actually validated. | Small |
-| 3 | **Decide fundamentals mitigation** | Task 3.2 measured 40.0% live↔backtest disagreement — user decision pending: align live-to-SimFin or backtest-to-TTM. | Decision + implementation |
-| 4 | **Confirm SimFin key rotation** | A possible new key was shared in conversation Day 79 but never confirmed as intentional or applied. | Small |
-| 5 | **Breakout Enhancement Plan Phase 0** | Config D/E backtest (confirmed-breakout-only vs mixed entries). Unblocked — remediation Phase 2's gap-aware fills are done. | 1 session |
-| 6 | **Breakout Enhancement Plan Phases 2–3** | Scan badges + `/breakout-watch` skill. Unblocked — engine wired and validated Day 79. | 1–2 sessions |
-| 7 | **Build N4: Market Phase synthesis** | Research done (Day 76). `market_phase_engine.py` + `/api/market/phase`. | 1 session |
-| 8 | **Build `/ibkr-scan` skill** | Research done (Day 77). Verify 52W High Proximity in IBKR first. | 1 session |
-| 9 | **Value Tab Phase 2** | AV-derived metrics (interest coverage, EV/EBIT, ROE 5yr median) | Low |
-| 10 | **Price Structure Phase 2** | HH/HL/LH/LL market structure engine using `find_pivot_points()` | Medium |
-| 11 | **N3: Gap-fill detection** | Deferred post paper trading (feeds Breakout Plan Phase 4) | Medium |
-| 12 | **Canadian Analyze page** | Medium bug, data source redesign needed | High |
+| 1 | **Let paper trading accumulate** | PRIMARY FOCUS — automated engine (`backend/paper_trading/`) built and live Day 81, running unattended daily via launchd. No longer something to "start" — it's running. Both momentum (PF 1.40) and MR (PF 1.16, post liquidity re-test) still need 50+ live trades each before capital allocation. Check in periodically with `daily_job.py --report`. | Ongoing (no build work) |
+| 2 | **Decide fundamentals mitigation** | Task 3.2 measured 40.0% live↔backtest disagreement — user decision pending: align live-to-SimFin or backtest-to-TTM. Now also affects the automated engine's momentum leg. | Decision + implementation |
+| 3 | **Confirm SimFin key rotation** | A possible new key was shared in conversation Day 79 but never confirmed as intentional or applied. | Small |
+| 4 | **Breakout Enhancement Plan Phase 0** | Config D/E backtest (confirmed-breakout-only vs mixed entries). Unblocked — remediation Phase 2's gap-aware fills are done. | 1 session |
+| 5 | **Breakout Enhancement Plan Phases 2–3** | Scan badges + `/breakout-watch` skill. Unblocked — engine wired and validated Day 79. | 1–2 sessions |
+| 6 | **Build N4: Market Phase synthesis** | Research done (Day 76). `market_phase_engine.py` + `/api/market/phase`. | 1 session |
+| 7 | **Build `/ibkr-scan` skill** | Research done (Day 77). Verify 52W High Proximity in IBKR first. | 1 session |
+| 8 | **Value Tab Phase 2** | AV-derived metrics (interest coverage, EV/EBIT, ROE 5yr median) | Low |
+| 9 | **Price Structure Phase 2** | HH/HL/LH/LL market structure engine using `find_pivot_points()` | Medium |
+| 10 | **N3: Gap-fill detection** | Deferred post paper trading (feeds Breakout Plan Phase 4) | Medium |
+| 11 | **Canadian Analyze page** | Medium bug, data source redesign needed | High |
+| 12 | **(Optional, low priority) Surface paper-trading ledger in UI** | Currently CLI/DB-only (`--report` flag). Nice-to-have once trades accumulate, not a prerequisite. | Medium |
+
+---
+
+## COMPLETE — Automated Paper Trading Engine (Day 81)
+
+**Source:** User-directed, same-session build (not a pre-planned roadmap item) — asked whether the system could generate paper-trading signals and a ledger itself instead of relying on manual Forward Test tab logging.
+
+| Component | File | Result |
+|-----------|------|--------|
+| Exit-logic DRY (`live_mode`) | `backend/backtest/trade_simulator.py`, `mr_simulator.py` | Live engine replays the exact backtested exit function once per day instead of a second implementation. Verified byte-for-byte identical to batch backtest on 40 synthetic trades. |
+| Shared scan query | `backend/scan_queries.py` (new) | Config C TradingView query factored out of `backend.py`'s scan route — live Scan tab and paper-trading engine use one implementation. Refactored route verified to return identical output. |
+| SQLite ledger | `backend/paper_trading/ledger.py` (new) | `paper_positions` (pending_entry→open→closed) + `job_runs`. Stats via existing `metrics.compute_metrics()` — not reimplemented. |
+| Live signal generation | `backend/paper_trading/live_signals.py` (new) | Momentum: TradingView pre-filter → live categorical assessment → R:R>=1.2. MR: `detect_mr_signal()` over `mean_reversion.DEFAULT_MR_UNIVERSE`. |
+| MR liquidity gate fix | `backend/mean_reversion.py` | price>$5+500K shares → price>$10+20d ADV>$25M, matching the backtested gate. Closes the Day 80 known gap. |
+| Daily orchestrator | `backend/paper_trading/daily_job.py` (new) | Activate at real historical next-day open → step open positions (self-healing replay) → generate new signals. Idempotent. `--report` flag. |
+| Scheduler | `~/Library/LaunchAgents/com.sta.papertrading.daily.plist` | Weekdays 16:30 CT. Installed, loaded, confirmed firing. |
+
+**First live run (2026-07-10):** 0 momentum signals (2 candidates, both correctly rejected on fundamentals/R:R), 2 MR signals queued (GOOGL, ABBV) — cross-checked against `/api/mr/scan` directly, matched.
+
+**Known limitation (accepted, not a bug):** TradingView has no point-in-time query — a missed scheduled run self-heals existing open positions via historical replay, but cannot backfill entry signals for the missed day itself. See Golden Rule 21 and the new Data Integrity note in `GOLDEN_RULES.md`.
+
+**Not done:** no UI surfacing of this ledger yet (separate from the manual Forward Test tab's localStorage) — deferred until trades accumulate (Priority #12 above).
 
 ---
 
@@ -230,7 +252,7 @@
 | 3 — Backtest↔live coherence | Fundamentals mismatch measured at 40.0% disagreement (mitigation pending user decision). Silent RS fallback fixed on both JS and Python sides. |
 | 4 — Survivorship-free re-validation | 400-ticker random sample (seed=42) from SimFin's 3,788-ticker coverage. **Config C: PF 1.61→1.40 (edge survives directionally, not yet statistically significant). MR unrestricted: PF 1.23→0.99 (clean null).** |
 | 5 — Paper-trading instrumentation | Entry-slippage logging (`signalClosePrice`/`entrySlippagePct`) + regime snapshot on every paper trade, wired into the Forward Test tab. |
-| + MR liquidity re-test (Day 80, user-directed, one-time) | MR backtest entry had no dollar-volume gate at all. Added price>$10, 20d ADV>$25M (pre-committed, not a re-tune). **Result: PF 0.99→1.16, Sharpe -0.10→1.30 — real but still not significant (block bootstrap p=0.064).** MR now same tier as momentum. Live detector (`mean_reversion.py`) not yet updated with this gate. |
+| + MR liquidity re-test (Day 80, user-directed, one-time) | MR backtest entry had no dollar-volume gate at all. Added price>$10, 20d ADV>$25M (pre-committed, not a re-tune). **Result: PF 0.99→1.16, Sharpe -0.10→1.30 — real but still not significant (block bootstrap p=0.064).** MR now same tier as momentum. Live detector (`mean_reversion.py`) updated to match this gate Day 81 — see below. |
 
 **Bottom line:** both momentum and MR are directionally positive, backtest-validated, and **not yet statistically confirmed**. Neither gets capital until 50+ live paper trades clear the pre-registered bar. Full detail: `docs/claude/versioned/SURVIVORSHIP_FREE_BACKTEST_DAY79.md` (including addendum).
 
