@@ -4,18 +4,25 @@ v4.16 Holistic 3-Layer Backtest Runner
 Tests whether the categorical assessment system (built Days 28-54) adds
 genuine edge over the Day 27 baseline (49.7% win rate = random).
 
-Three entry configurations (layered testing):
+Entry configurations (layered testing):
   Config A: Categorical verdict = BUY (assessment only)
-  Config B: Config A + pattern >= 60% confidence (at_pivot/broken_out)
-  Config C: Config B + trade viable + R:R >= 1.2
+  Config B: Config A + pattern >= 60% confidence (at_pivot/broken_out/complete/forming)
+  Config C: Config B + trade viable + R:R >= 1.2 (mixed pattern status)
+  Config D: Config C, restricted to broken_out + volume-confirmed patterns only
+            (Day 81, Breakout Enhancement Plan Task 0.1 — isolates the
+            confirmed-breakout-only edge vs C's mixed entries)
+  Config E: Config C, restricted to at_pivot/forming (anticipatory) patterns only
+            (Day 81 — complement of D, for a clean 3-way D-vs-E-vs-C comparison)
 
-Running all 3 shows which layer contributes edge.
+Running A/B/C shows which layer contributes edge; D/E isolate whether waiting
+for breakout confirmation helps or hurts within C's candidate set.
 
 Usage:
   python backtest_holistic.py --quick-test          # 5 tickers, 1 year
   python backtest_holistic.py                       # Full 60 tickers, 5 years
   python backtest_holistic.py --walk-forward        # With walk-forward validation
   python backtest_holistic.py --configs A B --periods standard
+  python backtest_holistic.py --configs C D E --walk-forward   # Day 81 breakout comparison
 """
 
 import os
@@ -212,8 +219,10 @@ def check_entry_signals(stock_df, spy_df, vix_df, date_idx,
 
     Returns dict with:
       config_a: bool (categorical BUY)
-      config_b: bool (A + pattern >= 80%)
-      config_c: bool (B + viable + R:R >= 1.5)
+      config_b: bool (A + pattern >= 60% confidence, mixed status)
+      config_c: bool (B + viable + R:R >= 1.2)
+      config_d: bool (C, restricted to broken_out + volume-confirmed only — Day 81)
+      config_e: bool (C, restricted to at_pivot/forming anticipatory only — Day 81)
       assessment: full assessment result
       patterns: pattern detection result
       sr_levels: support/resistance levels
@@ -223,6 +232,8 @@ def check_entry_signals(stock_df, spy_df, vix_df, date_idx,
         'config_a': False,
         'config_b': False,
         'config_c': False,
+        'config_d': False,
+        'config_e': False,
         'assessment': None,
         'patterns': None,
         'sr_levels': None,
@@ -349,29 +360,53 @@ def check_entry_signals(stock_df, spy_df, vix_df, date_idx,
     if verdict == 'BUY' and adx_val >= 20:
         result['config_a'] = True
 
-    # CONFIG B: A + actionable pattern
+    # CONFIG B: A + actionable pattern (mixed status: at_pivot/broken_out/complete/forming)
+    # Day 81 (Breakout Enhancement Plan Task 0.1): CONFIG D and E candidate
+    # patterns are tracked in the SAME pass over vcp/cup_handle/flat_base
+    # (same priority order, same detect_patterns() call) rather than
+    # rescanning — each config independently records the first pattern that
+    # satisfies ITS OWN status filter:
+    #   B: mixed (existing, unchanged) | D: broken_out + volume-confirmed only
+    #   E: at_pivot/forming (anticipatory) only — complement of D within B's set
+    has_pattern_b = False
+    has_pattern_d = False
+    has_pattern_e = False
+
     if result['config_a']:
         patterns = detect_patterns(df_slice)
         result['patterns'] = patterns
 
-        has_actionable_pattern = False
         if patterns and patterns.get('patterns'):
             for pname in ['vcp', 'cup_handle', 'flat_base']:
                 p = patterns['patterns'].get(pname, {})
-                if (p.get('detected') and
-                        p.get('confidence', 0) >= PATTERN_CONFIDENCE_THRESHOLD and
-                        p.get('status') in ('at_pivot', 'broken_out', 'complete', 'forming')):
-                    has_actionable_pattern = True
+                if not p.get('detected') or p.get('confidence', 0) < PATTERN_CONFIDENCE_THRESHOLD:
+                    continue
+                status = p.get('status')
+
+                if not has_pattern_b and status in ('at_pivot', 'broken_out', 'complete', 'forming'):
+                    has_pattern_b = True
                     result['trade_meta']['pattern'] = pname
                     result['trade_meta']['pattern_confidence'] = p.get('confidence')
-                    result['trade_meta']['pattern_status'] = p.get('status')
-                    break
+                    result['trade_meta']['pattern_status'] = status
 
-        if has_actionable_pattern:
+                if not has_pattern_d and status == 'broken_out' and p.get('breakout', {}).get('volume_confirmed'):
+                    has_pattern_d = True
+                    result['trade_meta']['pattern_d'] = pname
+
+                if not has_pattern_e and status in ('at_pivot', 'forming'):
+                    has_pattern_e = True
+                    result['trade_meta']['pattern_e'] = pname
+
+        if has_pattern_b:
             result['config_b'] = True
 
-    # CONFIG C: B + trade viable + R:R >= 1.2
-    if result['config_b']:
+    # CONFIG C/D/E: viable + R:R >= 1.2, gated on each config's own pattern match.
+    # Viability/R:R is price-structure-based, not pattern-specific, so it's
+    # computed once whenever ANY of B/D/E matched, and applied to whichever
+    # configs did — Config C's own result is untouched (still gated purely on
+    # has_pattern_b, exactly as before this change; Golden Rule: never alter
+    # the frozen Config C canonical numbers).
+    if has_pattern_b or has_pattern_d or has_pattern_e:
         try:
             # compute_sr_levels expects lowercase columns
             df_lower = df_slice.rename(columns={
@@ -416,8 +451,13 @@ def check_entry_signals(stock_df, spy_df, vix_df, date_idx,
             result['trade_meta']['nearest_support'] = nearest_support
             result['trade_meta']['nearest_resistance'] = nearest_resistance
 
-            if is_viable and rr_ratio >= 1.2:
+            trade_gate = is_viable and rr_ratio >= 1.2
+            if has_pattern_b and trade_gate:
                 result['config_c'] = True
+            if has_pattern_d and trade_gate:
+                result['config_d'] = True
+            if has_pattern_e and trade_gate:
+                result['config_e'] = True
 
         except Exception:
             pass  # S&R computation can fail for some data shapes
@@ -798,7 +838,9 @@ Elapsed: {meta['elapsed_seconds']}s
 <div class="card">
 <p><b>Config A:</b> Categorical BUY + ADX &ge; 20 (assessment only)</p>
 <p><b>Config B:</b> A + Pattern &ge; 60% confidence (adds pattern layer)</p>
-<p><b>Config C:</b> B + Trade Viable + R:R &ge; 1.2 (full 3-layer system)</p>
+<p><b>Config C:</b> B + Trade Viable + R:R &ge; 1.2 (full 3-layer system, mixed pattern status)</p>
+<p><b>Config D:</b> C but breakout-confirmed only &mdash; pattern status must be <code>broken_out</code> AND volume-confirmed (Day 81, Breakout Enhancement Plan Task 0.1)</p>
+<p><b>Config E:</b> C but anticipatory only &mdash; pattern status restricted to <code>at_pivot</code>/<code>forming</code> (complement of D, Day 81)</p>
 <table>
 <tr><th>Config / Period</th><th>Trades</th><th>Win Rate</th><th>Avg Return</th>
 <th>Profit Factor</th><th>Avg R</th><th>Sharpe</th><th>Max DD (100% eq.)</th><th>Max DD (2% risk)</th>

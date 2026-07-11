@@ -4,8 +4,8 @@
 > **Source:** Day 78 repo sweep (July 5, 2026) — inventory of existing breakout capability + gap analysis.
 > **Reconciled:** Day 78, session 2 (July 6, 2026) — a parallel session independently built a standalone breakout classification engine (`backend/breakout_detection.py` + `breakout_routes.py` + `BREAKOUT_ENGINE_SPEC.md` + Pine companion + human-in-the-loop workflow docs). See "Reconciliation" section below for what changed in this plan as a result.
 > **Location:** `docs/claude/design/`
-> **Status:** Phase 1.5 DONE (Day 78, session 3) — `/api/breakout/<ticker>` wired and behaviorally validated on 5 tickers + 1 edge case. Phase 0 NOT STARTED. Phase 1 NOT STARTED. Phases 2–3 ready to start (prerequisite met).
-> **Last Updated:** Day 78, session 3 (July 6, 2026)
+> **Status:** Phase 0 DONE (Day 81, July 10, 2026) — Config D got 0 trades (genuine finding, not a bug — see results doc). Phase 1.5 DONE (Day 78, session 3) — `/api/breakout/<ticker>` wired and behaviorally validated on 5 tickers + 1 edge case. Phase 1 NOT STARTED. Phases 2–3 ready to start (prerequisite met, and now informed by Phase 0's anticipatory-over-confirmed finding).
+> **Last Updated:** Day 81 (July 10, 2026)
 
 ---
 
@@ -80,7 +80,7 @@ A parallel session independently built a second, more sophisticated breakout cla
 **Why:** Config C currently fires on `forming` patterns too (`backtest_holistic.py:346` accepts `'at_pivot', 'broken_out', 'complete', 'forming'`). Nobody has measured whether waiting for the confirmed breakout is better or worse. This is cheap to answer with existing infrastructure and directly informs Phases 2–3.
 
 ### Task 0.1 — Add Config D (breakout-confirmed entries) to the holistic backtest
-- **Status:** NOT STARTED
+- **Status:** DONE (Day 81) — Config D + E added to `check_entry_signals()`, sharing B's `detect_patterns()` call. Config C verified byte-for-byte unchanged (quick-test diffed pre/post via `git stash`). Full run: `python backend/backtest/backtest_holistic.py --configs C D E --walk-forward` on the default 60-ticker universe. Results: `docs/claude/versioned/BREAKOUT_CONFIG_D_BACKTEST_DAY81.md`.
 - **Effort:** half session
 - **Prerequisite:** Fable Remediation Plan Tasks 2.1–2.2 complete (gap-aware fills). Verify before starting: `grep -n "open_day" backend/backtest/trade_simulator.py` should show the gap-fill logic. If absent, STOP and do remediation Phase 2 first.
 - **Action:**
@@ -90,7 +90,7 @@ A parallel session independently built a second, more sophisticated breakout cla
 - **Acceptance:** `python backend/backtest/backtest_holistic.py --configs C D E --walk-forward` runs; results saved.
 
 ### Task 0.2 — Interpret with pre-committed criteria
-- **Status:** NOT STARTED
+- **Status:** DONE (Day 81) — Verdict: third branch ("trade count collapses" — 0 trades, more extreme than the <40% threshold). Root cause diagnosed (not a bug): `pattern_detection.py`'s confidence score measures pre-breakout base quality, which structurally erodes the moment status flips to `broken_out` — verified via daily-granularity scan on AAPL/MSFT/META across 2019-2025 finding zero `broken_out`+confidence≥60 occurrences. Config E (anticipatory) already captures 83-90% of Config C's trades. Phases 2-3 should emphasize anticipatory/at-pivot states over confirmed-breakout states. No change to the live/frozen system. Full writeup: `docs/claude/versioned/BREAKOUT_CONFIG_D_BACKTEST_DAY81.md`.
 - **Effort:** 1–2 hours (same session as 0.1)
 - **Pre-committed interpretation (written before results exist, to prevent narrative-fitting):**
   - D meaningfully beats C (net PF ≥ +0.15 with ≥60% of C's trade count) → breakout confirmation adds edge → Phases 2–3 should emphasize `broken_out` + volume-confirmed states.
@@ -257,3 +257,4 @@ A parallel session independently built a second, more sophisticated breakout cla
 | — | — | Plan created Day 78, nothing executed yet |
 | 78, session 2 | Reconciliation only (no plan tasks executed) | Discovered parallel session's standalone breakout engine (`breakout_detection.py`/`breakout_routes.py`/spec/Pine/handoff docs). Added new Phase 1.5 (wire + validate the engine — NOT STARTED). Redesigned Phase 2/3 to consume its 8-state classification instead of `pattern_detection.py` status. Phase 0/1/4 unaffected. Confirmed via grep: route is NOT wired into `backend.py` — `/api/breakout/<ticker>` does not work yet. |
 | 78, session 3 | Tasks 1.5.1 + 1.5.2 (Phase 1.5 complete) | Wired `register_breakout_routes()` into `backend.py` per spec. Started backend, confirmed clean load ("✅ Breakout Routes loaded successfully"), validated `/api/breakout/<ticker>` on IBM/MSFT/NVDA/PLTR/INTC + 1 invalid-ticker edge case — all HTTP 200 (404 for invalid), no fabricated values, no false `BREAKOUT_CONFIRMED` on weak names. Stopped the test backend process cleanly afterward. Phase 2/3 now unblocked. |
+| 81 | Tasks 0.1 + 0.2 (Phase 0 complete) | Config D/E added to `check_entry_signals()`. Config C verified byte-for-byte unchanged before/after (git stash diff). Walk-forward run on default 60-ticker universe: **Config D = 0 trades both IS and OOS** — root-caused to `pattern_detection.py`'s confidence score measuring pre-breakout base quality, which structurally can't coexist with `broken_out` status (verified via daily scan on AAPL/MSFT/META, zero `broken_out`+conf≥60 hits across 2019-2025). Config E captured 83-90% of Config C's trades. Verdict: keep mixed logic, Phases 2-3 should emphasize anticipatory over confirmed states. Results: `docs/claude/versioned/BREAKOUT_CONFIG_D_BACKTEST_DAY81.md`. |

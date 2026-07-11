@@ -206,15 +206,34 @@
 | 1 | **Let paper trading accumulate** | PRIMARY FOCUS — automated engine (`backend/paper_trading/`) built and live Day 81, running unattended daily via launchd. No longer something to "start" — it's running. Both momentum (PF 1.40) and MR (PF 1.16, post liquidity re-test) still need 50+ live trades each before capital allocation. Check in periodically with `daily_job.py --report`. | Ongoing (no build work) |
 | 2 | **Decide fundamentals mitigation** | Task 3.2 measured 40.0% live↔backtest disagreement — user decision pending: align live-to-SimFin or backtest-to-TTM. Now also affects the automated engine's momentum leg. | Decision + implementation |
 | 3 | **Confirm SimFin key rotation** | A possible new key was shared in conversation Day 79 but never confirmed as intentional or applied. | Small |
-| 4 | **Breakout Enhancement Plan Phase 0** | Config D/E backtest (confirmed-breakout-only vs mixed entries). Unblocked — remediation Phase 2's gap-aware fills are done. | 1 session |
-| 5 | **Breakout Enhancement Plan Phases 2–3** | Scan badges + `/breakout-watch` skill. Unblocked — engine wired and validated Day 79. | 1–2 sessions |
-| 6 | **Build N4: Market Phase synthesis** | Research done (Day 76). `market_phase_engine.py` + `/api/market/phase`. | 1 session |
-| 7 | **Build `/ibkr-scan` skill** | Research done (Day 77). Verify 52W High Proximity in IBKR first. | 1 session |
-| 8 | **Value Tab Phase 2** | AV-derived metrics (interest coverage, EV/EBIT, ROE 5yr median) | Low |
-| 9 | **Price Structure Phase 2** | HH/HL/LH/LL market structure engine using `find_pivot_points()` | Medium |
-| 10 | **N3: Gap-fill detection** | Deferred post paper trading (feeds Breakout Plan Phase 4) | Medium |
-| 11 | **Canadian Analyze page** | Medium bug, data source redesign needed | High |
-| 12 | **(Optional, low priority) Surface paper-trading ledger in UI** | Currently CLI/DB-only (`--report` flag). Nice-to-have once trades accumulate, not a prerequisite. | Medium |
+| 4 | **Breakout Enhancement Plan Phases 2–3** | Scan badges + `/breakout-watch` skill. Unblocked — engine wired Day 79, Phase 0 finding (Day 81) says emphasize anticipatory/at-pivot states over confirmed-breakout states when designing the badge priority order. | 1–2 sessions |
+| 5 | **Build N4: Market Phase synthesis** | Research done (Day 76). `market_phase_engine.py` + `/api/market/phase`. | 1 session |
+| 6 | **Build `/ibkr-scan` skill** | Research done (Day 77). Verify 52W High Proximity in IBKR first. | 1 session |
+| 7 | **Value Tab Phase 2** | AV-derived metrics (interest coverage, EV/EBIT, ROE 5yr median) | Low |
+| 8 | **Price Structure Phase 2** | HH/HL/LH/LL market structure engine using `find_pivot_points()` | Medium |
+| 9 | **N3: Gap-fill detection** | Deferred post paper trading (feeds Breakout Plan Phase 4) | Medium |
+| 10 | **Canadian Analyze page** | Medium bug, data source redesign needed | High |
+| 11 | **(Optional, low priority) Surface paper-trading ledger in UI** | Currently CLI/DB-only (`--report` flag). Nice-to-have once trades accumulate, not a prerequisite. | Medium |
+
+---
+
+## COMPLETE — Breakout Enhancement Plan Phase 0 (Day 81)
+
+**Source:** `docs/claude/design/BREAKOUT_ENHANCEMENT_PLAN.md` Task 0.1/0.2. Full results: `docs/claude/versioned/BREAKOUT_CONFIG_D_BACKTEST_DAY81.md`.
+
+Config D (breakout-confirmed-only: `broken_out` status + volume-confirmed) and Config E (anticipatory-only: `at_pivot`/`forming`) added to `check_entry_signals()`, sharing Config B's pattern scan. Config C verified byte-for-byte unchanged before/after (git stash diff on quick-test). Walk-forward run on the default 60-ticker universe:
+
+| Config | IS Trades | OOS Trades | IS PF | OOS PF |
+|--------|-----------|------------|-------|--------|
+| C (mixed, existing) | 29 | 42 | 2.01 | 1.64 |
+| D (confirmed-only) | **0** | **0** | — | — |
+| E (anticipatory-only) | 24 | 38 | 1.54 | 1.38 |
+
+**Config D got zero trades — a genuine, root-caused finding, not a bug.** `pattern_detection.py`'s confidence score measures pre-breakout base quality (contraction, tightness, volatility contraction) — properties that structurally erode the instant price actually breaks out. Verified via a daily-granularity scan on AAPL/MSFT/META across 2019-2025: zero `broken_out`+confidence≥60 occurrences across all three pattern types. Config E alone captures 83-90% of Config C's real trades — most of the system's edge already lives in anticipatory entries, not confirmed breakouts.
+
+**Verdict (against Task 0.2's pre-committed criteria):** third branch — "trade count collapses" (0%, more extreme than the <40% threshold) → keep Config C's current mixed logic unchanged, and Phases 2-3 should emphasize anticipatory/`at_pivot`-style states over confirmed-breakout states. **No change to the live/frozen system** — this is a backtest-only finding about the frozen system's own edge, not a threshold change.
+
+**Scope note:** tests `pattern_detection.py`'s 3-status lifecycle (what Config C actually uses), not the separate, richer 8-state `breakout_detection.py` engine wired in Phase 1.5 — that engine's own `BREAKOUT_CONFIRMED` state has different, unbacktested gates and is a different question.
 
 ---
 
