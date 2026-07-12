@@ -314,6 +314,34 @@ export async function fetchScanResults(strategy = 'reddit', limit = 50, marketIn
   }
 }
 
+/**
+ * Batch breakout status for scan results (Day 81, Breakout Enhancement Plan Task 2.2)
+ * One request for up to 20 tickers instead of one request per row.
+ *
+ * @param {string[]} tickers - up to 20 ticker symbols
+ * @returns {object} - { results: { TICKER: { status, humanAction, breakoutLevel, rvol, checks, warnings } | { error } }, requested, benchmarkAvailable }
+ */
+export async function fetchBreakoutBatch(tickers) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/breakout/batch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tickers }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch breakout batch');
+    }
+
+    return await response.json();
+
+  } catch (error) {
+    console.error('Error fetching breakout batch:', error);
+    throw error;
+  }
+}
+
 // ============================================ 
 // SUPPORT & RESISTANCE ENDPOINT (Day 14)
 // ============================================

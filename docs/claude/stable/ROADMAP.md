@@ -206,7 +206,7 @@
 | 1 | **Let paper trading accumulate** | PRIMARY FOCUS — automated engine (`backend/paper_trading/`) built and live Day 81, running unattended daily via launchd. No longer something to "start" — it's running. Both momentum (PF 1.40) and MR (PF 1.16, post liquidity re-test) still need 50+ live trades each before capital allocation. Check in periodically with `daily_job.py --report`. | Ongoing (no build work) |
 | 2 | **Decide fundamentals mitigation** | Task 3.2 measured 40.0% live↔backtest disagreement — user decision pending: align live-to-SimFin or backtest-to-TTM. Now also affects the automated engine's momentum leg. | Decision + implementation |
 | 3 | **Confirm SimFin key rotation** | A possible new key was shared in conversation Day 79 but never confirmed as intentional or applied. | Small |
-| 4 | **Breakout Enhancement Plan Phases 2–3** | Scan badges + `/breakout-watch` skill. Unblocked — engine wired Day 79, Phase 0 finding (Day 81) says emphasize anticipatory/at-pivot states over confirmed-breakout states when designing the badge priority order. | 1–2 sessions |
+| 4 | **Breakout Enhancement Plan Phase 1** | "Near breakout" scan preset — the only remaining phase of the whole plan. Small feature, needs explicit user go-ahead to build during freeze (gating table). | Half session |
 | 5 | **Build N4: Market Phase synthesis** | Research done (Day 76). `market_phase_engine.py` + `/api/market/phase`. | 1 session |
 | 6 | **Build `/ibkr-scan` skill** | Research done (Day 77). Verify 52W High Proximity in IBKR first. | 1 session |
 | 7 | **Value Tab Phase 2** | AV-derived metrics (interest coverage, EV/EBIT, ROE 5yr median) | Low |
@@ -214,6 +214,20 @@
 | 9 | **N3: Gap-fill detection** | Deferred post paper trading (feeds Breakout Plan Phase 4) | Medium |
 | 10 | **Canadian Analyze page** | Medium bug, data source redesign needed | High |
 | 11 | **(Optional, low priority) Surface paper-trading ledger in UI** | Currently CLI/DB-only (`--report` flag). Nice-to-have once trades accumulate, not a prerequisite. | Medium |
+
+---
+
+## COMPLETE — Breakout Enhancement Plan Phases 2–3 (Day 81)
+
+**Source:** `docs/claude/design/BREAKOUT_ENHANCEMENT_PLAN.md` Tasks 2.1/2.2/3.1.
+
+| Component | File | Result |
+|-----------|------|--------|
+| Batch breakout endpoint | `backend/breakout_routes.py` (`/api/breakout/batch`) | Added inside `register_breakout_routes()`, reusing its existing OHLCV-fetch helpers — no `backend.py` changes needed. Hard-capped at 20 tickers/request. Partial results on per-ticker failure (no 500 on one bad ticker). |
+| Scan tab badge column | `frontend/src/App.jsx`, `frontend/src/services/api.js` | New "Breakout" column, one batch call for the top 20 rows after results render. Verified in a real headless-Chromium session (Playwright installed locally, no project run-skill existed for this app) — 20/20 badges rendered with correct colors/labels/tooltips, zero console errors, screenshot-confirmed. |
+| `/breakout-watch` skill | `.claude/commands/breakout-watch.md` | Buckets tickers by state, most-actionable first; `NOT_READY` summarized in one line, never treated as an error. Deliberately reuses the new batch endpoint (didn't exist when this plan was first written) instead of N individual calls. Verified end-to-end against the live backend. |
+
+Only Phase 1 (the "near breakout" scan preset) remains of the entire Breakout Enhancement Plan — gated on explicit user approval per the plan's own gating table (small feature, mid-freeze).
 
 ---
 

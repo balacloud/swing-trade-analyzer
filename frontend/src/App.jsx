@@ -38,7 +38,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation, clearBackendCache, fetchDataProvenance, getCacheStatus, fetchSectorRotation, fetchMRSignal } from './services/api';
+import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation, clearBackendCache, fetchDataProvenance, getCacheStatus, fetchSectorRotation, fetchMRSignal, fetchBreakoutBatch } from './services/api';
 import { calculateScore } from './utils/scoringEngine';
 import { calculateSimplifiedAnalysis } from './utils/simplifiedScoring';
 import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings } from './utils/positionSizing';
@@ -97,6 +97,11 @@ function App() {
   const [selectedStrategy, setSelectedStrategy] = useState('reddit');
   const [strategies, setStrategies] = useState(null);
   const [selectedMarketIndex, setSelectedMarketIndex] = useState('all');
+
+  // Breakout badges (Day 81, Breakout Enhancement Plan Task 2.2)
+  // ticker -> { status, humanAction, breakoutLevel, rvol, checks, warnings } | { error }
+  const [breakoutBadges, setBreakoutBadges] = useState({});
+  const [breakoutBadgesLoading, setBreakoutBadgesLoading] = useState(false);
 
   // Validation state (Day 17)
   const [validationLoading, setValidationLoading] = useState(false);
@@ -406,6 +411,20 @@ function App() {
     }
   };
 
+  // Breakout badge display config (Day 81, Breakout Enhancement Plan Task 2.2)
+  // Colors per docs/claude/design/BREAKOUT_ENGINE_SPEC.md §13. Labels are
+  // STATE descriptions, not signals — badge text must never read as "Buy".
+  // NOT_READY is intentionally absent (muted/hidden per the plan's design).
+  const BREAKOUT_BADGE_CONFIG = {
+    BREAKOUT_CONFIRMED: { label: 'Breakout Confirmed', color: 'bg-green-900/40 text-green-400 border-green-700' },
+    RETEST_ENTRY: { label: 'Retest Entry', color: 'bg-blue-900/40 text-blue-400 border-blue-700' },
+    BREAKOUT_WATCH: { label: 'Breakout Watch', color: 'bg-amber-900/40 text-amber-400 border-amber-700' },
+    BUILDING_BASE: { label: 'Building Base', color: 'bg-gray-700/40 text-gray-400 border-gray-600' },
+    SUPPLY_WARNING: { label: 'Supply Warning', color: 'bg-red-900/40 text-red-400 border-red-700' },
+    FAILED_BREAKOUT: { label: 'Failed Breakout', color: 'bg-red-900/40 text-red-400 border-red-700' },
+    EXTENDED_CHASE_RISK: { label: 'Extended', color: 'bg-orange-900/40 text-orange-400 border-orange-700' },
+  };
+
   // Scan for candidates
   // N2: Nirmal's curated watchlist — extracted from Nirmals_Trading_April2026.md
   const NIRMAL_WATCHLIST = [
@@ -414,10 +433,27 @@ function App() {
     'HOOD', 'COP', 'PYPL',
   ];
 
+  // Breakout badges: one batch call for the top 20 rows, fired after scan
+  // results render — does not block the initial table paint (Task 2.2 design).
+  const loadBreakoutBadges = async (tickers) => {
+    const topTickers = (tickers || []).slice(0, 20);
+    if (topTickers.length === 0) return;
+    setBreakoutBadgesLoading(true);
+    try {
+      const data = await fetchBreakoutBatch(topTickers);
+      setBreakoutBadges(data.results || {});
+    } catch (err) {
+      console.error('Breakout batch fetch failed:', err);
+    } finally {
+      setBreakoutBadgesLoading(false);
+    }
+  };
+
   const runScan = async () => {
     setScanLoading(true);
     setScanError(null);
     setScanResults(null);
+    setBreakoutBadges({});
 
     try {
       // N2: Nirmal watchlist — batch SR fetch (all cached), no backend strategy needed
@@ -448,11 +484,13 @@ function App() {
           returned: candidates.length,
           candidates,
         });
+        loadBreakoutBadges(candidates.map(c => c.ticker));
         return;
       }
 
       const results = await fetchScanResults(selectedStrategy, 50, selectedMarketIndex);
       setScanResults(results);
+      loadBreakoutBadges((results.candidates || []).map(c => c.ticker));
     } catch (err) {
       setScanError(err.message || 'Failed to scan for candidates');
     } finally {
@@ -2656,6 +2694,7 @@ function App() {
                         <th className="text-right py-3 px-2">Change</th>
                         <th className="text-right py-3 px-2">Volume</th>
                         <th className="text-right py-3 px-2">Market Cap</th>
+                        <th className="text-center py-3 px-2">Breakout</th>
                         <th className="text-center py-3 px-2">Action</th>
                       </tr>
                     </thead>
@@ -2685,6 +2724,38 @@ function App() {
                             {stock.volume ? (stock.volume / 1e6).toFixed(1) + 'M' : 'N/A'}
                           </td>
                           <td className="py-3 px-2 text-right text-gray-400">{formatMarketCap(stock.marketCap)}</td>
+                          <td className="py-3 px-2 text-center">
+                            {/* Day 81 (Breakout Enhancement Plan Task 2.2): badge is STATE, not a
+                                signal — never render a green badge as a buy recommendation
+                                (BREAKOUT_ENGINE_SPEC.md §13/§15, a hard rule). NOT_READY is
+                                muted/hidden per the plan's design. Explicit != null checks
+                                throughout (Day 68 falsy-render gotcha). */}
+                            {(() => {
+                              const b = breakoutBadges[stock.ticker];
+                              if (b == null) {
+                                return (
+                                  <span className="text-gray-600 text-xs">
+                                    {breakoutBadgesLoading ? '…' : '—'}
+                                  </span>
+                                );
+                              }
+                              if (b.error != null || b.status == null || b.status === 'NOT_READY') {
+                                return <span className="text-gray-600 text-xs">—</span>;
+                              }
+                              const cfg = BREAKOUT_BADGE_CONFIG[b.status];
+                              if (cfg == null) {
+                                return <span className="text-gray-500 text-xs">{b.status}</span>;
+                              }
+                              return (
+                                <span
+                                  className={`text-xs font-medium px-2 py-0.5 rounded border ${cfg.color}`}
+                                  title={b.humanAction || cfg.label}
+                                >
+                                  {cfg.label}
+                                </span>
+                              );
+                            })()}
+                          </td>
                           <td className="py-3 px-2 text-center">
                             <button
                               onClick={() => analyzeStock(stock.ticker)}

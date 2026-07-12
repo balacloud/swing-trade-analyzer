@@ -4,8 +4,8 @@
 > **Source:** Day 78 repo sweep (July 5, 2026) — inventory of existing breakout capability + gap analysis.
 > **Reconciled:** Day 78, session 2 (July 6, 2026) — a parallel session independently built a standalone breakout classification engine (`backend/breakout_detection.py` + `breakout_routes.py` + `BREAKOUT_ENGINE_SPEC.md` + Pine companion + human-in-the-loop workflow docs). See "Reconciliation" section below for what changed in this plan as a result.
 > **Location:** `docs/claude/design/`
-> **Status:** Phase 0 DONE (Day 81, July 10, 2026) — Config D got 0 trades (genuine finding, not a bug — see results doc). Phase 1.5 DONE (Day 78, session 3) — `/api/breakout/<ticker>` wired and behaviorally validated on 5 tickers + 1 edge case. Phase 1 NOT STARTED. Phases 2–3 ready to start (prerequisite met, and now informed by Phase 0's anticipatory-over-confirmed finding).
-> **Last Updated:** Day 81 (July 10, 2026)
+> **Status:** Phases 0, 1.5, 2, 3 all DONE. Phase 0 (Day 81) — Config D got 0 trades (genuine finding, not a bug — see results doc). Phase 1.5 (Day 78, session 3) — `/api/breakout/<ticker>` wired and validated. Phase 2 (Day 81) — `/api/breakout/batch` endpoint + Scan tab badge column, verified in a real browser. Phase 3 (Day 81) — `/breakout-watch` skill built and verified against the live backend. Phase 1 (scan preset) NOT STARTED — the only remaining phase, needs explicit user go-ahead per the gating table (small feature during freeze).
+> **Last Updated:** Day 81 (July 11, 2026)
 
 ---
 
@@ -174,7 +174,7 @@ A parallel session independently built a second, more sophisticated breakout cla
 **Goal (G2):** after any scan, show which survivors have an actionable breakout setup *right now*, so the user analyzes the right 5 instead of eyeballing 50. **Now consumes the new 8-state `breakout_detection.py` engine instead of the plainer `pattern_detection.py` status** — richer signal (candle quality, RS-vs-benchmark, supply warnings, retest/failed-breakout), same UI slot.
 
 ### Task 2.1 — Batch breakout-status endpoint
-- **Status:** NOT STARTED
+- **Status:** DONE (Day 81) — Added inside `register_breakout_routes()` in `breakout_routes.py` (not `backend.py` — no backend.py changes needed, it already calls `register_breakout_routes()`), reusing the module's own `_fetch_ohlcv`/`_normalize_ohlcv_columns` helpers. Sequential per-ticker processing (no established thread-pool pattern to reuse). Tested: valid 3-ticker batch (2 real + 1 invalid) returned correct partial results with no 500; >20 tickers correctly rejected; AAPL's batch result matched its single-ticker `/api/breakout/AAPL` result exactly.
 - **Effort:** 1 session
 - **Prerequisite:** Phase 1.5 complete (route wired + behaviorally validated).
 - **Files:** `backend/backend.py` (new endpoint `/api/breakout/batch`), reuse `breakout_detection.detect_breakout()` unchanged
@@ -186,7 +186,7 @@ A parallel session independently built a second, more sophisticated breakout cla
 - **Acceptance:** batch call for 10 known tickers returns statuses matching individual `/api/breakout/<ticker>` calls for at least 3 spot-checked tickers.
 
 ### Task 2.2 — Scan results badge column
-- **Status:** NOT STARTED
+- **Status:** DONE (Day 81) — `fetchBreakoutBatch()` added to `api.js`; new "Breakout" column in the Scan tab results table (`App.jsx`), between Market Cap and Action. Fires one batch call for the top 20 rows after results render (non-blocking). Verified in a real headless-Chromium browser session (installed Playwright for this since no project run-skill existed): Nirmal's Watchlist scan → 20/20 badges filled correctly (Failed Breakout/red, Building Base/gray, Breakout Watch/amber, Extended/orange, muted dash for NOT_READY), tooltips showed the engine's own `humanAction` text verbatim, zero console errors. Screenshot-confirmed.
 - **Effort:** half session
 - **Files:** `frontend/src/App.jsx` (scan results table), `frontend/src/services/api.js` (new `fetchBreakoutBatch()`)
 - **Design:**
@@ -204,7 +204,7 @@ A parallel session independently built a second, more sophisticated breakout cla
 **Naming note:** the engine has a literal state called `BREAKOUT_WATCH`; the skill is named `/breakout-watch`. Not a real conflict (the skill reports across all 8 states, not just that one) but worth being precise about in the skill's own help text so a user doesn't conflate "run `/breakout-watch`" with "show me only `BREAKOUT_WATCH` tickers."
 
 ### Task 3.1 — Build the skill
-- **Status:** NOT STARTED
+- **Status:** DONE (Day 81) — `.claude/commands/breakout-watch.md` built. One deliberate deviation from the original design: uses `POST /api/breakout/batch` (Task 2.1, which didn't exist when this plan was first written) instead of N individual `/api/breakout/<ticker>` calls when the ticker count is ≤20 — same intent (get states for a ticker list), better infrastructure. Verified end-to-end: `/breakout-watch AAPL NVDA PLTR` against the live backend correctly bucketed AAPL (BREAKOUT_WATCH) and NVDA (BUILDING_BASE) into their sections and PLTR (NOT_READY) into the one-line summary — confirming NOT_READY is treated as a valid state, not an error.
 - **Effort:** half session
 - **Prerequisite:** Phase 1.5 complete.
 - **Files:** `.claude/commands/breakout-watch.md` (follow the structure of `.claude/commands/sta-start.md`)
@@ -258,3 +258,4 @@ A parallel session independently built a second, more sophisticated breakout cla
 | 78, session 2 | Reconciliation only (no plan tasks executed) | Discovered parallel session's standalone breakout engine (`breakout_detection.py`/`breakout_routes.py`/spec/Pine/handoff docs). Added new Phase 1.5 (wire + validate the engine — NOT STARTED). Redesigned Phase 2/3 to consume its 8-state classification instead of `pattern_detection.py` status. Phase 0/1/4 unaffected. Confirmed via grep: route is NOT wired into `backend.py` — `/api/breakout/<ticker>` does not work yet. |
 | 78, session 3 | Tasks 1.5.1 + 1.5.2 (Phase 1.5 complete) | Wired `register_breakout_routes()` into `backend.py` per spec. Started backend, confirmed clean load ("✅ Breakout Routes loaded successfully"), validated `/api/breakout/<ticker>` on IBM/MSFT/NVDA/PLTR/INTC + 1 invalid-ticker edge case — all HTTP 200 (404 for invalid), no fabricated values, no false `BREAKOUT_CONFIRMED` on weak names. Stopped the test backend process cleanly afterward. Phase 2/3 now unblocked. |
 | 81 | Tasks 0.1 + 0.2 (Phase 0 complete) | Config D/E added to `check_entry_signals()`. Config C verified byte-for-byte unchanged before/after (git stash diff). Walk-forward run on default 60-ticker universe: **Config D = 0 trades both IS and OOS** — root-caused to `pattern_detection.py`'s confidence score measuring pre-breakout base quality, which structurally can't coexist with `broken_out` status (verified via daily scan on AAPL/MSFT/META, zero `broken_out`+conf≥60 hits across 2019-2025). Config E captured 83-90% of Config C's trades. Verdict: keep mixed logic, Phases 2-3 should emphasize anticipatory over confirmed states. Results: `docs/claude/versioned/BREAKOUT_CONFIG_D_BACKTEST_DAY81.md`. |
+| 81 (same day, continued) | Tasks 2.1 + 2.2 + 3.1 (Phases 2-3 complete) | Batch endpoint added inside `breakout_routes.py` (no `backend.py` changes needed). Scan tab "Breakout" badge column added and verified in a real headless-Chromium session (installed Playwright locally since no project run-skill existed) — 20/20 badges rendered correctly with right colors and tooltips, zero console errors, screenshot-confirmed. `/breakout-watch` skill built, deliberately reusing the new batch endpoint instead of N individual calls, and verified end-to-end against the live backend (AAPL/NVDA/PLTR — correct bucketing including NOT_READY-as-valid-state). Only Phase 1 (scan preset) remains, gated on explicit user go-ahead. |
