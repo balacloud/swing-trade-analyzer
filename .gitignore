@@ -33,3 +33,10 @@ backend/test_results_*.json
 backend/validation_report_*.json
 backend/backtest_*results*.csv
 backend/coherence_test_results_*.json
+
+# Paper-trading ledger + its local rolling backups (Day 82) — the live SQLite
+# ledger itself was already untracked; these are its safety-net copies
+# (ledger.backup_db(), called after every daily_job.py run). Not meant for
+# git — this is a local-disk safety net, not a version-controlled artifact.
+backend/validation_results/paper_trading_ledger.db
+backend/validation_results/ledger_backups/

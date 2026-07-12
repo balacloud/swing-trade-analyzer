@@ -102,9 +102,9 @@ Max 2% risk per trade (Van Tharp). Equal-weight categories — never optimize we
 
 | Rule | Value |
 |------|-------|
-| Entry | RSI(2) < 10 AND price > 200 SMA AND price > $5 AND avg volume > 500K |
+| Entry | RSI(2) < 10 AND price > 200 SMA AND price > $10 AND 20-day avg dollar volume > $25M (updated Day 81 — see Change Log; was price > $5 AND avg volume > 500K at initial freeze) |
 | Exit | RSI(2) > 70 OR 10 trading days max |
-| Stop | max(entry × 0.95, entry − 1.5×ATR) |
+| Stop | entry × (1 − 5%) — the actual backtested/live `stop_pct=0.05` formula (`mr_simulator.py`, `paper_trading/daily_job.py`); the live *detector*'s displayed stop/target (`mean_reversion.py`'s `detect_mr_signal()`, `max(entry×0.95, entry−1.5×ATR)`) is informational/UI-only and is NOT what the paper-trading engine or backtest actually exit on — corrected Day 82, this table previously conflated the two |
 | Capital allocation | 50/50 split with momentum system (Gate 5, 1.9% overlap, 0.274 P&L correlation) — ⚠️ gross-of-costs at freeze time; see Section 11 |
 
 ## 10. Success / Failure Criteria (declared in advance)
@@ -138,3 +138,5 @@ Remediation Phases 2–5 address these in parallel; they do not need to complete
 | Day | Change | Reason |
 |-----|--------|--------|
 | 78 | Initial freeze | Fable Review Remediation Plan Task 0.1 |
+| 81 | Section 9 MR entry gate updated: price>$5+500K shares → price>$10+20d ADV>$25M | Pre-committed, one-time liquidity re-test (Golden Rule 20) run Day 79/80, *before* any live MR paper trades existed — not a mid-flight re-tune, no trade count to reset. This amendment (made Day 82, per the Day 82 Fable hygiene audit) is a documentation catch-up: the live detector and paper-trading engine were correctly updated Day 81, but this doc's Section 9 table was never edited to match, so it briefly misdescribed the config the paper trades are actually being judged against. |
+| 82 | Section 9 Stop row corrected | Clarified that the paper-trading engine and backtest exit on the flat 5% stop (`stop_pct=0.05`), not the ATR-based formula `mean_reversion.py`'s live *detector* displays for UI purposes — those are two different numbers that this table previously conflated. No behavior changed; documentation-only fix. |

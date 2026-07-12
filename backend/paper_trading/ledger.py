@@ -296,6 +296,52 @@ def record_job_run(run_date, summary: dict, db_path=None):
     conn.close()
 
 
+# ─── Backup (Day 82, Fable hygiene audit) ─────────────────────────────────
+# This ledger is the entire live-evidence record for the project's central
+# question — months of unrepeatable signals (missed days can't be
+# backfilled, see live_signals.py's module docstring) live in one SQLite
+# file with no other copy. Back it up after every job run.
+
+BACKUP_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    'validation_results', 'ledger_backups'
+)
+BACKUP_KEEP = 30  # ~6 weeks of weekday runs
+
+
+def backup_db(db_path=None, backup_dir=None, keep=BACKUP_KEEP):
+    """
+    Safe, atomic backup via SQLite's own backup API (not a raw file copy,
+    which risks grabbing a half-written page if a write is in progress).
+    Keeps the most recent `keep` dated backups, prunes older ones.
+    """
+    source_path = db_path or DB_PATH
+    if not os.path.exists(source_path):
+        return None
+
+    target_dir = backup_dir or BACKUP_DIR
+    os.makedirs(target_dir, exist_ok=True)
+
+    stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    backup_path = os.path.join(target_dir, f'paper_trading_ledger_{stamp}.db')
+
+    source_conn = sqlite3.connect(source_path)
+    dest_conn = sqlite3.connect(backup_path)
+    with dest_conn:
+        source_conn.backup(dest_conn)
+    dest_conn.close()
+    source_conn.close()
+
+    existing = sorted(
+        f for f in os.listdir(target_dir)
+        if f.startswith('paper_trading_ledger_') and f.endswith('.db')
+    )
+    for stale in existing[:-keep]:
+        os.remove(os.path.join(target_dir, stale))
+
+    return backup_path
+
+
 if __name__ == '__main__':
     init_db()
     print(f"Ledger initialized at {DB_PATH}")

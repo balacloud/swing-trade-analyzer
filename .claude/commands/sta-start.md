@@ -25,7 +25,23 @@ Read all four — do not skip any:
 
 From KNOWN_ISSUES, count issues at severity Medium or higher (ignore Info-level).
 
-## Step 4: Output session summary to user
+## Step 4: Check the paper-trading job hasn't gone silent (Day 82 dead-man check)
+
+The automated paper-trading engine (`backend/paper_trading/`) can silently lose
+entry signals for any day it doesn't run — TradingView's screener has no
+point-in-time API, so a missed day's signals aren't recoverable later (see
+`docs/claude/CLAUDE_CONTEXT.md`'s Day 81 summary). Nothing else currently
+watches for this, so check it here, every session:
+
+```bash
+sqlite3 backend/validation_results/paper_trading_ledger.db "SELECT MAX(run_date) FROM job_runs;" 2>/dev/null
+```
+
+- If the file or table doesn't exist yet, note that the job has never run — not an error, just say so.
+- If the last `run_date` is more than 3 calendar days before today, flag it prominently in the session summary (Step 5) as a warning — the launchd job (`launchctl list | grep sta.papertrading`) has likely gone silent (laptop asleep at 16:30 CT, or the agent unloaded). Suggest `cd backend && venv/bin/python paper_trading/daily_job.py --force` to catch up, and that catch-up only recovers open-position state, not the missed day's entry signals (documented limitation, not a bug).
+- If within 3 days, no need to mention it — a normal weekend gap isn't worth flagging every session.
+
+## Step 5: Output session summary to user
 
 Report in this exact format:
 
@@ -33,6 +49,7 @@ Report in this exact format:
 Day [N] | v[X] | Backend v[Y] | Frontend v[Z]
 Last session: [1-line summary from CLAUDE_CONTEXT.md]
 Open bugs: [count] Medium+ ([list them by name, comma separated, or "none"])
+Paper trading job: [last run date, or "⚠️ stale since [date] — see above" if flagged in Step 4]
 Next priorities:
   1. [priority 1]
   2. [priority 2]

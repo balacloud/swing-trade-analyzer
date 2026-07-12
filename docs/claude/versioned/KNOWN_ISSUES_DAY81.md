@@ -1,5 +1,16 @@
 # Known Issues — Day 81 (July 10, 2026)
 
+> **Day 82 update (July 12):** Breakout Plan Phase 0 and Phases 2–3 (both
+> flagged "not yet run" / "ready" below) are now DONE — see ROADMAP.md's
+> "COMPLETE — Breakout Enhancement Plan" sections and
+> `docs/claude/versioned/BREAKOUT_CONFIG_D_BACKTEST_DAY81.md`. Also: a
+> Fable process/hygiene audit ran Day 82
+> (`docs/claude/design/FABLE_AUDIT_DAY82_PROCESS_AND_DECLUTTER.md`) — fixed
+> 2 real git risk items (untracked production provider, tracked
+> node_modules), deleted ~20 dead/orphaned files, this doc was one of the
+> stale-doc findings that prompted this note. This file's body below is
+> otherwise left as the Day 81 snapshot; see ROADMAP for current status.
+
 ## Changes from Day 80
 
 **Resolved this session:**
@@ -44,11 +55,13 @@
 **Severity:** Info (resolved via Phase 4 re-validation, kept for history)
 **Description:** Canonical numbers are now the survivorship-free 400-ticker sample (Config C PF 1.40, MR liquidity-restricted PF 1.16). See ROADMAP.md.
 
-### Info: Breakout Plan Phase 0 — Config D/E Backtest Not Yet Run (carried, unblocked)
-**Severity:** Info (planned)
-
-### Info: Breakout Engine Wired — Phases 2–3 Ready (carried from Day 79)
+### Info: Breakout Plan Phase 0 — DONE (Day 81, was "not yet run")
 **Severity:** Info (milestone)
+**Description:** Config D (confirmed-breakout-only) got 0 trades — a genuine, root-caused finding (pattern confidence structurally can't coexist with `broken_out` status), not a bug. Config E (anticipatory-only) captures 83–90% of Config C's real trades. See `docs/claude/versioned/BREAKOUT_CONFIG_D_BACKTEST_DAY81.md`.
+
+### Info: Breakout Plan Phases 2–3 — DONE (Day 81, was "ready, not started")
+**Severity:** Info (milestone)
+**Description:** `/api/breakout/batch` endpoint, Scan tab badge column, and `/breakout-watch` skill all built and verified (real browser session for the badge column, live backend for the skill). Only Phase 1 (scan preset) remains, gated on explicit user approval.
 
 ### Info: IBKR Filter #8 — 52W High Proximity Availability Unverified (carried from Day 77)
 **Severity:** Info (verify before building `/ibkr-scan`)

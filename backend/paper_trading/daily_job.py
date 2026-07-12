@@ -191,6 +191,11 @@ def run_daily_job(force=False):
         print(f"  queued MR: {s['ticker']} — {s['verdict_reason']}")
 
     ledger.record_job_run(today, summary)
+
+    backup_path = ledger.backup_db()
+    if backup_path:
+        print(f"Ledger backed up to {backup_path}")
+
     print(f"=== Daily job complete: {summary} ===")
     return summary
 
