@@ -9,15 +9,25 @@ THE CORE: Routes data requests through fallback chains with:
   - Provenance tracking (which provider supplied which data)
 
 Fallback Chains:
-  OHLCV:         TwelveData → yfinance → Stooq
+  OHLCV:         TwelveData → yfinance → stale cache
   Intraday:      TwelveData → yfinance
   Fundamentals:  Finnhub → AlphaVantage (growth gaps) → yfinance  (field-level merge)
-  Quote (VIX):   yfinance → Finnhub
+  Quote (VIX):   Cache (1h) → yfinance → Finnhub → stale cache
   Stock Info:    yfinance (only source for name/sector/52wk)
   Earnings:      yfinance (only source)
 
 Note: FMP (Financial Modeling Prep) v3 was deprecated Aug 31 2025 for non-legacy accounts.
 AlphaVantage replaces FMP's growth role (revenueGrowth, epsGrowth) using existing key in .env.
+
+Day 82 (data-source audit): Stooq removed from the active OHLCV chain — it
+now sits behind a JavaScript bot-verification challenge (confirmed via direct
+probe: the CSV download endpoint returns an anti-bot HTML/JS page, not data,
+regardless of URL format tried). This isn't a URL change pandas_datareader
+can be patched around; it needs a real browser to pass. StooqProvider's code
+is left in place (harmless, self-guards on the optional pandas_datareader
+import) in case Stooq's access changes, but it is NOT instantiated into
+_ohlcv_chain, so it costs nothing and provides nothing right now. OHLCV
+resilience is honestly 2 live sources + stale-cache, not 3.
 """
 
 import os
@@ -67,10 +77,10 @@ class DataProvider:
         self.fmp          = FMPProvider()          # kept for future paid plan upgrade
         self.alphavantage = AlphaVantageProvider() # replaces FMP's growth role
         self.yfinance     = YFinanceProvider()
-        self.stooq        = StooqProvider()
+        self.stooq        = StooqProvider()  # kept for status reporting; NOT in _ohlcv_chain (Day 82: dead, bot-blocked)
 
         # Fallback chain definitions
-        self._ohlcv_chain         = [self.twelvedata, self.yfinance, self.stooq]
+        self._ohlcv_chain         = [self.twelvedata, self.yfinance]
         self._intraday_chain      = [self.twelvedata, self.yfinance]
         self._fundamentals_chain  = [self.finnhub, self.alphavantage, self.yfinance]
         self._quote_chain         = [self.yfinance, self.finnhub]
@@ -101,9 +111,11 @@ class DataProvider:
         """
         ticker = ticker.upper()
 
-        # 1. Check fresh cache
+        # 1. Check fresh cache — Day 82 fix: pass `period` through so a
+        # shorter-period cache entry (e.g. period='1y' from the MR scan)
+        # isn't silently served to a longer request (e.g. period='2y').
         if CACHE_AVAILABLE:
-            cached = cache_manager.get_cached_ohlcv(ticker)
+            cached = cache_manager.get_cached_ohlcv(ticker, period)
             if cached is not None and not cached.empty:
                 self._last_source[f'{ticker}_ohlcv'] = 'cache'
                 return cached
@@ -276,16 +288,56 @@ class DataProvider:
     def get_quote(self, ticker: str) -> Optional[QuoteResult]:
         """
         Get real-time quote (primarily for VIX).
-        Strategy: yfinance → Finnhub → stale cache
+        Strategy: Cache (1h TTL) → yfinance → Finnhub → stale cache
+
+        Day 82 data-source audit fix: this docstring already claimed a
+        "stale cache" leg, but the implementation had no caching at all —
+        VIX feeds every categorical assessment's risk gate, so a yfinance
+        outage silently returned None with zero resilience. Cached now
+        (market_cache table, key 'QUOTE_{ticker}', same table other
+        market-data callers already use with distinct key prefixes) with
+        the same stale-serve-on-total-failure pattern as
+        get_ohlcv()/get_fundamentals().
         """
+        ticker_upper = ticker.upper()
+        cache_key = f'QUOTE_{ticker_upper}'
+
+        # 1. Check fresh cache
+        if CACHE_AVAILABLE:
+            cached = cache_manager.get_cached_market(cache_key)
+            if cached:
+                self._last_source[f'{ticker}_quote'] = 'cache'
+                return QuoteResult(**cached)
+
+        # 2. Try provider chain
         for provider in self._quote_chain:
             try:
                 result = provider.get_quote(ticker)
                 self._last_source[f'{ticker}_quote'] = result.source
+                if CACHE_AVAILABLE:
+                    cache_manager._set_cached_market_ttl(
+                        cache_key,
+                        {
+                            'price': result.price,
+                            'previous_close': result.previous_close,
+                            'source': result.source,
+                            'ticker': result.ticker,
+                            'fetched_at': result.fetched_at,
+                        },
+                        ttl_hours=1,
+                    )
                 return result
             except ProviderError as e:
                 print(f"⚠️ Quote {e.provider} failed for {ticker}: {e}")
                 continue
+
+        # 3. Stale cache fallback (serve expired quote with warning)
+        if CACHE_AVAILABLE:
+            stale = self._get_stale_market(cache_key)
+            if stale:
+                self._last_source[f'{ticker}_quote'] = 'stale_cache'
+                print(f"📦 Quote for {ticker}: serving STALE cache (all providers failed)")
+                return QuoteResult(**stale)
 
         return None
 
@@ -374,6 +426,24 @@ class DataProvider:
             pass
         return None
 
+    def _get_stale_market(self, cache_key: str) -> Optional[Dict[str, Any]]:
+        """Get market_cache entry (e.g. a quote) even if expired (stale fallback, Day 82)."""
+        if not CACHE_AVAILABLE:
+            return None
+        try:
+            conn = cache_manager.get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT data FROM market_cache WHERE symbol = ?", (cache_key.upper(),))
+            row = cursor.fetchone()
+            conn.close()
+
+            if row:
+                import json
+                return json.loads(row['data'])
+        except Exception:
+            pass
+        return None
+
     # =========================================================================
     # DIAGNOSTICS
     # =========================================================================
@@ -440,8 +510,8 @@ class DataProvider:
             'stooq': {
                 'configured': True,
                 'type': 'OHLCV (last resort)',
-                'role': 'fallback',
-                'health': _provider_health('stooq'),
+                'role': 'disabled',  # Day 82: removed from _ohlcv_chain — bot-blocked, see orchestrator.py module docstring
+                'health': 'disabled',
                 'daily_remaining': -1,
             },
         }

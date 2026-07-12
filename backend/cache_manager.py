@@ -148,10 +148,37 @@ def calculate_fundamentals_expiry() -> datetime:
 # OHLCV CACHE OPERATIONS
 # =============================================================================
 
-def get_cached_ohlcv(ticker: str) -> Optional[pd.DataFrame]:
+def _period_to_min_rows(period: str) -> int:
     """
-    Get OHLCV data from cache if not expired.
-    Returns DataFrame or None if cache miss/expired.
+    Approximate minimum trading-day row count for a yfinance-style period
+    string ('1y', '2y', '6mo', '5d', ...).
+
+    Day 82 data-source audit fix: get_cached_ohlcv() previously served ANY
+    fresh cache entry regardless of what period was actually requested — a
+    ticker cached with period='1y' (~251 rows, from the MR scan) would get
+    served to a period='2y' request (momentum scan, analyze endpoints),
+    silently failing the 252-bar RS-52w and 260-bar backtest-warmup
+    requirements. This maps the requested period to a minimum row count so
+    an under-length cache entry is correctly treated as a miss.
+    """
+    period = (period or '2y').lower().strip()
+    try:
+        if period.endswith('y'):
+            return int(float(period[:-1]) * 252)
+        if period.endswith('mo'):
+            return int(float(period[:-2]) * 21)
+        if period.endswith('d'):
+            return int(float(period[:-1]))
+    except ValueError:
+        pass
+    return 252  # conservative default for an unrecognized period string
+
+
+def get_cached_ohlcv(ticker: str, period: str = '2y') -> Optional[pd.DataFrame]:
+    """
+    Get OHLCV data from cache if not expired AND it covers at least as much
+    history as `period` requires (Day 82 fix — see _period_to_min_rows).
+    Returns DataFrame or None if cache miss/expired/insufficient.
     """
     ticker = ticker.upper()
     conn = get_db_connection()
@@ -175,6 +202,13 @@ def get_cached_ohlcv(ticker: str) -> Optional[pd.DataFrame]:
         if now >= expires_at:
             _log_cache_event(conn, 'expire', 'ohlcv', ticker)
             print(f"⏰ OHLCV cache expired for {ticker}")
+            return None
+
+        min_rows = _period_to_min_rows(period)
+        if row['rows'] is not None and row['rows'] < min_rows:
+            _log_cache_event(conn, 'miss', 'ohlcv', ticker)
+            print(f"⏰ OHLCV cache for {ticker} has {row['rows']} rows, need {min_rows}+ "
+                  f"for period={period} — treating as miss, not serving a shorter history")
             return None
 
         # Cache hit - deserialize

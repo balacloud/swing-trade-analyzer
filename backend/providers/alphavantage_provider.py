@@ -82,9 +82,24 @@ class AlphaVantageProvider(FundamentalsProvider):
         )
 
     def get_growth_only(self, ticker: str) -> dict:
-        """Alias used by orchestrator's gap-filling path."""
+        """
+        Alias used by orchestrator's gap-filling path. Returns only the
+        actual growth fields — excludes the 'source' metadata key that
+        get_fundamentals() embeds in the same dict.
+
+        Day 82 data-source audit fix: that 'source' key was leaking through
+        the orchestrator's merge loop (backend/providers/orchestrator.py's
+        get_fundamentals()) as if it were a real fundamentals field —
+        merged_data.get('source') is None (not in FUNDAMENTALS_SCHEMA), so
+        the loop happily set merged_data['source']='alphavantage' and
+        field_sources['source']='alphavantage', inflating the "AlphaVantage
+        filled N growth fields" log count by one and adding a spurious,
+        confusing entry to the _field_sources provenance dict (later
+        silently overwritten by the real source value, so no data
+        corruption — just noisy/wrong provenance metadata).
+        """
         result = self.get_fundamentals(ticker)
-        return result.data
+        return {k: v for k, v in result.data.items() if k != 'source'}
 
     # -------------------------------------------------------------------------
     # Private fetch helpers
@@ -174,10 +189,19 @@ class AlphaVantageProvider(FundamentalsProvider):
         resp.raise_for_status()
 
     def _check_availability(self):
+        """
+        Key + circuit-breaker check only — does NOT consume a rate-limit
+        token. Day 82 data-source audit fix: this used to also call
+        check_rate_limit(), which acquires a real token even though no HTTP
+        request happens here. get_fundamentals() makes 2 real calls
+        (_fetch_revenue_growth, _fetch_eps_growth), each of which already
+        does its own check_rate_limit() right before its request — the
+        third check here was spending 3 tokens for 2 real calls, self-
+        throttling AlphaVantage's 25/day free tier to ~8 tickers/day
+        instead of the ~12 it should support.
+        """
         if not self.api_key:
             raise AuthenticationError(self.name, "ALPHAVANTAGE_API_KEY not set")
         breaker = get_breaker(self.name)
         if not breaker.allow_request():
             raise ProviderUnavailableError(self.name, "Circuit breaker OPEN")
-        if not check_rate_limit(self.name):
-            raise RateLimitError(self.name, "Rate limit exceeded")

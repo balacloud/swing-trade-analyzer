@@ -2545,13 +2545,31 @@ def get_mr_signal(ticker):
 
     try:
         ticker = ticker.upper()
-        hist = yf.Ticker(ticker).history(period='1y', auto_adjust=True)
+
+        # Day 82 data-source audit fix: this route used to call yf.Ticker()
+        # directly, bypassing the cache/rate-limiter/fallback-chain layer
+        # every other OHLCV consumer goes through. Route it through
+        # DataProvider first, with the original yfinance call kept as a
+        # legacy fallback only if DataProvider itself is unavailable.
+        hist = None
+        if DATA_PROVIDER_AVAILABLE:
+            try:
+                dp = get_data_provider()
+                hist = dp.get_ohlcv(ticker, '1y')
+                if hist is not None and not hist.empty:
+                    hist.columns = [c.capitalize() for c in hist.columns]
+            except Exception as e:
+                print(f"⚠️ DataProvider OHLCV failed for {ticker} (MR signal): {e}")
+                hist = None
+
+        if hist is None or hist.empty:
+            hist = yf.Ticker(ticker).history(period='1y', auto_adjust=True)
+            # Flatten MultiIndex if present (yfinance quirk)
+            if isinstance(hist.columns, pd.MultiIndex):
+                hist.columns = hist.columns.get_level_values(0)
+
         if hist is None or hist.empty or len(hist) < 200:
             return jsonify({'error': f'Insufficient data for {ticker}', 'signal': False}), 200
-
-        # Flatten MultiIndex if present (yfinance quirk)
-        if isinstance(hist.columns, pd.MultiIndex):
-            hist.columns = hist.columns.get_level_values(0)
 
         result = mean_reversion.detect_mr_signal(hist)
         result['ticker'] = ticker
