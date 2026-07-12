@@ -2,6 +2,10 @@
 swing-trade-frontend-day2.zip
 Files_Archives/
 
+# Node dependencies (Day 82: untracked — 40,801 files / ~101MB accidentally
+# committed, found by the Day 82 Fable process/hygiene audit)
+frontend/node_modules/
+
 # Environment variables (API keys - never commit)
 .env
 backend/.env
