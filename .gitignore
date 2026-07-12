@@ -40,3 +40,9 @@ backend/coherence_test_results_*.json
 # git — this is a local-disk safety net, not a version-controlled artifact.
 backend/validation_results/paper_trading_ledger.db
 backend/validation_results/ledger_backups/
+
+# Runtime SQLite state (Day 82) — was already untracked de facto (nobody had
+# git-added it), making it explicit now: the OHLCV/fundamentals cache and the
+# new shared rate-limiter/circuit-breaker state (provider_state.db) are both
+# regenerable local runtime data, not version-controlled artifacts.
+backend/data/
