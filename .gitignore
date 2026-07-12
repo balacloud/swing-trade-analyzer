@@ -20,3 +20,16 @@ backend/backtest/verdict_grid_inputs.json
 backend/backtest/verdict_grid_py_output.json
 backend/backtest/verdict_parity_mismatches.json
 frontend/scripts/verdict_grid_js_output.json
+
+# Scratch/debug run artifacts (Day 82 hygiene pass — 21 stale files like this
+# had accumulated untracked in backend/ root over many months). One-shot
+# script output belongs in docs/claude/versioned/ as a written-up finding,
+# not as raw dumps sitting in the repo root.
+backend/*.log
+backend/backend.log
+backend/cache.db
+backend/scan_test_results_*.json
+backend/test_results_*.json
+backend/validation_report_*.json
+backend/backtest_*results*.csv
+backend/coherence_test_results_*.json

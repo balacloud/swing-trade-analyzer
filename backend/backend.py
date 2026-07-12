@@ -57,7 +57,7 @@ except ImportError as e:
     print(f"⚠️ Data Provider not available, using yfinance directly: {e}")
 
 try:
-    from validation import ValidationEngine, ForwardTestTracker, SignalType
+    from validation import ValidationEngine
     VALIDATION_AVAILABLE = True
     print("✅ Validation Engine loaded successfully")
 except ImportError as e:
@@ -2145,112 +2145,6 @@ def get_validation_history():
         print(f"❌ Error fetching validation history: {e}")
         return jsonify({'error': str(e)}), 500
 
-
-# ============================================
-# FORWARD TEST ENDPOINTS
-# ============================================
-
-@app.route('/api/forward-test/record', methods=['POST'])
-def record_forward_test_signal():
-    """
-    Record a trading signal for forward testing.
-    
-    Request body:
-    {
-        "ticker": "AAPL",
-        "signal_type": "BUY",
-        "score": 65,
-        "price_at_signal": 250.00,
-        "entry_price": 245.00,
-        "stop_price": 238.00,
-        "target_price": 270.00,
-        "risk_reward": 3.57,
-        "verdict_reason": "Strong score with good RS"
-    }
-    """
-    if not VALIDATION_AVAILABLE:
-        return jsonify({'error': 'Forward Test Tracker not available'}), 503
-    
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({'error': 'Request body required'}), 400
-        
-        required = ['ticker', 'signal_type', 'score', 'price_at_signal']
-        for field in required:
-            if field not in data:
-                return jsonify({'error': f'Missing required field: {field}'}), 400
-        
-        signal_map = {'BUY': SignalType.BUY, 'HOLD': SignalType.HOLD, 'AVOID': SignalType.AVOID}
-        signal_type = signal_map.get(data['signal_type'].upper())
-        if not signal_type:
-            return jsonify({'error': f'Invalid signal_type: {data["signal_type"]}'}), 400
-        
-        tracker = ForwardTestTracker()
-        signal_id = tracker.record_signal(
-            ticker=data['ticker'].upper(),
-            signal_type=signal_type,
-            score=data['score'],
-            price_at_signal=data['price_at_signal'],
-            entry_price=data.get('entry_price'),
-            stop_price=data.get('stop_price'),
-            target_price=data.get('target_price'),
-            risk_reward=data.get('risk_reward'),
-            verdict_reason=data.get('verdict_reason', ''),
-            notes=data.get('notes', '')
-        )
-        
-        return jsonify({
-            'success': True,
-            'signal_id': signal_id,
-            'message': f'Recorded {signal_type.value} signal for {data["ticker"]}'
-        })
-        
-    except Exception as e:
-        print(f"❌ Error recording signal: {e}")
-        traceback.print_exc()
-        return jsonify({'error': str(e)}), 500
-
-
-@app.route('/api/forward-test/signals', methods=['GET'])
-def get_forward_test_signals():
-    """Get recent forward test signals."""
-    if not VALIDATION_AVAILABLE:
-        return jsonify({'error': 'Forward Test Tracker not available'}), 503
-    
-    try:
-        days = int(request.args.get('days', 30))
-        limit = int(request.args.get('limit', 50))
-        ticker = request.args.get('ticker')
-        
-        tracker = ForwardTestTracker()
-        
-        if ticker:
-            signals = tracker.get_signal_by_ticker(ticker.upper())
-        else:
-            signals = tracker.get_recent_signals(days=days, limit=limit)
-        
-        return jsonify({'count': len(signals), 'signals': signals})
-        
-    except Exception as e:
-        print(f"❌ Error fetching signals: {e}")
-        return jsonify({'error': str(e)}), 500
-
-
-@app.route('/api/forward-test/performance', methods=['GET'])
-def get_forward_test_performance():
-    """Get forward test performance summary (win rate, avg P&L, etc.)."""
-    if not VALIDATION_AVAILABLE:
-        return jsonify({'error': 'Forward Test Tracker not available'}), 503
-    
-    try:
-        tracker = ForwardTestTracker()
-        summary = tracker.get_performance_summary()
-        return jsonify(summary)
-        
-    except Exception as e:
-        print(f"❌ Error fetching performance: {e}")
-        return jsonify({'error': str(e)}), 500
 
 # ============================================
 # SECTOR ROTATION (Day 58 - v4.19)
