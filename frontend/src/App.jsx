@@ -38,14 +38,17 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation, clearBackendCache, fetchDataProvenance, getCacheStatus, fetchSectorRotation, fetchMRSignal, fetchBreakoutBatch } from './services/api';
+import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation, clearBackendCache, fetchDataProvenance, getCacheStatus, fetchSectorRotation, fetchMRSignal, fetchBreakoutBatch, fetchBreakout } from './services/api';
 import { calculateScore } from './utils/scoringEngine';
 import { calculateSimplifiedAnalysis } from './utils/simplifiedScoring';
 import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings } from './utils/positionSizing';
 import { runCategoricalAssessment, getActionablePatterns } from './utils/categoricalAssessment';
 import { calculateRiskReward, hasViabilityContradiction, getViabilityBadge } from './utils/riskRewardCalc';
-import BottomLineCard, { HOLDING_PERIODS } from './components/BottomLineCard';
 // DecisionMatrix removed Day 70 — simplicity premium (full+simple views sufficient)
+// BottomLineCard removed Day 82 (user feedback: verdict banner + What's Good/Risky
+// duplicated the Verdict Card + Categorical Assessment card elsewhere on this page —
+// three separate renderings of the same BUY/HOLD/AVOID verdict). HOLDING_PERIODS
+// config it owned moved into the component body since nothing else needs it.
 import SectorRotationTab from './components/SectorRotationTab'; // Day 62: v4.24 Sector Rotation Phase 2
 import ContextTab from './components/ContextTab'; // Day 62: v4.24 Context Tab
 import ValueTab from './components/ValueTab'; // Day 75: Value investing lens
@@ -79,6 +82,7 @@ function App() {
   const [rawAnalysisData, setRawAnalysisData] = useState(null); // Day 53: Stored for re-assessment on period change
   const [mrSignalData, setMrSignalData] = useState(null); // Tier 3B: Mean-reversion signal
   const [mrSignalLoading, setMrSignalLoading] = useState(false); // Tier 3B: MR loading state
+  const [breakoutData, setBreakoutData] = useState(null); // Day 82: single-ticker breakout status
   const [priceStructure, setPriceStructure] = useState(null); // Day 72: Price Structure narrative
 
   // Forward Testing state (Day 47: v4.7)
@@ -328,6 +332,7 @@ function App() {
     setSimplifiedResult(null);
     setMrSignalData(null);
     setPriceStructure(null);
+    setBreakoutData(null);
     setActiveTab('analyze');
 
     // Tier 3B: Fetch MR signal in parallel (non-blocking)
@@ -336,6 +341,11 @@ function App() {
       .then(data => setMrSignalData(data))
       .catch(() => setMrSignalData(null))
       .finally(() => setMrSignalLoading(false));
+
+    // Day 82: Fetch breakout status in parallel (non-blocking, same pattern as MR signal)
+    fetchBreakout(targetTicker)
+      .then(data => setBreakoutData(data))
+      .catch(() => setBreakoutData(null));
 
     try {
       const data = await fetchFullAnalysisData(targetTicker);
@@ -409,6 +419,15 @@ function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Holding period config (Day 53, v4.13) — moved here Day 82 when BottomLineCard
+  // (its previous owner) was removed as redundant with the Verdict Card +
+  // Categorical Assessment card.
+  const HOLDING_PERIODS = {
+    quick: { label: '5-10 days', name: 'Quick Swing', techWeight: 0.7, fundWeight: 0.3 },
+    standard: { label: '15-30 days', name: 'Standard Swing', techWeight: 0.5, fundWeight: 0.5 },
+    position: { label: '1-3 months', name: 'Position Trade', techWeight: 0.3, fundWeight: 0.7 },
   };
 
   // Breakout badge display config (Day 81, Breakout Enhancement Plan Task 2.2)
@@ -2093,13 +2112,34 @@ function App() {
 
                 {/* TradingView Chart removed Day 70 — simplicity premium (S&R in Trade Setup is sufficient) */}
 
-                {/* v4.13: Bottom Line Card - replaces old Actionable Recommendation (Day 44) */}
-                <BottomLineCard
-                  categoricalResult={categoricalResult}
-                  srData={srData}
-                  currentPrice={analysisResult?.currentPrice}
-                  holdingPeriod={holdingPeriod}
-                />
+                {/* BottomLineCard removed Day 82 — redundant with the Verdict Card
+                    (top of page) and Categorical Assessment card (below): same
+                    BUY/HOLD/AVOID verdict and the same underlying tech/fund/risk
+                    facts, just reworded a third time. */}
+
+                {/* Day 82: Breakout state card — single-ticker /api/breakout/<ticker>,
+                    same 8-state engine and badge styling as the Scan tab's batch
+                    column. State only, never a signal (BREAKOUT_ENGINE_SPEC.md §13). */}
+                {breakoutData && !breakoutData.error && breakoutData.status !== 'NOT_READY' && (
+                  <div className="bg-gray-800 rounded-lg p-4 mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-sm font-semibold text-gray-300">🚀 Breakout Status</h3>
+                      {(() => {
+                        const cfg = BREAKOUT_BADGE_CONFIG[breakoutData.status];
+                        if (!cfg) return <span className="text-xs text-gray-500">{breakoutData.status}</span>;
+                        return (
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded border ${cfg.color}`}>
+                            {cfg.label}
+                          </span>
+                        );
+                      })()}
+                    </div>
+                    <p className="text-sm text-gray-400">{breakoutData.humanAction}</p>
+                    {breakoutData.rvol != null && (
+                      <p className="text-xs text-gray-500 mt-1">RVOL: {breakoutData.rvol.toFixed(2)}x</p>
+                    )}
+                  </div>
+                )}
 
                 {/* Tier 3B: Mean-Reversion Signal Card (separate from momentum analysis) */}
                 <MRSignalCard mrData={mrSignalData} loading={mrSignalLoading} />
@@ -2409,6 +2449,18 @@ function App() {
                             <span className={`ml-2 px-1.5 py-0.5 rounded text-xs font-medium text-white ${qColors[sc.quadrant] || 'bg-gray-600'}`}
                               title={`${sc.name} (${sc.etf}) — RS: ${sc.rsRatio} | Mom: ${sc.rsMomentum > 0 ? '+' : ''}${sc.rsMomentum} | Rank: ${sc.rank}/11`}>
                               {sc.etf} {sc.quadrant.toUpperCase()}
+                            </span>
+                          );
+                        })()}
+                        {breakoutData && !breakoutData.error && breakoutData.status !== 'NOT_READY' && (() => {
+                          const cfg = BREAKOUT_BADGE_CONFIG[breakoutData.status];
+                          if (!cfg) return null;
+                          return (
+                            <span
+                              className={`ml-2 px-1.5 py-0.5 rounded text-xs font-medium border ${cfg.color}`}
+                              title={breakoutData.humanAction || cfg.label}
+                            >
+                              {cfg.label}
                             </span>
                           );
                         })()}

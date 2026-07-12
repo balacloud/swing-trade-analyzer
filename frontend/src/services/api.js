@@ -342,7 +342,24 @@ export async function fetchBreakoutBatch(tickers) {
   }
 }
 
-// ============================================ 
+/**
+ * Single-ticker breakout status for the Analyze Stock page (Day 82).
+ * Same 8-state engine as fetchBreakoutBatch, one ticker at a time.
+ * @param {string} ticker
+ * @returns {object|null} - { status, humanAction, breakoutLevel, rvol, checks, warnings } or null on error
+ */
+export async function fetchBreakout(ticker) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/breakout/${ticker.toUpperCase()}`);
+    if (!response.ok) throw new Error(`Breakout fetch failed: ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching breakout status:', error);
+    return null;
+  }
+}
+
+// ============================================
 // SUPPORT & RESISTANCE ENDPOINT (Day 14)
 // ============================================
 

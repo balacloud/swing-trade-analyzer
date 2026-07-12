@@ -2,7 +2,7 @@
  * Shared Risk/Reward Calculator
  * Day 61: Extracted from 4 duplicated locations to single source of truth
  *
- * Used by: App.jsx (viability badge + contradiction), BottomLineCard.jsx
+ * Used by: App.jsx (viability badge + contradiction)
  *
  * Tier 1A: ATR stops are PRIMARY. Percentage caps are safety floors only.
  * Pullback entry: Buy at nearest support, stop 2×ATR below support
