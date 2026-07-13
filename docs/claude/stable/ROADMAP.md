@@ -2,12 +2,13 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 81 (July 10, 2026)
+> **Last Updated:** Day 84 (July 13, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.39 (Backend v2.38, Frontend v4.37, Backtest v4.19, API Service v2.11)
+## Current Version: v4.43 (Backend v2.39, Frontend v4.39, Backtest v4.19, API Service v2.11)
+*Day 84 close: fixed a version-drift gap — this line was still Day 81's v4.39 while CLAUDE_CONTEXT.md had already moved to v4.42 (Day 83). ROADMAP.md's version line wasn't part of the Day 83 close's update checklist; now caught up.*
 
 ---
 
@@ -199,7 +200,23 @@
 
 ---
 
-## ACTIVE PRIORITY ORDER (Day 81 updated)
+## COMPLETE — UI Code Quality Fix Plan (Day 82–83)
+
+**Source:** 3 parallel Fable-model audits (Analyze page Full Analysis cards, Scan Market tab, Tradier API evaluation), Day 82. Plan: `docs/claude/design/UI_CODE_QUALITY_AUDIT_AND_FIX_PLAN_DAY82.md` (now historical/reference — all tasks done, each with its own verification note).
+
+| Group | Result |
+|-------|--------|
+| A — 6 real bugs | Scan tab/paper-trading candidate-set divergence (an `order_by()` override bug) fixed; Trade Setup Card's negative-stop-price bug fixed; Price Structure Card's dead "pattern forming" watch item fixed; 3 inconsistent liquidity thresholds unified into `liquidityThresholds.js`; Nirmal watchlist's silent-failure bug fixed; MR Signal Card's stale condition labels fixed. |
+| B — 6 DRY violations | Pattern Detection Card + Categorical Assessment tiles both de-duplicated into shared components (`PatternMiniCard.jsx`, `AssessmentTile.jsx`); the legacy 0.011-correlation `determineVerdict()` function deleted entirely (traced reachability first — confirmed its only consumer was dead code); RS Card's fake "percentile" relabeled; a dormant Canadian-ticker bug fixed in `live_signals.py`. |
+| C — Dead code | ~7 unused functions/exports and ~37 debug `console.log` lines removed. |
+| D — New capability | `backend/providers/tradier_provider.py` — a 3rd-tier OHLCV/quote fallback, verified with forced-failover tests (no real credentials touched). Reliability-only; no options/fundamentals scope creep (those belong to OptionsIQ / don't close STA's real gaps, per the Day 82 evaluation). |
+| E — Polish | Breakout Status card gained a loading skeleton and now surfaces `breakoutLevel`/`warnings` (previously silently dropped); 2 stale-response-race bugs fixed (ticker search, Scan tab rescans); a footer note added for the Scan tab's 20-row breakout-badge cap. |
+
+**Verification discipline:** every fix was checked live — either via Playwright against the running app (real tickers, zero console errors each time) or direct provider/API calls (e.g. the Tradier forced-failover test). Two commits: `c48d16d8` (Group A + B1), `b77e06ff` (Groups B2–B6, C, D1, E1–E4). Backend v2.36 → v2.39 across the arc.
+
+---
+
+## ACTIVE PRIORITY ORDER (Day 84 updated)
 
 | # | Item | Why | Effort |
 |---|------|-----|--------|

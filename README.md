@@ -1272,6 +1272,10 @@ TOLERANCES = {
 - **v4.32: Simplicity Premium** ✅ Sentiment info-only, progressive disclosure, cap-aware checklist (Day 70B)
 - **v4.37: Fable Remediation + Breakout Wiring** ✅ MR transaction costs + gap-aware fills, backtest statistics overhaul, JS↔Python verdict parity fix (86,400-combo grid), fundamentals mismatch measured, breakout classification engine wired (`/api/breakout/<ticker>`) (Day 78-79)
 - **v4.38: Survivorship-Free Re-Validation + Paper-Trading Instrumentation** ✅ Fable Remediation Plan complete (all 5 phases): unbiased-universe backtest (Config C PF 1.61→1.40), one-time MR liquidity re-test (PF 0.99→1.16), entry-slippage + regime-snapshot logging in Forward Test tab (Day 79-80)
+- **v4.39: Automated Paper Trading Engine** ✅ Unattended daily job takes every qualifying signal with zero human filtering (removes selection bias); shared TradingView query + `live_mode` exit replay prevent backtest/live drift (Day 81)
+- **v4.41: Breakout Enhancement Plan + Fable Hygiene Audit** ✅ Breakout badge column + `/api/breakout/batch` + `/breakout-watch` skill; process/hygiene audit fixed 2 git risk items and deleted ~20 dead files (Day 82)
+- **v4.42: Data-Source Reliability + BottomLineCard Removal** ✅ 5 data-source bugs fixed, cross-process rate-limiter/circuit-breaker state shared via SQLite; redundant Bottom Line Card removed, breakout status added to Analyze page (Day 83)
+- **v4.43: UI Code Quality Fix Plan** ✅ 3 Fable audits (Analyze page cards, Scan tab, Tradier eval) synthesized and fully executed — 6 real bugs, 6 DRY-violation cleanups, dead-code removal, a new Tradier data provider (3rd-tier OHLCV/quote fallback), and UI polish, all browser-verified (Day 82-83)
 
 ### Philosophy (Day 27 + Day 44 Update)
 
@@ -1288,16 +1292,17 @@ Current focus:
 - **Categorical filtering** over numerical ranking
 - **System measurement** through forward testing and SQN tracking
 
-### Current Priorities (Day 80)
+### Current Priorities (Day 84)
 
-A full-system audit (Day 78) found the backtested edge was likely overstated — survivorship bias in the test universe and a reused walk-forward window. The resulting remediation plan is now **fully complete (all 5 phases)**: the config is frozen and pre-registered, transaction costs and gap-aware fills were added, the statistics were overhauled (proper t-test, actual trade frequency, block-bootstrap p-value, honest drawdown), a systematic 86,400-combo test found and fixed a real parity bug between the live and backtested verdict logic, the backtest universe was rebuilt as an unbiased random sample (survivorship-free re-validation), and paper-trading instrumentation (entry-slippage + regime-snapshot logging) is live. A measured 40% disagreement between live and backtested fundamentals data sources is documented (mitigation choice still pending).
+A full-system audit (Day 78) found the backtested edge was likely overstated — survivorship bias in the test universe and a reused walk-forward window. The resulting remediation plan is **fully complete (all 5 phases)**, and an automated paper-trading engine (Day 81) now runs daily, unattended, taking every qualifying signal with zero human filtering — this is the real test for both systems now, and it's been running since Day 81.
 
-**Where the two trading systems stand:** momentum (Config C) re-validated at PF 1.40 (was 1.61 on the hand-picked universe) — real but not yet statistically significant. Mean-reversion initially came back a clean null on the unbiased universe (PF 0.99) but a one-time, pre-committed liquidity restriction (execution realism, not threshold-chasing) recovered PF 1.16 — also real but not yet significant. **Both systems now require live paper-trading confirmation (50+ trades each) before any capital allocation** — neither is backtest-confirmed.
+**Where the two trading systems stand:** momentum (Config C) re-validated at PF 1.40 (was 1.61 on the hand-picked universe) — real but not yet statistically significant. Mean-reversion's one-time, pre-committed liquidity restriction recovered PF 1.16 from an initial clean null (PF 0.99) — also real but not yet significant. **Both systems require live paper-trading confirmation (50+ trades each) before any capital allocation.** Estimated time to reach that bar: roughly 7 months for MR, 2+ years for momentum at backtest-implied signal rates (highly uncertain, will be re-estimated after 4-6 weeks of real data).
 
-1. **Start paper trading** — config is frozen and instrumented; this is the real test now for both systems
-2. **Add the liquidity gate to the live MR detector** — only the backtest has it so far
-3. **Breakout enhancements** — the classification engine is wired (`/api/breakout/<ticker>`) and validated; scan badges and a `/breakout-watch` skill are next (`docs/claude/design/BREAKOUT_ENHANCEMENT_PLAN.md`)
-4. Fundamentals mitigation decision, N4 Market Phase synthesis, `/ibkr-scan` skill, Value Tab Phase 2 — queued behind the above
+1. **Let paper trading accumulate** — the primary focus; nothing to build, just time. Check progress with `daily_job.py --report`.
+2. **Fundamentals mitigation decision** — a measured 40% disagreement between live and backtested fundamentals data sources is still pending a choice (align live-to-SimFin or backtest-to-TTM).
+3. **Confirm SimFin key rotation** — small housekeeping item.
+4. **Breakout Enhancement Plan Phase 1** (near-breakout scan preset) — the only remaining phase; the rest (batch endpoint, Scan tab badges, `/breakout-watch` skill) shipped Day 81-82.
+5. N4 Market Phase synthesis, `/ibkr-scan` skill, Value Tab Phase 2, Price Structure Phase 2, Canadian Analyze page — queued behind the above.
 
 ---
 
