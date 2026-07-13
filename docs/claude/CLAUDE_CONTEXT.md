@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 82 — end of day (July 12, 2026)
+> **Last Updated:** Day 83 — end of day (July 12, 2026)
 
 ---
 
@@ -11,16 +11,23 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 82 |
-| Version | v4.41 (Backend v2.36 — corrected, was drifted; see Day 82 note — Frontend v4.37, Backtest v4.19, API Service v2.11) |
-| Latest Status | PROJECT_STATUS_DAY81_SHORT.md (no new status file Day 82 — see Day 82 summary below for what changed) |
-| Latest Issues | KNOWN_ISSUES_DAY81.md (patched in place Day 82 with a correction note — see its own header) |
-| Latest API | API_CONTRACTS_DAY79.md (no API contract changes Day 82 — new `/api/breakout/batch` endpoint documented in ROADMAP instead) |
-| Focus | **Breakout Enhancement Plan essentially complete (only Phase 1 remains) + a Day 82 Fable process/hygiene audit found and fixed 2 real git risk items, deleted ~20 dead files, and added safety nets (dead-man switch, ledger backup, time-to-50-trades estimate) for the paper-trading engine. Paper trading itself: still 0 closed trades — that has not changed and won't for a while, see the new estimate below.** |
+| Current Day | 83 |
+| Version | v4.42 (Backend v2.37, Frontend v4.38, Backtest v4.19, API Service v2.11) |
+| Latest Status | PROJECT_STATUS_DAY83_SHORT.md (consolidates Day 82, which had no dedicated status file, plus Day 83's own work) |
+| Latest Issues | KNOWN_ISSUES_DAY83.md |
+| Latest API | API_CONTRACTS_DAY79.md (no API contract changes Day 83 — `fetchBreakout()` reuses the existing `/api/breakout/<ticker>` endpoint) |
+| Focus | **Analyze page / Scan tab / Tradier code-quality fix plan is documented but NOT yet executed (`docs/claude/design/UI_CODE_QUALITY_AUDIT_AND_FIX_PLAN_DAY82.md`) — next session should either triage which groups to fix or wait for direction. Data-source reliability fixed this session (5 bugs + a real cross-process rate-limiter/circuit-breaker state gap, now Golden Rule 22). Paper trading itself: still 0 closed trades — unchanged, expected to take months, see the Day 82 estimate below.** |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 83 Summary (Data-Source Reliability Fixes + BottomLineCard Removed + Analyze/Scan/Tradier Fix Plan Documented — v4.42)
+- **Data-source review (5 bugs fixed)**: cache period mismatch, an uncached MR signal route, AlphaVantage rate-limiter token waste (`_check_availability()` was consuming a token via `check_rate_limit()` on every non-HTTP check), uncached VIX quotes, and dead Stooq code removed.
+- **Cross-process state architecture gap fixed**: the rate-limiter and circuit-breaker (`rate_limiter.py`, `circuit_breaker.py`) were in-memory, per-process state — the Flask backend and the separate `daily_job.py` paper-trading process were silently NOT sharing rate-limit budgets or circuit-breaker trip state with each other. Rebuilt on a shared SQLite store (`backend/data/provider_state.db`). **New Golden Rule 22** codifies this.
+- **UI cleanup (user-flagged via screenshot)**: deleted `BottomLineCard.jsx` (480 lines) — verdict was rendered 3x on one page, its bullets reworded facts the Categorical Assessment card already showed; confirmed via code read it was a safe, self-contained leaf component before deleting. Added the previously-orphaned single-ticker breakout endpoint (`/api/breakout/<ticker>`, live since Day 78) to the Analyze Stock page — badge in Simple view, dedicated card in Full Analysis view (the slot Bottom Line vacated). Verified in a real browser session.
+- **Deep Fable audit, 3 parallel dispatches** (Analyze page Full Analysis cards, Scan Market tab, a newly-added Tradier API key): synthesized into `docs/claude/design/UI_CODE_QUALITY_AUDIT_AND_FIX_PLAN_DAY82.md` — 6 real bugs (incl. a Scan-tab/paper-trading-engine candidate-set divergence from an `order_by()` override, and a negative-stop-price bug in Trade Setup Card, both confirmed true by direct code read), 6 DRY violations, a dead-code inventory, a fully-specified Tradier provider build (OHLCV/quote fallback, confirmed production token — NOT dividend-adjusted, no options/fundamentals scope creep), and 6 polish items. One raw audit claim was checked and corrected (MR Signal Card does NOT show null-edge signals — only its display labels are stale). **Documented only, per explicit user request — nothing in the fix plan has been executed or triaged yet.**
+- Paper trading status unchanged: still 0 closed trades, 2 pending MR signals — this session found no reason to intervene.
 
 ### Day 82 Summary (Breakout Plan Finished + Fable Process/Hygiene Audit — v4.41)
 - **Breakout Enhancement Plan Phase 0**: Config D (confirmed-breakout-only) backtested — **0 trades**, both IS and OOS periods. Genuine, root-caused finding (not a bug): `pattern_detection.py`'s confidence score measures pre-breakout base quality, which structurally can't coexist with `broken_out` status. Config E (anticipatory-only) captured 83–90% of Config C's real trades. Verified Config C's own numbers unchanged (git stash diff) before/after adding D/E. Full writeup: `docs/claude/versioned/BREAKOUT_CONFIG_D_BACKTEST_DAY81.md`.
@@ -41,13 +48,6 @@
 - **macOS launchd agent installed and confirmed firing**: `com.sta.papertrading.daily.plist`, weekdays 16:30 CT (~90min after close). Idempotent (checks `job_runs` table) and self-healing for missed days on already-open positions (full historical replay) — but cannot retroactively reconstruct entry signals for days the screener wasn't queried live (TradingView has no point-in-time API). Documented as a known limitation, not treated as a bug.
 - **First live run (2026-07-10)**: 0 momentum signals (2 TradingView candidates found, both correctly rejected on the fundamentals/R:R leg), 2 MR signals queued (GOOGL, ABBV) — cross-checked against `/api/mr/scan` directly, matched.
 - Not done: no UI surfacing of the new ledger (separate from the manual Forward Test tab's localStorage) — deferred until trades accumulate.
-
-### Day 80 Summary (Fable Remediation Phases 4–5 Complete + MR Liquidity Re-Test — v4.38)
-- **Phase 4**: survivorship-free re-validation. Random 400-ticker sample (seed=42) from SimFin's 3,788-ticker coverage — no hand-picking. **Config C: PF 1.61→1.40 (real, not yet significant, p=0.094). MR unrestricted: PF 0.99 (clean null, 6,151 trades).**
-- **Phase 5**: paper-trading instrumentation. `signalClosePrice`/`entrySlippagePct` + `regimeSnapshot` now logged on every paper trade (Forward Test tab), reusing existing categorical logic. **This completes all 5 phases of the Fable Remediation Plan.**
-- **MR liquidity re-test (user-directed, one-time)**: original MR backtest had no dollar-volume gate at all. Added price>$10, 20d ADV>$25M (pre-committed, not a re-tune). **Result: PF 0.99→1.16, Sharpe -0.10→1.30 — real but still not significant (block bootstrap p=0.064).** MR now same tier as momentum: unconfirmed, needs live paper trading. Live detector (`mean_reversion.py`) not yet updated with this gate — flagged as an open item.
-- **Golden Rule 20 added**: a pre-committed, principled restriction decided before seeing results is a legitimate one-time re-test, distinct from re-tuning to chase a number.
-- Both trading systems now require 50+ live paper trades before capital allocation — neither is backtest-confirmed. Paper trading is the next real test.
 
 ---
 
@@ -125,15 +125,16 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 
 ## NEXT SESSION PRIORITIES
 
-1. **Let paper trading accumulate** — PRIMARY FOCUS, and expect it to take a while: **~7 months for MR, ~2.2 years for momentum at backtest-implied rates (Day 82 estimate, highly uncertain — re-estimate after 4-6 weeks of real data)**. `/sta-start` now warns automatically if the launchd job goes stale (>3 days). Check progress with `venv/bin/python paper_trading/daily_job.py --report`. Nothing to build here.
-2. **Decide fundamentals mitigation** — Task 3.2 measured 40.0% live↔backtest disagreement; user decision pending (align live-to-SimFin or backtest-to-TTM). Now also affects the automated engine's momentum leg.
-3. **Confirm SimFin key rotation** — user to verify the old leaked key was rotated at simfin.com; a possible new key was shared in conversation but not yet applied.
-4. **Breakout Plan Phase 1** (near-breakout scan preset) — the only remaining phase of the whole plan; needs explicit user go-ahead (small feature, mid-freeze).
-5. **Build N4: Market Phase synthesis** — Research done (Day 76). Queued behind the above.
-6. **Build `/ibkr-scan` skill** — Research done (Day 77). Verify 52W High Proximity in IBKR first.
-7. **Value Tab Phase 2 / Price Structure Phase 2 / N3 / Canadian Analyze page** — queued.
-8. **(Optional, low priority) Surface the paper-trading ledger in the UI** — currently CLI/DB-only (`--report` flag); a Forward-Test-tab display would be a nice-to-have once trades accumulate, not a prerequisite.
-9. **(Deferred, user's own call)** The Day 82 Fable audit's 5th recommendation bucket — consolidating the Golden Rules/doc-rotation process itself (`docs/claude/design/FABLE_AUDIT_DAY82_PROCESS_AND_DECLUTTER.md`, Section F "REMOVE/DECLUTTER" item 4) — was deliberately not applied; it's a bigger, more opinionated change than the hygiene fixes and should only happen if the user explicitly wants it.
+1. **Triage the UI Code Quality Fix Plan** — `docs/claude/design/UI_CODE_QUALITY_AUDIT_AND_FIX_PLAN_DAY82.md` (written Day 83, covers Analyze page cards + Scan Market tab + a Tradier provider build spec). Nothing in it has been executed yet — decide which of Groups A-E to fix now vs. later, or call out the 2-3 most urgent items. Group A (6 real bugs, incl. a Scan-tab/paper-trading-engine candidate-set divergence and a negative-stop-price bug) is the natural starting point if picking one group.
+2. **Let paper trading accumulate** — expect it to take a while: **~7 months for MR, ~2.2 years for momentum at backtest-implied rates (Day 82 estimate, highly uncertain — re-estimate after 4-6 weeks of real data)**. `/sta-start` warns automatically if the launchd job goes stale (>3 days). Check progress with `venv/bin/python paper_trading/daily_job.py --report`. Nothing to build here.
+3. **Decide fundamentals mitigation** — Task 3.2 measured 40.0% live↔backtest disagreement; user decision pending (align live-to-SimFin or backtest-to-TTM). Now also affects the automated engine's momentum leg.
+4. **Confirm SimFin key rotation** — user to verify the old leaked key was rotated at simfin.com; a possible new key was shared in conversation but not yet applied.
+5. **Breakout Plan Phase 1** (near-breakout scan preset) — the only remaining phase of the whole plan; needs explicit user go-ahead (small feature, mid-freeze).
+6. **Build N4: Market Phase synthesis** — Research done (Day 76). Queued behind the above.
+7. **Build `/ibkr-scan` skill** — Research done (Day 77). Verify 52W High Proximity in IBKR first.
+8. **Value Tab Phase 2 / Price Structure Phase 2 / N3 / Canadian Analyze page** — queued.
+9. **(Optional, low priority) Surface the paper-trading ledger in the UI** — currently CLI/DB-only (`--report` flag); a Forward-Test-tab display would be a nice-to-have once trades accumulate, not a prerequisite.
+10. **(Deferred, user's own call)** The Day 82 Fable audit's 5th recommendation bucket — consolidating the Golden Rules/doc-rotation process itself (`docs/claude/design/FABLE_AUDIT_DAY82_PROCESS_AND_DECLUTTER.md`, Section F "REMOVE/DECLUTTER" item 4) — was deliberately not applied; it's a bigger, more opinionated change than the hygiene fixes and should only happen if the user explicitly wants it.
 
 ---
 
@@ -214,6 +215,7 @@ sqlite3 backend/validation_results/paper_trading_ledger.db "SELECT MAX(run_date)
 | 80 | Fable Remediation Phases 4-5 complete (survivorship-free re-validation + paper-trading instrumentation) — plan finished. MR liquidity re-test (user-directed, one-time): PF 0.99→1.16, still unconfirmed. Golden Rule 20 (pre-committed restriction vs re-tune). Version v4.38 (BE v2.37, FE v4.37). |
 | 81 | Automated paper trading engine built (`backend/paper_trading/`): daily unattended job, no human signal filtering, launchd-scheduled. Shared TradingView query (`scan_queries.py`) and `live_mode` exit replay (`trade_simulator.py`/`mr_simulator.py`) prevent drift between backtest and live logic. Live MR liquidity gate fixed to match the backtested one. Version v4.39 (BE v2.38, Backtest v4.19). |
 | 82 | Breakout Plan Phase 0 (Config D=0 trades, root-caused) + Phases 2-3 (batch endpoint, badges, skill) — plan essentially complete. User-requested Fable process/hygiene audit: fixed 2 real git risk items (untracked provider, tracked node_modules), deleted ~20 dead files, reconciled stale docs (CLAUDE_CONTEXT, KNOWN_ISSUES_DAY81, MEMORY.md, PAPER_TRADING_PREREGISTRATION.md, BACKEND_VERSION drift), added dead-man switch + ledger backup + time-to-50-trades estimate. Version v4.41 (BE v2.36 — corrected down from a drifted v2.38 claim). |
+| 83 | Data-source review: 5 bugs fixed + a real cross-process rate-limiter/circuit-breaker state gap fixed (shared SQLite store), Golden Rule 22 added. Removed redundant BottomLineCard (user-flagged), added breakout status to the Analyze Stock page. Deep 3-way Fable audit (Analyze page cards, Scan tab, Tradier API eval) synthesized into an executable fix plan (`UI_CODE_QUALITY_AUDIT_AND_FIX_PLAN_DAY82.md`) — documented only, not yet triaged/executed. Version v4.42 (BE v2.37, FE v4.38). |
 
 ---
 

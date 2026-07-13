@@ -2,12 +2,12 @@
 
 > **Purpose:** Core rules and cumulative lessons learned — stable reference
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 81 (July 10, 2026)
+> **Last Updated:** Day 83 (July 12, 2026)
 > **Session protocols:** See `CLAUDE_CONTEXT.md` for startup/close checklists
 
 ---
 
-## CORE RULES (20 Golden Rules)
+## CORE RULES (22 Golden Rules)
 
 1. **START of session:** Read PROJECT_STATUS_DAY[N].md first
 2. **BEFORE modifying any file:** READ it first using Read tool
@@ -30,6 +30,7 @@
 19. **SYSTEMATIC GRID-TEST PARITY, NOT HAND-PICKED VECTORS.** `categorical_engine.py`'s 5 hand-written parity vectors passed for years while a real bug sat undetected: the Python HOLD-fallback was missing a `risk_macro == 'Neutral'` branch that live JS had, silently defaulting to AVOID instead. A systematic 86,400-combo grid (`test_verdict_parity.py`) found it in one run — a 7.08% mismatch rate that 5 spot-checked vectors could never have surfaced by chance. When two independent implementations of the same logic must stay in sync (e.g., a Python backtest port vs the live JS it's meant to validate), build an exhaustive input grid over the decision boundaries, not a handful of "representative" examples. (Day 78, Fable Remediation Task 2.4)
 20. **A PRE-COMMITTED RESTRICTION IS NOT A RE-TUNE.** Rule 18 forbids re-tuning thresholds to chase a better backtest number — but MR's original entry condition had NO liquidity gate at all (only `price > $5`, unlike momentum's $5M ADV gate). Adding a liquidity floor (price>$10, 20d ADV>$25M) decided *before* seeing the result, for a defensible, principled reason (execution realism — Connors' RSI(2) research was validated on liquid large-caps, not shell/SPAC names), is a legitimate one-time re-test — not data-snooping. It flipped MR from a clean null (PF 0.99) to a real-but-modest result (PF 1.16, still not significant at p=0.064). The distinguishing test: was the change decided *because of* the disappointing number (forbidden), or was it a *quality/execution constraint* that happened to also be untested (legitimate, once)? Either way: run it once, accept the answer, don't iterate further. (Day 79/80, Fable Remediation MR liquidity re-test)
 21. **WHEN BUILDING A LIVE COUNTERPART TO AN EXISTING BACKTEST ENGINE, DRY THE SHARED LOGIC BEFORE WRITING THE SECOND IMPLEMENTATION — not after finding a parity bug.** Rule 19 found the JS/Python verdict-parity bug after it had shipped for years. Building the automated paper-trading engine (Day 81) was a chance to apply that lesson proactively: instead of writing a second exit-logic state machine for live positions, `trade_simulator.py`/`mr_simulator.py` gained a `live_mode` parameter so the live engine replays the *exact same* backtested function, and the Config C TradingView query was factored into `scan_queries.py` so the live Scan tab and the paper-trading engine can't drift apart. Verify the extraction is behavior-preserving (byte-for-byte identical output on real/synthetic trades) before relying on it — a refactor that "looks equivalent" is not the same as one that's been diffed against the original. (Day 81, automated paper trading engine)
+22. **IN-MEMORY RATE-LIMITER/CIRCUIT-BREAKER STATE IS PER-PROCESS — SHARE IT OR IT'S NOT REALLY PROTECTING ANYTHING.** The Flask backend and the separate `daily_job.py` paper-trading process each ran their own Python interpreter with their own in-memory `circuit_breaker.py`/`rate_limiter.py` state — the two processes were silently *not* sharing rate-limit budgets or circuit-breaker trip state with each other, so a provider tripped/exhausted in one process looked perfectly healthy to the other. Any cross-process safety mechanism (rate limiting, circuit breaking, dedup, locking) needs storage that outlives a single process — here, a shared SQLite store (`backend/data/provider_state.db`). Multi-process deployments (a web server plus any cron/launchd job that imports the same modules) should be assumed by default, not discovered later. (Day 83, data-source review)
 
 ---
 

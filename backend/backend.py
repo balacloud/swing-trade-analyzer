@@ -38,7 +38,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 # Day 78: single source of truth for /api/health — bump this on every backend version change
 # Day 82: was still '2.35' while CLAUDE_CONTEXT.md claimed v2.38 — the exact
 # drift Day 78's fix was meant to prevent, recurring (Fable hygiene audit).
-BACKEND_VERSION = '2.36'
+# Day 83: 5 data-source bugs fixed + SQLite-backed shared rate-limiter/circuit-breaker state.
+BACKEND_VERSION = '2.37'
 
 from constants import SUPPORT_PROXIMITY_PCT, RESISTANCE_PROXIMITY_PCT  # shared with support_resistance.py
 
