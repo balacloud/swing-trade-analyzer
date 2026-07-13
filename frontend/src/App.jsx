@@ -37,7 +37,7 @@
  *       - Issue #5: Warning when AVOID verdict but setup shows VIABLE badge
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation, clearBackendCache, fetchDataProvenance, getCacheStatus, fetchSectorRotation, fetchMRSignal, fetchBreakoutBatch, fetchBreakout, fetchSupportResistance } from './services/api';
 import { calculateScore } from './utils/scoringEngine';
 import { calculateSimplifiedAnalysis } from './utils/simplifiedScoring';
@@ -54,6 +54,8 @@ import SectorRotationTab from './components/SectorRotationTab'; // Day 62: v4.24
 import ContextTab from './components/ContextTab'; // Day 62: v4.24 Context Tab
 import ValueTab from './components/ValueTab'; // Day 75: Value investing lens
 import MRSignalCard from './components/MRSignalCard'; // Tier 3B: Mean-Reversion Signal
+import PatternMiniCard from './components/PatternMiniCard'; // Day 83: shared VCP/Cup&Handle/Flat Base tile
+import AssessmentTile, { getAssessmentColor } from './components/AssessmentTile'; // Day 83: shared T/F/S/R tile
 import PriceStructureCard from './components/PriceStructureCard'; // Day 72: Price Structure narrative
 import { generatePriceStructure } from './utils/priceStructureNarrative'; // Day 72
 import {
@@ -61,7 +63,6 @@ import {
   loadTrades, saveTrades, addTrade, updateTrade, deleteTrade,
   downloadTradesCSV, TradeStatus
 } from './utils/forwardTesting';
-//import { calculateRelativeStrength } from './utils/rsCalculator';
 
 function App() {
   // Tab state
@@ -84,6 +85,16 @@ function App() {
   const [mrSignalData, setMrSignalData] = useState(null); // Tier 3B: Mean-reversion signal
   const [mrSignalLoading, setMrSignalLoading] = useState(false); // Tier 3B: MR loading state
   const [breakoutData, setBreakoutData] = useState(null); // Day 82: single-ticker breakout status
+  const [breakoutLoading, setBreakoutLoading] = useState(false); // Day 83 fix (Task E1): was missing entirely
+  // Day 83 fix (Task E2): guards fetchMRSignal/fetchBreakout against a slow
+  // response for an earlier search overwriting a newer one's card — neither
+  // card displays which ticker it's for, so the mismatch would otherwise be
+  // undetectable. Updated synchronously at the start of every analyzeStock()
+  // call, checked before each of those two setters fires.
+  const latestTickerRequestRef = useRef(null);
+  // Day 83 fix (Task E3): identifies the most recent Scan tab request, see
+  // loadBreakoutBadges()/runScan() below.
+  const scanRequestIdRef = useRef(0);
   const [priceStructure, setPriceStructure] = useState(null); // Day 72: Price Structure narrative
 
   // Forward Testing state (Day 47: v4.7)
@@ -336,23 +347,40 @@ function App() {
     setBreakoutData(null);
     setActiveTab('analyze');
 
+    // Day 83 fix (Task E2): record this as the latest requested ticker so the
+    // two async fetches below can detect if a newer search superseded them
+    // before their response arrives.
+    latestTickerRequestRef.current = targetTicker;
+
     // Tier 3B: Fetch MR signal in parallel (non-blocking)
     setMrSignalLoading(true);
     fetchMRSignal(targetTicker)
-      .then(data => setMrSignalData(data))
-      .catch(() => setMrSignalData(null))
-      .finally(() => setMrSignalLoading(false));
+      .then(data => {
+        if (latestTickerRequestRef.current === targetTicker) setMrSignalData(data);
+      })
+      .catch(() => {
+        if (latestTickerRequestRef.current === targetTicker) setMrSignalData(null);
+      })
+      .finally(() => {
+        if (latestTickerRequestRef.current === targetTicker) setMrSignalLoading(false);
+      });
 
     // Day 82: Fetch breakout status in parallel (non-blocking, same pattern as MR signal)
+    setBreakoutLoading(true); // Day 83 fix (Task E1)
     fetchBreakout(targetTicker)
-      .then(data => setBreakoutData(data))
-      .catch(() => setBreakoutData(null));
+      .then(data => {
+        if (latestTickerRequestRef.current === targetTicker) setBreakoutData(data);
+      })
+      .catch(() => {
+        if (latestTickerRequestRef.current === targetTicker) setBreakoutData(null);
+      })
+      .finally(() => {
+        if (latestTickerRequestRef.current === targetTicker) setBreakoutLoading(false);
+      });
 
     try {
       const data = await fetchFullAnalysisData(targetTicker);
       const result = calculateScore(data.stock, data.spy, data.vix);
-      //const rsData = calculateRelativeStrength(data.stock, data.spy);
-      //result.rsData = rsData;
 
       // Day 27: Also calculate simplified binary analysis
       const simplified = calculateSimplifiedAnalysis(data.stock, data.spy, data.sr);
@@ -461,21 +489,29 @@ function App() {
 
   // Breakout badges: one batch call for the top 20 rows, fired after scan
   // results render — does not block the initial table paint (Task 2.2 design).
-  const loadBreakoutBadges = async (tickers) => {
+  // Day 83 fix (Task E3): scanId guards against a slower earlier scan's badge
+  // response overwriting a faster, newer scan's results — same stale-response
+  // race as Task E2, scoped to the Scan tab instead of ticker search.
+  const loadBreakoutBadges = async (tickers, scanId) => {
     const topTickers = (tickers || []).slice(0, 20);
     if (topTickers.length === 0) return;
     setBreakoutBadgesLoading(true);
     try {
       const data = await fetchBreakoutBatch(topTickers);
-      setBreakoutBadges(data.results || {});
+      if (scanRequestIdRef.current === scanId) setBreakoutBadges(data.results || {});
     } catch (err) {
       console.error('Breakout batch fetch failed:', err);
     } finally {
-      setBreakoutBadgesLoading(false);
+      if (scanRequestIdRef.current === scanId) setBreakoutBadgesLoading(false);
     }
   };
 
   const runScan = async () => {
+    // Day 83 fix (Task E3): identifies this specific scan invocation so
+    // loadBreakoutBadges() can detect being superseded by a newer scan.
+    scanRequestIdRef.current += 1;
+    const thisScanId = scanRequestIdRef.current;
+
     setScanLoading(true);
     setScanError(null);
     setScanResults(null);
@@ -520,13 +556,13 @@ function App() {
           returned: candidates.length,
           candidates,
         });
-        loadBreakoutBadges(candidates.map(c => c.ticker));
+        loadBreakoutBadges(candidates.map(c => c.ticker), thisScanId);
         return;
       }
 
       const results = await fetchScanResults(selectedStrategy, 50, selectedMarketIndex);
       setScanResults(results);
-      loadBreakoutBadges((results.candidates || []).map(c => c.ticker));
+      loadBreakoutBadges((results.candidates || []).map(c => c.ticker), thisScanId);
     } catch (err) {
       setScanError(err.message || 'Failed to scan for candidates');
     } finally {
@@ -579,25 +615,6 @@ function App() {
   const formatPercent = (value, decimals = 1) => {
     if (value === null || value === undefined) return 'N/A';
     return `${value >= 0 ? '+' : ''}${value.toFixed(decimals)}%`;
-  };
-
-  // Get verdict color
-  const getVerdictColor = (verdict) => {
-    switch (verdict?.verdict) {
-      case 'BUY': return 'bg-green-600';
-      case 'HOLD': return 'bg-yellow-500';
-      case 'AVOID': return 'bg-red-600';
-      default: return 'bg-gray-500';
-    }
-  };
-
-  // Get score color
-  const getScoreColor = (score, max) => {
-    const pct = (score / max) * 100;
-    if (pct >= 80) return 'text-green-600';
-    if (pct >= 60) return 'text-green-500';
-    if (pct >= 40) return 'text-yellow-500';
-    return 'text-red-500';
   };
 
   // Get RSI color
@@ -1229,26 +1246,26 @@ function App() {
                     </div>
                     <div className="text-right">
                       <div className={`text-4xl font-bold px-4 py-2 rounded-lg ${
-                        (categoricalResult?.verdict?.verdict || analysisResult.verdict?.verdict) === 'BUY'
+                        categoricalResult?.verdict?.verdict === 'BUY'
                           ? 'text-green-400 bg-green-900/30 border border-green-600'
-                          : (categoricalResult?.verdict?.verdict || analysisResult.verdict?.verdict) === 'HOLD'
+                          : categoricalResult?.verdict?.verdict === 'HOLD'
                           ? 'text-yellow-400 bg-yellow-900/30 border border-yellow-600'
                           : 'text-red-400 bg-red-900/30 border border-red-600'
                       }`}>
-                        {categoricalResult?.verdict?.verdict || analysisResult.verdict?.verdict || 'N/A'}
+                        {categoricalResult?.verdict?.verdict || 'N/A'}
                       </div>
                       {categoricalResult && (
                         <div className="text-xs text-gray-500 mt-2 space-x-2">
-                          <span className={categoricalResult.technical?.assessment === 'Strong' ? 'text-green-400' : categoricalResult.technical?.assessment === 'Decent' ? 'text-yellow-400' : 'text-red-400'}>
+                          <span className={getAssessmentColor(categoricalResult.technical?.assessment)}>
                             T:{categoricalResult.technical?.assessment?.charAt(0)}
                           </span>
-                          <span className={categoricalResult.fundamental?.assessment === 'Strong' ? 'text-green-400' : categoricalResult.fundamental?.assessment === 'Decent' ? 'text-yellow-400' : categoricalResult.fundamental?.assessment === 'N/A' ? 'text-gray-400' : 'text-red-400'}>
+                          <span className={getAssessmentColor(categoricalResult.fundamental?.assessment)}>
                             F:{categoricalResult.fundamental?.assessment?.charAt(0)}
                           </span>
-                          <span className={categoricalResult.sentiment?.assessment === 'Strong' ? 'text-green-400' : categoricalResult.sentiment?.assessment === 'Neutral' ? 'text-gray-400' : 'text-red-400'}>
+                          <span className={getAssessmentColor(categoricalResult.sentiment?.assessment, 'sentiment')}>
                             S:{categoricalResult.sentiment?.assessment?.charAt(0)}
                           </span>
-                          <span className={categoricalResult.riskMacro?.assessment === 'Favorable' ? 'text-green-400' : categoricalResult.riskMacro?.assessment === 'Neutral' ? 'text-yellow-400' : 'text-red-400'}>
+                          <span className={getAssessmentColor(categoricalResult.riskMacro?.assessment, 'riskMacro')}>
                             R:{categoricalResult.riskMacro?.assessment?.charAt(0)}
                           </span>
                         </div>
@@ -1359,8 +1376,12 @@ function App() {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-gray-400">RS vs S&P 500:</span>
-                        <span className={`font-bold ${analysisResult.rsData?.rsRatio >= 1.2 ? 'text-green-400' : analysisResult.rsData?.rsRatio >= 1.0 ? 'text-yellow-400' : 'text-red-400'}`}>
-                          {analysisResult.rsData?.rs52Week?.toFixed(2) || analysisResult.rsData?.rsRatio?.toFixed(2) || 'N/A'}
+                        {/* Day 83 fix (Task B4): color and value both key off rs52Week now
+                            (was rsRatio for color, rs52Week for value — same underlying
+                            number aliased in scoringEngine.js, harmless today but fragile
+                            if they ever diverged). */}
+                        <span className={`font-bold ${analysisResult.rsData?.rs52Week >= 1.2 ? 'text-green-400' : analysisResult.rsData?.rs52Week >= 1.0 ? 'text-yellow-400' : 'text-red-400'}`}>
+                          {analysisResult.rsData?.rs52Week?.toFixed(2) || 'N/A'}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -1374,7 +1395,11 @@ function App() {
                         <span>{formatPercent(analysisResult.rsData?.spy52wReturn)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-400">RS Rating:</span>
+                        {/* Day 83 fix (Task B4): relabeled — this is a linear rescale of the
+                            rs52Week ratio shown above (rsCalculator.js's own comment admits
+                            "simplified version - ideally would be percentile vs all stocks"),
+                            not an independent IBD-style percentile rank vs. the market. */}
+                        <span className="text-gray-400 cursor-help" title="A linear rescale of the RS ratio above, NOT a percentile rank vs. all stocks (that would require ranking against the full market).">RS Rating (scaled, not a percentile):</span>
                         <span className={`font-bold ${analysisResult.rsData?.rsRating >= 70 ? 'text-green-400' : analysisResult.rsData?.rsRating >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
                           {analysisResult.rsData?.rsRating || 'N/A'}
                         </span>
@@ -1400,7 +1425,7 @@ function App() {
                     {/* Day 61: Uses shared riskRewardCalc utility (DRY) */}
                     {(() => {
                       const rr = calculateRiskReward(srData, srData.currentPrice);
-                      const { pullbackRR: pullbackRRValue, momentumRR: momentumRRValue, pullbackViable, momentumViable, anyViable, nearestSupport } = rr;
+                      const { anyViable } = rr;
                       const badge = getViabilityBadge(rr);
                       const viabilityLabel = badge.label;
                       const viabilityBg = badge.bg;
@@ -1886,148 +1911,53 @@ function App() {
                       </div>
                     )}
 
-                    {/* Pattern Cards */}
+                    {/* Pattern Cards — Day 83: 3 copy-pasted blocks replaced with PatternMiniCard */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      {/* VCP Pattern */}
-                      <div className={`rounded-lg p-3 ${
-                        patternsData.patterns?.vcp?.detected
-                          ? 'bg-green-900/30 border border-green-600'
-                          : 'bg-gray-700/30 border border-gray-600'
-                      }`}>
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="font-medium text-gray-200 cursor-help" title="Volatility Contraction Pattern (VCP) - Mark Minervini's signature pattern. Price makes a series of smaller pullbacks, showing selling pressure drying up before breakout.">VCP</span>
-                          <span className={`text-xs px-2 py-0.5 rounded ${
-                            patternsData.patterns?.vcp?.detected ? 'bg-green-600 text-white' : 'bg-gray-600 text-gray-300'
-                          }`}>
-                            {patternsData.patterns?.vcp?.confidence || 0}%
-                          </span>
-                        </div>
-                        <div className="text-xs space-y-1">
-                          <div className="flex justify-between text-gray-400">
-                            <span>Contractions</span>
-                            <span className="text-gray-300">{patternsData.patterns?.vcp?.contractions_count || 0}</span>
-                          </div>
-                          <div className="flex justify-between text-gray-400">
-                            <span>Tight Base</span>
-                            <span className={patternsData.patterns?.vcp?.tight_base ? 'text-green-400' : 'text-gray-500'}>
-                              {patternsData.patterns?.vcp?.tight_base ? 'Yes' : 'No'}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-gray-400">
-                            <span>Status</span>
-                            <span className={`${
-                              patternsData.patterns?.vcp?.status === 'at_pivot' ? 'text-yellow-400' :
-                              patternsData.patterns?.vcp?.status === 'broken_out' ? 'text-green-400' :
-                              'text-gray-300'
-                            }`}>
-                              {patternsData.patterns?.vcp?.status || 'N/A'}
-                            </span>
-                          </div>
-                          {patternsData.patterns?.vcp?.pivot_price && (
-                            <div className="flex justify-between text-gray-400">
-                              <span>Pivot</span>
-                              <span className="text-blue-400 font-mono">${patternsData.patterns.vcp.pivot_price.toFixed(2)}</span>
-                            </div>
-                          )}
-                          <div className="text-gray-500 italic mt-1.5 pt-1.5 border-t border-gray-600">
-                            Sellers exhausted — each pullback smaller. Lowest risk breakout entry.
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Cup & Handle Pattern */}
-                      <div className={`rounded-lg p-3 ${
-                        patternsData.patterns?.cupHandle?.detected
-                          ? 'bg-green-900/30 border border-green-600'
-                          : 'bg-gray-700/30 border border-gray-600'
-                      }`}>
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="font-medium text-gray-200 cursor-help" title="Cup and Handle - William O'Neil's classic pattern. U-shaped cup formation followed by a small handle pullback before breakout.">Cup & Handle</span>
-                          <span className={`text-xs px-2 py-0.5 rounded ${
-                            patternsData.patterns?.cupHandle?.detected ? 'bg-green-600 text-white' : 'bg-gray-600 text-gray-300'
-                          }`}>
-                            {patternsData.patterns?.cupHandle?.confidence || 0}%
-                          </span>
-                        </div>
-                        <div className="text-xs space-y-1">
-                          <div className="flex justify-between text-gray-400">
-                            <span>Cup Depth</span>
-                            <span className="text-gray-300">{patternsData.patterns?.cupHandle?.cup?.depth_pct?.toFixed(1) || 'N/A'}%</span>
-                          </div>
-                          <div className="flex justify-between text-gray-400">
-                            <span>U-Shaped</span>
-                            <span className={patternsData.patterns?.cupHandle?.cup?.u_shaped ? 'text-green-400' : 'text-gray-500'}>
-                              {patternsData.patterns?.cupHandle?.cup?.u_shaped ? 'Yes' : 'No'}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-gray-400">
-                            <span>Status</span>
-                            <span className={`${
-                              patternsData.patterns?.cupHandle?.status === 'complete' ? 'text-yellow-400' :
-                              patternsData.patterns?.cupHandle?.status === 'broken_out' ? 'text-green-400' :
-                              'text-gray-300'
-                            }`}>
-                              {patternsData.patterns?.cupHandle?.status || 'N/A'}
-                            </span>
-                          </div>
-                          {patternsData.patterns?.cupHandle?.pivot_price && (
-                            <div className="flex justify-between text-gray-400">
-                              <span>Pivot</span>
-                              <span className="text-blue-400 font-mono">${patternsData.patterns.cupHandle.pivot_price.toFixed(2)}</span>
-                            </div>
-                          )}
-                          <div className="text-gray-500 italic mt-1.5 pt-1.5 border-t border-gray-600">
-                            Institutional accumulation. Handle shakes out weak hands before real move.
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Flat Base Pattern */}
-                      <div className={`rounded-lg p-3 ${
-                        patternsData.patterns?.flatBase?.detected
-                          ? 'bg-green-900/30 border border-green-600'
-                          : 'bg-gray-700/30 border border-gray-600'
-                      }`}>
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="font-medium text-gray-200 cursor-help" title="Flat Base - Tight consolidation after a strong uptrend. Price moves sideways in a narrow range as the stock digests gains before continuing higher.">Flat Base</span>
-                          <span className={`text-xs px-2 py-0.5 rounded ${
-                            patternsData.patterns?.flatBase?.detected ? 'bg-green-600 text-white' : 'bg-gray-600 text-gray-300'
-                          }`}>
-                            {patternsData.patterns?.flatBase?.confidence || 0}%
-                          </span>
-                        </div>
-                        <div className="text-xs space-y-1">
-                          <div className="flex justify-between text-gray-400">
-                            <span>Range</span>
-                            <span className="text-gray-300">{patternsData.patterns?.flatBase?.base?.range_pct?.toFixed(1) || 'N/A'}%</span>
-                          </div>
-                          <div className="flex justify-between text-gray-400">
-                            <span>Prior Uptrend</span>
-                            <span className={patternsData.patterns?.flatBase?.prior_uptrend?.has_30pct_move ? 'text-green-400' : 'text-gray-500'}>
-                              {patternsData.patterns?.flatBase?.prior_uptrend?.pct?.toFixed(0) || 'N/A'}%
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-gray-400">
-                            <span>Status</span>
-                            <span className={`${
-                              patternsData.patterns?.flatBase?.status === 'forming' ? 'text-yellow-400' :
-                              patternsData.patterns?.flatBase?.status === 'broken_out' ? 'text-green-400' :
-                              'text-gray-300'
-                            }`}>
-                              {patternsData.patterns?.flatBase?.status || 'N/A'}
-                            </span>
-                          </div>
-                          {patternsData.patterns?.flatBase?.pivot_price && (
-                            <div className="flex justify-between text-gray-400">
-                              <span>Pivot</span>
-                              <span className="text-blue-400 font-mono">${patternsData.patterns.flatBase.pivot_price.toFixed(2)}</span>
-                            </div>
-                          )}
-                          <div className="text-gray-500 italic mt-1.5 pt-1.5 border-t border-gray-600">
-                            Digesting gains in tight range. Compression before next leg up.
-                          </div>
-                        </div>
-                      </div>
+                      <PatternMiniCard
+                        title="VCP"
+                        tooltip="Volatility Contraction Pattern (VCP) - Mark Minervini's signature pattern. Price makes a series of smaller pullbacks, showing selling pressure drying up before breakout."
+                        pattern={patternsData.patterns?.vcp}
+                        highlightStatus="at_pivot"
+                        statRows={[
+                          { label: 'Contractions', value: patternsData.patterns?.vcp?.contractions_count || 0 },
+                          {
+                            label: 'Tight Base',
+                            value: patternsData.patterns?.vcp?.tight_base ? 'Yes' : 'No',
+                            colorClass: patternsData.patterns?.vcp?.tight_base ? 'text-green-400' : 'text-gray-500',
+                          },
+                        ]}
+                        description="Sellers exhausted — each pullback smaller. Lowest risk breakout entry."
+                      />
+                      <PatternMiniCard
+                        title="Cup & Handle"
+                        tooltip="Cup and Handle - William O'Neil's classic pattern. U-shaped cup formation followed by a small handle pullback before breakout."
+                        pattern={patternsData.patterns?.cupHandle}
+                        highlightStatus="complete"
+                        statRows={[
+                          { label: 'Cup Depth', value: `${patternsData.patterns?.cupHandle?.cup?.depth_pct?.toFixed(1) || 'N/A'}%` },
+                          {
+                            label: 'U-Shaped',
+                            value: patternsData.patterns?.cupHandle?.cup?.u_shaped ? 'Yes' : 'No',
+                            colorClass: patternsData.patterns?.cupHandle?.cup?.u_shaped ? 'text-green-400' : 'text-gray-500',
+                          },
+                        ]}
+                        description="Institutional accumulation. Handle shakes out weak hands before real move."
+                      />
+                      <PatternMiniCard
+                        title="Flat Base"
+                        tooltip="Flat Base - Tight consolidation after a strong uptrend. Price moves sideways in a narrow range as the stock digests gains before continuing higher."
+                        pattern={patternsData.patterns?.flatBase}
+                        highlightStatus="forming"
+                        statRows={[
+                          { label: 'Range', value: `${patternsData.patterns?.flatBase?.base?.range_pct?.toFixed(1) || 'N/A'}%` },
+                          {
+                            label: 'Prior Uptrend',
+                            value: `${patternsData.patterns?.flatBase?.prior_uptrend?.pct?.toFixed(0) || 'N/A'}%`,
+                            colorClass: patternsData.patterns?.flatBase?.prior_uptrend?.has_30pct_move ? 'text-green-400' : 'text-gray-500',
+                          },
+                        ]}
+                        description="Digesting gains in tight range. Compression before next leg up."
+                      />
                     </div>
 
                     {/* Day 47: Actionable Patterns Section (≥60% confidence only) */}
@@ -2075,7 +2005,7 @@ function App() {
                                 </div>
                               </div>
                               {/* Volume Confirmation Row */}
-                              {pattern.breakout?.volumeRatio && (
+                              {pattern.breakout?.volumeRatio != null && (
                                 <div className="flex items-center gap-2 text-xs mb-2">
                                   <span className={pattern.breakout.volumeConfirmed ? 'text-green-400' : 'text-yellow-400'}>
                                     {pattern.breakout.volumeConfirmed ? '✓' : '⚠'} Volume: {pattern.breakout.volumeRatio}x avg
@@ -2147,10 +2077,20 @@ function App() {
                 {/* Day 82: Breakout state card — single-ticker /api/breakout/<ticker>,
                     same 8-state engine and badge styling as the Scan tab's batch
                     column. State only, never a signal (BREAKOUT_ENGINE_SPEC.md §13). */}
-                {breakoutData && !breakoutData.error && breakoutData.status !== 'NOT_READY' && (
-                  <div className="bg-gray-800 rounded-lg p-4 mb-4">
+                {/* Day 83 fix (Task E1): loading skeleton (was missing — card just
+                    popped in with no feedback while fetching); p-6/text-lg to match
+                    neighbor cards (was p-4/text-sm); removed the mb-4 (parent already
+                    uses space-y-6, so it was double-spacing); surfaces breakoutLevel
+                    and active warnings, previously fetched but silently dropped. */}
+                {breakoutLoading && (
+                  <div className="bg-gray-800 rounded-lg p-6 animate-pulse">
+                    <div className="h-4 bg-gray-700 rounded w-1/3"></div>
+                  </div>
+                )}
+                {!breakoutLoading && breakoutData && !breakoutData.error && breakoutData.status !== 'NOT_READY' && (
+                  <div className="bg-gray-800 rounded-lg p-6">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-sm font-semibold text-gray-300">🚀 Breakout Status</h3>
+                      <h3 className="text-lg font-semibold text-gray-300">🚀 Breakout Status</h3>
                       {(() => {
                         const cfg = BREAKOUT_BADGE_CONFIG[breakoutData.status];
                         if (!cfg) return <span className="text-xs text-gray-500">{breakoutData.status}</span>;
@@ -2162,8 +2102,27 @@ function App() {
                       })()}
                     </div>
                     <p className="text-sm text-gray-400">{breakoutData.humanAction}</p>
-                    {breakoutData.rvol != null && (
-                      <p className="text-xs text-gray-500 mt-1">RVOL: {breakoutData.rvol.toFixed(2)}x</p>
+                    <div className="flex flex-wrap gap-3 mt-1">
+                      {breakoutData.rvol != null && (
+                        <p className="text-xs text-gray-500">RVOL: {breakoutData.rvol.toFixed(2)}x</p>
+                      )}
+                      {breakoutData.breakoutLevel != null && (
+                        <p className="text-xs text-gray-500">Breakout Level: {formatCurrency(breakoutData.breakoutLevel)}</p>
+                      )}
+                    </div>
+                    {breakoutData.warnings && Object.values(breakoutData.warnings).some(Boolean) && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {Object.entries(breakoutData.warnings)
+                          .filter(([, active]) => active)
+                          .map(([key]) => (
+                            <span
+                              key={key}
+                              className="text-xs px-2 py-0.5 rounded border bg-red-900/40 text-red-400 border-red-700"
+                            >
+                              {key.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase())}
+                            </span>
+                          ))}
+                      </div>
                     )}
                   </div>
                 )}
@@ -2181,84 +2140,51 @@ function App() {
                     <span className="text-sm text-gray-500">{expandedSections.categorical ? '▼' : '▶'}</span>
                     <span className="text-lg font-semibold text-blue-400">Assessment Breakdown</span>
                     <span className="ml-auto flex gap-2 text-xs">
-                      <span className={categoricalResult.technical.assessment === 'Strong' ? 'text-green-400' : categoricalResult.technical.assessment === 'Decent' ? 'text-yellow-400' : 'text-red-400'}>T:{categoricalResult.technical.assessment}</span>
-                      <span className={categoricalResult.fundamental.assessment === 'Strong' ? 'text-green-400' : categoricalResult.fundamental.assessment === 'Decent' ? 'text-yellow-400' : 'text-red-400'}>F:{categoricalResult.fundamental.assessment}</span>
+                      <span className={getAssessmentColor(categoricalResult.technical.assessment)}>T:{categoricalResult.technical.assessment}</span>
+                      <span className={getAssessmentColor(categoricalResult.fundamental.assessment)}>F:{categoricalResult.fundamental.assessment}</span>
                       <span className="text-gray-500">S:{categoricalResult.sentiment.assessment}</span>
-                      <span className={categoricalResult.riskMacro.assessment === 'Favorable' ? 'text-green-400' : categoricalResult.riskMacro.assessment === 'Neutral' ? 'text-yellow-400' : 'text-red-400'}>R:{categoricalResult.riskMacro.assessment}</span>
+                      <span className={getAssessmentColor(categoricalResult.riskMacro.assessment, 'riskMacro')}>R:{categoricalResult.riskMacro.assessment}</span>
                     </span>
                   </button>
                   {expandedSections.categorical && (
                   <div className="px-6 pb-6">
                   <h3 className="text-sm font-medium mb-4 text-gray-400">Click any card to expand details</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {/* Technical Card */}
-                    <div
-                      className={`bg-gray-700/50 rounded-lg p-4 cursor-pointer transition-all hover:bg-gray-700 ${expandedScore === 'technical' ? 'ring-2 ring-blue-500' : ''}`}
+                    <AssessmentTile
+                      label="Technical"
+                      assessment={categoricalResult.technical.assessment}
+                      expanded={expandedScore === 'technical'}
                       onClick={() => setExpandedScore(expandedScore === 'technical' ? null : 'technical')}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div className="text-gray-400 text-sm">Technical</div>
-                        <span className="text-gray-500 text-xs">{expandedScore === 'technical' ? '▼' : '▶'}</span>
-                      </div>
-                      <div className={`text-xl font-bold ${
-                        categoricalResult.technical.assessment === 'Strong' ? 'text-green-400' :
-                        categoricalResult.technical.assessment === 'Decent' ? 'text-yellow-400' : 'text-red-400'
-                      }`}>
-                        {categoricalResult.technical.assessment}
-                      </div>
-                    </div>
-                    {/* Fundamental Card */}
-                    <div
-                      className={`bg-gray-700/50 rounded-lg p-4 cursor-pointer transition-all hover:bg-gray-700 ${expandedScore === 'fundamental' ? 'ring-2 ring-blue-500' : ''}`}
+                    />
+                    <AssessmentTile
+                      label="Fundamental"
+                      assessment={categoricalResult.fundamental.assessment}
+                      expanded={expandedScore === 'fundamental'}
                       onClick={() => setExpandedScore(expandedScore === 'fundamental' ? null : 'fundamental')}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div className="text-gray-400 text-sm">Fundamental</div>
-                        <span className="text-gray-500 text-xs">{expandedScore === 'fundamental' ? '▼' : '▶'}</span>
-                      </div>
-                      <div className={`text-xl font-bold ${
-                        categoricalResult.fundamental.assessment === 'Strong' ? 'text-green-400' :
-                        categoricalResult.fundamental.assessment === 'Decent' ? 'text-yellow-400' :
-                        categoricalResult.fundamental.assessment === 'N/A' || categoricalResult.fundamental.assessment === 'Unknown' ? 'text-gray-400' : 'text-red-400'
-                      }`}>
-                        {categoricalResult.fundamental.assessment}
-                      </div>
-                    </div>
-                    {/* Sentiment Card — Day 70: informational only (not in verdict) */}
-                    <div
-                      className={`bg-gray-700/50 rounded-lg p-4 cursor-pointer transition-all hover:bg-gray-700 opacity-75 ${expandedScore === 'sentiment' ? 'ring-2 ring-blue-500' : ''}`}
+                    />
+                    {/* Day 70: informational only (not in verdict) — Sentiment's own color
+                        variant deliberately treats 'Neutral' as gray, not yellow, to keep
+                        it visually de-emphasized versus the categories that actually drive
+                        the verdict. */}
+                    <AssessmentTile
+                      label="Sentiment"
+                      infoLabel="(info)"
+                      variant="sentiment"
+                      opacityMuted
+                      assessment={categoricalResult.sentiment.assessment}
+                      expanded={expandedScore === 'sentiment'}
                       onClick={() => setExpandedScore(expandedScore === 'sentiment' ? null : 'sentiment')}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div className="text-gray-400 text-sm">Sentiment <span className="text-gray-600 text-xs">(info)</span></div>
-                        <span className="text-gray-500 text-xs">{expandedScore === 'sentiment' ? '▼' : '▶'}</span>
-                      </div>
-                      <div className={`text-xl font-bold ${
-                        categoricalResult.sentiment.assessment === 'Strong' ? 'text-green-400' :
-                        categoricalResult.sentiment.assessment === 'Neutral' ? 'text-gray-300' : 'text-red-400'
-                      }`}>
-                        {categoricalResult.sentiment.assessment}
-                      </div>
-                      {fearGreedData && (
+                      extra={fearGreedData && (
                         <div className="text-xs text-gray-500 mt-1">F&G: {fearGreedData.value}</div>
                       )}
-                    </div>
-                    {/* Risk/Macro Card */}
-                    <div
-                      className={`bg-gray-700/50 rounded-lg p-4 cursor-pointer transition-all hover:bg-gray-700 ${expandedScore === 'risk' ? 'ring-2 ring-blue-500' : ''}`}
+                    />
+                    <AssessmentTile
+                      label="Risk/Macro"
+                      variant="riskMacro"
+                      assessment={categoricalResult.riskMacro.assessment}
+                      expanded={expandedScore === 'risk'}
                       onClick={() => setExpandedScore(expandedScore === 'risk' ? null : 'risk')}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div className="text-gray-400 text-sm">Risk/Macro</div>
-                        <span className="text-gray-500 text-xs">{expandedScore === 'risk' ? '▼' : '▶'}</span>
-                      </div>
-                      <div className={`text-xl font-bold ${
-                        categoricalResult.riskMacro.assessment === 'Favorable' ? 'text-green-400' :
-                        categoricalResult.riskMacro.assessment === 'Neutral' ? 'text-yellow-400' : 'text-red-400'
-                      }`}>
-                        {categoricalResult.riskMacro.assessment}
-                      </div>
-                    </div>
+                    />
                   </div>
 
                   {/* Expanded Details Panel */}
@@ -2605,7 +2531,7 @@ function App() {
                         categoricalResult?.verdict?.verdict === 'BUY' ? 'text-green-400' :
                         categoricalResult?.verdict?.verdict === 'HOLD' ? 'text-yellow-400' : 'text-red-400'
                       }`}>
-                        {categoricalResult?.verdict?.verdict || analysisResult.verdict?.verdict}
+                        {categoricalResult?.verdict?.verdict || 'N/A'}
                       </span>
                       {categoricalResult && (
                         <span className="ml-2 text-xs text-gray-500">
@@ -2850,6 +2776,14 @@ function App() {
                       ))}
                     </tbody>
                   </table>
+                  {/* Day 83 fix (Task E4): rows beyond the batch endpoint's 20-ticker cap
+                      show the same '—' glyph used for "checked, nothing found" — this note
+                      makes the distinction explicit instead of leaving it ambiguous. */}
+                  {filteredCandidates.length > 20 && (
+                    <div className="text-xs text-gray-500 text-center mt-3">
+                      Breakout status checked for top 20 results only.
+                    </div>
+                  )}
                 </div>
                 )}
 

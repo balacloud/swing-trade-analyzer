@@ -106,9 +106,13 @@ def get_momentum_signals(as_of_date=None, limit=50, market_index='all'):
     if as_of_date is None:
         as_of_date = datetime.now().strftime('%Y-%m-%d')
 
-    query, _ = scan_queries.build_best_query(limit=limit, market_index=market_index)
+    # Day 83 fix (Task B6): build_best_query() already derives is_canadian from
+    # market_index — this was discarding it and hardcoding False, which would
+    # have broken .TO suffix handling if this function were ever pointed at a
+    # Canadian market_index (dormant today since the engine defaults to 'all').
+    query, is_canadian = scan_queries.build_best_query(limit=limit, market_index=market_index)
     count, results = query.get_scanner_data()
-    candidates = scan_queries.parse_candidates(results, is_canadian=False, strategy='best')
+    candidates = scan_queries.parse_candidates(results, is_canadian=is_canadian, strategy='best')
 
     regime, spy_df = get_market_regime()
     spy_close = spy_df['Close']

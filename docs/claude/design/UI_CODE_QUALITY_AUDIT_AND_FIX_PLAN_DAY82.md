@@ -4,8 +4,8 @@
 > **Location:** `docs/claude/design/`
 > **Source:** Three parallel Fable-model dispatches, Day 82 (July 12, 2026), triggered by user feedback that the Bottom Line Card (already removed same day) felt redundant — this is the "is there more of that?" follow-up.
 > **Verification note:** One of the three audits ("Analyze page Full Analysis cards") came back flagged by the harness as reviewed without the normal safety classifier available. Two of its most consequential claims were spot-checked directly against the live codebase before this doc was written (see "Corrections" below) — one held up exactly as described, one was overstated and is corrected here. Treat any other single claim in this doc with the same "verify before acting" discipline the rest of this project applies to audit output (see Golden Rule 2/3, and the Day 82 fmp_provider.py correction as precedent).
-> **Status:** Audit complete. Group A (all 6 real bugs) DONE and verified Day 83 — see status markers below. Groups B-E still NOT started unless marked otherwise.
-> **Last Updated:** Day 83 (July 13, 2026)
+> **Status:** ALL GROUPS DONE (A, B, C, D, E) and browser/API-verified Day 83, except E5/E6 which the plan itself said weren't worth a dedicated task (left as-is — see those entries). See per-task status markers below for what changed and how it was verified.
+> **Last Updated:** Day 83 (July 13, 2026, session 2)
 
 ---
 
@@ -96,21 +96,21 @@
 - **Acceptance:** Same candidate list, minus code duplication; diff the before/after output for a real scan call to confirm no behavior change beyond what Task A1 already intentionally changes.
 
 ### B2. Pattern Detection Card is a 3x copy-paste triptych
-- **Status:** NOT STARTED
+- **Status:** ✅ DONE (Day 83) — new `PatternMiniCard.jsx` (App.jsx side) and a shared `buildActionablePattern()` helper (`categoricalAssessment.js` side) replace the 3 copy-pasted blocks. Also fixed both unguarded `&&` renders (pivot_price, volumeRatio → `!= null`). Verified live on JPM: all 3 pattern tiles + the Actionable Patterns section render with correct data (Cup Depth 17.2%, Trigger/Stop/Target/R:R all matching the pre-refactor math), zero console errors.
 - **Files:** `frontend/src/App.jsx` (VCP / Cup & Handle / Flat Base blocks, was ~lines 1864-2003 pre-audit), `frontend/src/utils/categoricalAssessment.js` (`getActionablePatterns()`, same triplication pattern, ~lines 72-187)
 - **Action:** Refactor both the JSX blocks and the `getActionablePatterns()` logic to iterate over a small config array (`[{key: 'vcp', label: 'VCP', ...}, {key: 'cup_handle', ...}, {key: 'flat_base', ...}]`) instead of three near-identical hand-written blocks differing only in field names.
 - **Also found in the same card (fold in, small, Golden Rule 4 pattern):** unguarded numeric `&&` renders at (pre-audit) lines ~1899, ~1946, ~1993 (`{pivot_price && (...)}`) and ~2051 (`{pattern.breakout?.volumeRatio && (...)}`) — should be `!= null` checks per the existing Golden Rule 4 ("Day 68: `{value && <div>}` with value=0 renders '0'").
 - **Acceptance:** All three pattern types still render identically for known test tickers (VCP/Cup&Handle/Flat Base each triggered by at least one real ticker); confirm no visual regression.
 
 ### B3. Zombie legacy verdict can still silently reach the UI
-- **Status:** NOT STARTED
+- **Status:** ✅ DONE (Day 83) — traced reachability first: `categoricalResult` and `analysisResult` are always set together (same synchronous block) or reset together, never one without the other, so the fallback was confirmed permanently unreachable. Deleted `determineVerdict()` entirely (not just the fallback) since its only consumer was this dead code path — fully removed rather than relabeled. Verified live: Verdict Card and Simple view's "Full Assessment" line both still show real verdicts (BUY on AAPL) with zero console errors.
 - **Files:** `frontend/src/utils/scoringEngine.js` (`determineVerdict()`, ~lines 456-505; header comment documenting 0.011 correlation, line 12), `frontend/src/App.jsx` (Verdict Card fallback `categoricalResult?.verdict?.verdict || analysisResult.verdict?.verdict`, ~lines 1215-1221, and a second occurrence in Simple view ~line 2578)
 - **Root cause:** `scoringEngine.js`'s own header documents that its score-to-return correlation is 0.011 ("essentially zero") — this is why the Categorical Assessment system replaced it in Day 44. But `determineVerdict()` is still defined, still computes a BUY/HOLD/AVOID from the old 75-point score, and the Verdict Card still has a fallback path that would display it if `categoricalResult` were ever falsy — with **no visual indication to the user which verdict system produced the answer** if that fallback ever fires.
 - **Action:** First confirm whether the fallback is genuinely reachable (trace whether `categoricalResult` can be null/undefined at the point the Verdict Card renders, given it's set synchronously in the same success path per `App.jsx` ~lines 363-387). If unreachable, delete the fallback expression entirely (dead code). If reachable in some edge case, either fix that edge case so `categoricalResult` is always set, or — if keeping a fallback is genuinely necessary — rename `determineVerdict()`'s output and label it visibly as "(legacy scoring, low reliability)" wherever it could appear, so it can never be silently mistaken for the real verdict.
 - **Acceptance:** Grep confirms no code path can render an unlabeled legacy-system verdict as if it were the categorical verdict.
 
 ### B4. RS Card's "RS Rating" row is a relabeled duplicate, not a real percentile
-- **Status:** NOT STARTED
+- **Status:** ✅ DONE (Day 83) — relabeled to "RS Rating (scaled, not a percentile)" with an explanatory tooltip (chose relabel over delete, to preserve the visible info). Also unified the RS vs S&P 500 row's color and value to both key off `rs52Week` (was `rsRatio` for color, `rs52Week` for value). Verified live on AAPL: value unchanged (1.23), label updated, zero console errors.
 - **Files:** `frontend/src/utils/rsCalculator.js` (lines ~97-100, has its own comment admitting: `// simplified version - ideally would be percentile vs all stocks`), `frontend/src/App.jsx` (RS Card, ~lines 1333-1368)
 - **Root cause:** The "RS Rating" row shown is `(rs52Week - 0.5) * 80 + 10` — a linear rescale of the exact same `rs52Week` ratio shown one row above as "RS vs S&P 500." It's presented like an IBD-style percentile rank (1-99, vs all stocks) but is mathematically just the ratio in different units.
 - **Action:** Either delete the "RS Rating" row (it adds no information beyond the ratio row above it) or relabel it clearly, e.g. "RS Rating (scaled ratio, not a percentile vs. market)" so it's not mistaken for something it isn't.
@@ -118,13 +118,13 @@
 - **Acceptance:** Row either removed or its label makes clear it's not an independent metric.
 
 ### B5. Categorical Assessment's 4 tile blocks are copy-paste
-- **Status:** NOT STARTED
+- **Status:** ✅ DONE (Day 83) — new `AssessmentTile.jsx` + shared `getAssessmentColor(assessment, variant)`. Deliberately did NOT force one color scheme on all 4 — Sentiment's 'Neutral' is intentionally gray (de-emphasized, informational-only per Day 70), Risk/Macro's 'Neutral' is intentionally yellow (an actual caution signal); `variant` preserves both. What WAS fixed: Technical's tile had no N/A/Unknown branch at all (unlike Fundamental's) — all "standard"-variant tiles now handle it the same way. Also applied the same shared color function to the 3 duplicate header-badge locations. Verified live: all 4 tiles render, clicking Technical correctly expands its detail panel, zero console errors.
 - **Files:** `frontend/src/App.jsx`, Assessment Breakdown tiles (Technical/Fundamental/Sentiment/Risk-Macro), was ~lines 2167-2235 pre-audit
 - **Action:** Extract a shared `<AssessmentTile category={...} assessment={...} reasons={...} />` component and a single `assessmentColor(level)` helper (the audit found the 'N/A' color case handled inconsistently between tiles — e.g. one tile guards it, the pre-existing Verdict Card grade-chip logic elsewhere does not — a shared helper fixes this for free).
 - **Acceptance:** All 4 tiles render identically to before for a range of Strong/Decent/Weak/N/A combinations.
 
 ### B6. `live_signals.py` has a dormant Canadian-ticker landmine
-- **Status:** NOT STARTED
+- **Status:** ✅ DONE (Day 83) — now captures `is_canadian` from `build_best_query()`'s return instead of discarding it and hardcoding `False`. Verified directly: `market_index='all'` still resolves `is_canadian=False` (unchanged default behavior), `market_index='tsx60'` now correctly resolves `True` (previously impossible), and `get_momentum_signals()` still runs end-to-end without error.
 - **Severity:** Low (dormant — only matters if/when Canadian tickers are scanned by the automated engine, which they currently are not by default)
 - **Files:** `backend/paper_trading/live_signals.py`, line ~111 (`get_momentum_signals()` hardcodes `is_canadian=False` when calling `scan_queries.parse_candidates()`, regardless of what `market_index` was actually passed in)
 - **Action:** Derive `is_canadian` the same way `scan_queries.build_best_query()` internally does (check `market_index in CANADIAN_MARKETS`), rather than hardcoding `False`.
@@ -133,6 +133,8 @@
 ---
 
 ## Group C — Dead code removal
+
+**Status:** ✅ DONE (Day 83) — every item below removed, each re-verified via grep for zero references immediately before deletion (per Golden Rule 3, not taken on the original audit's word). Confirmed via brace/paren balance checks + full regression (AAPL/JPM/ABBV, zero console errors) after removal.
 
 All verified via grep (no other references found) before listing here, but re-verify at execution time per Golden Rule 3:
 
@@ -150,7 +152,7 @@ All verified via grep (no other references found) before listing here, but re-ve
 ## Group D — New capability: Tradier provider
 
 ### D1. Build `TradierProvider` for OHLCV + quote resilience
-- **Status:** NOT STARTED
+- **Status:** ✅ DONE (Day 83) — `backend/providers/tradier_provider.py` built per the spec below, wired as the last entry in both `_ohlcv_chain` and `_quote_chain`. **Verified with forced-failover tests** (TwelveData + yfinance monkey-patched to raise, without touching real credentials): OHLCV chain correctly fell through to Tradier and returned 20 real bars for an uncached ticker (WING); quote chain correctly fell through to Tradier for `get_quote('VIX')` (16.28, matching a direct-provider-call sanity check). `get_provider_status()` reports the new `tradier` entry correctly (configured/health/role). Backend auto-reloaded cleanly, `/api/health` stayed green throughout (v2.38).
 - **Priority reasoning:** This is a reliability fix (filling the gap Stooq's death left, plus a 3rd VIX/quote source), which is compatible with STA's feature freeze — unlike options-chain integration, which is a new feature and belongs to OptionsIQ's build stage, not STA. Do options integration separately, later, and probably in the OptionsIQ repo, not here.
 - **Files:** New `backend/providers/tradier_provider.py`, modify `backend/providers/orchestrator.py` (chains at `__init__`, was ~lines 73-88 pre-audit), `backend/providers/rate_limiter.py` (`PROVIDER_LIMITS` dict, add a `tradier` entry)
 - **Verified facts to build against** (from the Day 82 Tradier evaluation, 12 live API calls made):
@@ -173,12 +175,12 @@ All verified via grep (no other references found) before listing here, but re-ve
 
 ## Group E — Minor polish (do opportunistically, low individual priority)
 
-- **E1.** Breakout Status card (Analyze page, Day 82): add a loading indicator (currently pops in with no loading state, unlike `MRSignalCard` which takes a `loading` prop); match neighbor cards' visual weight (`p-6`/`text-lg` header convention, currently `p-4`/`text-sm`); surface the `warnings` field the API already returns (currently dropped — a SUPPLY_WARNING/FAILED_BREAKOUT badge shows with zero supporting evidence); the `mb-4` inside the parent's `space-y-6` creates a double margin no neighboring card has.
-- **E2.** Stale-response race on ticker search: both `fetchBreakout()` and `fetchMRSignal()` are fired async with no guard against a slow response for ticker A overwriting a fast response for ticker B if the user searches again before A resolves. Add a ticker-match check before calling the setter (e.g. capture `targetTicker` in the closure and compare against current state before `setBreakoutData`/`setMrSignalData`).
-- **E3.** `loadBreakoutBadges()` (Scan tab) has the identical stale-response race for a fast re-scan overwriting a slower previous scan's badge results — same fix pattern as E2, scoped to a scan-id or ticker-list comparison.
-- **E4.** Scan tab: rows 21+ in a >20-result scan show the same `—` glyph used for "checked, nothing found" — visually indistinguishable from "never checked" (only the first 20 rows get breakout badges, by design, per the 20-ticker batch cap). Add a one-line footer note, e.g. "Breakout status checked for top 20 results."
-- **E5.** `BREAKOUT_BADGE_CONFIG` and `NIRMAL_WATCHLIST` (both in `App.jsx`, defined inside the component body) get recreated every render. The audit's own assessment: **this is not a measurable performance problem at this scale (a few object literals per render) — do not treat it as a task worth scheduling on its own.** Hoist to module scope opportunistically only if the file is already being touched for another reason nearby.
-- **E6.** `get_scan_strategies()` / `scan_tradingview()` / the frontend's hardcoded strategy-option fallback list are a 3-way hand-synced set (confirmed in sync today, fragile going forward — a 7th strategy added to one won't surface in the others without someone noticing). Also: `api.js` maps `data.tradingview_available` and `data.notes` from the strategies response — fields `get_scan_strategies()` has never actually returned, permanently `undefined`. Low priority; consider a single shared strategy registry if this file is next touched for a strategy-related change, not worth a dedicated task otherwise.
+- **E1. ✅ DONE (Day 83).** Added a loading skeleton (`breakoutLoading` state, mirrors `MRSignalCard`'s `loading` prop pattern), matched neighbor styling (`p-6`/`text-lg`, was `p-4`/`text-sm`), surfaced `breakoutLevel` and the `warnings` object (previously fetched but silently dropped — now shown as red badges, e.g. verified live on SMCI: "Failed Breakout" + "Rejection Candle"), removed the double-margin `mb-4`. Loading skeleton verified via an artificially-delayed API route (Playwright route interception) — confirmed it shows during the delay and clears once data arrives.
+- **E2. ✅ DONE (Day 83).** Added `latestTickerRequestRef` (a `useRef`, set synchronously at the start of every `analyzeStock()` call); both `fetchMRSignal()` and `fetchBreakout()`'s `.then()`/`.catch()`/`.finally()` callbacks now check it still matches their own `targetTicker` before calling any setter.
+- **E3. ✅ DONE (Day 83).** Added `scanRequestIdRef` (incremented once per `runScan()` call); `loadBreakoutBadges()` now takes the scan's id and checks it still matches the ref's current value before calling `setBreakoutBadges`/`setBreakoutBadgesLoading`.
+- **E4. ✅ DONE (Day 83).** Added a footer note ("Breakout status checked for top 20 results only.") shown when `filteredCandidates.length > 20`. Verified live with a 45-result momentum scan.
+- **E5.** Left as-is per the plan's own assessment (not a real performance problem at this scale) — not touched.
+- **E6.** Left as-is per the plan's own assessment (low priority, not worth a dedicated task) — not touched.
 
 ---
 

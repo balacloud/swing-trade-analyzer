@@ -10,6 +10,13 @@
  *       The categorical system (categoricalAssessment.js) uses breakdown data from this engine
  *       but determines verdicts based on Strong/Decent/Weak categories rather than point totals.
  *       Score correlation to returns = 0.011 (essentially zero), hence the switch to categorical.
+ * Day 83: removed determineVerdict() and the returned `verdict` field entirely —
+ *       it computed a BUY/HOLD/AVOID from this file's own documented-zero-correlation
+ *       score, and its only consumer was a fallback in App.jsx's Verdict Card that
+ *       traced to be permanently unreachable (categoricalResult and analysisResult
+ *       are always set together, never one without the other). Kept as a fallback,
+ *       it was a latent risk: if that invariant ever broke, the UI would have silently
+ *       shown the legacy verdict with no indication it wasn't the real one.
  *
  * Scoring Breakdown (Legacy - kept for data extraction):
  * - Technical: 40 points
@@ -472,60 +479,6 @@ function checkQualityGates(stockData, spyData, technicalResult) {
 }
 
 /**
- * Determine Verdict based on score and quality gates
- */
-function determineVerdict(totalScore, qualityGates, rsData) {
-  // Auto-AVOID conditions
-  if (qualityGates.criticalFails >= 2) {
-    return {
-      verdict: 'AVOID',
-      reason: `${qualityGates.criticalFails} critical failures`,
-      color: 'red'
-    };
-  }
-  
-  if (rsData?.rs52Week && rsData.rs52Week < 0.8) {
-    return {
-      verdict: 'AVOID',
-      reason: 'RS significantly below market',
-      color: 'red'
-    };
-  }
-  
-  // Score-based verdict
-  if (totalScore >= 60 && qualityGates.criticalFails === 0) {
-    // Additional check: RS must be >= 1.0 for BUY
-    if (rsData?.rs52Week && rsData.rs52Week >= 1.0) {
-      return {
-        verdict: 'BUY',
-        reason: `Strong score (${totalScore}/75) with good RS`,
-        color: 'green'
-      };
-    } else {
-      return {
-        verdict: 'HOLD',
-        reason: 'Good score but RS below 1.0',
-        color: 'yellow'
-      };
-    }
-  }
-  
-  if (totalScore >= 40) {
-    return {
-      verdict: 'HOLD',
-      reason: `Moderate score (${totalScore}/75)`,
-      color: 'yellow'
-    };
-  }
-  
-  return {
-    verdict: 'AVOID',
-    reason: `Low score (${totalScore}/75)`,
-    color: 'red'
-  };
-}
-
-/**
  * Main scoring function
  * Calculates complete analysis for a stock
  * 
@@ -544,10 +497,7 @@ export function calculateScore(stockData, spyData, vixData) {
   
   // Quality gates
   const qualityGates = checkQualityGates(stockData, spyData, technicalAnalysis);
-  
-  // Verdict
-  const verdict = determineVerdict(totalScore, qualityGates, technicalAnalysis.rsData);
-  
+
   // Get RS data for clean API
   const rsData = technicalAnalysis.rsData || {};
   
@@ -558,26 +508,6 @@ export function calculateScore(stockData, spyData, vixData) {
   const pctFromHigh = fiftyTwoWeekHigh ? 
     ((currentPrice - fiftyTwoWeekHigh) / fiftyTwoWeekHigh) * 100 : null;
   
-  // Debug logging
-  console.log('=== SCORING ENGINE DEBUG ===');
-  console.log('rsData being returned:', rsData);
-  console.log('Stock:', stockData.ticker);
-  console.log('Technical Score:', technicalAnalysis.score, '/', technicalAnalysis.maxScore);
-  console.log('Technical Details:', technicalAnalysis.details);
-  console.log('Fundamental Score:', fundamentalAnalysis.score, '/', fundamentalAnalysis.maxScore);
-  console.log('Fundamental Details:', fundamentalAnalysis.details);
-  console.log('Fundamental Data Source:', fundamentalAnalysis.dataSource);
-  console.log('Fundamental Data Quality:', fundamentalAnalysis.dataQuality);
-  console.log('Sentiment Score:', sentimentAnalysis.score, '/', sentimentAnalysis.maxScore);
-  console.log('Risk Score:', riskAnalysis.score, '/', riskAnalysis.maxScore);
-  console.log('Total Score:', totalScore, '/ 75');
-  console.log('Quality Gates:', qualityGates);
-  console.log('Verdict:', verdict);
-  console.log('============================');
-  console.log('Mapped rsData for UI:', {
-  stock52wReturn: rsData.stockReturn52w,
-  spy52wReturn: rsData.spyReturn52w
-}); 
   // =========================================================
   // CLEAN API RETURN STRUCTURE (v2.1)
   // UI can consume this directly without knowing internals
@@ -605,8 +535,6 @@ export function calculateScore(stockData, spyData, vixData) {
       risk: riskAnalysis.score
     },
     
-    // Verdict
-    verdict: verdict,
     qualityGates: qualityGates,
     
     // RS Data - Normalized field names for UI

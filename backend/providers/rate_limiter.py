@@ -199,6 +199,9 @@ PROVIDER_LIMITS = {
     'yfinance':      {'rate_per_minute': 30, 'daily_limit': 0},
     'stooq':         {'rate_per_minute': 5,  'daily_limit': 0},
     'alphavantage':  {'rate_per_minute': 5,  'daily_limit': 25},
+    # Day 83: observed 120/min on Tradier's market-data endpoints; 100 is a
+    # conservative margin under that ceiling.
+    'tradier':       {'rate_per_minute': 100, 'daily_limit': 0},
 }
 
 

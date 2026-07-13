@@ -9,10 +9,10 @@ THE CORE: Routes data requests through fallback chains with:
   - Provenance tracking (which provider supplied which data)
 
 Fallback Chains:
-  OHLCV:         TwelveData → yfinance → stale cache
+  OHLCV:         TwelveData → yfinance → Tradier → stale cache
   Intraday:      TwelveData → yfinance
   Fundamentals:  Finnhub → AlphaVantage (growth gaps) → yfinance  (field-level merge)
-  Quote (VIX):   Cache (1h) → yfinance → Finnhub → stale cache
+  Quote (VIX):   Cache (1h) → yfinance → Finnhub → Tradier → stale cache
   Stock Info:    yfinance (only source for name/sector/52wk)
   Earnings:      yfinance (only source)
 
@@ -28,6 +28,13 @@ is left in place (harmless, self-guards on the optional pandas_datareader
 import) in case Stooq's access changes, but it is NOT instantiated into
 _ohlcv_chain, so it costs nothing and provides nothing right now. OHLCV
 resilience is honestly 2 live sources + stale-cache, not 3.
+
+Day 83: TradierProvider added as a 3rd-tier OHLCV/quote fallback, filling
+the gap Stooq's removal left. Uses the user's Tradier brokerage API key
+(confirmed production tier, 120 req/min observed). See tradier_provider.py's
+module docstring for the full Day 82 evaluation this was built against —
+notably, OHLCV is split- but NOT dividend-adjusted, so this should only ever
+be reached after TwelveData and yfinance have both already failed.
 """
 
 import os
@@ -50,6 +57,7 @@ from .fmp_provider import FMPProvider
 from .alphavantage_provider import AlphaVantageProvider
 from .yfinance_provider import YFinanceProvider
 from .stooq_provider import StooqProvider
+from .tradier_provider import TradierProvider
 
 # Import existing cache_manager (add parent to path if needed)
 _backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -78,12 +86,13 @@ class DataProvider:
         self.alphavantage = AlphaVantageProvider() # replaces FMP's growth role
         self.yfinance     = YFinanceProvider()
         self.stooq        = StooqProvider()  # kept for status reporting; NOT in _ohlcv_chain (Day 82: dead, bot-blocked)
+        self.tradier      = TradierProvider()  # Day 83: last-resort OHLCV/quote fallback
 
         # Fallback chain definitions
-        self._ohlcv_chain         = [self.twelvedata, self.yfinance]
+        self._ohlcv_chain         = [self.twelvedata, self.yfinance, self.tradier]
         self._intraday_chain      = [self.twelvedata, self.yfinance]
         self._fundamentals_chain  = [self.finnhub, self.alphavantage, self.yfinance]
-        self._quote_chain         = [self.yfinance, self.finnhub]
+        self._quote_chain         = [self.yfinance, self.finnhub, self.tradier]
         self._stock_info_chain    = [self.yfinance]
         self._earnings_chain      = [self.yfinance]
 
@@ -513,6 +522,13 @@ class DataProvider:
                 'role': 'disabled',  # Day 82: removed from _ohlcv_chain — bot-blocked, see orchestrator.py module docstring
                 'health': 'disabled',
                 'daily_remaining': -1,
+            },
+            'tradier': {
+                'configured': bool(self.tradier.api_key),
+                'type': 'OHLCV + Quote (last resort)',
+                'role': 'fallback',  # Day 83: 3rd-tier OHLCV/quote fallback, replaces Stooq's old last-resort slot
+                'health': _provider_health('tradier'),
+                'daily_remaining': _daily_remaining('tradier'),
             },
         }
 

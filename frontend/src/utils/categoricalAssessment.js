@@ -50,6 +50,42 @@ const ETF_TICKERS = ['SPY', 'QQQ', 'IWM', 'DIA', 'VOO', 'VTI', 'VEA', 'VWO', 'VN
 const PATTERN_ACTIONABILITY_THRESHOLD = 60;
 
 /**
+ * Day 83: shared builder for the 3 near-identical actionable-pattern blocks
+ * below (VCP/Cup & Handle/Flat Base differ only in their target multiplier,
+ * description text, and action text — the stop/target/R:R math and breakout
+ * metadata shape were previously copy-pasted 3x).
+ */
+function buildActionablePattern({ name, fullName, patternData, atr, targetMultiplier, description, action }) {
+  const pivotPrice = patternData.pivot_price;
+  const stopPrice = atr
+    ? pivotPrice - (atr * 2)  // 2 ATR below pivot
+    : pivotPrice * 0.93;     // 7% below pivot as fallback
+  const targetPrice = pivotPrice * targetMultiplier;
+  const breakout = patternData.breakout || {};
+
+  return {
+    name,
+    fullName,
+    confidence: patternData.confidence,
+    status: patternData.status,
+    triggerPrice: pivotPrice,
+    stopPrice: Math.round(stopPrice * 100) / 100,
+    targetPrice: Math.round(targetPrice * 100) / 100,
+    riskReward: ((targetPrice - pivotPrice) / (pivotPrice - stopPrice)).toFixed(1),
+    description,
+    action,
+    breakout: {
+      quality: breakout.quality || 'Unknown',
+      volumeConfirmed: breakout.volume_confirmed || false,
+      volumeRatio: breakout.volume_ratio,
+      isTradeable: breakout.tradeable || false,
+      reasons: breakout.reasons || []
+    },
+    raw: patternData
+  };
+}
+
+/**
  * Get Actionable Patterns
  *
  * v4.6.2 (Day 47): Filter patterns to only show those above confidence threshold
@@ -72,118 +108,49 @@ export function getActionablePatterns(patternsData, atr = null) {
   // Check VCP
   const vcp = patternsData.patterns.vcp;
   if (vcp?.detected && vcp.confidence >= PATTERN_ACTIONABILITY_THRESHOLD) {
-    const pivotPrice = vcp.pivot_price;
-    const stopPrice = atr
-      ? pivotPrice - (atr * 2)  // 2 ATR below pivot
-      : pivotPrice * 0.93;     // 7% below pivot as fallback
-    const targetPrice = pivotPrice * 1.15; // 15% above pivot
-
-    // Day 47: Breakout quality assessment
-    const breakout = vcp.breakout || {};
-    const breakoutQuality = breakout.quality || 'Unknown';
-    const volumeConfirmed = breakout.volume_confirmed || false;
-    const isTradeable = breakout.tradeable || false;
-
-    actionablePatterns.push({
+    actionablePatterns.push(buildActionablePattern({
       name: 'VCP',
       fullName: 'Volatility Contraction Pattern',
-      confidence: vcp.confidence,
-      status: vcp.status,
-      triggerPrice: pivotPrice,
-      stopPrice: Math.round(stopPrice * 100) / 100,
-      targetPrice: Math.round(targetPrice * 100) / 100,
-      riskReward: ((targetPrice - pivotPrice) / (pivotPrice - stopPrice)).toFixed(1),
+      patternData: vcp,
+      atr,
+      targetMultiplier: 1.15, // 15% above pivot
       description: `${vcp.contractions_count} contractions with ${vcp.base_tightness_pct}% base tightness`,
       action: vcp.status === 'at_pivot' ? 'Ready to buy on breakout above pivot' :
               vcp.status === 'broken_out' ? 'Already broken out - use pullback entry' :
               'Wait for price to reach pivot zone',
-      breakout: {
-        quality: breakoutQuality,
-        volumeConfirmed,
-        volumeRatio: breakout.volume_ratio,
-        isTradeable,
-        reasons: breakout.reasons || []
-      },
-      raw: vcp
-    });
+    }));
   }
 
   // Check Cup & Handle (note: API transforms to camelCase)
   const cupHandle = patternsData.patterns.cupHandle;
   if (cupHandle?.detected && cupHandle.confidence >= PATTERN_ACTIONABILITY_THRESHOLD) {
-    const pivotPrice = cupHandle.pivot_price;
-    const stopPrice = atr
-      ? pivotPrice - (atr * 2)
-      : pivotPrice * 0.93;
-    const targetPrice = pivotPrice * 1.20; // 20% above pivot (C&H targets are higher)
-
-    // Day 47: Breakout quality assessment
-    const breakout = cupHandle.breakout || {};
-    const breakoutQuality = breakout.quality || 'Unknown';
-    const volumeConfirmed = breakout.volume_confirmed || false;
-    const isTradeable = breakout.tradeable || false;
-
-    actionablePatterns.push({
+    actionablePatterns.push(buildActionablePattern({
       name: 'Cup & Handle',
       fullName: 'Cup and Handle Pattern',
-      confidence: cupHandle.confidence,
-      status: cupHandle.status,
-      triggerPrice: pivotPrice,
-      stopPrice: Math.round(stopPrice * 100) / 100,
-      targetPrice: Math.round(targetPrice * 100) / 100,
-      riskReward: ((targetPrice - pivotPrice) / (pivotPrice - stopPrice)).toFixed(1),
+      patternData: cupHandle,
+      atr,
+      targetMultiplier: 1.20, // 20% above pivot (C&H targets are higher)
       description: `Cup depth ${cupHandle.cup?.depth_pct}%, ${cupHandle.handle?.days || 0} day handle`,
       action: cupHandle.status === 'complete' ? 'Ready to buy on handle breakout' :
               cupHandle.status === 'broken_out' ? 'Already broken out - use pullback entry' :
               'Cup forming - wait for handle',
-      breakout: {
-        quality: breakoutQuality,
-        volumeConfirmed,
-        volumeRatio: breakout.volume_ratio,
-        isTradeable,
-        reasons: breakout.reasons || []
-      },
-      raw: cupHandle
-    });
+    }));
   }
 
   // Check Flat Base (note: API transforms to camelCase)
   const flatBase = patternsData.patterns.flatBase;
   if (flatBase?.detected && flatBase.confidence >= PATTERN_ACTIONABILITY_THRESHOLD) {
-    const pivotPrice = flatBase.pivot_price;
-    const stopPrice = atr
-      ? pivotPrice - (atr * 2)
-      : pivotPrice * 0.93;
-    const targetPrice = pivotPrice * 1.12; // 12% above pivot (flat base targets are modest)
-
-    // Day 47: Breakout quality assessment
-    const breakout = flatBase.breakout || {};
-    const breakoutQuality = breakout.quality || 'Unknown';
-    const volumeConfirmed = breakout.volume_confirmed || false;
-    const isTradeable = breakout.tradeable || false;
-
-    actionablePatterns.push({
+    actionablePatterns.push(buildActionablePattern({
       name: 'Flat Base',
       fullName: 'Flat Base Consolidation',
-      confidence: flatBase.confidence,
-      status: flatBase.status,
-      triggerPrice: pivotPrice,
-      stopPrice: Math.round(stopPrice * 100) / 100,
-      targetPrice: Math.round(targetPrice * 100) / 100,
-      riskReward: ((targetPrice - pivotPrice) / (pivotPrice - stopPrice)).toFixed(1),
+      patternData: flatBase,
+      atr,
+      targetMultiplier: 1.12, // 12% above pivot (flat base targets are modest)
       description: `${flatBase.base?.range_pct}% range, ${flatBase.prior_uptrend?.pct}% prior uptrend`,
       action: flatBase.status === 'forming' ? 'Ready to buy on breakout above range' :
               flatBase.status === 'broken_out' ? 'Already broken out - use pullback entry' :
               'Wait for base to complete',
-      breakout: {
-        quality: breakoutQuality,
-        volumeConfirmed,
-        volumeRatio: breakout.volume_ratio,
-        isTradeable,
-        reasons: breakout.reasons || []
-      },
-      raw: flatBase
-    });
+    }));
   }
 
   // Summary
