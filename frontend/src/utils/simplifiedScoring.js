@@ -22,6 +22,7 @@
  */
 
 import { calculateSMA } from './technicalIndicators';
+import { getLiquidityThreshold } from './liquidityThresholds';
 
 /**
  * Calculate simplified binary analysis
@@ -198,10 +199,10 @@ export function calculateSimplifiedAnalysis(stockData, spyData, srData) {
   // ============================================
   // CRITERION 6: VOLUME (Liquidity)
   // Day 70: Cap-aware thresholds (multi-LLM audit: flat $10M was MISLEADING)
-  // Large-cap (>$10B): $10M | Mid-cap ($2B-$10B): $5M | Small-cap (<$2B): $2M
+  // Day 83: sourced from the shared liquidityThresholds.js module (was inline
+  // here, duplicated with different values in scoringEngine.js and App.jsx).
   // ============================================
-  const volumeThreshold = marketCap >= 10e9 ? 10e6 : marketCap >= 2e9 ? 5e6 : 2e6;
-  const volumeThresholdLabel = marketCap >= 10e9 ? '$10M' : marketCap >= 2e9 ? '$5M' : '$2M';
+  const { threshold: volumeThreshold, label: volumeThresholdLabel } = getLiquidityThreshold(marketCap);
 
   const avgVolume = stockData.avgVolume;
   if (avgVolume && avgVolume > 0) {

@@ -4,8 +4,8 @@
 > **Location:** `docs/claude/design/`
 > **Source:** Three parallel Fable-model dispatches, Day 82 (July 12, 2026), triggered by user feedback that the Bottom Line Card (already removed same day) felt redundant — this is the "is there more of that?" follow-up.
 > **Verification note:** One of the three audits ("Analyze page Full Analysis cards") came back flagged by the harness as reviewed without the normal safety classifier available. Two of its most consequential claims were spot-checked directly against the live codebase before this doc was written (see "Corrections" below) — one held up exactly as described, one was overstated and is corrected here. Treat any other single claim in this doc with the same "verify before acting" discipline the rest of this project applies to audit output (see Golden Rule 2/3, and the Day 82 fmp_provider.py correction as precedent).
-> **Status:** Audit complete. Fix tasks below are NOT started unless marked otherwise.
-> **Last Updated:** Day 82 (July 12, 2026)
+> **Status:** Audit complete. Group A (all 6 real bugs) DONE and verified Day 83 — see status markers below. Groups B-E still NOT started unless marked otherwise.
+> **Last Updated:** Day 83 (July 13, 2026)
 
 ---
 
@@ -29,7 +29,7 @@
 ## Group A — Real bugs (fix first)
 
 ### A1. Scan tab and the paper-trading engine scan different candidate sets
-- **Status:** NOT STARTED
+- **Status:** ✅ DONE (Day 83) — guarded the order_by override so 'best' keeps `build_best_query()`'s ADX sort; verified `/api/scan/tradingview?strategy=best&limit=15` returns tickers/order/ADX values byte-identical to calling `scan_queries.build_best_query()` directly.
 - **Severity:** High — undermines the Day 81 "shared query, one implementation" guarantee (Golden Rule 19) between `backend.py`'s Scan tab route and `backend/paper_trading/live_signals.py`'s automated engine.
 - **Files:** `backend/backend.py` (`scan_tradingview()`, locate current line range — was ~1838-1976 pre-audit), `backend/scan_queries.py` (`build_best_query()`)
 - **Root cause:** `scan_queries.build_best_query()` sets `order_by('ADX', ascending=False)` and `.limit(limit)`. But `scan_tradingview()` then *unconditionally* runs, after calling `build_best_query()` for the `'best'` strategy:
@@ -45,7 +45,7 @@
 - **Acceptance:** Call `/api/scan/tradingview?strategy=best&limit=50` and separately run `live_signals.get_momentum_signals()` (or inspect its TradingView query call) on the same day; the returned ticker sets and their order should match exactly for the same `limit`.
 
 ### A2. Trade Setup Card can display an impossible negative stop price
-- **Status:** NOT STARTED
+- **Status:** ✅ DONE (Day 83) — entry-strategy IIFE now calls `calculateRiskReward()` instead of re-implementing the math; verified with a synthetic edge case (nearestSupport=1.5, atr=1.2 → unfloored would be -$0.90, actual floored to $0.01) plus a live AAPL regression check (no negative values, no console errors). Also fixed the stale "Max stop cap: 7%" doc claim in `riskRewardCalc.js`.
 - **Severity:** High — user-visible, can show self-contradictory numbers on the same screen (viability badge uses the floored value from `riskRewardCalc.js`, the entry-strategy display uses the unfloored inline duplicate).
 - **Files:** `frontend/src/App.jsx` (Trade Setup Card, entry-strategy IIFE — was ~lines 1527-1697 pre-audit; also calls `calculateRiskReward()` twice per render at ~1379 and ~1415, worth consolidating to one call while in here), `frontend/src/utils/riskRewardCalc.js` (`calculateRiskReward()`, the correct source of truth)
 - **Root cause:** `riskRewardCalc.js` was built Day 61 specifically to extract this math from 4 duplicated locations into one shared function, with an explicit floor: `const pullbackStop = nearestSupport ? Math.max(0.01, nearestSupport - (atr * 2)) : 0;` (line 28, with a comment: "Floor at $0.01 — stop price can never be negative or zero"). The Trade Setup Card's own entry-strategy display block re-implements the same calculation inline **without the floor**: `const pullbackStop = nearestSupport - (atr * 2);` — for a cheap, volatile stock this can go negative, and nothing stops it from rendering that way.
@@ -54,7 +54,7 @@
 - **Acceptance:** Find or construct a test case where `nearestSupport - (atr * 2)` would go negative (cheap, high-ATR ticker); confirm the displayed pullback stop is floored at $0.01, not negative, and matches what the viability badge shows.
 
 ### A3. Price Structure Card's "pattern forming" watch item can never fire
-- **Status:** NOT STARTED
+- **Status:** ✅ DONE (Day 83) — `generatePriceStructure()` gained a third param (`actionablePatternsList`) since it needed BOTH the raw payload (for `trendTemplate`) and the computed actionable-patterns array (option (b) from the Action list, not (a) — swapping the whole param would have broken `trendTemplate`/Minervini TT-based structure state derivation). Verified live on JPM: "Cup & Handle forming (100%) — pivot at $341.91" now renders. Also deleted the unused `key` var and the two no-op ATH/ATL projection branches.
 - **Severity:** Medium — a documented, designed feature (Priority 5 in the card's priority-ordered rule list) is silently dead.
 - **Files:** `frontend/src/utils/priceStructureNarrative.js` (lines ~190-196 and ~285-287 read `patterns?.actionablePatterns`), `frontend/src/App.jsx` (line ~390, the `generatePriceStructure(data.sr, data.patterns)` call site)
 - **Root cause:** `generatePriceStructure()` is called with the *raw* patterns API payload (`data.patterns`), but its Priority-5 watch-item logic and `meta.patternsActive` both read `patterns?.actionablePatterns` — a field that only exists on the *frontend-computed* result of `getActionablePatterns()` (in `categoricalAssessment.js`), never on the raw backend payload. The condition can never be true.
@@ -63,7 +63,7 @@
 - **Acceptance:** Construct or find a real ticker where a pattern is `forming` with confidence <60% (not yet actionable) near its pivot; confirm the Priority-5 watch item now actually renders on the Price Structure Card.
 
 ### A4. Three inconsistent liquidity thresholds on one page
-- **Status:** NOT STARTED
+- **Status:** ✅ DONE (Day 83) — new shared `frontend/src/utils/liquidityThresholds.js` (`getLiquidityThreshold(marketCap)`), adopted by `simplifiedScoring.js` (was already correct, now the source of truth), `scoringEngine.js` Quality Gates (was flat $10M), and `App.jsx`'s Price Card (was flat $10M/$50M, now cap-aware threshold ×1/×2 for yellow/green). Verified live on ASIC (small-cap, $1.8M/day): Quality Gates now says "threshold: > $2M" (was "$10M"), Simple Checklist Volume FAILs consistently, Price Card shows the same $2M-anchored value — all three agree. Also added the "RS Unavailable" non-critical gate entry for null/undefined rs52Week (previously silently skipped), rendered visually distinct (gray, not red) from real critical gates.
 - **Severity:** Medium — same stock can pass a liquidity check in one view and fail it in another, on the same page, same session.
 - **Files:** `frontend/src/utils/scoringEngine.js` (Quality Gates liquidity check, flat `$10M`, ~line 434), `frontend/src/utils/simplifiedScoring.js` (Simple Checklist's cap-aware `$2M small / $5M mid / $10M large`, ~line 203 — this is the Day 70B-validated correct version), `frontend/src/App.jsx` (Price Card's inline liquidity coloring, `$10M`/`$50M` thresholds, ~line 1320)
 - **Action:** Align all three to the Day 70B cap-aware thresholds (`$2M small / $5M mid / $10M large`) that `simplifiedScoring.js` already implements correctly. Extract a single shared `getLiquidityThreshold(marketCap)` (or similar) utility function so there's exactly one place this logic lives, rather than three.
@@ -71,7 +71,7 @@
 - **Acceptance:** Pick a ticker with market cap and volume such that it's a "small cap" under the Day 70B tiers but volume is between $5M-$10M (passes flat-$10M gates as a fail, but should pass under the correct $2M small-cap threshold, or vice versa) — confirm Quality Gates, Simple Checklist, and the Price Card all agree.
 
 ### A5. Nirmal watchlist scan fails silently instead of showing an error
-- **Status:** NOT STARTED
+- **Status:** ✅ DONE (Day 83) — now calls the shared `fetchSupportResistance()` from `api.js` (same `API_BASE_URL`) instead of a hardcoded `http://localhost:5001` fetch, and throws (propagating to the same `scanError` path other strategies use) when a majority of the 20 tickers fail. Verified both directions: backend stopped → red error box shown, no false "No stocks matched" text; backend up → all 20 rows render normally, zero console errors.
 - **Severity:** Medium — misleading UX (a real backend outage looks identical to "no stocks matched").
 - **Files:** `frontend/src/App.jsx` (`runScan()`'s `selectedStrategy === 'nirmal'` branch, ~lines 479-508), `frontend/src/services/api.js` (has the reusable pattern this branch should use instead — `fetchSupportResistance()`, ~line 381, and `API_BASE_URL` constant, line 16)
 - **Root cause:** Every per-ticker fetch failure in this branch returns `null` and gets filtered out of the results array with no error propagation. If the backend is completely down, the other 5 scan strategies correctly show a red error box (via `fetchScanResults()`'s error path); this branch instead renders "No stocks matched the Nirmal's Watchlist criteria" — false information. It also hardcodes `http://localhost:5001` directly instead of using `API_BASE_URL` from `api.js` (meaning it would silently break in any non-default-port deployment), and fires 20 unthrottled parallel requests with no batching.
@@ -79,7 +79,7 @@
 - **Acceptance:** Stop the backend, run a Nirmal watchlist scan; confirm the same red error box other strategies show now appears here too, not a fake "no matches" empty state.
 
 ### A6. MR Signal Card's condition labels are stale (see Corrections section above)
-- **Status:** NOT STARTED
+- **Status:** ✅ DONE (Day 83) — labels updated to 'Price > $10' / '20d Avg $ Volume > $25M'. Verified live on ABBV (active MR signal): both new labels render, no stale text, zero console errors.
 - **Severity:** Low (cosmetic — the underlying gate is already correct, only the label text is wrong)
 - **Files:** `frontend/src/components/MRSignalCard.jsx`, `formatConditionName()`, lines 106-114
 - **Action:** Update the display strings to match the Day 81 gate actually enforced by `backend/mean_reversion.py:140-141`: `price_filter: 'Price > $5'` → `'Price > $10'`, `volume_filter: 'Vol > 500K'` → `'20d Avg $ Volume > $25M'`.
@@ -90,7 +90,7 @@
 ## Group B — Duplication / DRY violations
 
 ### B1. `backend.py`'s scan route still hand-duplicates candidate parsing
-- **Status:** NOT STARTED
+- **Status:** ✅ DONE (Day 83, done alongside A1 since it touched the same region) — `scan_tradingview()` now calls `scan_queries.parse_candidates()` instead of a second hand-maintained copy of the junk-ticker filters. Verified: calling `parse_candidates()` directly on the same query's results reproduced the exact same candidate list the route returns.
 - **Files:** `backend/backend.py` (`scan_tradingview()`, the row-parsing loop, was ~lines 1889-1954 pre-audit — junk-ticker filters for warrants/preferred/SPAC-units/commodity-trusts), `backend/scan_queries.py` (`parse_candidates()`, already does this correctly and is what `live_signals.py` uses)
 - **Action:** Replace the inline parsing loop in `scan_tradingview()` with a call to `scan_queries.parse_candidates()`. Also remove the duplicated `INDEX_MAP`/`CANADIAN_MARKETS`/exchange-list constants from `backend.py` if `scan_queries.py`'s copies can serve both call sites.
 - **Acceptance:** Same candidate list, minus code duplication; diff the before/after output for a real scan call to confirm no behavior change beyond what Task A1 already intentionally changes.

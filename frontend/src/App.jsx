@@ -38,12 +38,13 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation, clearBackendCache, fetchDataProvenance, getCacheStatus, fetchSectorRotation, fetchMRSignal, fetchBreakoutBatch, fetchBreakout } from './services/api';
+import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation, clearBackendCache, fetchDataProvenance, getCacheStatus, fetchSectorRotation, fetchMRSignal, fetchBreakoutBatch, fetchBreakout, fetchSupportResistance } from './services/api';
 import { calculateScore } from './utils/scoringEngine';
 import { calculateSimplifiedAnalysis } from './utils/simplifiedScoring';
 import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings } from './utils/positionSizing';
 import { runCategoricalAssessment, getActionablePatterns } from './utils/categoricalAssessment';
 import { calculateRiskReward, hasViabilityContradiction, getViabilityBadge } from './utils/riskRewardCalc';
+import { getLiquidityThreshold } from './utils/liquidityThresholds'; // Day 83
 // DecisionMatrix removed Day 70 — simplicity premium (full+simple views sufficient)
 // BottomLineCard removed Day 82 (user feedback: verdict banner + What's Good/Risky
 // duplicated the Verdict Card + Categorical Assessment card elsewhere on this page —
@@ -387,7 +388,13 @@ function App() {
       setCategoricalResult(categorical); // Day 44: v4.5 Categorical Assessment
 
       // Day 72: Price Structure narrative (display-only, no verdict impact)
-      setPriceStructure(generatePriceStructure(data.sr, data.patterns));
+      // Day 83 fix (Task A3): pass BOTH the raw patterns payload (still needed for
+      // trendTemplate) AND the computed actionablePatterns.actionablePatterns array —
+      // priceStructureNarrative.js's Priority-5 "pattern forming" watch item was
+      // reading patterns?.actionablePatterns, a field that only exists on
+      // getActionablePatterns()'s frontend-computed result, never on the raw API
+      // payload. Passing just the raw payload meant that watch item could never fire.
+      setPriceStructure(generatePriceStructure(data.sr, data.patterns, actionablePatterns.actionablePatterns));
       setSimplifiedResult(simplified);
       setTicker(targetTicker);
 
@@ -476,26 +483,36 @@ function App() {
 
     try {
       // N2: Nirmal watchlist — batch SR fetch (all cached), no backend strategy needed
+      // Day 83 fix (Task A5): was hardcoding http://localhost:5001 directly (bypassing
+      // API_BASE_URL) and swallowing every per-ticker failure to null with no error
+      // propagation — a full backend outage rendered as a false "no stocks matched"
+      // instead of the red error box the other 5 strategies correctly show. Now reuses
+      // the shared fetchSupportResistance() (same API_BASE_URL, same per-ticker null-
+      // on-failure convention) and treats "most/all requests failed" as a real error.
       if (selectedStrategy === 'nirmal') {
         const results = await Promise.all(
           NIRMAL_WATCHLIST.map(async (ticker) => {
-            try {
-              const res = await fetch(`http://localhost:5001/api/sr/${ticker}`);
-              if (!res.ok) return null;
-              const d = await res.json();
-              return {
-                ticker,
-                name: ticker,
-                sector: null,
-                price: d.currentPrice ?? null,
-                change: null,
-                volume: null,
-                marketCap: null,
-              };
-            } catch { return null; }
+            const d = await fetchSupportResistance(ticker);
+            if (!d) return null;
+            return {
+              ticker,
+              name: ticker,
+              sector: null,
+              price: d.currentPrice ?? null,
+              change: null,
+              volume: null,
+              marketCap: null,
+            };
           })
         );
         const candidates = results.filter(Boolean);
+        const failedCount = NIRMAL_WATCHLIST.length - candidates.length;
+        // Treat a majority-failure as a real error (likely backend outage), not "no matches"
+        if (failedCount > NIRMAL_WATCHLIST.length / 2) {
+          throw new Error(
+            `Failed to fetch ${failedCount}/${NIRMAL_WATCHLIST.length} tickers in Nirmal's Watchlist — backend may be unavailable`
+          );
+        }
         setScanResults({
           strategy: "Nirmal's Watchlist",
           marketIndex: 'all',
@@ -1314,10 +1331,16 @@ function App() {
                         </span>
                       </div>
                       {/* Day 53: Average Daily Dollar Volume - critical for swing trade liquidity */}
+                      {/* Day 83 fix (Task A4): cap-aware coloring, sourced from the same shared
+                          threshold Quality Gates and the Simple Checklist use — was a flat
+                          $10M/$50M split regardless of market cap, a 3rd, different liquidity
+                          standard from the other two views. */}
                       {(() => {
                         const avgVol = rawAnalysisData?.stock?.avgVolume || 0;
                         const dollarVol = avgVol * (analysisResult.currentPrice || 0);
-                        const color = dollarVol >= 50e6 ? 'text-green-400' : dollarVol >= 10e6 ? 'text-yellow-400' : 'text-red-400';
+                        const marketCap = rawAnalysisData?.stock?.fundamentals?.marketCap || rawAnalysisData?.stock?.marketCap || 0;
+                        const { threshold: liquidityThreshold } = getLiquidityThreshold(marketCap);
+                        const color = dollarVol >= liquidityThreshold * 2 ? 'text-green-400' : dollarVol >= liquidityThreshold ? 'text-yellow-400' : 'text-red-400';
                         return (
                           <div className="flex justify-between">
                             <span className="text-gray-400">Liquidity (Daily $):</span>
@@ -1545,29 +1568,33 @@ function App() {
                           const weakTrend = adxValue >= 20 && adxValue < 25;
                           const noTrend = adxValue < 20;
 
+                          // Day 83 fix (Task A2): use the shared riskRewardCalc utility instead
+                          // of re-implementing this math inline. The inline version had no floor
+                          // on pullbackStop, so a cheap/high-ATR ticker could display a negative
+                          // stop price here while the viability badge above (which already used
+                          // calculateRiskReward()) showed the correctly-floored value — the two
+                          // could silently disagree. Reusing the same function means they can't.
+                          const rr = calculateRiskReward(srData, currentPrice);
+
                           // Pullback Strategy calculations
                           const pullbackEntry = nearestSupport;
-                          const pullbackStop = nearestSupport - (atr * 2);
-                          const pullbackTarget = srData.suggestedTarget || currentPrice * 1.10;
-                          const pullbackRisk = pullbackEntry - pullbackStop;
-                          const pullbackReward = pullbackTarget - pullbackEntry;
-                          const pullbackRRValue = pullbackRisk > 0 ? pullbackReward / pullbackRisk : 0;
+                          const pullbackStop = rr.pullbackStop;
+                          const pullbackTarget = rr.target;
+                          const pullbackRRValue = rr.pullbackRR;
                           const pullbackRR = pullbackRRValue > 0 ? pullbackRRValue.toFixed(2) : 'N/A';
 
                           // Momentum Strategy calculations
                           const momentumEntry = currentPrice;
-                          const momentumStop = nearestSupport - (atr * 1.5);
+                          const momentumStop = rr.momentumStop;
                           const momentumTarget = pullbackTarget;
-                          const momentumRisk = momentumEntry - momentumStop;
-                          const momentumReward = momentumTarget - momentumEntry;
-                          const momentumRRValue = momentumRisk > 0 ? momentumReward / momentumRisk : 0;
+                          const momentumRRValue = rr.momentumRR;
                           const momentumRR = momentumRRValue > 0 ? momentumRRValue.toFixed(2) : 'N/A';
 
                           const rsiConfirmed = rsi4h && rsi4h.entry_signal;
 
                           // Day 49: R:R filter - don't suggest entries with R:R < 1.0
-                          const pullbackViable = pullbackRRValue >= 1.0;
-                          const momentumViable = momentumRRValue >= 1.0;
+                          const pullbackViable = rr.pullbackViable;
+                          const momentumViable = rr.momentumViable;
 
                           // Day 50: Show warning but ALWAYS show entry cards (grayed out when not viable)
                           const showNoTrendWarning = noTrend && !pullbackViable && !momentumViable;
@@ -2416,9 +2443,12 @@ function App() {
                   <div className="bg-gray-800 rounded-lg p-6">
                     <h3 className="text-lg font-semibold mb-4 text-red-400">⚠️ Quality Gate Warnings</h3>
                     <div className="space-y-2">
+                      {/* Day 83: non-critical entries (e.g. "RS Unavailable" on missing data,
+                          not a failing gate) render distinctly from critical AVOID-triggering
+                          gates — same red box for both would overstate severity. */}
                       {analysisResult.qualityGates.gates.map((gate, idx) => (
-                        <div key={idx} className="bg-red-900/30 rounded p-3 text-sm">
-                          <span className="font-semibold text-red-400">{gate.name}:</span>{' '}
+                        <div key={idx} className={`rounded p-3 text-sm ${gate.critical === false ? 'bg-gray-700/40' : 'bg-red-900/30'}`}>
+                          <span className={`font-semibold ${gate.critical === false ? 'text-gray-400' : 'text-red-400'}`}>{gate.name}:</span>{' '}
                           <span className="text-gray-300">{gate.value}</span>
                           <span className="text-gray-500"> (threshold: {gate.threshold})</span>
                         </div>

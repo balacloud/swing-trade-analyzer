@@ -104,11 +104,15 @@ export default function MRSignalCard({ mrData, loading }) {
 }
 
 function formatConditionName(key) {
+  // Day 83 fix (Task A6): labels were stale — the underlying gate in
+  // mean_reversion.py was already tightened Day 81 (price>$10, 20d ADV>$25M,
+  // matching the backtest's validated PF-1.16 liquidity-gated config), but
+  // these display strings still described the old, unvalidated thresholds.
   const names = {
     rsi2_oversold: 'RSI(2) < 10',
     above_200sma: 'Above 200 SMA',
-    price_filter: 'Price > $5',
-    volume_filter: 'Vol > 500K',
+    price_filter: 'Price > $10',
+    volume_filter: '20d Avg $ Volume > $25M',
   };
   return names[key] || key;
 }

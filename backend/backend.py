@@ -39,7 +39,9 @@ sys.path.insert(0, os.path.dirname(__file__))
 # Day 82: was still '2.35' while CLAUDE_CONTEXT.md claimed v2.38 — the exact
 # drift Day 78's fix was meant to prevent, recurring (Fable hygiene audit).
 # Day 83: 5 data-source bugs fixed + SQLite-backed shared rate-limiter/circuit-breaker state.
-BACKEND_VERSION = '2.37'
+# Day 83 (session 2): scan_tradingview() 'best' order_by bug fixed (Task A1) +
+# shared candidate parsing (Task B1), per UI_CODE_QUALITY_AUDIT_AND_FIX_PLAN_DAY82.md.
+BACKEND_VERSION = '2.38'
 
 from constants import SUPPORT_PROXIMITY_PCT, RESISTANCE_PROXIMITY_PCT  # shared with support_resistance.py
 
@@ -1879,81 +1881,28 @@ def scan_tradingview():
             query, _ = scan_queries.build_best_query(limit=limit, market_index=market_index)
         else:
             return jsonify({'error': f'Unknown strategy: {strategy}'}), 400
-        
-        query = query.order_by('relative_volume_10d_calc', ascending=False)
-        query = query.limit(limit)
-        
+
+        # Day 83 fix (Task A1): 'best' already set its own ADX-desc order_by +
+        # limit inside build_best_query() — order_by() REPLACES rather than
+        # adds to a prior sort, so applying this unconditionally here silently
+        # overrode it with a different sort, meaning the Scan tab and the
+        # paper-trading engine (which calls build_best_query() directly) could
+        # end up looking at two different top-N candidate sets whenever more
+        # than `limit` candidates qualified. Only the other strategies need
+        # this default sort applied.
+        if strategy != 'best':
+            query = query.order_by('relative_volume_10d_calc', ascending=False)
+            query = query.limit(limit)
+
         # Execute
         count, results = query.get_scanner_data()
-        
-        # Format results
-        candidates = []
-        for _, row in results.iterrows():
-            try:
-                ticker = row.get('ticker', '')
-                exchange_prefix = ''
-                if ':' in str(ticker):
-                    exchange_prefix = str(ticker).split(':')[0]
-                    ticker = str(ticker).split(':')[-1]
 
-                # Day 26: Filter out non-common stocks
-                # NOTE: Must run BEFORE appending .TO suffix (Day 59 fix)
-                # because .TO ends with 'O' which triggers preferred stock filter
-                if '/' in ticker:
-                    continue  # Preferred stock (e.g., BAC/PL, KKR/PD)
-                if len(ticker) >= 4 and ticker.endswith('U'):
-                    continue  # SPAC unit (e.g., BTSGU)
-                if len(ticker) >= 4 and ticker.endswith('W'):
-                    continue  # Warrant (e.g., SPFRW)
-                if len(ticker) >= 5 and ticker.endswith('WS'):
-                    continue  # Warrant series (e.g., ABCDWS)
-                if len(ticker) >= 5 and ticker[-1] in 'PMNOL' and ticker[-2].isupper():
-                    continue  # Preferred stock series (e.g., CNOBP, VLYPP, FTAIM)
-                # Skip commodity ETFs/trusts
-                if ticker in ['PHYS', 'PSLV', 'GLD', 'SLV', 'IAU', 'GLDM', 'SGOL', 'SIVR']:
-                    continue  # Commodity trusts - not equities
+        # Day 83 fix (Task B1): use the shared parser (scan_queries.py) instead
+        # of a second hand-maintained copy of the same junk-ticker filters —
+        # this is what backend/paper_trading/live_signals.py already uses, so
+        # there's exactly one implementation of "what counts as a candidate."
+        candidates = scan_queries.parse_candidates(results, is_canadian, strategy=strategy)
 
-                # Day 59: Append .TO suffix for Canadian TSX tickers (yfinance format)
-                # Must be AFTER non-common-stock filter above
-                if is_canadian and exchange_prefix == 'TSX' and not ticker.endswith('.TO'):
-                    ticker = ticker + '.TO'
-
-                current = row.get('close')
-                high52w = row.get('price_52_week_high')
-                pct_from_high = None
-                if current and high52w and high52w > 0:
-                    pct_from_high = round(((current - high52w) / high52w) * 100, 1)
-
-                # Post-filter: "best" strategy requires within 25% of 52W high
-                # (col() doesn't support arithmetic, so we filter here)
-                if strategy == 'best' and pct_from_high is not None and pct_from_high < -25:
-                    continue
-
-                candidates.append({
-                    'ticker': ticker,
-                    'name': row.get('name', ''),
-                    'price': safe_float(row.get('close')),
-                    'change': safe_float(row.get('change')),  # Day 26: Added change field
-                    'volume': safe_int(row.get('volume')),
-                    'marketCap': safe_int(row.get('market_cap_basic')),
-                    'high52w': safe_float(row.get('price_52_week_high')),
-                    'low52w': safe_float(row.get('price_52_week_low')),
-                    'sma50': safe_float(row.get('SMA50')),
-                    'sma200': safe_float(row.get('SMA200')),
-                    'rsi': safe_float(row.get('RSI')),
-                    'relativeVolume': safe_float(row.get('relative_volume_10d_calc')),
-                    'sector': row.get('sector', 'N/A'),
-                    'pctFromHigh': pct_from_high,
-                    'exchange': row.get('exchange', 'N/A'),
-                    'adx': safe_float(row.get('ADX')),
-                    'ema10': safe_float(row.get('EMA10')),
-                    'ema21': safe_float(row.get('EMA21')),
-                    'perf52w': safe_float(row.get('Perf.Y'))
-                })
-            except Exception as e:
-                print(f"Error parsing row: {e}")
-                continue
-        
         print(f"✅ TradingView Scan complete: {len(candidates)} candidates from {count} matches")
         
         return jsonify({

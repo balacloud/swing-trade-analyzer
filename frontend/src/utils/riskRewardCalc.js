@@ -2,12 +2,14 @@
  * Shared Risk/Reward Calculator
  * Day 61: Extracted from 4 duplicated locations to single source of truth
  *
- * Used by: App.jsx (viability badge + contradiction)
+ * Used by: App.jsx (viability badge, contradiction check, Trade Setup entry-strategy display)
  *
  * Tier 1A: ATR stops are PRIMARY. Percentage caps are safety floors only.
  * Pullback entry: Buy at nearest support, stop 2×ATR below support
  * Momentum entry: Buy at current price, stop 1.5×ATR below support
- * Max stop cap: 7% from entry (backtest uses 5% quick, 7% standard, 8% position)
+ * Day 83: removed a stale "max stop cap: 7% from entry" claim — that cap
+ * belongs to the backtest's own position-sizing layer (trade_simulator.py),
+ * not this function, which is purely ATR-based with a $0.01 floor.
  */
 
 /**

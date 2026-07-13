@@ -1,5 +1,11 @@
 # Known Issues — Day 83 (July 12, 2026)
 
+> **Mid-session update (July 13):** All 6 Group A items from the UI Code
+> Quality Fix Plan (both High-severity issues + 4 Medium/Low) were fixed and
+> browser-verified this session — moved from Open to Resolved below. Also
+> did Task B1 (duplicate candidate parsing) alongside A1 since it touched
+> the same code region. Groups B2-E remain untouched.
+
 ## Changes from Day 81
 *(Day 82 patched Day 81's file in place rather than creating its own — see that file's header note. This is the first fresh KNOWN_ISSUES file since Day 81.)*
 
@@ -11,6 +17,12 @@
 - ✅ Rate-limiter/circuit-breaker per-process state architecture gap — Flask backend and the paper-trading job were silently not sharing rate-limit/circuit-breaker state. Rebuilt on shared SQLite (Day 83). New Golden Rule 22.
 - ✅ Bottom Line Card redundancy (user-flagged) — deleted, confirmed safe via code read (Day 83).
 - ✅ Breakout status missing from Analyze Stock page — added (badge in Simple view, card in Full Analysis view) (Day 83).
+- ✅ Scan Tab and Paper-Trading Engine Could See Different Candidate Sets (Task A1) — order_by override guarded; verified byte-identical candidate sets. Also Task B1 (duplicate candidate-parsing logic) fixed alongside it.
+- ✅ Trade Setup Card Could Display a Negative Stop Price (Task A2) — now sources stop/RR from `calculateRiskReward()`; verified with a synthetic negative-stop edge case.
+- ✅ Price Structure Card's "Pattern Forming" Watch Item Could Never Fire (Task A3) — verified live on JPM.
+- ✅ Three Inconsistent Liquidity Thresholds (Task A4) — unified via new `liquidityThresholds.js`; verified live on ASIC. Also added a non-critical "RS Unavailable" gate for missing RS data.
+- ✅ Nirmal Watchlist Scan Failed Silently (Task A5) — verified both backend-down (shows error) and backend-up (renders normally) paths.
+- ✅ MR Signal Card Condition Labels Stale (Task A6) — verified live on ABBV.
 
 **New:**
 - 🆕 UI Code Quality Fix Plan documented — `docs/claude/design/UI_CODE_QUALITY_AUDIT_AND_FIX_PLAN_DAY82.md`. 3 Fable audits (Analyze page cards, Scan Market tab, Tradier evaluation) synthesized into 6 real bugs, 6 DRY violations, a dead-code inventory, a Tradier provider build spec, and 6 polish items. **Not yet triaged or executed** — see individual entries below for the highest-severity items, pulled out for visibility.
@@ -18,16 +30,6 @@
 ---
 
 ## Open Issues
-
-### High: Scan Tab and Paper-Trading Engine Can See Different Candidate Sets
-**Severity:** High
-**Description:** `backend.py`'s `scan_tradingview()` unconditionally applies `order_by('relative_volume_10d_calc', ...)` after `scan_queries.build_best_query()` already set `order_by('ADX', ...)` for the `'best'` strategy. TradingView's `order_by()` replaces rather than adds to the sort, and results are truncated server-side at `limit` — so whenever more than `limit` candidates qualify, the Scan tab UI and `live_signals.py`'s automated momentum scan can be looking at two different top-N sets, undermining the Day 81 "one implementation, not two" guarantee.
-**Fix:** Task A1 in `docs/claude/design/UI_CODE_QUALITY_AUDIT_AND_FIX_PLAN_DAY82.md`. Not started.
-
-### High: Trade Setup Card Can Display a Negative Stop Price
-**Severity:** High
-**Description:** The Trade Setup Card's entry-strategy display block re-implements `riskRewardCalc.js`'s pullback-stop calculation inline, but without the `Math.max(0.01, ...)` floor the shared utility has (`riskRewardCalc.js:28`). For a cheap, high-ATR ticker, the inline duplicate (`App.jsx`, entry-strategy IIFE) can compute and display a negative price. Confirmed true via direct side-by-side code read, not just the audit's word.
-**Fix:** Task A2 in the same fix-plan doc. Not started.
 
 ### Medium: Backtest↔Live Fundamentals Data-Source Mismatch (carried from Day 78/79)
 **Severity:** Medium
@@ -37,21 +39,6 @@
 ### Medium: Canadian Market — Analyze Page Not Yet Supported (carried from Day 59)
 **Severity:** Medium (incomplete feature)
 **Description:** v4.21 Canadian support only works for Scan tab. Analyze page needs data source redesign for `.TO` tickers.
-
-### Medium: Three Inconsistent Liquidity Thresholds on One Page
-**Severity:** Medium
-**Description:** Quality Gates uses a flat $10M liquidity gate (`scoringEngine.js`); Simple Checklist uses the correct cap-aware $2M/$5M/$10M tiers (`simplifiedScoring.js`, Day 70B-validated); the Price Card colors by yet another $10M/$50M standard. The same stock's liquidity can be judged differently depending which view is open.
-**Fix:** Task A4 in the fix-plan doc. Not started.
-
-### Low: Nirmal Watchlist Scan Fails Silently
-**Severity:** Low
-**Description:** `runScan()`'s `nirmal` branch hardcodes `http://localhost:5001` (bypasses `API_BASE_URL`), duplicates fetch logic instead of reusing `api.js`, and swallows all per-ticker failures to `null` — a full backend outage renders as a false "no stocks matched" instead of the red error box other strategies show.
-**Fix:** Task A5 in the fix-plan doc. Not started.
-
-### Low: MR Signal Card Condition Labels Stale
-**Severity:** Low (cosmetic — underlying gate is already correct)
-**Description:** `MRSignalCard.jsx`'s `formatConditionName()` still displays `'Price > $5'` / `'Vol > 500K'` even though the actual live gate (`mean_reversion.py`, fixed Day 81) requires price>$10 and 20d ADV>$25M.
-**Fix:** Task A6 in the fix-plan doc. Not started.
 
 ### Low: Dormant Canadian-Ticker Bug in Live Signals
 **Severity:** Low (dormant — only matters if the automated engine is ever pointed at a Canadian market_index)
@@ -66,9 +53,9 @@
 ### Low: Defeat Beta Import Still Present (carried)
 **Severity:** Low (no functional impact)
 
-### Info: UI Code Quality Fix Plan — Full Details (Day 83)
+### Info: UI Code Quality Fix Plan — Group A Done, B-E Remain (Day 83)
 **Severity:** Info
-**Description:** The two High and several Medium/Low items above are the highest-severity pulls from `docs/claude/design/UI_CODE_QUALITY_AUDIT_AND_FIX_PLAN_DAY82.md`. That doc also documents 6 DRY-violation cleanups (Group B — incl. a "zombie" legacy-verdict fallback that could theoretically render an unlabeled 0.011-correlation score as if it were the real verdict), a dead-code inventory (Group C), a fully-specified Tradier provider build (Group D — OHLCV/quote fallback only, no options/fundamentals scope creep), and 6 minor polish items (Group E, incl. two stale-response races on ticker search). None of Group B-E has been pulled into this tracker individually; see the doc directly when triaging.
+**Description:** `docs/claude/design/UI_CODE_QUALITY_AUDIT_AND_FIX_PLAN_DAY82.md` — Group A (all 6 real bugs, listed as Resolved above) plus Task B1 are done and browser-verified. Still open: 5 more DRY-violation cleanups (Group B — incl. a "zombie" legacy-verdict fallback that could theoretically render an unlabeled 0.011-correlation score as if it were the real verdict), a dead-code inventory (Group C), a fully-specified Tradier provider build (Group D — OHLCV/quote fallback only, no options/fundamentals scope creep), and 6 minor polish items (Group E, incl. two stale-response races on ticker search). See the doc directly when triaging what's next.
 
 ### Info: Tradier API Key Evaluated — Reliability Upgrade Available, Not Yet Built (Day 83)
 **Severity:** Info

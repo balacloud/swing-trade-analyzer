@@ -32,8 +32,7 @@ function isNearLevel(currentPrice, level, atr) {
  */
 function getTouches(level, levelScores) {
   if (!levelScores || !level) return null;
-  const key = String(Math.round(level * 100) / 100);
-  // Also try with varying decimal precision
+  // Try with varying decimal precision
   for (const k of Object.keys(levelScores)) {
     if (Math.abs(parseFloat(k) - level) < 0.5) {
       return levelScores[k];
@@ -143,7 +142,7 @@ function buildKeyLevels(currentPrice, resistance, support, levelScores, confluen
  * Generate up to 3 watch items — the highest-value section.
  * Priority-ordered: compression > near resistance > near support > extended > pattern > fallback.
  */
-function generateWatchItems(currentPrice, resistance, support, atr, rvol, rsiDaily, tradeViability, patterns, levelScores) {
+function generateWatchItems(currentPrice, resistance, support, atr, rvol, rsiDaily, tradeViability, actionablePatternsList, levelScores) {
   const items = [];
   const R1 = resistance?.[0];
   const S1 = support?.[0];
@@ -188,7 +187,7 @@ function generateWatchItems(currentPrice, resistance, support, atr, rvol, rsiDai
   }
 
   // Priority 5: Actionable pattern convergence
-  const actionable = (patterns?.actionablePatterns || []).filter(p => p.confidence >= 60);
+  const actionable = (actionablePatternsList || []).filter(p => p.confidence >= 60);
   if (actionable.length > 0) {
     const best = actionable[0];
     const pivot = best.triggerPrice ? ` — pivot at $${parseFloat(best.triggerPrice).toFixed(2)}` : '';
@@ -218,10 +217,14 @@ function generateWatchItems(currentPrice, resistance, support, atr, rvol, rsiDai
  * Call after fetchFullAnalysisData() resolves.
  *
  * @param {object} sr     - srData from state (fetchSupportResistance result)
- * @param {object} patterns - patternsData from state (fetchPatterns result)
+ * @param {object} patterns - raw patternsData from state (fetchPatterns result) — used for trendTemplate
+ * @param {Array} actionablePatternsList - Day 83: the `.actionablePatterns` array from
+ *   categoricalAssessment.js's getActionablePatterns() result (frontend-computed, ≥60%
+ *   confidence filtering already applied at the source). NOT the same as `patterns` above —
+ *   the raw API payload has no `actionablePatterns` field, only `patterns.trendTemplate` does.
  * @returns {object|null}  - null if insufficient data (card won't render)
  */
-export function generatePriceStructure(sr, patterns) {
+export function generatePriceStructure(sr, patterns, actionablePatternsList = []) {
   if (!sr) return null;
 
   const currentPrice = sr.currentPrice;
@@ -235,8 +238,6 @@ export function generatePriceStructure(sr, patterns) {
   const tradeViability = meta.tradeViability || {};
   const levelScores = meta.levelScores || {};
   const confluenceMap = meta.mtf?.confluence_map || {};
-  const resistanceProjected = meta.resistanceProjected || false;
-  const supportProjected = meta.supportProjected || false;
 
   // Need at least one level to render
   if (resistance.length === 0 && support.length === 0) return null;
@@ -244,11 +245,12 @@ export function generatePriceStructure(sr, patterns) {
   const trendTemplate = patterns?.trendTemplate || {};
   const trendCriteria = trendTemplate.criteria_met ?? null;
 
-  // Handle ATH / ATL projection cases
-  let effectiveResistance = resistance;
-  let effectiveSupport = support;
-  if (resistanceProjected && resistance.length === 0) effectiveResistance = [];
-  if (supportProjected && support.length === 0) effectiveSupport = [];
+  // Day 83: removed dead ATH/ATL "projection" branches — resistanceProjected/
+  // supportProjected were only ever read here, and both conditional reassignments
+  // were no-ops (they set effectiveResistance/effectiveSupport to [] only when
+  // resistance/support were already [] by the guard condition). No behavior change.
+  const effectiveResistance = resistance;
+  const effectiveSupport = support;
 
   // Derive structure state
   const { state: structureState, color: stateColor } = deriveStructureState(
@@ -266,7 +268,7 @@ export function generatePriceStructure(sr, patterns) {
   // Generate watch items
   const watchItems = generateWatchItems(
     currentPrice, effectiveResistance, effectiveSupport,
-    atr, rvol, rsiDaily, tradeViability, patterns, levelScores
+    atr, rvol, rsiDaily, tradeViability, actionablePatternsList, levelScores
   );
 
   return {
@@ -282,7 +284,7 @@ export function generatePriceStructure(sr, patterns) {
       rvol,
       atr,
       levelsUsed: keyLevels.length,
-      patternsActive: (patterns?.actionablePatterns || [])
+      patternsActive: (actionablePatternsList || [])
         .filter(p => p.confidence >= 60)
         .map(p => p.name),
     },
