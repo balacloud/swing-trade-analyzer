@@ -75,4 +75,4 @@ Paper trading itself: still accumulating, expected to take months — this sessi
 4. **Breakout Plan Phase 1** (scan preset) — needs explicit user go-ahead.
 5. N4 Market Phase synthesis, `/ibkr-scan` skill, Value Tab Phase 2, Price Structure Phase 2, N3 gap-fill, Canadian Analyze page — queued.
 6. (Optional, low priority) Scan tab batch breakout badges: distinguish NOT_READY from a failed fetch.
-7. (Optional, low priority) Master Framework Watchlist's Name/Sector/Change/Volume/Market Cap columns show N/A (same as Nirmal's Watchlist) — fix only if it becomes annoying in daily use.
+7. (Optional, low priority) Master Framework Watchlist's Name/Market Cap columns still show N/A (Volume/Change % fixed same day, free) — Name/Market Cap need a separate fundamentals call per ticker, deferred by user choice.

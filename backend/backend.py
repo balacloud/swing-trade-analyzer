@@ -1535,6 +1535,18 @@ def get_support_resistance(ticker):
         # Get current price
         current_price = float(df['close'].iloc[-1])
 
+        # Day 85: expose today's raw volume + day change % — already available
+        # from the OHLCV frame fetched above, no extra provider call needed.
+        # Lets the Nirmal/Master Framework curated watchlists (which bypass
+        # TradingView's market-wide query, the usual source for these fields)
+        # populate their Volume/Change columns for free.
+        latest_volume = int(df['volume'].iloc[-1]) if len(df) >= 1 else None
+        day_change_pct = None
+        if len(df) >= 2:
+            prev_close = float(df['close'].iloc[-2])
+            if prev_close > 0:
+                day_change_pct = round((current_price - prev_close) / prev_close * 100, 2)
+
         # ============================================
         # Day 39: Calculate ADX (trend strength) and 4H RSI (momentum)
         # Day 49: Added OBV (On-Balance Volume) for v4.9
@@ -1619,6 +1631,8 @@ def get_support_resistance(ticker):
         response = {
             'ticker': ticker,
             'currentPrice': round(current_price, 2),
+            'volume': latest_volume,
+            'change': day_change_pct,
             'method': sr_levels.method,
             'support': actionable_support_levels,        # Only actionable levels
             'resistance': actionable_resistance_levels,  # Only actionable levels

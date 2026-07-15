@@ -165,6 +165,24 @@ resolves every ticker the new code references; the React code path itself
 (`fetchWatchlistCandidates`) is a direct, mechanical extraction of the
 already-shipped, already-verified Nirmal watchlist logic.
 
+**User-tested live** (browser session, real Scan tab run): 76/76 matched,
+real prices, Breakout badges rendering for the top 20 rows. Flagged that
+Name/Sector/Change/Volume/Market Cap showed "N/A" — traced to
+`/api/sr/<ticker>` never returning those fields (it only ever fetched OHLCV,
+not company metadata), identical to Nirmal's Watchlist's pre-existing
+behavior, not a regression.
+
+**Follow-up fix (same day):** Volume and day Change % were free to add — the
+route already fetches the OHLCV bars needed to compute them, just wasn't
+returning them. Added `volume`/`change` to `/api/sr/<ticker>`'s response
+(`backend/backend.py`), threaded through `fetchSupportResistance()`'s
+field whitelist (`frontend/src/services/api.js`), and wired into
+`fetchWatchlistCandidates()`. Verified live: GEV → volume 526,156 / change
+-1.0%; CCO.TO → volume 800,496 / change -0.92%. Name/Sector/Market Cap
+remain null by explicit user choice — those need a separate fundamentals
+call per ticker (added latency + provider rate-limit cost) that wasn't
+judged worth it.
+
 ---
 
 ## 7. Open items for a future refresh

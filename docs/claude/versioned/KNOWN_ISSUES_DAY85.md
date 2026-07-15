@@ -11,7 +11,7 @@
 
 **New, not yet acted on:**
 - Scan tab's batch breakout badge column (20-row table) still can't distinguish `NOT_READY` from a failed fetch — both render as "—". Same bug class as the fix above, not yet requested at this location (ROADMAP optional item).
-- Master Framework Watchlist's summary table shows "N/A" for Name/Sector/Change/Volume/Market Cap — identical pre-existing behavior to Nirmal's Watchlist (both bypass the TradingView query those fields come from). User explicitly chose to ship as-is.
+- ~~Master Framework Watchlist's summary table shows "N/A" for Name/Sector/Change/Volume/Market Cap~~ — **Volume and Change % fixed same day** (free: `/api/sr/<ticker>` already fetches the OHLCV needed, just wasn't returning them — added to `backend.py`, `api.js`, and `fetchWatchlistCandidates()`, fixes both watchlists at once). Name/Sector/Market Cap remain null by explicit user choice — would need a separate fundamentals call per ticker (extra latency + provider rate-limit cost).
 
 **Investigated, no code change (by user's own decision):** TradingView screener market-data delay (~15 min without an authenticated `sessionid` cookie) — decided not to wire up cookie-based real-time auth, since it costs nothing for STA's EOD-based indicators and would add an expiring-credential dependency for no practical benefit.
 

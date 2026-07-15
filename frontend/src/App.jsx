@@ -521,6 +521,10 @@ function App() {
   // failure, majority-failure treated as a real error rather than a false
   // "no matches" (Day 83 fix, Task A5, generalized Day 85 for the 2nd
   // watchlist so both share one implementation instead of copy-pasting it).
+  // Day 85: volume/change now come from fetchSupportResistance() itself (free
+  // — already computed from the OHLCV bars it fetches, no extra API call).
+  // name/sector/marketCap stay null — those need a real fundamentals/quote
+  // call this endpoint doesn't make, and the user chose not to pay that cost.
   const fetchWatchlistCandidates = async (tickers, label) => {
     const results = await Promise.all(
       tickers.map(async (ticker) => {
@@ -531,8 +535,8 @@ function App() {
           name: ticker,
           sector: null,
           price: d.currentPrice ?? null,
-          change: null,
-          volume: null,
+          change: d.change ?? null,
+          volume: d.volume ?? null,
           marketCap: null,
         };
       })

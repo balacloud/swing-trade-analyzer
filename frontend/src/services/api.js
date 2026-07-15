@@ -390,6 +390,8 @@ export async function fetchSupportResistance(ticker) {
     return {
       ticker: data.ticker,
       currentPrice: data.currentPrice,
+      volume: data.volume,  // Day 85: today's raw volume, added for watchlist scans
+      change: data.change,  // Day 85: day change %, added for watchlist scans
       method: data.method,
       support: data.support || [],
       resistance: data.resistance || [],
