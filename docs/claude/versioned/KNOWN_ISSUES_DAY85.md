@@ -6,9 +6,12 @@
 - ✅ Backend/frontend processes died silently after their launching terminal closed (`OSError: [Errno 5] Input/output error` on every `print()`-logging request path, 500s across many endpoints, not just breakout) — `start.sh` now uses `nohup ... & disown` with output redirected to log files. New Golden Rule 23.
 - ✅ Breakout Status card/badge was completely hidden (not just muted) whenever a ticker's status was `NOT_READY`, indistinguishable from "broken" — now shows a muted "Not Ready" badge per the engine's own spec (§13).
 
+**New, resolved same session:**
+- ✅ Personalized Notion-based screener — scoped and built same session. 76-ticker "🏛️ Master Framework Watchlist" Scan tab option, sourced from the user's Notion investment frameworks. Exhaustive verification caught 3 ticker-format bugs + 1 unsupported ticker before shipping. User-tested live: 76/76 matched. See `docs/claude/design/MASTER_FRAMEWORK_WATCHLIST_SCOPE.md`.
+
 **New, not yet acted on:**
-- User wants a personalized screener built from a Notion-documented ticker list — not yet scoped (see ROADMAP priority #2).
-- Scan tab's batch breakout badge column (20-row table) still can't distinguish `NOT_READY` from a failed fetch — both render as "—". Same bug class as the fix above, not yet requested at this location (ROADMAP optional item #13).
+- Scan tab's batch breakout badge column (20-row table) still can't distinguish `NOT_READY` from a failed fetch — both render as "—". Same bug class as the fix above, not yet requested at this location (ROADMAP optional item).
+- Master Framework Watchlist's summary table shows "N/A" for Name/Sector/Change/Volume/Market Cap — identical pre-existing behavior to Nirmal's Watchlist (both bypass the TradingView query those fields come from). User explicitly chose to ship as-is.
 
 **Investigated, no code change (by user's own decision):** TradingView screener market-data delay (~15 min without an authenticated `sessionid` cookie) — decided not to wire up cookie-based real-time auth, since it costs nothing for STA's EOD-based indicators and would add an expiring-credential dependency for no practical benefit.
 
@@ -65,9 +68,9 @@
 ### Info: Breakout Plan Phase 1 — Only Remaining Phase (carried from Day 82)
 **Severity:** Info (planned — gated on user approval)
 
-### Info: Personalized Notion-Based Screener — Requested, Not Scoped (new, Day 85)
-**Severity:** Info (planned)
-**Description:** User wants a screener built around a curated ticker list maintained in Notion. Needs a Notion connection and a design decision on how it feeds `scan_queries.py`.
+### Info: Master Framework Watchlist — Built and Verified (Day 85)
+**Severity:** Info (milestone)
+**Description:** 76-ticker Scan tab preset sourced from the user's Notion investment frameworks, built and user-verified live same session. See "Changes from Day 84" above and `docs/claude/design/MASTER_FRAMEWORK_WATCHLIST_SCOPE.md`.
 
 ### Info: IBKR Filter #8 — 52W High Proximity Availability Unverified (carried from Day 77)
 **Severity:** Info (verify before building `/ibkr-scan`)

@@ -1299,11 +1299,12 @@ A full-system audit (Day 78) found the backtested edge was likely overstated —
 **Where the two trading systems stand:** momentum (Config C) re-validated at PF 1.40 (was 1.61 on the hand-picked universe) — real but not yet statistically significant. Mean-reversion's one-time, pre-committed liquidity restriction recovered PF 1.16 from an initial clean null (PF 0.99) — also real but not yet significant. **Both systems require live paper-trading confirmation (50+ trades each) before any capital allocation.** Estimated time to reach that bar: roughly 7 months for MR, 2+ years for momentum at backtest-implied signal rates (highly uncertain, will be re-estimated after 4-6 weeks of real data).
 
 1. **Let paper trading accumulate** — the primary focus; nothing to build, just time. Check progress with `daily_job.py --report`.
-2. **Personalized screener from the user's Notion ticker list** (Day 85, newly requested) — not yet scoped; needs a Notion connection and a decision on how the curated list feeds the existing scan pipeline.
-3. **Fundamentals mitigation decision** — a measured 40% disagreement between live and backtested fundamentals data sources is still pending a choice (align live-to-SimFin or backtest-to-TTM).
-4. **Confirm SimFin key rotation** — small housekeeping item.
-5. **Breakout Enhancement Plan Phase 1** (near-breakout scan preset) — the only remaining phase; the rest (batch endpoint, Scan tab badges, `/breakout-watch` skill) shipped Day 81-82.
-6. N4 Market Phase synthesis, `/ibkr-scan` skill, Value Tab Phase 2, Price Structure Phase 2, Canadian Analyze page — queued behind the above.
+2. **Fundamentals mitigation decision** — a measured 40% disagreement between live and backtested fundamentals data sources is still pending a choice (align live-to-SimFin or backtest-to-TTM).
+3. **Confirm SimFin key rotation** — small housekeeping item.
+4. **Breakout Enhancement Plan Phase 1** (near-breakout scan preset) — the only remaining phase; the rest (batch endpoint, Scan tab badges, `/breakout-watch` skill) shipped Day 81-82.
+5. N4 Market Phase synthesis, `/ibkr-scan` skill, Value Tab Phase 2, Price Structure Phase 2, Canadian Analyze page — queued behind the above.
+
+**Day 85:** Built a "🏛️ Master Framework Watchlist" Scan tab preset — 76 tickers sourced from the user's own curated Notion investment research (AI Supply Chain, CanGem, STRATUM, QUBIT frameworks), scanned with STA's existing technical engine, same pattern as the pre-existing Nirmal watchlist.
 
 ---
 

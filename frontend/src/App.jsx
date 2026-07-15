@@ -490,6 +490,63 @@ function App() {
     'HOOD', 'COP', 'PYPL',
   ];
 
+  // Day 85: user's own curated watchlist — sourced from their Notion "Master
+  // Investment Framework Hub" (4 frameworks: AI Supply Chain, CanGem, STRATUM,
+  // QUBIT). Manually synced, not a live Notion fetch — re-pull and update this
+  // list when the user updates their Notion pages (their own cadence is a
+  // weekly rerun at most). Scope/exclusions documented in
+  // docs/claude/design/MASTER_FRAMEWORK_WATCHLIST_SCOPE.md — notably: QUBIT
+  // framework excluded entirely (self-labeled all-Stage-0-1 speculative),
+  // STRATUM's raw-material Layer 0 tier excluded (same reason), and 3
+  // ASX/LSE-listed tickers dropped (exchanges not supported by scan_queries.py).
+  const MASTER_FRAMEWORK_WATCHLIST = [
+    // AI Supply Chain v3.0 (35)
+    'GEV', 'ETN', 'GIB-A.TO', 'TSM', 'VRT', 'GLW', 'CCO.TO', 'APH', 'ANET', 'FN',
+    'ASML', 'CEG', 'DELL', 'BWXT', 'MOD', 'ALAB', 'TMUS', 'HPE', 'KEYS', 'HPQ',
+    'NVDA', 'AVGO', 'MU', 'MRVL', 'ONTO', 'CAMT', 'ORCL', 'FCX', 'AMD', 'CLF',
+    'TEL', 'PWR', 'LEU', 'ATI', 'IFNNY',
+    // CanGem v3.1 (28 new, deduplicated against AI Supply Chain)
+    'MDA.TO', 'ASTL.TO', 'BDT.TO', 'CGY.TO', 'PNG.V', 'CVE.TO', 'WSP.TO',
+    'ATRL.TO', 'NTR.TO', 'MRE.TO', 'LNR.TO', 'CNQ.TO', 'SU.TO', 'TRP.TO',
+    'ENB.TO', 'CAE.TO', 'MAL.TO', 'BBD-B.TO', 'CLS.TO', 'T.TO', 'BCE.TO',
+    'STRL', 'CW', 'DY', 'EME', 'ENS', 'VST',
+    // STRATUM v1.0 — Layer 1 established watchlist only (14 new)
+    'TECK-B.TO', 'KXS.TO', 'ARE.TO', 'CS.TO', 'PLTR', 'CGNX', 'LSCC', 'RKLB',
+    'NOC', 'PATH', 'NET', 'ASTS', 'ISRG', 'XYL',
+  ];
+
+  // Shared batch S/R fetch for any curated-ticker-list "watchlist" scan
+  // strategy (Nirmal's Watchlist, Master Framework Watchlist) — same
+  // convention: batch fetchSupportResistance() calls, null-per-ticker on
+  // failure, majority-failure treated as a real error rather than a false
+  // "no matches" (Day 83 fix, Task A5, generalized Day 85 for the 2nd
+  // watchlist so both share one implementation instead of copy-pasting it).
+  const fetchWatchlistCandidates = async (tickers, label) => {
+    const results = await Promise.all(
+      tickers.map(async (ticker) => {
+        const d = await fetchSupportResistance(ticker);
+        if (!d) return null;
+        return {
+          ticker,
+          name: ticker,
+          sector: null,
+          price: d.currentPrice ?? null,
+          change: null,
+          volume: null,
+          marketCap: null,
+        };
+      })
+    );
+    const candidates = results.filter(Boolean);
+    const failedCount = tickers.length - candidates.length;
+    if (failedCount > tickers.length / 2) {
+      throw new Error(
+        `Failed to fetch ${failedCount}/${tickers.length} tickers in ${label} — backend may be unavailable`
+      );
+    }
+    return candidates;
+  };
+
   // Breakout badges: one batch call for the top 20 rows, fired after scan
   // results render — does not block the initial table paint (Task 2.2 design).
   // Day 83 fix (Task E3): scanId guards against a slower earlier scan's badge
@@ -521,39 +578,31 @@ function App() {
     setBreakoutBadges({});
 
     try {
-      // N2: Nirmal watchlist — batch SR fetch (all cached), no backend strategy needed
-      // Day 83 fix (Task A5): was hardcoding http://localhost:5001 directly (bypassing
-      // API_BASE_URL) and swallowing every per-ticker failure to null with no error
-      // propagation — a full backend outage rendered as a false "no stocks matched"
-      // instead of the red error box the other 5 strategies correctly show. Now reuses
-      // the shared fetchSupportResistance() (same API_BASE_URL, same per-ticker null-
-      // on-failure convention) and treats "most/all requests failed" as a real error.
+      // N2/Day85: curated watchlists — batch SR fetch (all cached), no backend
+      // strategy needed. Day 83 fix (Task A5): was hardcoding http://localhost:5001
+      // directly (bypassing API_BASE_URL) and swallowing every per-ticker failure
+      // to null with no error propagation — a full backend outage rendered as a
+      // false "no stocks matched" instead of the red error box the other
+      // strategies correctly show. Now reuses the shared fetchSupportResistance()
+      // (same API_BASE_URL) via fetchWatchlistCandidates(), which also treats
+      // "most/all requests failed" as a real error, not a false "no matches".
       if (selectedStrategy === 'nirmal') {
-        const results = await Promise.all(
-          NIRMAL_WATCHLIST.map(async (ticker) => {
-            const d = await fetchSupportResistance(ticker);
-            if (!d) return null;
-            return {
-              ticker,
-              name: ticker,
-              sector: null,
-              price: d.currentPrice ?? null,
-              change: null,
-              volume: null,
-              marketCap: null,
-            };
-          })
-        );
-        const candidates = results.filter(Boolean);
-        const failedCount = NIRMAL_WATCHLIST.length - candidates.length;
-        // Treat a majority-failure as a real error (likely backend outage), not "no matches"
-        if (failedCount > NIRMAL_WATCHLIST.length / 2) {
-          throw new Error(
-            `Failed to fetch ${failedCount}/${NIRMAL_WATCHLIST.length} tickers in Nirmal's Watchlist — backend may be unavailable`
-          );
-        }
+        const candidates = await fetchWatchlistCandidates(NIRMAL_WATCHLIST, "Nirmal's Watchlist");
         setScanResults({
           strategy: "Nirmal's Watchlist",
+          marketIndex: 'all',
+          totalMatches: candidates.length,
+          returned: candidates.length,
+          candidates,
+        });
+        loadBreakoutBadges(candidates.map(c => c.ticker), thisScanId);
+        return;
+      }
+
+      if (selectedStrategy === 'masterFramework') {
+        const candidates = await fetchWatchlistCandidates(MASTER_FRAMEWORK_WATCHLIST, 'Master Framework Watchlist');
+        setScanResults({
+          strategy: 'Master Framework Watchlist',
           marketIndex: 'all',
           totalMatches: candidates.length,
           returned: candidates.length,
@@ -2581,6 +2630,7 @@ function App() {
                   className="flex-1 bg-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="nirmal">👁 Nirmal's Watchlist — 20 curated picks</option>
+                  <option value="masterFramework">🏛️ Master Framework Watchlist — 76 curated picks</option>
                   {strategies ? (
                     (strategies.strategies || []).map((strategy) => (
                       <option key={strategy.id} value={strategy.id}>{strategy.name}: {strategy.description}</option>

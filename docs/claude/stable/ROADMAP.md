@@ -217,23 +217,38 @@
 
 ---
 
+## COMPLETE — Master Framework Watchlist (Day 85)
+
+**Source:** User-requested Day 85 — a personalized screener sourced from the
+user's Notion "Master Investment Framework Hub" (4 curated frameworks: AI
+Supply Chain, CanGem, STRATUM, QUBIT). Full scope + verification writeup:
+`docs/claude/design/MASTER_FRAMEWORK_WATCHLIST_SCOPE.md`.
+
+| Component | Result |
+|---|---|
+| Ticker list | Read all 4 Notion frameworks via MCP, deduplicated, applied an "established names only" filter (dropped QUBIT entirely — self-labeled all-Stage-0-1 — and STRATUM's speculative raw-material tier), dropped 3 ASX/LSE tickers STA's scanner doesn't support. 77 scoped → **76 shipped** after exhaustive verification dropped 1 (`FLT.V`, no data in any provider). |
+| Frontend | `MASTER_FRAMEWORK_WATCHLIST` array + new "🏛️ Master Framework Watchlist" Scan tab dropdown option, same pattern as the existing Nirmal watchlist. `fetchWatchlistCandidates()` extracted as a shared helper so both watchlists use one implementation instead of copy-pasted logic. |
+| Verification | All 77 originally-scoped tickers checked against the live backend (not a spot-check) — caught and fixed 3 Canadian dual-class ticker format bugs (`GIB.A`→`GIB-A.TO`, `TECK.B.TO`→`TECK-B.TO`, `BBD.B.TO`→`BBD-B.TO`) before they could ship as silently-broken entries. |
+| Sync model | Manual refresh — no live Notion calls during scans. Re-pull from Notion and update the array whenever the user's Notion pages change (their own cadence is weekly at most). |
+
+---
+
 ## ACTIVE PRIORITY ORDER (Day 85 updated)
 
 | # | Item | Why | Effort |
 |---|------|-----|--------|
 | 1 | **Let paper trading accumulate** | PRIMARY FOCUS — automated engine (`backend/paper_trading/`) built and live Day 81, running unattended daily via launchd. No longer something to "start" — it's running. Both momentum (PF 1.40) and MR (PF 1.16, post liquidity re-test) still need 50+ live trades each before capital allocation. Check in periodically with `daily_job.py --report`. | Ongoing (no build work) |
-| 2 | **Personalized screener sourced from user's Notion ticker list** | User-requested (Day 85): build a screener around a curated ticker list the user maintains in Notion, rather than TradingView's market-wide filter criteria. Not yet scoped — needs Notion connection + a decision on how the list feeds the existing scan/candidate pipeline (`scan_queries.py`, similar to the Nirmal watchlist precedent). | Not yet scoped |
-| 3 | **Decide fundamentals mitigation** | Task 3.2 measured 40.0% live↔backtest disagreement — user decision pending: align live-to-SimFin or backtest-to-TTM. Now also affects the automated engine's momentum leg. | Decision + implementation |
-| 4 | **Confirm SimFin key rotation** | A possible new key was shared in conversation Day 79 but never confirmed as intentional or applied. | Small |
-| 5 | **Breakout Enhancement Plan Phase 1** | "Near breakout" scan preset — the only remaining phase of the whole plan. Small feature, needs explicit user go-ahead to build during freeze (gating table). | Half session |
-| 6 | **Build N4: Market Phase synthesis** | Research done (Day 76). `market_phase_engine.py` + `/api/market/phase`. | 1 session |
-| 7 | **Build `/ibkr-scan` skill** | Research done (Day 77). Verify 52W High Proximity in IBKR first. | 1 session |
-| 8 | **Value Tab Phase 2** | AV-derived metrics (interest coverage, EV/EBIT, ROE 5yr median) | Low |
-| 9 | **Price Structure Phase 2** | HH/HL/LH/LL market structure engine using `find_pivot_points()` | Medium |
-| 10 | **N3: Gap-fill detection** | Deferred post paper trading (feeds Breakout Plan Phase 4) | Medium |
-| 11 | **Canadian Analyze page** | Medium bug, data source redesign needed | High |
-| 12 | **(Optional, low priority) Surface paper-trading ledger in UI** | Currently CLI/DB-only (`--report` flag). Nice-to-have once trades accumulate, not a prerequisite. | Medium |
-| 13 | **(Optional, low priority) Scan tab batch breakout badges: distinguish NOT_READY from a failed fetch** | Currently both render as a plain "—" dash (`App.jsx` ~line 2753) — same ambiguity class as the single-ticker card had before the Day 84 fix, just not yet asked for at the 20-row table. | Small |
+| 2 | **Decide fundamentals mitigation** | Task 3.2 measured 40.0% live↔backtest disagreement — user decision pending: align live-to-SimFin or backtest-to-TTM. Now also affects the automated engine's momentum leg. | Decision + implementation |
+| 3 | **Confirm SimFin key rotation** | A possible new key was shared in conversation Day 79 but never confirmed as intentional or applied. | Small |
+| 4 | **Breakout Enhancement Plan Phase 1** | "Near breakout" scan preset — the only remaining phase of the whole plan. Small feature, needs explicit user go-ahead to build during freeze (gating table). | Half session |
+| 5 | **Build N4: Market Phase synthesis** | Research done (Day 76). `market_phase_engine.py` + `/api/market/phase`. | 1 session |
+| 6 | **Build `/ibkr-scan` skill** | Research done (Day 77). Verify 52W High Proximity in IBKR first. | 1 session |
+| 7 | **Value Tab Phase 2** | AV-derived metrics (interest coverage, EV/EBIT, ROE 5yr median) | Low |
+| 8 | **Price Structure Phase 2** | HH/HL/LH/LL market structure engine using `find_pivot_points()` | Medium |
+| 9 | **N3: Gap-fill detection** | Deferred post paper trading (feeds Breakout Plan Phase 4) | Medium |
+| 10 | **Canadian Analyze page** | Medium bug, data source redesign needed | High |
+| 11 | **(Optional, low priority) Surface paper-trading ledger in UI** | Currently CLI/DB-only (`--report` flag). Nice-to-have once trades accumulate, not a prerequisite. | Medium |
+| 12 | **(Optional, low priority) Scan tab batch breakout badges: distinguish NOT_READY from a failed fetch** | Currently both render as a plain "—" dash (`App.jsx` ~line 2753) — same ambiguity class as the single-ticker card had before the Day 84 fix, just not yet asked for at the 20-row table. | Small |
 
 ---
 
