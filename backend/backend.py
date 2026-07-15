@@ -43,7 +43,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 # shared candidate parsing (Task B1), per UI_CODE_QUALITY_AUDIT_AND_FIX_PLAN_DAY82.md.
 # Day 83 (session 2, cont.): TradierProvider added as 3rd-tier OHLCV/quote
 # fallback (Task D1) + live_signals.py dormant Canadian-ticker bug fixed (Task B6).
-BACKEND_VERSION = '2.39'
+BACKEND_VERSION = '2.40'
 
 from constants import SUPPORT_PROXIMITY_PCT, RESISTANCE_PROXIMITY_PCT  # shared with support_resistance.py
 

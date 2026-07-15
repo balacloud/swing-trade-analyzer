@@ -2,14 +2,15 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 85 (July 15, 2026)
+> **Last Updated:** Day 86 (July 15, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.43 (Backend v2.39, Frontend v4.39, Backtest v4.19, API Service v2.11)
+## Current Version: v4.44 (Backend v2.40, Frontend v4.40, Backtest v4.19, API Service v2.11)
 *Day 84 close: fixed a version-drift gap — this line was still Day 81's v4.39 while CLAUDE_CONTEXT.md had already moved to v4.42 (Day 83). ROADMAP.md's version line wasn't part of the Day 83 close's update checklist; now caught up.*
 *Day 85: no version bump — session was a backend/frontend reliability fix (Golden Rule 23), a breakout NOT_READY badge display fix, and a new TradingView screener reference doc, not a versioned feature.*
+*Day 86: v4.44 — Master Framework Watchlist's user-tested gap (Name/Volume/Change/Market Cap showing N/A) led to a real `/api/sr/<ticker>` API change (new `volume`/`change` fields, see `API_CONTRACTS_DAY86.md`), warranting a backend version bump.*
 
 ---
 
@@ -217,7 +218,7 @@
 
 ---
 
-## COMPLETE — Master Framework Watchlist (Day 85)
+## COMPLETE — Master Framework Watchlist (Day 85-86)
 
 **Source:** User-requested Day 85 — a personalized screener sourced from the
 user's Notion "Master Investment Framework Hub" (4 curated frameworks: AI
@@ -230,6 +231,7 @@ Supply Chain, CanGem, STRATUM, QUBIT). Full scope + verification writeup:
 | Frontend | `MASTER_FRAMEWORK_WATCHLIST` array + new "🏛️ Master Framework Watchlist" Scan tab dropdown option, same pattern as the existing Nirmal watchlist. `fetchWatchlistCandidates()` extracted as a shared helper so both watchlists use one implementation instead of copy-pasted logic. |
 | Verification | All 77 originally-scoped tickers checked against the live backend (not a spot-check) — caught and fixed 3 Canadian dual-class ticker format bugs (`GIB.A`→`GIB-A.TO`, `TECK.B.TO`→`TECK-B.TO`, `BBD.B.TO`→`BBD-B.TO`) before they could ship as silently-broken entries. |
 | Sync model | Manual refresh — no live Notion calls during scans. Re-pull from Notion and update the array whenever the user's Notion pages change (their own cadence is weekly at most). |
+| **Day 86 follow-up** | User's first live test found Name/Sector/Change/Volume/Market Cap all showing N/A. Volume and Change % were free to add (`/api/sr/<ticker>` already fetches the OHLCV needed — see `API_CONTRACTS_DAY86.md`), fixed and verified live for both this watchlist and Nirmal's. Name/Market Cap remain N/A by explicit user choice — they'd need a separate fundamentals call per ticker. |
 
 ---
 

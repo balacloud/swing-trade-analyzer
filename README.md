@@ -1276,6 +1276,7 @@ TOLERANCES = {
 - **v4.41: Breakout Enhancement Plan + Fable Hygiene Audit** ✅ Breakout badge column + `/api/breakout/batch` + `/breakout-watch` skill; process/hygiene audit fixed 2 git risk items and deleted ~20 dead files (Day 82)
 - **v4.42: Data-Source Reliability + BottomLineCard Removal** ✅ 5 data-source bugs fixed, cross-process rate-limiter/circuit-breaker state shared via SQLite; redundant Bottom Line Card removed, breakout status added to Analyze page (Day 83)
 - **v4.43: UI Code Quality Fix Plan** ✅ 3 Fable audits (Analyze page cards, Scan tab, Tradier eval) synthesized and fully executed — 6 real bugs, 6 DRY-violation cleanups, dead-code removal, a new Tradier data provider (3rd-tier OHLCV/quote fallback), and UI polish, all browser-verified (Day 82-83)
+- **v4.44: Master Framework Watchlist** ✅ 76-ticker Scan tab preset sourced from the user's Notion investment research (AI Supply Chain, CanGem, STRATUM, QUBIT frameworks); `/api/sr/<ticker>` gained free `volume`/`change` fields after live testing found a summary-table gap (Day 85-86)
 
 ### Philosophy (Day 27 + Day 44 Update)
 
@@ -1292,7 +1293,7 @@ Current focus:
 - **Categorical filtering** over numerical ranking
 - **System measurement** through forward testing and SQN tracking
 
-### Current Priorities (Day 85)
+### Current Priorities (Day 86)
 
 A full-system audit (Day 78) found the backtested edge was likely overstated — survivorship bias in the test universe and a reused walk-forward window. The resulting remediation plan is **fully complete (all 5 phases)**, and an automated paper-trading engine (Day 81) now runs daily, unattended, taking every qualifying signal with zero human filtering — this is the real test for both systems now, and it's been running since Day 81.
 
@@ -1304,7 +1305,7 @@ A full-system audit (Day 78) found the backtested edge was likely overstated —
 4. **Breakout Enhancement Plan Phase 1** (near-breakout scan preset) — the only remaining phase; the rest (batch endpoint, Scan tab badges, `/breakout-watch` skill) shipped Day 81-82.
 5. N4 Market Phase synthesis, `/ibkr-scan` skill, Value Tab Phase 2, Price Structure Phase 2, Canadian Analyze page — queued behind the above.
 
-**Day 85:** Built a "🏛️ Master Framework Watchlist" Scan tab preset — 76 tickers sourced from the user's own curated Notion investment research (AI Supply Chain, CanGem, STRATUM, QUBIT frameworks), scanned with STA's existing technical engine, same pattern as the pre-existing Nirmal watchlist.
+**Day 85-86:** Built a "🏛️ Master Framework Watchlist" Scan tab preset — 76 tickers sourced from the user's own curated Notion investment research (AI Supply Chain, CanGem, STRATUM, QUBIT frameworks), scanned with STA's existing technical engine, same pattern as the pre-existing Nirmal watchlist. First live test found the summary table's Volume/Change columns showing N/A; fixed for free by exposing data `/api/sr/<ticker>` already computed (v4.44).
 
 ---
 

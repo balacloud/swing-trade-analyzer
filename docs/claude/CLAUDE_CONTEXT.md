@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 85 — end of day (July 15, 2026)
+> **Last Updated:** Day 86 — end of day (July 15, 2026)
 
 ---
 
@@ -11,16 +11,23 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 85 |
-| Version | v4.43 (no bump — Backend v2.39, Frontend v4.39, Backtest v4.19, API Service v2.11) |
-| Latest Status | PROJECT_STATUS_DAY85_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY85.md |
-| Latest API | API_CONTRACTS_DAY79.md (no API contract changes Day 85) |
-| Focus | **Backend/frontend process reliability fixed (`start.sh` now detaches both servers — Golden Rule 23) after a closed terminal silently broke every `print()`-logging request path. Breakout NOT_READY status now shown as a muted badge instead of hidden. Built and shipped a new "Master Framework Watchlist" Scan tab preset (76 tickers sourced from the user's Notion investment frameworks), user-verified live. Nothing left over from this session — paper trading remains the only real gating item.** |
+| Current Day | 86 |
+| Version | v4.44 (Backend v2.40, Frontend v4.40, Backtest v4.19, API Service v2.11) |
+| Latest Status | PROJECT_STATUS_DAY86_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY86.md |
+| Latest API | API_CONTRACTS_DAY86.md (`/api/sr/<ticker>` gained `volume`/`change` fields) |
+| Focus | **Master Framework Watchlist (built Day 85) was user-tested live — worked (76/76 matched, real Breakout badges), but Name/Sector/Change/Volume/Market Cap showed N/A. Volume and Change % were free to fix (`/api/sr/<ticker>` already had the data, just wasn't returning it) — fixed and verified live for both this watchlist and Nirmal's. Name/Market Cap remain N/A by explicit user choice (would need a separate fundamentals call per ticker). Paper trading remains the only real gating item.** |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 86 Summary (Master Framework Watchlist — User-Tested Gap Found and Fixed — v4.44)
+- **User ran the new Master Framework Watchlist (built Day 85) live for the first time**: 76/76 tickers matched, real prices, Breakout badges rendered correctly for the top 20 rows — the core deliverable worked. But the summary table's Name/Sector/Change/Volume/Market Cap columns all showed "N/A" or the bare ticker symbol.
+- **Explained the root cause first, then fixed what was fixable**: this is identical, pre-existing Nirmal Watchlist behavior, not a regression — both curated-ticker-list scans bypass TradingView's market-wide query (the source of those fields for the other 5 scan strategies) and use `/api/sr/<ticker>` instead, which only ever fetched OHLCV price history. User asked "is there a fix?" — found Volume and Change % were free (the route already fetches the OHLCV bars needed, just wasn't returning them); Name/Sector/Market Cap genuinely need a separate fundamentals call per ticker (added latency + provider rate-limit cost). User chose the free fix only.
+- **Shipped and verified live**: `/api/sr/<ticker>` now returns `volume`/`change` (`backend.py`, `BACKEND_VERSION` → 2.40); `fetchSupportResistance()`'s field whitelist updated to pass them through (`api.js`) — caught this whitelist gap before it could silently drop the new fields; `fetchWatchlistCandidates()` reads the real values instead of hardcoding `null` (`App.jsx`). Verified: GEV → volume 526,156 / change -1.0%; CCO.TO → volume 800,496 / change -0.92%; 3 more tickers spot-checked.
+- **Clarified a misconception**: user asked whether the remaining N/A fields meant "TradingView is unable to fetch it" — no, TradingView is never called in this code path at all; the gap is architectural (this endpoint only computes price-derived S/R levels), not a data-source failure.
+- New API_CONTRACTS_DAY86.md documents the `/api/sr/<ticker>` response change. Version v4.43 → v4.44 (Backend v2.39 → v2.40, Frontend v4.39 → v4.40).
 
 ### Day 85 Summary (Backend/Frontend Reliability Fix + Breakout NOT_READY Display Fix + Master Framework Watchlist Built)
 - **Root-caused a "Breakout Status card shows nothing" report to something much bigger**: the backend process had no stdout/stderr file descriptors at all — `start.sh` ran `python backend.py &`/`npm start &` with no output redirection, so when the launching terminal closed, the backend survived (reparented to launchd) but every `print()` call (used throughout the codebase, including inside exception handlers) threw `OSError: [Errno 5] Input/output error` and turned into a 500 — confirmed via `/api/patterns/<ticker>` failing identically, not just breakout. Fixed `start.sh` to run both processes as `nohup ... >> logfile 2>&1 & disown`; restarted both, verified healthy. **New Golden Rule 23.**
@@ -36,14 +43,7 @@
 - **Backend v2.36 → v2.39 across the arc.** `ROADMAP.md` gained a "COMPLETE" section for the whole plan (also caught and fixed a version-drift gap on ROADMAP's own version line, stale since Day 81). README.md's Roadmap section, also stale since Day 80, brought current.
 - Paper trading status unchanged: this session touched zero trading logic, config, or thresholds — purely UI/reliability code quality work.
 
-### Day 83 Summary (Data-Source Reliability Fixes + BottomLineCard Removed + Analyze/Scan/Tradier Fix Plan Documented — v4.42)
-- **Data-source review (5 bugs fixed)**: cache period mismatch, an uncached MR signal route, AlphaVantage rate-limiter token waste (`_check_availability()` was consuming a token via `check_rate_limit()` on every non-HTTP check), uncached VIX quotes, and dead Stooq code removed.
-- **Cross-process state architecture gap fixed**: the rate-limiter and circuit-breaker (`rate_limiter.py`, `circuit_breaker.py`) were in-memory, per-process state — the Flask backend and the separate `daily_job.py` paper-trading process were silently NOT sharing rate-limit budgets or circuit-breaker trip state with each other. Rebuilt on a shared SQLite store (`backend/data/provider_state.db`). **New Golden Rule 22** codifies this.
-- **UI cleanup (user-flagged via screenshot)**: deleted `BottomLineCard.jsx` (480 lines) — verdict was rendered 3x on one page, its bullets reworded facts the Categorical Assessment card already showed; confirmed via code read it was a safe, self-contained leaf component before deleting. Added the previously-orphaned single-ticker breakout endpoint (`/api/breakout/<ticker>`, live since Day 78) to the Analyze Stock page — badge in Simple view, dedicated card in Full Analysis view (the slot Bottom Line vacated). Verified in a real browser session.
-- **Deep Fable audit, 3 parallel dispatches** (Analyze page Full Analysis cards, Scan Market tab, a newly-added Tradier API key): synthesized into `docs/claude/design/UI_CODE_QUALITY_AUDIT_AND_FIX_PLAN_DAY82.md` — 6 real bugs (incl. a Scan-tab/paper-trading-engine candidate-set divergence from an `order_by()` override, and a negative-stop-price bug in Trade Setup Card, both confirmed true by direct code read), 6 DRY violations, a dead-code inventory, a fully-specified Tradier provider build (OHLCV/quote fallback, confirmed production token — NOT dividend-adjusted, no options/fundamentals scope creep), and 6 polish items. One raw audit claim was checked and corrected (MR Signal Card does NOT show null-edge signals — only its display labels are stale). **Documented only, per explicit user request — nothing in the fix plan has been executed or triaged yet.**
-- Paper trading status unchanged: still 0 closed trades, 2 pending MR signals — this session found no reason to intervene.
-
-*(Day 82's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY82_SHORT.md`.)*
+*(Day 83's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY83_SHORT.md`. Day 82's is in `PROJECT_STATUS_DAY82_SHORT.md`.)*
 
 ---
 
@@ -130,7 +130,7 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 7. **Value Tab Phase 2 / Price Structure Phase 2 / N3 / Canadian Analyze page** — queued.
 8. **(Optional, low priority) Surface the paper-trading ledger in the UI** — currently CLI/DB-only (`--report` flag); a Forward-Test-tab display would be a nice-to-have once trades accumulate, not a prerequisite.
 9. **(Optional, low priority) Scan tab batch breakout badges** — distinguish `NOT_READY` from a failed fetch (currently both render "—"); same bug class as the Day 85 single-ticker fix, not yet requested at this location.
-10. **(Optional, low priority) Master Framework Watchlist's summary columns** — Name/Sector/Change/Volume/Market Cap show N/A (identical to Nirmal's Watchlist's existing behavior); fix only if it becomes annoying in daily use.
+10. **(Optional, low priority) Master Framework Watchlist's Name/Market Cap columns** — still show N/A (Volume/Change % fixed Day 86, free); Name/Market Cap would need a separate fundamentals call per ticker, deferred by explicit user choice.
 11. **(Deferred, user's own call)** The Day 82 Fable audit's 5th recommendation bucket — consolidating the Golden Rules/doc-rotation process itself (`docs/claude/design/FABLE_AUDIT_DAY82_PROCESS_AND_DECLUTTER.md`, Section F "REMOVE/DECLUTTER" item 4) — was deliberately not applied; it's a bigger, more opinionated change than the hygiene fixes and should only happen if the user explicitly wants it.
 
 ---
@@ -215,6 +215,7 @@ sqlite3 backend/validation_results/paper_trading_ledger.db "SELECT MAX(run_date)
 | 83 | Data-source review: 5 bugs fixed + a real cross-process rate-limiter/circuit-breaker state gap fixed (shared SQLite store), Golden Rule 22 added. Removed redundant BottomLineCard (user-flagged), added breakout status to the Analyze Stock page. Deep 3-way Fable audit (Analyze page cards, Scan tab, Tradier API eval) synthesized into an executable fix plan (`UI_CODE_QUALITY_AUDIT_AND_FIX_PLAN_DAY82.md`) — documented only, not yet triaged/executed. Version v4.42 (BE v2.37, FE v4.38). |
 | 84 | Executed the entire UI Code Quality Fix Plan (all Groups A-E) from the prior day's doc: 6 real bugs, 6 DRY-violation cleanups (incl. deleting the legacy 0.011-correlation verdict function), ~7 dead-code items + ~37 debug logs removed, a new Tradier provider built (3rd-tier OHLCV/quote fallback, verified with forced-failover tests), and 4 UI polish items. Every fix browser/API-verified, not just code-reviewed. ROADMAP.md and README.md version-drift caught and fixed. Version v4.43 (BE v2.39, FE v4.39). |
 | 85 | Root-caused a "breakout card shows nothing" report to `start.sh` leaving both dev servers' stdout tied to the launching terminal — closing it broke every `print()`-logging request path (Golden Rule 23). Fixed a second bug underneath: NOT_READY breakout status was hidden instead of shown muted (per the engine's own spec). Wrote a portable TradingView screener reference doc. Scoped and built a new "Master Framework Watchlist" Scan tab preset (76 tickers from the user's Notion investment frameworks), exhaustively verified against the live backend (caught 3 ticker-format bugs + 1 unsupported ticker), user-tested live. No version bump. |
+| 86 | User's first live test of the Master Framework Watchlist found Name/Sector/Change/Volume/Market Cap all showing N/A. Fixed Volume/Change for free (`/api/sr/<ticker>` already fetched the OHLCV needed, wasn't returning it) — fixes both curated watchlists at once; Name/Market Cap deferred by explicit user choice (would need a per-ticker fundamentals call). New API_CONTRACTS_DAY86.md. Version v4.43 → v4.44 (BE v2.39 → v2.40, FE v4.39 → v4.40). |
 
 ---
 
