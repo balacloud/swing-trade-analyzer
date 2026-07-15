@@ -28,6 +28,11 @@ frontend/scripts/verdict_grid_js_output.json
 backend/*.log
 backend/backend.log
 backend/cache.db
+
+# Frontend dev-server log (Day 84: start.sh now redirects `npm start`'s
+# output here instead of the launching terminal, so the backend/frontend
+# survive a closed terminal window without their stdout fd dying).
+frontend/frontend.log
 backend/scan_test_results_*.json
 backend/test_results_*.json
 backend/validation_report_*.json

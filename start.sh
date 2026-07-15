@@ -21,8 +21,9 @@ start_backend() {
     kill_port 5001
     cd "$PROJECT_DIR/backend"
     source venv/bin/activate
-    python backend.py &
-    echo "Backend started (PID: $!)"
+    nohup python backend.py >> "$PROJECT_DIR/backend/backend.log" 2>&1 &
+    disown 2>/dev/null
+    echo "Backend started (PID: $!), logging to backend/backend.log"
 }
 
 start_frontend() {
@@ -30,8 +31,9 @@ start_frontend() {
     pkill -f "react-scripts start" 2>/dev/null
     kill_port 3000
     cd "$PROJECT_DIR/frontend"
-    npm start &
-    echo "Frontend starting..."
+    nohup npm start >> "$PROJECT_DIR/frontend/frontend.log" 2>&1 &
+    disown 2>/dev/null
+    echo "Frontend starting, logging to frontend/frontend.log"
 }
 
 case "${1:-all}" in

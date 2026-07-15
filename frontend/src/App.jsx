@@ -468,7 +468,9 @@ function App() {
   // Breakout badge display config (Day 81, Breakout Enhancement Plan Task 2.2)
   // Colors per docs/claude/design/BREAKOUT_ENGINE_SPEC.md §13. Labels are
   // STATE descriptions, not signals — badge text must never read as "Buy".
-  // NOT_READY is intentionally absent (muted/hidden per the plan's design).
+  // Day 84: NOT_READY now shown with a muted badge (per spec §13's own
+  // "Muted" treatment) instead of hidden entirely — hiding it was
+  // indistinguishable from the breakout check having failed/not run at all.
   const BREAKOUT_BADGE_CONFIG = {
     BREAKOUT_CONFIRMED: { label: 'Breakout Confirmed', color: 'bg-green-900/40 text-green-400 border-green-700' },
     RETEST_ENTRY: { label: 'Retest Entry', color: 'bg-blue-900/40 text-blue-400 border-blue-700' },
@@ -477,6 +479,7 @@ function App() {
     SUPPLY_WARNING: { label: 'Supply Warning', color: 'bg-red-900/40 text-red-400 border-red-700' },
     FAILED_BREAKOUT: { label: 'Failed Breakout', color: 'bg-red-900/40 text-red-400 border-red-700' },
     EXTENDED_CHASE_RISK: { label: 'Extended', color: 'bg-orange-900/40 text-orange-400 border-orange-700' },
+    NOT_READY: { label: 'Not Ready', color: 'bg-gray-800/40 text-gray-500 border-gray-700' },
   };
 
   // Scan for candidates
@@ -2087,7 +2090,7 @@ function App() {
                     <div className="h-4 bg-gray-700 rounded w-1/3"></div>
                   </div>
                 )}
-                {!breakoutLoading && breakoutData && !breakoutData.error && breakoutData.status !== 'NOT_READY' && (
+                {!breakoutLoading && breakoutData && !breakoutData.error && (
                   <div className="bg-gray-800 rounded-lg p-6">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-lg font-semibold text-gray-300">🚀 Breakout Status</h3>
@@ -2408,7 +2411,7 @@ function App() {
                             </span>
                           );
                         })()}
-                        {breakoutData && !breakoutData.error && breakoutData.status !== 'NOT_READY' && (() => {
+                        {breakoutData && !breakoutData.error && (() => {
                           const cfg = BREAKOUT_BADGE_CONFIG[breakoutData.status];
                           if (!cfg) return null;
                           return (
