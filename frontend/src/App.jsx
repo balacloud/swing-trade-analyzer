@@ -57,6 +57,7 @@ import MRSignalCard from './components/MRSignalCard'; // Tier 3B: Mean-Reversion
 import PatternMiniCard from './components/PatternMiniCard'; // Day 83: shared VCP/Cup&Handle/Flat Base tile
 import AssessmentTile, { getAssessmentColor } from './components/AssessmentTile'; // Day 83: shared T/F/S/R tile
 import PriceStructureCard from './components/PriceStructureCard'; // Day 72: Price Structure narrative
+import AutomatedPaperTradingPanel from './components/AutomatedPaperTradingPanel'; // Day 87: automated engine ledger status + manual trigger
 import { generatePriceStructure } from './utils/priceStructureNarrative'; // Day 72
 import {
   createTrade, closeTrade, calculateStatistics, getSQNRating,
@@ -3089,6 +3090,9 @@ function App() {
         {/* ==================== FORWARD TESTING TAB (Day 47: v4.7) ==================== */}
         {activeTab === 'forward' && (
           <>
+            {/* Day 87: Automated paper trading engine — separate from the manual journal below */}
+            <AutomatedPaperTradingPanel />
+
             {/* Statistics Overview */}
             <div className="bg-gray-800 rounded-lg p-6 mb-6">
               <div className="flex justify-between items-center mb-4">

@@ -46,7 +46,10 @@ sys.path.insert(0, os.path.dirname(__file__))
 # Day 87: Breakout Plan Phase 1 (near-breakout scan preset), N4 Market Phase
 # synthesis (/api/market/phase), Price Structure Phase 2 (HH/HL/LH/LL market
 # structure in /api/sr/<ticker>'s meta). Backlog cleanup before a full freeze.
-BACKEND_VERSION = '2.41'
+# Day 88: Paper trading status/trigger endpoints (/api/paper-trading/*) —
+# a scoped freeze exception since it directly aids the paper-trading gate
+# itself, not general product work. Everything else stays frozen.
+BACKEND_VERSION = '2.42'
 
 from constants import SUPPORT_PROXIMITY_PCT, RESISTANCE_PROXIMITY_PCT  # shared with support_resistance.py
 
@@ -2582,6 +2585,70 @@ def get_context_endpoint(ticker):
         })
     except Exception as e:
         print(f"Error in /api/context/{ticker}: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+# ============================================
+# PAPER TRADING STATUS + MANUAL TRIGGER (Day 87)
+# Surfaces the automated paper-trading ledger (backend/paper_trading/,
+# built Day 81) in the UI. Read-only status + a manual "force run" for
+# when the scheduled launchd job misses a day (laptop asleep at 16:30 CT).
+# No changes to the engine itself or any trading logic.
+# ============================================
+
+try:
+    from paper_trading import ledger as pt_ledger
+    from paper_trading.daily_job import run_daily_job
+    PAPER_TRADING_AVAILABLE = True
+    print("✅ Paper Trading module loaded (status + manual trigger)")
+except ImportError as e:
+    PAPER_TRADING_AVAILABLE = False
+    print(f"⚠️ Paper Trading module not available: {e}")
+
+
+@app.route('/api/paper-trading/status')
+def get_paper_trading_status():
+    """Read-only ledger status: open/closed counts + stats per system, last run date."""
+    if not PAPER_TRADING_AVAILABLE:
+        return jsonify({'error': 'Paper trading module not available'}), 503
+    try:
+        pt_ledger.init_db()
+        systems = {}
+        for system in ('momentum', 'mr'):
+            open_positions = pt_ledger.get_open_positions(system=system)
+            stats = pt_ledger.compute_stats(system=system)
+            systems[system] = {
+                'openPositions': len(open_positions),
+                'closedTrades': stats['total_trades'],
+                'stats': stats if stats['total_trades'] > 0 else None,
+            }
+        return jsonify({
+            'lastRunDate': pt_ledger.get_last_run_date(),
+            'systems': systems,
+        })
+    except Exception as e:
+        print(f"Error in /api/paper-trading/status: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/paper-trading/trigger', methods=['POST'])
+def trigger_paper_trading_run():
+    """
+    Manually force-run the daily paper trading job — for catching up after
+    a missed scheduled run. Always passes force=True since a same-day
+    re-run is otherwise a no-op (run_daily_job's own idempotent check).
+    Synchronous — can take 10-30+ seconds (live OHLCV fetches + TradingView
+    scan), not backgrounded.
+    """
+    if not PAPER_TRADING_AVAILABLE:
+        return jsonify({'error': 'Paper trading module not available'}), 503
+    try:
+        summary = run_daily_job(force=True)
+        return jsonify({'summary': summary})
+    except Exception as e:
+        print(f"Error in /api/paper-trading/trigger: {e}")
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 

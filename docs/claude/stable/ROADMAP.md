@@ -7,11 +7,12 @@
 
 ---
 
-## Current Version: v4.45 (Backend v2.41, Frontend v4.41, Backtest v4.19, API Service v2.11)
+## Current Version: v4.46 (Backend v2.42, Frontend v4.42, Backtest v4.19, API Service v2.11)
 *Day 84 close: fixed a version-drift gap — this line was still Day 81's v4.39 while CLAUDE_CONTEXT.md had already moved to v4.42 (Day 83). ROADMAP.md's version line wasn't part of the Day 83 close's update checklist; now caught up.*
 *Day 85: no version bump — session was a backend/frontend reliability fix (Golden Rule 23), a breakout NOT_READY badge display fix, and a new TradingView screener reference doc, not a versioned feature.*
 *Day 86: v4.44 — Master Framework Watchlist's user-tested gap (Name/Volume/Change/Market Cap showing N/A) led to a real `/api/sr/<ticker>` API change (new `volume`/`change` fields, see `API_CONTRACTS_DAY86.md`), warranting a backend version bump.*
 *Day 87: v4.45 — Breakout Enhancement Plan Phase 1 (completing the whole plan), N4 Market Phase Synthesis, and Price Structure Card Phase 2 all shipped in one session (backlog cleanup before declaring a complete feature freeze). Value Tab Phase 2 and N3 gap-fill detection were scoped and explicitly deferred — see Golden Rule 24.*
+*Day 88: v4.46 — Paper trading ledger surfaced in the UI (`/api/paper-trading/status` + `/trigger`, new Forward Test tab panel), agreed as the one scoped exception to the Day 87 freeze since it directly aids the paper-trading gate itself, not general product work.*
 
 ---
 
@@ -236,11 +237,11 @@ Supply Chain, CanGem, STRATUM, QUBIT). Full scope + verification writeup:
 
 ---
 
-## ACTIVE PRIORITY ORDER (Day 87 updated — complete feature freeze declared)
+## ACTIVE PRIORITY ORDER (Day 88 updated — complete feature freeze in effect)
 
 | # | Item | Why | Effort |
 |---|------|-----|--------|
-| 1 | **Let paper trading accumulate** | PRIMARY FOCUS — automated engine (`backend/paper_trading/`) built and live Day 81, running unattended daily via launchd. Both momentum (PF 1.40) and MR (PF 1.16, post liquidity re-test) still need 50+ live trades each before capital allocation. Check in periodically with `daily_job.py --report`. | Ongoing (no build work) |
+| 1 | **Let paper trading accumulate** | PRIMARY FOCUS — automated engine (`backend/paper_trading/`) built and live Day 81, running unattended daily via launchd. Both momentum (PF 1.40) and MR (PF 1.16, post liquidity re-test) still need 50+ live trades each before capital allocation. Check in via the Forward Test tab's new status panel or `daily_job.py --report`. | Ongoing (no build work) |
 | 2 | **Decide fundamentals mitigation** | Task 3.2 measured 40.0% live↔backtest disagreement — user decision pending: align live-to-SimFin or backtest-to-TTM. Now also affects the automated engine's momentum leg. | Decision + implementation |
 | 3 | **Confirm SimFin key rotation** | A possible new key was shared in conversation Day 79 but never confirmed as intentional or applied. | Small |
 | 4 | **N3: Gap-fill detection — needs a design session first** | No spec exists yet (Day 87 finding) — only a placeholder pointer in `BREAKOUT_ENHANCEMENT_PLAN.md`. Design, then build. | Design session, then Medium |
@@ -248,10 +249,10 @@ Supply Chain, CanGem, STRATUM, QUBIT). Full scope + verification writeup:
 | 6 | **Build `/ibkr-scan` skill** | Research done (Day 77). Verify 52W High Proximity in IBKR first. | 1 session |
 | 7 | **Price Structure Phase 3** | Visual chart via lightweight-charts (Phases 1-2 done as of Day 87). | Medium |
 | 8 | **Canadian Analyze page** | Medium bug, data source redesign needed | High |
-| 9 | **(Optional, low priority) Surface paper-trading ledger in UI** | Currently CLI/DB-only (`--report` flag). Nice-to-have once trades accumulate, not a prerequisite. | Medium |
-| 10 | **(Optional, low priority) Scan tab batch breakout badges: distinguish NOT_READY from a failed fetch** | Currently both render as a plain "—" dash (`App.jsx` ~line 2753) — same ambiguity class as the single-ticker card had before the Day 84 fix, just not yet asked for at the 20-row table. | Small |
+| 9 | **(Optional, low priority) Scan tab batch breakout badges: distinguish NOT_READY from a failed fetch** | Currently both render as a plain "—" dash (`App.jsx` ~line 2753) — same ambiguity class as the single-ticker card had before the Day 84 fix, just not yet asked for at the 20-row table. | Small |
 
 **Done as of Day 87:** Breakout Enhancement Plan (all phases), N4 Market Phase Synthesis, Price Structure Card Phase 2 — see their own COMPLETE sections above.
+**Done as of Day 88:** Paper-trading ledger surfaced in the UI (Forward Test tab) with a manual trigger button — agreed as the one scoped exception to the freeze (directly aids the gate itself, not general product work).
 
 ---
 

@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 87 — end of day (July 16, 2026)
+> **Last Updated:** Day 88 — end of day (July 16, 2026)
 
 ---
 
@@ -11,16 +11,23 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 87 |
-| Version | v4.45 (Backend v2.41, Frontend v4.41, Backtest v4.19, API Service v2.11) |
-| Latest Status | PROJECT_STATUS_DAY87_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY87.md |
-| Latest API | API_CONTRACTS_DAY87.md (new `/api/market/phase`; `strategy=breakout` scan option; `/api/sr/<ticker>` gained `meta.marketStructure`) |
-| Focus | **Complete feature freeze now in effect.** User asked what 3 queued backlog items actually were and whether they mattered given the freeze; after a first-principles discussion, chose to close them out then declare a full freeze. 2 of the 3 turned out not to be "simple" on inspection (N3 has no spec; Value Tab Phase 2's spec requires batch-prefetch infra and says "build only post-freeze") and were deferred with sign-off (Golden Rule 24). Shipped: Breakout Enhancement Plan Phase 1 (completes the whole plan), N4 Market Phase Synthesis, Price Structure Card Phase 2. Paper trading remains the only real gating item going forward. |
+| Current Day | 88 |
+| Version | v4.46 (Backend v2.42, Frontend v4.42, Backtest v4.19, API Service v2.11) |
+| Latest Status | PROJECT_STATUS_DAY88_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY88.md |
+| Latest API | API_CONTRACTS_DAY88.md (new `/api/paper-trading/status` + `/api/paper-trading/trigger`) |
+| Focus | **Complete feature freeze in effect, with one scoped, agreed exception.** After Day 87's freeze declaration, user asked where to visually see the paper-trading ledger and whether a manual "missed run" trigger button could be added — confirmed both directly serve the paper-trading gate itself (not general product work), so built them: a new Forward Test tab panel (open/closed counts, stats, staleness warning) + a "Force Run Now" button, backed by two new read-only/action endpoints. User's own framing: "we built this only because it's aiding our fwd testing... everything else is on freeze." Paper trading accumulation remains the only real gating item going forward. |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 88 Summary (Paper Trading Ledger Surfaced in UI — Scoped Freeze Exception — v4.46)
+- **Continuation of Day 87's session.** After the complete feature freeze was declared, user asked two follow-ups about the automated paper-trading engine: where to see the ledger visually (is it in the Forward Test tab?), and whether a manual "missed run" trigger button could be added.
+- **Confirmed the ledger had zero UI surface**: the Forward Test tab is a separate, older, manual localStorage trade journal (`forwardTesting.js`) — no connection to the automated engine's SQLite ledger (`backend/paper_trading/`, built Day 81), which was CLI/`--report`-only until now.
+- **Scoped as the one legitimate freeze exception, not a resumption of general feature work** — user's own words: "we built this only because it's aiding our fwd testing... everything else is on freeze."
+- **Built and verified live**: two new endpoints (`GET /api/paper-trading/status` read-only, `POST /api/paper-trading/trigger` wraps the exact same `run_daily_job(force=True)` the launchd scheduler already calls — no new trading logic) and a new `AutomatedPaperTradingPanel.jsx` component in the Forward Test tab (visually distinct from the manual journal, shows both systems' stats + a staleness warning + the trigger button). Verified end-to-end by actually triggering a run: `lastRunDate` advanced, momentum open positions 1→2, MR open positions 2→4 — confirming the trigger and status endpoints read/write the same ledger, not just independently-plausible code.
+- Version v4.45 → v4.46 (Backend v2.41 → v2.42). New API_CONTRACTS_DAY88.md. No new Golden Rule — straightforward build, no surprises.
 
 ### Day 87 Summary (Backlog Cleanup — Breakout Plan Complete + N4 + Price Structure Phase 2 — Complete Freeze Declared — v4.45)
 - **User asked what 3 bundled backlog items (Breakout Plan Phase 1, N4 Market Phase, "Value Tab Phase 2/Price Structure Phase 2/N3") actually were, why they mattered, and whether they mattered from first principles** given the project's feature freeze. Answered directly: none of them touch the paper-trading gate (the only thing that actually matters right now), all are informational/entry-signal decoration — the 10%-of-results bucket per Van Tharp, not the 90%-of-results position-sizing/risk bucket. User heard the argument, decided to close out the ones that were genuinely quick, then declare a full freeze.
@@ -38,14 +45,7 @@
 - **Clarified a misconception**: user asked whether the remaining N/A fields meant "TradingView is unable to fetch it" — no, TradingView is never called in this code path at all; the gap is architectural (this endpoint only computes price-derived S/R levels), not a data-source failure.
 - New API_CONTRACTS_DAY86.md documents the `/api/sr/<ticker>` response change. Version v4.43 → v4.44 (Backend v2.39 → v2.40, Frontend v4.39 → v4.40).
 
-### Day 85 Summary (Backend/Frontend Reliability Fix + Breakout NOT_READY Display Fix + Master Framework Watchlist Built)
-- **Root-caused a "Breakout Status card shows nothing" report to something much bigger**: the backend process had no stdout/stderr file descriptors at all — `start.sh` ran `python backend.py &`/`npm start &` with no output redirection, so when the launching terminal closed, the backend survived (reparented to launchd) but every `print()` call (used throughout the codebase, including inside exception handlers) threw `OSError: [Errno 5] Input/output error` and turned into a 500 — confirmed via `/api/patterns/<ticker>` failing identically, not just breakout. Fixed `start.sh` to run both processes as `nohup ... >> logfile 2>&1 & disown`; restarted both, verified healthy. **New Golden Rule 23.**
-- **Second, smaller bug underneath**: even once the backend was healthy, CCJ's breakout card/badge still didn't show, because `App.jsx` explicitly hid anything with `status === 'NOT_READY'` — contradicting the engine's own spec (§13's "Muted" treatment). Added a `NOT_READY` entry to `BREAKOUT_BADGE_CONFIG` and removed the hide-condition at both render sites (header badge + full card). Scan tab's batch badge column has the same ambiguity (NOT_READY vs. fetch error both render "—") — flagged, not fixed, queued as a low-priority roadmap item.
-- **TradingView screener research**: confirmed (external docs/discussions on the `tradingview-screener` library) that STA's scan calls return ~15-min-delayed data since no `sessionid` auth cookie is passed. User explicitly decided **not** to wire up cookie-based real-time auth — no benefit for STA's EOD-based indicators, and it would add an expiring-credential/account-session dependency. Wrote a portable reference doc, `docs/claude/design/TRADINGVIEW_SCREENER_IMPLEMENTATION.md` (file map, request flow, Config C filter table, 8 gotchas), for reuse in another project.
-- **Master Framework Watchlist — scoped and built same session**: user wants their Notion-curated investment research (4 frameworks: AI Supply Chain, CanGem, STRATUM, QUBIT) screenable in STA. Read all 4 Notion pages via MCP, compiled ~89 raw tickers, filtered to 77 "established" names (dropped QUBIT entirely — self-labeled all-Stage-0-1 — and 3 unsupported ASX/LSE tickers), then built a new "🏛️ Master Framework Watchlist" Scan tab option (`MASTER_FRAMEWORK_WATCHLIST` array + shared `fetchWatchlistCandidates()` helper, same pattern as Nirmal's Watchlist). Exhaustive verification against the live backend (not a spot-check) caught 3 Canadian dual-class ticker format bugs (`GIB.A`→`GIB-A.TO` etc.) and 1 genuinely unsupported ticker (`FLT.V`) before shipping — final list 76, not 77. User-tested live: 76/76 matched. Full writeup: `docs/claude/design/MASTER_FRAMEWORK_WATCHLIST_SCOPE.md`.
-- No version bump — reliability/display fixes + a new Scan preset that reuses existing code paths, not a versioned feature change.
-
-*(Day 84's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY84_SHORT.md`. Day 83's is in `PROJECT_STATUS_DAY83_SHORT.md`.)*
+*(Day 85's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY85_SHORT.md`. Day 84's is in `PROJECT_STATUS_DAY84_SHORT.md`.)*
 
 ---
 
@@ -123,18 +123,17 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 
 ## NEXT SESSION PRIORITIES
 
-**Complete feature freeze in effect as of Day 87** — bug fixes and paper-trading monitoring only, until 50+ live trades confirm the momentum/MR edges. The two items below that remain "queued" (N3, Value Tab Phase 2) are backlog, not freeze exceptions — they need their own design sessions before any code, per Golden Rule 24.
+**Complete feature freeze in effect as of Day 87** — bug fixes and paper-trading monitoring only, until 50+ live trades confirm the momentum/MR edges. Day 88 added one narrowly-scoped, explicitly-agreed exception (paper-trading ledger UI + manual trigger — see below); the items still "queued" (N3, Value Tab Phase 2) are backlog, not freeze exceptions — they need their own design sessions before any code, per Golden Rule 24.
 
-1. **Let paper trading accumulate** — PRIMARY FOCUS, the only thing actually gating capital allocation. Expect it to take a while: **~7 months for MR, ~2.2 years for momentum at backtest-implied rates (Day 82 estimate, highly uncertain — re-estimate after 4-6 weeks of real data)**. `/sta-start` warns automatically if the launchd job goes stale (>3 days). Check progress with `venv/bin/python paper_trading/daily_job.py --report`. Nothing to build here.
+1. **Let paper trading accumulate** — PRIMARY FOCUS, the only thing actually gating capital allocation. Expect it to take a while: **~7 months for MR, ~2.2 years for momentum at backtest-implied rates (Day 82 estimate, highly uncertain — re-estimate after 4-6 weeks of real data)**. `/sta-start` warns automatically if the launchd job goes stale (>3 days). Check progress via the Forward Test tab's new status panel (Day 88) or `venv/bin/python paper_trading/daily_job.py --report`. Nothing to build here.
 2. **Decide fundamentals mitigation** — Task 3.2 measured 40.0% live↔backtest disagreement; user decision pending (align live-to-SimFin or backtest-to-TTM). Now also affects the automated engine's momentum leg.
 3. **Confirm SimFin key rotation** — user to verify the old leaked key was rotated at simfin.com; a possible new key was shared in conversation but not yet applied.
 4. **N3 gap-fill detection** — needs its own design session first (Day 87 finding: no spec exists yet, only a placeholder pointer in `BREAKOUT_ENHANCEMENT_PLAN.md`).
 5. **Value Tab Phase 2** — needs its own batch-prefetch infrastructure design session first (Day 87 finding: `VALUE_TAB_SPEC.md` explicitly requires a nightly watchlist-prefetch job for AlphaVantage's ~8-tickets/day budget; on-demand fetching would contradict the documented design).
 6. **Build `/ibkr-scan` skill** — Research done (Day 77). Verify 52W High Proximity in IBKR first.
 7. **Price Structure Phase 3** (visual chart via lightweight-charts) / Canadian Analyze page — queued.
-8. **(Optional, low priority) Surface the paper-trading ledger in the UI** — currently CLI/DB-only (`--report` flag); a Forward-Test-tab display would be a nice-to-have once trades accumulate, not a prerequisite.
-9. **(Optional, low priority) Scan tab batch breakout badges** — distinguish `NOT_READY` from a failed fetch (currently both render "—"); same bug class as the Day 85 single-ticker fix, not yet requested at this location.
-10. **(Optional, low priority) Master Framework Watchlist's Name/Market Cap columns** — still show N/A (Volume/Change % fixed Day 86, free); Name/Market Cap would need a separate fundamentals call per ticker, deferred by explicit user choice.
+8. **(Optional, low priority) Scan tab batch breakout badges** — distinguish `NOT_READY` from a failed fetch (currently both render "—"); same bug class as the Day 85 single-ticker fix, not yet requested at this location.
+9. **(Optional, low priority) Master Framework Watchlist's Name/Market Cap columns** — still show N/A (Volume/Change % fixed Day 86, free); Name/Market Cap would need a separate fundamentals call per ticker, deferred by explicit user choice.
 11. **(Deferred, user's own call)** The Day 82 Fable audit's 5th recommendation bucket — consolidating the Golden Rules/doc-rotation process itself (`docs/claude/design/FABLE_AUDIT_DAY82_PROCESS_AND_DECLUTTER.md`, Section F "REMOVE/DECLUTTER" item 4) — was deliberately not applied; it's a bigger, more opinionated change than the hygiene fixes and should only happen if the user explicitly wants it.
 
 ---
@@ -221,6 +220,7 @@ sqlite3 backend/validation_results/paper_trading_ledger.db "SELECT MAX(run_date)
 | 85 | Root-caused a "breakout card shows nothing" report to `start.sh` leaving both dev servers' stdout tied to the launching terminal — closing it broke every `print()`-logging request path (Golden Rule 23). Fixed a second bug underneath: NOT_READY breakout status was hidden instead of shown muted (per the engine's own spec). Wrote a portable TradingView screener reference doc. Scoped and built a new "Master Framework Watchlist" Scan tab preset (76 tickers from the user's Notion investment frameworks), exhaustively verified against the live backend (caught 3 ticker-format bugs + 1 unsupported ticker), user-tested live. No version bump. |
 | 86 | User's first live test of the Master Framework Watchlist found Name/Sector/Change/Volume/Market Cap all showing N/A. Fixed Volume/Change for free (`/api/sr/<ticker>` already fetched the OHLCV needed, wasn't returning it) — fixes both curated watchlists at once; Name/Market Cap deferred by explicit user choice (would need a per-ticker fundamentals call). New API_CONTRACTS_DAY86.md. Version v4.43 → v4.44 (BE v2.39 → v2.40, FE v4.39 → v4.40). |
 | 87 | Backlog cleanup session: Breakout Enhancement Plan Phase 1 shipped (completes the whole plan), N4 Market Phase Synthesis built, Price Structure Card Phase 2 built (HH/HL/LH/LL structure). N3 and Value Tab Phase 2 scoped and explicitly deferred — both needed their own design/infra work, not quick adds (Golden Rule 24). Exhaustive testing caught a real Transition-detection bug in the new market structure classifier before shipping. **Complete feature freeze declared.** Version v4.44 → v4.45 (BE v2.40 → v2.41, FE v4.40 → v4.41). |
+| 88 | Paper trading ledger surfaced in UI (Forward Test tab panel + `/api/paper-trading/status`/`trigger`) — agreed as the one scoped exception to Day 87's freeze since it directly aids the paper-trading gate itself. Verified live end-to-end (triggered a real run, confirmed ledger state updated). Version v4.45 → v4.46 (BE v2.41 → v2.42, FE v4.41 → v4.42). |
 
 ---
 

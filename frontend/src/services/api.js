@@ -918,6 +918,35 @@ export async function fetchMarketPhase() {
 }
 
 /**
+ * Day 87: Fetch the automated paper-trading engine's ledger status
+ * (backend/paper_trading/) — open/closed counts + stats per system, last
+ * run date. Separate from the manual Forward Test tab's localStorage.
+ */
+export async function fetchPaperTradingStatus() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/paper-trading/status`);
+    if (!response.ok) throw new Error(`Paper trading status fetch failed: ${response.status}`);
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching paper trading status:', error);
+    return null;
+  }
+}
+
+/**
+ * Day 87: Manually force-run the daily paper trading job — for catching up
+ * after a missed scheduled run. Can take 10-30+ seconds.
+ */
+export async function triggerPaperTradingRun() {
+  const response = await fetch(`${API_BASE_URL}/paper-trading/trigger`, { method: 'POST' });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || `Trigger failed: ${response.status}`);
+  }
+  return response.json();
+}
+
+/**
  * Tier 3A: Fetch mean-reversion signal for a single ticker.
  * Returns RSI(2), 200 SMA, entry/stop/target, conditions.
  */

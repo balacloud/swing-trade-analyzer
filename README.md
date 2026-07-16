@@ -1278,6 +1278,7 @@ TOLERANCES = {
 - **v4.43: UI Code Quality Fix Plan** ✅ 3 Fable audits (Analyze page cards, Scan tab, Tradier eval) synthesized and fully executed — 6 real bugs, 6 DRY-violation cleanups, dead-code removal, a new Tradier data provider (3rd-tier OHLCV/quote fallback), and UI polish, all browser-verified (Day 82-83)
 - **v4.44: Master Framework Watchlist** ✅ 76-ticker Scan tab preset sourced from the user's Notion investment research (AI Supply Chain, CanGem, STRATUM, QUBIT frameworks); `/api/sr/<ticker>` gained free `volume`/`change` fields after live testing found a summary-table gap (Day 85-86)
 - **v4.45: Breakout Enhancement Plan Complete + N4 Market Phase + Price Structure Phase 2** ✅ "Near Breakout" scan preset (Stage-2 stocks within 8% of 52W high) completes the whole Breakout plan; market-wide phase classifier (Bull Rally/Late Bull/Distribution/Correction/Recovery) added to the Context tab; HH/HL/LH/LL structure classification added to the Price Structure Card (Day 87)
+- **v4.46: Paper Trading Ledger Surfaced in UI** ✅ New status panel + manual "Force Run Now" trigger in the Forward Test tab for the automated paper-trading engine (previously CLI-only) — a scoped exception to the freeze since it directly aids the paper-trading gate itself (Day 88)
 
 ### Philosophy (Day 27 + Day 44 Update)
 
@@ -1294,7 +1295,7 @@ Current focus:
 - **Categorical filtering** over numerical ranking
 - **System measurement** through forward testing and SQN tracking
 
-### Current Priorities (Day 87 — complete feature freeze)
+### Current Priorities (Day 88 — complete feature freeze)
 
 A full-system audit (Day 78) found the backtested edge was likely overstated — survivorship bias in the test universe and a reused walk-forward window. The resulting remediation plan is **fully complete (all 5 phases)**, and an automated paper-trading engine (Day 81) now runs daily, unattended, taking every qualifying signal with zero human filtering — this is the real test for both systems now, and it's been running since Day 81.
 
@@ -1302,7 +1303,9 @@ A full-system audit (Day 78) found the backtested edge was likely overstated —
 
 **Day 87: the Breakout Enhancement Plan, N4 Market Phase Synthesis, and Price Structure Card Phase 2 all shipped**, clearing the last of the backlog that could reasonably be closed out — see v4.45 above. Two remaining backlog items (Value Tab Phase 2, N3 gap-fill detection) were scoped and explicitly deferred rather than built: both need their own design/infrastructure work first, not just implementation (see Known Issues). **A complete feature freeze is now in effect** — bug fixes and paper-trading monitoring only, until 50+ live trades confirm the momentum/MR edges.
 
-1. **Let paper trading accumulate** — the primary focus; nothing to build, just time. Check progress with `daily_job.py --report`.
+**Day 88: one scoped exception to the freeze** — the paper-trading ledger (previously CLI-only) is now visible in the Forward Test tab, with a manual "Force Run Now" button for catching up a missed scheduled run. Agreed narrowly because it directly aids observing/operating the paper-trading gate itself, not general product work — everything else stays frozen.
+
+1. **Let paper trading accumulate** — the primary focus; nothing to build, just time. Check progress in the Forward Test tab's new status panel, or via `daily_job.py --report`.
 2. **Fundamentals mitigation decision** — a measured 40% disagreement between live and backtested fundamentals data sources is still pending a choice (align live-to-SimFin or backtest-to-TTM).
 3. **Confirm SimFin key rotation** — small housekeeping item.
 4. **N3 gap-fill detection** — needs its own design session first (no spec exists yet).
