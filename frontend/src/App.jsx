@@ -2646,6 +2646,7 @@ function App() {
                       <option value="momentum">Momentum - Strong 52w</option>
                       <option value="value">Value - Quality discounts</option>
                       <option value="best">Best Candidates - Backtested Config C picks</option>
+                      <option value="breakout">🚀 Near Breakout - Within 8% of 52W high</option>
                     </>
                   )}
                 </select>

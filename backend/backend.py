@@ -43,7 +43,10 @@ sys.path.insert(0, os.path.dirname(__file__))
 # shared candidate parsing (Task B1), per UI_CODE_QUALITY_AUDIT_AND_FIX_PLAN_DAY82.md.
 # Day 83 (session 2, cont.): TradierProvider added as 3rd-tier OHLCV/quote
 # fallback (Task D1) + live_signals.py dormant Canadian-ticker bug fixed (Task B6).
-BACKEND_VERSION = '2.40'
+# Day 87: Breakout Plan Phase 1 (near-breakout scan preset), N4 Market Phase
+# synthesis (/api/market/phase), Price Structure Phase 2 (HH/HL/LH/LL market
+# structure in /api/sr/<ticker>'s meta). Backlog cleanup before a full freeze.
+BACKEND_VERSION = '2.41'
 
 from constants import SUPPORT_PROXIMITY_PCT, RESISTANCE_PROXIMITY_PCT  # shared with support_resistance.py
 
@@ -102,6 +105,15 @@ try:
 except ImportError:
     SR_ENGINE_AVAILABLE = False
     print("⚠️  S&R Engine not available - place support_resistance.py in backend folder")
+
+# Price Structure Card Phase 2 (Day 87) - HH/HL/LH/LL structure classification
+try:
+    from market_structure_engine import detect_market_structure
+    MARKET_STRUCTURE_AVAILABLE = True
+    print("✅ Market Structure engine loaded (Price Structure Phase 2)")
+except ImportError:
+    MARKET_STRUCTURE_AVAILABLE = False
+    print("⚠️ Market Structure engine not available")
 
 # Try to import pattern_detection engine - graceful fallback
 try:
@@ -1531,6 +1543,14 @@ def get_support_resistance(ticker):
         
         # Compute S&R levels
         sr_levels = compute_sr_levels(df)
+
+        # Day 87: Price Structure Phase 2 - HH/HL/LH/LL market structure
+        market_structure = None
+        if MARKET_STRUCTURE_AVAILABLE:
+            try:
+                market_structure = detect_market_structure(df)
+            except Exception as e:
+                print(f"⚠️ market structure detection failed for {ticker}: {e}")
         
         # Get current price
         current_price = float(df['close'].iloc[-1])
@@ -1664,6 +1684,8 @@ def get_support_resistance(ticker):
                 'mtf': sr_levels.meta.get('mtf'),
                 # Day 72: Expose touch counts per level (for Price Structure card)
                 'levelScores': sr_levels.meta.get('level_scores', {}),
+                # Day 87: Price Structure Phase 2 - HH/HL/LH/LL structure
+                'marketStructure': market_structure,
                 # Day 39: Add trend strength and momentum indicators
                 'adx': adx_data,
                 'rsi_4h': rsi_4h_data,
@@ -1845,7 +1867,8 @@ def scan_tradingview():
                     'price_52_week_high', 'price_52_week_low',
                     'SMA50', 'SMA200', 'RSI', 'relative_volume_10d_calc',
                     'sector', 'change', 'exchange',
-                    'ADX', 'EMA10', 'EMA21', 'Perf.Y'
+                    'ADX', 'EMA10', 'EMA21', 'Perf.Y',
+                    'average_volume_10d_calc'
         )
         
         # Day 21 Fix: Consolidate ALL filters into single .where() call
@@ -1895,6 +1918,24 @@ def scan_tradingview():
             # so the automated paper-trading engine (paper_trading/live_signals.py)
             # uses this EXACT same query — one implementation, not two (Golden Rule 19).
             query, _ = scan_queries.build_best_query(limit=limit, market_index=market_index)
+        elif strategy == 'breakout':
+            # Day 87: Breakout Enhancement Plan Phase 1 ("Near Breakout" preset).
+            # Stage-2 stocks approaching/crossing new 52W-high territory —
+            # gives the pattern-detection engine better raw material than
+            # scanning the whole market. The 8%-from-52W-high and $5M ADV
+            # filters can't be expressed as col() arithmetic (TradingView
+            # gotcha — col() objects don't support arithmetic), so they're
+            # applied as post-filters in scan_queries.parse_candidates().
+            query = query.where(
+                col('exchange').isin(valid_exchanges),
+                col('market_cap_basic') >= 2_000_000_000,
+                col('close') > 10,
+                col('close') > col('SMA50'),
+                col('SMA50') > col('SMA200'),
+                col('RSI') >= 50,
+                col('RSI') <= 70,
+                col('ADX') >= 20
+            )
         else:
             return jsonify({'error': f'Unknown strategy: {strategy}'}), 400
 
@@ -1906,7 +1947,14 @@ def scan_tradingview():
         # end up looking at two different top-N candidate sets whenever more
         # than `limit` candidates qualified. Only the other strategies need
         # this default sort applied.
-        if strategy != 'best':
+        if strategy == 'breakout':
+            # Fetch a wider net before the 8%-from-52W-high post-filter prunes
+            # most of it — that filter can't be pushed into the query itself
+            # (col() arithmetic gotcha), so limiting to `limit` here first
+            # would starve the post-filter of candidates.
+            query = query.order_by('relative_volume_10d_calc', ascending=False)
+            query = query.limit(max(limit * 6, 300))
+        elif strategy != 'best':
             query = query.order_by('relative_volume_10d_calc', ascending=False)
             query = query.limit(limit)
 
@@ -1918,6 +1966,8 @@ def scan_tradingview():
         # this is what backend/paper_trading/live_signals.py already uses, so
         # there's exactly one implementation of "what counts as a candidate."
         candidates = scan_queries.parse_candidates(results, is_canadian, strategy=strategy)
+        if strategy == 'breakout':
+            candidates = candidates[:limit]
 
         print(f"✅ TradingView Scan complete: {len(candidates)} candidates from {count} matches")
         
@@ -1966,6 +2016,11 @@ def get_scan_strategies():
                 'id': 'best',
                 'name': 'Best Candidates',
                 'description': 'Stage 2 + ADX≥20 + RSI 50-70 + EMA momentum — backtested Config C criteria'
+            },
+            {
+                'id': 'breakout',
+                'name': 'Near Breakout',
+                'description': 'Stage 2 stocks within 8% of 52-week high — candidates approaching a pivot'
             }
         ]
     })
@@ -2379,6 +2434,47 @@ try:
 except ImportError as e:
     CONTEXT_AVAILABLE = False
     print(f"⚠️ Context Tab engines not available: {e}")
+
+try:
+    import market_phase_engine
+    MARKET_PHASE_AVAILABLE = True
+    print("✅ Market Phase engine loaded (N4, Day 87)")
+except ImportError as e:
+    MARKET_PHASE_AVAILABLE = False
+    print(f"⚠️ Market Phase engine not available: {e}")
+
+
+@app.route('/api/market/phase')
+def get_market_phase_endpoint():
+    """
+    N4: Market Phase synthesis (Day 76 research, Day 87 build).
+    Classifies current market conditions into one of 5 phases (Bull Rally /
+    Late Bull / Distribution / Correction / Recovery) from SPY trend + VIX
+    level, with breadth/sector leadership as supporting context.
+    Purely informational — zero impact on verdict/scoring. Cached per
+    trading day, same pattern as /api/sectors/rotation.
+    """
+    if not MARKET_PHASE_AVAILABLE:
+        return jsonify({'error': 'Market Phase engine not available'}), 503
+    try:
+        if SQLITE_CACHE_AVAILABLE:
+            cached = cache_manager.get_cached_market('MARKET_PHASE')
+            if cached:
+                cached['cached'] = True
+                return jsonify(cached)
+
+        data = market_phase_engine.get_market_phase()
+        if 'error' in data:
+            return jsonify(data), 500
+
+        data['cached'] = False
+        if SQLITE_CACHE_AVAILABLE:
+            cache_manager.set_cached_market('MARKET_PHASE', data)
+        return jsonify(data)
+    except Exception as e:
+        print(f"Error in /api/market/phase: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/cycles')

@@ -2,15 +2,16 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 86 (July 15, 2026)
+> **Last Updated:** Day 87 (July 16, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.44 (Backend v2.40, Frontend v4.40, Backtest v4.19, API Service v2.11)
+## Current Version: v4.45 (Backend v2.41, Frontend v4.41, Backtest v4.19, API Service v2.11)
 *Day 84 close: fixed a version-drift gap — this line was still Day 81's v4.39 while CLAUDE_CONTEXT.md had already moved to v4.42 (Day 83). ROADMAP.md's version line wasn't part of the Day 83 close's update checklist; now caught up.*
 *Day 85: no version bump — session was a backend/frontend reliability fix (Golden Rule 23), a breakout NOT_READY badge display fix, and a new TradingView screener reference doc, not a versioned feature.*
 *Day 86: v4.44 — Master Framework Watchlist's user-tested gap (Name/Volume/Change/Market Cap showing N/A) led to a real `/api/sr/<ticker>` API change (new `volume`/`change` fields, see `API_CONTRACTS_DAY86.md`), warranting a backend version bump.*
+*Day 87: v4.45 — Breakout Enhancement Plan Phase 1 (completing the whole plan), N4 Market Phase Synthesis, and Price Structure Card Phase 2 all shipped in one session (backlog cleanup before declaring a complete feature freeze). Value Tab Phase 2 and N3 gap-fill detection were scoped and explicitly deferred — see Golden Rule 24.*
 
 ---
 
@@ -235,22 +236,22 @@ Supply Chain, CanGem, STRATUM, QUBIT). Full scope + verification writeup:
 
 ---
 
-## ACTIVE PRIORITY ORDER (Day 85 updated)
+## ACTIVE PRIORITY ORDER (Day 87 updated — complete feature freeze declared)
 
 | # | Item | Why | Effort |
 |---|------|-----|--------|
-| 1 | **Let paper trading accumulate** | PRIMARY FOCUS — automated engine (`backend/paper_trading/`) built and live Day 81, running unattended daily via launchd. No longer something to "start" — it's running. Both momentum (PF 1.40) and MR (PF 1.16, post liquidity re-test) still need 50+ live trades each before capital allocation. Check in periodically with `daily_job.py --report`. | Ongoing (no build work) |
+| 1 | **Let paper trading accumulate** | PRIMARY FOCUS — automated engine (`backend/paper_trading/`) built and live Day 81, running unattended daily via launchd. Both momentum (PF 1.40) and MR (PF 1.16, post liquidity re-test) still need 50+ live trades each before capital allocation. Check in periodically with `daily_job.py --report`. | Ongoing (no build work) |
 | 2 | **Decide fundamentals mitigation** | Task 3.2 measured 40.0% live↔backtest disagreement — user decision pending: align live-to-SimFin or backtest-to-TTM. Now also affects the automated engine's momentum leg. | Decision + implementation |
 | 3 | **Confirm SimFin key rotation** | A possible new key was shared in conversation Day 79 but never confirmed as intentional or applied. | Small |
-| 4 | **Breakout Enhancement Plan Phase 1** | "Near breakout" scan preset — the only remaining phase of the whole plan. Small feature, needs explicit user go-ahead to build during freeze (gating table). | Half session |
-| 5 | **Build N4: Market Phase synthesis** | Research done (Day 76). `market_phase_engine.py` + `/api/market/phase`. | 1 session |
+| 4 | **N3: Gap-fill detection — needs a design session first** | No spec exists yet (Day 87 finding) — only a placeholder pointer in `BREAKOUT_ENHANCEMENT_PLAN.md`. Design, then build. | Design session, then Medium |
+| 5 | **Value Tab Phase 2 — needs a batch-prefetch design session first** | Spec (`VALUE_TAB_SPEC.md`) requires nightly batch-prefetch infra (watchlist + schedule) for AlphaVantage's ~8-tickers/day budget; explicitly gated to build only post-freeze. On-demand fetching (Phase 1's pattern) would contradict the documented design. | Design session, then Low-Medium |
 | 6 | **Build `/ibkr-scan` skill** | Research done (Day 77). Verify 52W High Proximity in IBKR first. | 1 session |
-| 7 | **Value Tab Phase 2** | AV-derived metrics (interest coverage, EV/EBIT, ROE 5yr median) | Low |
-| 8 | **Price Structure Phase 2** | HH/HL/LH/LL market structure engine using `find_pivot_points()` | Medium |
-| 9 | **N3: Gap-fill detection** | Deferred post paper trading (feeds Breakout Plan Phase 4) | Medium |
-| 10 | **Canadian Analyze page** | Medium bug, data source redesign needed | High |
-| 11 | **(Optional, low priority) Surface paper-trading ledger in UI** | Currently CLI/DB-only (`--report` flag). Nice-to-have once trades accumulate, not a prerequisite. | Medium |
-| 12 | **(Optional, low priority) Scan tab batch breakout badges: distinguish NOT_READY from a failed fetch** | Currently both render as a plain "—" dash (`App.jsx` ~line 2753) — same ambiguity class as the single-ticker card had before the Day 84 fix, just not yet asked for at the 20-row table. | Small |
+| 7 | **Price Structure Phase 3** | Visual chart via lightweight-charts (Phases 1-2 done as of Day 87). | Medium |
+| 8 | **Canadian Analyze page** | Medium bug, data source redesign needed | High |
+| 9 | **(Optional, low priority) Surface paper-trading ledger in UI** | Currently CLI/DB-only (`--report` flag). Nice-to-have once trades accumulate, not a prerequisite. | Medium |
+| 10 | **(Optional, low priority) Scan tab batch breakout badges: distinguish NOT_READY from a failed fetch** | Currently both render as a plain "—" dash (`App.jsx` ~line 2753) — same ambiguity class as the single-ticker card had before the Day 84 fix, just not yet asked for at the 20-row table. | Small |
+
+**Done as of Day 87:** Breakout Enhancement Plan (all phases), N4 Market Phase Synthesis, Price Structure Card Phase 2 — see their own COMPLETE sections above.
 
 ---
 
@@ -265,6 +266,32 @@ Supply Chain, CanGem, STRATUM, QUBIT). Full scope + verification writeup:
 | `/breakout-watch` skill | `.claude/commands/breakout-watch.md` | Buckets tickers by state, most-actionable first; `NOT_READY` summarized in one line, never treated as an error. Deliberately reuses the new batch endpoint (didn't exist when this plan was first written) instead of N individual calls. Verified end-to-end against the live backend. |
 
 Only Phase 1 (the "near breakout" scan preset) remains of the entire Breakout Enhancement Plan — gated on explicit user approval per the plan's own gating table (small feature, mid-freeze).
+
+**Update (Day 87): Phase 1 shipped — the entire Breakout Enhancement Plan is now complete.** New `strategy=breakout` scan option (`/api/scan/tradingview`): Stage-2 stocks within 8% of 52-week high, market cap ≥$2B, price >$10, RSI 50-70, ADX≥20, avg dollar volume ≥$5M. The 8%-from-high and dollar-volume filters are post-filters (`scan_queries.parse_candidates()`) since TradingView's `col()` doesn't support the needed arithmetic — the query fetches a wider net (300 candidates) first so the post-filter isn't starved. All 50 returned candidates verified exhaustively against every filter (not spot-checked). `docs/claude/design/BREAKOUT_ENHANCEMENT_PLAN.md` is now historical/reference only. See `API_CONTRACTS_DAY87.md`.
+
+---
+
+## COMPLETE — N4: Market Phase Synthesis (Day 76 research, Day 87 build)
+
+**Source:** Research done Day 76 (`docs/claude/status/archive/PROJECT_STATUS_DAY76_SHORT.md`) — RSP/SPY confirmed as the correct breadth proxy (`^SPXA200R` is dead on yfinance), 5-phase framework designed. Built Day 87.
+
+New `backend/market_phase_engine.py` + `GET /api/market/phase`. Classifies current market-wide conditions into one of 5 phases (Bull Rally / Late Bull / Distribution / Correction / Recovery) via a transparent 3×3 grid — SPY trend bucket (UP/FLAT/DOWN, from 200SMA position + 20d % change) × VIX level bucket (CALM/ELEVATED/HIGH) — with breadth (RSP/SPY ratio 20d change) and sector leadership (Growth XLK/XLY/XLC vs Defensive XLU/XLP/XLV, 20d returns) shown as supporting evidence rather than additional classification gates. Purely informational — zero impact on verdict/scoring, same pattern as the Context tab's other engines. Displayed via new `MarketPhaseBanner.jsx` at the top of the Context tab, cached per trading day.
+
+**Verified:** grid classification exhaustively unit-tested (all 9 SPY×VIX cells, the DOWN+CALM refinement rule, and boundary values). Live endpoint + caching confirmed. Full contract: `API_CONTRACTS_DAY87.md`.
+
+---
+
+## COMPLETE — Price Structure Card Phase 2 (Day 72 spec, Day 87 build)
+
+**Source:** `docs/claude/design/PRICE_STRUCTURE_CARD_SPEC.md` §Phase 2.
+
+New `backend/market_structure_engine.py`, wired into `/api/sr/<ticker>`'s `meta.marketStructure`. HH/HL/LH/LL pivot-sequence classification (Uptrend/Downtrend/Range/Transition), trend age (bars since the current structure run began), volume-behavior-at-levels (rising/falling/flat).
+
+**Deliberately does not reuse the spec's assumed `find_pivot_points()`** — no function by that name exists; the closest candidate, `support_resistance.py`'s `_detect_zigzag_pivots()`, sorts and deduplicates pivots by price (`sorted(list(set(...)))`), which destroys the chronological order this classification needs to tell a higher-high from a lower-high. Wrote a separate, self-contained detector instead of modifying the frozen core S&R engine.
+
+**Bug caught by exhaustive testing (not spot-check):** the "was this an established trend" check for Transition detection didn't filter out unlabeled bootstrap pivots before its "all HH" check, so a genuine up→down reversal in a synthetic test case wasn't classified as Transition. Fixed before shipping.
+
+Displayed in `PriceStructureCard.jsx` as a one-line structure/trend-age/volume-behavior addition to Section A. Verified live on 5 real tickers (AAPL, NVDA, JPM, COST, TSLA). Phase 3 (visual chart via lightweight-charts) remains deferred.
 
 ---
 

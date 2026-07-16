@@ -1277,6 +1277,7 @@ TOLERANCES = {
 - **v4.42: Data-Source Reliability + BottomLineCard Removal** ✅ 5 data-source bugs fixed, cross-process rate-limiter/circuit-breaker state shared via SQLite; redundant Bottom Line Card removed, breakout status added to Analyze page (Day 83)
 - **v4.43: UI Code Quality Fix Plan** ✅ 3 Fable audits (Analyze page cards, Scan tab, Tradier eval) synthesized and fully executed — 6 real bugs, 6 DRY-violation cleanups, dead-code removal, a new Tradier data provider (3rd-tier OHLCV/quote fallback), and UI polish, all browser-verified (Day 82-83)
 - **v4.44: Master Framework Watchlist** ✅ 76-ticker Scan tab preset sourced from the user's Notion investment research (AI Supply Chain, CanGem, STRATUM, QUBIT frameworks); `/api/sr/<ticker>` gained free `volume`/`change` fields after live testing found a summary-table gap (Day 85-86)
+- **v4.45: Breakout Enhancement Plan Complete + N4 Market Phase + Price Structure Phase 2** ✅ "Near Breakout" scan preset (Stage-2 stocks within 8% of 52W high) completes the whole Breakout plan; market-wide phase classifier (Bull Rally/Late Bull/Distribution/Correction/Recovery) added to the Context tab; HH/HL/LH/LL structure classification added to the Price Structure Card (Day 87)
 
 ### Philosophy (Day 27 + Day 44 Update)
 
@@ -1293,17 +1294,20 @@ Current focus:
 - **Categorical filtering** over numerical ranking
 - **System measurement** through forward testing and SQN tracking
 
-### Current Priorities (Day 86)
+### Current Priorities (Day 87 — complete feature freeze)
 
 A full-system audit (Day 78) found the backtested edge was likely overstated — survivorship bias in the test universe and a reused walk-forward window. The resulting remediation plan is **fully complete (all 5 phases)**, and an automated paper-trading engine (Day 81) now runs daily, unattended, taking every qualifying signal with zero human filtering — this is the real test for both systems now, and it's been running since Day 81.
 
 **Where the two trading systems stand:** momentum (Config C) re-validated at PF 1.40 (was 1.61 on the hand-picked universe) — real but not yet statistically significant. Mean-reversion's one-time, pre-committed liquidity restriction recovered PF 1.16 from an initial clean null (PF 0.99) — also real but not yet significant. **Both systems require live paper-trading confirmation (50+ trades each) before any capital allocation.** Estimated time to reach that bar: roughly 7 months for MR, 2+ years for momentum at backtest-implied signal rates (highly uncertain, will be re-estimated after 4-6 weeks of real data).
 
+**Day 87: the Breakout Enhancement Plan, N4 Market Phase Synthesis, and Price Structure Card Phase 2 all shipped**, clearing the last of the backlog that could reasonably be closed out — see v4.45 above. Two remaining backlog items (Value Tab Phase 2, N3 gap-fill detection) were scoped and explicitly deferred rather than built: both need their own design/infrastructure work first, not just implementation (see Known Issues). **A complete feature freeze is now in effect** — bug fixes and paper-trading monitoring only, until 50+ live trades confirm the momentum/MR edges.
+
 1. **Let paper trading accumulate** — the primary focus; nothing to build, just time. Check progress with `daily_job.py --report`.
 2. **Fundamentals mitigation decision** — a measured 40% disagreement between live and backtested fundamentals data sources is still pending a choice (align live-to-SimFin or backtest-to-TTM).
 3. **Confirm SimFin key rotation** — small housekeeping item.
-4. **Breakout Enhancement Plan Phase 1** (near-breakout scan preset) — the only remaining phase; the rest (batch endpoint, Scan tab badges, `/breakout-watch` skill) shipped Day 81-82.
-5. N4 Market Phase synthesis, `/ibkr-scan` skill, Value Tab Phase 2, Price Structure Phase 2, Canadian Analyze page — queued behind the above.
+4. **N3 gap-fill detection** — needs its own design session first (no spec exists yet).
+5. **Value Tab Phase 2** — needs its own batch-prefetch infrastructure design session first (AlphaVantage free-tier budget constraints).
+6. `/ibkr-scan` skill, Price Structure Phase 3 (visual chart), Canadian Analyze page — queued behind the above.
 
 **Day 85-86:** Built a "🏛️ Master Framework Watchlist" Scan tab preset — 76 tickers sourced from the user's own curated Notion investment research (AI Supply Chain, CanGem, STRATUM, QUBIT frameworks), scanned with STA's existing technical engine, same pattern as the pre-existing Nirmal watchlist. First live test found the summary table's Volume/Change columns showing N/A; fixed for free by exposing data `/api/sr/<ticker>` already computed (v4.44).
 

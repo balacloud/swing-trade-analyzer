@@ -902,6 +902,22 @@ export async function fetchEcon() {
 }
 
 /**
+ * N4: Fetch market phase synthesis (Bull Rally/Late Bull/Distribution/
+ * Correction/Recovery) from SPY trend + VIX level, with breadth/sector
+ * context. Purely informational — zero impact on verdict/scoring.
+ */
+export async function fetchMarketPhase() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/market/phase`);
+    if (!response.ok) throw new Error(`Market phase fetch failed: ${response.status}`);
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching market phase:', error);
+    return null;
+  }
+}
+
+/**
  * Tier 3A: Fetch mean-reversion signal for a single ticker.
  * Returns RSI(2), 200 SMA, entry/stop/target, conditions.
  */

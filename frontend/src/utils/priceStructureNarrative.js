@@ -262,6 +262,10 @@ export function generatePriceStructure(sr, patterns, actionablePatternsList = []
   const adxStr = adx.adx != null ? `ADX ${adx.adx} (${adx.trend_strength || ''})` : '';
   const trendContext = [ttStr, adxStr].filter(Boolean).join(' | ');
 
+  // Day 87: Price Structure Phase 2 - HH/HL/LH/LL structure (backend-computed,
+  // passed through as-is; this card doesn't re-derive it client-side).
+  const marketStructure = meta.marketStructure || null;
+
   // Build key levels
   const keyLevels = buildKeyLevels(currentPrice, effectiveResistance, effectiveSupport, levelScores, confluenceMap);
 
@@ -277,6 +281,7 @@ export function generatePriceStructure(sr, patterns, actionablePatternsList = []
     trendContext,
     keyLevels,    // [{type, price, touches, confluent, distancePct, above}]
     watchItems,   // string[]
+    marketStructure, // {structure, trendAgeBars, volumeBehavior, recentPivots} | null
     meta: {
       trendTemplateCriteria: trendCriteria,
       adx: adx.adx,

@@ -25,7 +25,7 @@ const STATE_COLORS = {
 export default function PriceStructureCard({ srData, priceStructure, expanded, onToggle }) {
   if (!priceStructure) return null;
 
-  const { structureState, stateColor, trendContext, keyLevels, watchItems, meta } = priceStructure;
+  const { structureState, stateColor, trendContext, keyLevels, watchItems, marketStructure, meta } = priceStructure;
   const colors = STATE_COLORS[stateColor] || STATE_COLORS.gray;
   const currentPrice = srData?.currentPrice;
 
@@ -60,6 +60,15 @@ export default function PriceStructureCard({ srData, priceStructure, expanded, o
             </div>
             {trendContext && (
               <div className="text-xs text-gray-400 ml-4">{trendContext}</div>
+            )}
+            {marketStructure && marketStructure.structure && marketStructure.structure !== 'Insufficient Data' && marketStructure.structure !== 'Unknown' && (
+              <div className="text-xs text-gray-400 ml-4 mt-1">
+                Structure: <span className="text-gray-300 font-medium">{marketStructure.structure}</span>
+                {marketStructure.trendAgeBars != null && ` (${marketStructure.trendAgeBars}d)`}
+                {marketStructure.volumeBehavior && marketStructure.volumeBehavior !== 'Unknown' && (
+                  <span> · Volume into levels: {marketStructure.volumeBehavior}</span>
+                )}
+              </div>
             )}
           </div>
 

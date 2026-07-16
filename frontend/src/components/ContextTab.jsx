@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import RegimeBanner from './RegimeBanner';
+import MarketPhaseBanner from './MarketPhaseBanner';
 import CycleCard from './CycleCard';
 import ArticleRow from './ArticleRow';
 import ConflictCheck from './ConflictCheck';
@@ -119,6 +120,9 @@ export default function ContextTab({ ticker }) {
   const [newsLoading, setNewsLoading] = useState(false);
   const [cyclesError, setCyclesError] = useState(null);
   const [newsError, setNewsError] = useState(null);
+  const [marketPhaseData, setMarketPhaseData] = useState(null);
+  const [marketPhaseLoading, setMarketPhaseLoading] = useState(false);
+  const [marketPhaseError, setMarketPhaseError] = useState(null);
 
   // Load cycles + econ once on mount
   const loadCyclesEcon = useCallback(async () => {
@@ -160,8 +164,23 @@ export default function ContextTab({ ticker }) {
     }
   }, []);
 
+  // Load market phase once on mount (ticker-independent, whole-market read)
+  const loadMarketPhase = useCallback(async () => {
+    setMarketPhaseLoading(true);
+    setMarketPhaseError(null);
+    try {
+      const data = await fetchJSON(`${API_BASE}/api/market/phase`);
+      setMarketPhaseData(data);
+    } catch (e) {
+      setMarketPhaseError(e.message);
+    } finally {
+      setMarketPhaseLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadCyclesEcon();
+    loadMarketPhase();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // only on mount
 
@@ -180,6 +199,9 @@ export default function ContextTab({ ticker }) {
         🔭 <span className="font-semibold text-gray-400">Pre-Flight Context Only</span> — This tab provides macro
         context for human review. It does <em>not</em> modify trade verdicts. Human is always the final decision-maker.
       </div>
+
+      {/* N4: Market Phase Banner */}
+      <MarketPhaseBanner data={marketPhaseData} loading={marketPhaseLoading} error={marketPhaseError} />
 
       {/* Overall Regime Banner */}
       {overallRegime && (

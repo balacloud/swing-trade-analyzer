@@ -134,6 +134,19 @@ def parse_candidates(results, is_canadian, strategy='best'):
             if strategy == 'best' and pct_from_high is not None and pct_from_high < -25:
                 continue
 
+            # Day 87: avg dollar volume — 10d avg share volume * price, since
+            # TradingView has no direct dollar-volume field.
+            adv_10d = row.get('average_volume_10d_calc')
+            avg_dollar_volume = None
+            if current and adv_10d:
+                avg_dollar_volume = current * adv_10d
+
+            if strategy == 'breakout':
+                if pct_from_high is None or pct_from_high < -8:
+                    continue
+                if avg_dollar_volume is None or avg_dollar_volume < 5_000_000:
+                    continue
+
             candidates.append({
                 'ticker': ticker,
                 'name': row.get('name', ''),
@@ -154,6 +167,7 @@ def parse_candidates(results, is_canadian, strategy='best'):
                 'ema10': _safe_float(row.get('EMA10')),
                 'ema21': _safe_float(row.get('EMA21')),
                 'perf52w': _safe_float(row.get('Perf.Y')),
+                'avgDollarVolume': _safe_float(avg_dollar_volume),
             })
         except Exception as e:
             print(f"scan_queries.parse_candidates: error parsing row: {e}")
