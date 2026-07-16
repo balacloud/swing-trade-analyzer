@@ -1305,6 +1305,8 @@ A full-system audit (Day 78) found the backtested edge was likely overstated —
 
 **Day 88: one scoped exception to the freeze** — the paper-trading ledger (previously CLI-only) is now visible in the Forward Test tab, with a manual "Force Run Now" button for catching up a missed scheduled run. Agreed narrowly because it directly aids observing/operating the paper-trading gate itself, not general product work — everything else stays frozen.
 
+**Day 89: same exception, applied to sample-accumulation speed** — the MR arm's live signal universe widened from a static 54-ticker list to a dynamic ~150-ticker TradingView scan, yielding 8 real signals in one test run vs. 0-2/day historically. A first attempt at a wider 300-ticker scan tripped a data provider's rate limiter mid-run, silently failing the same tail-end tickers every time (deterministic sort order) — caught via live testing, not assumed away, and recalibrated to the number that actually completes cleanly.
+
 1. **Let paper trading accumulate** — the primary focus; nothing to build, just time. Check progress in the Forward Test tab's new status panel, or via `daily_job.py --report`.
 2. **Fundamentals mitigation decision** — a measured 40% disagreement between live and backtested fundamentals data sources is still pending a choice (align live-to-SimFin or backtest-to-TTM).
 3. **Confirm SimFin key rotation** — small housekeeping item.

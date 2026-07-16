@@ -49,7 +49,12 @@ sys.path.insert(0, os.path.dirname(__file__))
 # Day 88: Paper trading status/trigger endpoints (/api/paper-trading/*) —
 # a scoped freeze exception since it directly aids the paper-trading gate
 # itself, not general product work. Everything else stays frozen.
-BACKEND_VERSION = '2.42'
+# Day 89: MR arm's live signal universe widened from a static 54-ticker
+# list to a dynamic TradingView liquid-universe scan (scan_queries.py),
+# to accumulate paper-trading samples faster — breadth only, no threshold
+# changed. Calibrated to limit=150 after a live test at 300 tripped
+# TwelveData's rate limiter. New Golden Rule 25.
+BACKEND_VERSION = '2.43'
 
 from constants import SUPPORT_PROXIMITY_PCT, RESISTANCE_PROXIMITY_PCT  # shared with support_resistance.py
 
@@ -2722,8 +2727,11 @@ def scan_mr_signals():
             tickers = [t.strip().upper() for t in tickers_param.split(',') if t.strip()]
         else:
             # Default: scan a broad set of liquid stocks
-            # Day 81: moved to mean_reversion.DEFAULT_MR_UNIVERSE (shared with
-            # the automated paper-trading engine — one list, not two).
+            # Day 81: moved to mean_reversion.DEFAULT_MR_UNIVERSE.
+            # Day 88: the automated paper-trading engine (live_signals.py)
+            # switched to a dynamic TradingView-scanned universe for more
+            # daily sample throughput — this manual on-demand endpoint still
+            # uses the static list (fast, predictable for interactive use).
             tickers = mean_reversion.DEFAULT_MR_UNIVERSE
 
         def fetch_data(ticker, period):

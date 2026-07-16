@@ -7,13 +7,23 @@ reimplementing it:
 
   Momentum: cheap TradingView pre-filter (scan_queries.build_best_query --
             the SAME query /api/scan/tradingview?strategy=best uses) narrows
-            the whole market down to a handful of candidates, then a full
-            live categorical assessment (categorical_engine.run_assessment,
-            the JS-parity-verified verdict engine) + R:R check on survivors
-            only decides which ones actually queue as signals.
+            the whole market down to up to `limit` candidates (150 as of
+            Day 88, was 50), then a full live categorical assessment
+            (categorical_engine.run_assessment, the JS-parity-verified
+            verdict engine) + R:R check on survivors only decides which
+            ones actually queue as signals.
 
-  Mean-reversion: mean_reversion.detect_mr_signal() (now with the Day 81
-            liquidity gate) over the shared DEFAULT_MR_UNIVERSE.
+  Mean-reversion: mean_reversion.detect_mr_signal() (Day 81 liquidity gate)
+            over a dynamic TradingView-scanned universe (Day 88 —
+            scan_queries.build_mr_universe_query(), ~200-300 liquid
+            tickers, falls back to the static mean_reversion.DEFAULT_MR_UNIVERSE
+            if the screener is unavailable). Replaced the previous static
+            54-ticker list to increase daily sample throughput toward the
+            50-trade confirmation bar — a breadth change only, the entry
+            gate itself (RSI(2)<10, price>$10, 20d ADV>$25M) is unchanged
+            and still frozen per PAPER_TRADING_PREREGISTRATION.md.
+            backend.py's manual /api/mr/scan endpoint still uses the static
+            list (different consumer, not part of this change).
 
 No human filters these — every qualifying signal is queued, which is the
 whole point (selection-bias-free OOS test, see ledger.py's module docstring).
@@ -92,12 +102,17 @@ def get_market_regime():
     return regime, spy_df
 
 
-def get_momentum_signals(as_of_date=None, limit=50, market_index='all'):
+def get_momentum_signals(as_of_date=None, limit=150, market_index='all'):
     """
     Returns a list of dicts (ticker, signal_date, signal_price, holding_period,
     verdict_reason, regime_snapshot) for every Config C-qualifying momentum
     BUY not already active/in cooldown. Caller queues each via
     ledger.queue_pending_signal().
+
+    Day 88: default limit raised 50->150 (more raw ADX-ranked candidates get
+    the full per-ticker categorical assessment) — a breadth change to
+    increase sample-accumulation rate, not a threshold change. Config C's
+    BUY/R:R criteria are unchanged.
     """
     if not scan_queries.TRADINGVIEW_AVAILABLE:
         print("live_signals: TradingView screener unavailable, skipping momentum scan")
@@ -190,6 +205,34 @@ def get_momentum_signals(as_of_date=None, limit=50, market_index='all'):
     return signals
 
 
+def _get_dynamic_mr_universe(limit=150):
+    """
+    Day 88: broad TradingView liquid-universe scan, replacing the
+    hardcoded 54-name DEFAULT_MR_UNIVERSE for the automated daily job only
+    (backend.py's manual /api/mr/scan endpoint still uses the static list —
+    different consumer, not touched here). Breadth-only change: the actual
+    MR entry gate is unchanged, still enforced per-ticker downstream in
+    mean_reversion.detect_mr_signal(). Falls back to DEFAULT_MR_UNIVERSE if
+    the TradingView query fails, so a screener outage can't silently stop
+    the job from generating any MR signals at all.
+    """
+    if not scan_queries.TRADINGVIEW_AVAILABLE:
+        print("live_signals: TradingView unavailable, falling back to DEFAULT_MR_UNIVERSE")
+        return mean_reversion.DEFAULT_MR_UNIVERSE
+    try:
+        query, is_canadian = scan_queries.build_mr_universe_query(limit=limit)
+        count, results = query.get_scanner_data()
+        candidates = scan_queries.parse_candidates(results, is_canadian, strategy='mr_universe')
+        tickers = [c['ticker'] for c in candidates]
+        if not tickers:
+            print("live_signals: MR universe scan returned 0 tickers, falling back to DEFAULT_MR_UNIVERSE")
+            return mean_reversion.DEFAULT_MR_UNIVERSE
+        return tickers
+    except Exception as e:
+        print(f"live_signals: MR universe scan failed ({e}), falling back to DEFAULT_MR_UNIVERSE")
+        return mean_reversion.DEFAULT_MR_UNIVERSE
+
+
 def get_mr_signals(as_of_date=None, tickers=None):
     """
     Returns a list of dicts for every MR-qualifying ticker (detect_mr_signal,
@@ -198,7 +241,7 @@ def get_mr_signals(as_of_date=None, tickers=None):
     if as_of_date is None:
         as_of_date = datetime.now().strftime('%Y-%m-%d')
 
-    universe = tickers or mean_reversion.DEFAULT_MR_UNIVERSE
+    universe = tickers or _get_dynamic_mr_universe()
     dp = get_data_provider()
     regime, _ = get_market_regime()
     signals = []

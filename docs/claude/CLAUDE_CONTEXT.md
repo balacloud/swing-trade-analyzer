@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 88 — end of day (July 16, 2026)
+> **Last Updated:** Day 89 — end of day (July 16, 2026)
 
 ---
 
@@ -11,16 +11,25 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 88 |
-| Version | v4.46 (Backend v2.42, Frontend v4.42, Backtest v4.19, API Service v2.11) |
-| Latest Status | PROJECT_STATUS_DAY88_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY88.md |
-| Latest API | API_CONTRACTS_DAY88.md (new `/api/paper-trading/status` + `/api/paper-trading/trigger`) |
-| Focus | **Complete feature freeze in effect, with one scoped, agreed exception.** After Day 87's freeze declaration, user asked where to visually see the paper-trading ledger and whether a manual "missed run" trigger button could be added — confirmed both directly serve the paper-trading gate itself (not general product work), so built them: a new Forward Test tab panel (open/closed counts, stats, staleness warning) + a "Force Run Now" button, backed by two new read-only/action endpoints. User's own framing: "we built this only because it's aiding our fwd testing... everything else is on freeze." Paper trading accumulation remains the only real gating item going forward. |
+| Current Day | 89 |
+| Version | v4.47 (Backend v2.43, Frontend v4.42 unchanged, Backtest v4.19, API Service v2.11) |
+| Latest Status | PROJECT_STATUS_DAY89_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY89.md |
+| Latest API | No API contract changes this session (see API_CONTRACTS_DAY88.md for the latest) — internal signal-generation logic only |
+| Focus | **Complete feature freeze in effect, with a second scoped exception (same rationale as Day 88).** User asked how the automated engine works and how to get to ~10 signals/day faster. Widened the MR arm's live universe from a static 54-ticker list to a dynamic ~150-ticker TradingView scan — legitimate because it's candidate-pool breadth, not a threshold re-tune (Golden Rule 18 still holds). A live test at limit=300 found a real bug: it tripped TwelveData's rate limiter, cascading to yfinance/Tradier, silently failing the same tail-end tickers every run (deterministic market-cap sort) — new Golden Rule 25. Recalibrated to limit=150, re-verified: 8 signals in one clean run vs. 0-2/day historically. Also directly verified (not assumed) that both Tradier and TwelveData are genuinely functional, per user's skepticism from seeing circuit-breaker-open log lines. |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 89 Summary (MR Universe Widened for Faster Sample Accumulation — Rate-Limit Bug Found + Fixed — v4.47)
+- **Continuation of the same session.** User asked how the automated paper-trading engine works and how to get to at least 10 signals/day so the 50-trade confirmation bar arrives faster.
+- **Explained the mechanics and the one legitimate lever**: momentum already scans market-wide; MR only checked a static 54-ticker list. Widening the *candidate pool* (more tickers checked against the same frozen rule) is legitimate; loosening the frozen RSI(2)/R:R thresholds to manufacture more signals would not be — that's exactly what Golden Rule 18 forbids, since it would mean paper-trading a different, unvalidated strategy.
+- **Built `scan_queries.build_mr_universe_query()`** — dynamic TradingView liquid-universe scan replacing the static list for the automated engine only (the manual `/api/mr/scan` UI endpoint is untouched). Momentum's raw-candidate limit also raised 50→150.
+- **First live test (limit=300) found a real bug, not just a slow run**: tripped TwelveData's rate limiter, opening its circuit breaker, cascading to yfinance and Tradier — ~35% of ~231 tickers failed on every provider. Because the query sorts by market cap descending, this would have silently and *permanently* excluded the same tail-end tickers every single day, not a random subset. **New Golden Rule 25.**
+- **Recalibrated to limit=150** (the number that completed cleanly) and re-verified: 8 real MR signals in one clean run, zero rate-limit failures — versus the historical 0-2/day baseline.
+- **Directly verified Tradier and TwelveData are genuinely functional**, per the user's skepticism from seeing "Circuit breaker OPEN" in logs — tested both providers directly (bypassing the app's breaker wrapper), got real current quotes/OHLCV from each, and watched both breakers self-heal live (OPEN → HALF_OPEN → CLOSED) once real calls succeeded after cooldown. They were legitimately tripped by the earlier stress test, not broken.
+- Scoped as the same kind of freeze exception as Day 88 — directly aids the paper-trading gate's sample-accumulation rate, not general product work. Version v4.46 → v4.47 (Backend v2.42 → v2.43, Frontend unchanged — no frontend files touched this session).
 
 ### Day 88 Summary (Paper Trading Ledger Surfaced in UI — Scoped Freeze Exception — v4.46)
 - **Continuation of Day 87's session.** After the complete feature freeze was declared, user asked two follow-ups about the automated paper-trading engine: where to see the ledger visually (is it in the Forward Test tab?), and whether a manual "missed run" trigger button could be added.
@@ -38,14 +47,7 @@
   3. **Price Structure Card Phase 2** — new `market_structure_engine.py`, HH/HL/LH/LL classification wired into `/api/sr/<ticker>`'s `meta.marketStructure`. Deliberately did NOT reuse the spec's assumed `find_pivot_points()` (doesn't exist) or `support_resistance.py`'s `_detect_zigzag_pivots()` (sorts+dedupes by price, destroying the chronological order needed) — wrote a separate detector instead of touching the frozen core S&R engine. **Exhaustive synthetic testing caught a real bug**: Transition detection wasn't filtering unlabeled bootstrap pivots, so a genuine reversal wasn't classified correctly — fixed before shipping.
 - Version v4.44 → v4.45 (Backend v2.40 → v2.41). New API_CONTRACTS_DAY87.md, Golden Rule 24 added. **Complete feature freeze now formally in effect** — bug fixes and paper-trading monitoring only.
 
-### Day 86 Summary (Master Framework Watchlist — User-Tested Gap Found and Fixed — v4.44)
-- **User ran the new Master Framework Watchlist (built Day 85) live for the first time**: 76/76 tickers matched, real prices, Breakout badges rendered correctly for the top 20 rows — the core deliverable worked. But the summary table's Name/Sector/Change/Volume/Market Cap columns all showed "N/A" or the bare ticker symbol.
-- **Explained the root cause first, then fixed what was fixable**: this is identical, pre-existing Nirmal Watchlist behavior, not a regression — both curated-ticker-list scans bypass TradingView's market-wide query (the source of those fields for the other 5 scan strategies) and use `/api/sr/<ticker>` instead, which only ever fetched OHLCV price history. User asked "is there a fix?" — found Volume and Change % were free (the route already fetches the OHLCV bars needed, just wasn't returning them); Name/Sector/Market Cap genuinely need a separate fundamentals call per ticker (added latency + provider rate-limit cost). User chose the free fix only.
-- **Shipped and verified live**: `/api/sr/<ticker>` now returns `volume`/`change` (`backend.py`, `BACKEND_VERSION` → 2.40); `fetchSupportResistance()`'s field whitelist updated to pass them through (`api.js`) — caught this whitelist gap before it could silently drop the new fields; `fetchWatchlistCandidates()` reads the real values instead of hardcoding `null` (`App.jsx`). Verified: GEV → volume 526,156 / change -1.0%; CCO.TO → volume 800,496 / change -0.92%; 3 more tickers spot-checked.
-- **Clarified a misconception**: user asked whether the remaining N/A fields meant "TradingView is unable to fetch it" — no, TradingView is never called in this code path at all; the gap is architectural (this endpoint only computes price-derived S/R levels), not a data-source failure.
-- New API_CONTRACTS_DAY86.md documents the `/api/sr/<ticker>` response change. Version v4.43 → v4.44 (Backend v2.39 → v2.40, Frontend v4.39 → v4.40).
-
-*(Day 85's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY85_SHORT.md`. Day 84's is in `PROJECT_STATUS_DAY84_SHORT.md`.)*
+*(Day 86's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY86_SHORT.md`. Day 85's is in `PROJECT_STATUS_DAY85_SHORT.md`.)*
 
 ---
 
@@ -123,9 +125,9 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 
 ## NEXT SESSION PRIORITIES
 
-**Complete feature freeze in effect as of Day 87** — bug fixes and paper-trading monitoring only, until 50+ live trades confirm the momentum/MR edges. Day 88 added one narrowly-scoped, explicitly-agreed exception (paper-trading ledger UI + manual trigger — see below); the items still "queued" (N3, Value Tab Phase 2) are backlog, not freeze exceptions — they need their own design sessions before any code, per Golden Rule 24.
+**Complete feature freeze in effect as of Day 87** — bug fixes and paper-trading monitoring only, until 50+ live trades confirm the momentum/MR edges. Days 88-89 added two narrowly-scoped, explicitly-agreed exceptions (paper-trading ledger UI + manual trigger; MR universe widened for faster sample accumulation — see below); the items still "queued" (N3, Value Tab Phase 2) are backlog, not freeze exceptions — they need their own design sessions before any code, per Golden Rule 24.
 
-1. **Let paper trading accumulate** — PRIMARY FOCUS, the only thing actually gating capital allocation. Expect it to take a while: **~7 months for MR, ~2.2 years for momentum at backtest-implied rates (Day 82 estimate, highly uncertain — re-estimate after 4-6 weeks of real data)**. `/sta-start` warns automatically if the launchd job goes stale (>3 days). Check progress via the Forward Test tab's new status panel (Day 88) or `venv/bin/python paper_trading/daily_job.py --report`. Nothing to build here.
+1. **Let paper trading accumulate** — PRIMARY FOCUS, the only thing actually gating capital allocation. MR's sample rate should now be meaningfully faster after Day 89's universe widening (8 signals in one test run vs. 0-2/day historically) — momentum's rate is largely unchanged (bottleneck is qualifying candidates, not scan limit). Prior estimate (**~7 months for MR, ~2.2 years for momentum**, Day 82, highly uncertain) should be re-derived once a few weeks of the new MR rate are observed. `/sta-start` warns automatically if the launchd job goes stale (>3 days). Check progress via the Forward Test tab's status panel (Day 88) or `venv/bin/python paper_trading/daily_job.py --report`. Nothing to build here.
 2. **Decide fundamentals mitigation** — Task 3.2 measured 40.0% live↔backtest disagreement; user decision pending (align live-to-SimFin or backtest-to-TTM). Now also affects the automated engine's momentum leg.
 3. **Confirm SimFin key rotation** — user to verify the old leaked key was rotated at simfin.com; a possible new key was shared in conversation but not yet applied.
 4. **N3 gap-fill detection** — needs its own design session first (Day 87 finding: no spec exists yet, only a placeholder pointer in `BREAKOUT_ENHANCEMENT_PLAN.md`).
@@ -221,6 +223,7 @@ sqlite3 backend/validation_results/paper_trading_ledger.db "SELECT MAX(run_date)
 | 86 | User's first live test of the Master Framework Watchlist found Name/Sector/Change/Volume/Market Cap all showing N/A. Fixed Volume/Change for free (`/api/sr/<ticker>` already fetched the OHLCV needed, wasn't returning it) — fixes both curated watchlists at once; Name/Market Cap deferred by explicit user choice (would need a per-ticker fundamentals call). New API_CONTRACTS_DAY86.md. Version v4.43 → v4.44 (BE v2.39 → v2.40, FE v4.39 → v4.40). |
 | 87 | Backlog cleanup session: Breakout Enhancement Plan Phase 1 shipped (completes the whole plan), N4 Market Phase Synthesis built, Price Structure Card Phase 2 built (HH/HL/LH/LL structure). N3 and Value Tab Phase 2 scoped and explicitly deferred — both needed their own design/infra work, not quick adds (Golden Rule 24). Exhaustive testing caught a real Transition-detection bug in the new market structure classifier before shipping. **Complete feature freeze declared.** Version v4.44 → v4.45 (BE v2.40 → v2.41, FE v4.40 → v4.41). |
 | 88 | Paper trading ledger surfaced in UI (Forward Test tab panel + `/api/paper-trading/status`/`trigger`) — agreed as the one scoped exception to Day 87's freeze since it directly aids the paper-trading gate itself. Verified live end-to-end (triggered a real run, confirmed ledger state updated). Version v4.45 → v4.46 (BE v2.41 → v2.42, FE v4.41 → v4.42). |
+| 89 | MR arm's live universe widened from a static 54-ticker list to a dynamic ~150-ticker TradingView scan (8 signals/run vs. 0-2/day historically) — same scoped-exception rationale as Day 88. Live testing at limit=300 found a real rate-limit cascade bug (TwelveData → yfinance → Tradier, same tail-end tickers silently excluded every run due to deterministic sort) — new Golden Rule 25, recalibrated to limit=150. Also directly verified Tradier/TwelveData are genuinely functional per user's skepticism. Version v4.46 → v4.47 (BE v2.42 → v2.43, FE unchanged). |
 
 ---
 

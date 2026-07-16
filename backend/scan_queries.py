@@ -93,6 +93,46 @@ def build_best_query(limit=50, market_index='all'):
     return query, is_canadian
 
 
+def build_mr_universe_query(limit=150):
+    """
+    Day 88: broad liquid-universe candidate pool for the automated paper
+    trading engine's MR arm, replacing the previous hardcoded 54-name
+    DEFAULT_MR_UNIVERSE. This is a breadth change only, not a threshold
+    change — the actual MR entry gate (RSI(2)<10, price>$10, 20d ADV>$25M)
+    is still enforced per-ticker by mean_reversion.detect_mr_signal()
+    downstream; this query is just a cheap pre-filter so the daily job
+    doesn't waste cycles fetching obviously-illiquid penny stocks.
+
+    limit=150 (not larger) is a measured constraint, not an arbitrary
+    choice: a live test at limit=300 (~231 parsed tickers) tripped
+    TwelveData's rate limiter partway through, which opened its circuit
+    breaker and cascaded to yfinance/Tradier too — ~35% of that run's
+    tickers failed on ALL providers, not because they lacked a signal.
+    Since results are ordered by market_cap_basic descending, that failure
+    always hits the SAME tail-end tickers, not a rotating sample — a
+    silent, deterministic gap. limit=150 is calibrated to what actually
+    completed cleanly in that test.
+
+    Same market-wide breadth pattern as build_best_query() for the
+    momentum arm — no re-tuning of any frozen threshold in
+    PAPER_TRADING_PREREGISTRATION.md, which locks entry/exit rules, not
+    universe size.
+
+    Returns (query, is_canadian) — query is unexecuted.
+    """
+    query = Query()
+    query = query.set_markets('america')
+    query = query.select('close', 'market_cap_basic', 'average_volume_10d_calc', 'exchange')
+    query = query.where(
+        col('exchange').isin(US_EXCHANGES),
+        col('market_cap_basic') >= 500_000_000,
+        col('close') > 5,
+    )
+    query = query.order_by('market_cap_basic', ascending=False)
+    query = query.limit(limit)
+    return query, False
+
+
 def parse_candidates(results, is_canadian, strategy='best'):
     """
     Row cleanup identical to scan_tradingview(): strips exchange prefix,
