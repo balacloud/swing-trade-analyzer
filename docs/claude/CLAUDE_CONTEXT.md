@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 89 — end of day (July 16, 2026)
+> **Last Updated:** Day 90 — end of day (July 17, 2026)
 
 ---
 
@@ -11,16 +11,23 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 89 |
-| Version | v4.47 (Backend v2.43, Frontend v4.42 unchanged, Backtest v4.19, API Service v2.11) |
-| Latest Status | PROJECT_STATUS_DAY89_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY89.md |
-| Latest API | No API contract changes this session (see API_CONTRACTS_DAY88.md for the latest) — internal signal-generation logic only |
-| Focus | **Complete feature freeze in effect, with a second scoped exception (same rationale as Day 88).** User asked how the automated engine works and how to get to ~10 signals/day faster. Widened the MR arm's live universe from a static 54-ticker list to a dynamic ~150-ticker TradingView scan — legitimate because it's candidate-pool breadth, not a threshold re-tune (Golden Rule 18 still holds). A live test at limit=300 found a real bug: it tripped TwelveData's rate limiter, cascading to yfinance/Tradier, silently failing the same tail-end tickers every run (deterministic market-cap sort) — new Golden Rule 25. Recalibrated to limit=150, re-verified: 8 signals in one clean run vs. 0-2/day historically. Also directly verified (not assumed) that both Tradier and TwelveData are genuinely functional, per user's skepticism from seeing circuit-breaker-open log lines. |
+| Current Day | 90 |
+| Version | v4.47 (Backend v2.43, Frontend v4.42 unchanged, Backtest v4.19, API Service v2.11) — unchanged this session |
+| Latest Status | PROJECT_STATUS_DAY90_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY90.md |
+| Latest API | No API contract changes this session (see API_CONTRACTS_DAY88.md for the latest) |
+| Focus | **Monitoring-only session, no code changes — freeze remains fully in effect.** User's focus: check paper-trading progress (Momentum 2 open/0 closed; MR 9 open/4 closed, 75% WR, PF 2.19) and understand the Forward Test tab's "Force Run Now" button — what happens on repeated clicks, and why no ticker-level detail is shown. Investigated the code (read-only) and confirmed existing behavior is correct by design: no duplicate trades possible (dedup via `has_active_or_cooldown`), same-day re-clicks overwrite the run summary (`job_runs` UNIQUE + `INSERT OR REPLACE`) rather than accumulating it, and the panel is aggregate-only by design (no ticker names anywhere in the UI). No bug found, nothing built — user explicitly parked further work (e.g. a ticker-level table) and closed the session. |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 90 Summary (Monitoring + Force Run Investigation — No Code Changes — v4.47 unchanged)
+- **Paper trading check-in** (the session's stated focus, given the freeze): `daily_job.py --report` showed Momentum 2 open/0 closed (no stats yet); MR 9 open/4 closed, 75% win rate, PF 2.19, expectancy +1.49%/trade — early, directional only.
+- **User asked what happens on repeated "Force Run Now" clicks**, and why the panel shows only aggregate counts, not ticker names. Traced `daily_job.py`/`ledger.py`/`live_signals.py`/`AutomatedPaperTradingPanel.jsx` before answering, rather than guessing.
+- **Findings (no bug — confirmed working as designed):** the trigger route always passes `force=True` (deliberately bypassing the same-day idempotent guard meant only for the scheduled run); `has_active_or_cooldown()` prevents any duplicate trade on repeat clicks; `job_runs.run_date` is UNIQUE with `INSERT OR REPLACE`, so a same-day re-click **overwrites** that day's summary rather than accumulating it — the "Run complete" banner only ever reflects the latest click's delta. The real (non-correctness) cost of rapid repeat-clicking is live provider load — each click re-scans ~150 candidates per side plus every open position against the same rate-limited chain Golden Rule 25 already found tips over. The panel has no ticker-level display anywhere; seeing actual tickers needs a direct SQLite query against `paper_positions`.
+- Items 2-7 from Day 89's priority list (fundamentals mitigation, SimFin key rotation, N3, Value Tab Phase 2, `/ibkr-scan`, Price Structure Phase 3, Canadian page) explicitly parked in ROADMAP.md by user request, not re-litigated this session.
+- No version bump, no API changes, no new Golden Rule (existing design confirmed correct, not a lesson from a mistake), no roadmap changes.
 
 ### Day 89 Summary (MR Universe Widened for Faster Sample Accumulation — Rate-Limit Bug Found + Fixed — v4.47)
 - **Continuation of the same session.** User asked how the automated paper-trading engine works and how to get to at least 10 signals/day so the 50-trade confirmation bar arrives faster.
@@ -38,16 +45,7 @@
 - **Built and verified live**: two new endpoints (`GET /api/paper-trading/status` read-only, `POST /api/paper-trading/trigger` wraps the exact same `run_daily_job(force=True)` the launchd scheduler already calls — no new trading logic) and a new `AutomatedPaperTradingPanel.jsx` component in the Forward Test tab (visually distinct from the manual journal, shows both systems' stats + a staleness warning + the trigger button). Verified end-to-end by actually triggering a run: `lastRunDate` advanced, momentum open positions 1→2, MR open positions 2→4 — confirming the trigger and status endpoints read/write the same ledger, not just independently-plausible code.
 - Version v4.45 → v4.46 (Backend v2.41 → v2.42). New API_CONTRACTS_DAY88.md. No new Golden Rule — straightforward build, no surprises.
 
-### Day 87 Summary (Backlog Cleanup — Breakout Plan Complete + N4 + Price Structure Phase 2 — Complete Freeze Declared — v4.45)
-- **User asked what 3 bundled backlog items (Breakout Plan Phase 1, N4 Market Phase, "Value Tab Phase 2/Price Structure Phase 2/N3") actually were, why they mattered, and whether they mattered from first principles** given the project's feature freeze. Answered directly: none of them touch the paper-trading gate (the only thing that actually matters right now), all are informational/entry-signal decoration — the 10%-of-results bucket per Van Tharp, not the 90%-of-results position-sizing/risk bucket. User heard the argument, decided to close out the ones that were genuinely quick, then declare a full freeze.
-- **Caught 2 scope mischaracterizations before building, not after** (Golden Rule 24, new this session): N3 (gap-fill detection) turned out to have no design doc at all — deferred, needs its own design session. Value Tab Phase 2's actual spec (`VALUE_TAB_SPEC.md`) explicitly requires nightly batch-prefetch infrastructure and says "build only after feature freeze lift" — building it on-demand (the natural approach) would have contradicted its own documented design and blown through AlphaVantage's ~8-tickets/day free-tier budget. A diagnostic check to verify AV field names before writing code burned the day's remaining AV quota (2 of 3 test calls rate-limited by AlphaVantage's own servers) — confirmed `INCOME_STATEMENT` fields but not `BALANCE_SHEET`/`CASH_FLOW`. Both deferrals were confirmed with the user before proceeding.
-- **Shipped 3 items, each exhaustively verified, not spot-checked:**
-  1. **Breakout Enhancement Plan Phase 1** ("Near Breakout" scan preset) — completes the entire plan. New `strategy=breakout` option: Stage-2 stocks within 8% of 52W high, mkt cap≥$2B, price>$10, RSI 50-70, ADX≥20, ADV≥$5M. The 8%-from-high and dollar-volume filters are post-filters (TradingView `col()` can't do the needed arithmetic) applied after fetching a wider net so the post-filter isn't starved. All 50 returned candidates checked against every filter — zero violations.
-  2. **N4 Market Phase Synthesis** — new `market_phase_engine.py` + `/api/market/phase`. Classifies market conditions into 5 phases via a transparent 3×3 grid (SPY trend × VIX level), breadth/sector as supporting evidence not gates. Grid logic exhaustively unit-tested (all 9 cells + refinement rule + boundaries). Displayed in a new Context tab banner.
-  3. **Price Structure Card Phase 2** — new `market_structure_engine.py`, HH/HL/LH/LL classification wired into `/api/sr/<ticker>`'s `meta.marketStructure`. Deliberately did NOT reuse the spec's assumed `find_pivot_points()` (doesn't exist) or `support_resistance.py`'s `_detect_zigzag_pivots()` (sorts+dedupes by price, destroying the chronological order needed) — wrote a separate detector instead of touching the frozen core S&R engine. **Exhaustive synthetic testing caught a real bug**: Transition detection wasn't filtering unlabeled bootstrap pivots, so a genuine reversal wasn't classified correctly — fixed before shipping.
-- Version v4.44 → v4.45 (Backend v2.40 → v2.41). New API_CONTRACTS_DAY87.md, Golden Rule 24 added. **Complete feature freeze now formally in effect** — bug fixes and paper-trading monitoring only.
-
-*(Day 86's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY86_SHORT.md`. Day 85's is in `PROJECT_STATUS_DAY85_SHORT.md`.)*
+*(Day 87's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY87_SHORT.md`. Day 86's is in `PROJECT_STATUS_DAY86_SHORT.md`.)*
 
 ---
 
@@ -125,9 +123,9 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 
 ## NEXT SESSION PRIORITIES
 
-**Complete feature freeze in effect as of Day 87** — bug fixes and paper-trading monitoring only, until 50+ live trades confirm the momentum/MR edges. Days 88-89 added two narrowly-scoped, explicitly-agreed exceptions (paper-trading ledger UI + manual trigger; MR universe widened for faster sample accumulation — see below); the items still "queued" (N3, Value Tab Phase 2) are backlog, not freeze exceptions — they need their own design sessions before any code, per Golden Rule 24.
+**Complete feature freeze in effect as of Day 87** — bug fixes and paper-trading monitoring only, until 50+ live trades confirm the momentum/MR edges. Days 88-89 added two narrowly-scoped, explicitly-agreed exceptions (paper-trading ledger UI + manual trigger; MR universe widened for faster sample accumulation — see below); Day 90 was pure monitoring, no exception needed. The items still "queued" (N3, Value Tab Phase 2) are backlog, not freeze exceptions — they need their own design sessions before any code, per Golden Rule 24. Items 2-7 below are explicitly parked (per-session, not re-litigated) per Day 90's user instruction.
 
-1. **Let paper trading accumulate** — PRIMARY FOCUS, the only thing actually gating capital allocation. MR's sample rate should now be meaningfully faster after Day 89's universe widening (8 signals in one test run vs. 0-2/day historically) — momentum's rate is largely unchanged (bottleneck is qualifying candidates, not scan limit). Prior estimate (**~7 months for MR, ~2.2 years for momentum**, Day 82, highly uncertain) should be re-derived once a few weeks of the new MR rate are observed. `/sta-start` warns automatically if the launchd job goes stale (>3 days). Check progress via the Forward Test tab's status panel (Day 88) or `venv/bin/python paper_trading/daily_job.py --report`. Nothing to build here.
+1. **Let paper trading accumulate** — PRIMARY FOCUS, the only thing actually gating capital allocation. As of Day 90's check-in: Momentum 2 open/0 closed; MR 9 open/4 closed (75% WR, PF 2.19, +1.49%/trade — early, directional only). MR's sample rate should now be meaningfully faster after Day 89's universe widening (8 signals in one test run vs. 0-2/day historically) — momentum's rate is largely unchanged (bottleneck is qualifying candidates, not scan limit). Prior estimate (**~7 months for MR, ~2.2 years for momentum**, Day 82, highly uncertain) should be re-derived once a few weeks of the new MR rate are observed. `/sta-start` warns automatically if the launchd job goes stale (>3 days). Check progress via the Forward Test tab's status panel (Day 88) or `venv/bin/python paper_trading/daily_job.py --report`. Nothing to build here.
 2. **Decide fundamentals mitigation** — Task 3.2 measured 40.0% live↔backtest disagreement; user decision pending (align live-to-SimFin or backtest-to-TTM). Now also affects the automated engine's momentum leg.
 3. **Confirm SimFin key rotation** — user to verify the old leaked key was rotated at simfin.com; a possible new key was shared in conversation but not yet applied.
 4. **N3 gap-fill detection** — needs its own design session first (Day 87 finding: no spec exists yet, only a placeholder pointer in `BREAKOUT_ENHANCEMENT_PLAN.md`).
@@ -224,6 +222,7 @@ sqlite3 backend/validation_results/paper_trading_ledger.db "SELECT MAX(run_date)
 | 87 | Backlog cleanup session: Breakout Enhancement Plan Phase 1 shipped (completes the whole plan), N4 Market Phase Synthesis built, Price Structure Card Phase 2 built (HH/HL/LH/LL structure). N3 and Value Tab Phase 2 scoped and explicitly deferred — both needed their own design/infra work, not quick adds (Golden Rule 24). Exhaustive testing caught a real Transition-detection bug in the new market structure classifier before shipping. **Complete feature freeze declared.** Version v4.44 → v4.45 (BE v2.40 → v2.41, FE v4.40 → v4.41). |
 | 88 | Paper trading ledger surfaced in UI (Forward Test tab panel + `/api/paper-trading/status`/`trigger`) — agreed as the one scoped exception to Day 87's freeze since it directly aids the paper-trading gate itself. Verified live end-to-end (triggered a real run, confirmed ledger state updated). Version v4.45 → v4.46 (BE v2.41 → v2.42, FE v4.41 → v4.42). |
 | 89 | MR arm's live universe widened from a static 54-ticker list to a dynamic ~150-ticker TradingView scan (8 signals/run vs. 0-2/day historically) — same scoped-exception rationale as Day 88. Live testing at limit=300 found a real rate-limit cascade bug (TwelveData → yfinance → Tradier, same tail-end tickers silently excluded every run due to deterministic sort) — new Golden Rule 25, recalibrated to limit=150. Also directly verified Tradier/TwelveData are genuinely functional per user's skepticism. Version v4.46 → v4.47 (BE v2.42 → v2.43, FE unchanged). |
+| 90 | Monitoring-only session, no code changes. Paper-trading check-in (Momentum 2 open/0 closed; MR 9 open/4 closed, 75% WR, PF 2.19). Investigated "Force Run Now" repeat-click behavior at user's request — confirmed no duplicate trades possible (dedup + one-way close), same-day re-clicks overwrite the run summary rather than accumulating (job_runs UNIQUE + INSERT OR REPLACE), and the panel is aggregate-only by design (no ticker-level display). No bug found, nothing built — user parked further work and closed. Version unchanged (v4.47). |
 
 ---
 
