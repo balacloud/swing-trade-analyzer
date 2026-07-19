@@ -112,13 +112,28 @@ def step_open_positions():
                 continue
 
             if row['system'] == 'momentum':
+                # Session 28 audit fix: replay against the stop/target
+                # actually recorded at entry, not whatever compute_entry_levels()
+                # would produce today — otherwise a future change to that
+                # formula silently re-grades already-open positions with no
+                # ledger trace of the change.
                 result = simulate_trade(
                     df, entry_idx, row['holding_period'],
-                    entry_price=row['entry_price'], live_mode=True
+                    entry_price=row['entry_price'],
+                    stop_price=row['initial_stop_price'],
+                    target_price=row['initial_target_price'],
+                    live_mode=True
                 )
             else:
+                # Same fix for MR: derive stop_pct from the stored
+                # initial_stop_price/entry_price rather than the module
+                # constant, and use the stored max_hold_days rather than
+                # MR_MAX_DAYS, so a future constant change can't retroactively
+                # alter positions already open under the old rule.
+                stop_pct = 1 - (row['initial_stop_price'] / row['entry_price'])
+                max_days = row['max_hold_days'] or MR_MAX_DAYS
                 result = simulate_mr_trade(
-                    df, entry_idx, stop_pct=MR_STOP_PCT, max_days=MR_MAX_DAYS, live_mode=True
+                    df, entry_idx, stop_pct=stop_pct, max_days=max_days, live_mode=True
                 )
 
             if result['status'] == 'closed':

@@ -2,18 +2,19 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 87 (July 16, 2026)
+> **Last Updated:** Day 91 (July 19, 2026)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.47 (Backend v2.43, Frontend v4.42, Backtest v4.19, API Service v2.11)
+## Current Version: v4.48 (Backend v2.44, Frontend v4.43, Backtest v4.19, API Service v2.11)
 *Day 84 close: fixed a version-drift gap — this line was still Day 81's v4.39 while CLAUDE_CONTEXT.md had already moved to v4.42 (Day 83). ROADMAP.md's version line wasn't part of the Day 83 close's update checklist; now caught up.*
 *Day 85: no version bump — session was a backend/frontend reliability fix (Golden Rule 23), a breakout NOT_READY badge display fix, and a new TradingView screener reference doc, not a versioned feature.*
 *Day 86: v4.44 — Master Framework Watchlist's user-tested gap (Name/Volume/Change/Market Cap showing N/A) led to a real `/api/sr/<ticker>` API change (new `volume`/`change` fields, see `API_CONTRACTS_DAY86.md`), warranting a backend version bump.*
 *Day 87: v4.45 — Breakout Enhancement Plan Phase 1 (completing the whole plan), N4 Market Phase Synthesis, and Price Structure Card Phase 2 all shipped in one session (backlog cleanup before declaring a complete feature freeze). Value Tab Phase 2 and N3 gap-fill detection were scoped and explicitly deferred — see Golden Rule 24.*
 *Day 88: v4.46 — Paper trading ledger surfaced in the UI (`/api/paper-trading/status` + `/trigger`, new Forward Test tab panel), agreed as the one scoped exception to the Day 87 freeze since it directly aids the paper-trading gate itself, not general product work.*
 *Day 89: v4.47 — MR arm's automated live universe widened from a static 54-ticker list to a dynamic ~150-ticker TradingView scan (8 signals in one test run vs. 0-2/day historically), calibrated down from an initial 300 after a live test tripped TwelveData's rate limiter (new Golden Rule 25). Same scoped-exception rationale as Day 88 — faster sample accumulation for the paper-trading gate, not new features.*
+*Day 91: v4.48 — Triaged the hub-side Session 28 audit (`HANDOFF_sta_audit_session28.md`, found untracked at repo root) and fixed its 4 top-priority findings: Scan tab's "Minervini SEPA" mislabel renamed, Sectors tab's false "100=market parity"/wrong-data-source claims corrected, Context tab's CPI card root-caused to a real date-alignment bug in `_yoy()` (not caching as the audit guessed — new Golden Rule 26) and fixed, PMI proxy card relabeled, and paper-trading's daily replay fixed to anchor stop/target to values already stored at entry instead of recomputing fresh (new Golden Rule 27). All bug fixes to existing systems — no new features, no API contract shape changes. Freeze remains in effect.*
 
 ---
 
@@ -238,7 +239,7 @@ Supply Chain, CanGem, STRATUM, QUBIT). Full scope + verification writeup:
 
 ---
 
-## ACTIVE PRIORITY ORDER (Day 88 updated — complete feature freeze in effect)
+## ACTIVE PRIORITY ORDER (Day 91 updated — complete feature freeze in effect)
 
 | # | Item | Why | Effort |
 |---|------|-----|--------|
@@ -251,9 +252,11 @@ Supply Chain, CanGem, STRATUM, QUBIT). Full scope + verification writeup:
 | 7 | **Price Structure Phase 3** | Visual chart via lightweight-charts (Phases 1-2 done as of Day 87). | Medium |
 | 8 | **Canadian Analyze page** | Medium bug, data source redesign needed | High |
 | 9 | **(Optional, low priority) Scan tab batch breakout badges: distinguish NOT_READY from a failed fetch** | Currently both render as a plain "—" dash (`App.jsx` ~line 2753) — same ambiguity class as the single-ticker card had before the Day 84 fix, just not yet asked for at the 20-row table. | Small |
+| 10 | **Session 28 audit — remaining lower-priority findings** | Top-4 fixed Day 91 (see below). Remaining, from `HANDOFF_sta_audit_session28.md`: Value tab's ROE thresholds badged "Buffett/Damodaran" when the code comment says "ChatGPT research validated"; Validate/Data Sources tabs show "live"/"healthy" status without probing real fetch success (missing data renders identically to fresh data); Sectors tab's Rank #1 CTA bypasses the same Leading/Improving gate per-card buttons respect, plus `.toFixed(3)` false precision; Forward Testing's momentum-path trades store identical net/gross P&L (fee accounting not differentiated) and per-position fetch failures are silently dropped. Plus the audit's own "polish" list (transparency blocks, composite-score recalculation, softened wording on a few cards). | Small-Medium, batchable |
 
 **Done as of Day 87:** Breakout Enhancement Plan (all phases), N4 Market Phase Synthesis, Price Structure Card Phase 2 — see their own COMPLETE sections above.
 **Done as of Day 88:** Paper-trading ledger surfaced in the UI (Forward Test tab) with a manual trigger button — agreed as the one scoped exception to the freeze (directly aids the gate itself, not general product work).
+**Done as of Day 91:** Session 28 audit's top-4 findings — Scan tab "Minervini" mislabel, Sectors tab false "100=parity"/data-source claims, Context tab CPI (real date-alignment bug, not caching) + PMI proxy relabel, paper-trading exit-rule integrity (replay now anchors to stored entry values). See Golden Rules 26-27.
 
 ---
 

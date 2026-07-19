@@ -2007,8 +2007,16 @@ def get_scan_strategies():
             },
             {
                 'id': 'minervini',
-                'name': 'Minervini SEPA',
-                'description': 'Large-cap momentum leaders in Stage 2 uptrend'
+                # Session 28 audit fix (Jul 2026): this preset only checks 2 of
+                # Minervini's real 8-criteria Trend Template (cap>=$10B,
+                # close>SMA50>SMA200, 1W/1M change>=0) — it previously claimed
+                # "Minervini SEPA"/"Stage 2 uptrend" pedigree the calculation
+                # never earned. The full, correct 8-criteria implementation
+                # already exists in pattern_detection.py's check_trend_template()
+                # (used by 'best' below) — this preset is its own thing, not a
+                # cheaper substitute, so it gets its own accurate name instead.
+                'name': 'Large-Cap Momentum Filter',
+                'description': 'Large-cap ($10B+) stocks above rising SMA50/SMA200 with positive 1W/1M momentum'
             },
             {
                 'id': 'momentum',

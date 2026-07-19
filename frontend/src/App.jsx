@@ -2643,7 +2643,7 @@ function App() {
                   ) : (
                     <>
                       <option value="reddit">Reddit - Popular momentum</option>
-                      <option value="minervini">Minervini - Stage 2 leaders</option>
+                      <option value="minervini">Large-Cap Momentum Filter</option>
                       <option value="momentum">Momentum - Strong 52w</option>
                       <option value="value">Value - Quality discounts</option>
                       <option value="best">Best Candidates - Backtested Config C picks</option>

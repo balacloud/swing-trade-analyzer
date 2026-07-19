@@ -50,28 +50,57 @@ def _fetch_fred(series_id: str, limit: int = 14):
         return None
 
 
+def _at_months_ago(series: list, latest_date, months: int):
+    """Find the observation `months` calendar-months before latest_date, by
+    date match rather than list position. FRED sometimes withholds a month's
+    observation ('.', already filtered out by _fetch_fred), which silently
+    shifts every later list index by one — a fixed-position lookback then
+    lands on the wrong month. Confirmed live (Session 28 audit, Jul 2026):
+    a missing 2025-10 CPI observation shifted the "12 back" index onto
+    2025-05 instead of 2025-06, reporting CPI YoY as 3.7%/2.8% when the
+    real year-over-year figure (correctly date-matched) is 3.5%/2.6%.
+    """
+    target_month = latest_date.month - months
+    target_year = latest_date.year
+    while target_month <= 0:
+        target_month += 12
+        target_year -= 1
+    for date_str, val in series:
+        d = datetime.strptime(date_str, '%Y-%m-%d')
+        if d.year == target_year and d.month == target_month:
+            return val
+    return None
+
+
 def _yoy(series: list, periods: int = 12):
-    """Calculate YoY % change. series = [(date, val), ...] newest first."""
-    if not series or len(series) <= periods:
+    """Calculate YoY % change. series = [(date, val), ...] newest first.
+    `periods` is a calendar-month count, matched by date via _at_months_ago,
+    not a raw list index (see its docstring for why that distinction matters)."""
+    if not series:
         return None
+    latest_date = datetime.strptime(series[0][0], '%Y-%m-%d')
     latest = series[0][1]
-    year_ago = series[periods][1]
-    if year_ago == 0:
+    year_ago = _at_months_ago(series[1:], latest_date, periods)
+    if year_ago is None or year_ago == 0:
         return None
     return ((latest - year_ago) / abs(year_ago)) * 100
 
 
 def _trend(series: list, periods: int = 3, threshold: float = 0.1):
     """
-    Returns 'rising', 'falling', or 'flat' over last `periods` observations.
+    Returns 'rising', 'falling', or 'flat' comparing latest to `periods`
+    calendar-months ago (date-matched via _at_months_ago, not list position).
     series = [(date, val), ...] newest first.
     threshold: minimum delta to call rising/falling (default 0.1 for Fed Funds bps;
                pass 0.3 for unemployment per spec 'rapidly rising = >0.3% in 3 months')
     """
-    if not series or len(series) < periods:
+    if not series:
         return 'flat'
+    latest_date = datetime.strptime(series[0][0], '%Y-%m-%d')
     latest = series[0][1]
-    old = series[periods - 1][1]
+    old = _at_months_ago(series[1:], latest_date, periods)
+    if old is None:
+        return 'flat'
     delta = latest - old
     if delta > threshold:
         return 'rising'
@@ -179,15 +208,20 @@ def _pmi_card():
         prev = data[1][1]
         mom_pct = ((latest - prev) / prev) * 100 if prev else 0.0
 
+        # Session 28 audit fix: the prior "(proxy PMI>52)" / "48-52" / "<48"
+        # bands implied this MoM employment-count change had been calibrated
+        # against the real ISM PMI diffusion index. It hasn't — these
+        # thresholds were chosen for this proxy alone. Label the regime in
+        # this proxy's own terms, not borrowed PMI numbers.
         if mom_pct > 0.15:
             regime = 'FAVORABLE'
-            phase = f'{latest:.0f}K workers · +{mom_pct:.2f}% MoM · Expanding (proxy PMI>52)'
+            phase = f'{latest:.0f}K workers · +{mom_pct:.2f}% MoM · Expanding'
         elif mom_pct >= -0.05:
             regime = 'NEUTRAL'
-            phase = f'{latest:.0f}K workers · {mom_pct:+.2f}% MoM · Flat (proxy PMI 48-52)'
+            phase = f'{latest:.0f}K workers · {mom_pct:+.2f}% MoM · Flat'
         else:
             regime = 'ADVERSE'
-            phase = f'{latest:.0f}K workers · {mom_pct:.2f}% MoM · Contracting (proxy PMI<48)'
+            phase = f'{latest:.0f}K workers · {mom_pct:.2f}% MoM · Contracting'
 
         value_str = f'MANEMP {mom_pct:+.2f}% MoM'
         raw_value = mom_pct
@@ -198,13 +232,13 @@ def _pmi_card():
         raw_value = None
 
     return {
-        'name': 'ISM PMI (proxy)',
+        'name': 'Manufacturing Employment (PMI proxy)',
         'icon': '🏭',
         'value': value_str,
         'phase': phase,
-        'source': 'FRED MANEMP (manufacturing employment proxy)',
+        'source': 'FRED MANEMP (manufacturing employment proxy, NOT real ISM PMI)',
         'series_id': 'MANEMP',
-        'history': 'PMI 50–55 = avg S&P +10.1% fwd 12m historically',
+        'history': 'Employment-count proxy only — the "PMI 50-55 = +10.1% fwd 12m" historical stat was built from the real ISM PMI series and does not apply to this metric',
         'regime': regime,
         'raw_value': raw_value,
     }

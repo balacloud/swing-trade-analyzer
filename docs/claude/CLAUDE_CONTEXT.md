@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 90 — end of day (July 17, 2026)
+> **Last Updated:** Day 91 — end of day (July 19, 2026)
 
 ---
 
@@ -11,16 +11,26 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 90 |
-| Version | v4.47 (Backend v2.43, Frontend v4.42 unchanged, Backtest v4.19, API Service v2.11) — unchanged this session |
-| Latest Status | PROJECT_STATUS_DAY90_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY90.md |
-| Latest API | No API contract changes this session (see API_CONTRACTS_DAY88.md for the latest) |
-| Focus | **Monitoring-only session, no code changes — freeze remains fully in effect.** User's focus: check paper-trading progress (Momentum 2 open/0 closed; MR 9 open/4 closed, 75% WR, PF 2.19) and understand the Forward Test tab's "Force Run Now" button — what happens on repeated clicks, and why no ticker-level detail is shown. Investigated the code (read-only) and confirmed existing behavior is correct by design: no duplicate trades possible (dedup via `has_active_or_cooldown`), same-day re-clicks overwrite the run summary (`job_runs` UNIQUE + `INSERT OR REPLACE`) rather than accumulating it, and the panel is aggregate-only by design (no ticker names anywhere in the UI). No bug found, nothing built — user explicitly parked further work (e.g. a ticker-level table) and closed the session. |
+| Current Day | 91 |
+| Version | v4.48 (Backend v2.44, Frontend v4.43, Backtest v4.19, API Service v2.11) |
+| Latest Status | PROJECT_STATUS_DAY91_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY91.md |
+| Latest API | No API contract changes this session (only label/value corrections, no field/shape changes — see API_CONTRACTS_DAY88.md for the latest actual contract) |
+| Focus | **Bug-fix session, freeze remains fully in effect.** Found `HANDOFF_sta_audit_session28.md` (an untracked, unactioned hub-side audit) at the user's request, triaged it, and fixed its 4 top-priority findings: Scan tab's "Minervini SEPA" mislabel, Sectors tab's false "100=market parity"/wrong-data-source claims, Context tab's CPI card (root-caused to a real date-alignment bug in `_yoy()`, not caching as the audit guessed — new Golden Rule 26) + PMI proxy relabel, and paper-trading's daily replay (now anchors stop/target to values stored at entry instead of recomputing fresh — new Golden Rule 27, caught a live instance of the exact drift risk during verification). Verified the paper-trading fix end-to-end via a real force-run of the daily job. Remaining lower-priority audit findings tracked as ROADMAP.md priority #10. |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 91 Summary (Session 28 Audit Triage — 4 Bugs Fixed — v4.48)
+- **User asked at session start whether a handoff document existed** — found `HANDOFF_sta_audit_session28.md`, untracked at the repo root, a hub-side Fable audit (Jul 17-19) never actioned or logged in the normal doc rotation. Part 1 (doc-vs-code coherence) had no urgent findings; Part 2 (tab-by-tab methodology audit — 5 Fable agents + an Opus persona pass + an external ChatGPT review) found 0 CRITICAL / 8 HIGH-equivalent findings.
+- **User scoped this session to the 4 top-priority findings only.** Fixed:
+  1. Scan tab's "Minervini SEPA/Stage 2 uptrend" mislabel (only checked 2 of 8 real Trend Template criteria) → renamed "Large-Cap Momentum Filter" (`backend.py`, `App.jsx`, `README.md`).
+  2. Sectors tab's false "100 = market parity" claim + wrong "Data from TwelveData" label (real source: yfinance) → both corrected (`SectorRotationTab.jsx`).
+  3. Context tab's CPI card (showing 3.7%/2.8% vs. the real 3.5%/2.6% BLS release) — **root-caused as a genuine bug, not caching as the audit guessed**: a fresh non-cached fetch reproduced the identical wrong number, and tracing raw FRED data found a withheld observation (`2025-10-01: "."`) silently shifted `_yoy()`'s fixed-list-index lookback onto the wrong calendar month. Fixed via calendar-date matching instead of list position (`econ_engine.py`); verified live, now shows the correct 3.5%/2.6%. New **Golden Rule 26** (verify a diagnosed root cause directly before trusting a suggested fix).
+  4. Paper-trading's daily replay (`daily_job.py`) recomputed stop/target fresh from current code every day instead of reading back what the ledger already stored at entry. Fixed by wiring in the existing (unused) override params. **Verification caught a live instance of the exact risk being fixed**: KRYS's freshly-recomputed stop had already drifted from its entry-stored value due to an upstream provider data revision. New **Golden Rule 27**.
+- **Verified the paper-trading fix end-to-end**: backed up the ledger, force-ran the real daily job — 11 open positions replayed correctly, none incorrectly closed. This also served as the day's paper-trading catch-up run (last scheduled run was Jul 17): Momentum 3 open/0 closed, MR 8 open/5 closed after the run.
+- No API contract shape changes (only string/value corrections). Remaining lower-priority audit findings tracked as new ROADMAP.md priority #10. Version v4.47 → v4.48 (Backend v2.43 → v2.44, Frontend v4.42 → v4.43).
 
 ### Day 90 Summary (Monitoring + Force Run Investigation — No Code Changes — v4.47 unchanged)
 - **Paper trading check-in** (the session's stated focus, given the freeze): `daily_job.py --report` showed Momentum 2 open/0 closed (no stats yet); MR 9 open/4 closed, 75% win rate, PF 2.19, expectancy +1.49%/trade — early, directional only.
@@ -38,14 +48,7 @@
 - **Directly verified Tradier and TwelveData are genuinely functional**, per the user's skepticism from seeing "Circuit breaker OPEN" in logs — tested both providers directly (bypassing the app's breaker wrapper), got real current quotes/OHLCV from each, and watched both breakers self-heal live (OPEN → HALF_OPEN → CLOSED) once real calls succeeded after cooldown. They were legitimately tripped by the earlier stress test, not broken.
 - Scoped as the same kind of freeze exception as Day 88 — directly aids the paper-trading gate's sample-accumulation rate, not general product work. Version v4.46 → v4.47 (Backend v2.42 → v2.43, Frontend unchanged — no frontend files touched this session).
 
-### Day 88 Summary (Paper Trading Ledger Surfaced in UI — Scoped Freeze Exception — v4.46)
-- **Continuation of Day 87's session.** After the complete feature freeze was declared, user asked two follow-ups about the automated paper-trading engine: where to see the ledger visually (is it in the Forward Test tab?), and whether a manual "missed run" trigger button could be added.
-- **Confirmed the ledger had zero UI surface**: the Forward Test tab is a separate, older, manual localStorage trade journal (`forwardTesting.js`) — no connection to the automated engine's SQLite ledger (`backend/paper_trading/`, built Day 81), which was CLI/`--report`-only until now.
-- **Scoped as the one legitimate freeze exception, not a resumption of general feature work** — user's own words: "we built this only because it's aiding our fwd testing... everything else is on freeze."
-- **Built and verified live**: two new endpoints (`GET /api/paper-trading/status` read-only, `POST /api/paper-trading/trigger` wraps the exact same `run_daily_job(force=True)` the launchd scheduler already calls — no new trading logic) and a new `AutomatedPaperTradingPanel.jsx` component in the Forward Test tab (visually distinct from the manual journal, shows both systems' stats + a staleness warning + the trigger button). Verified end-to-end by actually triggering a run: `lastRunDate` advanced, momentum open positions 1→2, MR open positions 2→4 — confirming the trigger and status endpoints read/write the same ledger, not just independently-plausible code.
-- Version v4.45 → v4.46 (Backend v2.41 → v2.42). New API_CONTRACTS_DAY88.md. No new Golden Rule — straightforward build, no surprises.
-
-*(Day 87's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY87_SHORT.md`. Day 86's is in `PROJECT_STATUS_DAY86_SHORT.md`.)*
+*(Day 88's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY88_SHORT.md`. Day 87's is in `PROJECT_STATUS_DAY87_SHORT.md`.)*
 
 ---
 
@@ -123,9 +126,9 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 
 ## NEXT SESSION PRIORITIES
 
-**Complete feature freeze in effect as of Day 87** — bug fixes and paper-trading monitoring only, until 50+ live trades confirm the momentum/MR edges. Days 88-89 added two narrowly-scoped, explicitly-agreed exceptions (paper-trading ledger UI + manual trigger; MR universe widened for faster sample accumulation — see below); Day 90 was pure monitoring, no exception needed. The items still "queued" (N3, Value Tab Phase 2) are backlog, not freeze exceptions — they need their own design sessions before any code, per Golden Rule 24. Items 2-7 below are explicitly parked (per-session, not re-litigated) per Day 90's user instruction.
+**Complete feature freeze in effect as of Day 87** — bug fixes and paper-trading monitoring only, until 50+ live trades confirm the momentum/MR edges. Days 88-89 added two narrowly-scoped, explicitly-agreed exceptions (paper-trading ledger UI + manual trigger; MR universe widened for faster sample accumulation); Day 90 was pure monitoring; Day 91 was a bug-fix pass (Session 28 audit's top-4 findings — fits the freeze's own carve-out, not an exception). The items still "queued" (N3, Value Tab Phase 2) are backlog, not freeze exceptions — they need their own design sessions before any code, per Golden Rule 24.
 
-1. **Let paper trading accumulate** — PRIMARY FOCUS, the only thing actually gating capital allocation. As of Day 90's check-in: Momentum 2 open/0 closed; MR 9 open/4 closed (75% WR, PF 2.19, +1.49%/trade — early, directional only). MR's sample rate should now be meaningfully faster after Day 89's universe widening (8 signals in one test run vs. 0-2/day historically) — momentum's rate is largely unchanged (bottleneck is qualifying candidates, not scan limit). Prior estimate (**~7 months for MR, ~2.2 years for momentum**, Day 82, highly uncertain) should be re-derived once a few weeks of the new MR rate are observed. `/sta-start` warns automatically if the launchd job goes stale (>3 days). Check progress via the Forward Test tab's status panel (Day 88) or `venv/bin/python paper_trading/daily_job.py --report`. Nothing to build here.
+1. **Let paper trading accumulate** — PRIMARY FOCUS, the only thing actually gating capital allocation. As of Day 91's check-in (after a catch-up run): Momentum 3 open/0 closed; MR 8 open/5 closed. MR's sample rate should now be meaningfully faster after Day 89's universe widening (8 signals in one test run vs. 0-2/day historically) — momentum's rate is largely unchanged (bottleneck is qualifying candidates, not scan limit). Prior estimate (**~7 months for MR, ~2.2 years for momentum**, Day 82, highly uncertain) should be re-derived once a few weeks of the new MR rate are observed. `/sta-start` warns automatically if the launchd job goes stale (>3 days). Check progress via the Forward Test tab's status panel (Day 88) or `venv/bin/python paper_trading/daily_job.py --report`. Nothing to build here.
 2. **Decide fundamentals mitigation** — Task 3.2 measured 40.0% live↔backtest disagreement; user decision pending (align live-to-SimFin or backtest-to-TTM). Now also affects the automated engine's momentum leg.
 3. **Confirm SimFin key rotation** — user to verify the old leaked key was rotated at simfin.com; a possible new key was shared in conversation but not yet applied.
 4. **N3 gap-fill detection** — needs its own design session first (Day 87 finding: no spec exists yet, only a placeholder pointer in `BREAKOUT_ENHANCEMENT_PLAN.md`).
@@ -134,6 +137,7 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 7. **Price Structure Phase 3** (visual chart via lightweight-charts) / Canadian Analyze page — queued.
 8. **(Optional, low priority) Scan tab batch breakout badges** — distinguish `NOT_READY` from a failed fetch (currently both render "—"); same bug class as the Day 85 single-ticker fix, not yet requested at this location.
 9. **(Optional, low priority) Master Framework Watchlist's Name/Market Cap columns** — still show N/A (Volume/Change % fixed Day 86, free); Name/Market Cap would need a separate fundamentals call per ticker, deferred by explicit user choice.
+10. **Session 28 audit's remaining lower-priority findings** (Day 91) — Value tab badge attribution, Validate/Data Sources status-label honesty, Sectors CTA gating/precision polish, Forward Testing's fee-accounting/silent-failure items, plus the audit's general polish list. See ROADMAP.md priority #10 and `KNOWN_ISSUES_DAY91.md` for full detail. Batchable, not urgent.
 11. **(Deferred, user's own call)** The Day 82 Fable audit's 5th recommendation bucket — consolidating the Golden Rules/doc-rotation process itself (`docs/claude/design/FABLE_AUDIT_DAY82_PROCESS_AND_DECLUTTER.md`, Section F "REMOVE/DECLUTTER" item 4) — was deliberately not applied; it's a bigger, more opinionated change than the hygiene fixes and should only happen if the user explicitly wants it.
 
 ---
@@ -223,6 +227,7 @@ sqlite3 backend/validation_results/paper_trading_ledger.db "SELECT MAX(run_date)
 | 88 | Paper trading ledger surfaced in UI (Forward Test tab panel + `/api/paper-trading/status`/`trigger`) — agreed as the one scoped exception to Day 87's freeze since it directly aids the paper-trading gate itself. Verified live end-to-end (triggered a real run, confirmed ledger state updated). Version v4.45 → v4.46 (BE v2.41 → v2.42, FE v4.41 → v4.42). |
 | 89 | MR arm's live universe widened from a static 54-ticker list to a dynamic ~150-ticker TradingView scan (8 signals/run vs. 0-2/day historically) — same scoped-exception rationale as Day 88. Live testing at limit=300 found a real rate-limit cascade bug (TwelveData → yfinance → Tradier, same tail-end tickers silently excluded every run due to deterministic sort) — new Golden Rule 25, recalibrated to limit=150. Also directly verified Tradier/TwelveData are genuinely functional per user's skepticism. Version v4.46 → v4.47 (BE v2.42 → v2.43, FE unchanged). |
 | 90 | Monitoring-only session, no code changes. Paper-trading check-in (Momentum 2 open/0 closed; MR 9 open/4 closed, 75% WR, PF 2.19). Investigated "Force Run Now" repeat-click behavior at user's request — confirmed no duplicate trades possible (dedup + one-way close), same-day re-clicks overwrite the run summary rather than accumulating (job_runs UNIQUE + INSERT OR REPLACE), and the panel is aggregate-only by design (no ticker-level display). No bug found, nothing built — user parked further work and closed. Version unchanged (v4.47). |
+| 91 | Found an untracked, unactioned hub-side audit (`HANDOFF_sta_audit_session28.md`) at user's request. Fixed its 4 top-priority findings: Scan tab "Minervini" mislabel, Sectors tab false "100=parity"/data-source claims, Context tab CPI (root-caused to a real `_yoy()` date-alignment bug, not caching as the audit guessed — Golden Rule 26) + PMI proxy relabel, paper-trading exit-rule integrity (replay now anchors to stored entry values — Golden Rule 27, caught a live drift instance during verification). Verified live end-to-end (force-ran the real daily job). Remaining lower-priority findings tracked as ROADMAP.md priority #10. v4.47 → v4.48 (BE v2.43 → v2.44, FE v4.42 → v4.43). |
 
 ---
 

@@ -1022,7 +1022,7 @@ Returns available scan strategy definitions.
 {
   "strategies": [
     {"id": "reddit", "name": "Reddit Style", "description": "Mid-cap+, high relative volume, momentum stocks"},
-    {"id": "minervini", "name": "Minervini SEPA", "description": "Large-cap momentum leaders in Stage 2 uptrend"},
+    {"id": "minervini", "name": "Large-Cap Momentum Filter", "description": "Large-cap ($10B+) stocks above rising SMA50/SMA200 with positive 1W/1M momentum"},
     {"id": "momentum", "name": "Momentum", "description": "Sustainable gains, RSI 50-75 (not overbought)"},
     {"id": "value", "name": "Value", "description": "Quality stocks above 200 SMA at fair RSI levels"},
     {"id": "best", "name": "Best Candidates", "description": "Stage 2 + ADX≥20 + RSI 50-70 + SMA momentum"}

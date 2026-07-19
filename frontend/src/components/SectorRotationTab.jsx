@@ -29,7 +29,9 @@ function RsBar({ value, label, isMomentum = false }) {
     arrow     = value > 0  ? '↑' : value < 0 ? '↓' : '→';
     textColor = value >= 0 ? 'text-green-400' : 'text-red-400';
   } else {
-    // RS Ratio: 100 = market parity, range [85, 130]
+    // RS Ratio: 100 = flat vs SPY at the lookback's static midpoint anchor
+    // (not real-time RRG normalization — see backend.py's own comment on
+    // this endpoint), range [85, 130]
     const clamped = Math.max(85, Math.min(130, value ?? 100));
     pct = ((clamped - 85) / 45) * 100; // 33% = 100 (parity)
     barColor  = value >= 100 ? 'bg-green-500' : 'bg-red-500';
@@ -283,7 +285,7 @@ export default function SectorRotationTab({ sectorRotation, onScanForSector }) {
         <span className="text-blue-400 font-medium">Improving</span> = RS below 100 but gaining momentum ·&nbsp;
         <span className="text-yellow-400 font-medium">Weakening</span> = RS above 100 but fading ·&nbsp;
         <span className="text-red-400 font-medium">Lagging</span> = RS below 100 and falling.
-        &nbsp;Rank = RS Ratio magnitude · Quadrant = momentum direction · RS Ratio 100 = market parity (SPY).
+        &nbsp;Rank = RS Ratio magnitude · Quadrant = momentum direction · RS Ratio 100 = flat vs SPY over the lookback; &gt;100 = outperformed since then (not real-time market parity).
       </div>
 
       {/* 11 Sector Cards — responsive grid */}
@@ -299,7 +301,7 @@ export default function SectorRotationTab({ sectorRotation, onScanForSector }) {
 
       {/* Footer note */}
       <div className="mt-6 text-center text-xs text-gray-600">
-        Data from TwelveData · RS Ratio: 100 = market parity, &gt;100 = outperforming SPY · Momentum: positive = gaining, negative = fading · Cached per trading day
+        Data from yfinance · RS Ratio: 100 = flat vs SPY over the lookback, &gt;100 = outperformed since then · Momentum: positive = gaining, negative = fading · Cached per trading day
       </div>
     </div>
   );
