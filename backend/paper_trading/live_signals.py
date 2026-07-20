@@ -189,10 +189,21 @@ def get_momentum_signals(as_of_date=None, limit=150, market_index='all'):
             if rr is None or rr < MIN_RR:
                 continue
 
+            # Day 92: stamp signal_date from the ticker's own last OHLCV bar,
+            # not the wall-clock date. as_of_date is `datetime.now()`'s
+            # calendar day — if the job is force-run on a non-trading day
+            # (or after-hours before that day's bar has posted), signal_date
+            # would be a date that never appears in any OHLCV index, and
+            # activate_pending_signals()'s _find_index_for_date() would fail
+            # on it forever (permanently stuck pending_entry, only a stdout
+            # print, no error surfaced anywhere). The last row of stock_df is
+            # exactly the bar signal_price was read from two lines above, so
+            # deriving signal_date from the same row guarantees a match.
+            actual_signal_date = str(stock_df.index[entry_idx].date())
             rs_txt = f"RS {rs_52w:.2f}" if rs_52w is not None else "RS n/a"
             signals.append({
                 'ticker': ticker,
-                'signal_date': as_of_date,
+                'signal_date': actual_signal_date,
                 'signal_price': round(signal_price, 2),
                 'holding_period': DEFAULT_HOLDING_PERIOD,
                 'verdict_reason': f"BUY, TT {tt_score}/8, {rs_txt}, R:R {rr:.2f}",
@@ -260,9 +271,12 @@ def get_mr_signals(as_of_date=None, tickers=None):
                 continue
 
             signal_price = result['current_price']
+            # Day 92: same fix as get_momentum_signals() — derive signal_date
+            # from the actual last bar signal_price came from, not as_of_date.
+            actual_signal_date = str(stock_df.index[-1].date())
             signals.append({
                 'ticker': ticker,
-                'signal_date': as_of_date,
+                'signal_date': actual_signal_date,
                 'signal_price': signal_price,
                 'holding_period': None,
                 'verdict_reason': (

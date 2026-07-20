@@ -2620,9 +2620,34 @@ except ImportError as e:
     print(f"⚠️ Paper Trading module not available: {e}")
 
 
+def _position_row(row):
+    """Day 92: trim a full paper_positions row down to what the UI needs to
+    show — ticker + price/date at each lifecycle stage — without dumping
+    every column (e.g. regime_snapshot's raw JSON blob)."""
+    return {
+        'ticker': row['ticker'],
+        'status': row['status'],
+        'holdingPeriod': row.get('holding_period'),
+        'signalDate': row.get('signal_date'),
+        'signalPrice': row.get('signal_price'),
+        'entryDate': row.get('entry_date'),
+        'entryPrice': row.get('entry_price'),
+        'currentStopPrice': row.get('current_stop_price'),
+        'daysHeld': row.get('days_held'),
+        'exitDate': row.get('exit_date'),
+        'exitPrice': row.get('exit_price'),
+        'exitReason': row.get('exit_reason'),
+        'result': row.get('result'),
+        'pnlPct': row.get('pnl_pct'),
+        'pnlR': row.get('pnl_r'),
+    }
+
+
 @app.route('/api/paper-trading/status')
 def get_paper_trading_status():
-    """Read-only ledger status: open/closed counts + stats per system, last run date."""
+    """Read-only ledger status: open/closed counts + stats per system, last
+    run date, plus (Day 92) per-position rows so the ticker/entry/exit
+    detail behind those counts is visible without querying the DB directly."""
     if not PAPER_TRADING_AVAILABLE:
         return jsonify({'error': 'Paper trading module not available'}), 503
     try:
@@ -2630,11 +2655,20 @@ def get_paper_trading_status():
         systems = {}
         for system in ('momentum', 'mr'):
             open_positions = pt_ledger.get_open_positions(system=system)
+            pending_signals = pt_ledger.get_pending_signals(system=system)
+            closed_trades = pt_ledger.get_closed_trades(system=system)
             stats = pt_ledger.compute_stats(system=system)
             systems[system] = {
                 'openPositions': len(open_positions),
                 'closedTrades': stats['total_trades'],
                 'stats': stats if stats['total_trades'] > 0 else None,
+                'positions': {
+                    'open': [_position_row(r) for r in open_positions],
+                    'pending': [_position_row(r) for r in pending_signals],
+                    # most recent closed trades first, capped — this is a
+                    # status view, not the full journal
+                    'closed': [_position_row(r) for r in reversed(closed_trades)][:20],
+                },
             }
         return jsonify({
             'lastRunDate': pt_ledger.get_last_run_date(),

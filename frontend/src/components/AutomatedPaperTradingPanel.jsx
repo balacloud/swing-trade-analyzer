@@ -17,9 +17,78 @@ function daysSince(dateStr) {
   return Math.floor((now - then) / (1000 * 60 * 60 * 24));
 }
 
+function fmtPrice(p) {
+  return p != null ? `$${Number(p).toFixed(2)}` : '—';
+}
+
+function fmtPct(p) {
+  return p != null ? `${p > 0 ? '+' : ''}${Number(p).toFixed(2)}%` : '—';
+}
+
+// Day 92: per-position detail table — ticker/entry/exit, so "what actually
+// happened" is visible without querying the DB directly. Same status/
+// entry/exit columns regardless of lifecycle stage; blank cells for
+// fields that don't apply yet (pending has no entry, open has no exit).
+function PositionsTable({ positions }) {
+  const rows = [
+    ...positions.open.map(p => ({ ...p, _bucket: 'open' })),
+    ...positions.pending.map(p => ({ ...p, _bucket: 'pending' })),
+    ...positions.closed.map(p => ({ ...p, _bucket: 'closed' })),
+  ];
+  if (rows.length === 0) {
+    return <div className="text-xs text-gray-500 py-2">No positions yet.</div>;
+  }
+  return (
+    <div className="overflow-x-auto mt-2">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="text-gray-500 text-left border-b border-gray-700">
+            <th className="py-1 pr-3">Ticker</th>
+            <th className="py-1 pr-3">Status</th>
+            <th className="py-1 pr-3">Entry</th>
+            <th className="py-1 pr-3">Exit</th>
+            <th className="py-1 pr-3">Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((p, i) => (
+            <tr key={`${p.ticker}-${p._bucket}-${i}`} className="border-b border-gray-800">
+              <td className="py-1 pr-3 text-white font-medium">{p.ticker}</td>
+              <td className="py-1 pr-3">
+                <span className={
+                  p._bucket === 'open' ? 'text-blue-400' :
+                  p._bucket === 'pending' ? 'text-gray-400' :
+                  p.result === 'win' ? 'text-green-400' : p.result === 'loss' ? 'text-red-400' : 'text-gray-400'
+                }>
+                  {p._bucket === 'pending' ? 'pending' : p._bucket === 'open' ? 'open' : (p.result || 'closed')}
+                </span>
+              </td>
+              <td className="py-1 pr-3 text-gray-300">
+                {p.entryDate ? `${p.entryDate} @ ${fmtPrice(p.entryPrice)}` : `signal @ ${fmtPrice(p.signalPrice)}`}
+              </td>
+              <td className="py-1 pr-3 text-gray-300">
+                {p.exitDate ? `${p.exitDate} @ ${fmtPrice(p.exitPrice)}` : '—'}
+              </td>
+              <td className="py-1 pr-3">
+                {p.pnlPct != null ? (
+                  <span className={p.pnlPct >= 0 ? 'text-green-400' : 'text-red-400'}>{fmtPct(p.pnlPct)}</span>
+                ) : '—'}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function SystemCard({ name, label, data }) {
+  const [expanded, setExpanded] = useState(false);
   if (!data) return null;
   const stats = data.stats;
+  const totalPositions = (data.positions?.open?.length || 0)
+    + (data.positions?.pending?.length || 0)
+    + (data.positions?.closed?.length || 0);
   return (
     <div className="bg-gray-700/40 rounded-lg p-4">
       <div className="text-sm font-semibold text-gray-300 mb-2">{label}</div>
@@ -58,8 +127,19 @@ function SystemCard({ name, label, data }) {
       {stats?.warnings?.length > 0 && (
         <div className="mt-2 text-xs text-yellow-500">{stats.warnings[0]}</div>
       )}
-      {data.closedTrades === 0 && (
+      {data.closedTrades === 0 && data.openPositions === 0 && (
         <div className="mt-2 text-xs text-gray-500">No closed trades yet</div>
+      )}
+      {data.positions && totalPositions > 0 && (
+        <>
+          <button
+            onClick={() => setExpanded(e => !e)}
+            className="mt-3 text-xs text-purple-400 hover:text-purple-300"
+          >
+            {expanded ? '▾ Hide tickers' : `▸ Show tickers (${totalPositions})`}
+          </button>
+          {expanded && <PositionsTable positions={data.positions} />}
+        </>
       )}
     </div>
   );
