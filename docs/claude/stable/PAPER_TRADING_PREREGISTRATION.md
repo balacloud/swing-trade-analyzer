@@ -3,7 +3,7 @@
 > **Purpose:** Freeze the exact configuration BEFORE paper trades are logged, so the forward-test result is a real out-of-sample test and not another round of in-sample tuning.
 > **Created:** Day 78 (July 5, 2026) — Fable Review Remediation Plan, Task 0.1
 > **Frozen commit:** `933ad297ed14ca3c2aad2fb16ca453890d7c43fa` (includes Task 0.2's RS 1.0/1.2 resolution)
-> **Rule (Golden Rule 18):** No threshold below may change until 50 trades are logged in the Forward Test tab. Any change resets the count to zero and requires a new pre-registration entry.
+> **Rule (Golden Rule 18):** No threshold below may change until 100 trades are logged in the Forward Test tab (raised from 50, Day 92 — see Change Log). Any change resets the count to zero and requires a new pre-registration entry.
 
 ---
 
@@ -109,13 +109,13 @@ Max 2% risk per trade (Van Tharp). Equal-weight categories — never optimize we
 
 ## 10. Success / Failure Criteria (declared in advance)
 
-Judgment happens only after **≥ 50 logged trades** in the Forward Test tab. Before that point, any result — including a losing streak — is within expected variance and is NOT evidence the system is broken.
+Judgment happens only after **≥ 100 logged trades** in the Forward Test tab (raised from 50, Day 92 — user decision, not a response to any interim result: at the time of this change momentum had 0 closed trades and MR had 5, both far short of even the original 50). Before that point, any result — including a losing streak — is within expected variance and is NOT evidence the system is broken.
 
 | Outcome | Threshold | Interpretation |
 |---------|-----------|----------------|
-| **Confirmed** | Live profit factor ≥ 1.2 AND positive expectancy after transaction costs, on ≥ 50 trades | System has a real, tradeable edge — continue as-is |
+| **Confirmed** | Live profit factor ≥ 1.2 AND positive expectancy after transaction costs, on ≥ 100 trades | System has a real, tradeable edge — continue as-is |
 | **Modest but real** | PF 1.05–1.2 | Edge exists but thinner than backtest suggested (expected, per Fable review — survivorship bias + reused OOS) — continue with realistic expectations, do not abandon |
-| **Broken** | PF < 0.9 after ≥ 50 trades, or expectancy consistently negative | Stop live trading, return to remediation Phase 4 (survivorship-free re-validation) before any further capital deployment |
+| **Broken** | PF < 0.9 after ≥ 100 trades, or expectancy consistently negative | Stop live trading, return to remediation Phase 4 (survivorship-free re-validation) before any further capital deployment |
 
 A 6-trade losing streak alone is **not** sufficient evidence of failure at any point — it is statistically consistent with a PF-1.6 system (per the review's own variance analysis).
 
@@ -141,3 +141,4 @@ Remediation Phases 2–5 address these in parallel; they do not need to complete
 | 81 | Section 9 MR entry gate updated: price>$5+500K shares → price>$10+20d ADV>$25M | Pre-committed, one-time liquidity re-test (Golden Rule 20) run Day 79/80, *before* any live MR paper trades existed — not a mid-flight re-tune, no trade count to reset. This amendment (made Day 82, per the Day 82 Fable hygiene audit) is a documentation catch-up: the live detector and paper-trading engine were correctly updated Day 81, but this doc's Section 9 table was never edited to match, so it briefly misdescribed the config the paper trades are actually being judged against. |
 | 82 | Section 9 Stop row corrected | Clarified that the paper-trading engine and backtest exit on the flat 5% stop (`stop_pct=0.05`), not the ATR-based formula `mean_reversion.py`'s live *detector* displays for UI purposes — those are two different numbers that this table previously conflated. No behavior changed; documentation-only fix. |
 | 88 | Candidate-pool breadth widened (not an entry/exit threshold change): momentum's per-day TradingView pre-filter raised from 50 to 150 raw candidates; MR's live universe switched from a static 54-ticker list to a dynamic ~200-300-ticker TradingView liquid-universe scan (`scan_queries.build_mr_universe_query()`), falling back to the static list if the screener is unavailable. | User asked how to reach the 50-trade confirmation bar faster. This is the legitimate lever per Golden Rule 18/20's own distinction: checking *more tickers* under the *same unchanged rule* is not re-tuning — nothing in this table's Sections 1-9 (the actual frozen thresholds) changed. Loosening RSI(2)/R:R/Config C thresholds instead would have been forbidden re-tuning and was explicitly rejected. |
+| 92 | Confirmation bar raised: **50 → 100 logged trades** per system before Section 10 judgment (Sections 1-9 entry/exit thresholds themselves unchanged). | Explicit user decision to hold focus on forward-testing longer before any capital-allocation discussion. Not goalpost-moving in the Golden Rule 18 sense that decision guards against — that rule exists to stop *lowering* the bar or *changing thresholds* after a disappointing interim result to manufacture a better-looking number. Raising the trade-count bar is strictly more conservative (harder to pass, not easier), and was made with 0 momentum / 5 MR closed trades on the books — nowhere near either the old or new bar, so there was no interim result to be reacting to. |
