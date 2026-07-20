@@ -1279,6 +1279,9 @@ TOLERANCES = {
 - **v4.44: Master Framework Watchlist** ✅ 76-ticker Scan tab preset sourced from the user's Notion investment research (AI Supply Chain, CanGem, STRATUM, QUBIT frameworks); `/api/sr/<ticker>` gained free `volume`/`change` fields after live testing found a summary-table gap (Day 85-86)
 - **v4.45: Breakout Enhancement Plan Complete + N4 Market Phase + Price Structure Phase 2** ✅ "Near Breakout" scan preset (Stage-2 stocks within 8% of 52W high) completes the whole Breakout plan; market-wide phase classifier (Bull Rally/Late Bull/Distribution/Correction/Recovery) added to the Context tab; HH/HL/LH/LL structure classification added to the Price Structure Card (Day 87)
 - **v4.46: Paper Trading Ledger Surfaced in UI** ✅ New status panel + manual "Force Run Now" trigger in the Forward Test tab for the automated paper-trading engine (previously CLI-only) — a scoped exception to the freeze since it directly aids the paper-trading gate itself (Day 88)
+- **v4.47: MR Universe Widened** ✅ Mean-reversion's live signal universe widened from a static 54-ticker list to a dynamic ~150-ticker TradingView scan for faster sample accumulation (8 signals in one test run vs. 0-2/day historically) (Day 89)
+- **v4.48: Session 28 Audit Triage** ✅ Fixed 4 top-priority findings from a hub-side audit — Scan tab mislabel, Sectors tab false claims, Context tab CPI date-alignment bug, paper-trading exit-rule integrity (replay now anchors to stored entry values) (Day 91)
+- **v4.49: Paper-Trading Bug Fix + Per-Ticker UI** ✅ Fixed a real bug where a signal's date could be stamped from the wall clock instead of the trading day it came from, permanently stranding it (momentum jumped from 3 to 10 open positions on repair); `/api/paper-trading/status` now surfaces per-ticker entry/exit detail in the Forward Test tab. Confirmation bar raised from 50 to 100 trades/system (Day 92)
 
 ### Philosophy (Day 27 + Day 44 Update)
 
@@ -1295,24 +1298,27 @@ Current focus:
 - **Categorical filtering** over numerical ranking
 - **System measurement** through forward testing and SQN tracking
 
-### Current Priorities (Day 88 — complete feature freeze)
+### Current Priorities (Day 92 — forward-testing accumulation is the sole priority)
 
 A full-system audit (Day 78) found the backtested edge was likely overstated — survivorship bias in the test universe and a reused walk-forward window. The resulting remediation plan is **fully complete (all 5 phases)**, and an automated paper-trading engine (Day 81) now runs daily, unattended, taking every qualifying signal with zero human filtering — this is the real test for both systems now, and it's been running since Day 81.
 
-**Where the two trading systems stand:** momentum (Config C) re-validated at PF 1.40 (was 1.61 on the hand-picked universe) — real but not yet statistically significant. Mean-reversion's one-time, pre-committed liquidity restriction recovered PF 1.16 from an initial clean null (PF 0.99) — also real but not yet significant. **Both systems require live paper-trading confirmation (50+ trades each) before any capital allocation.** Estimated time to reach that bar: roughly 7 months for MR, 2+ years for momentum at backtest-implied signal rates (highly uncertain, will be re-estimated after 4-6 weeks of real data).
+**Where the two trading systems stand:** momentum (Config C) re-validated at PF 1.40 (was 1.61 on the hand-picked universe) — real but not yet statistically significant. Mean-reversion's one-time, pre-committed liquidity restriction recovered PF 1.16 from an initial clean null (PF 0.99) — also real but not yet significant. **Both systems require live paper-trading confirmation (100+ trades each, raised from 50 on Day 92) before any capital allocation.** As of Day 92: momentum 0 closed / 10 open, MR 5 closed / 8 open — both far from the bar.
 
-**Day 87: the Breakout Enhancement Plan, N4 Market Phase Synthesis, and Price Structure Card Phase 2 all shipped**, clearing the last of the backlog that could reasonably be closed out — see v4.45 above. Two remaining backlog items (Value Tab Phase 2, N3 gap-fill detection) were scoped and explicitly deferred rather than built: both need their own design/infrastructure work first, not just implementation (see Known Issues). **A complete feature freeze is now in effect** — bug fixes and paper-trading monitoring only, until 50+ live trades confirm the momentum/MR edges.
+**Day 87: the Breakout Enhancement Plan, N4 Market Phase Synthesis, and Price Structure Card Phase 2 all shipped**, clearing the last of the backlog that could reasonably be closed out — see v4.45 above. Two remaining backlog items (Value Tab Phase 2, N3 gap-fill detection) were scoped and explicitly deferred rather than built: both need their own design/infrastructure work first, not just implementation (see Known Issues). **A complete feature freeze is now in effect** — bug fixes and paper-trading monitoring only, until live trades confirm the momentum/MR edges.
 
-**Day 88: one scoped exception to the freeze** — the paper-trading ledger (previously CLI-only) is now visible in the Forward Test tab, with a manual "Force Run Now" button for catching up a missed scheduled run. Agreed narrowly because it directly aids observing/operating the paper-trading gate itself, not general product work — everything else stays frozen.
+**Day 88-89: two scoped exceptions to the freeze** — the paper-trading ledger surfaced in the Forward Test tab with a manual "Force Run Now" trigger (Day 88), and the MR arm's live signal universe widened from a static 54-ticker list to a dynamic ~150-ticker TradingView scan for faster sample accumulation (Day 89). Both agreed narrowly because they directly aid observing/operating the paper-trading gate itself.
 
-**Day 89: same exception, applied to sample-accumulation speed** — the MR arm's live signal universe widened from a static 54-ticker list to a dynamic ~150-ticker TradingView scan, yielding 8 real signals in one test run vs. 0-2/day historically. A first attempt at a wider 300-ticker scan tripped a data provider's rate limiter mid-run, silently failing the same tail-end tickers every time (deterministic sort order) — caught via live testing, not assumed away, and recalibrated to the number that actually completes cleanly.
+**Day 91: a hub-side audit's top-4 findings fixed** — a scan-tab mislabel, false claims on the Sectors tab, a real date-alignment bug in the Context tab's CPI card, and a paper-trading exit-rule integrity fix (daily replay now anchors to stored entry values instead of recomputing fresh).
 
-1. **Let paper trading accumulate** — the primary focus; nothing to build, just time. Check progress in the Forward Test tab's new status panel, or via `daily_job.py --report`.
-2. **Fundamentals mitigation decision** — a measured 40% disagreement between live and backtested fundamentals data sources is still pending a choice (align live-to-SimFin or backtest-to-TTM).
-3. **Confirm SimFin key rotation** — small housekeeping item.
-4. **N3 gap-fill detection** — needs its own design session first (no spec exists yet).
-5. **Value Tab Phase 2** — needs its own batch-prefetch infrastructure design session first (AlphaVantage free-tier budget constraints).
-6. `/ibkr-scan` skill, Price Structure Phase 3 (visual chart), Canadian Analyze page — queued behind the above.
+**Day 92: found and fixed a real paper-trading bug, then the user raised the bar.** A signal's `signal_date` could be stamped from the wall clock instead of the trading day it actually came from — a weekend/off-hours run permanently stranded 8 of momentum's 11 pending signals with no visible error. Fixed and repaired; momentum jumped from 3 to 10 open positions in one run. Per-ticker entry/exit detail was also added to the Forward Test tab's panel. **The user then explicitly raised the confirmation bar from 50 to 100 trades per system and named forward-testing accumulation the sole priority** — everything below is parked until it clears.
+
+1. **Let paper trading accumulate — SOLE FOCUS.** Nothing else gets worked on unless explicitly raised. Check progress in the Forward Test tab's status panel (now with per-ticker detail), or via `daily_job.py --report`.
+2. *(parked)* **Fundamentals mitigation decision** — a measured 40% disagreement between live and backtested fundamentals data sources is still pending a choice (align live-to-SimFin or backtest-to-TTM).
+3. *(parked)* **Confirm SimFin key rotation** — small housekeeping item.
+4. *(parked)* **N3 gap-fill detection** — needs its own design session first (no spec exists yet).
+5. *(parked)* **Value Tab Phase 2** — needs its own batch-prefetch infrastructure design session first (AlphaVantage free-tier budget constraints).
+6. *(parked)* **Volume confirmation missing from the decision engine** — neither the Full Analysis verdict nor the Simple Checklist check whether a price move is backed by rising volume; found Day 92, needs a re-backtest before shipping.
+7. *(parked)* `/ibkr-scan` skill, Price Structure Phase 3 (visual chart), Canadian Analyze page — queued behind the above.
 
 **Day 85-86:** Built a "🏛️ Master Framework Watchlist" Scan tab preset — 76 tickers sourced from the user's own curated Notion investment research (AI Supply Chain, CanGem, STRATUM, QUBIT frameworks), scanned with STA's existing technical engine, same pattern as the pre-existing Nirmal watchlist. First live test found the summary table's Volume/Change columns showing N/A; fixed for free by exposing data `/api/sr/<ticker>` already computed (v4.44).
 
