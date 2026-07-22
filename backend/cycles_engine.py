@@ -199,8 +199,13 @@ def _seasonal_card(today: date):
     else:
         season_name = 'Weak Season (May–Oct)'
         days_to_nov = (date(today.year + (1 if today.month >= 11 else 0), 11, 1) - today).days
-        phase = f'"Sell in May" period · {days_to_nov} days to Nov'
-        history = 'Historically weaker 6 months — reduced exposure justified'
+        # Softened Day 92: this card is capped at NEUTRAL (see _seasonal_regime
+        # — ADVERSE is unreachable for this card), so the text must not read
+        # as a caution/action call ("Sell in May", "reduced exposure
+        # justified") — that framing contradicted the yellow NEUTRAL badge
+        # it always ships next to. Stated as a mild historical tilt instead.
+        phase = f'Weaker seasonal window · {days_to_nov} days to Nov'
+        history = 'Historically the weaker 6 months (+1.7% vs +7.4% avg) — a mild seasonal tilt, not a standalone risk-off signal'
 
     return {
         'name': 'Seasonal Regime',

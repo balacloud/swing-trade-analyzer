@@ -8,6 +8,7 @@ import MarketPhaseBanner from './MarketPhaseBanner';
 import CycleCard from './CycleCard';
 import ArticleRow from './ArticleRow';
 import ConflictCheck from './ConflictCheck';
+import { ALIGNMENT_STYLES, ALIGNMENT_ICONS } from '../utils/alignmentStyles';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
@@ -16,6 +17,52 @@ async function fetchJSON(url) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
   return res.json();
+}
+
+// ─── Phase / Regime reconciliation ────────────────────────────────────────────
+// Market Phase (price/technical: SPY trend + VIX) and Overall Macro Regime (10
+// FRED+calendar indicators) are two independent reads that used to render as
+// stacked banners with zero reconciliation — a user could see "Bull Rally"
+// directly above "NEUTRAL" macro regime with no explanation that they measure
+// different things (price momentum vs. macro/fundamental support). Same
+// status vocabulary (aligned/cross_current/neutral) and color language as the
+// Sectors↔Context macro_alignment connection, so the whole app speaks one
+// consistent language for "do these two signals agree."
+const RISK_ON_PHASES = ['Bull Rally', 'Late Bull'];
+const RISK_OFF_PHASES = ['Distribution', 'Correction'];
+
+function reconcilePhaseRegime(phase, overallRegime) {
+  if (!phase || !overallRegime) return null;
+
+  if (RISK_ON_PHASES.includes(phase)) {
+    if (overallRegime === 'FAVORABLE') {
+      return { status: 'aligned', message: `Price and macro fundamentals agree — ${phase} is backed by a FAVORABLE macro backdrop.` };
+    }
+    if (overallRegime === 'ADVERSE') {
+      return { status: 'cross_current', message: `Price is in ${phase}, but the macro backdrop is ADVERSE — price strength isn't backed by fundamentals yet.` };
+    }
+    return { status: 'neutral', message: `Price is in ${phase}; macro backdrop is NEUTRAL — momentum without a strong fundamental tailwind.` };
+  }
+
+  if (RISK_OFF_PHASES.includes(phase)) {
+    if (overallRegime === 'ADVERSE') {
+      return { status: 'aligned', message: `Price and macro fundamentals agree — ${phase} and an ADVERSE macro backdrop both signal caution.` };
+    }
+    if (overallRegime === 'FAVORABLE') {
+      return { status: 'cross_current', message: `Price is weakening (${phase}) even though the macro backdrop is FAVORABLE — a pullback within a supportive backdrop, not yet a trend change.` };
+    }
+    return { status: 'neutral', message: `Price is in ${phase}; macro backdrop is NEUTRAL — no strong fundamental support either way.` };
+  }
+
+  // Recovery: inherently a not-yet-confirmed bounce, regardless of macro —
+  // one generic branch rather than forcing it into aligned/cross_current.
+  // Explicit equality check (not a catch-all else) so a phase string outside
+  // the 5 known values hides the banner instead of mislabeling itself as
+  // "attempting an early recovery."
+  if (phase === 'Recovery') {
+    return { status: 'neutral', message: `Price is attempting an early recovery (${phase}); macro backdrop is ${overallRegime} — not yet a confirmed trend either direction.` };
+  }
+  return null;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -213,6 +260,19 @@ export default function ContextTab({ ticker }) {
           total={totalIndicators}
         />
       )}
+
+      {/* Phase vs. Regime reconciliation — the two banners above are
+          independent reads (price/technical vs. macro/fundamental) that used
+          to just sit stacked with no explanation of whether they agree */}
+      {(() => {
+        const reconciliation = reconcilePhaseRegime(marketPhaseData?.phase, overallRegime);
+        if (!reconciliation) return null;
+        return (
+          <p className={`text-sm mb-4 -mt-3 ${ALIGNMENT_STYLES[reconciliation.status]}`}>
+            {ALIGNMENT_ICONS[reconciliation.status]} {reconciliation.message}
+          </p>
+        );
+      })()}
 
       {/* Error state */}
       {cyclesError && (

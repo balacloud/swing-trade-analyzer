@@ -21,6 +21,14 @@ logger = logging.getLogger(__name__)
 FRED_API_KEY = os.environ.get('FRED_API_KEY')
 FRED_BASE_URL = 'https://api.stlouisfed.org/fred/series/observations'
 
+# Single source of truth for the PMI proxy card's name — _build_composite()
+# looks a card up by this exact string. Day 91 renamed the card (from "ISM
+# PMI (proxy)") but the composite's lookup string wasn't updated to match,
+# so the lookup silently missed forever and pmi stayed stuck at the fallback
+# 'NEUTRAL'. Both _pmi_card() and _build_composite() now reference this one
+# constant, so a future rename can't cause the two to silently diverge again.
+PMI_CARD_NAME = 'Manufacturing Employment (PMI proxy)'
+
 
 # ─── FRED helper (same as cycles_engine) ─────────────────────────────────────
 def _fetch_fred(series_id: str, limit: int = 14):
@@ -232,7 +240,7 @@ def _pmi_card():
         raw_value = None
 
     return {
-        'name': 'Manufacturing Employment (PMI proxy)',
+        'name': PMI_CARD_NAME,
         'icon': '🏭',
         'value': value_str,
         'phase': phase,
@@ -290,8 +298,7 @@ def _build_composite(cards):
     card_map = {c['name']: c for c in cards}
     fed = card_map.get('Fed Funds Rate', {}).get('regime', 'NEUTRAL')
     cpi = card_map.get('CPI Inflation', {}).get('regime', 'NEUTRAL')
-    pmi = card_map.get('ISM PMI (proxy)', {}).get('regime', 'NEUTRAL')
-    unemp = card_map.get('Unemployment', {}).get('regime', 'NEUTRAL')
+    pmi = card_map.get(PMI_CARD_NAME, {}).get('regime', 'NEUTRAL')
 
     if fed == 'FAVORABLE' and cpi == 'FAVORABLE' and pmi == 'FAVORABLE':
         return {

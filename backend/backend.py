@@ -54,7 +54,11 @@ sys.path.insert(0, os.path.dirname(__file__))
 # to accumulate paper-trading samples faster — breadth only, no threshold
 # changed. Calibrated to limit=150 after a live test at 300 tripped
 # TwelveData's rate limiter. New Golden Rule 25.
-BACKEND_VERSION = '2.43'
+# Day 92: Sectors/Context tab audit — econ composite PMI-key regression fixed,
+# Seasonal card text/badge contradiction fixed, new macro_alignment field on
+# /api/sectors/rotation connecting it to the Context tab's macro regime read,
+# compute_overall_regime() extracted as a shared helper.
+BACKEND_VERSION = '2.44'
 
 from constants import SUPPORT_PROXIMITY_PCT, RESISTANCE_PROXIMITY_PCT  # shared with support_resistance.py
 
@@ -2398,9 +2402,11 @@ def get_sector_rotation():
             except Exception as e:
                 print(f"⚠️ Error processing size ETF {etf}: {e}")
 
-        # Size rotation signal: compare IWM vs QQQ RS Ratio
+        # Size rotation signal: compare IWM vs QQQ RS Ratio (large vs small only —
+        # MDY/mid-cap is not part of this specific comparison, see momentumNote()
+        # in SectorRotationTab.jsx for the 3-way momentum read)
         size_signal = 'Neutral'
-        size_signal_detail = 'Mixed signals across cap sizes'
+        size_signal_detail = 'Large vs. small caps — no clear tilt'
         iwm = next((s for s in size_rotation if s['etf'] == 'IWM'), None)
         qqq = next((s for s in size_rotation if s['etf'] == 'QQQ'), None)
         if iwm and qqq:
@@ -2412,6 +2418,50 @@ def get_sector_rotation():
                 size_signal = 'Risk-Off'
                 size_signal_detail = 'Large caps favored — defensive posture'
 
+        # Macro alignment — connects this tab's sector rotation to the Context
+        # tab's macro regime read, so a user doesn't have to manually
+        # cross-reference two tabs to ask "does the macro backdrop support
+        # today's rotation?" (Day 92, user-requested). Best-effort and
+        # non-fatal: reuses the same FRED-cached cycles/econ engines the
+        # Context tab already calls (6h TTL — no new Alpha Vantage or
+        # yfinance calls beyond what this endpoint already makes).
+        # Deliberately NOT calling /api/context/<ticker>, which would burn
+        # Alpha Vantage's news quota on a placeholder ticker every time this
+        # cache goes cold.
+        macro_alignment = None
+        macro_alignment_status = None
+        try:
+            cycles_json = get_cycles_endpoint().get_json()
+            econ_json = get_econ_endpoint().get_json()
+            all_regimes = (
+                [c['regime'] for c in cycles_json.get('cards', [])] +
+                [c['regime'] for c in econ_json.get('cards', [])]
+            )
+            overall_regime, _, _, _ = compute_overall_regime(all_regimes)
+            leading_count = sum(1 for s in sectors if s['quadrant'] == 'Leading')
+            plural = 's' if leading_count != 1 else ''
+
+            if overall_regime == 'FAVORABLE' and leading_count > 0:
+                macro_alignment_status = 'aligned'
+                macro_alignment = (
+                    f'Macro backdrop is FAVORABLE and {leading_count} sector{plural} leading '
+                    f'— the regime supports this rotation.'
+                )
+            elif overall_regime == 'ADVERSE' and leading_count > 0:
+                macro_alignment_status = 'cross_current'
+                macro_alignment = (
+                    f'{leading_count} sector{plural} leading on price strength, but the macro '
+                    f'backdrop is ADVERSE — sector momentum is running ahead of the fundamentals.'
+                )
+            else:
+                macro_alignment_status = 'neutral'
+                macro_alignment = (
+                    f'Macro backdrop is {overall_regime} — neither confirming nor contradicting '
+                    f'the current sector picture.'
+                )
+        except Exception as e:
+            print(f"⚠️ macro_alignment computation failed (non-fatal, sector rotation continues): {e}")
+
         response = {
             'sectors': sectors,
             'sectorCount': len(sectors),
@@ -2419,6 +2469,8 @@ def get_sector_rotation():
             'size_rotation': size_rotation,
             'size_signal': size_signal,
             'size_signal_detail': size_signal_detail,
+            'macro_alignment': macro_alignment,
+            'macro_alignment_status': macro_alignment_status,
             'timestamp': datetime.now().isoformat(),
             'period': period,
         }
@@ -2554,6 +2606,26 @@ def get_news_endpoint(ticker):
         return jsonify({'error': str(e)}), 500
 
 
+def compute_overall_regime(all_regimes):
+    """Shared regime-aggregation logic — used by /api/context/<ticker> and
+    the Sectors tab's macro-alignment note (get_sector_rotation()), so the
+    two tabs can't silently compute "the macro regime" two different ways.
+    all_regimes: list of 'FAVORABLE'/'NEUTRAL'/'ADVERSE' strings.
+    Returns (overall_regime, favorable, neutral, adverse)."""
+    favorable = sum(1 for r in all_regimes if r == 'FAVORABLE')
+    adverse = sum(1 for r in all_regimes if r == 'ADVERSE')
+    neutral = len(all_regimes) - favorable - adverse
+
+    if adverse >= 4:
+        overall_regime = 'ADVERSE'
+    elif adverse >= 2 or favorable < 5:
+        overall_regime = 'NEUTRAL'
+    else:
+        overall_regime = 'FAVORABLE'
+
+    return overall_regime, favorable, neutral, adverse
+
+
 @app.route('/api/context/<ticker>')
 def get_context_endpoint(ticker):
     """Aggregates cycles + econ + news. Computes overall_regime + options_block."""
@@ -2575,16 +2647,7 @@ def get_context_endpoint(ticker):
             [c['regime'] for c in cycles.get('cards', [])] +
             [c['regime'] for c in econ.get('cards', [])]
         )
-        favorable = sum(1 for r in all_regimes if r == 'FAVORABLE')
-        adverse = sum(1 for r in all_regimes if r == 'ADVERSE')
-        neutral = len(all_regimes) - favorable - adverse
-
-        if adverse >= 4:
-            overall_regime = 'ADVERSE'
-        elif adverse >= 2 or favorable < 5:
-            overall_regime = 'NEUTRAL'
-        else:
-            overall_regime = 'FAVORABLE'
+        overall_regime, favorable, neutral, adverse = compute_overall_regime(all_regimes)
 
         return jsonify({
             'ticker': ticker,

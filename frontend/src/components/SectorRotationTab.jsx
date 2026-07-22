@@ -2,18 +2,46 @@
 // Sector Rotation Phase 2: Dedicated tab with 11 sector cards, quadrant colors, Scan for Rank 1
 
 import React, { useMemo } from 'react';
+import { ALIGNMENT_STYLES, ALIGNMENT_ICONS } from '../utils/alignmentStyles';
 
-// Quadrant display config
+// Quadrant display config. sectionHint is the beginner-facing "what do I do
+// with this" translation shown once per group, not per card.
 const QUADRANT_CONFIG = {
-  Leading:   { color: 'text-green-400',  border: 'border-green-500',  bg: 'bg-green-500/10',  badge: 'bg-green-600/80 text-green-100',  icon: '🟢' },
-  Improving: { color: 'text-blue-400',   border: 'border-blue-500',   bg: 'bg-blue-500/10',   badge: 'bg-blue-600/80 text-blue-100',    icon: '🔵' },
-  Weakening: { color: 'text-yellow-400', border: 'border-yellow-500', bg: 'bg-yellow-500/10', badge: 'bg-yellow-600/80 text-yellow-100', icon: '🟡' },
-  Lagging:   { color: 'text-red-400',    border: 'border-red-500',    bg: 'bg-red-500/10',    badge: 'bg-red-600/80 text-red-100',      icon: '🔴' },
+  Leading:   { color: 'text-green-400',  border: 'border-green-500',  bg: 'bg-green-500/10',  badge: 'bg-green-600/80 text-green-100',  icon: '🟢', sectionHint: 'Strong and gaining momentum — the most trade-ready group' },
+  Improving: { color: 'text-blue-400',   border: 'border-blue-500',   bg: 'bg-blue-500/10',   badge: 'bg-blue-600/80 text-blue-100',    icon: '🔵', sectionHint: 'Still lagging SPY, but turning up — early, not yet confirmed' },
+  Weakening: { color: 'text-yellow-400', border: 'border-yellow-500', bg: 'bg-yellow-500/10', badge: 'bg-yellow-600/80 text-yellow-100', icon: '🟡', sectionHint: 'Ahead of SPY but losing steam — existing positions, not new ones' },
+  Lagging:   { color: 'text-red-400',    border: 'border-red-500',    bg: 'bg-red-500/10',    badge: 'bg-red-600/80 text-red-100',      icon: '🔴', sectionHint: 'Behind SPY and still falling — avoid for now' },
 };
+const QUADRANT_ORDER = ['Leading', 'Improving', 'Weakening', 'Lagging'];
 
-// Rank badge — neutral, position only (quadrant badge + border carry color meaning)
-function rankBadgeClass() {
-  return 'bg-gray-600 text-gray-200';
+// The single most-favorable sector to point a beginner at — NOT the highest
+// RS Ratio (that's just magnitude of past outperformance, see Golden Rule-
+// style finding: a #1-by-magnitude sector can be actively Weakening). Picks
+// the top Leading sector by RS Ratio; falls back to top Improving if nothing
+// is Leading; null if the market has no sector in either favorable quadrant.
+function pickBestSector(sectorsByRsRatioDesc) {
+  const leading = sectorsByRsRatioDesc.filter(s => s.quadrant === 'Leading');
+  if (leading.length > 0) return { sector: leading[0], tier: 'Leading' };
+  const improving = sectorsByRsRatioDesc.filter(s => s.quadrant === 'Improving');
+  if (improving.length > 0) return { sector: improving[0], tier: 'Improving' };
+  return { sector: null, tier: null };
+}
+
+// One-sentence, plain-English takeaway — the "so what" a beginner needs
+// before the grid, not after it.
+function buildTakeaway(sortedSectors, summary) {
+  const leadingNames = sortedSectors.filter(s => s.quadrant === 'Leading').map(s => s.name);
+  const improvingNames = sortedSectors.filter(s => s.quadrant === 'Improving').map(s => s.name);
+
+  if (leadingNames.length > 0) {
+    const shown = leadingNames.slice(0, 3).join(', ');
+    return `${summary.Leading} sector${summary.Leading > 1 ? 's' : ''} leading right now — strongest setups in ${shown}.`;
+  }
+  if (improvingNames.length > 0) {
+    const shown = improvingNames.slice(0, 3).join(', ');
+    return `No sector is leading yet — ${summary.Improving} improving (early-stage): ${shown}. Worth watching, not yet confirmed.`;
+  }
+  return 'No sector currently shows both strength and momentum — market breadth is weak, stay cautious.';
 }
 
 // RS Ratio bar — 100-centered (backend returns RRG-style values, e.g. 95.88, 125.57)
@@ -68,26 +96,45 @@ const SIZE_SIGNAL_CONFIG = {
 const SIZE_ORDER = ['QQQ', 'MDY', 'IWM'];
 
 // Per-tile interpretation: color + momentum → quadrant label + hint
+// barColor intentionally matches `color` (quadrant, not raw RS Ratio sign) —
+// a prior version colored the bar/number by RS Ratio alone while this label
+// used the quadrant color, so a Weakening tile (RS>=100) could show a green
+// bar right next to yellow "Weakening" text, and an Improving tile (RS<100)
+// could show a red bar next to blue "Improving" text.
 function tileInterpretation(rsRatio, rsMomentum) {
   const out = rsRatio >= 100;
   const up  = rsMomentum > 0;
-  if (out && up)   return { label: 'Leading · gaining',      color: 'text-green-400',  hint: 'Outperforming SPY & strengthening' };
-  if (out && !up)  return { label: 'Weakening · fading',     color: 'text-yellow-400', hint: 'Outperforming SPY but losing steam' };
-  if (!out && up)  return { label: 'Improving · recovering', color: 'text-blue-400',   hint: 'Lagging SPY but gaining momentum' };
-  return             { label: 'Lagging · falling',      color: 'text-red-400',    hint: 'Underperforming SPY & weakening' };
+  if (out && up)   return { label: 'Leading · gaining',      color: 'text-green-400',  barColor: 'bg-green-500',  hint: 'Outperforming SPY & strengthening' };
+  if (out && !up)  return { label: 'Weakening · fading',     color: 'text-yellow-400', barColor: 'bg-yellow-500', hint: 'Outperforming SPY but losing steam' };
+  if (!out && up)  return { label: 'Improving · recovering', color: 'text-blue-400',   barColor: 'bg-blue-500',   hint: 'Lagging SPY but gaining momentum' };
+  return             { label: 'Lagging · falling',      color: 'text-red-400',    barColor: 'bg-red-500',    hint: 'Underperforming SPY & weakening' };
 }
 
-// Momentum-aware sub-note for the headline
+// Momentum-aware sub-note for the headline — considers all 3 tiers (large/mid/small),
+// not just QQQ/IWM. A prior version ignored MDY entirely, so it could claim
+// "fading across all cap sizes" while MDY's own tile showed rising momentum.
 function momentumNote(sizeRotation) {
-  const iwm = sizeRotation.find(s => s.etf === 'IWM');
   const qqq = sizeRotation.find(s => s.etf === 'QQQ');
-  if (!iwm || !qqq) return null;
-  const iwmUp = iwm.rsMomentum > 0;
+  const mdy = sizeRotation.find(s => s.etf === 'MDY');
+  const iwm = sizeRotation.find(s => s.etf === 'IWM');
+  if (!qqq || !mdy || !iwm) return null;
+
   const qqqUp = qqq.rsMomentum > 0;
-  if (!iwmUp && qqqUp)  return '⚠️ Small caps fading, large caps recovering — rotation may be shifting';
-  if (iwmUp && !qqqUp)  return '✅ Small cap momentum building — Risk-On strengthening';
-  if (iwmUp && qqqUp)   return '✅ Broad risk appetite — all sizes gaining vs SPY';
-  return '⚠️ Risk appetite fading across all cap sizes';
+  const mdyUp = mdy.rsMomentum > 0;
+  const iwmUp = iwm.rsMomentum > 0;
+  const upCount = [qqqUp, mdyUp, iwmUp].filter(Boolean).length;
+
+  if (upCount === 3) return '✅ Broad risk appetite — all sizes gaining vs SPY';
+  if (upCount === 0) return '⚠️ Risk appetite fading across all cap sizes';
+
+  const up = [];
+  const down = [];
+  if (qqqUp) up.push('large'); else down.push('large');
+  if (mdyUp) up.push('mid');   else down.push('mid');
+  if (iwmUp) up.push('small'); else down.push('small');
+  const upWord = up.length > 1 ? 'caps' : 'cap';
+  const downWord = down.length > 1 ? 'caps' : 'cap';
+  return `⚠️ Mixed: ${up.join('/')} ${upWord} gaining, ${down.join('/')} ${downWord} fading`;
 }
 
 function SizeRotationStrip({ sizeRotation, sizeSignal, sizeSignalDetail }) {
@@ -109,6 +156,7 @@ function SizeRotationStrip({ sizeRotation, sizeSignal, sizeSignalDetail }) {
           {sc.icon} {sc.label} · <span className="font-normal text-xs text-gray-400">{sizeSignalDetail}</span>
         </span>
       </div>
+      <div className="text-gray-500 text-xs mb-2">Is money moving into risk (small caps) or safety (large caps)?</div>
 
       {/* Momentum context note */}
       {note && (
@@ -120,20 +168,18 @@ function SizeRotationStrip({ sizeRotation, sizeSignal, sizeSignalDetail }) {
         {ordered.map(s => {
           const interp  = tileInterpretation(s.rsRatio, s.rsMomentum);
           const arrow   = s.rsMomentum > 0 ? '↑' : s.rsMomentum < 0 ? '↓' : '→';
-          const valColor = s.rsRatio >= 100 ? 'text-green-400' : 'text-red-400';
           const clamped  = Math.max(85, Math.min(130, s.rsRatio));
           const pct      = ((clamped - 85) / 45) * 100;
-          const barColor = s.rsRatio >= 100 ? 'bg-green-500' : 'bg-red-500';
 
           return (
             <div key={s.etf} className="bg-gray-800/60 rounded-lg p-3 text-center">
               <div className="text-gray-500 text-xs font-mono mb-0.5">{s.etf}</div>
               <div className="text-gray-300 text-xs mb-1 truncate">{s.name}</div>
-              <div className={`text-sm font-mono font-semibold ${valColor}`}>
+              <div className={`text-sm font-mono font-semibold ${interp.color}`}>
                 {s.rsRatio.toFixed(1)} {arrow}
               </div>
               <div className="w-full bg-gray-700 rounded-full h-1 mt-1.5 mb-1.5">
-                <div className={`h-1 rounded-full ${barColor}`} style={{ width: `${pct}%` }} />
+                <div className={`h-1 rounded-full ${interp.barColor}`} style={{ width: `${pct}%` }} />
               </div>
               <div className={`text-xs font-medium ${interp.color}`}>{interp.label}</div>
               <div className="text-gray-600 text-xs mt-0.5">{interp.hint}</div>
@@ -151,11 +197,13 @@ function SectorCard({ sector, onScanForSector }) {
 
   return (
     <div className={`rounded-lg border-l-4 ${qc.border} ${qc.bg} p-4 bg-gray-800`}>
-      {/* Header row: rank badge + quadrant badge */}
-      <div className="flex items-center justify-between mb-2">
-        <span className={`text-xs font-bold px-2 py-0.5 rounded ${rankBadgeClass(sector.rank)}`}>
-          #{sector.rank}
-        </span>
+      {/* Header row: quadrant badge only. A numbered "rank" badge used to sit
+          here too, but any "#N" reads as "the winner" in English regardless
+          of what qualifier is stuck in front of it — a #1 badge next to a
+          "Weakening" label is a contradiction no amount of relabeling fixes.
+          The RS Ratio value itself (magnitude info) is still shown below,
+          just not framed as a competitive ranking. */}
+      <div className="flex items-center justify-end mb-2">
         <span className={`text-xs font-medium px-2 py-0.5 rounded ${qc.badge}`}>
           {qc.icon} {sector.quadrant}
         </span>
@@ -189,8 +237,13 @@ export default function SectorRotationTab({ sectorRotation, onScanForSector }) {
   const sizeRotation = sectorRotation?.size_rotation;
   const sizeSignal = sectorRotation?.size_signal || 'Neutral';
   const sizeSignalDetail = sectorRotation?.size_signal_detail || '';
+  const macroAlignment = sectorRotation?.macro_alignment || null;
+  const macroAlignmentStatus = sectorRotation?.macro_alignment_status || null;
 
-  // Sort sectors by rank
+  // Sort sectors by RS Ratio magnitude (rank). This ordering still drives the
+  // "RS Rank" badge and picking the strongest sector within a quadrant, but no
+  // longer drives which sector is called out as "best" or which position a
+  // card renders in — see pickBestSector() and the quadrant-grouped grid below.
   const sortedSectors = useMemo(() => {
     if (!sectorRotation?.sectors) return [];
     return [...sectorRotation.sectors].sort((a, b) => a.rank - b.rank);
@@ -203,9 +256,16 @@ export default function SectorRotationTab({ sectorRotation, onScanForSector }) {
     return counts;
   }, [sortedSectors]);
 
-  // Rank 1 sector
-  const rank1 = sortedSectors[0];
-  const rank1IsLeading = rank1?.quadrant === 'Leading';
+  // Best actionable sector — Leading first, Improving as fallback. Replaces
+  // the old "highest RS Ratio regardless of quadrant" pick, which could (and
+  // did) surface a Weakening sector as the top CTA.
+  const { sector: bestSector, tier: bestTier } = useMemo(
+    () => pickBestSector(sortedSectors),
+    [sortedSectors]
+  );
+
+  // One-line plain-English summary shown above the grid.
+  const takeaway = useMemo(() => buildTakeaway(sortedSectors, summary), [sortedSectors, summary]);
 
   // Timestamp display
   const lastUpdated = useMemo(() => {
@@ -245,19 +305,37 @@ export default function SectorRotationTab({ sectorRotation, onScanForSector }) {
             </p>
           </div>
 
-          {/* Primary CTA — Scan for Rank 1 */}
+          {/* Primary CTA — the actually-favorable sector (Leading, or Improving as
+              fallback), not just whichever sector has the highest RS Ratio number */}
           <button
-            onClick={() => onScanForSector(rank1)}
-            disabled={!rank1}
+            onClick={() => bestSector && onScanForSector(bestSector)}
+            disabled={!bestSector}
             className={`px-5 py-2.5 rounded-lg font-semibold text-sm transition-colors ${
-              rank1IsLeading
+              bestTier === 'Leading'
                 ? 'bg-green-600 hover:bg-green-500 text-white'
                 : 'bg-blue-600 hover:bg-blue-500 text-white'
             } disabled:opacity-40 disabled:cursor-not-allowed`}
           >
-            🔍 Scan for Rank #1: {rank1 ? `${rank1.name} (${rank1.etf})` : '…'}
+            {bestSector
+              ? `🔍 Scan Top Sector: ${bestSector.name} (${bestTier})`
+              : '🔍 No leading sector right now'}
           </button>
         </div>
+
+        {/* Plain-English takeaway — the "so what," stated before the grid */}
+        <p className="text-gray-300 text-sm mt-3">{takeaway}</p>
+
+        {/* Macro alignment — connects this tab to the Context tab's macro
+            regime read, so "does the macro backdrop support this rotation?"
+            is answered here instead of requiring a manual cross-check
+            against a separate tab. Absent on old cached responses (backend
+            added the field later) — render nothing rather than a stale/empty
+            line, same defensive pattern as size_rotation below. */}
+        {macroAlignment && (
+          <p className={`text-sm mt-2 ${ALIGNMENT_STYLES[macroAlignmentStatus] || ALIGNMENT_STYLES.neutral}`}>
+            {ALIGNMENT_ICONS[macroAlignmentStatus] || 'ℹ️'} {macroAlignment}
+          </p>
+        )}
 
         {/* Quadrant summary chips */}
         <div className="flex gap-3 mt-4 flex-wrap">
@@ -285,19 +363,35 @@ export default function SectorRotationTab({ sectorRotation, onScanForSector }) {
         <span className="text-blue-400 font-medium">Improving</span> = RS below 100 but gaining momentum ·&nbsp;
         <span className="text-yellow-400 font-medium">Weakening</span> = RS above 100 but fading ·&nbsp;
         <span className="text-red-400 font-medium">Lagging</span> = RS below 100 and falling.
-        &nbsp;Rank = RS Ratio magnitude · Quadrant = momentum direction · RS Ratio 100 = flat vs SPY over the lookback; &gt;100 = outperformed since then (not real-time market parity).
+        &nbsp;Sectors below are grouped by quadrant (most tradeable first) — the "RS Ratio" number on each card is how far above/below SPY it's run over the lookback; it's a separate, secondary stat, not a ranking, so a high value doesn't override the quadrant call.
       </div>
 
-      {/* 11 Sector Cards — responsive grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {sortedSectors.map(sector => (
-          <SectorCard
-            key={sector.etf}
-            sector={sector}
-            onScanForSector={onScanForSector}
-          />
-        ))}
-      </div>
+      {/* Sector cards grouped by quadrant — Leading first (most tradeable),
+          Lagging last. Replaces the old flat RS-Ratio-rank order, which put
+          the highest-magnitude sector first regardless of whether it was
+          actually favorable. */}
+      {QUADRANT_ORDER.map(q => {
+        const list = sortedSectors.filter(s => s.quadrant === q);
+        if (list.length === 0) return null;
+        const qc = QUADRANT_CONFIG[q];
+        return (
+          <div key={q} className="mb-6">
+            <div className="flex items-baseline gap-2 mb-3">
+              <span className={`text-sm font-semibold ${qc.color}`}>{qc.icon} {q}</span>
+              <span className="text-gray-500 text-xs">({list.length}) — {qc.sectionHint}</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {list.map(sector => (
+                <SectorCard
+                  key={sector.etf}
+                  sector={sector}
+                  onScanForSector={onScanForSector}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      })}
 
       {/* Footer note */}
       <div className="mt-6 text-center text-xs text-gray-600">

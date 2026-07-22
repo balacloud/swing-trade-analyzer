@@ -835,6 +835,8 @@ export async function fetchSectorRotation() {
       size_rotation: data.size_rotation || [],
       size_signal: data.size_signal || 'Neutral',
       size_signal_detail: data.size_signal_detail || '',
+      macro_alignment: data.macro_alignment || null,
+      macro_alignment_status: data.macro_alignment_status || null,
     };
 
   } catch (error) {
