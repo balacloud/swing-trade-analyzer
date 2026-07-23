@@ -2,12 +2,12 @@
 
 > **Purpose:** Core rules and cumulative lessons learned — stable reference
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 93 (July 22, 2026)
+> **Last Updated:** Day 94 (July 23, 2026)
 > **Session protocols:** See `CLAUDE_CONTEXT.md` for startup/close checklists
 
 ---
 
-## CORE RULES (29 Golden Rules)
+## CORE RULES (31 Golden Rules)
 
 1. **START of session:** Read PROJECT_STATUS_DAY[N].md first
 2. **BEFORE modifying any file:** READ it first using Read tool
@@ -42,6 +42,8 @@
 30. **A NEW BACKEND FIELD ISN'T LIVE UNTIL EVERY INTERMEDIATE TRANSFORM LAYER PASSES IT THROUGH.** Adding `macro_alignment`/`macro_alignment_status` to `/api/sectors/rotation`'s response, then wiring the frontend to read them, produced nothing — no error, just silently absent. The backend was correct; the bug was in `frontend/src/services/api.js`'s `fetchSectorRotation()`, which doesn't pass through the raw JSON but manually reconstructs a whitelisted object literal (`return { sectors: data.sectors, size_rotation: data.size_rotation, ... }`) — any field not explicitly listed is silently dropped. A pure code-read of the backend endpoint would never have caught this; only checking the actual rendered page did (Golden Rule 6). When adding a field to any backend response, grep for every frontend function between the fetch and the component that might reconstruct rather than pass through the object, and confirm the field survives the whole path — don't assume "the backend returns it" means "the UI receives it." (Day 92, Sectors↔Context macro_alignment connection)
 
 31. **A CACHED RESPONSE CAN OUTLIVE THE FIX THAT WAS SUPPOSED TO CHANGE IT.** Several fixes this session (the Cap Size Rotation wording/color bugs, the econ composite PMI-key bug, the Seasonal Regime text softening) initially appeared not to work when re-checked live — not because the code was wrong, but because `/api/sectors/rotation` (cached per trading day) and `/api/cycles`/`/api/econ` (cached 6h) were still serving the pre-fix response from `data/cache.db`'s `market_cache` table. Each required an explicit `DELETE FROM market_cache WHERE symbol='...'` before the fix became visible. A correct code fix and a stale cache produce the exact same symptom from the outside ("I fixed it and nothing changed") — when verifying a fix against a cached endpoint, invalidate that specific cache key first, or a live check can falsely fail (or, worse, falsely pass by coincidentally matching what the stale cache already happened to show). (Day 92, Sectors/Context tab audit)
+
+32. **EVERY FIX GETS THREE CRITICAL REVIEW PASSES BEFORE IT'S DONE — NOT ONE.** Adding a visible error banner to the Sector Rotation Monitor (Day 94, so a failed yfinance fetch fails loud instead of hanging on a spinner forever) looked complete after the first pass: backend already 500'd correctly, `fetchSectorRotation()` was changed to throw instead of swallowing to `null`, the tab got a red banner + Retry matching the already-proven `ContextTab.jsx` convention, and it was live-verified in-browser with zero console errors. A second pass, done only because it was explicitly requested, found a real regression the first pass missed: `fetchSectorRotation()` is *also* called inside `fetchFullAnalysisData()`'s `Promise.all` for the Analyze Stock page — making it throw would have taken down the *entire* Analyze page on a sector-data hiccup, not just the sector badge. A third pass, same reason, found a second real bug: a separate code path in `App.jsx` (the Analyze page's own `data.sectorRotation` write) updates the same `sectorRotation` state on success but was never wired to clear `sectorRotationError` — so a stale error banner could mask genuinely fresh, valid data arriving via that other path. Both bugs were in code that "looked done" and had already passed a live browser check — neither was a typo or an obvious miss, both were about *second-order consumers* of a changed function's contract. One review pass verifies the change does what you intended; it does not verify nothing *else* now depends on the old, unchanged behavior. Going forward: any fix — however small it looks — gets three review passes before being called done, specifically hunting for (1) does the immediate change work as intended, (2) what else calls the thing I changed and does its contract still hold for them, (3) what other state/side-effects does this interact with that a first-order check wouldn't touch. (Day 94, Sector Rotation error-handling fix)
 
 ---
 

@@ -232,7 +232,7 @@ function SectorCard({ sector, onScanForSector }) {
   );
 }
 
-export default function SectorRotationTab({ sectorRotation, onScanForSector }) {
+export default function SectorRotationTab({ sectorRotation, sectorRotationError, onRetry, onScanForSector }) {
   // Destructure size rotation fields (may be absent on old cached response)
   const sizeRotation = sectorRotation?.size_rotation;
   const sizeSignal = sectorRotation?.size_signal || 'Neutral';
@@ -278,6 +278,25 @@ export default function SectorRotationTab({ sectorRotation, onScanForSector }) {
     const diffHr = Math.round(diffMin / 60);
     return `${diffHr}h ago`;
   }, [sectorRotation]);
+
+  // Error state — data fetch failed (e.g. yfinance down). Shown instead of a
+  // silent/stuck loading spinner, per Golden Rule "silent fallbacks are invisible lies".
+  if (sectorRotationError) {
+    return (
+      <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-6 text-red-200">
+        <p className="font-semibold">⚠️ Failed to load sector rotation data</p>
+        <p className="text-sm mt-1 text-red-300">{sectorRotationError}</p>
+        {onRetry && (
+          <button
+            onClick={onRetry}
+            className="mt-3 px-3 py-1.5 bg-red-700 hover:bg-red-600 rounded text-sm"
+          >
+            Retry
+          </button>
+        )}
+      </div>
+    );
+  }
 
   // Loading state
   if (!sectorRotation) {

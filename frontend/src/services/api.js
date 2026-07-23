@@ -429,7 +429,13 @@ export async function fetchFullAnalysisData(ticker) {
       fetchPatterns(ticker),
       fetchFearGreed(),
       fetchEarnings(ticker),
-      fetchSectorRotation(),  // Day 58: Fetch sector rotation (cached per trading day)
+      fetchSectorRotation().catch(err => {
+        // Day 94: fetchSectorRotation() now throws (so the Sectors tab can show
+        // a visible error banner instead of failing silently) — but a sector-data
+        // failure shouldn't take down the whole Analyze page, so isolate it here.
+        console.error('Error fetching sector rotation:', err);
+        return null;
+      }),  // Day 58: Fetch sector rotation (cached per trading day)
       fetchDataFreshness(ticker),  // Day 59: Data freshness for UI meter
     ]);
 
@@ -816,33 +822,27 @@ export async function fetchDataFreshness(ticker = '') {
  * @returns {object} - { sectors[], mapping, sectorCount, timestamp }
  */
 export async function fetchSectorRotation() {
-  try {
-    const response = await fetch(`${API_BASE_URL}/sectors/rotation`);
+  const response = await fetch(`${API_BASE_URL}/sectors/rotation`);
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to fetch sector rotation data');
-    }
-
-    const data = await response.json();
-
-    return {
-      sectors: data.sectors || [],
-      sectorCount: data.sectorCount,
-      mapping: data.mapping || {},
-      timestamp: data.timestamp,
-      period: data.period,
-      size_rotation: data.size_rotation || [],
-      size_signal: data.size_signal || 'Neutral',
-      size_signal_detail: data.size_signal_detail || '',
-      macro_alignment: data.macro_alignment || null,
-      macro_alignment_status: data.macro_alignment_status || null,
-    };
-
-  } catch (error) {
-    console.error('Error fetching sector rotation:', error);
-    return null;
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to fetch sector rotation data');
   }
+
+  const data = await response.json();
+
+  return {
+    sectors: data.sectors || [],
+    sectorCount: data.sectorCount,
+    mapping: data.mapping || {},
+    timestamp: data.timestamp,
+    period: data.period,
+    size_rotation: data.size_rotation || [],
+    size_signal: data.size_signal || 'Neutral',
+    size_signal_detail: data.size_signal_detail || '',
+    macro_alignment: data.macro_alignment || null,
+    macro_alignment_status: data.macro_alignment_status || null,
+  };
 }
 
 // ─── Context Tab API functions (Day 62, v4.24) ────────────────────────────────

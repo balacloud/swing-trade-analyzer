@@ -161,6 +161,18 @@ function App() {
 
   // Sector Rotation state (Day 58 - v4.19)
   const [sectorRotation, setSectorRotation] = useState(null);
+  const [sectorRotationError, setSectorRotationError] = useState(null);
+
+  // Day 94: shared so both mount-load and the tab's Retry button use the same logic
+  const loadSectorRotation = () => {
+    setSectorRotationError(null);
+    fetchSectorRotation()
+      .then(setSectorRotation)
+      .catch(err => {
+        console.error('Failed to load sector rotation:', err);
+        setSectorRotationError(err.message || 'Failed to fetch sector rotation data');
+      });
+  };
 
   // Sector filter state (Day 62 - v4.24 Phase 2: "Scan for Rank 1")
   const [sectorFilter, setSectorFilter] = useState(null); // null = no filter, sector object = filtered
@@ -185,9 +197,7 @@ function App() {
       .then(setStrategies)
       .catch(err => console.error('Failed to load strategies:', err));
     // Day 58: Load sector rotation data on startup
-    fetchSectorRotation()
-      .then(setSectorRotation)
-      .catch(err => console.error('Failed to load sector rotation:', err));
+    loadSectorRotation();
     // Load saved settings
     setSettings(loadSettings());
   }, []);
@@ -428,8 +438,11 @@ function App() {
       setTicker(targetTicker);
 
       // Day 58: Update sector rotation from analysis data (reliable — cached per trading day)
+      // Day 94: also clears a stale sectorRotationError — this is a second path that can
+      // deliver fresh data after the Sectors tab's own mount fetch failed.
       if (data.sectorRotation) {
         setSectorRotation(data.sectorRotation);
+        setSectorRotationError(null);
       }
 
       // Day 59: Update data freshness for UI meter
@@ -2891,6 +2904,8 @@ function App() {
         {activeTab === 'sectors' && (
           <SectorRotationTab
             sectorRotation={sectorRotation}
+            sectorRotationError={sectorRotationError}
+            onRetry={loadSectorRotation}
             onScanForSector={handleScanForSector}
           />
         )}
