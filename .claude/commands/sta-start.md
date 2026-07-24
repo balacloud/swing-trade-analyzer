@@ -12,14 +12,15 @@ Extract from it:
 - The Day N summary (1-line description of last session)
 - Next Session Priorities list
 
-## Step 2: Read the 4 required files
+## Step 2: Read the 5 required files
 
-Read all four — do not skip any:
+Read all five — do not skip any:
 
 1. `docs/claude/stable/GOLDEN_RULES.md`
-2. `docs/claude/stable/ROADMAP.md`
-3. `docs/claude/status/PROJECT_STATUS_DAY[N]_SHORT.md` — use the Day N you found in Step 1
-4. `docs/claude/versioned/KNOWN_ISSUES_DAY[N].md` — use the Day N you found in Step 1
+2. `docs/claude/stable/PERSONA.md` — the trading-judgment persona (30-year veteran trader lens). Load it as an active decision-making filter for this session, not just background reading — apply it to any threshold decision, backtest/live result interpretation, or "can we speed this up" request.
+3. `docs/claude/stable/ROADMAP.md`
+4. `docs/claude/status/PROJECT_STATUS_DAY[N]_SHORT.md` — use the Day N you found in Step 1
+5. `docs/claude/versioned/KNOWN_ISSUES_DAY[N].md` — use the Day N you found in Step 1
 
 ## Step 3: Count open bugs
 

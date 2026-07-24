@@ -90,7 +90,8 @@ class TradierProvider(OHLCVProvider, QuoteProvider):
             data = resp.json()
             history = (data or {}).get('history')
             if not history or not history.get('day'):
-                breaker.record_failure()
+                # Not a health signal — this ticker just isn't covered, not a
+                # provider-wide outage. Don't count it toward the breaker (Day 95).
                 raise DataNotFoundError(self.name, "No history returned", ticker)
 
             day = history['day']
@@ -101,7 +102,7 @@ class TradierProvider(OHLCVProvider, QuoteProvider):
             df = self._parse_ohlcv(day, ticker)
 
             if len(df) < 10:
-                breaker.record_failure()
+                # Data-coverage issue, not a health signal — don't count it (Day 95).
                 raise InsufficientDataError(self.name, f"Only {len(df)} bars", ticker)
 
             breaker.record_success()
@@ -133,20 +134,18 @@ class TradierProvider(OHLCVProvider, QuoteProvider):
             quote = quotes.get('quote')
 
             if not quote or quotes.get('unmatched_symbols'):
-                breaker.record_failure()
+                # Ticker-specific, not a health signal — don't count it (Day 95).
                 raise DataNotFoundError(self.name, "Symbol unmatched", ticker)
 
             # A multi-symbol response would return a list; we only ever pass one.
             if isinstance(quote, list):
                 quote = quote[0] if quote else None
             if not quote:
-                breaker.record_failure()
                 raise DataNotFoundError(self.name, "Empty quote", ticker)
 
             price = quote.get('last')
             previous_close = quote.get('prevclose')
             if price is None:
-                breaker.record_failure()
                 raise DataNotFoundError(self.name, "No price in quote", ticker)
 
             breaker.record_success()

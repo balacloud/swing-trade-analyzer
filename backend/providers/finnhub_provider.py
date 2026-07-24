@@ -58,7 +58,7 @@ class FinnhubProvider(FundamentalsProvider, QuoteProvider):
             metric = data.get('metric', {})
 
             if not metric:
-                breaker.record_failure()
+                # Ticker-specific, not a health signal — don't count it (Day 95).
                 raise DataNotFoundError(self.name, "Empty metric data", ticker)
 
             # Apply field normalization
@@ -105,7 +105,7 @@ class FinnhubProvider(FundamentalsProvider, QuoteProvider):
             previous_close = data.get('pc')  # Previous close
 
             if price is None or price == 0:
-                breaker.record_failure()
+                # Ticker-specific, not a health signal — don't count it (Day 95).
                 raise DataNotFoundError(self.name, "No price in quote", ticker)
 
             breaker.record_success()

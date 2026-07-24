@@ -56,7 +56,7 @@ class StooqProvider(OHLCVProvider):
             df = pdr.DataReader(ticker, 'stooq', start=start_date, end=end_date)
 
             if df is None or df.empty:
-                breaker.record_failure()
+                # Ticker-specific, not a health signal — don't count it (Day 95).
                 raise DataNotFoundError(self.name, "No data returned", ticker)
 
             # Stooq returns columns: Open, High, Low, Close, Volume (capitalized)
@@ -67,13 +67,12 @@ class StooqProvider(OHLCVProvider):
             required = ['open', 'high', 'low', 'close', 'volume']
             missing = [c for c in required if c not in df.columns]
             if missing:
-                breaker.record_failure()
                 raise DataNotFoundError(self.name, f"Missing columns: {missing}", ticker)
 
             df = df[required].sort_index()
 
             if len(df) < 10:
-                breaker.record_failure()
+                # Data-coverage issue, not a health signal — don't count it (Day 95).
                 raise InsufficientDataError(self.name, f"Only {len(df)} bars", ticker)
 
             breaker.record_success()

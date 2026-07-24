@@ -127,7 +127,7 @@ class TwelveDataProvider(OHLCVProvider, IntradayProvider):
                     breaker.record_failure()
                     raise AuthenticationError(self.name, message, ticker)
                 if code == 404 or 'not found' in message.lower():
-                    breaker.record_failure()
+                    # Ticker-specific, not a health signal — don't count it (Day 95).
                     raise DataNotFoundError(self.name, message, ticker)
                 breaker.record_failure()
                 raise ProviderUnavailableError(self.name, message, ticker)

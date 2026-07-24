@@ -41,10 +41,11 @@ import scan_queries
 import mean_reversion
 import pattern_detection
 from providers import get_data_provider
+from support_resistance import compute_sr_levels
 
 from backtest.categorical_engine import run_assessment
 from backtest.backtest_holistic import calculate_rs_52w
-from backtest.trade_simulator import compute_entry_levels
+from backtest.trade_simulator import compute_entry_levels, calculate_atr_at
 from paper_trading import ledger
 
 MOMENTUM_COOLDOWN_DAYS = 5   # matches backtest_holistic.py's re-entry cooldown
@@ -102,17 +103,103 @@ def get_market_regime():
     return regime, spy_df
 
 
-def get_momentum_signals(as_of_date=None, limit=150, market_index='all'):
+# Day 95: Path B forward-test experiment.
+#
+# Traced (Day 95) that backtest_holistic.py's actual Config C ENTRY GATE
+# never uses compute_entry_levels()'s flat+8%/ATR-clamped-stop formula at
+# all — that formula is EXIT MANAGEMENT only (how a position is stopped/
+# targeted once taken). The real backtested entry gate (check_entry_signals())
+# computes R:R from actual chart structure: risk = price - nearest_support,
+# reward = nearest_resistance - price, gated on is_viable and rr_ratio>=1.2
+# (falling back to a flat 1.5 R:R estimate only when no S&R levels exist).
+# live_signals.py (this file) has used the EXIT formula as if it were the
+# entry gate since Day 81 — a live/backtest divergence in the same bug class
+# as Golden Rule 19 (JS/Python verdict parity), just never caught until now
+# because nobody had reason to compare the two "R:R checks" against each
+# other before.
+#
+# Path B replicates the REAL, already-validated S&R-based entry gate exactly
+# (see check_sr_gate() below) instead of inventing something new. Path A is
+# untouched — same flat/ATR proxy gate it's always used, still accumulating
+# toward its own 100-trade bar. Both variants, once a signal qualifies,
+# share the EXACT SAME exit-management formula (compute_entry_levels(),
+# unchanged) — they only differ in what decided the trade was worth taking.
+# Tracked under its own `variant` ledger tag so it never touches Path A's
+# count. See KNOWN_ISSUES_DAY95.md / ROADMAP Priority #12 and
+# docs/claude/stable/PAPER_TRADING_PREREGISTRATION.md's Path B section.
+
+SR_FALLBACK_RR = 1.5  # matches backtest_holistic.py's "no S&R found" fallback exactly
+
+
+def check_sr_gate(stock_df, entry_idx):
+    """
+    Replicates backtest_holistic.py's check_entry_signals() Config C R:R gate
+    exactly: real support/resistance levels for risk/reward, is_viable +
+    rr_ratio>=1.2 as the pass condition, flat 1.5 ATR-based fallback when no
+    S&R levels exist. Returns (passes: bool, rr_ratio: float, viable, nearest_support, nearest_resistance).
+    """
+    df_slice = stock_df.iloc[:entry_idx + 1]
+    current_price = float(df_slice['Close'].iloc[-1])
+
+    df_lower = df_slice.rename(columns={
+        'Open': 'open', 'High': 'high', 'Low': 'low', 'Close': 'close', 'Volume': 'volume',
+    })
+    sr_levels = compute_sr_levels(df_lower)
+
+    viability = sr_levels.meta.get('trade_viability', {}) if sr_levels and sr_levels.meta else {}
+    is_viable = viability.get('viable') in ('YES', True, 'CAUTION')
+
+    nearest_support = max(sr_levels.support) if sr_levels and sr_levels.support else None
+    nearest_resistance = min(sr_levels.resistance) if sr_levels and sr_levels.resistance else None
+
+    rr_ratio = 0
+    if (nearest_support and nearest_resistance
+            and nearest_support < current_price < nearest_resistance):
+        risk = current_price - nearest_support
+        reward = nearest_resistance - current_price
+        if risk > 0:
+            rr_ratio = reward / risk
+
+    if rr_ratio == 0 and is_viable:
+        lookback_start = max(0, entry_idx - 50)
+        atr_val = calculate_atr_at(
+            stock_df['High'].iloc[lookback_start:entry_idx + 1],
+            stock_df['Low'].iloc[lookback_start:entry_idx + 1],
+            stock_df['Close'].iloc[lookback_start:entry_idx + 1],
+        )
+        if atr_val and atr_val > 0:
+            rr_ratio = SR_FALLBACK_RR
+
+    passes = is_viable and rr_ratio >= MIN_RR
+    return passes, round(rr_ratio, 2), is_viable, nearest_support, nearest_resistance
+
+
+def get_momentum_signals(as_of_date=None, limit=200, market_index='all'):
     """
     Returns a list of dicts (ticker, signal_date, signal_price, holding_period,
-    verdict_reason, regime_snapshot) for every Config C-qualifying momentum
-    BUY not already active/in cooldown. Caller queues each via
-    ledger.queue_pending_signal().
+    verdict_reason, regime_snapshot, variant) for every Config C-qualifying
+    momentum BUY not already active/in cooldown for its own variant. Caller
+    queues each via ledger.queue_pending_signal(variant=...).
+
+    Day 95: now yields signals for BOTH Path A (frozen, flat/ATR R:R proxy —
+    unchanged since Day 81) and Path B (real S&R-based R:R gate, see
+    check_sr_gate() above) — same shared Trend Template/RS/fundamentals/
+    verdict computation per candidate, each variant independently checked
+    against its own gate and its own cooldown state. A candidate can qualify
+    for one variant, both, or neither.
 
     Day 88: default limit raised 50->150 (more raw ADX-ranked candidates get
     the full per-ticker categorical assessment) — a breadth change to
     increase sample-accumulation rate, not a threshold change. Config C's
     BUY/R:R criteria are unchanged.
+
+    Day 95: raised 150->200 — measured that Config C's base TradingView
+    filter only matches ~160 stocks market-wide on a given day, so 150
+    already captured ~94% of the real universe; 200 gives headroom for
+    that count to grow without needing another bump. Breadth-only change,
+    same rationale as Day 88 (Golden Rule 18/20's distinction) — the real
+    bottleneck (measured Day 95) is the R:R gate, not candidate volume; see
+    ROADMAP.md Priority #12.
     """
     if not scan_queries.TRADINGVIEW_AVAILABLE:
         print("live_signals: TradingView screener unavailable, skipping momentum scan")
@@ -137,8 +224,12 @@ def get_momentum_signals(as_of_date=None, limit=150, market_index='all'):
 
     for c in candidates:
         ticker = c['ticker']
-        if ledger.has_active_or_cooldown(ticker, 'momentum', cooldown_days=MOMENTUM_COOLDOWN_DAYS,
-                                          as_of_date=as_of_date):
+        # Cooldown checked per-variant below, not here — a candidate might
+        # qualify for Path B while Path A is on cooldown (or vice versa).
+        if (ledger.has_active_or_cooldown(ticker, 'momentum', cooldown_days=MOMENTUM_COOLDOWN_DAYS,
+                                           as_of_date=as_of_date, variant='A_frozen')
+                and ledger.has_active_or_cooldown(ticker, 'momentum', cooldown_days=MOMENTUM_COOLDOWN_DAYS,
+                                                   as_of_date=as_of_date, variant='B_revised_rr')):
             continue
 
         time.sleep(0.4)  # light pacing — avoid tripping provider rate limits on batch scans
@@ -180,15 +271,6 @@ def get_momentum_signals(as_of_date=None, limit=150, market_index='all'):
 
             entry_idx = len(stock_df) - 1
             signal_price = float(stock_df['Close'].iloc[entry_idx])
-            stop_price, target_price, _max_hold = compute_entry_levels(
-                stock_df, entry_idx, DEFAULT_HOLDING_PERIOD, signal_price
-            )
-            risk = signal_price - stop_price
-            reward = target_price - signal_price
-            rr = (reward / risk) if risk > 0 else None
-            if rr is None or rr < MIN_RR:
-                continue
-
             # Day 92: stamp signal_date from the ticker's own last OHLCV bar,
             # not the wall-clock date. as_of_date is `datetime.now()`'s
             # calendar day — if the job is force-run on a non-trading day
@@ -201,14 +283,43 @@ def get_momentum_signals(as_of_date=None, limit=150, market_index='all'):
             # deriving signal_date from the same row guarantees a match.
             actual_signal_date = str(stock_df.index[entry_idx].date())
             rs_txt = f"RS {rs_52w:.2f}" if rs_52w is not None else "RS n/a"
-            signals.append({
-                'ticker': ticker,
-                'signal_date': actual_signal_date,
-                'signal_price': round(signal_price, 2),
-                'holding_period': DEFAULT_HOLDING_PERIOD,
-                'verdict_reason': f"BUY, TT {tt_score}/8, {rs_txt}, R:R {rr:.2f}",
-                'regime_snapshot': regime,
-            })
+
+            # Day 95: Path A (flat/ATR R:R proxy, unchanged since Day 81) and
+            # Path B (real S&R-based gate, matching what the backtest
+            # actually validated) each decide independently whether this
+            # candidate is a qualifying entry. Exit management (stop/target
+            # once entered) is identical for both — computed once, below.
+            stop_price, target_price, _max_hold = compute_entry_levels(
+                stock_df, entry_idx, DEFAULT_HOLDING_PERIOD, signal_price
+            )
+            risk_a = signal_price - stop_price
+            reward_a = target_price - signal_price
+            rr_a = (reward_a / risk_a) if risk_a > 0 else None
+            path_a_passes = rr_a is not None and rr_a >= MIN_RR
+
+            sr_passes, sr_rr, sr_viable, sr_support, sr_resistance = check_sr_gate(stock_df, entry_idx)
+
+            gates = []
+            if path_a_passes:
+                gates.append(('A_frozen', f"BUY, TT {tt_score}/8, {rs_txt}, R:R(proxy) {rr_a:.2f}"))
+            if sr_passes:
+                gates.append(('B_revised_rr',
+                               f"BUY, TT {tt_score}/8, {rs_txt}, R:R(S&R) {sr_rr:.2f} "
+                               f"(support ${sr_support:.2f}, resistance ${sr_resistance:.2f})"))
+
+            for variant, reason in gates:
+                if ledger.has_active_or_cooldown(ticker, 'momentum', cooldown_days=MOMENTUM_COOLDOWN_DAYS,
+                                                  as_of_date=as_of_date, variant=variant):
+                    continue
+                signals.append({
+                    'ticker': ticker,
+                    'signal_date': actual_signal_date,
+                    'signal_price': round(signal_price, 2),
+                    'holding_period': DEFAULT_HOLDING_PERIOD,
+                    'verdict_reason': reason,
+                    'regime_snapshot': regime,
+                    'variant': variant,
+                })
         except Exception as e:
             print(f"live_signals: momentum check failed for {ticker}: {e}")
             continue
@@ -216,7 +327,7 @@ def get_momentum_signals(as_of_date=None, limit=150, market_index='all'):
     return signals
 
 
-def _get_dynamic_mr_universe(limit=150):
+def _get_dynamic_mr_universe(limit=250):
     """
     Day 88: broad TradingView liquid-universe scan, replacing the
     hardcoded 54-name DEFAULT_MR_UNIVERSE for the automated daily job only
@@ -226,6 +337,12 @@ def _get_dynamic_mr_universe(limit=150):
     mean_reversion.detect_mr_signal(). Falls back to DEFAULT_MR_UNIVERSE if
     the TradingView query fails, so a screener outage can't silently stop
     the job from generating any MR signals at all.
+
+    Day 95: raised 150->250 after a live rate-limit test (Day 89's own
+    methodology) on the untested tail (candidates 151-250 today): 33 new
+    real candidates, 0 OHLCV fetch failures. Still well under the 300 that
+    tripped TwelveData's rate limiter Day 89. Breadth-only, same Golden
+    Rule 18/20 rationale as the momentum limit bump this same session.
     """
     if not scan_queries.TRADINGVIEW_AVAILABLE:
         print("live_signals: TradingView unavailable, falling back to DEFAULT_MR_UNIVERSE")

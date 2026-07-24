@@ -69,7 +69,7 @@ class YFinanceProvider(
             hist = stock.history(period=period)
 
             if hist is None or hist.empty:
-                breaker.record_failure()
+                # Ticker-specific, not a health signal — don't count it (Day 95).
                 raise DataNotFoundError(self.name, f"No OHLCV data returned", ticker)
 
             # Normalize to lowercase columns
@@ -80,7 +80,7 @@ class YFinanceProvider(
             hist = hist[ohlcv_cols]
 
             if len(hist) < 10:
-                breaker.record_failure()
+                # Data-coverage issue, not a health signal — don't count it (Day 95).
                 raise InsufficientDataError(self.name, f"Only {len(hist)} bars returned", ticker)
 
             breaker.record_success()
@@ -102,7 +102,7 @@ class YFinanceProvider(
             hist = stock.history(period=period, interval=interval)
 
             if hist is None or hist.empty:
-                breaker.record_failure()
+                # Ticker-specific, not a health signal — don't count it (Day 95).
                 raise DataNotFoundError(self.name, f"No intraday data returned", ticker)
 
             # Normalize to lowercase
@@ -133,7 +133,7 @@ class YFinanceProvider(
             info = stock.info
 
             if not info or info.get('quoteType') is None:
-                breaker.record_failure()
+                # Ticker-specific, not a health signal — don't count it (Day 95).
                 raise DataNotFoundError(self.name, "No info data returned", ticker)
 
             # Apply field map for basic fields
@@ -247,7 +247,7 @@ class YFinanceProvider(
             if price is None:
                 hist = stock.history(period='5d')
                 if hist is None or hist.empty:
-                    breaker.record_failure()
+                    # Ticker-specific, not a health signal — don't count it (Day 95).
                     raise DataNotFoundError(self.name, "No quote data", ticker)
                 price = float(hist.iloc[-1]['Close'])
 
@@ -275,7 +275,7 @@ class YFinanceProvider(
             info = stock.info
 
             if not info:
-                breaker.record_failure()
+                # Ticker-specific, not a health signal — don't count it (Day 95).
                 raise DataNotFoundError(self.name, "No stock info returned", ticker)
 
             data = apply_field_map(info, YFINANCE_STOCK_INFO)

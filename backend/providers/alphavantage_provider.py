@@ -70,7 +70,7 @@ class AlphaVantageProvider(FundamentalsProvider):
             pass
 
         if not any(v is not None for v in data.values()):
-            breaker.record_failure()
+            # Ticker-specific, not a health signal — don't count it (Day 95).
             raise DataNotFoundError(self.name, "No growth data returned", ticker)
 
         breaker.record_success()

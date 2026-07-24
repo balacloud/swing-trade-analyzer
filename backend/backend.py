@@ -2710,17 +2710,26 @@ def _position_row(row):
 def get_paper_trading_status():
     """Read-only ledger status: open/closed counts + stats per system, last
     run date, plus (Day 92) per-position rows so the ticker/entry/exit
-    detail behind those counts is visible without querying the DB directly."""
+    detail behind those counts is visible without querying the DB directly.
+
+    Day 95: momentum/mr explicitly pinned to variant='A_frozen' — the ledger
+    now also tracks a parallel Path B experiment (real S&R-based R:R gate,
+    see paper_trading/live_signals.py's check_sr_gate()) under its own
+    variant tag. Without this filter, once Path B starts closing trades this
+    endpoint would silently blend two different systems' results into one
+    number — exactly the contamination tagging by variant was meant to
+    prevent. Path B is now surfaced explicitly as its own 'momentumPathB'
+    key (additive — doesn't touch the shape of 'momentum'/'mr' at all)."""
     if not PAPER_TRADING_AVAILABLE:
         return jsonify({'error': 'Paper trading module not available'}), 503
     try:
         pt_ledger.init_db()
         systems = {}
         for system in ('momentum', 'mr'):
-            open_positions = pt_ledger.get_open_positions(system=system)
-            pending_signals = pt_ledger.get_pending_signals(system=system)
-            closed_trades = pt_ledger.get_closed_trades(system=system)
-            stats = pt_ledger.compute_stats(system=system)
+            open_positions = pt_ledger.get_open_positions(system=system, variant='A_frozen')
+            pending_signals = pt_ledger.get_pending_signals(system=system, variant='A_frozen')
+            closed_trades = pt_ledger.get_closed_trades(system=system, variant='A_frozen')
+            stats = pt_ledger.compute_stats(system=system, variant='A_frozen')
             systems[system] = {
                 'openPositions': len(open_positions),
                 'closedTrades': stats['total_trades'],
@@ -2733,6 +2742,25 @@ def get_paper_trading_status():
                     'closed': [_position_row(r) for r in reversed(closed_trades)][:20],
                 },
             }
+
+        # Day 95: Path B — real S&R-based entry gate, same momentum candidate
+        # pool as Path A, tracked separately (variant='B_revised_rr'). Own
+        # 100-trade bar, zero effect on Path A's numbers above.
+        pb_open = pt_ledger.get_open_positions(system='momentum', variant='B_revised_rr')
+        pb_pending = pt_ledger.get_pending_signals(system='momentum', variant='B_revised_rr')
+        pb_closed = pt_ledger.get_closed_trades(system='momentum', variant='B_revised_rr')
+        pb_stats = pt_ledger.compute_stats(system='momentum', variant='B_revised_rr')
+        systems['momentumPathB'] = {
+            'openPositions': len(pb_open),
+            'closedTrades': pb_stats['total_trades'],
+            'stats': pb_stats if pb_stats['total_trades'] > 0 else None,
+            'positions': {
+                'open': [_position_row(r) for r in pb_open],
+                'pending': [_position_row(r) for r in pb_pending],
+                'closed': [_position_row(r) for r in reversed(pb_closed)][:20],
+            },
+        }
+
         return jsonify({
             'lastRunDate': pt_ledger.get_last_run_date(),
             'systems': systems,

@@ -11,6 +11,7 @@ Ask the user one consolidated question before proceeding:
 - Did any APIs change (new endpoints, changed response fields)?
 - Any new lessons learned for GOLDEN_RULES?
 - Any roadmap changes (items completed, new items added, priorities shifted)?
+- Did the PERSONA.md trading-judgment lens catch, confirm, or reframe anything this session (a threshold call, a "too good to be true" result, a behavioral-finance pitfall)? Or nothing to log?
 
 Wait for the user's answers, then proceed through all steps.
 
@@ -50,6 +51,13 @@ Only if roadmap changed (items completed, new items, priority shifts):
 - Update `docs/claude/stable/ROADMAP.md` — update "Last Updated" date in header
 - Update `README.md` in the project root to mirror ROADMAP changes (external-facing)
 - Both files must be updated together — never one without the other
+
+## Step 5b: Update PERSONA.md's Feedback Log (conditional)
+
+Only if the persona lens caught, confirmed, or reframed something this session (per the Step 0 question):
+- Append a new dated entry (most recent first) to `docs/claude/stable/PERSONA.md`'s "Feedback Log" section — what the persona lens caught/confirmed, tied to the specific decision it applied to
+- Update the "Last Updated" date in the header
+- If nothing to log, skip this step entirely — do not force an entry just to have one
 
 ## Step 6: Update CLAUDE_CONTEXT.md
 
@@ -95,3 +103,4 @@ Confirm to the user: "Session closed. Day [N+1] status files created and pushed.
 - Never commit without pushing — the session is not closed until it's pushed
 - README.md only changes if ROADMAP.md changes — they are always updated as a pair
 - MEMORY.md (auto-memory) is separate from project docs — update it independently in Step 7
+- PERSONA.md's Feedback Log is append-only — never edit or remove a prior dated entry, only add new ones

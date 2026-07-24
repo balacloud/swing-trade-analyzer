@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 95 — end of day (July 24, 2026)
+> **Last Updated:** Day 96 — end of day (July 24, 2026)
 
 ---
 
@@ -11,22 +11,26 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 95 |
-| Version | v4.51 (Backend v2.44, Frontend v4.46, Backtest v4.19, API Service v2.11) — unchanged |
-| Latest Status | PROJECT_STATUS_DAY95_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY95.md |
-| Latest API | No change — API_CONTRACTS_DAY93.md still current |
-| Focus | **Forward-testing accumulation remains the SOLE priority — unchanged from Day 92.** Short session, independent of the freeze (pure ops/config): user asked whether the repo/servers need to be running for the paper-trading job to fire (answer: no — `launchd` runs it standalone) and what timezone its 16:30 schedule was in. Checking `/etc/localtime` found the machine's real local timezone is Eastern (America/Toronto), not Central as the plist's own comment assumed — the job had been firing at 4:30pm ET instead of 4:30pm CT, cutting its intended ~90-minute post-close data-settling buffer down to ~30 minutes. Fixed: schedule shifted to 17:30 ET, comment corrected, launchd reloaded. New **Golden Rule 33**. |
+| Current Day | 96 |
+| Version | v4.52 (Backend v2.45, Frontend v4.47, Backtest v4.19, API Service v2.11) |
+| Latest Status | PROJECT_STATUS_DAY96_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY96.md |
+| Latest API | API_CONTRACTS_DAY96.md — `/api/paper-trading/status` gains `momentumPathB` (additive) |
+| Focus | **Forward-testing accumulation remains the SOLE priority for Path A/MR — unchanged from Day 92.** One large session: fixed the paper-trading launchd timezone bug (Golden Rule 33); built `PERSONA.md`, a 30-year-veteran trading-judgment lens wired into `/sta-start`/`/sta-end` (Golden Rule 34); fixed a systemic circuit-breaker bug across all 6 data providers where ticker-specific data gaps were miscounted as provider-health failures (Golden Rule 36); and discovered the live momentum R:R gate never matched the actual backtested Config C entry logic — a real S&R-based check, not the flat/ATR proxy substituted since Day 81 (Golden Rule 35). Fixed by building **Path B**, a parallel forward-test experiment using the real gate, its own ledger `variant` tag, its own 100-trade bar, zero effect on Path A's count — now visible as its own card in the Forward Test tab UI. |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
 
-### Day 95 Summary (Paper-Trading Schedule Timezone Fix — v4.51, unchanged)
-- **Real bug found and fixed: the paper-trading `launchd` job's schedule assumed the wrong system timezone.** User asked what happens if the repo/servers aren't running (answer: irrelevant — `launchd` runs `daily_job.py` standalone, no calls to the Flask backend, confirmed by grepping for `localhost` calls) and then asked what timezone the 16:30 fire time actually was. Checking `/etc/localtime` found this machine's real local timezone is **America/Toronto (Eastern)**, not Central as the plist's own comment claimed ("16:30 Central Time (this machine's local timezone)"). Since `launchd` interprets `StartCalendarInterval` Hour/Minute in the machine's actual local timezone, the job had been firing at **4:30pm ET**, not 4:30pm CT — silently shrinking the intended ~90-minute post-close data-settling buffer down to only ~30 minutes. Fixed: all 5 weekday entries shifted Hour 16→17 (17:30 ET), comment corrected, `launchctl unload`/`load` reloaded the job (confirmed registered via `launchctl list`). Takes effect starting the next weekday. **New Golden Rule 33**: verify a scheduled job's actual system timezone rather than trusting what a comment assumes.
-- While investigating, also confirmed via the `job_runs` DB table (not just a truncated log tail, which looked like a stall) that the job has real activity every weekday through 2026-07-22 — no data-currency problem. Noted but not chased further: the launchd-only `daily_job.log` shows several recent days as "already ran today — skipping," implying a manual/force run likely did that day's real work before the schedule fired; log completeness gap only, not a ledger-accuracy concern.
-- **Paper trading, monitoring only.** Momentum 14 open/1 closed, MR 3 open/23 closed — both unchanged from Day 94.
-- No version bump (config/ops fix only, no `backend.py`/frontend code touched). No API changes.
+### Day 96 Summary (Persona + Provider Reliability Overhaul + Path B Forward-Test Experiment — v4.52)
+- **Paper-trading launchd timezone bug fixed first** (carried in from Day 95's opening): machine's real timezone is Eastern, not Central as the plist assumed — job was firing at 4:30pm ET instead of 4:30pm CT, cutting the intended ~90-min post-close buffer to ~30 min. Fixed, schedule shifted to 17:30 ET. New **Golden Rule 33**.
+- **Built `docs/claude/stable/PERSONA.md`** — a 30-year, all-cycle veteran trader's decision-making lens (first-principles discipline, market "don'ts," behavioral-finance pitfalls each grounded in a real project moment), wired into `/sta-start` (loaded every session) and `/sta-end` (Feedback Log updated at close). New **Golden Rule 34**.
+- **Deep-dived the TradingView screener pipeline** end to end (how Config C candidates flow into momentum/MR signals) and measured that momentum's live R:R gate rejected 81% of otherwise-qualifying candidates, 45% hitting an exact 0.80 ceiling — a structural artifact of `compute_entry_levels()`'s flat+8%/ATR-clamped-stop formula.
+- **Systemic data-provider circuit-breaker bug found and fixed across all 6 providers.** Every provider counted a ticker-specific `DataNotFoundError`/`InsufficientDataError` (e.g. BRK.A having no data on Tradier) the same as a genuine connectivity failure — a couple of unlucky ticker misses could trip a perfectly healthy provider's breaker and block everyone else in that scan for 5 minutes. Verified live: Tradier re-tested 10/10 clean immediately after. New **Golden Rule 36**. Also centralized fragile `.env` loading into `providers/__init__.py`.
+- **The big one: found that momentum's live R:R gate never matched the actual backtested Config C entry logic.** An initial fix attempt (widen the stop clamp) was tested via a quick backtest sanity check and proved directionally backwards — caught cheaply before weeks of live testing were wasted. Tracing *why* the trade set didn't change at all led to the real discovery: `backtest_holistic.py`'s real entry gate computes R:R from actual support/resistance levels, completely different from the flat/ATR proxy `live_signals.py` has used as its entry decision since Day 81 — same bug class as Golden Rule 19 (JS/Python parity), just live-vs-backtest. New **Golden Rule 35**.
+- **Fixed by building Path B**: a parallel forward-test experiment using the real S&R-based gate (`check_sr_gate()`), same daily momentum candidates as Path A, tracked under its own ledger `variant` tag with its own 100-trade bar — Path A's frozen count is completely untouched. Surfaced live in the Forward Test tab as a visually-distinct "Momentum (Path B)" card, verified in-browser with zero console errors. The wrong first attempt was reverted cleanly and logged honestly in `PERSONA.md`'s Feedback Log, not defended.
+- **Paper trading status:** Path A momentum 22 open/2 closed, Path B momentum 0 open/0 closed (new), MR 3 open/25 closed.
+- Version v4.51 → v4.52 (Backend v2.44 → v2.45, Frontend v4.46 → v4.47). API additive-only change, see `API_CONTRACTS_DAY96.md`.
 
 ### Day 94 Summary (Sector Rotation Error-Handling Fix + Full README Audit — v4.51)
 - **Sector Rotation Monitor silent-failure bug, found and fixed after a user question about yfinance failure handling.** `fetchSectorRotation()` swallowed every error to `null`, leaving the Sectors tab permanently stuck on its loading spinner with zero indication anything had broken. Fixed: `api.js` now throws, `App.jsx` gained `sectorRotationError` state + a shared `loadSectorRotation()`, `SectorRotationTab.jsx` gained a red error banner + Retry (matching the already-proven `ContextTab.jsx` convention). **A 2nd review pass (explicitly requested) caught a real regression**: `fetchSectorRotation()` is also called inside the Analyze Stock page's `Promise.all` — making it throw would have taken the whole page down on a sector-data hiccup, not just the badge; isolated with its own `.catch`. **A 3rd pass (same reason) caught a second real bug**: the Analyze page's own `sectorRotation` write path never cleared `sectorRotationError`, so a stale error banner could mask genuinely fresh data arriving via that other path. **New Golden Rule 32**: every fix now gets 3 review passes (does it work / what else calls the changed thing / what other state does it touch) — codified using this exact fix as the worked example.
@@ -63,6 +67,7 @@
 ```
 1. READ FILES (in this exact order):
    □ GOLDEN_RULES.md
+   □ PERSONA.md (trading-judgment lens — Golden Rule 34)
    □ ROADMAP.md
    □ PROJECT_STATUS_DAY[N]_SHORT.md
    □ KNOWN_ISSUES_DAY[N].md
@@ -95,6 +100,7 @@ STEP 1: CREATE status/PROJECT_STATUS_DAY[N+1]_SHORT.md
 STEP 2: CREATE versioned/KNOWN_ISSUES_DAY[N+1].md
 STEP 3: IF APIs changed → CREATE versioned/API_CONTRACTS_DAY[N+1].md
 STEP 4: IF lessons learned → UPDATE stable/GOLDEN_RULES.md (+ "Last Updated" date)
+STEP 4b: IF the persona lens caught/confirmed something → UPDATE stable/PERSONA.md's Feedback Log (+ "Last Updated" date)
 STEP 5: IF roadmap changed → UPDATE stable/ROADMAP.md (+ "Last Updated" date)
 STEP 6: UPDATE THIS FILE (CLAUDE_CONTEXT.md):
         □ CURRENT STATE table (Day, Version, Status, Issues, Focus)
@@ -121,9 +127,9 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 
 ## NEXT SESSION PRIORITIES
 
-**Forward-testing accumulation is the SOLE priority as of Day 92, unchanged Day 93-95** — user explicitly parked every other item below until 100 trades/system (raised from 50) are logged. Do not propose or start any of items 2+ unless the user raises it first — this is stricter than the Day 87 feature freeze it supersedes. (The Day 93 Sectors/Context tab work, Day 94's Sector Rotation fix + README audit, and Day 95's launchd schedule/timezone fix were explicitly scoped as independent of this freeze — pure display/UI/docs/ops, no verdict/trading contact — not new exceptions to the pattern.)
+**Forward-testing accumulation is the SOLE priority as of Day 92, unchanged Day 93-96** — user explicitly parked every other item below until 100 trades/system (raised from 50) are logged. Do not propose or start any of items 2+ unless the user raises it first — this is stricter than the Day 87 feature freeze it supersedes. (The Day 93 Sectors/Context tab work, Day 94's Sector Rotation fix + README audit, Day 95's launchd schedule/timezone fix, and Day 96's provider-reliability overhaul + PERSONA.md were explicitly scoped as independent of this freeze — pure display/UI/docs/ops/infra, no frozen-threshold contact — not new exceptions to the pattern. Path B is a genuinely new experiment, not a freeze exception, since it never touches Path A's count.)
 
-1. **Let paper trading accumulate** — SOLE FOCUS. As of Day 95: Momentum 14 open/1 closed (0% WR — single trade, not evidence of anything, unchanged from Day 94); MR 3 open/23 closed (95.65% WR, PF 20.5 — confirmed via direct ledger inspection to be a real but heavily clustered result tied to one semiconductor-sector news event, not a demonstrated edge; unchanged from Day 94). Confirmation bar is **100 trades/system** (`PAPER_TRADING_PREREGISTRATION.md`). Momentum's pace is very slow (long hold periods) — realistically weeks-to-months from the bar, not days; MR's recent pace is inflated by one unusual week and shouldn't be extrapolated. A genuinely missed run on 2026-07-14 was found and confirmed unrecoverable Day 94 (not a bug — TradingView has no point-in-time query). The job's `launchd` schedule was corrected Day 95 (was firing at 4:30pm ET while assuming 4:30pm CT — now 5:30pm ET, restoring the intended 90-min post-close buffer; see Golden Rule 33) — sanity-check the next weekday's run fires as expected, once. `/sta-start` warns automatically if the launchd job goes stale (>3 days). If a Force Run "looks like nothing happened," don't assume it's a quiet day — re-run in the foreground and read stdout before trusting the aggregate UI (this is exactly how Day 92's zombie-signal bug was found). Check progress via the Forward Test tab's status panel or `venv/bin/python paper_trading/daily_job.py --report`.
+1. **Let paper trading accumulate** — SOLE FOCUS. As of Day 96: **Path A** Momentum 22 open/2 closed (50% WR, PF 1.691 — still a tiny sample); **Path B** Momentum 0 open/0 closed (brand new — real S&R-based gate, see Golden Rule 35/`PAPER_TRADING_PREREGISTRATION.md` §8b); **MR** 3 open/25 closed (92% WR, PF 10.82 — still likely overfitting on a small sample per the system's own sanity check). Confirmation bar is **100 trades/system** for all three (`PAPER_TRADING_PREREGISTRATION.md`). Momentum Path A's pace is very slow — realistically weeks-to-months from the bar; Path B is untested territory, watch its first real signal when one comes. The job's `launchd` schedule was corrected Day 95 (now 17:30 ET) — sanity-check the next weekday's run fires as expected, once. `/sta-start` warns automatically if the launchd job goes stale (>3 days). If a Force Run "looks like nothing happened," don't assume it's a quiet day — re-run in the foreground and read stdout before trusting the aggregate UI. Check progress via the Forward Test tab's status panel (now with a separate Path B card) or `venv/bin/python paper_trading/daily_job.py --report`.
 2. *(parked)* **Decide fundamentals mitigation** — Task 3.2 measured 40.0% live↔backtest disagreement; user decision pending (align live-to-SimFin or backtest-to-TTM). Now also affects the automated engine's momentum leg.
 3. *(parked)* **Confirm SimFin key rotation** — user to verify the old leaked key was rotated at simfin.com; a possible new key was shared in conversation but not yet applied.
 4. *(parked)* **N3 gap-fill detection** — needs its own design session first (Day 87 finding: no spec exists yet, only a placeholder pointer in `BREAKOUT_ENHANCEMENT_PLAN.md`).
@@ -145,6 +151,7 @@ STEP 8: GIT COMMIT + PUSH (Claude does this — NEVER ask user)
 ├── CLAUDE_CONTEXT.md              <- THIS FILE (single reference)
 ├── stable/                        <- Rarely change
 │   ├── GOLDEN_RULES.md           <- Core rules + lessons learned
+│   ├── PERSONA.md                <- Trading-judgment lens (30yr veteran persona) + Feedback Log
 │   ├── ROADMAP.md                <- Canonical roadmap
 │   └── MASTER_AUDIT_FRAMEWORK.md <- Canonical audit protocol (5 types)
 ├── design/                        <- Feature design specs + audit reports
@@ -228,6 +235,7 @@ sqlite3 backend/validation_results/paper_trading_ledger.db "SELECT MAX(run_date)
 | 93 | Sectors/Context tab audit, explicitly independent of the freeze (pure display/UI logic). 3 real bugs + a full beginner-focused redesign on the Sectors tab; 2 real bugs on the Context tab (a Day 91 regression in the econ composite, a Seasonal Regime text/badge contradiction); new Sectors↔Context `macro_alignment` connection + Market-Phase↔Macro-Regime reconciliation. Self-audit against GOLDEN_RULES.md found a real DRY violation, fixed (Golden Rules 30-31 added). Corrected a real Backend version-drift (code said 2.43, docs claimed 2.45). v4.49 → v4.50 (BE v2.43 → v2.44, FE v4.44 → v4.45). |
 | 94 | Fixed a real Sector Rotation silent-failure bug (visible error banner + Retry); a mandated 2nd/3rd review pass caught a cascading-failure regression and a stale-error-masking-fresh-data bug before shipping (new Golden Rule 32: 3 review passes per fix, always). Ran the project's first full README.md Coherence Audit (5 parallel passes) — fixed ~50 real issues (3 fictional API endpoints, ~10 undocumented real ones incl. the entire paper-trading/breakout engines, a self-contradicting version/date header, Stooq-vs-Tradier corrected throughout). New `DEVELOPER_ONBOARDING.md` for an external collaborator. v4.50 → v4.51 (BE v2.44 unchanged, FE v4.45 → v4.46). |
 | 95 | Fixed a real paper-trading `launchd` schedule bug: the plist's own comment assumed the machine ran on Central Time, but `/etc/localtime` showed it's actually Eastern (America/Toronto) — the job had been firing at 4:30pm ET instead of the intended 4:30pm CT, cutting its 90-min post-close data-settling buffer to 30 min. Shifted schedule to 17:30 ET, corrected the comment, reloaded via launchctl. New Golden Rule 33. No version bump (config/ops-only, no app code touched). |
+| 96 | Built `PERSONA.md` (Golden Rule 34). Fixed a systemic circuit-breaker bug across all 6 data providers — ticker-specific data gaps were miscounted as provider-health failures (Golden Rule 36) — plus centralized fragile `.env` loading. Discovered the live momentum R:R gate never matched the actual backtested Config C entry logic (Golden Rule 35); fixed by building **Path B**, a parallel forward-test experiment on the real S&R-based gate, own ledger variant, own 100-trade bar, zero effect on Path A — surfaced live in the Forward Test tab. v4.51 → v4.52 (BE v2.44 → v2.45, FE v4.46 → v4.47). Additive API change, see `API_CONTRACTS_DAY96.md`. |
 
 ---
 

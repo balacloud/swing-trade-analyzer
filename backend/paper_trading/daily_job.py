@@ -74,6 +74,10 @@ def activate_pending_signals():
             entry_price = float(df['Open'].iloc[entry_idx])
 
             if row['system'] == 'momentum':
+                # Day 95: Path A and Path B (see live_signals.py) share the
+                # exact same exit-management formula — they only differ in
+                # which entry gate decided to take the trade — so this
+                # recompute is variant-agnostic, same as before.
                 stop_price, target_price, max_hold = compute_entry_levels(
                     df, entry_idx, row['holding_period'], entry_price
                 )
@@ -187,13 +191,14 @@ def run_daily_job(force=False):
     print("Step 3/3: generating new signals from today's data...")
     momentum_signals = live_signals.get_momentum_signals(as_of_date=today)
     for s in momentum_signals:
+        variant = s.get('variant', 'A_frozen')
         ledger.queue_pending_signal(
             'momentum', s['ticker'], s['signal_date'], s['signal_price'],
             holding_period=s['holding_period'], verdict_reason=s['verdict_reason'],
-            regime_snapshot=s.get('regime_snapshot')
+            regime_snapshot=s.get('regime_snapshot'), variant=variant
         )
         summary['queued_momentum'] += 1
-        print(f"  queued momentum: {s['ticker']} — {s['verdict_reason']}")
+        print(f"  queued momentum [{variant}]: {s['ticker']} — {s['verdict_reason']}")
 
     mr_signals = live_signals.get_mr_signals(as_of_date=today)
     for s in mr_signals:
@@ -215,25 +220,34 @@ def run_daily_job(force=False):
     return summary
 
 
+def _print_variant_stats(system, variant, label):
+    open_positions = ledger.get_open_positions(system=system, variant=variant)
+    closed = ledger.get_closed_trades(system=system, variant=variant)
+    stats = ledger.compute_stats(system=system, variant=variant)
+    print(f"\n  --- {label} ---")
+    print(f"  Open positions: {len(open_positions)}")
+    print(f"  Closed trades:  {stats['total_trades']}")
+    if stats['total_trades'] > 0:
+        print(f"  Win rate:       {stats['win_rate']}%")
+        print(f"  Profit factor:  {stats['profit_factor']}")
+        print(f"  Expectancy:     {stats['expectancy_pct']}%/trade")
+        print(f"  Avg R-multiple: {stats['avg_r_multiple']}")
+        slippages = [t['entry_slippage_pct'] for t in closed if t.get('entry_slippage_pct') is not None]
+        if slippages:
+            print(f"  Avg entry slippage: {sum(slippages)/len(slippages):.3f}%")
+    else:
+        print("  (no closed trades yet)")
+
+
 def print_report():
     ledger.init_db()
-    for system in ('momentum', 'mr'):
-        open_positions = ledger.get_open_positions(system=system)
-        closed = ledger.get_closed_trades(system=system)
-        stats = ledger.compute_stats(system=system)
-        print(f"\n=== {system.upper()} ===")
-        print(f"  Open positions: {len(open_positions)}")
-        print(f"  Closed trades:  {stats['total_trades']}")
-        if stats['total_trades'] > 0:
-            print(f"  Win rate:       {stats['win_rate']}%")
-            print(f"  Profit factor:  {stats['profit_factor']}")
-            print(f"  Expectancy:     {stats['expectancy_pct']}%/trade")
-            print(f"  Avg R-multiple: {stats['avg_r_multiple']}")
-            slippages = [t['entry_slippage_pct'] for t in closed if t.get('entry_slippage_pct') is not None]
-            if slippages:
-                print(f"  Avg entry slippage: {sum(slippages)/len(slippages):.3f}%")
-        else:
-            print("  (no closed trades yet)")
+    print("\n=== MOMENTUM ===")
+    _print_variant_stats('momentum', 'A_frozen', 'Path A (frozen, flat/ATR R:R proxy)')
+    _print_variant_stats('momentum', 'B_revised_rr', 'Path B (real S&R-based R:R gate, Day 95)')
+
+    print("\n=== MR ===")
+    _print_variant_stats('mr', 'A_frozen', 'MR (unchanged — not part of the Path B experiment)')
+
     last_run = ledger.get_last_run_date()
     print(f"\nLast job run: {last_run or 'never'}")
 

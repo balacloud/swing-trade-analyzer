@@ -69,7 +69,7 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 
 > **Status note:** a complete feature freeze has been in effect since Day 87 — the list below reflects everything shipped, but active work is currently limited to bug fixes and the automated paper-trading engine (100 confirmed trades/system required before any capital allocation). See [Roadmap](#roadmap) for current priorities.
 
-### ✅ Implemented (v4.50)
+### ✅ Implemented (v4.52)
 
 1. **Single Stock Analysis**
    - Enter any ticker symbol
@@ -1492,6 +1492,8 @@ TOLERANCES = {
 - **v4.48: Session 28 Audit Triage** ✅ Fixed 4 top-priority findings from a hub-side audit — Scan tab mislabel, Sectors tab false claims, Context tab CPI date-alignment bug, paper-trading exit-rule integrity (replay now anchors to stored entry values) (Day 91)
 - **v4.49: Paper-Trading Bug Fix + Per-Ticker UI** ✅ Fixed a real bug where a signal's date could be stamped from the wall clock instead of the trading day it came from, permanently stranding it (momentum jumped from 3 to 10 open positions on repair); `/api/paper-trading/status` now surfaces per-ticker entry/exit detail in the Forward Test tab. Confirmation bar raised from 50 to 100 trades/system (Day 92)
 - **v4.50: Sectors/Context Tab Audit + Cross-Tab Connection** ✅ Independent of the paper-trading freeze (pure display/UI logic): fixed a mid-cap-blind rotation banner, a bar-color/label contradiction, and redesigned the Sectors tab's CTA/card layout for beginner interpretability; fixed a real Day-91 regression in the Context tab's economic composite box and a Seasonal Regime text/badge contradiction; built a new `macro_alignment` connection so the Sectors tab states whether the macro backdrop supports the rotation it's showing, plus a Market-Phase↔Macro-Regime reconciliation on the Context tab itself (Day 93)
+- **v4.51: Sector Rotation Error-Handling + README Audit** ✅ Fixed a silent-failure bug on the Sectors tab (visible error banner + Retry instead of an endless spinner); ran the project's first full README Coherence Audit, fixing ~50 findings including fictional API endpoints and undocumented real ones (Day 94)
+- **v4.52: Provider Reliability Overhaul + Path B Forward-Test Experiment** ✅ Fixed a systemic bug where every data provider's circuit breaker miscounted a ticker having no data as the provider itself being unhealthy (all 6 providers). Discovered the live momentum engine's R:R check had never matched the real backtested entry logic (a live/backtest divergence since Day 81) — fixed by launching **Path B**, a parallel forward-test experiment using the actual validated support/resistance-based R:R gate, visible in its own Forward Test tab card, tracked completely independently of the original ("Path A") system's count (Day 95-96)
 
 ### Philosophy (Day 27 + Day 44 Update)
 
@@ -1508,7 +1510,7 @@ Current focus:
 - **Categorical filtering** over numerical ranking
 - **System measurement** through forward testing and SQN tracking
 
-### Current Priorities (Day 92 — forward-testing accumulation is the sole priority)
+### Current Priorities (Day 92-96 — forward-testing accumulation is the sole priority)
 
 A full-system audit (Day 78) found the backtested edge was likely overstated — survivorship bias in the test universe and a reused walk-forward window. The resulting remediation plan is **fully complete (all 5 phases)**, and an automated paper-trading engine (Day 81) now runs daily, unattended, taking every qualifying signal with zero human filtering — this is the real test for both systems now, and it's been running since Day 81.
 
@@ -1522,7 +1524,9 @@ A full-system audit (Day 78) found the backtested edge was likely overstated —
 
 **Day 92: found and fixed a real paper-trading bug, then the user raised the bar.** A signal's `signal_date` could be stamped from the wall clock instead of the trading day it actually came from — a weekend/off-hours run permanently stranded 8 of momentum's 11 pending signals with no visible error. Fixed and repaired; momentum jumped from 3 to 10 open positions in one run. Per-ticker entry/exit detail was also added to the Forward Test tab's panel. **The user then explicitly raised the confirmation bar from 50 to 100 trades per system and named forward-testing accumulation the sole priority** — everything below is parked until it clears.
 
-1. **Let paper trading accumulate — SOLE FOCUS.** Nothing else gets worked on unless explicitly raised. Check progress in the Forward Test tab's status panel (now with per-ticker detail), or via `daily_job.py --report`.
+**Day 95-96: a data-reliability overhaul, and a real discovery about the momentum engine itself.** Every one of the 6 data providers' circuit breakers was miscounting a ticker simply having no data as evidence the whole provider was unhealthy — a couple of unlucky misses could take a perfectly healthy provider out of rotation for everyone else mid-scan; fixed across all 6. Separately, investigating why so few momentum candidates were qualifying led to a genuine finding: the live engine's R:R check had never been the same logic actually validated in the historical backtest (that real gate uses support/resistance levels, not the flat-target/ATR-clamp proxy the live engine substituted since Day 81). Rather than changing the frozen system (which would reset its count), a **parallel "Path B" experiment** now runs the real, historically-validated gate side-by-side — same daily candidates, its own independent 100-trade bar, visible as its own card in the Forward Test tab. Path A's original count and logic are completely untouched.
+
+1. **Let paper trading accumulate — SOLE FOCUS.** Nothing else gets worked on unless explicitly raised. Check progress in the Forward Test tab's status panel (now with per-ticker detail, plus a separate Path B card), or via `daily_job.py --report`.
 2. *(parked)* **Fundamentals mitigation decision** — a measured 40% disagreement between live and backtested fundamentals data sources is still pending a choice (align live-to-SimFin or backtest-to-TTM).
 3. *(parked)* **Confirm SimFin key rotation** — small housekeeping item.
 4. *(parked)* **N3 gap-fill detection** — needs its own design session first (no spec exists yet).

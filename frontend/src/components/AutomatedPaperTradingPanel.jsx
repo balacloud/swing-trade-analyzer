@@ -82,7 +82,7 @@ function PositionsTable({ positions }) {
   );
 }
 
-function SystemCard({ name, label, data }) {
+function SystemCard({ name, label, data, badge }) {
   const [expanded, setExpanded] = useState(false);
   if (!data) return null;
   const stats = data.stats;
@@ -90,8 +90,15 @@ function SystemCard({ name, label, data }) {
     + (data.positions?.pending?.length || 0)
     + (data.positions?.closed?.length || 0);
   return (
-    <div className="bg-gray-700/40 rounded-lg p-4">
-      <div className="text-sm font-semibold text-gray-300 mb-2">{label}</div>
+    <div className={`bg-gray-700/40 rounded-lg p-4 ${badge ? 'border border-dashed border-amber-600/50' : ''}`}>
+      <div className="flex items-center gap-2 mb-2">
+        <div className="text-sm font-semibold text-gray-300">{label}</div>
+        {badge && (
+          <span className="text-[10px] uppercase tracking-wide bg-amber-900/40 text-amber-400 px-1.5 py-0.5 rounded">
+            {badge}
+          </span>
+        )}
+      </div>
       <div className="flex gap-6 text-xs">
         <div>
           <div className="text-gray-500">Open</div>
@@ -217,9 +224,22 @@ export default function AutomatedPaperTradingPanel() {
             {isStale && ` — ⚠️ ${staleDays} days ago, likely missed a scheduled run`}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <SystemCard label="Momentum" data={status.systems?.momentum} />
+            <SystemCard label="Momentum (Path A)" data={status.systems?.momentum} />
             <SystemCard label="Mean-Reversion" data={status.systems?.mr} />
           </div>
+          {status.systems?.momentumPathB && (
+            <div className="mt-3">
+              <p className="text-xs text-gray-500 mb-2">
+                <span className="text-amber-400 font-medium">Path B</span> — same daily momentum candidates as
+                Path A above, gated on the real support/resistance-based R:R check that the historical backtest
+                actually validated (Day 95 finding), instead of Path A's flat-target/ATR-clamp proxy. A parallel
+                experiment, own 100-trade bar — does not affect Path A's count or the frozen verdict logic.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <SystemCard label="Momentum (Path B)" data={status.systems.momentumPathB} badge="Experimental" />
+              </div>
+            </div>
+          )}
           {triggerResult && (
             <div className="mt-3 text-xs text-gray-400 bg-gray-700/30 rounded px-3 py-2">
               Run complete: activated {triggerResult.activated}, closed {triggerResult.closed},

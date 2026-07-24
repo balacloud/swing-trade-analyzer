@@ -179,6 +179,16 @@ def compute_entry_levels(stock_df, entry_idx, holding_period, entry_price,
     an entry_idx even has a "tomorrow" bar to loop over — using the exact
     same thresholds the backtest uses, rather than a second implementation.
 
+    Day 95 note: this is the EXIT-MANAGEMENT formula only (how a position is
+    stopped/targeted once entered) — traced that `backtest_holistic.py`'s
+    actual Config C ENTRY gate uses a completely different, S&R-level-based
+    R:R check (`check_entry_signals()`), never this function. Path A and
+    Path B (see live_signals.py) both use this same exit formula unchanged —
+    they differ only in which entry-gate logic decides whether to take the
+    trade at all. Do not parametrize this for entry-gate experiments; that
+    was tried and reverted (widening the stop clamp here only makes exit R:R
+    worse, since it's not what gates entry in the validated backtest).
+
     Returns (stop_price, target_price, max_hold).
     """
     lookback_start = max(0, entry_idx - 50)

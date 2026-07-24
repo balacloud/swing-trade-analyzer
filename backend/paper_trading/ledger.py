@@ -46,6 +46,7 @@ def init_db(db_path=None):
         CREATE TABLE IF NOT EXISTS paper_positions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             system TEXT NOT NULL,               -- 'momentum' | 'mr'
+            variant TEXT NOT NULL DEFAULT 'A_frozen',  -- 'A_frozen' | 'B_revised_rr' (Day 95)
             ticker TEXT NOT NULL,
             holding_period TEXT,                 -- 'quick'|'standard'|'position' (momentum); NULL for mr
             status TEXT NOT NULL DEFAULT 'pending_entry',  -- pending_entry|open|closed
@@ -78,9 +79,18 @@ def init_db(db_path=None):
             updated_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    # Migration (Day 95): CREATE TABLE IF NOT EXISTS doesn't add columns to an
+    # already-existing table — add 'variant' if this ledger predates it.
+    # DEFAULT 'A_frozen' backfills every existing row automatically, so all
+    # prior Path A history is correctly tagged with zero manual migration.
+    existing_cols = {row['name'] for row in cur.execute('PRAGMA table_info(paper_positions)')}
+    if 'variant' not in existing_cols:
+        cur.execute("ALTER TABLE paper_positions ADD COLUMN variant TEXT NOT NULL DEFAULT 'A_frozen'")
+
     cur.execute('CREATE INDEX IF NOT EXISTS idx_paper_ticker ON paper_positions(ticker)')
     cur.execute('CREATE INDEX IF NOT EXISTS idx_paper_status ON paper_positions(status)')
     cur.execute('CREATE INDEX IF NOT EXISTS idx_paper_system ON paper_positions(system)')
+    cur.execute('CREATE INDEX IF NOT EXISTS idx_paper_variant ON paper_positions(variant)')
 
     cur.execute('''
         CREATE TABLE IF NOT EXISTS job_runs (
@@ -96,19 +106,24 @@ def init_db(db_path=None):
 
 # ─── Signal queueing ──────────────────────────────────────────────────────
 
-def has_active_or_cooldown(ticker, system, cooldown_days=5, as_of_date=None, db_path=None):
+def has_active_or_cooldown(ticker, system, cooldown_days=5, as_of_date=None,
+                            variant='A_frozen', db_path=None):
     """
-    True if `ticker` already has a pending/open position in `system`, OR
-    closed within the last `cooldown_days` calendar days (mirrors the
+    True if `ticker` already has a pending/open position in `system`+`variant`,
+    OR closed within the last `cooldown_days` calendar days (mirrors the
     backtest's cooldown to prevent overlapping re-entries on the same name).
+
+    Filtered by variant (Day 95) so Path A and Path B are independent
+    experiments — a ticker on cooldown in Path A doesn't block Path B (and
+    vice versa) from taking the same signal under its own formula.
     """
     conn = _connect(db_path)
     cur = conn.cursor()
     cur.execute('''
         SELECT status, exit_date FROM paper_positions
-        WHERE ticker = ? AND system = ?
+        WHERE ticker = ? AND system = ? AND variant = ?
         ORDER BY id DESC LIMIT 5
-    ''', (ticker, system))
+    ''', (ticker, system, variant))
     rows = cur.fetchall()
     conn.close()
 
@@ -131,7 +146,7 @@ def has_active_or_cooldown(ticker, system, cooldown_days=5, as_of_date=None, db_
 
 def queue_pending_signal(system, ticker, signal_date, signal_price,
                           holding_period=None, verdict_reason='',
-                          regime_snapshot=None, db_path=None):
+                          regime_snapshot=None, variant='A_frozen', db_path=None):
     """
     regime_snapshot captured HERE (at signal time, when the categorical
     assessment / MR detector actually fired) rather than at activation —
@@ -140,10 +155,10 @@ def queue_pending_signal(system, ticker, signal_date, signal_price,
     conn = _connect(db_path)
     cur = conn.cursor()
     cur.execute('''
-        INSERT INTO paper_positions (system, ticker, holding_period, status,
+        INSERT INTO paper_positions (system, variant, ticker, holding_period, status,
                                       signal_date, signal_price, verdict_reason, regime_snapshot)
-        VALUES (?, ?, ?, 'pending_entry', ?, ?, ?, ?)
-    ''', (system, ticker, holding_period, signal_date, signal_price, verdict_reason,
+        VALUES (?, ?, ?, ?, 'pending_entry', ?, ?, ?, ?)
+    ''', (system, variant, ticker, holding_period, signal_date, signal_price, verdict_reason,
           json.dumps(regime_snapshot) if regime_snapshot else None))
     position_id = cur.lastrowid
     conn.commit()
@@ -151,13 +166,18 @@ def queue_pending_signal(system, ticker, signal_date, signal_price,
     return position_id
 
 
-def get_pending_signals(system=None, db_path=None):
+def get_pending_signals(system=None, variant=None, db_path=None):
     conn = _connect(db_path)
     cur = conn.cursor()
+    query = "SELECT * FROM paper_positions WHERE status = 'pending_entry'"
+    params = []
     if system:
-        cur.execute("SELECT * FROM paper_positions WHERE status = 'pending_entry' AND system = ?", (system,))
-    else:
-        cur.execute("SELECT * FROM paper_positions WHERE status = 'pending_entry'")
+        query += " AND system = ?"
+        params.append(system)
+    if variant:
+        query += " AND variant = ?"
+        params.append(variant)
+    cur.execute(query, params)
     rows = [dict(r) for r in cur.fetchall()]
     conn.close()
     return rows
@@ -198,13 +218,18 @@ def activate_position(position_id, entry_date, entry_price,
 
 # ─── Open position tracking ───────────────────────────────────────────────
 
-def get_open_positions(system=None, db_path=None):
+def get_open_positions(system=None, variant=None, db_path=None):
     conn = _connect(db_path)
     cur = conn.cursor()
+    query = "SELECT * FROM paper_positions WHERE status = 'open'"
+    params = []
     if system:
-        cur.execute("SELECT * FROM paper_positions WHERE status = 'open' AND system = ?", (system,))
-    else:
-        cur.execute("SELECT * FROM paper_positions WHERE status = 'open'")
+        query += " AND system = ?"
+        params.append(system)
+    if variant:
+        query += " AND variant = ?"
+        params.append(variant)
+    cur.execute(query, params)
     rows = [dict(r) for r in cur.fetchall()]
     conn.close()
     return rows
@@ -236,13 +261,19 @@ def close_position(position_id, exit_date, exit_price, exit_reason, result,
     conn.close()
 
 
-def get_closed_trades(system=None, db_path=None):
+def get_closed_trades(system=None, variant=None, db_path=None):
     conn = _connect(db_path)
     cur = conn.cursor()
+    query = "SELECT * FROM paper_positions WHERE status = 'closed'"
+    params = []
     if system:
-        cur.execute("SELECT * FROM paper_positions WHERE status = 'closed' AND system = ? ORDER BY entry_date", (system,))
-    else:
-        cur.execute("SELECT * FROM paper_positions WHERE status = 'closed' ORDER BY entry_date")
+        query += " AND system = ?"
+        params.append(system)
+    if variant:
+        query += " AND variant = ?"
+        params.append(variant)
+    query += " ORDER BY entry_date"
+    cur.execute(query, params)
     rows = [dict(r) for r in cur.fetchall()]
     conn.close()
     return rows
@@ -250,14 +281,14 @@ def get_closed_trades(system=None, db_path=None):
 
 # ─── Stats (reuses backend/backtest/metrics.py — same math as the backtest) ──
 
-def compute_stats(system=None, db_path=None):
+def compute_stats(system=None, variant=None, db_path=None):
     """
     Wraps backend/backtest/metrics.compute_metrics() so paper-trading stats
     are computed identically to the backtest numbers they're meant to
     confirm/refute — one implementation, not a second one prone to drift
     (the exact class of bug Golden Rule 19 found between JS and Python).
     """
-    closed = get_closed_trades(system=system, db_path=db_path)
+    closed = get_closed_trades(system=system, variant=variant, db_path=db_path)
     trade_dicts = []
     for t in closed:
         trade_dicts.append({
