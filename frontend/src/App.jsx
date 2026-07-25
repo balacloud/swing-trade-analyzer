@@ -529,6 +529,24 @@ function App() {
     'NOC', 'PATH', 'NET', 'ASTS', 'ISRG', 'XYL',
   ];
 
+  // Day 97: HUB-65 — curated watchlist from a sibling options-research
+  // project ("HUB_EXTENDED"/"HUB_CORE"), captured 2026-07-22. Also the
+  // universe backing the automated paper-trading engine's new HUB-65
+  // mean-reversion track (backend/mean_reversion.py's HUB_UNIVERSE) — same
+  // 64 tickers, kept in sync manually if this watchlist is ever edited,
+  // same two-lists-that-can-drift risk as Master Framework Watchlist's own
+  // Notion-sync note above. VIX excluded (not a tradeable equity for scan
+  // purposes); see mean_reversion.py's HUB_UNIVERSE comment for why.
+  const HUB_WATCHLIST = [
+    'CEG', 'ETN', 'ANET', 'ALAB', 'MOD', 'GLW', 'APH', 'FN', 'DELL', 'HPE', 'HPQ',
+    'TMUS', 'KEYS', 'NOC', 'CGNX', 'ISRG', 'XYL', 'SMCI', 'ARM', 'ON', 'QCOM',
+    'TSM', 'AMAT', 'LRCX', 'KLAC', 'ASML', 'LSCC', 'CCJ', 'OKLO', 'BWXT', 'FCX',
+    'MP', 'TECK', 'WDC', 'SNOW', 'NET', 'SHOP', 'DDOG', 'PATH', 'GIB', 'HOOD',
+    'SOFI', 'AFRM', 'UPST', 'NIO', 'LI', 'XPEV', 'JD', 'GS', 'LUNR', 'RKLB',
+    'RIVN', 'ASTS', 'OXY', 'TRP', 'NFLX', 'POET', 'SMH', 'URA', 'XLF', 'XBI',
+    'GDX', 'SOXX', 'DRAM',
+  ];
+
   // Shared batch S/R fetch for any curated-ticker-list "watchlist" scan
   // strategy (Nirmal's Watchlist, Master Framework Watchlist) — same
   // convention: batch fetchSupportResistance() calls, null-per-ticker on
@@ -621,6 +639,19 @@ function App() {
         const candidates = await fetchWatchlistCandidates(MASTER_FRAMEWORK_WATCHLIST, 'Master Framework Watchlist');
         setScanResults({
           strategy: 'Master Framework Watchlist',
+          marketIndex: 'all',
+          totalMatches: candidates.length,
+          returned: candidates.length,
+          candidates,
+        });
+        loadBreakoutBadges(candidates.map(c => c.ticker), thisScanId);
+        return;
+      }
+
+      if (selectedStrategy === 'hub') {
+        const candidates = await fetchWatchlistCandidates(HUB_WATCHLIST, 'HUB-65 Watchlist');
+        setScanResults({
+          strategy: 'HUB-65 Watchlist',
           marketIndex: 'all',
           totalMatches: candidates.length,
           returned: candidates.length,
@@ -2649,6 +2680,7 @@ function App() {
                 >
                   <option value="nirmal">👁 Nirmal's Watchlist — 20 curated picks</option>
                   <option value="masterFramework">🏛️ Master Framework Watchlist — 76 curated picks</option>
+                  <option value="hub">🔬 HUB-65 Watchlist — 64 curated picks</option>
                   {strategies ? (
                     (strategies.strategies || []).map((strategy) => (
                       <option key={strategy.id} value={strategy.id}>{strategy.name}: {strategy.description}</option>

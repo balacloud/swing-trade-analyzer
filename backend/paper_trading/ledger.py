@@ -4,8 +4,8 @@ Paper Trading Ledger — Automated Daily Engine (Day 81)
 SQLite ledger for the automated daily paper-trading job. Every qualifying
 signal from the frozen config (docs/claude/stable/PAPER_TRADING_PREREGISTRATION.md)
 is taken automatically — no human filtering — so this ledger is the
-authoritative, selection-bias-free source for the 50-trade confirmation bar
-(Golden Rule 18/19).
+authoritative, selection-bias-free source for the 100-trade confirmation bar
+(raised from 50, Day 92 — see Golden Rule 18/19).
 
 Position lifecycle: pending_entry -> open -> closed
   pending_entry: signal fired at today's close, enters at tomorrow's open
@@ -46,7 +46,17 @@ def init_db(db_path=None):
         CREATE TABLE IF NOT EXISTS paper_positions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             system TEXT NOT NULL,               -- 'momentum' | 'mr'
-            variant TEXT NOT NULL DEFAULT 'A_frozen',  -- 'A_frozen' | 'B_revised_rr' (Day 95)
+            -- variant means something DIFFERENT depending on `system` (Day 97):
+            --   system='momentum': variant encodes the ENTRY-GATE experiment —
+            --     'A_frozen' (flat/ATR R:R proxy) | 'B_revised_rr' (real S&R
+            --     gate) — SAME candidate universe, different logic.
+            --   system='mr': variant encodes the UNIVERSE — 'A_frozen' (broad
+            --     dynamic scan) | 'mr_hub65' (curated 65-ticker HUB watchlist)
+            --     — SAME unchanged MR gate, different tickers. MR has no
+            --     entry-gate experiment, so this axis was free to repurpose;
+            --     documented here so a future audit doesn't misread it as a
+            --     logic change when it's actually a universe change.
+            variant TEXT NOT NULL DEFAULT 'A_frozen',
             ticker TEXT NOT NULL,
             holding_period TEXT,                 -- 'quick'|'standard'|'position' (momentum); NULL for mr
             status TEXT NOT NULL DEFAULT 'pending_entry',  -- pending_entry|open|closed

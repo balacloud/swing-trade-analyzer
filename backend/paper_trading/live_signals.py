@@ -361,10 +361,21 @@ def _get_dynamic_mr_universe(limit=250):
         return mean_reversion.DEFAULT_MR_UNIVERSE
 
 
-def get_mr_signals(as_of_date=None, tickers=None):
+def get_mr_signals(as_of_date=None, tickers=None, variant='A_frozen'):
     """
     Returns a list of dicts for every MR-qualifying ticker (detect_mr_signal,
     with the Day 81 liquidity gate) not already active/in cooldown.
+
+    Day 97: `variant` param added so a second, curated universe (e.g. the
+    HUB-65 watchlist, `mean_reversion.HUB_UNIVERSE`) can run the exact same
+    unchanged MR gate alongside the default dynamic-scan universe, tracked
+    under its own ledger variant tag so the two don't corrupt each other's
+    trade counts. Note: for system='mr', `variant` encodes UNIVERSE (which
+    tickers), not a different entry/exit gate — unlike momentum's Path A/B,
+    where `variant` encodes a different R:R gate on the SAME universe. Same
+    column, different meaning by system — see ledger.py's schema comment.
+    Backward-compatible: omitting `variant` keeps the default broad scan
+    tagged 'A_frozen', unchanged from before this param existed.
     """
     if as_of_date is None:
         as_of_date = datetime.now().strftime('%Y-%m-%d')
@@ -376,7 +387,7 @@ def get_mr_signals(as_of_date=None, tickers=None):
 
     for ticker in universe:
         if ledger.has_active_or_cooldown(ticker, 'mr', cooldown_days=MR_COOLDOWN_DAYS,
-                                          as_of_date=as_of_date):
+                                          as_of_date=as_of_date, variant=variant):
             continue
         time.sleep(0.4)  # light pacing — avoid tripping provider rate limits on batch scans
         try:
@@ -401,6 +412,7 @@ def get_mr_signals(as_of_date=None, tickers=None):
                     f"ADV20=${result['avg_dollar_volume']:,}"
                 ),
                 'regime_snapshot': regime,
+                'variant': variant,
             })
         except Exception as e:
             print(f"live_signals: MR check failed for {ticker}: {e}")

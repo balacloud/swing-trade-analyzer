@@ -28,6 +28,7 @@ anything). Three steps, in order:
 import sys
 import os
 import argparse
+import random
 from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # backend/
@@ -39,6 +40,7 @@ from backtest.mr_simulator import simulate_mr_trade
 from paper_trading import ledger
 from paper_trading import live_signals
 from paper_trading.live_signals import _to_capitalized_ohlcv
+from mean_reversion import HUB_UNIVERSE
 
 MR_STOP_PCT = 0.05
 MR_MAX_DAYS = 10
@@ -178,7 +180,7 @@ def run_daily_job(force=False):
     print(f"=== Paper Trading Daily Job — {today} ===")
 
     summary = {'run_date': today, 'activated': 0, 'closed': 0, 'still_open': 0,
-               'queued_momentum': 0, 'queued_mr': 0}
+               'queued_momentum': 0, 'queued_mr': 0, 'queued_mr_hub': 0}
 
     print("Step 1/3: activating pending signals...")
     summary['activated'] = activate_pending_signals()
@@ -205,10 +207,31 @@ def run_daily_job(force=False):
         ledger.queue_pending_signal(
             'mr', s['ticker'], s['signal_date'], s['signal_price'],
             holding_period=s['holding_period'], verdict_reason=s['verdict_reason'],
-            regime_snapshot=s.get('regime_snapshot')
+            regime_snapshot=s.get('regime_snapshot'), variant=s.get('variant', 'A_frozen')
         )
         summary['queued_mr'] += 1
         print(f"  queued MR: {s['ticker']} — {s['verdict_reason']}")
+
+    # Day 97: HUB-65 curated-universe MR track — same unchanged MR gate, a
+    # different (smaller, thematically-concentrated) universe, tracked under
+    # its own variant so it never touches the broad track's count above.
+    # Iteration order is randomized per run (Golden Rule 25) — HUB runs last
+    # in this job, after momentum's and the broad MR scan's rate budget is
+    # already spent; a fixed order would silently starve the same tail
+    # tickers every single day if a rate-limit cutoff ever trips mid-loop.
+    hub_universe_shuffled = list(HUB_UNIVERSE)
+    random.Random(today).shuffle(hub_universe_shuffled)
+    mr_hub_signals = live_signals.get_mr_signals(
+        as_of_date=today, tickers=hub_universe_shuffled, variant='mr_hub65'
+    )
+    for s in mr_hub_signals:
+        ledger.queue_pending_signal(
+            'mr', s['ticker'], s['signal_date'], s['signal_price'],
+            holding_period=s['holding_period'], verdict_reason=s['verdict_reason'],
+            regime_snapshot=s.get('regime_snapshot'), variant=s.get('variant', 'mr_hub65')
+        )
+        summary['queued_mr_hub'] += 1
+        print(f"  queued MR [mr_hub65]: {s['ticker']} — {s['verdict_reason']}")
 
     ledger.record_job_run(today, summary)
 
@@ -247,6 +270,7 @@ def print_report():
 
     print("\n=== MR ===")
     _print_variant_stats('mr', 'A_frozen', 'MR (unchanged — not part of the Path B experiment)')
+    _print_variant_stats('mr', 'mr_hub65', 'MR — Curated HUB-65 (different universe, Day 97)')
 
     last_run = ledger.get_last_run_date()
     print(f"\nLast job run: {last_run or 'never'}")

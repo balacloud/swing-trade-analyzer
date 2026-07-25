@@ -69,7 +69,7 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 
 > **Status note:** a complete feature freeze has been in effect since Day 87 — the list below reflects everything shipped, but active work is currently limited to bug fixes and the automated paper-trading engine (100 confirmed trades/system required before any capital allocation). See [Roadmap](#roadmap) for current priorities.
 
-### ✅ Implemented (v4.52)
+### ✅ Implemented (v4.53)
 
 1. **Single Stock Analysis**
    - Enter any ticker symbol
@@ -1494,6 +1494,7 @@ TOLERANCES = {
 - **v4.50: Sectors/Context Tab Audit + Cross-Tab Connection** ✅ Independent of the paper-trading freeze (pure display/UI logic): fixed a mid-cap-blind rotation banner, a bar-color/label contradiction, and redesigned the Sectors tab's CTA/card layout for beginner interpretability; fixed a real Day-91 regression in the Context tab's economic composite box and a Seasonal Regime text/badge contradiction; built a new `macro_alignment` connection so the Sectors tab states whether the macro backdrop supports the rotation it's showing, plus a Market-Phase↔Macro-Regime reconciliation on the Context tab itself (Day 93)
 - **v4.51: Sector Rotation Error-Handling + README Audit** ✅ Fixed a silent-failure bug on the Sectors tab (visible error banner + Retry instead of an endless spinner); ran the project's first full README Coherence Audit, fixing ~50 findings including fictional API endpoints and undocumented real ones (Day 94)
 - **v4.52: Provider Reliability Overhaul + Path B Forward-Test Experiment** ✅ Fixed a systemic bug where every data provider's circuit breaker miscounted a ticker having no data as the provider itself being unhealthy (all 6 providers). Discovered the live momentum engine's R:R check had never matched the real backtested entry logic (a live/backtest divergence since Day 81) — fixed by launching **Path B**, a parallel forward-test experiment using the actual validated support/resistance-based R:R gate, visible in its own Forward Test tab card, tracked completely independently of the original ("Path A") system's count (Day 95-96)
+- **v4.53: HUB-65 Curated-Universe Mean-Reversion Track** ✅ Recognized a user-proposed "buy the dip" idea as the project's own existing, unchanged mean-reversion engine applied to a new, curated 65-ticker watchlist rather than a new strategy. Backtested it first (PF 1.2574, Sharpe 1.5278 — explicitly caveated as selection-biased and NOT comparable to the survivorship-free baseline), then launched a real parallel forward-test track (own independent 100-trade bar, zero effect on the existing broad MR track's count), visible as a distinctly-badged card in the Forward Test tab plus a new curated watchlist option on the Scan tab (Day 98)
 
 ### Philosophy (Day 27 + Day 44 Update)
 
@@ -1510,7 +1511,7 @@ Current focus:
 - **Categorical filtering** over numerical ranking
 - **System measurement** through forward testing and SQN tracking
 
-### Current Priorities (Day 92-96 — forward-testing accumulation is the sole priority)
+### Current Priorities (Day 92-98 — forward-testing accumulation is the sole priority)
 
 A full-system audit (Day 78) found the backtested edge was likely overstated — survivorship bias in the test universe and a reused walk-forward window. The resulting remediation plan is **fully complete (all 5 phases)**, and an automated paper-trading engine (Day 81) now runs daily, unattended, taking every qualifying signal with zero human filtering — this is the real test for both systems now, and it's been running since Day 81.
 
@@ -1528,7 +1529,9 @@ A full-system audit (Day 78) found the backtested edge was likely overstated —
 
 **Day 97: research/planning only — a possible future IBKR real-paper-trading execution channel.** Investigated connecting to Interactive Brokers directly to execute Path B's signals as real bracket orders against IBKR's own paper-trading account (materially more realistic fills than the internal simulator). Verified a cited Canadian regulatory restriction (CIRO Dealer Member Rule 3200, which governs automated order execution for retail brokerage clients) directly against the regulator's own published guidance — it governs real orders to a real marketplace, and doesn't appear to restrict a pure paper/simulated account. Produced a full phased implementation plan (`docs/claude/design/IBKR_PAPER_EXECUTION_PLAN.md`), but the user explicitly parked it pending their own further research before any code is written — no implementation has started.
 
-1. **Let paper trading accumulate — SOLE FOCUS.** Nothing else gets worked on unless explicitly raised. Check progress in the Forward Test tab's status panel (now with per-ticker detail, plus a separate Path B card), or via `daily_job.py --report`.
+**Day 98: a fourth parallel forward-test track — HUB-65 curated-universe mean-reversion.** The user brought an external AI tool's "buy the 5% dip, sell on recovery" idea, sourced from a sibling project's own curated 65-ticker watchlist (semis, uranium/nuclear, fintech, China-EV, thematic ETFs). Recognized it as exactly the project's own already-validated mean-reversion engine, just pointed at a different, curated universe — not a new strategy. Backtested first (1,940 trades, PF 1.2574, Sharpe 1.5278 — explicitly flagged as selection-biased, since this is a 2026 watchlist picked because the names already look strong, not a fair comparison to the unbiased PF 1.16 baseline), then launched a real forward-test track under its own ledger tag, own independent 100-trade bar, zero effect on the existing broad MR track. Visible in both the Forward Test tab (a distinctly teal-badged "Curated-65 Universe" card, different color from Path B's amber "Experimental" badge on purpose — different universe, not a different gate) and a new "HUB-65 Watchlist" preset on the Scan tab.
+
+1. **Let paper trading accumulate — SOLE FOCUS**, now across four tracks (Path A, Path B, broad MR, HUB-65 MR). Nothing else gets worked on unless explicitly raised. Check progress in the Forward Test tab's status panel, or via `daily_job.py --report`.
 2. *(parked)* **Fundamentals mitigation decision** — a measured 40% disagreement between live and backtested fundamentals data sources is still pending a choice (align live-to-SimFin or backtest-to-TTM).
 3. *(parked)* **Confirm SimFin key rotation** — small housekeeping item.
 4. *(parked)* **N3 gap-fill detection** — needs its own design session first (no spec exists yet).

@@ -82,23 +82,37 @@ function PositionsTable({ positions }) {
   );
 }
 
-function SystemCard({ name, label, data, badge }) {
+// badgeColor: 'amber' (default — "different logic/experimental", used by
+// momentum Path B) or 'teal' (Day 97 — "different universe", used by the
+// HUB-65 curated-watchlist MR card). Distinct colors are a deliberate
+// conflation safeguard: amber alone would read as "another experimental
+// variant of the same thing," when HUB-MR is actually a different universe
+// running the exact same, unchanged MR strategy — a different bet, not a
+// different (or better) strategy.
+const BADGE_STYLES = {
+  amber: { border: 'border-amber-600/50', bg: 'bg-amber-900/40', text: 'text-amber-400' },
+  teal: { border: 'border-teal-600/50', bg: 'bg-teal-900/40', text: 'text-teal-400' },
+};
+
+function SystemCard({ name, label, data, badge, badgeColor = 'amber', caption }) {
   const [expanded, setExpanded] = useState(false);
   if (!data) return null;
   const stats = data.stats;
+  const style = BADGE_STYLES[badgeColor] || BADGE_STYLES.amber;
   const totalPositions = (data.positions?.open?.length || 0)
     + (data.positions?.pending?.length || 0)
     + (data.positions?.closed?.length || 0);
   return (
-    <div className={`bg-gray-700/40 rounded-lg p-4 ${badge ? 'border border-dashed border-amber-600/50' : ''}`}>
+    <div className={`bg-gray-700/40 rounded-lg p-4 ${badge ? `border border-dashed ${style.border}` : ''}`}>
       <div className="flex items-center gap-2 mb-2">
         <div className="text-sm font-semibold text-gray-300">{label}</div>
         {badge && (
-          <span className="text-[10px] uppercase tracking-wide bg-amber-900/40 text-amber-400 px-1.5 py-0.5 rounded">
+          <span className={`text-[10px] uppercase tracking-wide ${style.bg} ${style.text} px-1.5 py-0.5 rounded`}>
             {badge}
           </span>
         )}
       </div>
+      {caption && <p className="text-xs text-gray-500 mb-2">{caption}</p>}
       <div className="flex gap-6 text-xs">
         <div>
           <div className="text-gray-500">Open</div>
@@ -237,6 +251,22 @@ export default function AutomatedPaperTradingPanel() {
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <SystemCard label="Momentum (Path B)" data={status.systems.momentumPathB} badge="Experimental" />
+              </div>
+            </div>
+          )}
+          {status.systems?.mrHub && (
+            <div className="mt-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <SystemCard
+                  label="Mean-Reversion (HUB-65)"
+                  data={status.systems.mrHub}
+                  badge="Curated-65 Universe"
+                  badgeColor="teal"
+                  caption="Same MR strategy as the Mean-Reversion card above, run against a different, curated 65-ticker
+                    watchlist instead of the broad dynamic scan. Not comparable to the broad MR numbers above — a
+                    different bet, not a better strategy. Backtest was selection-biased (see the design doc); this
+                    track has its own independent 100-trade bar."
+                />
               </div>
             </div>
           )}

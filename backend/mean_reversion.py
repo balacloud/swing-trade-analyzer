@@ -31,6 +31,60 @@ DEFAULT_MR_UNIVERSE = [
     'COIN', 'SQ', 'SHOP', 'PLTR', 'SOFI', 'AFRM',
 ]
 
+# Day 97: HUB watchlist snapshot (sibling options-research project's curated
+# "HUB_EXTENDED"/"HUB_CORE" watchlist), captured 2026-07-22. Same MR entry/exit
+# rule as DEFAULT_MR_UNIVERSE above — this is a different UNIVERSE, not a
+# different strategy (see paper_trading/live_signals.py's variant='mr_hub65').
+#
+# VIX EXCLUDED: ^VIX is not a tradeable equity — it has no "price > 200 SMA
+# uptrend" semantics and fails the $10/$25M-ADV liquidity gates by
+# construction. The 6 sector/thematic ETFs (SMH, URA, XLF, XBI, GDX, SOXX)
+# ARE kept — they're tradeable and have valid SMA/dollar-volume behavior.
+#
+# NOTE: this is a hand-picked, thematically-concentrated 2026 watchlist —
+# explicitly NOT survivorship-free like DEFAULT_MR_UNIVERSE's own backtest
+# baseline. See backend/backtest/backtest_hub_mr.py's docstring for why this
+# means its backtest numbers are not comparable to the survivorship-free
+# 400-ticker result (PF 1.16, Sharpe 1.30). Several names here are recent
+# IPOs (OKLO, LUNR, ASTS, RKLB, RIVN, POET, ALAB, DRAM) that will contribute
+# little/nothing pre-listing given the 200-bar SMA warmup + liquidity gate —
+# effective N is below the full list length.
+#
+# Keep this in sync with frontend/src/App.jsx's HUB_WATCHLIST (same 64
+# tickers, JS side, used for the visible Scan tab watchlist) if this list is
+# ever edited — same two-lists-that-can-drift risk as DEFAULT_MR_UNIVERSE's
+# own cross-reference comment above.
+HUB_UNIVERSE = [
+    'CEG', 'ETN', 'ANET', 'ALAB', 'MOD', 'GLW', 'APH', 'FN', 'DELL', 'HPE', 'HPQ',
+    'TMUS', 'KEYS', 'NOC', 'CGNX', 'ISRG', 'XYL', 'SMCI', 'ARM', 'ON', 'QCOM',
+    'TSM', 'AMAT', 'LRCX', 'KLAC', 'ASML', 'LSCC', 'CCJ', 'OKLO', 'BWXT', 'FCX',
+    'MP', 'TECK', 'WDC', 'SNOW', 'NET', 'SHOP', 'DDOG', 'PATH', 'GIB', 'HOOD',
+    'SOFI', 'AFRM', 'UPST', 'NIO', 'LI', 'XPEV', 'JD', 'GS', 'LUNR', 'RKLB',
+    'RIVN', 'ASTS', 'OXY', 'TRP', 'NFLX', 'POET', 'SMH', 'URA', 'XLF', 'XBI',
+    'GDX', 'SOXX', 'DRAM',
+]
+
+# HUB_UNIVERSE's theme tags, for the backtest script's per-theme breakdown
+# (a single sector-wide event can otherwise silently multi-count as
+# independent wins/losses — see backtest_hub_mr.py).
+HUB_THEME_MAP = {
+    'CEG': 'Energy/Utility', 'ETN': 'Industrial', 'ANET': 'Networking/AI', 'ALAB': 'Semis',
+    'MOD': 'Industrial', 'GLW': 'Industrial', 'APH': 'Industrial', 'FN': 'Networking/AI',
+    'DELL': 'Hardware', 'HPE': 'Hardware', 'HPQ': 'Hardware', 'TMUS': 'Telecom',
+    'KEYS': 'Industrial', 'NOC': 'Defense', 'CGNX': 'Industrial', 'ISRG': 'Healthcare',
+    'XYL': 'Industrial', 'SMCI': 'Hardware', 'ARM': 'Semis', 'ON': 'Semis', 'QCOM': 'Semis',
+    'TSM': 'Semis', 'AMAT': 'Semis', 'LRCX': 'Semis', 'KLAC': 'Semis', 'ASML': 'Semis',
+    'LSCC': 'Semis', 'CCJ': 'Uranium/Nuclear', 'OKLO': 'Uranium/Nuclear', 'BWXT': 'Uranium/Nuclear',
+    'FCX': 'Commodities', 'MP': 'Commodities', 'TECK': 'Commodities', 'WDC': 'Hardware',
+    'SNOW': 'Cloud/SaaS', 'NET': 'Cloud/SaaS', 'SHOP': 'Cloud/SaaS', 'DDOG': 'Cloud/SaaS',
+    'PATH': 'Cloud/SaaS', 'GIB': 'IT Services', 'HOOD': 'Fintech', 'SOFI': 'Fintech',
+    'AFRM': 'Fintech', 'UPST': 'Fintech', 'NIO': 'China/EV', 'LI': 'China/EV',
+    'XPEV': 'China/EV', 'JD': 'China/EV', 'GS': 'Financials', 'LUNR': 'Space',
+    'RKLB': 'Space', 'RIVN': 'EV', 'ASTS': 'Space', 'OXY': 'Energy', 'TRP': 'Energy',
+    'NFLX': 'Media', 'POET': 'Semis', 'SMH': 'ETF', 'URA': 'ETF', 'XLF': 'ETF',
+    'XBI': 'ETF', 'GDX': 'ETF', 'SOXX': 'ETF', 'DRAM': 'ETF',
+}
+
 
 def calculate_rsi_short(closes, period=2):
     """RSI with very short period (Connors approach).

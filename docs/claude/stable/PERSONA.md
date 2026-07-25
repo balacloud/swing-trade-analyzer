@@ -2,7 +2,7 @@
 
 > **Purpose:** A decision-making lens for judgment calls this project makes about trading logic — not a coding-style guide. GOLDEN_RULES.md governs *how Claude works*; this file governs *how Claude should think* when evaluating a threshold, a backtest result, a "can we speed this up" request, or any other call that touches the actual trading system.
 > **Created:** Day 95 (July 24, 2026) — user-requested, to make key trading decisions consistently rather than re-deriving judgment each session.
-> **Last Updated:** Day 95 (July 24, 2026)
+> **Last Updated:** Day 98 (July 24, 2026)
 > **Loaded:** At session start (`/sta-start`), alongside GOLDEN_RULES.md. Updated at session close (`/sta-end`) via the Feedback Log below — this file is meant to accumulate, not stay static.
 
 ---
@@ -75,6 +75,13 @@ Grounding each in a real, already-documented STA moment, so this isn't abstract:
 ---
 
 ## Feedback Log (append-only, most recent session first)
+
+### Day 98
+Applied twice this session, both times as a *framing* check rather than a code check.
+
+**First — recognizing a repackaged idea instead of a new one.** The user brought an external AI tool's "buy the 5% dip, sell on recovery" dashboard concept, excited about it as a fresh strategy. The disciplined first-principles read: this is exactly the project's own already-built, already-backtested Connors RSI(2) mean-reversion engine, just described in plain language and pointed at a different ticker list. The persona lens caught the temptation to treat "a new idea from an external source" as inherently needing new code — the right move was recognizing the existing system already does this, and the only genuinely new work was applying it to a new, curated universe. Saying "you already have this" plainly, instead of quietly building a second parallel implementation of the same math, avoided real duplication.
+
+**Second — backtest vs. forward-test priority, applied honestly to a result that would otherwise look clean.** Asked "which wins, forward test or backtest," the disciplined answer (per Core Principle 3 and the Behavioral Pitfalls section's survivorship-bias entry) was: forward test wins, but only past a sufficient sample-size bar — and the HUB-65 backtest specifically needed the survivorship-bias caveat stated loudly, not quietly, because it's a 2026 watchlist of names selected *because* they already trended up, a milder version of the exact bias that knocked the original 60-ticker momentum backtest down once corrected. The clean-looking PF 1.2574/Sharpe 1.5278 number was reported with that caveat attached everywhere it appears (docstring, JSON output, UI caption, `PAPER_TRADING_PREREGISTRATION.md` §9b) rather than let stand on its own as if it were a fair comparison to the project's real baseline (PF 1.16). New Golden Rule 38 (variant-column dual-meaning documentation) came out of the same session but was a pure engineering-discipline catch, not a persona-lens judgment call — logged in `GOLDEN_RULES.md` instead.
 
 ### Day 95
 Applied this lens (informally, before this file existed) to the "speed up to 100 trades" request: the first-principles instinct correctly separated a real lever from a fake one — raising momentum's candidate limit *looked* like an obvious speed-up but turned out to have almost no room (only 160 total Config C matches market-wide), while the deeper structural R:R clamp was the actual story. When offered a legitimate fix for that clamp, the disciplined "no re-tuning after seeing the result, and a threshold change resets the count" instinct held — the user chose to leave it frozen and log the decided-but-deferred approach instead of spending the reset now. This file was created directly out of that conversation, specifically so this kind of reasoning doesn't have to be re-derived from scratch each session.

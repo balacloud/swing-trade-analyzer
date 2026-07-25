@@ -2761,6 +2761,26 @@ def get_paper_trading_status():
             },
         }
 
+        # Day 97: HUB-65 curated-universe MR track — SAME unchanged MR gate
+        # as the broad 'mr' system above, run against a smaller, curated,
+        # thematically-concentrated 65-ticker watchlist instead (variant
+        # encodes UNIVERSE here, not entry logic — see ledger.py's schema
+        # comment). Own 100-trade bar, zero effect on broad MR's numbers.
+        mrh_open = pt_ledger.get_open_positions(system='mr', variant='mr_hub65')
+        mrh_pending = pt_ledger.get_pending_signals(system='mr', variant='mr_hub65')
+        mrh_closed = pt_ledger.get_closed_trades(system='mr', variant='mr_hub65')
+        mrh_stats = pt_ledger.compute_stats(system='mr', variant='mr_hub65')
+        systems['mrHub'] = {
+            'openPositions': len(mrh_open),
+            'closedTrades': mrh_stats['total_trades'],
+            'stats': mrh_stats if mrh_stats['total_trades'] > 0 else None,
+            'positions': {
+                'open': [_position_row(r) for r in mrh_open],
+                'pending': [_position_row(r) for r in mrh_pending],
+                'closed': [_position_row(r) for r in reversed(mrh_closed)][:20],
+            },
+        }
+
         return jsonify({
             'lastRunDate': pt_ledger.get_last_run_date(),
             'systems': systems,
