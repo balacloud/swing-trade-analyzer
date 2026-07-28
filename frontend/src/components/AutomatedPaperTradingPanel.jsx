@@ -220,8 +220,9 @@ export default function AutomatedPaperTradingPanel() {
         </button>
       </div>
       <p className="text-xs text-gray-500 mb-4">
-        Runs automatically every weekday at 16:30 CT — zero human filtering, this is the real gate on capital allocation.
-        Use "Force Run" if a scheduled run was missed (e.g. laptop asleep). Catches up open positions; can't
+        Runs automatically every weekday at 17:30 ET — zero human filtering, this is the real gate on capital allocation.
+        Use "Force Run" if a scheduled run was missed (e.g. laptop asleep). Runs during market hours use the last
+        completed session's bar — new signals/exits from today appear after the close. Catches up open positions; can't
         retroactively recover a missed day's entry signals (TradingView has no point-in-time query).
       </p>
 

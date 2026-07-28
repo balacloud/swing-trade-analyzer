@@ -101,9 +101,16 @@ def compute_metrics(trades, risk_free_rate=0.05):
     win_rate = (win_count / n) * 100 if n > 0 else 0
 
     # Returns
-    returns = [t.get('return_pct_net', t.get('return_pct', 0)) for t in trades]
-    win_returns = [t.get('return_pct_net', t.get('return_pct', 0)) for t in wins]
-    loss_returns = [t.get('return_pct_net', t.get('return_pct', 0)) for t in losses]
+    # Day 99 cleanup: 'return_pct_net' is present-but-None (not absent) on
+    # some callers' trade dicts, so t.get(key, default) never falls through —
+    # only an explicit None-check does.
+    def _net_or_gross(t):
+        net = t.get('return_pct_net')
+        return net if net is not None else t.get('return_pct', 0)
+
+    returns = [_net_or_gross(t) for t in trades]
+    win_returns = [_net_or_gross(t) for t in wins]
+    loss_returns = [_net_or_gross(t) for t in losses]
 
     avg_return = _mean(returns) if returns else 0
     avg_winner = _mean(win_returns) if win_returns else 0

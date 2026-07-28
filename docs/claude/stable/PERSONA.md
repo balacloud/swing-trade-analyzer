@@ -2,7 +2,7 @@
 
 > **Purpose:** A decision-making lens for judgment calls this project makes about trading logic — not a coding-style guide. GOLDEN_RULES.md governs *how Claude works*; this file governs *how Claude should think* when evaluating a threshold, a backtest result, a "can we speed this up" request, or any other call that touches the actual trading system.
 > **Created:** Day 95 (July 24, 2026) — user-requested, to make key trading decisions consistently rather than re-deriving judgment each session.
-> **Last Updated:** Day 98 (July 24, 2026)
+> **Last Updated:** Day 99 (July 27, 2026)
 > **Loaded:** At session start (`/sta-start`), alongside GOLDEN_RULES.md. Updated at session close (`/sta-end`) via the Feedback Log below — this file is meant to accumulate, not stay static.
 
 ---
@@ -75,6 +75,13 @@ Grounding each in a real, already-documented STA moment, so this isn't abstract:
 ---
 
 ## Feedback Log (append-only, most recent session first)
+
+### Day 99
+Applied twice this session, both around the same review — once in choosing where to point it, once in correcting an error mid-review rather than letting it stand.
+
+**First — choosing a prophylactic target instead of waiting for a symptom.** Asked what an Opus 5 review would be best spent on, the disciplined answer wasn't the most recently-touched code or the most complex feature — it was the paper-trading ledger/exit-replay path specifically *because* nothing about it looked broken. It's the highest-stakes code in the project (silently accumulating real counts toward the 100-trade bars) and every prior review pass on it had come from the same session's own Claude, never a genuinely independent look. The review found a real, previously-invisible HIGH-severity bug (partial-bar contamination — see new Golden Rule 39) that had been silently corrupting a fraction of the closed-trade record since the automated engine was first built. Worth remembering: "nothing looks broken" is a reason to look harder at the highest-consequence code, not a reason to skip it — the same instinct behind Golden Rule 26/37's "verify directly, don't trust a secondhand or self-generated claim," applied here as "review the thing nobody has had a *reason* to doubt yet."
+
+**Second — catching and correcting my own mid-review arithmetic error instead of letting it propagate.** While summarizing the diagnosis, I told the user "11 of 25 trades reproduce" based on an eyeballed 0.5pp threshold — the actual, precisely-counted figure was 6 of 25. I caught this myself before it became a permanent fact in the design doc or the fix plan, corrected it explicitly and visibly rather than quietly using the right number going forward, and used the correct 6/25 figure in every subsequent document. Also relevant: my first instinct going in was that mid-session contamination would be *inflating* MR's suspiciously good numbers — the actual measured direction was the opposite (the bug **understated** MR by ~0.71pp/trade on average, because semis happened to rally into the close on one particular day). Both are small instances of the same discipline Core Principle 5 asks for: a plausible-sounding number (or a plausible-sounding narrative about *why* a number looks the way it does) is still a hypothesis until it's actually checked against the data, even when the hypothesis comes from your own reasoning mid-task, not from an external source.
 
 ### Day 98
 Applied twice this session, both times as a *framing* check rather than a code check.

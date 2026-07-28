@@ -301,8 +301,12 @@ def compute_stats(system=None, variant=None, db_path=None):
     closed = get_closed_trades(system=system, variant=variant, db_path=db_path)
     trade_dicts = []
     for t in closed:
+        # Day 99 cleanup: t is always a dict with every DB column present as
+        # a key (possibly None) — t.get(key, default) never falls through to
+        # default since the key always exists, only an explicit None-check does.
+        pnl_pct_gross = t.get('pnl_pct_gross')
         trade_dicts.append({
-            'return_pct': t.get('pnl_pct_gross', t.get('pnl_pct')),
+            'return_pct': pnl_pct_gross if pnl_pct_gross is not None else t.get('pnl_pct'),
             'return_pct_net': t.get('pnl_pct'),
             'return_r': t.get('pnl_r'),
             'days_held': t.get('days_held'),

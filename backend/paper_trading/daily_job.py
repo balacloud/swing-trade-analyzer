@@ -36,10 +36,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) 
 from providers import get_data_provider
 from backtest.trade_simulator import simulate_trade, compute_entry_levels
 from backtest.mr_simulator import simulate_mr_trade
+from backtest.metrics import apply_transaction_costs
 
 from paper_trading import ledger
 from paper_trading import live_signals
-from paper_trading.live_signals import _to_capitalized_ohlcv
+from paper_trading.live_signals import _prepare_ohlcv
 from mean_reversion import HUB_UNIVERSE
 
 MR_STOP_PCT = 0.05
@@ -63,7 +64,7 @@ def activate_pending_signals():
     for row in ledger.get_pending_signals():
         ticker = row['ticker']
         try:
-            df = _to_capitalized_ohlcv(dp.get_ohlcv(ticker, period='2y'))
+            df = _prepare_ohlcv(dp.get_ohlcv(ticker, period='2y'))
             signal_idx = _find_index_for_date(df, row['signal_date'])
             if signal_idx is None:
                 print(f"daily_job: signal_date {row['signal_date']} not in {ticker} history yet, skipping")
@@ -111,7 +112,7 @@ def step_open_positions():
     for row in ledger.get_open_positions():
         ticker = row['ticker']
         try:
-            df = _to_capitalized_ohlcv(dp.get_ohlcv(ticker, period='2y'))
+            df = _prepare_ohlcv(dp.get_ohlcv(ticker, period='2y'))
             entry_idx = _find_index_for_date(df, row['entry_date'])
             if entry_idx is None:
                 print(f"daily_job: entry_date {row['entry_date']} not in {ticker} history, skipping")
@@ -144,10 +145,23 @@ def step_open_positions():
 
             if result['status'] == 'closed':
                 if row['system'] == 'momentum':
+                    # Day 99 fix: mr_simulator already nets transaction costs
+                    # (see mr_simulator.py's apply_transaction_costs call) but
+                    # this branch was storing gross return_pct into BOTH
+                    # pnl_pct and pnl_pct_gross — live momentum stats were
+                    # measured gross against a net-costed PF 1.40 backtest
+                    # benchmark. initial_risk_pct/return_r share the same
+                    # relationship as pnl_pct/pnl_r (both divide the same
+                    # price delta by entry_price), so scaling return_r by the
+                    # net-costed pct keeps the R-multiple internally consistent.
+                    costs = apply_transaction_costs(result['entry_price'], result['exit_price'])
+                    net_pct = costs['net_return_pct']
+                    initial_risk_pct = result.get('initial_risk_pct') or 0
+                    net_r = round(net_pct / initial_risk_pct, 4) if initial_risk_pct else result['return_r']
                     ledger.close_position(
                         row['id'], result['exit_date'], result['exit_price'], result['exit_reason'],
-                        result['result'], result['return_pct'], result['return_pct'],
-                        result['return_r'], result['days_held']
+                        result['result'], net_pct, result['return_pct'],
+                        net_r, result['days_held']
                     )
                 else:
                     exit_date = str(df.index[result['exit_idx']].date())

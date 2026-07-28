@@ -32,6 +32,7 @@ import sys
 import os
 import time
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # backend/
 
@@ -53,15 +54,32 @@ MR_COOLDOWN_DAYS = 5         # matches mr_simulator.py's backtest_mr_strategy() 
 MIN_RR = 1.2                 # Config C definition (PAPER_TRADING_PREREGISTRATION.md section 6)
 DEFAULT_HOLDING_PERIOD = 'standard'  # matches Config C's canonical backtest
 
+MARKET_TZ = ZoneInfo("America/New_York")
+MARKET_CLOSE_HOUR, MARKET_CLOSE_MIN = 16, 5  # small buffer past the 16:00 ET bell
 
-def _to_capitalized_ohlcv(df):
+
+def _prepare_ohlcv(df):
     """
     DataProvider returns lowercase columns; pattern_detection/trade_simulator/
     mr_simulator all expect capitalized (Close/High/Low/Volume) — same
     normalization backend.py already applies for SPY in get_spy_data().
+
+    Also drops the final bar when it is TODAY's still-forming intraday bar.
+    Providers return a partial bar for the current session while the market is
+    open; its High/Low/Close are not final. Feeding that into the live_mode
+    replay wrote mid-session prices into the ledger as closing prices and
+    could close a position that should still be open (Day 99 finding — see
+    docs/claude/design/PARTIAL_BAR_LEDGER_CONTAMINATION_FIX_PLAN.md). Golden
+    Rule 33: use an explicit market timezone, never the machine's local time.
     """
     df = df.copy()
     df.columns = [c.capitalize() for c in df.columns]
+    if len(df) > 0:
+        now_et = datetime.now(MARKET_TZ)
+        last_bar_date = str(df.index[-1])[:10]
+        if last_bar_date == now_et.strftime('%Y-%m-%d') and \
+                (now_et.hour, now_et.minute) < (MARKET_CLOSE_HOUR, MARKET_CLOSE_MIN):
+            df = df.iloc[:-1]  # still-forming bar — drop it
     return df
 
 
@@ -82,7 +100,7 @@ def get_market_regime():
     except Exception as e:
         print(f"live_signals: VIX fetch failed: {e}")
 
-    spy_df = _to_capitalized_ohlcv(dp.get_ohlcv('SPY', period='2y'))
+    spy_df = _prepare_ohlcv(dp.get_ohlcv('SPY', period='2y'))
     close = spy_df['Close']
     sma200 = float(close.tail(200).mean())
     current = float(close.iloc[-1])
@@ -234,7 +252,7 @@ def get_momentum_signals(as_of_date=None, limit=200, market_index='all'):
 
         time.sleep(0.4)  # light pacing — avoid tripping provider rate limits on batch scans
         try:
-            stock_df = _to_capitalized_ohlcv(dp.get_ohlcv(ticker, period='2y'))
+            stock_df = _prepare_ohlcv(dp.get_ohlcv(ticker, period='2y'))
             if len(stock_df) < 252:
                 continue
 
@@ -391,7 +409,7 @@ def get_mr_signals(as_of_date=None, tickers=None, variant='A_frozen'):
             continue
         time.sleep(0.4)  # light pacing — avoid tripping provider rate limits on batch scans
         try:
-            stock_df = _to_capitalized_ohlcv(dp.get_ohlcv(ticker, period='1y'))
+            stock_df = _prepare_ohlcv(dp.get_ohlcv(ticker, period='1y'))
             if len(stock_df) < 200:
                 continue
             result = mean_reversion.detect_mr_signal(stock_df)
