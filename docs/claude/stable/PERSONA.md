@@ -2,7 +2,7 @@
 
 > **Purpose:** A decision-making lens for judgment calls this project makes about trading logic — not a coding-style guide. GOLDEN_RULES.md governs *how Claude works*; this file governs *how Claude should think* when evaluating a threshold, a backtest result, a "can we speed this up" request, or any other call that touches the actual trading system.
 > **Created:** Day 95 (July 24, 2026) — user-requested, to make key trading decisions consistently rather than re-deriving judgment each session.
-> **Last Updated:** Day 99 (July 27, 2026)
+> **Last Updated:** Day 100 (July 28, 2026)
 > **Loaded:** At session start (`/sta-start`), alongside GOLDEN_RULES.md. Updated at session close (`/sta-end`) via the Feedback Log below — this file is meant to accumulate, not stay static.
 
 ---
@@ -75,6 +75,13 @@ Grounding each in a real, already-documented STA moment, so this isn't abstract:
 ---
 
 ## Feedback Log (append-only, most recent session first)
+
+### Day 100
+A live example prompted a first-principles question — does regime actually matter to the automated engine's entries — and the discipline that mattered was refusing to answer from memory or intuition once the code was checked directly, rather than trusting a plausible-sounding "probably not."
+
+A same-day sector selloff (semis/AI-supply-chain names all down together) raised the natural question of whether MR's entry gate would happily buy into a coordinated, news-driven move by mistaking it for ordinary noise. The instinct to answer "probably, since MR only looks at RSI(2)" was correct, but the discipline was verifying it — reading `detect_mr_signal()` directly (confirmed: exactly 4 conditions, none of them regime- or sector-aware) rather than asserting from the general shape of Connors RSI(2) strategies. That verification then surfaced something better than a guess would have: the project's own Day 78 block-bootstrap docstring already named this exact risk — "trades cluster by market regime and by correlated tickers entering around the same time" — as a known threat to the *statistics*, years before this session, but that mitigation never reached the entry gate itself or the raw trade count toward the 100-trade bar. The honest answer wasn't "this is a bug nobody noticed" or "this is fine" — it was that the project had already partially solved a piece of the problem and the rest was a real, named gap, not a surprise. Distinguishing those three answers required reading the code, not summarizing what a Connors RSI(2) strategy "typically" does.
+
+Also relevant to Core Principle 6 ("every rule must survive 'why' three times"): the question "why doesn't the automated engine use sector/regime data" resolved cleanly to a real, defensible answer — the engine's entire value is "zero human filtering," and adding sector awareness would reintroduce exactly the selection bias it exists to eliminate — not to "because nobody built it yet." Confirmed directly with the user that the *manual* workflow (Sectors/Context tabs) is where that judgment is still deliberately supposed to live, and that it's actually still used for that purpose — a good instance of checking a design assumption against reality instead of assuming a two-year-old architectural split is still true today.
 
 ### Day 99
 Applied twice this session, both around the same review — once in choosing where to point it, once in correcting an error mid-review rather than letting it stand.

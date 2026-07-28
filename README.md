@@ -1511,7 +1511,7 @@ Current focus:
 - **Categorical filtering** over numerical ranking
 - **System measurement** through forward testing and SQN tracking
 
-### Current Priorities (Day 92-98 — forward-testing accumulation is the sole priority)
+### Current Priorities (Day 92-100 — forward-testing accumulation is the sole priority)
 
 A full-system audit (Day 78) found the backtested edge was likely overstated — survivorship bias in the test universe and a reused walk-forward window. The resulting remediation plan is **fully complete (all 5 phases)**, and an automated paper-trading engine (Day 81) now runs daily, unattended, taking every qualifying signal with zero human filtering — this is the real test for both systems now, and it's been running since Day 81.
 
@@ -1537,7 +1537,10 @@ A full-system audit (Day 78) found the backtested edge was likely overstated —
 4. *(parked)* **N3 gap-fill detection** — needs its own design session first (no spec exists yet).
 5. *(parked)* **Value Tab Phase 2** — needs its own batch-prefetch infrastructure design session first (AlphaVantage free-tier budget constraints).
 6. *(parked)* **Volume confirmation missing from the decision engine** — neither the Full Analysis verdict nor the Simple Checklist check whether a price move is backed by rising volume; found Day 92, needs a re-backtest before shipping.
-7. *(parked)* `/ibkr-scan` skill, Price Structure Phase 3 (visual chart), Canadian Analyze page — queued behind the above.
+7. *(parked, idea only)* **Scheduled/proactive breakout-alert watcher** — the breakout engine already works on demand against any ticker list (`/breakout-watch`, Scan tab badges); nothing today runs on a schedule or notifies unprompted. Flagged Day 100, needs its own design session before any build.
+8. *(parked)* `/ibkr-scan` skill, Price Structure Phase 3 (visual chart), Canadian Analyze page — queued behind the above.
+
+**Day 100:** Monitoring and documentation session, no app code changed. Verified the Day 99 ledger fix under real live use (a mid-session Force Run correctly deferred to the prior day's close, not the still-forming bar). Traced and verified in code a real structural finding: neither automated track (momentum or mean-reversion) has any sector-correlation awareness in its entry gate — confirmed against a live example (a same-day semis-sector selloff already queuing several correlated MR signals from the same shock). Not a bug — the automated engine's "zero human filtering" is deliberate — but logged as a known limitation on the effective statistical power of the 100-trade confirmation bar. Also published a new living reference doc explaining how the Simple Checklist and Full Analysis paths actually work, `docs/claude/design/HOW_STOCK_PICKING_WORKS.html`.
 
 **Day 85-86:** Built a "🏛️ Master Framework Watchlist" Scan tab preset — 76 tickers sourced from the user's own curated Notion investment research (AI Supply Chain, CanGem, STRATUM, QUBIT frameworks), scanned with STA's existing technical engine, same pattern as the pre-existing Nirmal watchlist. First live test found the summary table's Volume/Change columns showing N/A; fixed for free by exposing data `/api/sr/<ticker>` already computed (v4.44).
 

@@ -1,0 +1,763 @@
+<title>How the Simple Checklist &amp; Full Analysis Pick a Stock</title>
+<style>
+  :root {
+    --bg: #0F1720;
+    --surface: #182430;
+    --surface-raised: #1E2C3A;
+    --border: #28394A;
+    --text: #E7EDF3;
+    --text-muted: #8593A3;
+    --text-faint: #5A6B7C;
+    --accent: #5AC8D8;
+    --accent-dim: #5AC8D822;
+    --pass: #3FBF7F;
+    --pass-dim: #3FBF7F1c;
+    --neutral: #F2C14E;
+    --neutral-dim: #F2C14E1c;
+    --fail: #E1584D;
+    --fail-dim: #E1584D1c;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.28);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #F5F8FA;
+      --surface: #FFFFFF;
+      --surface-raised: #FFFFFF;
+      --border: #DCE4EA;
+      --text: #14212C;
+      --text-muted: #5B6B78;
+      --text-faint: #8493A0;
+      --accent: #0E8A9C;
+      --accent-dim: #0E8A9C14;
+      --pass: #1E9E5A;
+      --pass-dim: #1E9E5A14;
+      --neutral: #8C6A00;
+      --neutral-dim: #8C6A0014;
+      --fail: #C0392B;
+      --fail-dim: #C0392B14;
+      --shadow: 0 1px 2px rgba(20,33,44,0.06), 0 8px 24px rgba(20,33,44,0.08);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0F1720; --surface: #182430; --surface-raised: #1E2C3A; --border: #28394A;
+    --text: #E7EDF3; --text-muted: #8593A3; --text-faint: #5A6B7C;
+    --accent: #5AC8D8; --accent-dim: #5AC8D822;
+    --pass: #3FBF7F; --pass-dim: #3FBF7F1c;
+    --neutral: #F2C14E; --neutral-dim: #F2C14E1c;
+    --fail: #E1584D; --fail-dim: #E1584D1c;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.28);
+  }
+  :root[data-theme="light"] {
+    --bg: #F5F8FA; --surface: #FFFFFF; --surface-raised: #FFFFFF; --border: #DCE4EA;
+    --text: #14212C; --text-muted: #5B6B78; --text-faint: #8493A0;
+    --accent: #0E8A9C; --accent-dim: #0E8A9C14;
+    --pass: #1E9E5A; --pass-dim: #1E9E5A14;
+    --neutral: #8C6A00; --neutral-dim: #8C6A0014;
+    --fail: #C0392B; --fail-dim: #C0392B14;
+    --shadow: 0 1px 2px rgba(20,33,44,0.06), 0 8px 24px rgba(20,33,44,0.08);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", "Source Sans Pro", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  h1, h2, h3 {
+    font-family: "Avenir Next", "Century Gothic", "Segoe UI", ui-sans-serif, sans-serif;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  .page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 56px 24px 80px;
+  }
+
+  /* ---------- Header ---------- */
+  .masthead {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .eyebrow {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  h1 {
+    font-size: clamp(28px, 4vw, 38px);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .subhead {
+    color: var(--text-muted);
+    font-size: 16px;
+    max-width: 62ch;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    margin: 28px 0 40px;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex: none;
+  }
+  .dot.pass { background: var(--pass); }
+  .dot.neutral { background: var(--neutral); }
+  .dot.fail { background: var(--fail); }
+
+  /* ---------- Two-panel layout ---------- */
+  .panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    align-items: start;
+  }
+  @media (max-width: 860px) {
+    .panels { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .panel-head {
+    padding: 20px 22px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel-tag {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 6px;
+  }
+  .panel-head h2 {
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .panel-head p {
+    margin: 8px 0 0;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  /* ---------- Simple checklist rows ---------- */
+  .checklist {
+    list-style: none;
+    margin: 0;
+    padding: 6px 0;
+  }
+  .check-row {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 22px;
+    border-bottom: 1px solid var(--border);
+  }
+  .check-row:last-child { border-bottom: none; }
+  .check-row.spotlight {
+    background: var(--accent-dim);
+    border-left: 3px solid var(--accent);
+    padding-left: 19px;
+  }
+  .bulb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--pass);
+    box-shadow: 0 0 0 3px var(--pass-dim);
+    flex: none;
+  }
+  .check-copy .q {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .check-copy .criterion {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-top: 2px;
+  }
+  .check-num {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+    white-space: nowrap;
+  }
+
+  .gate-box {
+    margin: 14px 22px 20px;
+    padding: 14px 16px;
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .gate-box strong { color: var(--text); }
+  .verdict-row {
+    display: flex;
+    gap: 10px;
+    margin: 12px 22px 22px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+  }
+  .badge.trade { background: var(--pass-dim); color: var(--pass); border-color: var(--pass); }
+  .badge.buy { background: var(--pass-dim); color: var(--pass); border-color: var(--pass); }
+  .badge.hold { background: var(--neutral-dim); color: var(--neutral); border-color: var(--neutral); }
+  .badge.pass-skip { background: var(--fail-dim); color: var(--fail); border-color: var(--fail); }
+  .badge.avoid { background: var(--fail-dim); color: var(--fail); border-color: var(--fail); }
+  .badge-note { font-size: 12px; color: var(--text-faint); align-self: center; }
+
+  /* ---------- Full analysis category cards ---------- */
+  .categories {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+  }
+  .cat-card {
+    background: var(--surface);
+    padding: 16px 20px;
+  }
+  .cat-card.spotlight { background: var(--accent-dim); }
+  .cat-name {
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .cat-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 4px 0 10px;
+  }
+  .tiers { display: flex; flex-direction: column; gap: 5px; }
+  .tier {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    font-size: 12px;
+  }
+  .tier .tdot { width: 7px; height: 7px; border-radius: 50%; flex: none; margin-top: 2px; }
+  .tier.strong .tdot { background: var(--pass); }
+  .tier.decent .tdot { background: var(--neutral); }
+  .tier.weak .tdot { background: var(--fail); }
+  .tier b { color: var(--text); font-weight: 600; }
+  .tier span.desc { color: var(--text-faint); }
+  .tier.highlighted { outline: 1px solid var(--accent); border-radius: 5px; padding: 2px 5px; margin: -2px -5px; }
+
+  .cascade {
+    padding: 18px 22px 4px;
+    border-top: 1px solid var(--border);
+  }
+  .cascade-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    margin-bottom: 10px;
+  }
+  .rule {
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .rule:last-child { border-bottom: none; }
+  .rule .rn {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+  .rule .rtext strong { color: var(--text); }
+  .rule .rtext .arrow { color: var(--text-faint); margin: 0 4px; }
+  .rule.spotlight { background: var(--accent-dim); margin: 0 -12px; padding: 8px 12px; border-radius: 8px; border-bottom-color: transparent; }
+
+  /* ---------- Worked example ---------- */
+  .example {
+    margin-top: 44px;
+  }
+  .example-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .example-head h2 {
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .example-chip {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    padding: 5px 11px;
+    border-radius: 999px;
+  }
+  .example-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+  }
+  @media (max-width: 860px) { .example-grid { grid-template-columns: 1fr; } }
+
+  .example-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 20px 22px;
+  }
+  .example-card h3 { font-size: 15px; margin-bottom: 10px; }
+  .example-card p { font-size: 14px; color: var(--text-muted); margin: 0 0 10px; }
+  .example-card p:last-child { margin-bottom: 0; }
+  .example-card .takeaway {
+    margin-top: 14px;
+    padding: 10px 12px;
+    background: var(--pass-dim);
+    border-left: 3px solid var(--pass);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .example-card .caution {
+    margin-top: 14px;
+    padding: 10px 12px;
+    background: var(--fail-dim);
+    border-left: 3px solid var(--fail);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .headline-takeaway {
+    margin-top: 22px;
+    text-align: center;
+    padding: 22px;
+    border-radius: 14px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+  }
+  .headline-takeaway .big {
+    font-family: "Avenir Next", "Century Gothic", "Segoe UI", ui-sans-serif, sans-serif;
+    font-size: clamp(18px, 2.6vw, 24px);
+    font-weight: 700;
+    text-wrap: balance;
+  }
+  .headline-takeaway .small {
+    margin-top: 8px;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+  .headline-takeaway .small em { color: var(--text); font-style: normal; font-weight: 600; }
+
+  .scenario-block { margin-top: 8px; }
+  .scenario-block + .scenario-block {
+    margin-top: 36px;
+    padding-top: 32px;
+    border-top: 1px dashed var(--border);
+  }
+  .scenario-q {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-bottom: 18px;
+    padding: 13px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+  }
+  .scenario-q b { color: var(--text); }
+
+  /* ---------- Scanners section ---------- */
+  .scan-intro { margin-top: 44px; }
+  .scan-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  @media (max-width: 860px) { .scan-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .scan-grid { grid-template-columns: 1fr; } }
+  .scan-card { background: var(--surface); padding: 16px 18px; }
+  .scan-card.shared { background: var(--accent-dim); }
+  .scan-name { font-size: 13.5px; font-weight: 700; margin-bottom: 6px; }
+  .scan-filter { font-size: 12px; color: var(--text-muted); line-height: 1.55; }
+  .scan-filter .mono { color: var(--text-faint); }
+  .scan-tag {
+    display: inline-block;
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--bg);
+    border: 1px solid var(--accent);
+    padding: 2px 7px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+  }
+  .watchlist-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+  .watchlist-chip {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 12.5px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 14px;
+    box-shadow: var(--shadow);
+  }
+  .watchlist-chip b { color: var(--text); }
+  .watchlist-chip span { color: var(--text-faint); }
+  .have-havenot {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    margin-top: 22px;
+  }
+  @media (max-width: 860px) { .have-havenot { grid-template-columns: 1fr; } }
+  .hh-card {
+    border-radius: 14px;
+    padding: 18px 20px;
+    border: 1px solid var(--border);
+  }
+  .hh-card.have { background: var(--pass-dim); border-color: var(--pass); }
+  .hh-card.havenot { background: var(--fail-dim); border-color: var(--fail); }
+  .hh-card h4 { margin: 0 0 8px; font-size: 14px; }
+  .hh-card.have h4 { color: var(--pass); }
+  .hh-card.havenot h4 { color: var(--fail); }
+  .hh-card p { margin: 0; font-size: 13px; color: var(--text); line-height: 1.6; }
+
+  /* ---------- Footer ---------- */
+  footer {
+    margin-top: 56px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 12.5px;
+    color: var(--text-faint);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  footer .src { font-family: ui-monospace, "SF Mono", Consolas, monospace; }
+
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="page">
+
+  <div class="masthead">
+    <div class="eyebrow">Swing Trade Analyzer &middot; How the Stock Picker Thinks</div>
+    <h1>Two ways this tool decides "is this stock worth a look?"</h1>
+    <p class="subhead">Every ticker you analyze runs through one of two paths. Both ask similar questions &mdash; one is a strict yes/no checklist, the other blends four broader judgments. Neither picks a stock for you; both narrow the list down to what's worth your own judgment.</p>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><span class="dot pass"></span> Passes / Strong &mdash; a real green light</div>
+    <div class="legend-item"><span class="dot neutral"></span> Borderline / Decent &mdash; okay, not great</div>
+    <div class="legend-item"><span class="dot fail"></span> Fails / Weak &mdash; a real problem</div>
+    <div class="legend-item"><span class="dot" style="background:var(--accent)"></span> Where "Market Regime" shows up</div>
+  </div>
+
+  <!-- ============ SCANNERS (upstream of both paths) ============ -->
+  <div class="scan-intro">
+    <div class="example-head">
+      <h2>Before either path: how do you even get a candidate list?</h2>
+      <span class="example-chip">Scan Market tab</span>
+    </div>
+    <p class="subhead" style="max-width:78ch;margin-bottom:20px;">Neither path picks a stock out of thin air &mdash; you feed it one. The scanners are that upstream step: instead of guessing tickers, each preset asks "which stocks currently match this specific thesis" across the whole market (or a scope you pick &mdash; All US, S&amp;P 500, Nasdaq 100, Dow 30, TSX 60, All Canadian) and hands back a short, ranked shortlist to run Simple/Full Analysis on.</p>
+
+    <div class="scan-grid">
+      <div class="scan-card shared">
+        <div class="scan-tag">same code as the auto-trader</div>
+        <div class="scan-name">Best Candidates</div>
+        <div class="scan-filter">$2B+ cap &middot; price above 50 &amp; 200-day averages &middot; <span class="mono">ADX&ge;20</span> (real trend) &middot; RSI 50&ndash;70 &middot; positive 1-yr return &middot; above-average volume &middot; within 25% of 52-wk high. The most rigorously backtested scan (238 trades, PF 1.61) &mdash; and literally the same query the automated Path A engine uses to find its own signals.</div>
+      </div>
+      <div class="scan-card">
+        <div class="scan-name">🚀 Near Breakout</div>
+        <div class="scan-filter">Same trend/RSI/ADX bar as Best, narrowed to within 8% of a <em>new</em> 52-wk high, $10 price floor. Feeds the pattern-detection engine (VCP / Cup&amp;Handle / Flat Base) better raw material.</div>
+      </div>
+      <div class="scan-card">
+        <div class="scan-name">Momentum &ndash; Strong 52w</div>
+        <div class="scan-filter">$1B+ cap &middot; above 50/200-day averages &middot; RSI 50&ndash;75 &mdash; a looser net than Best Candidates.</div>
+      </div>
+      <div class="scan-card">
+        <div class="scan-name">Large-Cap Momentum Filter</div>
+        <div class="scan-filter">$10B+ mega-caps only &middot; above 50/200-day averages &middot; positive over <em>both</em> the last week and the last month &mdash; a short-term persistence check.</div>
+      </div>
+      <div class="scan-card">
+        <div class="scan-name">Reddit &ndash; Popular momentum</div>
+        <div class="scan-filter">$2B+ cap &middot; above 50/200-day averages &middot; relative volume &ge; 1.5&times; (more aggressive than Best's 1.0&times;) &mdash; what's getting unusually heavy volume in an uptrend.</div>
+      </div>
+      <div class="scan-card">
+        <div class="scan-name">Value &ndash; Quality discounts</div>
+        <div class="scan-filter">$5B+ cap &middot; above 200-day average (long-term trend intact) but RSI &le; 60 &mdash; the only non-momentum scan. Pullback entries in quality large-caps.</div>
+      </div>
+    </div>
+
+    <div class="watchlist-row">
+      <div class="watchlist-chip">👁 <b>Nirmal's Watchlist</b><span>&mdash; 20 curated picks</span></div>
+      <div class="watchlist-chip">🏛️ <b>Master Framework</b><span>&mdash; 76 curated picks (your Notion frameworks)</span></div>
+      <div class="watchlist-chip">🔬 <b>HUB-65</b><span>&mdash; 64 curated picks (semis, uranium, fintech, China-EV, thematic ETFs)</span></div>
+    </div>
+    <p style="font-size:13px;color:var(--text-faint);margin-top:10px;">These 3 skip the algorithm entirely &mdash; they're fixed lists you (or your research) already chose. Running one just pulls live quotes + a breakout badge for tickers you picked, not a market-wide filter.</p>
+
+    <div class="have-havenot">
+      <div class="hh-card have">
+        <h4>✅ Already have: on-demand breakout status, for any list</h4>
+        <p>The Scan tab's badge column, and the <span class="mono">/breakout-watch</span> skill, both run the same 8-state breakout engine against whatever tickers you give them &mdash; your own list, not just a fixed watchlist. Run it any time and get back Confirmed / Retest / Watch / Warning / Building-Base / Not-Ready, most-actionable first.</p>
+      </div>
+      <div class="hh-card havenot">
+        <h4>❌ Don't have: it telling you first</h4>
+        <p>Both are explicitly on-demand &mdash; the skill's own file says it outright: <em>"no push notifications, no cron, no auto-trading."</em> Nothing watches your list in the background and pings you when something changes. That would be new work, modeled on the paper-trading engine's own scheduled job, not a flip of a setting.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="panels">
+
+    <!-- ============ SIMPLE CHECKLIST ============ -->
+    <section class="panel">
+      <div class="panel-head">
+        <div class="panel-tag">Path 1 &middot; Simple Checklist</div>
+        <h2>9 yes/no questions. All 9 must pass.</h2>
+        <p>No partial credit &mdash; this path is deliberately unforgiving. It's built to say "not yet" far more often than "yes."</p>
+      </div>
+
+      <ol class="checklist">
+        <li class="check-row"><span class="bulb"></span><div class="check-copy"><div class="q">Is it trending up?</div><div class="criterion">Price above its 50-day average, which is above its 200-day average</div></div><span class="check-num">1 / TREND</span></li>
+        <li class="check-row"><span class="bulb"></span><div class="check-copy"><div class="q">Is it beating the market?</div><div class="criterion">Outperforming the S&amp;P 500 over the last year</div></div><span class="check-num">2 / MOMENTUM</span></li>
+        <li class="check-row"><span class="bulb"></span><div class="check-copy"><div class="q">Can you get in near a safe exit?</div><div class="criterion">Entry sits close to a support level &mdash; a tight stop-loss</div></div><span class="check-num">3 / SETUP</span></li>
+        <li class="check-row"><span class="bulb"></span><div class="check-copy"><div class="q">Is the potential win worth the risk?</div><div class="criterion">Reward is at least 2&times; the risk (2:1 or better)</div></div><span class="check-num">4 / RISK:REWARD</span></li>
+        <li class="check-row"><span class="bulb"></span><div class="check-copy"><div class="q">Is it near its yearly high?</div><div class="criterion">Sitting in the top 25% of its 52-week range</div></div><span class="check-num">5 / 52-WK RANGE</span></li>
+        <li class="check-row"><span class="bulb"></span><div class="check-copy"><div class="q">Is it easy to buy and sell?</div><div class="criterion">Enough daily dollar volume for its size (small/mid/large-cap)</div></div><span class="check-num">6 / VOLUME</span></li>
+        <li class="check-row"><span class="bulb"></span><div class="check-copy"><div class="q">Is the trend real, not just noise?</div><div class="criterion">ADX of 20 or higher &mdash; a confirmed trend, not chop</div></div><span class="check-num">7 / ADX</span></li>
+        <li class="check-row spotlight"><span class="bulb"></span><div class="check-copy"><div class="q">Is the whole market healthy? <span style="color:var(--accent)">&larr; this is "Regime"</span></div><div class="criterion">S&amp;P 500 above its 200-day average &mdash; bull market intact</div></div><span class="check-num">8 / MARKET</span></li>
+        <li class="check-row"><span class="bulb"></span><div class="check-copy"><div class="q">Is that long-term trend still climbing?</div><div class="criterion">200-day average itself rising over the last month</div></div><span class="check-num">9 / 200-SMA TREND</span></li>
+      </ol>
+
+      <div class="gate-box">
+        Regime is just <strong>one bulb out of nine</strong> here. A healthy market lights up #8 &mdash; it does nothing for the other eight. Every single one still has to pass on its own.
+      </div>
+
+      <div class="verdict-row">
+        <span class="badge trade">9 / 9 &rarr; TRADE</span>
+        <span class="badge pass-skip">anything less &rarr; PASS</span>
+        <span class="badge-note">no in-between &mdash; this path is all-or-nothing</span>
+      </div>
+    </section>
+
+    <!-- ============ FULL ANALYSIS ============ -->
+    <section class="panel">
+      <div class="panel-head">
+        <div class="panel-tag">Path 2 &middot; Full Analysis</div>
+        <h2>4 broad judgments, blended by a rulebook.</h2>
+        <p>Each category is rated Strong / Decent / Weak, then a set of priority rules &mdash; not a simple point total &mdash; turns those four ratings into BUY / HOLD / AVOID.</p>
+      </div>
+
+      <div class="categories">
+        <div class="cat-card">
+          <div class="cat-name">📈 Technical</div>
+          <div class="cat-desc">How healthy the chart looks right now</div>
+          <div class="tiers">
+            <div class="tier strong"><span class="tdot"></span><b>Strong</b> <span class="desc">— great trend, RSI in the sweet spot</span></div>
+            <div class="tier decent"><span class="tdot"></span><b>Decent</b> <span class="desc">— okay trend, nothing alarming</span></div>
+            <div class="tier weak"><span class="tdot"></span><b>Weak</b> <span class="desc">— poor or broken trend</span></div>
+          </div>
+        </div>
+        <div class="cat-card">
+          <div class="cat-name">🏦 Fundamental</div>
+          <div class="cat-desc">How healthy the business is</div>
+          <div class="tiers">
+            <div class="tier strong"><span class="tdot"></span><b>Strong</b> <span class="desc">— high returns, real growth, low debt</span></div>
+            <div class="tier decent"><span class="tdot"></span><b>Decent</b> <span class="desc">— nothing outstanding, nothing bad</span></div>
+            <div class="tier weak"><span class="tdot"></span><b>Weak</b> <span class="desc">— shrinking, indebted, or unprofitable</span></div>
+          </div>
+        </div>
+        <div class="cat-card">
+          <div class="cat-name">😊 Sentiment</div>
+          <div class="cat-desc">How fearful or greedy investors feel &mdash; shown for context, doesn't change the verdict</div>
+          <div class="tiers">
+            <div class="tier strong"><span class="tdot"></span><b>Strong</b> <span class="desc">— healthy greed, momentum-friendly</span></div>
+            <div class="tier decent"><span class="tdot"></span><b>Neutral</b> <span class="desc">— mild fear or mild greed</span></div>
+            <div class="tier weak"><span class="tdot"></span><b>Weak</b> <span class="desc">— extreme fear or extreme greed</span></div>
+          </div>
+        </div>
+        <div class="cat-card spotlight">
+          <div class="cat-name" style="color:var(--accent)">🌦️ Risk / Macro <span style="font-weight:600;">&larr; "Regime"</span></div>
+          <div class="cat-desc">Is the overall market and volatility backdrop safe to be trading in at all</div>
+          <div class="tiers">
+            <div class="tier strong highlighted"><span class="tdot"></span><b>Favorable</b> <span class="desc">— calm VIX, market in an uptrend</span></div>
+            <div class="tier decent"><span class="tdot"></span><b>Neutral</b> <span class="desc">— elevated VIX, trend still intact</span></div>
+            <div class="tier weak"><span class="tdot"></span><b>Unfavorable</b> <span class="desc">— high VIX, or market below trend</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cascade">
+        <div class="cascade-title">Then the rulebook decides, top to bottom</div>
+        <div class="rule"><span class="rn">01</span><div class="rtext">Chart is <b>Weak</b><span class="arrow">&rarr;</span><b style="color:var(--fail)">AVOID</b>, full stop &mdash; nothing else can save it</div></div>
+        <div class="rule spotlight"><span class="rn">02</span><div class="rtext">Regime is <b>Unfavorable</b><span class="arrow">&rarr;</span> capped at <b style="color:var(--neutral)">HOLD</b> &mdash; a bad market overrides everything below</div></div>
+        <div class="rule"><span class="rn">03</span><div class="rtext">Financials <b>Weak</b> with nothing else strong<span class="arrow">&rarr;</span><b style="color:var(--fail)">AVOID</b></div></div>
+        <div class="rule"><span class="rn">04</span><div class="rtext">Trend isn't real (ADX &lt; 20), even if 2+ categories are Strong<span class="arrow">&rarr;</span><b style="color:var(--neutral)">HOLD</b>, wait for it to confirm</div></div>
+        <div class="rule"><span class="rn">05</span><div class="rtext">Chart <b>and</b> Financials both Strong<span class="arrow">&rarr;</span><b style="color:var(--pass)">BUY</b></div></div>
+        <div class="rule"><span class="rn">06</span><div class="rtext">2+ categories Strong, and Regime is Favorable or Neutral<span class="arrow">&rarr;</span><b style="color:var(--pass)">BUY</b></div></div>
+        <div class="rule"><span class="rn">07</span><div class="rtext">Anything else<span class="arrow">&rarr;</span><b style="color:var(--neutral)">HOLD</b> &mdash; mixed signals, wait for a cleaner setup</div></div>
+      </div>
+
+      <div class="verdict-row">
+        <span class="badge buy">BUY</span>
+        <span class="badge hold">HOLD</span>
+        <span class="badge avoid">AVOID</span>
+        <span class="badge-note">a real three-way call, not all-or-nothing</span>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ============ WORKED EXAMPLE ============ -->
+  <div class="example">
+    <div class="example-head">
+      <h2>Let's trace one input through both: <span style="color:var(--accent)">Regime = Uptrend</span></h2>
+      <span class="example-chip">VIX calm · S&amp;P above its 200-day average</span>
+    </div>
+
+    <div class="example-grid">
+      <div class="example-card">
+        <h3>In the Simple Checklist</h3>
+        <p>Uptrend regime lights up <strong>only question #8</strong> ("is the whole market healthy?"). That's 1 of 9 bulbs.</p>
+        <p>The other eight &mdash; the stock's own trend, its momentum, its entry quality, its volume &mdash; still have to pass entirely on their own merits. A calm, healthy market doesn't rescue a stock that's flat, thin, or overextended.</p>
+        <div class="takeaway">Best case, a good regime gets you to 9/9 alongside eight other real passes &mdash; it's never enough by itself.</div>
+      </div>
+      <div class="example-card">
+        <h3>In the Full Analysis</h3>
+        <p>Uptrend regime rates Risk/Macro as <strong>Favorable</strong> (or at least not Unfavorable). That removes Rule&nbsp;02's ceiling &mdash; the verdict is no longer capped at HOLD no matter what.</p>
+        <p>But removing a ceiling isn't the same as reaching BUY. The stock still needs its own Technical and Fundamental picture to clear Rule&nbsp;05 or Rule&nbsp;06 &mdash; a healthy market with a Weak chart still lands on AVOID at Rule&nbsp;01.</p>
+        <div class="caution">Flip it: Regime = Downtrend hits Rule&nbsp;02 immediately &mdash; HOLD is the ceiling, no matter how good the stock looks underneath.</div>
+      </div>
+    </div>
+
+    <div class="headline-takeaway">
+      <div class="big">A good regime clears the way. It doesn't pick the stock.</div>
+      <div class="small">Regime can only ever remove a ceiling (Full Analysis) or fill one bulb out of nine (Simple Checklist) &mdash; in both paths, the stock still has to earn its own case.</div>
+    </div>
+  </div>
+
+  <!-- ============ TEST SCENARIOS (grows as real questions come up) ============ -->
+  <div class="example" id="scenarios">
+    <div class="example-head">
+      <h2>Test scenarios</h2>
+      <span class="example-chip">grows as real questions come up</span>
+    </div>
+
+    <div class="scenario-block">
+      <div class="scenario-q"><b>Q &mdash; 2026-07-28:</b> "A stock I love just dropped 5% today, and the overall market is in a downtrend. Will either path still say buy it because it'll bounce back?"</div>
+      <div class="example-grid">
+        <div class="example-card">
+          <h3>Simple Checklist</h3>
+          <p><strong>No.</strong> Question 8 ("is the whole market healthy?") tests the S&amp;P against its 200-day average &mdash; plain yes/no. If the market is genuinely in a downtrend, that one bulb fails, and this path has <strong>no override</strong>. It never asks "but is the stock itself great" &mdash; one failed bulb is enough to land on PASS, however good the other eight look.</p>
+          <div class="caution">A sudden 5% drop can also cost bulbs #1 (Trend), #5 (52-Wk Range), or #3 (Setup) if it breaks a key level &mdash; the real outcome is often worse than "8/9 minus regime," not just capped by it.</div>
+        </div>
+        <div class="example-card">
+          <h3>Full Analysis</h3>
+          <p><strong>Also no</strong> &mdash; but for a sharper reason. Rule 02 caps the verdict at HOLD whenever Risk/Macro is Unfavorable, and that rule runs <strong>before</strong> Technical and Fundamental are even weighed against each other. A textbook Strong+Strong stock still can't reach Rule 05 or 06 while Rule 02 has already capped it.</p>
+          <p>One real exception: if the market is shaky rather than broken (VIX elevated but S&amp;P still above its 200-day line), Risk/Macro rates <strong>Neutral</strong>, not Unfavorable &mdash; and Neutral caps nothing. That's the one case where a great stock can still reach BUY through a rough day.</p>
+        </div>
+      </div>
+      <div class="headline-takeaway">
+        <div class="big">Neither path does "buy the dip because it'll bounce back."</div>
+        <div class="small">That reasoning &mdash; a sharp drop making a stock <em>more</em> attractive &mdash; lives in a completely separate, automated-only engine (Mean-Reversion), not here. This tool's own Technical read says the opposite: RSI below 30 is flagged <span class="mono">"deeply oversold &mdash; avoid catching falling knives."</span> A sudden drop reads as a warning to Simple/Full Analysis, never as a discount.</div>
+      </div>
+    </div>
+
+    <div class="scenario-block">
+      <div class="scenario-q"><b>Q &mdash; 2026-07-28:</b> "How do the scanners help me pick the right stocks to analyze &mdash; and can one watch a group of stocks (or my own list) and tell me when something's about to break out?"</div>
+      <div class="example-grid">
+        <div class="example-card">
+          <h3>Getting a candidate list</h3>
+          <p>Yes &mdash; that's the scanners' whole job (see the section above). "Best Candidates" is the sharpest one to reach for: it's the exact same query the automated Path A engine uses, so scanning it and analyzing what comes back is the closest thing to manually replaying what Path A already does, plus your own sector/regime read on top.</p>
+        </div>
+        <div class="example-card">
+          <h3>Watching a group for breakouts</h3>
+          <p><strong>Partly already built.</strong> The <span class="mono">/breakout-watch</span> skill and the Scan tab's badge column both work against <em>any</em> ticker list &mdash; your own included, not just Nirmal's default 20. Run it and get back who's confirmed, retesting, or on watch, right now.</p>
+          <div class="caution">What's missing is the "while I'm not looking" part &mdash; nothing runs on a schedule and alerts you unprompted. That's real, undone work (a scheduled watcher, same shape as the paper-trading engine's launchd job), not a setting to flip.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div>Simplified for readability &mdash; the real rulebook has a few more edge cases (holding-period weighting, ETF handling, missing-data fallbacks) not shown here.</div>
+    <div class="src">Source: frontend/src/utils/simplifiedScoring.js · frontend/src/utils/categoricalAssessment.js</div>
+    <div>Last revised: 2026-07-28</div>
+  </footer>
+
+</div>

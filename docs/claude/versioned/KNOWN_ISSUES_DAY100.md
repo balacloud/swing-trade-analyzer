@@ -1,0 +1,81 @@
+# Known Issues — Day 100 (July 28, 2026)
+
+## Changes from Day 99
+
+**Resolved this session:** none — no code fix this session, monitoring/investigation/documentation only.
+
+**Added this session:** one new Low/Info item — MR and momentum's automated tracks have no regime/sector-correlation awareness in their entry gates (below). Not a bug (it's the strategies' intended design), but a real, now-verified-in-code limitation worth tracking so it isn't rediscovered from scratch.
+
+**Freeze status:** unchanged — forward-testing accumulation remains the sole stated priority across all four tracks. New roadmap item added (priority #15, scheduled breakout-alert watcher) — explicitly parked like everything else below priority #1.
+
+---
+
+## Open Issues
+
+### Medium: Backtest↔Live Fundamentals Data-Source Mismatch (carried from Day 78/79)
+**Severity:** Medium
+**Description:** 40.0% disagreement rate between live (Finnhub/AlphaVantage/yfinance TTM) and backtested (SimFin quarterly) Fundamental labels, measured on 20 liquid tickers. Revenue growth is the dominant driver. Relevant to momentum's Path A/B (both share the same verdict step); not relevant to MR (HUB-65 included), which doesn't use the fundamentals leg.
+**Fix:** Mitigation choice still a pending user decision. Parked behind the paper-trading focus.
+
+### Medium: Canadian Market — Analyze Page Not Yet Supported (carried from Day 59)
+**Severity:** Medium (incomplete feature)
+**Description:** v4.21 Canadian support only works for Scan tab. Analyze page needs data source redesign for `.TO` tickers.
+**Fix:** Parked behind the paper-trading focus.
+
+### Low / Info: MR and momentum's automated entry gates have no regime/sector-correlation awareness (new, Day 100, not a bug)
+**Severity:** Low / Info
+**Description:** `detect_mr_signal()` (MR, both broad and HUB-65) checks exactly 4 things — RSI(2), price vs. its own 200-day SMA, price floor, 20-day dollar volume — with no VIX, sector, or cross-ticker correlation check at all. Momentum's verdict engine has some regime awareness (VIX + SPY vs. its 200-day average) but nothing sector-specific either. Verified directly by tracing a live example: a same-day semis/AI-supply-chain selloff (MU, AMD, MRVL, etc.) had already queued 6 correlated MR signals from the same shock, with 4 more that would fire once the day's bar closed. This is the same underlying mechanism as the Day 93 clustering finding (15 of 23 trades on 2 dates, one sector) — just the mirror direction, a selloff instead of a rally. The project's own Day 78 block-bootstrap docstring already names "correlated tickers entering around the same time" as a known risk to the significance math, but that mitigation never reached the entry gate or the raw trade count toward the 100-trade bar.
+**Fix:** Not actionable mid-freeze — adding a correlation/sector gate would be a real re-tune of a frozen entry condition (Golden Rule 18 territory), not a documentation fix. Logged so the real statistical power of "100 trades" is understood accurately when the bar is eventually evaluated: to whatever degree trades cluster like this, the effective independent sample size is smaller than the raw count suggests. The Sectors/Context tabs and the user's own manual judgment are confirmed to be the intended place this awareness lives (for the manual/discretionary workflow) — the automated engine's "zero human filtering" is deliberate, not an oversight.
+
+### Low / Info: HUB-65 backtest is selection-biased by construction (carried from Day 98, not a bug)
+**Severity:** Low / Info
+**Description:** `backtest_hub_mr.py`'s clean-looking headline numbers (PF 1.2574, Sharpe 1.5278) are NOT comparable to the project's own survivorship-free baseline (PF 1.16). The caveat is stated everywhere the number appears.
+**Fix:** Not actionable — the forward-test track (own 100-trade bar) is the real test.
+
+### Low / Info: HUB-65 and the broad MR scan are not independent samples (carried from Day 98, not a bug)
+**Severity:** Low / Info
+**Description:** Many HUB-65 tickers overlap the broad dynamic MR universe — the same ticker can enter both tracks on the same day as separate positions with independent cooldowns.
+**Fix:** Not actionable — accepted by design.
+
+### Low / Info: Momentum's stop/target formula design — deeper redesign still open (carried from Day 95/96)
+**Severity:** Low
+**Description:** `compute_entry_levels()`'s flat+8% target vs. ATR-clamped stop remains the exit-management formula for Path A and Path B (confirmed intentional, matches the historical backtest's own exit simulation).
+**Fix:** Not urgent — revisit only if results suggest the exit side needs attention, post-freeze.
+
+### Low / Info: MR's ADX docstring doesn't match its code (carried from Day 92)
+**Severity:** Low
+**Description:** `mean_reversion.py`'s module docstring claims MR is "only active when ADX < 20 (range-bound)," but `detect_mr_signal()`'s actual `signal` condition never checks ADX.
+**Fix:** Deferred alongside the volume-confirmation item, ROADMAP.md Priority #11.
+
+### Low / Info: Volume confirmation missing from the decision engine (carried from Day 92)
+**Severity:** Low
+**Description:** Neither the Full Analysis verdict tree nor the Simple Checklist's 9 criteria check whether a price move is confirmed by rising volume vs. thin volume.
+**Fix:** Deferred — touches frozen verdict logic. Tracked as ROADMAP.md Priority #11. Parked until the 100-trade paper-trading gate clears.
+
+### Low / Info: Session 28 audit's remaining lower-priority findings (carried from Day 91)
+**Severity:** Low
+**Description:** Value tab's ROE thresholds badged "Buffett/Damodaran" when the code comment says "ChatGPT research validated"; Validate/Data Sources tabs show "live"/"healthy" status without probing real fetch success; per-position fetch failures are silently dropped.
+**Fix:** Tracked as ROADMAP.md Priority #10 — batchable, not urgent, parked behind paper-trading focus.
+
+### Low / Info: Sector Rotation Monitor has no fallback on its own OHLCV fetch (carried from Day 94)
+**Severity:** Low
+**Description:** `get_sector_rotation()` calls `yf.download()` directly rather than going through the provider chain.
+**Fix:** Not actioned — low probability event, log-only per Day 94's own judgment.
+
+### Low / Info: Paper-trading launchd log doesn't capture manual/force-run activity (carried from Day 95)
+**Severity:** Low
+**Description:** `daily_job.log`'s `StandardOutPath` only captures stdout from launchd-triggered invocations, not manual/force runs.
+**Fix:** Not actioned — the ledger itself is authoritative, just log completeness.
+
+### Low / Info: IBKR paper-execution CIRO question — one loose end before implementation (carried from Day 97, not a bug)
+**Severity:** Low / Info
+**Description:** The IBKR paper-execution design plan reasons CIRO Rule 3200 doesn't extend to a pure paper account — Claude's own reasoned interpretation, not something CIRO states explicitly.
+**Fix:** Not actioned — feature is parked pending the user's own additional research/review.
+
+### Low / Info: No scheduled/proactive breakout alerting (new, Day 100, not a bug — feature gap)
+**Severity:** Low / Info
+**Description:** `/breakout-watch` and the Scan tab's badge column both work against any ticker list on demand, but nothing runs on a schedule or notifies unprompted. User asked to track this as a future idea, explicitly not to build now.
+**Fix:** Parked — see ROADMAP.md priority #15.
+
+### Low / Info items (carried forward, unchanged)
+SimFin key rotation unconfirmed, Defeat Beta import present, Scan tab breakout badge NOT_READY vs failed-fetch ambiguity, Master Framework/Nirmal/HUB-65 watchlist Name/Market Cap N/A by choice, a genuinely missed paper-trading job run on 2026-07-14 (confirmed, not recoverable per the documented point-in-time limitation). See `KNOWN_ISSUES_DAY87.md` for full text of older pre-existing items.
