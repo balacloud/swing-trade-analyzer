@@ -2,7 +2,7 @@
 
 > **Purpose:** A decision-making lens for judgment calls this project makes about trading logic — not a coding-style guide. GOLDEN_RULES.md governs *how Claude works*; this file governs *how Claude should think* when evaluating a threshold, a backtest result, a "can we speed this up" request, or any other call that touches the actual trading system.
 > **Created:** Day 95 (July 24, 2026) — user-requested, to make key trading decisions consistently rather than re-deriving judgment each session.
-> **Last Updated:** Day 100 (July 28, 2026)
+> **Last Updated:** Day 101 (July 29, 2026)
 > **Loaded:** At session start (`/sta-start`), alongside GOLDEN_RULES.md. Updated at session close (`/sta-end`) via the Feedback Log below — this file is meant to accumulate, not stay static.
 
 ---
@@ -75,6 +75,15 @@ Grounding each in a real, already-documented STA moment, so this isn't abstract:
 ---
 
 ## Feedback Log (append-only, most recent session first)
+
+### Day 101
+A routine forward-test check-in, applied deliberately rather than just read off the report.
+
+**MR (broad)'s profit factor cooling from 8.26 (Day 100) to 6.20 (Day 101) as closed trades grew 26→27** was the moment to apply Core Principle 5 ("skepticism scales with how good the number looks") in its quieter form — not just as a trigger to dig into a suspiciously good number, but as the correct read on a suspiciously good number *cooling toward something more plausible*. The instinct to treat a dropping PF as bad news would have been backwards here: an 8x profit factor was already flagged (Day 93) as likely inflated by clustering, so a cooling number as the sample grows is the number doing what a real, mean-reverting sample should do — not evidence the system got worse.
+
+**HUB-65's first-ever closed trade landing as a loss (0% WR, n=1)** was the mirror-image discipline: recency bias would read one bad trade as a bad omen for a brand-new track exactly as readily as one good trade would read as a good one. Neither is evidence at n=1 — the point of PAPER_TRADING_PREREGISTRATION.md's 100-trade bar is precisely to prevent either overreaction. Stated this plainly rather than letting a single data point color the "where things stand" summary.
+
+Also relevant: the user showed a sibling project's own version of a feature and asked to replicate it; the persona-adjacent (Golden Rule territory, not strictly trading-judgment) discipline was checking STA's own existing credentials/infrastructure before assuming a cross-project dependency was needed — a smaller-footprint version of the same "verify directly, don't assume" instinct behind Golden Rule 26/37.
 
 ### Day 100
 A live example prompted a first-principles question — does regime actually matter to the automated engine's entries — and the discipline that mattered was refusing to answer from memory or intuition once the code was checked directly, rather than trusting a plausible-sounding "probably not."

@@ -69,7 +69,7 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 
 > **Status note:** a complete feature freeze has been in effect since Day 87 — the list below reflects everything shipped, but active work is currently limited to bug fixes and the automated paper-trading engine (100 confirmed trades/system required before any capital allocation). See [Roadmap](#roadmap) for current priorities.
 
-### ✅ Implemented (v4.53)
+### ✅ Implemented (v4.55)
 
 1. **Single Stock Analysis**
    - Enter any ticker symbol
@@ -159,12 +159,13 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
     - **Criteria:** Trend (P>50>200 SMA), Momentum (RS>1.0), Setup (stop within 7%), Risk/Reward (R:R>=2:1), 52-Wk Range (top 25%), Volume ($10M+ daily), ADX (>=20), Market Regime (SPY>200 SMA), 200 SMA Trend (rising)
     - Based on Minervini SEPA criteria + holistic backtest validation
 
-10. **Sector Rotation** (Day 58-62 - v4.19 → v4.24, redesigned Day 93 - v4.50)
+10. **Sector Rotation** (Day 58-62 - v4.19 → v4.24, redesigned Day 93 - v4.50, Sub-Industry Watch Day 101 - v4.55)
     - `/api/sectors/rotation` — 11 SPDR sector ETFs ranked by RS ratio vs SPY, plus a Cap Size Rotation strip (QQQ/MDY/IWM)
     - RRG quadrant classification (Leading, Weakening, Lagging, Improving)
     - Color-coded sector badge on Analyze page + sector column in Scan results
     - Dedicated Sectors tab, cards grouped by quadrant with a plain-English takeaway (redesigned Day 93 — no per-card rank badge, since any ordinal reads as "the winner" regardless of qualifying text)
     - `macro_alignment` — states in one sentence whether the macro backdrop (Context tab's FRED-derived regime) supports the rotation currently shown (Day 93)
+    - **Sub-Industry Watch** — `/api/sectors/sub-industry`, 21 sub-industry theme-cluster proxy ETFs (Semis, Memory/Storage, Nuclear/Uranium, Gold Miners, Biotech, and 16 more) one level below the 11 broad sectors above, using the same RS-ratio formula. Collapsible section on the Sectors tab, collapsed by default (Day 101)
 
 11. **Pattern Detection** (Day 44 - v4.2, refined Day 64)
     - VCP (Volatility Contraction Pattern), Cup & Handle, Flat Base
@@ -1495,6 +1496,8 @@ TOLERANCES = {
 - **v4.51: Sector Rotation Error-Handling + README Audit** ✅ Fixed a silent-failure bug on the Sectors tab (visible error banner + Retry instead of an endless spinner); ran the project's first full README Coherence Audit, fixing ~50 findings including fictional API endpoints and undocumented real ones (Day 94)
 - **v4.52: Provider Reliability Overhaul + Path B Forward-Test Experiment** ✅ Fixed a systemic bug where every data provider's circuit breaker miscounted a ticker having no data as the provider itself being unhealthy (all 6 providers). Discovered the live momentum engine's R:R check had never matched the real backtested entry logic (a live/backtest divergence since Day 81) — fixed by launching **Path B**, a parallel forward-test experiment using the actual validated support/resistance-based R:R gate, visible in its own Forward Test tab card, tracked completely independently of the original ("Path A") system's count (Day 95-96)
 - **v4.53: HUB-65 Curated-Universe Mean-Reversion Track** ✅ Recognized a user-proposed "buy the dip" idea as the project's own existing, unchanged mean-reversion engine applied to a new, curated 65-ticker watchlist rather than a new strategy. Backtested it first (PF 1.2574, Sharpe 1.5278 — explicitly caveated as selection-biased and NOT comparable to the survivorship-free baseline), then launched a real parallel forward-test track (own independent 100-trade bar, zero effect on the existing broad MR track's count), visible as a distinctly-badged card in the Forward Test tab plus a new curated watchlist option on the Scan tab (Day 98)
+- **v4.54: Partial-Bar Ledger Contamination Fix** ✅ A targeted review of the paper-trading ledger/exit-replay path (chosen specifically because nothing looked broken) found a real bug: a mid-session manual run could write an intraday, not-yet-final price into the ledger as that day's closing price, permanently. Fixed by checking bar completeness against the actual market close, not just the current date; 20 already-affected historical trades repaired via a dry-run-then-apply script (Day 99)
+- **v4.55: Sub-Industry Watch** ✅ Built natively into the Sectors tab after seeing a sibling project's own separate version of the same idea — 21 sub-industry theme-cluster proxy ETFs (Semis, Memory/Storage, Nuclear/Uranium, Gold Miners, Biotech, and 16 more), one level below the 11 broad GICS sectors, reusing STA's own RS-ratio formula via a newly-extracted shared helper rather than a second implementation. Found and fixed a real bug mid-build: a per-request provider-fallback rate limit could silently mix timezone conventions across tickers, zeroing out the date-alignment step (Day 101)
 
 ### Philosophy (Day 27 + Day 44 Update)
 
@@ -1539,6 +1542,8 @@ A full-system audit (Day 78) found the backtested edge was likely overstated —
 6. *(parked)* **Volume confirmation missing from the decision engine** — neither the Full Analysis verdict nor the Simple Checklist check whether a price move is backed by rising volume; found Day 92, needs a re-backtest before shipping.
 7. *(parked, idea only)* **Scheduled/proactive breakout-alert watcher** — the breakout engine already works on demand against any ticker list (`/breakout-watch`, Scan tab badges); nothing today runs on a schedule or notifies unprompted. Flagged Day 100, needs its own design session before any build.
 8. *(parked)* `/ibkr-scan` skill, Price Structure Phase 3 (visual chart), Canadian Analyze page — queued behind the above.
+
+**Day 101: "Sub-Industry Watch," built natively after seeing a sibling project's own version.** The Trading Intelligence Hub (a sibling project) had built its own separate sector/theme advisory panel, one level below STA's 11 broad sectors — 21 sub-industry proxy ETFs (Semis, Memory/Storage, Nuclear/Uranium, Gold Miners, Biotech, and more) that can show a genuinely sector-specific move STA's broad-sector view is too coarse to catch. Rather than depending on the Hub's copy, built it natively: STA already had its own Tradier credentials, and reusing STA's own RS-ratio formula (via a newly-extracted shared helper) avoids a normalization mismatch the Hub's version has to caveat for overlapping tickers. Found and fixed a real bug mid-build — a per-request provider rate-limit fallback could silently mix timezone conventions across tickers, zeroing out the date-alignment step — new Golden Rule 40. Also adopted a hub-side test-coverage handoff for the existing `/api/sectors/rotation` endpoint, independently re-verified before adoption rather than trusted on the Hub's claim alone. Pure Sectors-tab display work, same freeze-independent category as Day 93 — no automated-engine or frozen-threshold changes.
 
 **Day 100:** Monitoring and documentation session, no app code changed. Verified the Day 99 ledger fix under real live use (a mid-session Force Run correctly deferred to the prior day's close, not the still-forming bar). Traced and verified in code a real structural finding: neither automated track (momentum or mean-reversion) has any sector-correlation awareness in its entry gate — confirmed against a live example (a same-day semis-sector selloff already queuing several correlated MR signals from the same shock). Not a bug — the automated engine's "zero human filtering" is deliberate — but logged as a known limitation on the effective statistical power of the 100-trade confirmation bar. Also published a new living reference doc explaining how the Simple Checklist and Full Analysis paths actually work, `docs/claude/design/HOW_STOCK_PICKING_WORKS.html`.
 

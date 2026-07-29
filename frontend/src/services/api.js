@@ -845,6 +845,28 @@ export async function fetchSectorRotation() {
   };
 }
 
+/**
+ * Fetch Sub-Industry Watch data (Day 100+) — RS ratio/momentum/quadrant for
+ * 21 sub-industry theme-cluster proxy ETFs, one level below the 11 broad
+ * GICS sectors fetchSectorRotation() above already covers. Separate endpoint
+ * (own cache, own loading lifecycle in SectorRotationTab.jsx) since it's a
+ * slower ~22-ticker fetch that most sessions won't need every time —
+ * pass-through, not a whitelisted reconstruction, so a future backend field
+ * addition doesn't get silently dropped here (Golden Rule 30).
+ *
+ * @returns {object} - { clusters[], clusterCount, noProxyClusters, timestamp, period }
+ */
+export async function fetchSubIndustryRotation() {
+  const response = await fetch(`${API_BASE_URL}/sectors/sub-industry`);
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to fetch sub-industry rotation data');
+  }
+
+  return response.json();
+}
+
 // ─── Context Tab API functions (Day 62, v4.24) ────────────────────────────────
 
 /**

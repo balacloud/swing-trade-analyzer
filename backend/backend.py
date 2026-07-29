@@ -61,6 +61,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 BACKEND_VERSION = '2.44'
 
 from constants import SUPPORT_PROXIMITY_PCT, RESISTANCE_PROXIMITY_PCT  # shared with support_resistance.py
+from sub_industry_clusters import SUB_INDUSTRY_CLUSTERS, NO_PROXY_CLUSTERS  # Day 100+ Sub-Industry Watch
 
 # Day 51: Load environment variables for API keys
 try:
@@ -2255,6 +2256,48 @@ for etf, info in SECTOR_ETF_MAP.items():
         GICS_TO_ETF[gics_name] = etf
 
 
+def compute_rs_ratio_and_quadrant(target_aligned, spy_aligned, momentum_lookback=10):
+    """RS-Ratio/Momentum/Quadrant for one ETF (broad sector or sub-industry proxy)
+    vs SPY, both already date-aligned. Shared by get_sector_rotation() (11 broad
+    GICS sectors) and get_sub_industry_rotation() (Day 100+ sub-industry clusters)
+    so there's exactly one RS-ratio formula in the app, not two that could drift
+    apart (Golden Rule 21).
+
+    NOTE: This is a swing-trading variant of RRG, NOT standard de Kempenaer RRG.
+    Standard RRG uses 12-26 week EMA as 100-center; we use static midpoint.
+    RS-Momentum is 0-centered (delta), not 100-centered as in standard RRG.
+    Quadrants: (RS≥100, Mom≥0)=Leading — functionally equivalent to standard.
+    See: docs/research/UNIVERSAL_PRINCIPLES_IMPLEMENTATION_PLAN.md Bug 0E-F
+
+    Returns (rs_ratio, rs_momentum, quadrant) — quadrant is one of
+    Leading/Weakening/Lagging/Improving.
+    """
+    rs_line = (target_aligned / spy_aligned)
+    midpoint = len(rs_line) // 2
+    rs_normalized = (rs_line / rs_line.iloc[midpoint]) * 100
+
+    # Current RS Ratio (latest value, centered at 100)
+    rs_ratio = round(float(rs_normalized.iloc[-1]), 2)
+
+    # RS Momentum: N-day delta of normalized RS (centered at 0, not 100)
+    if len(rs_normalized) >= momentum_lookback:
+        rs_momentum = round(float(rs_normalized.iloc[-1] - rs_normalized.iloc[-momentum_lookback]), 2)
+    else:
+        rs_momentum = 0.0
+
+    # Determine RRG Quadrant (RS≥100 horizontal, Momentum≥0 vertical)
+    if rs_ratio >= 100 and rs_momentum >= 0:
+        quadrant = 'Leading'
+    elif rs_ratio >= 100 and rs_momentum < 0:
+        quadrant = 'Weakening'
+    elif rs_ratio < 100 and rs_momentum < 0:
+        quadrant = 'Lagging'
+    else:  # rs_ratio < 100 and rs_momentum >= 0
+        quadrant = 'Improving'
+
+    return rs_ratio, rs_momentum, quadrant
+
+
 @app.route('/api/sectors/rotation', methods=['GET'])
 def get_sector_rotation():
     """
@@ -2313,34 +2356,7 @@ def get_sector_rotation():
                 spy_aligned = spy_close.loc[common_idx]
                 etf_aligned = etf_close.loc[common_idx]
 
-                # RS Ratio: (ETF / SPY) normalized to 100 at midpoint
-                # NOTE: This is a swing-trading variant of RRG, NOT standard de Kempenaer RRG.
-                # Standard RRG uses 12-26 week EMA as 100-center; we use static midpoint.
-                # RS-Momentum is 0-centered (delta), not 100-centered as in standard RRG.
-                # Quadrants: (RS≥100, Mom≥0)=Leading — functionally equivalent to standard.
-                # See: docs/research/UNIVERSAL_PRINCIPLES_IMPLEMENTATION_PLAN.md Bug 0E-F
-                rs_line = (etf_aligned / spy_aligned)
-                midpoint = len(rs_line) // 2
-                rs_normalized = (rs_line / rs_line.iloc[midpoint]) * 100
-
-                # Current RS Ratio (latest value, centered at 100)
-                rs_ratio = round(float(rs_normalized.iloc[-1]), 2)
-
-                # RS Momentum: 10-day delta of normalized RS (centered at 0, not 100)
-                if len(rs_normalized) >= 10:
-                    rs_momentum = round(float(rs_normalized.iloc[-1] - rs_normalized.iloc[-10]), 2)
-                else:
-                    rs_momentum = 0.0
-
-                # Determine RRG Quadrant (RS≥100 horizontal, Momentum≥0 vertical)
-                if rs_ratio >= 100 and rs_momentum >= 0:
-                    quadrant = 'Leading'
-                elif rs_ratio >= 100 and rs_momentum < 0:
-                    quadrant = 'Weakening'
-                elif rs_ratio < 100 and rs_momentum < 0:
-                    quadrant = 'Lagging'
-                else:  # rs_ratio < 100 and rs_momentum >= 0
-                    quadrant = 'Improving'
+                rs_ratio, rs_momentum, quadrant = compute_rs_ratio_and_quadrant(etf_aligned, spy_aligned)
 
                 # Price changes for context
                 current_price = round(float(etf_aligned.iloc[-1]), 2)
@@ -2484,6 +2500,135 @@ def get_sector_rotation():
 
     except Exception as e:
         print(f"Error fetching sector rotation: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/sectors/sub-industry', methods=['GET'])
+def get_sub_industry_rotation():
+    """
+    Sub-industry theme cluster RS-ratio/momentum/quadrant — one level below the
+    11 broad GICS sectors above (Day 100+, "Sub-Industry Watch"). Same RS-ratio
+    formula as get_sector_rotation() (compute_rs_ratio_and_quadrant() — DRY,
+    not a second implementation), applied to 21 curated proxy ETFs (SUB_INDUSTRY_CLUSTERS
+    in sub_industry_clusters.py) that fill a real gap: STA's broad-sector read is
+    too coarse to show a genuinely sector-specific move (e.g. a semis-only
+    selloff shows up there only as a soft "XLK: Weakening").
+
+    Uses the multi-provider orchestrator (TwelveData -> yfinance -> Tradier)
+    per ticker rather than a single yfinance batch download, since several of
+    these proxies (e.g. DRAM, a young memory-sector ETF) aren't reliably on
+    the earlier tiers and need Tradier's fallback coverage.
+
+    Cached per trading day, same convention as /api/sectors/rotation.
+    """
+    try:
+        if SQLITE_CACHE_AVAILABLE:
+            cached = cache_manager.get_cached_market('SUB_INDUSTRY_ROTATION')
+            if cached:
+                print("📦 Sub-industry rotation cache HIT")
+                cached['cached'] = True
+                return jsonify(cached)
+
+        if not DATA_PROVIDER_AVAILABLE:
+            return jsonify({'error': 'Data provider unavailable'}), 503
+
+        period = request.args.get('period', '6mo')
+        print(f"🔄 Fetching fresh sub-industry rotation data ({len(SUB_INDUSTRY_CLUSTERS)} clusters)...")
+
+        dp = get_data_provider()
+
+        try:
+            spy_df = dp.get_ohlcv('SPY', period=period)
+            spy_close = spy_df['close'].dropna()
+            # Day 52 gotcha, hit again here: this endpoint calls the orchestrator
+            # per-ticker across 22 tickers in one request, which can trip
+            # TwelveData's rate limiter partway through (Golden Rule 25) and fall
+            # through to yfinance for the remaining proxies. TwelveData returns a
+            # tz-naive index, yfinance a tz-aware one (America/New_York) — mixing
+            # them makes .index.intersection() silently return zero rows instead
+            # of erroring. Normalize to tz-naive once, at the boundary, for every
+            # series before it's ever aligned against another.
+            if spy_close.index.tz is not None:
+                spy_close.index = spy_close.index.tz_localize(None)
+        except Exception as e:
+            return jsonify({'error': f'Failed to fetch SPY data: {e}'}), 500
+
+        if len(spy_close) < 20:
+            return jsonify({'error': 'Insufficient SPY data'}), 500
+
+        # Full ~6mo trading-day count, used only to flag a thinner-than-usual
+        # read (e.g. DRAM, launched Apr 2026) — never to reject it outright.
+        FULL_WINDOW_TRADING_DAYS = 115
+
+        clusters = []
+        for cluster_name, info in SUB_INDUSTRY_CLUSTERS.items():
+            proxy = info['proxy']
+            try:
+                proxy_df = dp.get_ohlcv(proxy, period=period)
+                proxy_close = proxy_df['close'].dropna()
+                if proxy_close.index.tz is not None:
+                    proxy_close.index = proxy_close.index.tz_localize(None)
+
+                if len(proxy_close) < 20:
+                    raise ValueError(f"only {len(proxy_close)} bars")
+
+                common_idx = spy_close.index.intersection(proxy_close.index)
+                if len(common_idx) < 20:
+                    raise ValueError(f"only {len(common_idx)} bars aligned with SPY")
+
+                spy_aligned = spy_close.loc[common_idx]
+                proxy_aligned = proxy_close.loc[common_idx]
+
+                rs_ratio, rs_momentum, quadrant = compute_rs_ratio_and_quadrant(proxy_aligned, spy_aligned)
+                usable_days = len(common_idx)
+
+                clusters.append({
+                    'cluster': cluster_name,
+                    'proxy': proxy,
+                    'tickers': info['tickers'],
+                    'rsRatio': rs_ratio,
+                    'rsMomentum': rs_momentum,
+                    'quadrant': quadrant,
+                    'shortHistory': usable_days < FULL_WINDOW_TRADING_DAYS,
+                    'usableDays': usable_days,
+                    'error': None,
+                })
+            except Exception as e:
+                clusters.append({
+                    'cluster': cluster_name,
+                    'proxy': proxy,
+                    'tickers': info['tickers'],
+                    'rsRatio': None,
+                    'rsMomentum': None,
+                    'quadrant': None,
+                    'shortHistory': None,
+                    'usableDays': None,
+                    'error': str(e),
+                })
+                print(f"⚠️ Error processing sub-industry cluster {cluster_name} ({proxy}): {e}")
+
+        no_proxy_clusters = [
+            {'cluster': name, 'tickers': info['tickers']}
+            for name, info in NO_PROXY_CLUSTERS.items()
+        ]
+
+        response = {
+            'clusters': clusters,
+            'clusterCount': len(clusters),
+            'noProxyClusters': no_proxy_clusters,
+            'timestamp': datetime.now().isoformat(),
+            'period': period,
+        }
+
+        if SQLITE_CACHE_AVAILABLE:
+            cache_manager.set_cached_market('SUB_INDUSTRY_ROTATION', response)
+            print(f"💾 Sub-industry rotation cached ({len(clusters)} clusters)")
+
+        return jsonify(response)
+
+    except Exception as e:
+        print(f"Error fetching sub-industry rotation: {e}")
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 

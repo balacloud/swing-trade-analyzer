@@ -1,8 +1,9 @@
 // SectorRotationTab.jsx — Day 62, v4.24
 // Sector Rotation Phase 2: Dedicated tab with 11 sector cards, quadrant colors, Scan for Rank 1
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ALIGNMENT_STYLES, ALIGNMENT_ICONS } from '../utils/alignmentStyles';
+import { fetchSubIndustryRotation } from '../services/api';
 
 // Quadrant display config. sectionHint is the beginner-facing "what do I do
 // with this" translation shown once per group, not per card.
@@ -232,6 +233,180 @@ function SectorCard({ sector, onScanForSector }) {
   );
 }
 
+// Sub-industry cluster card — same quadrant styling as SectorCard, one level
+// below the 11 broad GICS sectors (Day 100+, "Sub-Industry Watch"). No "Scan
+// stocks" CTA in this first pass — that action maps a sector ETF to a GICS
+// scan filter STA already has; a sub-industry cluster's tickers are a curated
+// theme list, not a scan-able GICS category, so it's a different feature not
+// scoped here.
+function SubIndustryCard({ cluster }) {
+  if (cluster.error) {
+    return (
+      <div className="rounded-lg border-l-4 border-gray-600 bg-gray-800/60 p-4">
+        <div className="flex items-baseline justify-between mb-1">
+          <span className="text-white font-semibold text-sm">{cluster.cluster}</span>
+          <span className="text-gray-400 text-xs font-mono">{cluster.proxy}</span>
+        </div>
+        <p className="text-gray-500 text-xs">Unavailable — {cluster.error}</p>
+      </div>
+    );
+  }
+
+  const qc = QUADRANT_CONFIG[cluster.quadrant] || QUADRANT_CONFIG.Lagging;
+
+  return (
+    <div className={`rounded-lg border-l-4 ${qc.border} ${qc.bg} p-4 bg-gray-800`}>
+      <div className="flex items-center justify-end mb-2">
+        <span className={`text-xs font-medium px-2 py-0.5 rounded ${qc.badge}`}>
+          {qc.icon} {cluster.quadrant}
+        </span>
+      </div>
+      <div className="flex items-baseline justify-between mb-2">
+        <span className="text-white font-semibold text-sm">{cluster.cluster}</span>
+        <span className="text-gray-400 text-xs font-mono">{cluster.proxy}</span>
+      </div>
+      <RsBar value={cluster.rsRatio} label="RS Ratio" />
+      <RsBar value={cluster.rsMomentum} label="RS Momentum" isMomentum />
+      {cluster.shortHistory && (
+        <p className="text-yellow-500/80 text-xs mt-2">
+          Short history ({cluster.usableDays}d) — read is thinner than the full ~6mo window.
+        </p>
+      )}
+    </div>
+  );
+}
+
+// Collapsible Tier-2 section, lazy-loaded on first expand (own ~22-ticker
+// fetch, slower than the eager-loaded 11 broad sectors above — most sessions
+// won't need this every time, so it shouldn't tax every page load, same
+// reasoning as Golden Rule 25). State is local to this component since
+// nothing else in the app consumes sub-industry data.
+function SubIndustryWatchSection() {
+  const [expanded, setExpanded] = useState(false);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const load = () => {
+    setLoading(true);
+    setError(null);
+    fetchSubIndustryRotation()
+      .then(res => {
+        setData(res);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load sub-industry rotation:', err);
+        setError(err.message || 'Failed to fetch sub-industry rotation data');
+        setLoading(false);
+      });
+  };
+
+  const handleToggle = () => {
+    const next = !expanded;
+    setExpanded(next);
+    if (next && !data && !loading) {
+      load();
+    }
+  };
+
+  const grouped = useMemo(() => {
+    if (!data?.clusters) return {};
+    const out = { Leading: [], Improving: [], Weakening: [], Lagging: [] };
+    data.clusters.forEach(c => {
+      if (c.error) return; // errored clusters render in their own strip below, not grouped
+      if (out[c.quadrant]) out[c.quadrant].push(c);
+    });
+    return out;
+  }, [data]);
+
+  const erroredClusters = useMemo(
+    () => (data?.clusters || []).filter(c => c.error),
+    [data]
+  );
+
+  return (
+    <div className="bg-gray-800/50 border border-gray-700 rounded-lg mb-6">
+      <button
+        onClick={handleToggle}
+        className="w-full flex items-center justify-between p-4 text-left"
+      >
+        <div>
+          <span className="text-white font-semibold text-sm">🔬 Sub-Industry Watch</span>
+          <span className="text-gray-500 text-xs ml-2">
+            Semis / memory / nuclear / materials / gold / biotech / financials & more — one level below the 11 broad sectors above
+          </span>
+        </div>
+        <span className="text-gray-400 text-sm">{expanded ? '▲' : '▼'}</span>
+      </button>
+
+      {expanded && (
+        <div className="px-4 pb-4">
+          {loading && (
+            <div className="text-center py-10">
+              <div className="text-3xl mb-2">📡</div>
+              <p className="text-gray-400 text-sm">Loading sub-industry data — 21 proxy ETFs vs SPY…</p>
+            </div>
+          )}
+
+          {!loading && error && (
+            <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 text-red-200">
+              <p className="font-semibold">⚠️ Failed to load sub-industry data</p>
+              <p className="text-sm mt-1 text-red-300">{error}</p>
+              <button
+                onClick={load}
+                className="mt-3 px-3 py-1.5 bg-red-700 hover:bg-red-600 rounded text-sm"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
+          {!loading && !error && data && (
+            <>
+              {QUADRANT_ORDER.map(q => {
+                const list = grouped[q] || [];
+                if (list.length === 0) return null;
+                const qc = QUADRANT_CONFIG[q];
+                return (
+                  <div key={q} className="mb-5">
+                    <div className="flex items-baseline gap-2 mb-3">
+                      <span className={`text-sm font-semibold ${qc.color}`}>{qc.icon} {q}</span>
+                      <span className="text-gray-500 text-xs">({list.length})</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {list.map(cluster => (
+                        <SubIndustryCard key={cluster.cluster} cluster={cluster} />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {erroredClusters.length > 0 && (
+                <div className="mb-5">
+                  <div className="text-gray-500 text-xs mb-2">Unavailable this run ({erroredClusters.length}):</div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {erroredClusters.map(cluster => (
+                      <SubIndustryCard key={cluster.cluster} cluster={cluster} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {data.noProxyClusters && data.noProxyClusters.length > 0 && (
+                <div className="text-gray-600 text-xs">
+                  No thematic proxy fits: {data.noProxyClusters.map(c => `${c.cluster} (${c.tickers.join(', ')})`).join('; ')}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function SectorRotationTab({ sectorRotation, sectorRotationError, onRetry, onScanForSector }) {
   // Destructure size rotation fields (may be absent on old cached response)
   const sizeRotation = sectorRotation?.size_rotation;
@@ -411,6 +586,9 @@ export default function SectorRotationTab({ sectorRotation, sectorRotationError,
           </div>
         );
       })}
+
+      {/* Sub-Industry Watch — Tier 2, collapsed by default, lazy-loaded */}
+      <SubIndustryWatchSection />
 
       {/* Footer note */}
       <div className="mt-6 text-center text-xs text-gray-600">
