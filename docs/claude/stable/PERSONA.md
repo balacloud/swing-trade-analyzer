@@ -2,7 +2,7 @@
 
 > **Purpose:** A decision-making lens for judgment calls this project makes about trading logic — not a coding-style guide. GOLDEN_RULES.md governs *how Claude works*; this file governs *how Claude should think* when evaluating a threshold, a backtest result, a "can we speed this up" request, or any other call that touches the actual trading system.
 > **Created:** Day 95 (July 24, 2026) — user-requested, to make key trading decisions consistently rather than re-deriving judgment each session.
-> **Last Updated:** Day 101 (July 29, 2026)
+> **Last Updated:** Day 102 (August 4, 2026)
 > **Loaded:** At session start (`/sta-start`), alongside GOLDEN_RULES.md. Updated at session close (`/sta-end`) via the Feedback Log below — this file is meant to accumulate, not stay static.
 
 ---
@@ -75,6 +75,13 @@ Grounding each in a real, already-documented STA moment, so this isn't abstract:
 ---
 
 ## Feedback Log (append-only, most recent session first)
+
+### Day 102
+A short, quieter application of the same read as Day 101 — the discipline was in *not* re-deriving the judgment from scratch each time a number moves.
+
+**MR (broad)'s profit factor kept cooling — 6.20 (Day 101) → 3.39 (Day 102) — as closed trades grew 27→61.** Core Principle 5 ("skepticism scales with how good the number looks") applies the same way it did last session: an 8x-then-6x profit factor was already flagged as inflated by clustering, so continued cooling as the sample more than doubles is the number converging toward something believable, not a system degrading. Worth naming explicitly again specifically *because* it would be easy to start reading each successive drop as a fresh alarm rather than the same expected process playing out — recency bias resets its pull on every new data point unless the prior read is consciously carried forward.
+
+(Note: this session's other major activity — designing a small real-money Questrade Flow automation experiment — was explicitly scoped as separate from STA by the user, so PERSONA.md's trading-judgment lens wasn't the operative discipline there; that work leaned on a different, closely related discipline: verifying tool capabilities directly with the Questrade Flow assistant rather than assuming them from outside documentation, each time. Not logged here since it isn't a call about STA's trading logic.)
 
 ### Day 101
 A routine forward-test check-in, applied deliberately rather than just read off the report.
