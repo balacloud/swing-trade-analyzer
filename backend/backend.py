@@ -58,10 +58,23 @@ sys.path.insert(0, os.path.dirname(__file__))
 # Seasonal card text/badge contradiction fixed, new macro_alignment field on
 # /api/sectors/rotation connecting it to the Context tab's macro regime read,
 # compute_overall_regime() extracted as a shared helper.
-BACKEND_VERSION = '2.44'
+# Day 103: corrected a real 4-version drift — this constant had been stuck
+# at '2.44' since Day 92 while CLAUDE_CONTEXT.md and ROADMAP.md had moved on
+# to claiming v2.48 (same drift pattern already caught and fixed on Days 84/
+# 93/96/101 — a session's own version bump routinely updates the docs but
+# not this source constant). Bumped to 2.45 for today's real change: new
+# /api/sectors/pullback-screen endpoint (SRPS discretionary screener).
+BACKEND_VERSION = '2.45'
 
 from constants import SUPPORT_PROXIMITY_PCT, RESISTANCE_PROXIMITY_PCT  # shared with support_resistance.py
 from sub_industry_clusters import SUB_INDUSTRY_CLUSTERS, NO_PROXY_CLUSTERS  # Day 100+ Sub-Industry Watch
+from srps_constants import (  # SRPS pullback screener (Day 102) — see srps_constants.py docstring
+    RS_LOOKBACK_DAYS as SRPS_RS_LOOKBACK_DAYS, RS_FLOOR as SRPS_RS_FLOOR,
+    EMA_PULLBACK_LOW as SRPS_EMA_PULLBACK_LOW, EMA_PULLBACK_HIGH as SRPS_EMA_PULLBACK_HIGH,
+    STOP_MAX_PCT as SRPS_STOP_MAX_PCT, STOP_MIN_PCT as SRPS_STOP_MIN_PCT,
+    SWING_LOW_LOOKBACK as SRPS_SWING_LOW_LOOKBACK, TARGET_R_MULTIPLE as SRPS_TARGET_R_MULTIPLE,
+    EARNINGS_EXCLUSION_DAYS as SRPS_EARNINGS_EXCLUSION_DAYS,
+)
 
 # Day 51: Load environment variables for API keys
 try:
@@ -2629,6 +2642,255 @@ def get_sub_industry_rotation():
 
     except Exception as e:
         print(f"Error fetching sub-industry rotation: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/sectors/pullback-screen', methods=['GET'])
+def get_srps_pullback_screen():
+    """
+    SRPS (Sector Rotation Pullback System) discretionary screener (Day 102).
+
+    NOT a forward-test track and NOT the automated paper-trading engine.
+    SRPS's mechanical rule set was fully backtested (survivorship-free,
+    400 tickers, 2020-2025 — backend/backtest/srps_gate1_backtest.py) and
+    FAILED its own pre-registered bar: 34.1% win rate vs. a required >45%,
+    Profit Factor 1.177 vs. a required >1.2. Per the design doc's own
+    rule, it does not get built as a live automated track.
+
+    This endpoint repurposes the same rule logic (Rules 1-4: regime gate,
+    sector-quadrant gate, pullback-zone/trend/RS/volume, stop-distance
+    sanity) as a pure INFORMATIONAL SCREEN — surfacing candidates that
+    match the mechanical criteria for a human to apply their own judgment
+    to (regime read, news, catalysts) before deciding anything. No ledger,
+    no automated entry/exit, no forward-test count. Same category as the
+    MR Signal Card / Price Structure Card: informational, not prescriptive.
+
+    Rule 5 (exit) isn't relevant here — this screens for entries only, not
+    a position to manage. Rule 6 (earnings) IS applied here, unlike the
+    historical backtest — live earnings-calendar data actually exists
+    (dp.get_earnings()), so there's no reason to skip it live.
+
+    Cached per trading day, same convention as /api/sectors/rotation.
+    """
+    try:
+        if SQLITE_CACHE_AVAILABLE:
+            cached = cache_manager.get_cached_market('SRPS_PULLBACK_SCREEN')
+            if cached:
+                print("📦 SRPS pullback screen cache HIT")
+                cached['cached'] = True
+                return jsonify(cached)
+
+        if not DATA_PROVIDER_AVAILABLE:
+            return jsonify({'error': 'Data provider unavailable'}), 503
+
+        dp = get_data_provider()
+        print("🔄 Fetching fresh SRPS pullback screen...")
+
+        # Rule 1: market regime (SPY vs 200-SMA)
+        try:
+            spy_df = dp.get_ohlcv('SPY', period='1y')
+            spy_close = spy_df['close'].dropna()
+            if spy_close.index.tz is not None:
+                spy_close.index = spy_close.index.tz_localize(None)
+        except Exception as e:
+            return jsonify({'error': f'Failed to fetch SPY data: {e}'}), 500
+        if len(spy_close) < 200:
+            return jsonify({'error': 'Insufficient SPY data'}), 500
+
+        spy_sma200 = spy_close.rolling(200).mean().iloc[-1]
+        spy_last = spy_close.iloc[-1]
+        regime_ok = bool(spy_last > spy_sma200)
+
+        # Current sector quadrants — reuse get_sector_rotation()'s own
+        # cached computation directly (same process, same Flask app) so
+        # this doesn't re-fetch all 11 ETFs a second time.
+        sector_response = get_sector_rotation()
+        sector_data = sector_response.get_json() if hasattr(sector_response, 'get_json') else sector_response[0].get_json()
+        improving_sectors_sorted = sorted(
+            [s for s in sector_data.get('sectors', []) if s.get('quadrant') == 'Improving'],
+            key=lambda s: s.get('rsRatio', 0), reverse=True)
+
+        # Day 102 three-pass review finding: an unbounded loop over every
+        # Improving sector fans out to LIVE_CANDIDATE_LIMIT per-ticker
+        # orchestrator calls EACH — live-checked against the trailing
+        # 12-month quadrant history (sector_quadrant_history.py's output):
+        # 8-9 sectors were simultaneously Improving on 9 separate days this
+        # past year, not a hypothetical. Uncapped, that's up to ~9x8=72
+        # OHLCV calls plus ~27 earnings calls in ONE synchronous request —
+        # same "loop the orchestrator per-ticker across many tickers in one
+        # request" shape Golden Rule 25/40 already flagged elsewhere,
+        # bounded there by a measured limit, not a guess. Capping here too,
+        # rather than leaving it open-ended on the assumption a bad day
+        # won't happen — it demonstrably does, ~4x/year.
+        MAX_SECTORS_PER_REQUEST = 6
+        sectors_capped_from = None
+        if len(improving_sectors_sorted) > MAX_SECTORS_PER_REQUEST:
+            sectors_capped_from = len(improving_sectors_sorted)
+            improving_sectors_sorted = improving_sectors_sorted[:MAX_SECTORS_PER_REQUEST]
+        improving_etfs = [s['etf'] for s in improving_sectors_sorted]
+
+        LIVE_CANDIDATE_LIMIT = 8  # capped pre-filter before per-ticker OHLCV fetch — Golden Rule 25/40 territory (looping the orchestrator per-ticker across many tickers in one request)
+
+        def _true_rs(close_series):
+            common_idx = spy_close.index.intersection(close_series.index)
+            if len(common_idx) < SRPS_RS_LOOKBACK_DAYS + 1:
+                return None
+            window_idx = common_idx[-(SRPS_RS_LOOKBACK_DAYS + 1):]
+            stock_ret = close_series.loc[window_idx].iloc[-1] / close_series.loc[window_idx].iloc[0] - 1
+            spy_ret = spy_close.loc[window_idx].iloc[-1] / spy_close.loc[window_idx].iloc[0] - 1
+            return (1 + stock_ret) / (1 + spy_ret)
+
+        results_by_sector = []
+        for etf in improving_etfs:
+            info = SECTOR_ETF_MAP[etf]
+            if etf == 'XLRE':
+                query, is_canadian = scan_queries.build_sector_query(
+                    scan_queries.REAL_ESTATE_TV_INDUSTRY_VALUES, limit=LIVE_CANDIDATE_LIMIT, field='industry')
+            elif etf == 'XLC':
+                query, is_canadian = scan_queries.build_sector_query(
+                    tickers=scan_queries.XLC_OVERRIDE_TICKERS, limit=LIVE_CANDIDATE_LIMIT)
+            else:
+                query, is_canadian = scan_queries.build_sector_query(info['gics'], limit=LIVE_CANDIDATE_LIMIT)
+
+            try:
+                count, raw = query.get_scanner_data()
+                candidates = scan_queries.parse_candidates(raw, is_canadian, strategy='sector')
+            except Exception as e:
+                results_by_sector.append({'etf': etf, 'sector': info['name'], 'error': str(e), 'candidates': []})
+                continue
+
+            ranked = []
+            for c in candidates:
+                ticker = c['ticker']
+                try:
+                    df = dp.get_ohlcv(ticker, period='1y')
+                    # Three-pass review finding: normalizing tz on a LOCAL
+                    # `close` copy (the old code) never touched `df` itself
+                    # — the qualifying-candidates loop below re-extracts
+                    # close/high/low/volume from this SAME `df` a second
+                    # time, so that normalization was silently discarded
+                    # and only ever applied to the throwaway RS-ranking
+                    # copy. Not a live bug today (Rule 3/4's checks below
+                    # are self-contained, no cross-alignment against
+                    # spy_close needed there), but exactly the kind of
+                    # "timezone assumption that silently drifts" this
+                    # review is meant to catch before it becomes one.
+                    # Normalize `df` itself, once, so every later
+                    # extraction from it is consistent.
+                    if df.index.tz is not None:
+                        df.index = df.index.tz_localize(None)
+                    close = df['close'].dropna()
+                    if len(close) < 200:
+                        continue
+                    rs = _true_rs(close)
+                    if rs is None:
+                        continue
+                    ranked.append((ticker, rs, df))
+                except Exception:
+                    continue
+            ranked.sort(key=lambda x: x[1], reverse=True)
+            top3 = ranked[:3]
+
+            qualifying = []
+            for ticker, rs_val, df in top3:
+                close = df['close'].dropna()
+                high = df['high'].dropna()
+                low = df['low'].dropna()
+                volume = df['volume'].dropna()
+                if len(close) < 200:
+                    continue
+
+                ema21 = close.ewm(span=21, adjust=False).mean().iloc[-1]
+                sma200 = close.rolling(200).mean().iloc[-1]
+                avgvol20 = volume.rolling(20).mean().iloc[-1]
+                last_close = close.iloc[-1]
+                last_volume = volume.iloc[-1]
+
+                in_pullback_zone = SRPS_EMA_PULLBACK_LOW * ema21 <= last_close <= SRPS_EMA_PULLBACK_HIGH * ema21
+                above_sma200 = last_close > sma200
+                rs_ok = rs_val >= SRPS_RS_FLOOR
+                volume_below_avg = last_volume < avgvol20
+                if not (in_pullback_zone and above_sma200 and rs_ok and volume_below_avg):
+                    continue
+
+                # ATR(20), Wilder's smoothing — inlined (same formula as
+                # backend/backtest/trade_simulator.py's calculate_atr_series())
+                tr1 = high - low
+                tr2 = (high - close.shift(1)).abs()
+                tr3 = (low - close.shift(1)).abs()
+                tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
+                atr20 = tr.ewm(alpha=1 / 20, min_periods=20).mean().iloc[-1]
+                swing_low_10 = low.rolling(SRPS_SWING_LOW_LOOKBACK).min().shift(1).iloc[-1]
+                if pd.isna(atr20) or pd.isna(swing_low_10):
+                    continue
+
+                stop_price = max(last_close - atr20, swing_low_10)
+                stop_pct = (last_close - stop_price) / last_close
+                if stop_pct > SRPS_STOP_MAX_PCT or stop_pct < SRPS_STOP_MIN_PCT:
+                    continue
+
+                risk_per_share = last_close - stop_price
+                target_price = last_close + SRPS_TARGET_R_MULTIPLE * risk_per_share
+
+                earnings_warning = None
+                days_until_earnings = None
+                try:
+                    earnings = dp.get_earnings(ticker)
+                    if earnings and earnings.earnings_date:
+                        days_until_earnings = (earnings.earnings_date.date() - datetime.now().date()).days
+                        if 0 <= days_until_earnings <= SRPS_EARNINGS_EXCLUSION_DAYS:
+                            earnings_warning = f"Earnings in {days_until_earnings}d — Rule 6 would exclude this"
+                except Exception:
+                    pass
+
+                qualifying.append({
+                    'ticker': ticker,
+                    'rsRatio': round(float(rs_val), 3),
+                    'price': round(float(last_close), 2),
+                    'stopPrice': round(float(stop_price), 2),
+                    'targetPrice': round(float(target_price), 2),
+                    'riskPct': round(float(stop_pct) * 100, 2),
+                    'volumeVsAvg20d': round(float(last_volume / avgvol20), 2) if avgvol20 else None,
+                    'daysUntilEarnings': days_until_earnings,
+                    'earningsWarning': earnings_warning,
+                })
+
+            results_by_sector.append({
+                'etf': etf, 'sector': info['name'],
+                'quadrant': 'Improving', 'error': None,
+                'candidates': qualifying,
+            })
+
+        response = {
+            'regimeOk': regime_ok,
+            'regimeMessage': (
+                'SPY above 200-SMA — Rule 1 regime gate open' if regime_ok
+                else 'SPY below 200-SMA — mechanical Rule 1 says stand aside; candidates below are shown anyway for context'
+            ),
+            'spyClose': round(float(spy_last), 2),
+            'spySma200': round(float(spy_sma200), 2),
+            'improvingSectorCount': len(improving_etfs),
+            'sectorsCappedFrom': sectors_capped_from,  # non-null only when more than MAX_SECTORS_PER_REQUEST sectors were Improving — surfaced, not silently dropped
+            'sectors': results_by_sector,
+            'disclaimer': (
+                "Informational screen only — SRPS's mechanical backtest (2020-2025, "
+                "survivorship-free) failed its own pre-registered bar (34.1% win rate, "
+                "PF 1.177, both below the required minimum). This is not a buy signal "
+                "and not an automated forward-test track. Apply your own judgment "
+                "(regime, news, catalysts) before acting on anything shown here."
+            ),
+            'timestamp': datetime.now().isoformat(),
+        }
+
+        if SQLITE_CACHE_AVAILABLE:
+            cache_manager.set_cached_market('SRPS_PULLBACK_SCREEN', response)
+            print(f"💾 SRPS pullback screen cached ({len(improving_etfs)} improving sectors)")
+
+        return jsonify(response)
+
+    except Exception as e:
+        print(f"Error fetching SRPS pullback screen: {e}")
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 

@@ -133,6 +133,177 @@ def build_mr_universe_query(limit=150):
     return query, False
 
 
+# Day 102 (SRPS Gate 0 prereq): TradingView's coarse `sector` screener field
+# buckets ALL Real Estate Investment Trusts under 'Finance' — verified live
+# against 9 known XLRE holdings (PLD, AMT, EQIX, SPG, O, PSA, WELL, DLR,
+# VTR), all returned sector='Finance', none returned 'Real Estate'. Same
+# field genuinely does distinguish 'Major Banks'/'Regional Banks' from REITs,
+# just one level down, in TradingView's finer-grained `industry` field.
+# SECTOR_ETF_MAP['XLRE']['gics'] = ['Real Estate'] (backend.py) is therefore
+# a dead value for any TradingView-screener sector-field query — nothing
+# before this file ever filtered TradingView's screener BY sector (existing
+# code only ever SELECTS 'sector' as a display column), so this gap was
+# latent and undetected until build_sector_query() below became the first
+# caller to actually filter on it. Not a bug in SECTOR_ETF_MAP itself (its
+# 'Real Estate' value is correct GICS/yfinance terminology, which the
+# Analyze page's sector badge uses instead, via yfinance's own .info
+# sector field, a different taxonomy that does NOT have this problem) —
+# it's a gap specific to sourcing candidates from TradingView's screener.
+REAL_ESTATE_TV_INDUSTRY_VALUES = ['Real Estate Investment Trusts', 'Real Estate Development']
+
+# Day 102 (SRPS Gate 0 prereq): Communication Services (XLC) has no clean
+# sector- OR industry-field fix, unlike Real Estate above. Live-checked:
+# GOOGL/META/NFLX land in TradingView's 'Technology Services' sector with
+# industry='Internet Software/Services' — a value ALSO shared with genuine
+# GICS Technology names (VRSN, CSGP, IT). TTWO lands in industry='Packaged
+# Software' — ALSO shared with MSFT/ADBE/CRM/ORCL and 30+ other real
+# Technology names. DIS/CMCSA/WBD/FOXA land in sector='Consumer Services'
+# — shared with genuine Consumer Discretionary names. TradingView's
+# SIC-based taxonomy simply doesn't partition GICS Communication Services
+# from Technology/Consumer Discretionary at any field granularity this
+# screener exposes — filtering by field value can't work here, at any
+# threshold. Only telecom carriers (T/VZ/TMUS) land cleanly in XLC's own
+# 'Communications' sector bucket.
+#
+# XLC is also one of GICS's newest (2018) and smallest S&P 500 sectors —
+# a hand-curated list is the honest fix, not a workaround, since no field
+# combination will ever cleanly separate it. Live-verified against the
+# real S&P 500 index membership (set_index('SYML:SP;SPX')) on 2026-08-07:
+# EA (Electronic Arts), IPG (Interpublic Group), and MTCH (Match Group)
+# were in earlier hand-drafts of this list but are NOT currently found —
+# EA appears to have gone private, IPG appears to have merged into OMC
+# (both plausible real 2025-2026 corporate actions), MTCH is no longer an
+# S&P 500 constituent. Re-verify this list periodically (GICS
+# reclassifications and index reconstitution do happen, just rarely for
+# this sector) rather than trusting it indefinitely.
+XLC_OVERRIDE_TICKERS = [
+    'GOOGL', 'GOOG', 'META', 'NFLX', 'DIS', 'TMUS', 'CMCSA', 'WBD',
+    'T', 'VZ', 'TTWO', 'FOXA', 'FOX', 'NWSA', 'NWS', 'OMC', 'LYV',
+]
+
+
+def build_sector_query(sector_values=None, limit=30, market_index='sp500', min_market_cap=2_000_000_000,
+                        field='sector', tickers=None, require_above_sma200=True):
+    """
+    SRPS Gate 0 prerequisite #2 (design doc v1.2, Section 3: "top 3 RS
+    names per Improving sector"): candidates filtered to ONE sector's
+    GICS/TradingView sector-name variants (pass backend.py's
+    SECTOR_ETF_MAP[etf]['gics'] list for 10 of the 11 broad sectors — see
+    REAL_ESTATE_TV_INDUSTRY_VALUES above for the XLRE exception, which
+    must be called with field='industry' instead), scoped to real S&P 500
+    constituents via query.set_index() (same INDEX_MAP mechanism
+    build_best_query() already uses for market_index='sp500' — verified
+    live to return exactly 503 rows, the real index membership count, not
+    just a market-cap-sized proxy for it). Also requires price above the
+    200-day SMA (cheap pre-filter for Rule 3's own trend-confirmation
+    condition, so OHLCV isn't fetched downstream for names that would
+    fail it anyway).
+
+    An earlier version of this query used only a $2B market-cap floor
+    instead of set_index() — live-tested and found to admit thin,
+    non-index names (e.g. small-float tech tickers) that don't match the
+    design doc's intent ("leaders of the recovery... institutions
+    accumulating"). set_index() is the correct fix, not a market-cap
+    threshold tune.
+
+    Does NOT rank by relative strength. TradingView's screener has no
+    native "RS vs SPY" column — the closest, Perf.Y, is raw trailing
+    performance, not a ratio to SPY, so it's used only as a rough
+    pre-filter ordering here. True 3-month RS-vs-SPY ranking (the actual
+    formula Rule 3 specifies) happens downstream in Python against real
+    OHLCV — see rank_candidates_by_rs() below.
+
+    Pass tickers=XLC_OVERRIDE_TICKERS (and leave sector_values/field
+    alone) for Communication Services — see the comment above
+    XLC_OVERRIDE_TICKERS for why no field-based filter works for that one
+    sector. When tickers is given, sector_values/field are ignored
+    entirely; the query filters by name membership instead.
+
+    require_above_sma200=False drops the trend pre-filter entirely — for
+    building a raw SECTOR MEMBERSHIP list (e.g. Gate 0's historical
+    replay, which needs every constituent regardless of today's SMA200
+    status, since Rule 3's trend condition gets evaluated per historical
+    day, not just today). Leave it True for live signal sourcing, where
+    "today's" SMA200 status is exactly what you want to pre-filter on.
+
+    Returns (query, is_canadian) — query is unexecuted, matches the
+    existing build_*_query() convention. is_canadian is always False;
+    SRPS's SPDR sector universe is US-only.
+    """
+    query = Query()
+    if market_index in INDEX_MAP:
+        query = query.set_index(INDEX_MAP[market_index])
+    else:
+        query = query.set_markets('america')
+    query = query.select(
+        'name', 'close', 'volume', 'market_cap_basic',
+        'SMA50', 'SMA200', 'sector', 'industry', 'change', 'exchange',
+        'average_volume_10d_calc', 'Perf.Y'
+    )
+    sector_filter = col('name').isin(tickers) if tickers else col(field).isin(sector_values)
+    where_clauses = [
+        col('exchange').isin(US_EXCHANGES),
+        sector_filter,
+        col('market_cap_basic') >= min_market_cap,
+    ]
+    if require_above_sma200:
+        where_clauses.append(col('close') > col('SMA200'))
+    query = query.where(*where_clauses)
+    query = query.order_by('Perf.Y', ascending=False)
+    query = query.limit(limit)
+    return query, False
+
+
+def rank_candidates_by_rs(tickers, spy_close=None, lookback_days=63, top_n=3):
+    """
+    True 3-month (~63 trading day) relative-strength-vs-SPY ranking, per
+    SRPS Rule 3's actual spec ("3-month RS ratio vs SPY >= 0.9").
+    TradingView's screener has no equivalent column, so this fetches real
+    OHLCV via a single batch yfinance call — not one call per candidate,
+    same batch-not-per-ticker pattern backend.py's get_sector_rotation()
+    already uses, per Golden Rule 25's rate-limit lesson — and computes
+    RS = (1 + stock's lookback_days return) / (1 + SPY's lookback_days
+    return), the same shape as backend/backtest/backtest_holistic.py's
+    calculate_rs_52w(), just at a 3-month lookback instead of 52-week.
+
+    Returns a list of {ticker, rsRatio} sorted descending, length top_n.
+    """
+    import yfinance as yf
+
+    if not tickers:
+        return []
+
+    if spy_close is None:
+        spy_data = yf.download(['SPY'], period='4mo', progress=False, group_by='ticker')
+        spy_close = spy_data['SPY']['Close'].dropna()
+
+    data = yf.download(list(tickers), period='4mo', progress=False, group_by='ticker')
+    if data is None or data.empty:
+        return []
+
+    ranked = []
+    for t in tickers:
+        try:
+            close = data[t]['Close'].dropna()
+            common_idx = spy_close.index.intersection(close.index)
+            if len(common_idx) < lookback_days + 1:
+                continue
+            common_idx = common_idx[-(lookback_days + 1):]
+            stock_aligned = close.loc[common_idx]
+            spy_aligned = spy_close.loc[common_idx]
+
+            stock_ret = float(stock_aligned.iloc[-1] / stock_aligned.iloc[0] - 1)
+            spy_ret = float(spy_aligned.iloc[-1] / spy_aligned.iloc[0] - 1)
+            rs_ratio = (1 + stock_ret) / (1 + spy_ret)
+            ranked.append({'ticker': t, 'rsRatio': round(rs_ratio, 3)})
+        except Exception as e:
+            print(f"rank_candidates_by_rs: skipping {t}: {e}")
+            continue
+
+    ranked.sort(key=lambda x: x['rsRatio'], reverse=True)
+    return ranked[:top_n]
+
+
 def parse_candidates(results, is_canadian, strategy='best'):
     """
     Row cleanup identical to scan_tradingview(): strips exchange prefix,

@@ -867,6 +867,29 @@ export async function fetchSubIndustryRotation() {
   return response.json();
 }
 
+/**
+ * Fetch the SRPS (Sector Rotation Pullback System) discretionary screener
+ * (Day 102) — NOT a forward-test track. SRPS's mechanical rule set failed
+ * its own pre-registered backtest bar (34.1% win rate vs. required >45%,
+ * PF 1.177 vs. required >1.2), so it was never built as an automated
+ * track; this endpoint repurposes the same rule logic as a pure
+ * informational screen for manual judgment. Pass-through, not a
+ * whitelisted reconstruction (Golden Rule 30).
+ *
+ * @returns {object} - { regimeOk, regimeMessage, spyClose, spySma200,
+ *   improvingSectorCount, sectors[], disclaimer, timestamp }
+ */
+export async function fetchSrpsPullbackScreen() {
+  const response = await fetch(`${API_BASE_URL}/sectors/pullback-screen`);
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to fetch SRPS pullback screen');
+  }
+
+  return response.json();
+}
+
 // ─── Context Tab API functions (Day 62, v4.24) ────────────────────────────────
 
 /**

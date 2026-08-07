@@ -3,7 +3,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { ALIGNMENT_STYLES, ALIGNMENT_ICONS } from '../utils/alignmentStyles';
-import { fetchSubIndustryRotation } from '../services/api';
+import { fetchSubIndustryRotation, fetchSrpsPullbackScreen } from '../services/api';
 
 // Quadrant display config. sectionHint is the beginner-facing "what do I do
 // with this" translation shown once per group, not per card.
@@ -407,6 +407,142 @@ function SubIndustryWatchSection() {
   );
 }
 
+// Candidate row for the SRPS pullback screener — informational only, not a
+// signal. Shows what the mechanical criteria found so a human can apply
+// their own regime/news/catalyst judgment before acting on anything.
+function SrpsCandidateRow({ c }) {
+  return (
+    <div className="flex items-center justify-between bg-gray-900/40 rounded px-3 py-2 mb-2 text-sm">
+      <div className="flex items-baseline gap-3">
+        <span className="text-white font-semibold">{c.ticker}</span>
+        <span className="text-gray-400 text-xs">RS {c.rsRatio}</span>
+        <span className="text-gray-400 text-xs">Vol {c.volumeVsAvg20d}x avg</span>
+      </div>
+      <div className="flex items-baseline gap-4 text-xs">
+        <span className="text-gray-300">Price ${c.price}</span>
+        <span className="text-red-400">Stop ${c.stopPrice} (-{c.riskPct}%)</span>
+        <span className="text-green-400">Target ${c.targetPrice}</span>
+      </div>
+      {c.earningsWarning && (
+        <span className="ml-3 text-yellow-500 text-xs whitespace-nowrap">⚠️ {c.earningsWarning}</span>
+      )}
+    </div>
+  );
+}
+
+// Collapsible section, lazy-loaded on first expand — same pattern as
+// SubIndustryWatchSection above. NOT a forward-test track: SRPS's
+// mechanical rule set failed its own pre-registered backtest bar (34.1%
+// win rate vs. required >45%, PF 1.177 vs. required >1.2), so it was
+// never built as an automated paper-trading track. This repurposes the
+// same rule logic as a pure discretionary screen — surfaces candidates
+// matching the mechanical criteria, the user applies their own judgment
+// (regime read, news, catalysts) before deciding anything. No ledger, no
+// automated entry/exit.
+function SrpsPullbackScreenSection() {
+  const [expanded, setExpanded] = useState(false);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const load = () => {
+    setLoading(true);
+    setError(null);
+    fetchSrpsPullbackScreen()
+      .then(res => {
+        setData(res);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load SRPS pullback screen:', err);
+        setError(err.message || 'Failed to fetch SRPS pullback screen');
+        setLoading(false);
+      });
+  };
+
+  const handleToggle = () => {
+    const next = !expanded;
+    setExpanded(next);
+    if (next && !data && !loading) {
+      load();
+    }
+  };
+
+  return (
+    <div className="bg-gray-800/50 border border-gray-700 rounded-lg mb-6">
+      <button
+        onClick={handleToggle}
+        className="w-full flex items-center justify-between p-4 text-left"
+      >
+        <div>
+          <span className="text-white font-semibold text-sm">🎯 Sector Pullback Screener</span>
+          <span className="text-gray-500 text-xs ml-2">
+            Discretionary screen, not a signal — strong names in recovering sectors pulling back to their 21-EMA
+          </span>
+        </div>
+        <span className="text-gray-400 text-sm">{expanded ? '▲' : '▼'}</span>
+      </button>
+
+      {expanded && (
+        <div className="px-4 pb-4">
+          {loading && (
+            <div className="text-center py-10">
+              <div className="text-3xl mb-2">📡</div>
+              <p className="text-gray-400 text-sm">Screening sector-improving candidates…</p>
+            </div>
+          )}
+
+          {!loading && error && (
+            <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 text-red-200">
+              <p className="font-semibold">⚠️ Failed to load pullback screen</p>
+              <p className="text-sm mt-1 text-red-300">{error}</p>
+              <button
+                onClick={load}
+                className="mt-3 px-3 py-1.5 bg-red-700 hover:bg-red-600 rounded text-sm"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
+          {!loading && !error && data && (
+            <>
+              <div className="bg-amber-900/30 border border-amber-600/50 rounded-lg p-3 mb-4 text-amber-200 text-xs">
+                {data.disclaimer}
+              </div>
+
+              <div className={`rounded-lg p-3 mb-4 text-xs ${data.regimeOk ? 'bg-green-900/30 border border-green-600/50 text-green-200' : 'bg-red-900/30 border border-red-600/50 text-red-200'}`}>
+                {data.regimeOk ? '🟢' : '🔴'} {data.regimeMessage}
+                <span className="text-gray-400 ml-2">(SPY ${data.spyClose} vs 200-SMA ${data.spySma200})</span>
+              </div>
+
+              {data.improvingSectorCount === 0 && (
+                <p className="text-gray-500 text-sm">No sectors in the Improving quadrant today — this screen has nothing to show until at least one sector qualifies.</p>
+              )}
+
+              {data.sectors.map(s => (
+                <div key={s.etf} className="mb-5">
+                  <div className="flex items-baseline gap-2 mb-2">
+                    <span className="text-sm font-semibold text-blue-400">🔵 {s.sector}</span>
+                    <span className="text-gray-500 text-xs font-mono">{s.etf}</span>
+                  </div>
+                  {s.error && <p className="text-gray-500 text-xs">Unavailable — {s.error}</p>}
+                  {!s.error && s.candidates.length === 0 && (
+                    <p className="text-gray-600 text-xs">Top RS names in this sector aren't in a pullback zone today.</p>
+                  )}
+                  {!s.error && s.candidates.map(c => (
+                    <SrpsCandidateRow key={c.ticker} c={c} />
+                  ))}
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function SectorRotationTab({ sectorRotation, sectorRotationError, onRetry, onScanForSector }) {
   // Destructure size rotation fields (may be absent on old cached response)
   const sizeRotation = sectorRotation?.size_rotation;
@@ -589,6 +725,9 @@ export default function SectorRotationTab({ sectorRotation, sectorRotationError,
 
       {/* Sub-Industry Watch — Tier 2, collapsed by default, lazy-loaded */}
       <SubIndustryWatchSection />
+
+      {/* SRPS Pullback Screener — discretionary screen, not a forward-test track (Day 102) */}
+      <SrpsPullbackScreenSection />
 
       {/* Footer note */}
       <div className="mt-6 text-center text-xs text-gray-600">

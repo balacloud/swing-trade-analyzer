@@ -4067,7 +4067,7 @@ function App() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>v4.30 - Multi-Source Data Intelligence</p>
+          <p>v4.51 - Multi-Source Data Intelligence</p>
           <p className="mt-1">TwelveData • Finnhub • AlphaVantage • yfinance • Stooq</p>
         </div>
       </div>

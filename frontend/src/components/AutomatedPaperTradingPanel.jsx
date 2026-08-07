@@ -29,7 +29,21 @@ function fmtPct(p) {
 // happened" is visible without querying the DB directly. Same status/
 // entry/exit columns regardless of lifecycle stage; blank cells for
 // fields that don't apply yet (pending has no entry, open has no exit).
-function PositionsTable({ positions }) {
+//
+// Day 102 fix: backend.py caps positions.closed to the most recent 20 per
+// system ("a status view, not the full journal" — response-size guard,
+// same convention as the Scan tab's 20-row breakout-badge cap). Open/
+// pending are NOT capped. User-reported ("not all is displayed") against
+// the broad MR card specifically, where the gap is largest — 71 real
+// closed trades, only 20 rendered, with the header's own "Closed: 71"
+// stat right above it and no indication the table below was partial.
+// totalClosedCount is the true count (already fetched as data.closedTrades
+// for the stat tile above) — comparing it against the rendered closed rows
+// makes the truncation visible instead of silently looking incomplete,
+// same "visible state over hidden" principle as everywhere else in this
+// app, and the exact footer-note pattern already established for the Scan
+// tab's own 20-row cap (App.jsx, Day 83 Task E4).
+function PositionsTable({ positions, totalClosedCount }) {
   const rows = [
     ...positions.open.map(p => ({ ...p, _bucket: 'open' })),
     ...positions.pending.map(p => ({ ...p, _bucket: 'pending' })),
@@ -38,6 +52,7 @@ function PositionsTable({ positions }) {
   if (rows.length === 0) {
     return <div className="text-xs text-gray-500 py-2">No positions yet.</div>;
   }
+  const closedTruncated = totalClosedCount != null && totalClosedCount > positions.closed.length;
   return (
     <div className="overflow-x-auto mt-2">
       <table className="w-full text-xs">
@@ -78,6 +93,11 @@ function PositionsTable({ positions }) {
           ))}
         </tbody>
       </table>
+      {closedTruncated && (
+        <div className="text-xs text-gray-500 text-center mt-3">
+          Showing the {positions.closed.length} most recent closed trades of {totalClosedCount} total — open and pending positions above are always shown in full.
+        </div>
+      )}
     </div>
   );
 }
@@ -99,9 +119,14 @@ function SystemCard({ name, label, data, badge, badgeColor = 'amber', caption })
   if (!data) return null;
   const stats = data.stats;
   const style = BADGE_STYLES[badgeColor] || BADGE_STYLES.amber;
+  // Day 102 fix: was summing data.positions.closed.length (capped at 20 by
+  // the backend — see PositionsTable's comment above) instead of
+  // data.closedTrades (the true total already used by the "Closed" stat
+  // tile below) — same root cause as the truncated table, surfacing a
+  // second time in the "Show tickers (N)" button label itself.
   const totalPositions = (data.positions?.open?.length || 0)
     + (data.positions?.pending?.length || 0)
-    + (data.positions?.closed?.length || 0);
+    + (data.closedTrades || 0);
   return (
     <div className={`bg-gray-700/40 rounded-lg p-4 ${badge ? `border border-dashed ${style.border}` : ''}`}>
       <div className="flex items-center gap-2 mb-2">
@@ -159,7 +184,7 @@ function SystemCard({ name, label, data, badge, badgeColor = 'amber', caption })
           >
             {expanded ? '▾ Hide tickers' : `▸ Show tickers (${totalPositions})`}
           </button>
-          {expanded && <PositionsTable positions={data.positions} />}
+          {expanded && <PositionsTable positions={data.positions} totalClosedCount={data.closedTrades} />}
         </>
       )}
     </div>
