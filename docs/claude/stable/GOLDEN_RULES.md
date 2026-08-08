@@ -2,13 +2,13 @@
 
 > **Purpose:** Core rules and cumulative lessons learned — stable reference
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 103 (August 7, 2026)
+> **Last Updated:** Day 104 (August 8, 2026)
 > **Session protocols:** See `CLAUDE_CONTEXT.md` for startup/close checklists
 > **Decision-making lens:** See `docs/claude/stable/PERSONA.md` for the trading-judgment persona (Golden Rule 34)
 
 ---
 
-## CORE RULES (41 Golden Rules)
+## CORE RULES (42 Golden Rules)
 
 1. **START of session:** Read PROJECT_STATUS_DAY[N].md first
 2. **BEFORE modifying any file:** READ it first using Read tool
@@ -70,6 +70,8 @@
     - **What this is not:** three people rubber-stamping the same read. A clean Pass 3 that genuinely finds nothing worse than Pass 2 is a valid, reportable outcome — inventing a finding to justify the ritual is exactly the kind of dishonesty this project's own "never hallucinate" discipline exists to catch everywhere else.
 
     First real run of this exact structure (Day 103, SRPS pullback screener): Pass 2 caught a timezone-normalization fix that was applied to a throwaway local copy and never reached the data actually used downstream — silently inert *today* only because that day's specific checks didn't need the alignment it broke, not because the code was actually correct. Pass 3 went further and checked whether an unbounded per-sector data-fetch loop was a real production risk or just a theoretical one — pulled the actual 12-month history and found 8-9 sectors were simultaneously Improving on 9 separate days that year (~4x/year, not hypothetical), which is exactly the "loop the orchestrator per-ticker across many tickers in one request" shape Rule 25/40 already got burned by elsewhere. Neither finding would have surfaced from Rule 32's three parallel lenses alone — both needed a review pass explicitly hunting for what a more skeptical read would find. (Day 103, adopted from Trading Intelligence Hub's Session 34 standing rule)
+
+42. **PARALLEL TOOL-CALL RESULTS ARE NOT GUARANTEED TO COME BACK IN CALL ORDER — VERIFY EACH RESULT'S IDENTITY AGAINST A TRUSTED REFERENCE BEFORE TRUSTING IT POSITIONALLY.** While re-sourcing the `/watchlist-report` skill's OHLCV data from IBKR MCP tools instead of yfinance (Day 104), 24 `get_price_history` calls were issued in one batch, one per ticker's known `contract_id`. Two adjacent results came back transposed relative to their tool_use order — confirmed directly, not assumed, by cross-matching each result's own last-close value and daily-volume figure against the pasted watchlist's real numbers (both distinctive enough per ticker to disambiguate). Had the results been trusted positionally, two tickers' entire 3-month OHLCV series — and every indicator computed from them — would have been silently swapped in a live report, with no error, no crash, and numbers plausible enough not to self-flag (both tickers were real ETFs with real, similar-shaped price data). This is a sharper version of Golden Rule 6 ("never claim a result you haven't run") — running the call isn't enough if the *result* isn't verified to belong to the *request* you think it does. **How to apply:** whenever a batch of parallel tool calls returns data that will be labeled/keyed by which call produced it (ticker symbols, file IDs, contract IDs, etc.), do not assume result order equals call order — cross-check each result against an independent, already-trusted identifier (a known price, a known volume, a checksum, an ID echoed back in the response) before using it. If no such identifier is available, fall back to smaller batches or strictly sequential calls where correctness matters. (Day 104, watchlist-report IBKR re-sourcing)
 
 ---
 
