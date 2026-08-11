@@ -595,6 +595,33 @@ export async function clearBackendCache() {
 }
 
 /**
+ * Clear only the market_cache table (Sector Rotation, Sub-Industry Watch,
+ * SRPS Pullback Screener, Market Phase) — the Sectors tab's own scoped
+ * refresh, so it doesn't have to pay the cost of wiping every ticker's
+ * OHLCV/fundamentals cache the way the full "Refresh Session" button does.
+ *
+ * @returns {object} - { status, message, cache }
+ */
+export async function clearMarketCache() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/cache/clear?type=market`, {
+      method: 'POST'
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to clear market cache');
+    }
+
+    return await response.json();
+
+  } catch (error) {
+    console.error('Error clearing market cache:', error);
+    throw error;
+  }
+}
+
+/**
  * Get cache status
  * @returns {object} - { cache_size, ttl_seconds }
  */
@@ -885,6 +912,28 @@ export async function fetchSrpsPullbackScreen() {
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to fetch SRPS pullback screen');
+  }
+
+  return response.json();
+}
+
+/**
+ * Fetch the SRPS pullback screener applied to the 21 Sub-Industry Watch
+ * theme clusters instead of the 11 broad GICS sectors (user-requested
+ * extension). Same rule logic, same non-forward-test/informational status
+ * as fetchSrpsPullbackScreen() above — this universe has NOT been
+ * separately backtested, see the endpoint's own disclaimer field.
+ * Pass-through, not a whitelisted reconstruction (Golden Rule 30).
+ *
+ * @returns {object} - { regimeOk, regimeMessage, spyClose, spySma200,
+ *   improvingClusterCount, clustersCappedFrom, clusters[], disclaimer, timestamp }
+ */
+export async function fetchSubIndustryPullbackScreen() {
+  const response = await fetch(`${API_BASE_URL}/sectors/sub-industry-pullback-screen`);
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to fetch sub-industry pullback screen');
   }
 
   return response.json();

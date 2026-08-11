@@ -1,9 +1,9 @@
 // SectorRotationTab.jsx — Day 62, v4.24
 // Sector Rotation Phase 2: Dedicated tab with 11 sector cards, quadrant colors, Scan for Rank 1
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ALIGNMENT_STYLES, ALIGNMENT_ICONS } from '../utils/alignmentStyles';
-import { fetchSubIndustryRotation, fetchSrpsPullbackScreen } from '../services/api';
+import { fetchSubIndustryRotation, fetchSrpsPullbackScreen, fetchSubIndustryPullbackScreen } from '../services/api';
 
 // Quadrant display config. sectionHint is the beginner-facing "what do I do
 // with this" translation shown once per group, not per card.
@@ -281,7 +281,7 @@ function SubIndustryCard({ cluster }) {
 // won't need this every time, so it shouldn't tax every page load, same
 // reasoning as Golden Rule 25). State is local to this component since
 // nothing else in the app consumes sub-industry data.
-function SubIndustryWatchSection() {
+function SubIndustryWatchSection({ refreshTrigger }) {
   const [expanded, setExpanded] = useState(false);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -309,6 +309,24 @@ function SubIndustryWatchSection() {
       load();
     }
   };
+
+  // This component unmounts (and so naturally refetches) whenever the user
+  // navigates away from the Sectors tab and back — but while they stay on
+  // the tab, `data` is local state that never refetches once loaded (only
+  // its own error-state Retry button re-triggers `load()`). So clicking
+  // "Refresh Session" or the tab's own new Refresh button while this
+  // section is already expanded silently left it showing pre-refresh data,
+  // no error, nothing to indicate it hadn't updated — the "not failing
+  // loud" version of Golden Rule 31. Discard the stale data on every
+  // refresh signal; only re-fetch immediately if the section is currently
+  // open, otherwise the next expand's existing `!data` check does it.
+  useEffect(() => {
+    if (refreshTrigger == null) return;
+    setData(null);
+    setError(null);
+    if (expanded) load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTrigger]);
 
   const grouped = useMemo(() => {
     if (!data?.clusters) return {};
@@ -439,7 +457,7 @@ function SrpsCandidateRow({ c }) {
 // matching the mechanical criteria, the user applies their own judgment
 // (regime read, news, catalysts) before deciding anything. No ledger, no
 // automated entry/exit.
-function SrpsPullbackScreenSection() {
+function SrpsPullbackScreenSection({ refreshTrigger }) {
   const [expanded, setExpanded] = useState(false);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -467,6 +485,15 @@ function SrpsPullbackScreenSection() {
       load();
     }
   };
+
+  // Same staleness fix as SubIndustryWatchSection above — see its comment.
+  useEffect(() => {
+    if (refreshTrigger == null) return;
+    setData(null);
+    setError(null);
+    if (expanded) load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTrigger]);
 
   return (
     <div className="bg-gray-800/50 border border-gray-700 rounded-lg mb-6">
@@ -516,6 +543,12 @@ function SrpsPullbackScreenSection() {
                 <span className="text-gray-400 ml-2">(SPY ${data.spyClose} vs 200-SMA ${data.spySma200})</span>
               </div>
 
+              {data.sectorsCappedFrom && (
+                <p className="text-gray-500 text-xs mb-4">
+                  {data.sectorsCappedFrom} sectors were Improving today — showing the top {data.improvingSectorCount} by RS Ratio.
+                </p>
+              )}
+
               {data.improvingSectorCount === 0 && (
                 <p className="text-gray-500 text-sm">No sectors in the Improving quadrant today — this screen has nothing to show until at least one sector qualifies.</p>
               )}
@@ -543,7 +576,134 @@ function SrpsPullbackScreenSection() {
   );
 }
 
-export default function SectorRotationTab({ sectorRotation, sectorRotationError, onRetry, onScanForSector }) {
+// Same screener as SrpsPullbackScreenSection above, applied to the 21
+// Sub-Industry Watch clusters instead of the 11 broad GICS sectors
+// (user-requested extension). One honest difference: the sector-level
+// version at least ran through a real, failed, pre-registered backtest
+// before shipping as a screener — this sub-industry version has NOT been
+// separately backtested at all, it's the already-failed rule set applied
+// to a finer, entirely untested universe. The backend's own `disclaimer`
+// field says this explicitly; don't soften it here.
+function SubIndustryPullbackScreenSection({ refreshTrigger }) {
+  const [expanded, setExpanded] = useState(false);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const load = () => {
+    setLoading(true);
+    setError(null);
+    fetchSubIndustryPullbackScreen()
+      .then(res => {
+        setData(res);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load sub-industry pullback screen:', err);
+        setError(err.message || 'Failed to fetch sub-industry pullback screen');
+        setLoading(false);
+      });
+  };
+
+  const handleToggle = () => {
+    const next = !expanded;
+    setExpanded(next);
+    if (next && !data && !loading) {
+      load();
+    }
+  };
+
+  // Same staleness fix as SubIndustryWatchSection/SrpsPullbackScreenSection above.
+  useEffect(() => {
+    if (refreshTrigger == null) return;
+    setData(null);
+    setError(null);
+    if (expanded) load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTrigger]);
+
+  return (
+    <div className="bg-gray-800/50 border border-gray-700 rounded-lg mb-6">
+      <button
+        onClick={handleToggle}
+        className="w-full flex items-center justify-between p-4 text-left"
+      >
+        <div>
+          <span className="text-white font-semibold text-sm">🔭 Sub-Sector Pullback Screener</span>
+          <span className="text-gray-500 text-xs ml-2">
+            Discretionary screen, not a signal — same pullback rules as the Sector Pullback Screener above, applied to the 21 Sub-Industry Watch clusters
+          </span>
+        </div>
+        <span className="text-gray-400 text-sm">{expanded ? '▲' : '▼'}</span>
+      </button>
+
+      {expanded && (
+        <div className="px-4 pb-4">
+          {loading && (
+            <div className="text-center py-10">
+              <div className="text-3xl mb-2">📡</div>
+              <p className="text-gray-400 text-sm">Screening sub-industry-improving candidates…</p>
+            </div>
+          )}
+
+          {!loading && error && (
+            <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 text-red-200">
+              <p className="font-semibold">⚠️ Failed to load sub-industry pullback screen</p>
+              <p className="text-sm mt-1 text-red-300">{error}</p>
+              <button
+                onClick={load}
+                className="mt-3 px-3 py-1.5 bg-red-700 hover:bg-red-600 rounded text-sm"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
+          {!loading && !error && data && (
+            <>
+              <div className="bg-amber-900/30 border border-amber-600/50 rounded-lg p-3 mb-4 text-amber-200 text-xs">
+                {data.disclaimer}
+              </div>
+
+              <div className={`rounded-lg p-3 mb-4 text-xs ${data.regimeOk ? 'bg-green-900/30 border border-green-600/50 text-green-200' : 'bg-red-900/30 border border-red-600/50 text-red-200'}`}>
+                {data.regimeOk ? '🟢' : '🔴'} {data.regimeMessage}
+                <span className="text-gray-400 ml-2">(SPY ${data.spyClose} vs 200-SMA ${data.spySma200})</span>
+              </div>
+
+              {data.clustersCappedFrom && (
+                <p className="text-gray-500 text-xs mb-4">
+                  {data.clustersCappedFrom} clusters were Improving today — showing the top {data.improvingClusterCount} by RS Ratio.
+                </p>
+              )}
+
+              {data.improvingClusterCount === 0 && (
+                <p className="text-gray-500 text-sm">No sub-industry clusters in the Improving quadrant today — this screen has nothing to show until at least one cluster qualifies.</p>
+              )}
+
+              {data.clusters.map(c => (
+                <div key={c.cluster} className="mb-5">
+                  <div className="flex items-baseline gap-2 mb-2">
+                    <span className="text-sm font-semibold text-blue-400">🔵 {c.cluster}</span>
+                    <span className="text-gray-500 text-xs font-mono">{c.proxy}</span>
+                  </div>
+                  {c.error && <p className="text-gray-500 text-xs">Unavailable — {c.error}</p>}
+                  {!c.error && c.candidates.length === 0 && (
+                    <p className="text-gray-600 text-xs">Top RS names in this cluster aren't in a pullback zone today.</p>
+                  )}
+                  {!c.error && c.candidates.map(cand => (
+                    <SrpsCandidateRow key={cand.ticker} c={cand} />
+                  ))}
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function SectorRotationTab({ sectorRotation, sectorRotationError, onRetry, onScanForSector, refreshTrigger, onRefresh, refreshing }) {
   // Destructure size rotation fields (may be absent on old cached response)
   const sizeRotation = sectorRotation?.size_rotation;
   const sizeSignal = sectorRotation?.size_signal || 'Neutral';
@@ -631,6 +791,16 @@ export default function SectorRotationTab({ sectorRotation, sectorRotationError,
               Relative Strength vs SPY · RRG Quadrant Analysis · 11 SPDR ETFs
               {lastUpdated && (
                 <span className="ml-2 text-gray-500">· Last refreshed {lastUpdated}</span>
+              )}
+              {onRefresh && (
+                <button
+                  onClick={onRefresh}
+                  disabled={refreshing}
+                  title="Force a fresh sector pull — bypasses today's cache, also refreshes Sub-Industry Watch and the Pullback Screener below"
+                  className="ml-2 text-gray-500 hover:text-gray-300 disabled:opacity-50 disabled:cursor-wait"
+                >
+                  {refreshing ? '🔄 Refreshing…' : '🔄 Refresh'}
+                </button>
               )}
             </p>
           </div>
@@ -724,10 +894,13 @@ export default function SectorRotationTab({ sectorRotation, sectorRotationError,
       })}
 
       {/* Sub-Industry Watch — Tier 2, collapsed by default, lazy-loaded */}
-      <SubIndustryWatchSection />
+      <SubIndustryWatchSection refreshTrigger={refreshTrigger} />
 
       {/* SRPS Pullback Screener — discretionary screen, not a forward-test track (Day 102) */}
-      <SrpsPullbackScreenSection />
+      <SrpsPullbackScreenSection refreshTrigger={refreshTrigger} />
+
+      {/* Same screener, sub-industry universe — user-requested extension */}
+      <SubIndustryPullbackScreenSection refreshTrigger={refreshTrigger} />
 
       {/* Footer note */}
       <div className="mt-6 text-center text-xs text-gray-600">

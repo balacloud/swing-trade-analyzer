@@ -38,7 +38,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation, clearBackendCache, fetchDataProvenance, getCacheStatus, fetchSectorRotation, fetchMRSignal, fetchBreakoutBatch, fetchBreakout, fetchSupportResistance } from './services/api';
+import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation, clearBackendCache, clearMarketCache, fetchDataProvenance, getCacheStatus, fetchSectorRotation, fetchMRSignal, fetchBreakoutBatch, fetchBreakout, fetchSupportResistance } from './services/api';
 import { calculateScore } from './utils/scoringEngine';
 import { calculateSimplifiedAnalysis } from './utils/simplifiedScoring';
 import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings } from './utils/positionSizing';
@@ -162,6 +162,11 @@ function App() {
   // Sector Rotation state (Day 58 - v4.19)
   const [sectorRotation, setSectorRotation] = useState(null);
   const [sectorRotationError, setSectorRotationError] = useState(null);
+  // Bumped by handleSessionRefresh/handleSectorRefresh so the Sectors tab's
+  // own lazy-loaded sub-sections (Sub-Industry Watch, SRPS Pullback Screener)
+  // know to discard their local `data` and refetch — see their own comments.
+  const [sectorRefreshTrigger, setSectorRefreshTrigger] = useState(0);
+  const [sectorRefreshing, setSectorRefreshing] = useState(false);
 
   // Day 94: shared so both mount-load and the tab's Retry button use the same logic
   const loadSectorRotation = () => {
@@ -172,6 +177,35 @@ function App() {
         console.error('Failed to load sector rotation:', err);
         setSectorRotationError(err.message || 'Failed to fetch sector rotation data');
       });
+  };
+
+  // Scoped Sectors-tab refresh (the tab's own "🔄 Refresh" button) — clears
+  // only the backend's market_cache table (Sector Rotation, Sub-Industry
+  // Watch, SRPS Pullback Screener, Market Phase) rather than the full
+  // "Refresh Session" reset's every-ticker OHLCV/fundamentals wipe, since
+  // none of that is relevant to "this tab looks stale." Was previously
+  // impossible from inside the tab at all — the cached backend response
+  // could go stale (Golden Rule 31 territory) with no in-tab way to force
+  // a fresh pull short of the blunt, session-wide Refresh Session button.
+  const handleSectorRefresh = async () => {
+    setSectorRefreshing(true);
+    try {
+      await clearMarketCache();
+    } catch (err) {
+      console.error('Failed to clear market cache:', err);
+      // Non-fatal — still attempt the refetch below; a stale cache would
+      // otherwise just get served again, so this doesn't make anything worse.
+    }
+    setSectorRotationError(null);
+    try {
+      const fresh = await fetchSectorRotation();
+      setSectorRotation(fresh);
+    } catch (err) {
+      console.error('Failed to load sector rotation:', err);
+      setSectorRotationError(err.message || 'Failed to fetch sector rotation data');
+    }
+    setSectorRefreshTrigger(prev => prev + 1);
+    setSectorRefreshing(false);
   };
 
   // Sector filter state (Day 62 - v4.24 Phase 2: "Scan for Rank 1")
@@ -248,6 +282,12 @@ function App() {
       setCalcStop('');
       setCalcTicker('');
       setTicker('');
+
+      // Re-fetch sector rotation (cache-cleared above, but the frontend was
+      // still holding whatever it fetched at mount) and signal the Sectors
+      // tab's own lazy-loaded sub-sections to discard their stale data too.
+      loadSectorRotation();
+      setSectorRefreshTrigger(prev => prev + 1);
 
       // Refresh backend status with provider check
       const status = await checkBackendHealth(true);
@@ -2939,6 +2979,9 @@ function App() {
             sectorRotationError={sectorRotationError}
             onRetry={loadSectorRotation}
             onScanForSector={handleScanForSector}
+            refreshTrigger={sectorRefreshTrigger}
+            onRefresh={handleSectorRefresh}
+            refreshing={sectorRefreshing}
           />
         )}
 
@@ -4067,7 +4110,7 @@ function App() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>v4.51 - Multi-Source Data Intelligence</p>
+          <p>v4.52 - Multi-Source Data Intelligence</p>
           <p className="mt-1">TwelveData • Finnhub • AlphaVantage • yfinance • Stooq</p>
         </div>
       </div>
