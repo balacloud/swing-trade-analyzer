@@ -119,6 +119,20 @@ function App() {
   // ticker -> { status, humanAction, breakoutLevel, rvol, checks, warnings } | { error }
   const [breakoutBadges, setBreakoutBadges] = useState({});
   const [breakoutBadgesLoading, setBreakoutBadgesLoading] = useState(false);
+  // Set of tickers actually included in the last batch request (the top-20 slice),
+  // tracked independently of the response so the Scan tab can tell "never sent —
+  // beyond the 20-row cap" apart from "sent, but no result came back" (see the
+  // Scan table's Breakout column render logic below).
+  const [breakoutBadgesRequested, setBreakoutBadgesRequested] = useState(new Set());
+
+  // Day 106: on-demand STA verdict (BUY/HOLD/AVOID) for Scan tab rows the breakout
+  // engine already flagged Retest Entry / Building Base — reuses the exact same
+  // determineVerdict() pipeline the Analyze page runs, per-ticker, only when the
+  // user clicks "Get Verdict" (never auto-fetched — each ticker costs ~11 backend
+  // calls, the same weight as a full Analyze click, so this stays opt-in per row
+  // rather than a batch loop, unlike the lighter breakout badge check).
+  // ticker -> { loading, verdict, reason, color, error }
+  const [scanVerdicts, setScanVerdicts] = useState({});
 
   // Validation state (Day 17)
   const [validationLoading, setValidationLoading] = useState(false);
@@ -623,6 +637,48 @@ function App() {
     return candidates;
   };
 
+  // Day 106: fetch STA's real verdict (BUY/HOLD/AVOID) for a single Scan-tab
+  // ticker, on demand. Deliberately calls the exact same pipeline analyzeStock()
+  // uses (fetchFullAnalysisData -> calculateScore -> runCategoricalAssessment)
+  // rather than a second, simplified implementation (Golden Rule 19/21/35 —
+  // don't let a second decision path quietly drift from the one the app already
+  // trusts). Writes into scanVerdicts only, never touches analysisResult/srData/
+  // activeTab/etc. — this must not disturb whatever the Analyze tab currently shows.
+  const fetchScanVerdict = async (tickerToCheck) => {
+    setScanVerdicts(prev => ({ ...prev, [tickerToCheck]: { loading: true } }));
+    try {
+      const data = await fetchFullAnalysisData(tickerToCheck);
+      const result = calculateScore(data.stock, data.spy, data.vix);
+      const trendTemplate = data.patterns?.trendTemplate || null;
+      const adxData = data.sr?.meta?.adx || null;
+      const categorical = runCategoricalAssessment(
+        data.stock,
+        data.spy,
+        data.vix,
+        data.fearGreed,
+        trendTemplate,
+        result.breakdown?.technical,
+        data.stock.fundamentals,
+        tickerToCheck,
+        adxData,
+        holdingPeriod
+      );
+      setScanVerdicts(prev => ({
+        ...prev,
+        [tickerToCheck]: {
+          loading: false,
+          verdict: categorical.verdict.verdict,
+          reason: categorical.verdict.reason,
+        },
+      }));
+    } catch (err) {
+      setScanVerdicts(prev => ({
+        ...prev,
+        [tickerToCheck]: { loading: false, error: err.message || 'Failed to fetch verdict' },
+      }));
+    }
+  };
+
   // Breakout badges: one batch call for the top 20 rows, fired after scan
   // results render — does not block the initial table paint (Task 2.2 design).
   // Day 83 fix (Task E3): scanId guards against a slower earlier scan's badge
@@ -632,6 +688,9 @@ function App() {
     const topTickers = (tickers || []).slice(0, 20);
     if (topTickers.length === 0) return;
     setBreakoutBadgesLoading(true);
+    // Recorded before the request resolves, so it reflects what was actually
+    // sent even if the whole batch call throws below.
+    if (scanRequestIdRef.current === scanId) setBreakoutBadgesRequested(new Set(topTickers));
     try {
       const data = await fetchBreakoutBatch(topTickers);
       if (scanRequestIdRef.current === scanId) setBreakoutBadges(data.results || {});
@@ -652,6 +711,7 @@ function App() {
     setScanError(null);
     setScanResults(null);
     setBreakoutBadges({});
+    setScanVerdicts({});
 
     try {
       // N2/Day85: curated watchlists — batch SR fetch (all cached), no backend
@@ -1036,7 +1096,7 @@ function App() {
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-blue-400">🎯 Swing Trade Analyzer</h1>
-          <p className="text-gray-400 mt-2">Minervini SEPA + CAN SLIM Methodology</p>
+          <p className="text-gray-400 mt-2">Multi-Engine Swing Trade Analysis</p>
           
           {/* Backend Status + Session Refresh (Day 29) */}
           <div className="mt-4 flex justify-center items-center gap-4">
@@ -2700,7 +2760,7 @@ function App() {
                   Enter a ticker symbol or click a quick pick to analyze a stock.
                 </p>
                 <p className="text-gray-600 text-sm">
-                  75-point scoring system • Minervini SEPA + CAN SLIM methodology
+                  9-criterion Simple Checklist • Multi-Engine Trend, Reversion & Value Analysis
                 </p>
               </div>
             )}
@@ -2847,6 +2907,7 @@ function App() {
                         <th className="text-right py-3 px-2">Volume</th>
                         <th className="text-right py-3 px-2">Market Cap</th>
                         <th className="text-center py-3 px-2">Breakout</th>
+                        <th className="text-center py-3 px-2">STA Verdict</th>
                         <th className="text-center py-3 px-2">Action</th>
                       </tr>
                     </thead>
@@ -2879,22 +2940,42 @@ function App() {
                           <td className="py-3 px-2 text-center">
                             {/* Day 81 (Breakout Enhancement Plan Task 2.2): badge is STATE, not a
                                 signal — never render a green badge as a buy recommendation
-                                (BREAKOUT_ENGINE_SPEC.md §13/§15, a hard rule). NOT_READY is
-                                muted/hidden per the plan's design. Explicit != null checks
-                                throughout (Day 68 falsy-render gotcha). */}
+                                (BREAKOUT_ENGINE_SPEC.md §13/§15, a hard rule). Explicit != null
+                                checks throughout (Day 68 falsy-render gotcha).
+                                Day 106 fix: this cell used to collapse "beyond the 20-row cap",
+                                "batch call failed", "per-ticker data error", and a genuine
+                                NOT_READY engine result into one indistinguishable "—" glyph
+                                (ROADMAP.md priority #9). Each now gets its own honest, still-muted
+                                label instead of hiding behind a dash (Golden Rule: visible state
+                                over hidden — a bare "—" reads as broken, not as "nothing to see
+                                here"). */}
                             {(() => {
-                              const b = breakoutBadges[stock.ticker];
-                              if (b == null) {
+                              if (breakoutBadgesLoading) {
+                                return <span className="text-gray-600 text-xs">…</span>;
+                              }
+                              if (!breakoutBadgesRequested.has(stock.ticker)) {
                                 return (
-                                  <span className="text-gray-600 text-xs">
-                                    {breakoutBadgesLoading ? '…' : '—'}
+                                  <span className="text-gray-600 text-xs" title="Beyond the top-20 rows checked per scan — see note below the table">
+                                    Not checked
                                   </span>
                                 );
                               }
-                              if (b.error != null || b.status == null || b.status === 'NOT_READY') {
-                                return <span className="text-gray-600 text-xs">—</span>;
+                              const b = breakoutBadges[stock.ticker];
+                              if (b == null) {
+                                return (
+                                  <span className="text-gray-500 text-xs" title="Requested, but no result came back (the batch call may have failed)">
+                                    Unavailable
+                                  </span>
+                                );
                               }
-                              const cfg = BREAKOUT_BADGE_CONFIG[b.status];
+                              if (b.error != null) {
+                                return (
+                                  <span className="text-amber-600/80 text-xs" title={b.error}>
+                                    Data error
+                                  </span>
+                                );
+                              }
+                              const cfg = BREAKOUT_BADGE_CONFIG[b.status] || BREAKOUT_BADGE_CONFIG.NOT_READY;
                               if (cfg == null) {
                                 return <span className="text-gray-500 text-xs">{b.status}</span>;
                               }
@@ -2904,6 +2985,56 @@ function App() {
                                   title={b.humanAction || cfg.label}
                                 >
                                   {cfg.label}
+                                </span>
+                              );
+                            })()}
+                          </td>
+                          <td className="py-3 px-2 text-center">
+                            {/* Day 106: STA's real BUY/HOLD/AVOID verdict (determineVerdict(),
+                                the same engine the Analyze page uses), on demand, only for rows
+                                the breakout engine already flagged Retest Entry / Building Base.
+                                Deliberately NOT derived from breakout status itself — that state
+                                describes chart structure, not a decision (see the hard rule on
+                                the Breakout column above). Gated to these two states because a
+                                full verdict costs ~11 backend calls per ticker, the same as a
+                                full Analyze click — not something to batch across every row. */}
+                            {(() => {
+                              const bStatus = breakoutBadges[stock.ticker]?.status;
+                              const qualifies = bStatus === 'RETEST_ENTRY' || bStatus === 'BUILDING_BASE';
+                              if (!qualifies) return null;
+
+                              const v = scanVerdicts[stock.ticker];
+                              if (v == null) {
+                                return (
+                                  <button
+                                    onClick={() => fetchScanVerdict(stock.ticker)}
+                                    className="text-xs px-2 py-0.5 rounded border border-gray-600 text-gray-300 hover:bg-gray-700"
+                                    title="Runs STA's full verdict engine for this ticker (same as clicking Analyze)"
+                                  >
+                                    Get Verdict
+                                  </button>
+                                );
+                              }
+                              if (v.loading) {
+                                return <span className="text-gray-600 text-xs">…</span>;
+                              }
+                              if (v.error != null) {
+                                return (
+                                  <span className="text-amber-600/80 text-xs" title={v.error}>
+                                    Unavailable
+                                  </span>
+                                );
+                              }
+                              const verdictColor =
+                                v.verdict === 'BUY' ? 'text-green-400 bg-green-900/30 border-green-600'
+                                : v.verdict === 'HOLD' ? 'text-yellow-400 bg-yellow-900/30 border-yellow-600'
+                                : 'text-red-400 bg-red-900/30 border-red-600';
+                              return (
+                                <span
+                                  className={`text-xs font-semibold px-2 py-0.5 rounded border ${verdictColor}`}
+                                  title={v.reason || v.verdict}
+                                >
+                                  {v.verdict}
                                 </span>
                               );
                             })()}
@@ -2920,9 +3051,10 @@ function App() {
                       ))}
                     </tbody>
                   </table>
-                  {/* Day 83 fix (Task E4): rows beyond the batch endpoint's 20-ticker cap
-                      show the same '—' glyph used for "checked, nothing found" — this note
-                      makes the distinction explicit instead of leaving it ambiguous. */}
+                  {/* Day 83 (Task E4) + Day 106: rows beyond the batch endpoint's 20-ticker
+                      cap now render their own "Not checked" label per-row (see the Breakout
+                      column above) — this note is a secondary, at-a-glance summary of the
+                      same fact, not the only place it's surfaced anymore. */}
                   {filteredCandidates.length > 20 && (
                     <div className="text-xs text-gray-500 text-center mt-3">
                       Breakout status checked for top 20 results only.
@@ -4110,7 +4242,7 @@ function App() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>v4.52 - Multi-Source Data Intelligence</p>
+          <p>v4.53 - Multi-Source Data Intelligence</p>
           <p className="mt-1">TwelveData • Finnhub • AlphaVantage • yfinance • Stooq</p>
         </div>
       </div>

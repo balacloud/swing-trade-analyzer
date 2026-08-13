@@ -2,7 +2,7 @@
 
 > **Purpose:** A decision-making lens for judgment calls this project makes about trading logic — not a coding-style guide. GOLDEN_RULES.md governs *how Claude works*; this file governs *how Claude should think* when evaluating a threshold, a backtest result, a "can we speed this up" request, or any other call that touches the actual trading system.
 > **Created:** Day 95 (July 24, 2026) — user-requested, to make key trading decisions consistently rather than re-deriving judgment each session.
-> **Last Updated:** Day 105 (August 11, 2026)
+> **Last Updated:** Day 106 (August 13, 2026)
 > **Loaded:** At session start (`/sta-start`), alongside GOLDEN_RULES.md. Updated at session close (`/sta-end`) via the Feedback Log below — this file is meant to accumulate, not stay static.
 
 ---
@@ -75,6 +75,13 @@ Grounding each in a real, already-documented STA moment, so this isn't abstract:
 ---
 
 ## Feedback Log (append-only, most recent session first)
+
+### Day 106
+Applied twice this session — once to the trading system's own data, once to a claim about the system itself.
+
+**First — Core Principle 5 ("skepticism scales with how good the number looks") applied again to MR's live PF, same recurring discipline as Day 93/101/102/103.** Asked point-blank "which scanner will make us money," the honest answer led with MR (broad)'s PF 4.58 being the closest track to its 100-trade bar — but not as a recommendation. Named it explicitly as the same shape of number this project has already been burned by (Day 93's 15-of-23-trades-clustered-in-one-week finding), pointed to the survivorship-free backtest's more modest, bias-corrected baseline (PF ~1.16, not statistically confirmed) as the more trustworthy anchor, and named Momentum Path B — a smaller, less flattering-looking number with sounder underlying logic — as the better bet to actually survive the confirmation bar. The discipline held even though nobody was pushing back on the flattering number; it's now a load-bearing habit rather than a one-off catch.
+
+**Second — the same "verify, don't just agree" discipline applied to my own prior claim, not the system's data.** An earlier turn this session asserted "STA is fundamentally a Minervini system... doesn't play the reversal game at all" — a plausible-sounding, confidently-stated claim that turned out to be a real oversimplification once checked. Rather than defend it when the user pushed back, or just accept the correction on faith either, the discipline was the same one Golden Rule 26/37 already codify at the code level: trace it directly. A full code audit found a live, ledgered Connors RSI(2) mean-reversion track (2 of 4 forward-test tracks), a contrarian Fear & Greed sentiment read, and several other genuinely independent engines — the claim was wrong, concretely and provably, not just uncharitably phrased. Corrected the claim, then corrected the app's own header tagline and README opening line that had been making the same overclaim since Day 1. Separately, later the same session, applied the identical "verify before accepting" instinct to a user's own claim (a suspected US/Canadian ticker mix-up on CMG) — checked directly against the backend rather than assuming the correction was right, and found the original analysis had in fact used the correct Canadian ticker. Both directions of the same discipline: a claim isn't more trustworthy for being confidently stated, whether it's mine, the system's, or a correction offered by someone else — verify it against the actual code/data before it becomes the new accepted fact.
 
 ### Day 105
 Core Principle 5 ("skepticism scales with how good the number looks") applied to Claude's own new tooling's output for the second session running (see Day 104's watchlist-report finding) — this time to the SRPS screener extended to the sub-industry level, not to the trading system's live results.

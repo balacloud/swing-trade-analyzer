@@ -1,6 +1,6 @@
 # 🎯 Swing Trade Analyzer
 
-An institutional-grade stock analysis system for swing traders, built on proven methodologies from **Mark Minervini's SEPA** (Specific Entry Point Analysis) and **William O'Neil's CAN SLIM** approach.
+An institutional-grade, multi-engine stock analysis system for swing traders. The flagship stock-picker is built on **Mark Minervini's SEPA** (Specific Entry Point Analysis) and **William O'Neil's CAN SLIM** trend-continuation methodology, running alongside independently forward-tested engines for mean-reversion (Connors RSI(2)), sector rotation (Relative Rotation Graphs), value investing (Graham/Buffett/Lynch/Damodaran), and Van Tharp-style position sizing/risk management — combined through the system's own equal-weight categorical verdict, not a single practitioner's scoring formula.
 
 ## 📋 Table of Contents
 
@@ -1425,7 +1425,7 @@ TOLERANCES = {
 2. **Revenue Growth** - Fiscal YoY vs TTM differences between sources (60-85% variance)
 3. **These are not bugs** - Different valid calculation methods
 
-### Known Open Issues (current, see `docs/claude/versioned/KNOWN_ISSUES_DAY93.md`)
+### Known Open Issues (current, see `docs/claude/versioned/KNOWN_ISSUES_DAY106.md`)
 
 1. **Backtest↔Live Fundamentals Mismatch** (Medium) - 40% disagreement rate between live (Finnhub/AlphaVantage/yfinance TTM) and backtested (SimFin quarterly) fundamentals labels. Mitigation choice still pending.
 2. **Volume confirmation missing from the decision engine** (Low) - Neither the Full Analysis verdict nor the Simple Checklist check whether a price move is confirmed by rising volume vs. thin volume. Deferred pending a re-backtest, since it touches frozen verdict logic.
@@ -1435,7 +1435,7 @@ TOLERANCES = {
 | Feature | Reason for Deferral |
 |---------|---------------------|
 | TradingView Lightweight Charts (Price Structure Phase 3) | Queued behind the paper-trading confirmation freeze |
-| Canadian Analyze Page | Scan works; full analysis needs data source redesign |
+| Canadian Analyze Page | Long-carried limitation, status now uncertain: a live Day 106 spot-check (CMG.TO, TSX) returned correct Simple Checklist + Full Analysis results, verified against the backend directly. Not exhaustively retested across other Canadian tickers, so not marked resolved — flagged for a proper recheck. |
 | Candlestick Patterns | 4 viable patterns identified by research (Day 63) — deferred for implementation effort (needs pure-NumPy port, TA-Lib not installed), not accuracy concerns |
 
 ---
@@ -1502,6 +1502,7 @@ TOLERANCES = {
 - **v4.55: Sub-Industry Watch** ✅ Built natively into the Sectors tab after seeing a sibling project's own separate version of the same idea — 21 sub-industry theme-cluster proxy ETFs (Semis, Memory/Storage, Nuclear/Uranium, Gold Miners, Biotech, and 16 more), one level below the 11 broad GICS sectors, reusing STA's own RS-ratio formula via a newly-extracted shared helper rather than a second implementation. Found and fixed a real bug mid-build: a per-request provider-fallback rate limit could silently mix timezone conventions across tickers, zeroing out the date-alignment step (Day 101)
 - **v4.56: SRPS Investigation + Sector Pullback Screener** ✅ A fully-specified 5th-forward-test-track proposal (buy strong stocks in recovering sectors pulling back to their 21-EMA) was run through its own two-gate validation process before any live build: Gate 0 (signal frequency) passed; Gate 1 (a new day-by-day portfolio backtest, 400-ticker survivorship-free universe, 2020-2025) failed its own bar (34.1% win rate vs. required 45%, PF 1.177 vs. required 1.2). Per the design's own rule, not built as an automated track — pivoted the same rule logic into a discretionary Sectors-tab screener instead, informational only with a permanent disclaimer. Also adopted the Trading Intelligence Hub's escalating three-pass code review as new Golden Rule 41, and fixed a real Forward Test tab display bug (closed trades silently capped at 20 with no indication for the two higher-volume tracks) (Day 103)
 - **v4.57: Sub-Sector Pullback Screener + Sectors-Tab Staleness Fix** ✅ Extended the Sector Pullback Screener from the 11 broad GICS sectors to the 21 Sub-Industry Watch clusters at the user's explicit request, sharing its rule logic with the sector-level screener via two newly-extracted helpers rather than a second implementation. Separately, fixed a real user-reported bug: "Refresh Session" cleared the backend's cache correctly but never told already-loaded Sectors-tab components to refetch, so the tab kept showing identical numbers with no error — new Golden Rule 43. Cross-checked 3 live screener candidates against the app's own Full Analysis engine (all 3 came back "No Trade") and found a real structural gap: the screener's own R:R target is fixed at 2.5× risk and never checks real chart resistance, unlike the app's own validated Risk/Reward check (Day 105)
+- **v4.58: Scan Tab Verdict Column + Self-Description Correction** ✅ Fixed a real UI ambiguity: the Scan tab's breakout badge showed the same "—" dash for three different situations (beyond the 20-row check cap, requested but no result came back, and a genuine checked-and-neutral state) — each now gets its own honest label instead of one collapsed glyph (new Golden Rule 44). Built a new on-demand "STA Verdict" column, showing the real BUY/HOLD/AVOID verdict (reusing the existing decision pipeline, not a new one) only for rows already flagged Retest Entry or Building Base. Also corrected an inaccurate self-description carried since Day 1 — the app was described as "a Minervini system," but a full code audit confirmed it's a multi-engine workbench (Minervini/O'Neil trend-continuation alongside Connors mean-reversion, RRG sector rotation, Graham/Buffett/Lynch/Damodaran value investing, and Van Tharp risk sizing); updated the app's header tagline and this README's opening description accordingly (Day 106)
 
 ### Philosophy (Day 27 + Day 44 Update)
 
