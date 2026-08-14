@@ -99,6 +99,14 @@ ENTRY_COOLDOWN_AFTER_LOSS = 10
 # Warmup period (need 252 days for trend template + RS calculation)
 WARMUP_BARS = 260
 
+# Day 106 research spike (Config F/G) — purely additive on top of Config C's
+# own already-frozen result, never modifies it. See GOLDEN_RULES.md Rule 20
+# (pre-committed, one-time, run-once-and-report-honestly discipline, same
+# pattern as the Day 79-80 MR liquidity gate re-test).
+VOLUME_CONFIRM_RATIO = 1.5   # same threshold check_breakout_quality() uses (pattern_detection.py)
+VOLUME_CONFIRM_LOOKBACK = 50
+ABSOLUTE_MOMENTUM_RISK_FREE_RATE = 0.05  # mirrors metrics.py's compute_metrics() default
+
 
 # ─── Indicator Calculations ──────────────────────────────────────────────────
 
@@ -223,6 +231,8 @@ def check_entry_signals(stock_df, spy_df, vix_df, date_idx,
       config_c: bool (B + viable + R:R >= 1.2)
       config_d: bool (C, restricted to broken_out + volume-confirmed only — Day 81)
       config_e: bool (C, restricted to at_pivot/forming anticipatory only — Day 81)
+      config_f: bool (C + entry-day volume >= 1.5x 50-day avg — Day 106 research spike)
+      config_g: bool (C + trailing-252d absolute return > 5% risk-free — Day 106 research spike)
       assessment: full assessment result
       patterns: pattern detection result
       sr_levels: support/resistance levels
@@ -234,6 +244,8 @@ def check_entry_signals(stock_df, spy_df, vix_df, date_idx,
         'config_c': False,
         'config_d': False,
         'config_e': False,
+        'config_f': False,  # Day 106 research spike: C + volume confirmation
+        'config_g': False,  # Day 106 research spike: C + absolute/dual momentum
         'assessment': None,
         'patterns': None,
         'sr_levels': None,
@@ -461,6 +473,32 @@ def check_entry_signals(stock_df, spy_df, vix_df, date_idx,
 
         except Exception:
             pass  # S&R computation can fail for some data shapes
+
+    # CONFIG F (Day 106 research spike): volume confirmation. Purely additive
+    # on top of Config C's own already-computed result — cannot alter
+    # config_c itself. Entry-day volume must be >= 1.5x its trailing 50-day
+    # average, the same threshold check_breakout_quality() already uses
+    # (pattern_detection.py), applied generally to any Config C entry rather
+    # than only to a detected pattern's own breakout day.
+    if result['config_c']:
+        vol_avg = df_slice['Volume'].tail(VOLUME_CONFIRM_LOOKBACK).mean()
+        entry_volume = df_slice['Volume'].iloc[-1]
+        volume_ratio = entry_volume / vol_avg if vol_avg and vol_avg > 0 else 0
+        result['trade_meta']['volume_ratio'] = round(volume_ratio, 2)
+        if volume_ratio >= VOLUME_CONFIRM_RATIO:
+            result['config_f'] = True
+
+    # CONFIG G (Day 106 research spike): absolute/dual momentum (Antonacci).
+    # Purely additive on top of Config C's own already-computed result. The
+    # existing RS check (rs_val >= 1.0, gates config_a/b/c) only requires
+    # beating SPY *relatively* — a stock down 5% while SPY is down 15% still
+    # clears it. Dual momentum additionally requires the stock's own trailing
+    # 252-day return to beat a risk-free proxy in *absolute* terms.
+    if result['config_c'] and date_idx >= 252:
+        stock_ret_252 = (stock_df['Close'].iloc[date_idx] / stock_df['Close'].iloc[date_idx - 252]) - 1
+        result['trade_meta']['stock_ret_252'] = round(stock_ret_252, 4)
+        if stock_ret_252 > ABSOLUTE_MOMENTUM_RISK_FREE_RATE:
+            result['config_g'] = True
 
     return result
 

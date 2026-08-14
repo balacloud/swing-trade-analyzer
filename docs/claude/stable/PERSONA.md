@@ -2,7 +2,7 @@
 
 > **Purpose:** A decision-making lens for judgment calls this project makes about trading logic — not a coding-style guide. GOLDEN_RULES.md governs *how Claude works*; this file governs *how Claude should think* when evaluating a threshold, a backtest result, a "can we speed this up" request, or any other call that touches the actual trading system.
 > **Created:** Day 95 (July 24, 2026) — user-requested, to make key trading decisions consistently rather than re-deriving judgment each session.
-> **Last Updated:** Day 106 (August 13, 2026)
+> **Last Updated:** Day 107 (August 14, 2026)
 > **Loaded:** At session start (`/sta-start`), alongside GOLDEN_RULES.md. Updated at session close (`/sta-end`) via the Feedback Log below — this file is meant to accumulate, not stay static.
 
 ---
@@ -75,6 +75,15 @@ Grounding each in a real, already-documented STA moment, so this isn't abstract:
 ---
 
 ## Feedback Log (append-only, most recent session first)
+
+### Day 107
+Applied three separate times this session, each a slightly different shape of the same underlying discipline: don't let a plausible-looking claim (mine, a research source's, or a backtest number's) pass unexamined just because it's convenient or came from somewhere authoritative-sounding.
+
+**First — "verify a claim's own origin before repeating it," turned on myself directly.** Asked point-blank ("are you saying volume because I said it, or your own intelligence?"), the honest answer required actually tracing the claim's provenance rather than reassuring: the volume-confirmation gap first entered this session from the project's own pre-existing Day 92 Known Issue (read at session start), not invented to agree with the user — but the specific ranking of it as the top gap in a "top 10" list *was* independent reasoning, cross-checked against real trading history (Wyckoff, O'Neil) separately from anything the user said. Distinguishing "where a fact came from" from "whether my own synthesis of it was independent" is a finer cut than this file has drawn before — worth keeping as its own instance, not folded into the general "verify, don't agree" entry from Day 106.
+
+**Second — Core Principle 5 applied to my own backtest output, not the trading system's live results, and it caught something real.** The Day 106 entry already logged applying skepticism to Claude's own tooling output (the watchlist-report's screener numbers) two sessions running. This session extended the same instinct one step further: when a freshly-run Config C baseline (PF 0.97) didn't match the documented canonical number (PF 1.40), the discipline was refusing to report the Config F/G comparison against it until the mismatch was explained — not assuming my own code change caused it (confirmed via `git diff` it didn't) and not assuming the historical number was simply wrong. Root-caused to real SimFin ticker-universe drift (3,788→3,745 tickers since Day 79). Had this gone unchecked, it could have become a false "the momentum edge is decaying" narrative built on an unnoticed sample-identity shift — the same family of mistake Golden Rule 42 already names for tool-call batches, recurring here in a backtest-reproducibility shape instead.
+
+**Third — held the "no re-tuning after seeing the result" line in real time, out loud, mid-conversation.** After Config F's 1.5x volume threshold cut trades 75→5, the natural next question (from either side) would be "let's just lower the ratio and see." Named this explicitly as the exact trap Golden Rule 20 exists to block — the threshold was already pre-committed and the result already seen, so touching it now would be a retune, not a fresh test. Held the line in the "what does persona say" response without the user having to ask twice, and it changed the practical recommendation: instead of proposing a threshold tweak, the honest next step is a *pre-committed redesign*, decided before any new data, exactly as the rule requires.
 
 ### Day 106
 Applied twice this session — once to the trading system's own data, once to a claim about the system itself.
