@@ -69,7 +69,7 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 
 > **Status note:** a complete feature freeze has been in effect since Day 87 — the list below reflects everything shipped, but active work is currently limited to bug fixes and the automated paper-trading engine (100 confirmed trades/system required before any capital allocation). See [Roadmap](#roadmap) for current priorities.
 
-### ✅ Implemented (v4.55)
+### ✅ Implemented (v4.59)
 
 1. **Single Stock Analysis**
    - Enter any ticker symbol
@@ -214,6 +214,7 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 19. **Canadian Market Scanning** (Day 59 - v4.21)
     - TSX 60 and All Canadian market scan support
     - Ticker mapping: `TSX:RY` → `RY.TO` for data providers
+    - Analyze page confirmed working end-to-end for `.TO` tickers (Day 108 audit — tested across all data endpoints on two different profiles, CMG.TO and RY.TO, plus full live verification)
 
 20. **SQLite Persistent Cache** (Day 37)
     - 5.5x performance improvement
@@ -1429,14 +1430,13 @@ TOLERANCES = {
 
 1. **Backtest↔Live Fundamentals Mismatch** (Medium) - 40% disagreement rate between live (Finnhub/AlphaVantage/yfinance TTM) and backtested (SimFin quarterly) fundamentals labels. Mitigation choice still pending.
 2. **Volume confirmation missing from the decision engine** (Low) - Neither the Full Analysis verdict nor the Simple Checklist check whether a price move is confirmed by rising volume vs. thin volume. A Day 107 backtest spike tested one design (1.5x volume on entry day) and found it too strict to evaluate (cut trades 93%) — needs a different filter shape before another backtest, still deferred behind the paper-trading freeze either way.
-3. **Fear & Greed gauge uses outdated color thresholds** (Low) - The Analyze page's sentiment gauge bar independently hardcodes an old set of threshold bands, different from the ones actually driving the verdict. Found Day 107, not fixed.
+3. **Per-ticker data-fetch failures aren't distinguished from "not yet checked"** (Medium) - The Data Sources tab's per-provider health map correctly reflects real outages, but the per-ticker panel can't yet tell you whether a specific stock's last data fetch actually failed vs. was simply never attempted. Found in a Day 108 full-system audit; needs new failure-tracking state to fix properly.
 
 ### Deferred Features
 
 | Feature | Reason for Deferral |
 |---------|---------------------|
 | TradingView Lightweight Charts (Price Structure Phase 3) | Queued behind the paper-trading confirmation freeze |
-| Canadian Analyze Page | Long-carried limitation, status now uncertain: a live Day 106 spot-check (CMG.TO, TSX) returned correct Simple Checklist + Full Analysis results, verified against the backend directly. Not exhaustively retested across other Canadian tickers, so not marked resolved — flagged for a proper recheck. |
 | Candlestick Patterns | 4 viable patterns identified by research (Day 63) — deferred for implementation effort (needs pure-NumPy port, TA-Lib not installed), not accuracy concerns |
 
 ---
@@ -1547,9 +1547,9 @@ A full-system audit (Day 78) found the backtested edge was likely overstated —
 5. *(parked)* **Value Tab Phase 2** — needs its own batch-prefetch infrastructure design session first (AlphaVantage free-tier budget constraints).
 6. *(parked)* **Volume confirmation missing from the decision engine** — neither the Full Analysis verdict nor the Simple Checklist check whether a price move is backed by rising volume; found Day 92. A Day 107 backtest spike tested one design (1.5x entry-day volume) and found it too strict to evaluate (cut trades 93%) — needs a genuinely different filter shape before another backtest, still behind the freeze either way.
 7. *(parked, idea only)* **Scheduled/proactive breakout-alert watcher** — the breakout engine already works on demand against any ticker list (`/breakout-watch`, Scan tab badges); nothing today runs on a schedule or notifies unprompted. Flagged Day 100, needs its own design session before any build.
-8. *(parked)* `/ibkr-scan` skill, Price Structure Phase 3 (visual chart), Canadian Analyze page — queued behind the above.
+8. *(parked)* `/ibkr-scan` skill, Price Structure Phase 3 (visual chart) — queued behind the above.
 9. *(parked, low priority)* **Dual/absolute momentum filter** — Antonacci's dual-momentum research (found Day 107) says a stock should also beat a risk-free/cash return in absolute terms, not just beat the market relatively. Backtest-tested clean but only excludes ~1% of the momentum engine's trades in practice — cheap to add once the freeze lifts, won't move results much.
-10. *(parked)* **Fear & Greed gauge uses outdated color thresholds** — the Analyze page's sentiment gauge independently hardcodes an old set of threshold bands, different from the ones actually driving the verdict. Found Day 107 while auditing the sentiment pillar, not fixed.
+10. *(parked)* **Day 108 full-audit findings needing a decision or bigger scope** — VIX-based position sizing was never wired into the live automated engine (verified this doesn't affect any current live-track statistic, so not urgent); a support/resistance detail that picks the most extreme chart level rather than the nearest one (baked equally into both the backtest and live results, so not a live/backtest mismatch — revisit once the freeze lifts); a couple of UI wording questions on the Value tab. Full detail in the project's internal audit log.
 
 **Day 105: Sub-Sector Pullback Screener, a real Sectors-tab staleness fix, and a live cross-check that found a structural gap in SRPS's own R:R math.** At the user's explicit request, the Day 103 discretionary Pullback Screener was extended from the 11 broad GICS sectors down to the 21 Sub-Industry Watch clusters — sharing its rule logic with the sector-level version via two newly-extracted helpers rather than a second implementation, and correctly screening the two "proxy-is-the-theme" clusters (Gold Miners, Biotech) directly on their ETFs rather than silently skipping them. A three-pass review caught a real, previously-unnoticed gap in the *sector-level* screener along the way (a computed `sectorsCappedFrom` field the frontend never displayed) and a real fan-out risk in the new endpoint (Semis alone has 16 curated candidate tickers, above the sector version's own established safety cap) — both fixed before shipping. Separately, a user bug report ("looks like this is stale... not failing loud") led to a real fix: "Refresh Session" cleared the backend's cache correctly but never told already-loaded Sectors-tab components to refetch, so the tab silently kept showing identical numbers — new Golden Rule 43, plus a new scoped in-tab refresh button. Finally, cross-checking 3 live screener candidates (CGNX, GEV, RIVN) against the app's own Full Analysis engine found all 3 came back "No Trade," and surfaced a real structural finding: the screener's own target price is fixed at entry+2.5×risk and never checks real chart resistance, unlike STA's own validated Risk/Reward check (which came back at 0.48:1 and 0.27:1 for the same two names) — logged as a known limitation, not fixed, since the screener is explicitly informational and this is exactly the "apply your own judgment" its disclaimer already asks for. Freeze-independent throughout — none of the 4 live forward-test tracks were touched.
 

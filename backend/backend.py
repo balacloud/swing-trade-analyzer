@@ -66,7 +66,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 # /api/sectors/pullback-screen endpoint (SRPS discretionary screener).
 # Day 105: bumped to 2.46 for the new /api/sectors/sub-industry-pullback-screen
 # endpoint + the shared _srps_true_rs()/_srps_evaluate_candidate() refactor.
-BACKEND_VERSION = '2.46'
+BACKEND_VERSION = '2.47'
 
 from constants import SUPPORT_PROXIMITY_PCT, RESISTANCE_PROXIMITY_PCT  # shared with support_resistance.py
 from sub_industry_clusters import SUB_INDUSTRY_CLUSTERS, NO_PROXY_CLUSTERS  # Day 100+ Sub-Industry Watch
@@ -643,8 +643,18 @@ def health_check():
         except Exception:
             cache_stats = {'error': 'Could not get cache stats'}
 
+    # Day 107 audit fix: 'status' used to be a hardcoded 'healthy' literal,
+    # never conditional on anything — a pure liveness check ("is Flask up")
+    # mislabeled as a health check, and the source of the header's "Backend
+    # Connected" dot across every tab. Base it on whether the app's own core
+    # subsystems actually loaded, not on individual data-provider availability
+    # (a single provider being circuit-broken is normal, self-healing, by-
+    # design behavior — already correctly surfaced on its own in the Data
+    # Sources tab's per-provider map — and shouldn't flip this global
+    # indicator red for what's expected operation, not degradation).
+    core_ok = SR_ENGINE_AVAILABLE and DATA_PROVIDER_AVAILABLE and SQLITE_CACHE_AVAILABLE
     response = {
-        'status': 'healthy',
+        'status': 'healthy' if core_ok else 'degraded',
         'timestamp': datetime.now().isoformat(),
         'version': BACKEND_VERSION,
         'defeatbeta_available': DEFEATBETA_AVAILABLE,
@@ -1561,14 +1571,18 @@ def get_support_resistance(ticker):
             }), 400
 
         # Prepare DataFrame for S&R engine (lowercase columns required)
+        # Preserve the real DatetimeIndex (Day 107 audit fix) — without it,
+        # _resample_to_weekly() can't tell this isn't a DatetimeIndex and
+        # fabricates one via pd.date_range(freq='D'), producing MTF Confluence
+        # weekly levels from fake calendar days instead of real trading weeks.
         df = pd.DataFrame({
             'open': hist_data['open'].values,
             'high': hist_data['high'].values,
             'low': hist_data['low'].values,
             'close': hist_data['close'].values,
             'volume': hist_data['volume'].values
-        })
-        
+        }, index=hist_data.index)
+
         # Compute S&R levels
         sr_levels = compute_sr_levels(df)
 
@@ -3238,15 +3252,30 @@ def get_context_endpoint(ticker):
     if not CONTEXT_AVAILABLE:
         return jsonify({'error': 'Context engines not available'}), 503
     ticker = ticker.upper()
+    # Day 107 audit fix: ContextTab.jsx's mount-time load (no ticker selected
+    # yet) was calling this route with a placeholder 'SPY' ticker just to get
+    # cycles/econ/regime data, unconditionally burning an Alpha Vantage news
+    # credit for news that was then discarded — the exact quota-burn pattern
+    # already diagnosed and avoided elsewhere in this file (see the Day 92
+    # comment near get_sector_rotation()'s macro_alignment computation).
+    # Separately, ContextTab.jsx's dedicated `loadNews(ticker)` already fetches
+    # news independently whenever a real ticker IS selected, so this route's
+    # own news fetch was also a redundant second call in that case. news=null
+    # is default; ContextTab.jsx never reads this route's news field anymore.
+    skip_news = request.args.get('skip_news', 'false').lower() == 'true'
     try:
-        # Fetch all three (each uses its own cache internally)
+        # Fetch cycles/econ (each uses its own cache internally); news only
+        # when explicitly requested (skip_news=false, the pre-existing default
+        # for any caller that still wants the bundled response).
         cycles_resp = get_cycles_endpoint()
         econ_resp = get_econ_endpoint()
-        news_resp = get_news_endpoint(ticker)
 
         cycles = cycles_resp.get_json()
         econ = econ_resp.get_json()
-        news = news_resp.get_json()
+        news = None
+        if not skip_news:
+            news_resp = get_news_endpoint(ticker)
+            news = news_resp.get_json()
 
         # Compute overall regime across all 10 indicators (6 cycles + 4 econ)
         all_regimes = (

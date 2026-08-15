@@ -177,18 +177,19 @@ export default function ContextTab({ ticker }) {
     setCyclesError(null);
     try {
       // Use the aggregated context endpoint with a placeholder ticker when no ticker
+      // Day 107 audit fix: skip_news=true — this call only needs cycles/econ/
+      // regime data; loadNews() below is the sole owner of fetching news,
+      // avoiding both a wasted Alpha Vantage credit (placeholder-ticker case)
+      // and a redundant double-fetch (real-ticker case, previously racing
+      // this call's bundled news against loadNews()'s own fetch).
       const t = ticker || 'SPY';
-      const data = await fetchJSON(`${API_BASE}/api/context/${t}`);
+      const data = await fetchJSON(`${API_BASE}/api/context/${t}?skip_news=true`);
       setCyclesData(data.cycles || null);
       setEconData(data.econ || null);
       setOverallRegime(data.overall_regime || null);
       setOptionsBlock(data.options_block || null);
       setRegimeCounts(data.regime_counts || null);
       setTotalIndicators(data.total_indicators || 10);
-      // If we also got news in the same call, use it
-      if (ticker && data.news) {
-        setNewsData(data.news);
-      }
     } catch (e) {
       setCyclesError(e.message);
     } finally {
@@ -401,7 +402,7 @@ export default function ContextTab({ ticker }) {
 
               {/* Conflict check */}
               <ConflictCheck
-                cyclesRegime={overallRegime}
+                overallRegime={overallRegime}
                 newsLabel={newsData.aggregate?.label}
                 hasOptionsBlock={optionsBlock?.has_options_block}
               />

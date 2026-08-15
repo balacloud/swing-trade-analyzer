@@ -15,6 +15,11 @@ const VERDICT_STYLES = {
   strong:     { dot: 'bg-emerald-400', text: 'text-emerald-400', label: 'Strong' },
   decent:     { dot: 'bg-amber-400',   text: 'text-amber-400',   label: 'Decent' },
   weak:       { dot: 'bg-rose-400',    text: 'text-rose-400',    label: 'Weak' },
+  // Day 107 audit fix: FCF Yield's backend verdict can be 'negative'
+  // (fcf_yield_pct < 0) with no matching style here — silently fell back to
+  // the gray 'na'/"N/A" badge under a real, visibly negative number
+  // (confirmed live on RIVN/F: value=-6.9%/-13.9%, badge showed "N/A").
+  negative:   { dot: 'bg-rose-500',    text: 'text-rose-500',    label: 'Negative' },
   attractive: { dot: 'bg-emerald-400', text: 'text-emerald-400', label: 'Attractive' },
   fair:       { dot: 'bg-amber-400',   text: 'text-amber-400',   label: 'Fair' },
   stretched:  { dot: 'bg-rose-400',    text: 'text-rose-400',    label: 'Stretched' },

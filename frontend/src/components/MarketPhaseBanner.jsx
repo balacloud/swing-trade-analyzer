@@ -46,7 +46,17 @@ export default function MarketPhaseBanner({ data, loading, error }) {
   }
 
   if (error || !data || data.error) {
-    return null; // Informational-only feature — fail silent, don't block the tab
+    // Day 107 audit fix: was `return null` (silent disappearance) — every
+    // other error state on this tab (cyclesError/newsError) shows a visible
+    // muted banner instead of hiding, per this project's own standing UI
+    // principle (hiding reads as broken, not as "nothing to show"). Kept
+    // deliberately calm/gray rather than red, since this genuinely is a
+    // lower-stakes informational-only feature, unlike cycles/econ.
+    return (
+      <div className="rounded-lg border border-gray-700 bg-gray-800/50 p-4 mb-4 text-sm text-gray-500">
+        Market phase unavailable{error ? `: ${error}` : ''}
+      </div>
+    );
   }
 
   const { phase, description, signals } = data;

@@ -33,10 +33,13 @@
  * - Categorical assessments honestly represent this reality
  *
  * EQUAL-WEIGHT PRINCIPLE (Tier 1B, Day 69):
- * All 4 categories carry equal weight. Never optimize category weights.
+ * All 4 categories are computed independently — never optimize category weights.
  * DeMiguel et al. (2009): equal weights beat optimized weights out-of-sample.
  * 238 trades is insufficient to optimize 4+ weights without overfitting.
- * Verdict logic: count of Strong categories → BUY/HOLD/AVOID.
+ * Verdict logic (Day 70 revision — see determineVerdict()): only Technical and
+ * Fundamental are counted toward strongCount → BUY/HOLD/AVOID. Sentiment is
+ * informational-only (backtest never validated a live sentiment signal).
+ * Risk/Macro acts as a gate/cap on the verdict, not a counted vote.
  */
 
 // Known ETF tickers - these don't have traditional fundamentals

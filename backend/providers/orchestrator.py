@@ -116,7 +116,7 @@ class DataProvider:
         Get OHLCV data with cache-first strategy and provider fallback.
         Returns DataFrame with lowercase columns (open, high, low, close, volume).
 
-        Strategy: Cache → TwelveData → yfinance → Stooq → Stale Cache → Error
+        Strategy: Cache → TwelveData → yfinance → Tradier → Stale Cache → Error
         """
         ticker = ticker.upper()
 
@@ -297,7 +297,7 @@ class DataProvider:
     def get_quote(self, ticker: str) -> Optional[QuoteResult]:
         """
         Get real-time quote (primarily for VIX).
-        Strategy: Cache (1h TTL) → yfinance → Finnhub → stale cache
+        Strategy: Cache (1h TTL) → yfinance → Finnhub → Tradier → stale cache
 
         Day 82 data-source audit fix: this docstring already claimed a
         "stale cache" leg, but the implementation had no caching at all —

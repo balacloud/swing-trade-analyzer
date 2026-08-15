@@ -3,21 +3,27 @@
 
 import { useMemo } from 'react';
 
-export default function ConflictCheck({ cyclesRegime, newsLabel, hasOptionsBlock }) {
+// Day 107 audit fix: prop was named `cyclesRegime` and the message text said
+// "Cycles FAVORABLE"/"Adverse cycles", but ContextTab.jsx actually passes the
+// combined 10-indicator overall_regime (6 cycles + 4 econ cards, see
+// compute_overall_regime() in backend.py) — mislabeling the econ-inclusive
+// read as cycles-only. Renamed to overallRegime, matching RegimeBanner.jsx's
+// established "OVERALL MACRO REGIME" terminology.
+export default function ConflictCheck({ overallRegime, newsLabel, hasOptionsBlock }) {
   const { type, icon, message, style } = useMemo(() => {
-    if (cyclesRegime === 'FAVORABLE' && newsLabel === 'BULLISH' && !hasOptionsBlock) {
+    if (overallRegime === 'FAVORABLE' && newsLabel === 'BULLISH' && !hasOptionsBlock) {
       return {
         type: 'ALIGNED',
         icon: '✅',
-        message: `No Conflicts — Cycles FAVORABLE · News BULLISH`,
+        message: `No Conflicts — Macro Regime FAVORABLE · News BULLISH`,
         style: 'bg-green-900/30 border-green-600 text-green-300',
       };
     }
-    if (cyclesRegime === 'ADVERSE' && newsLabel === 'BEARISH') {
+    if (overallRegime === 'ADVERSE' && newsLabel === 'BEARISH') {
       return {
         type: 'CONFLICT',
         icon: '⚠️',
-        message: `CONFLICT — Adverse cycles + Bearish news · Reduce size`,
+        message: `CONFLICT — Adverse macro regime + Bearish news · Reduce size`,
         style: 'bg-red-900/30 border-red-700 text-red-300',
       };
     }
@@ -35,7 +41,7 @@ export default function ConflictCheck({ cyclesRegime, newsLabel, hasOptionsBlock
       message: `Mixed Signals — Proceed cautiously · Confirm with other tabs`,
       style: 'bg-orange-900/30 border-orange-600 text-orange-300',
     };
-  }, [cyclesRegime, newsLabel, hasOptionsBlock]);
+  }, [overallRegime, newsLabel, hasOptionsBlock]);
 
   return (
     <div className={`rounded border px-3 py-2 text-sm mt-3 ${style}`}>

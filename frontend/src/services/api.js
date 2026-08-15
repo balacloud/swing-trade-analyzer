@@ -856,20 +856,17 @@ export async function fetchSectorRotation() {
     throw new Error(error.error || 'Failed to fetch sector rotation data');
   }
 
-  const data = await response.json();
-
-  return {
-    sectors: data.sectors || [],
-    sectorCount: data.sectorCount,
-    mapping: data.mapping || {},
-    timestamp: data.timestamp,
-    period: data.period,
-    size_rotation: data.size_rotation || [],
-    size_signal: data.size_signal || 'Neutral',
-    size_signal_detail: data.size_signal_detail || '',
-    macro_alignment: data.macro_alignment || null,
-    macro_alignment_status: data.macro_alignment_status || null,
-  };
+  // Day 107 audit fix (Golden Rule 30, root cause): this was the ORIGINAL
+  // whitelist-reconstruction offender the rule is named after — it had
+  // already silently dropped fields twice before (size_rotation/size_signal
+  // Day 67, macro_alignment Day 92), each "fixed" by extending the whitelist
+  // rather than switching to pass-through. Every sibling function added since
+  // (fetchSubIndustryRotation, fetchSrpsPullbackScreen,
+  // fetchSubIndustryPullbackScreen) correctly returns response.json()
+  // directly, citing GR30 — this function was left un-migrated. Switched to
+  // match; a field like `cached` (already used elsewhere, e.g.
+  // MarketPhaseBanner.jsx) was silently unavailable to this tab until now.
+  return response.json();
 }
 
 /**

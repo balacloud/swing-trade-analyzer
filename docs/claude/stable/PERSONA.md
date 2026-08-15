@@ -2,7 +2,7 @@
 
 > **Purpose:** A decision-making lens for judgment calls this project makes about trading logic — not a coding-style guide. GOLDEN_RULES.md governs *how Claude works*; this file governs *how Claude should think* when evaluating a threshold, a backtest result, a "can we speed this up" request, or any other call that touches the actual trading system.
 > **Created:** Day 95 (July 24, 2026) — user-requested, to make key trading decisions consistently rather than re-deriving judgment each session.
-> **Last Updated:** Day 107 (August 14, 2026)
+> **Last Updated:** Day 108 (August 14, 2026)
 > **Loaded:** At session start (`/sta-start`), alongside GOLDEN_RULES.md. Updated at session close (`/sta-end`) via the Feedback Log below — this file is meant to accumulate, not stay static.
 
 ---
@@ -75,6 +75,13 @@ Grounding each in a real, already-documented STA moment, so this isn't abstract:
 ---
 
 ## Feedback Log (append-only, most recent session first)
+
+### Day 108
+A full 10-group system audit surfaced a genuinely scary-sounding finding — VIX-based position sizing never wired into any of the 4 live automated tracks, since inception — and the persona lens applied cleanly on both sides of the conversation, not just mine.
+
+**Core Principle 5 in reverse — checking whether a bad-sounding gap is actually load-bearing before treating it as urgent.** The instinct on hearing "a documented risk-management rule was never implemented, for the entire life of the system" is to escalate hard. Instead, traced the actual consequence: `compute_metrics()` — the function computing every stat the 4 tracks are judged on — operates purely on %-return and R-multiple, both mathematically invariant to position size. The gap is real and needs fixing before real capital is ever involved, but it corrupts nothing today. Reported it as a MEDIUM finding with the reasoning shown, not a HIGH-severity alarm — the same "don't let the scariness of what's missing substitute for checking what it actually touches" discipline Core Principle 5 already applies to good-looking numbers, run in the opposite direction on a bad-looking gap. New Golden Rule 48.
+
+**The user independently applied the identical discipline, unprompted.** Presented with the finding and the framing, the response was direct: "VIX is fine, its my judgement call no worries" — moving straight past it to ask about the next-most-severe item, exactly the calibrated-triage behavior Core Principle 3 ("how many trades would it take to actually trust this") and Core Principle 5 exist to produce. Worth logging specifically because it's the discipline holding on the user's side of the conversation, not just Claude's — this file has mostly documented instances of Claude applying or being corrected by the persona lens; this is a clean instance of the user demonstrating it back.
 
 ### Day 107
 Applied three separate times this session, each a slightly different shape of the same underlying discipline: don't let a plausible-looking claim (mine, a research source's, or a backtest number's) pass unexamined just because it's convenient or came from somewhere authoritative-sounding.

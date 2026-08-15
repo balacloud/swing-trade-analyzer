@@ -162,7 +162,13 @@ function SystemCard({ name, label, data, badge, badgeColor = 'amber', caption })
               </div>
             </div>
             <div>
-              <div className="text-gray-500">Expectancy</div>
+              {/* Day 107 audit fix: labeled "Expectancy (%)" — the manual
+                  journal elsewhere on this same tab shows an "Expectancy"
+                  stat too, but computes the Van Tharp R-multiple formula
+                  (Win%*AvgWinR + Loss%*AvgLossR), not this mean %-return
+                  figure. Same word, different statistic — disambiguate in
+                  the label itself, not just the inline %/R suffix. */}
+              <div className="text-gray-500">Expectancy (%)</div>
               <div className={`text-lg font-bold ${stats.expectancy_pct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                 {stats.expectancy_pct > 0 ? '+' : ''}{stats.expectancy_pct}%
               </div>

@@ -36,5 +36,5 @@ class ProviderUnavailableError(ProviderError):
 
 
 class InsufficientDataError(ProviderError):
-    """Provider returned data but not enough for our needs (e.g., < 150 bars)"""
+    """Provider returned data but not enough for our needs (e.g., < 10 bars)"""
     pass

@@ -11,7 +11,7 @@
  *
  * 9 Binary Criteria - ALL must be YES to trade:
  * 1. TREND: Price > 50 SMA > 200 SMA
- * 2. MOMENTUM: RS >= 1.2 (outperforming SPY by 20% — backtest-validated optimal)
+ * 2. MOMENTUM: RS >= 1.0 (outperforming SPY — reverted Day 78, see rationale at the criterion below)
  * 3. SETUP: Entry near support (cap-aware stop: 7% large / 9% mid / 10% small)
  * 4. RISK: R:R ratio >= 2:1
  * 5. 52-WK RANGE: Price within top 25% of 52-week range (Minervini)

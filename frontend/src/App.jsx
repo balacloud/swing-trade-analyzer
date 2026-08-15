@@ -340,9 +340,9 @@ function App() {
   // Day 58: Look up sector rotation context for a stock
   const getSectorContext = (stockSector) => {
     if (!sectorRotation || !stockSector) return null;
-    const etfTicker = sectorRotation.mapping[stockSector];
+    const etfTicker = sectorRotation.mapping?.[stockSector];
     if (!etfTicker) return null;
-    return sectorRotation.sectors.find(s => s.etf === etfTicker) || null;
+    return sectorRotation.sectors?.find(s => s.etf === etfTicker) || null;
   };
 
   // Calculate position when inputs change
@@ -1475,9 +1475,17 @@ function App() {
                   </div>
                 </div>
 
-                {/* Day 33: Data Source Status Banner - Prominent visibility for transparency */}
+                {/* Day 33: Data Source Status Banner - Prominent visibility for transparency
+                    Day 107 audit fix: excluded dataQuality 'N/A' (ETF tickers) — this banner's
+                    only two states are "unavailable" (red) and "fallback source" (yellow), so
+                    an ETF's dataQuality:'N/A' fell into the yellow branch and displayed the
+                    factually wrong "Using Backup Data Source — Primary providers unavailable"
+                    message even though no fallback was attempted; ETFs structurally don't have
+                    this data category. The correct ETF messaging already exists and renders
+                    separately via categoricalAssessment.js's "F:N/A" chip. */}
                 {analysisResult.breakdown?.fundamental?.dataQuality &&
-                 analysisResult.breakdown.fundamental.dataQuality !== 'rich' && (
+                 analysisResult.breakdown.fundamental.dataQuality !== 'rich' &&
+                 analysisResult.breakdown.fundamental.dataQuality !== 'N/A' && (
                   <div className={`rounded-lg px-4 py-3 flex items-center gap-3 ${
                     analysisResult.breakdown.fundamental.dataQuality === 'unavailable'
                       ? 'bg-red-900/40 border border-red-700/50'
@@ -1580,8 +1588,11 @@ function App() {
                         {/* Day 83 fix (Task B4): color and value both key off rs52Week now
                             (was rsRatio for color, rs52Week for value — same underlying
                             number aliased in scoringEngine.js, harmless today but fragile
-                            if they ever diverged). */}
-                        <span className={`font-bold ${analysisResult.rsData?.rs52Week >= 1.2 ? 'text-green-400' : analysisResult.rsData?.rs52Week >= 1.0 ? 'text-yellow-400' : 'text-red-400'}`}>
+                            if they ever diverged).
+                            Day 107 audit fix: bands were still 1.2/1.0 (pre-Day-78-revert) —
+                            realigned to the frozen Strong>=1.0/Weak<0.8 bands, matching the
+                            RS Interpretation block below (which already had it right). */}
+                        <span className={`font-bold ${analysisResult.rsData?.rs52Week >= 1.0 ? 'text-green-400' : analysisResult.rsData?.rs52Week >= 0.8 ? 'text-yellow-400' : 'text-red-400'}`}>
                           {analysisResult.rsData?.rs52Week?.toFixed(2) || 'N/A'}
                         </span>
                       </div>
@@ -1697,7 +1708,7 @@ function App() {
                             {srData.meta.tradeViability.support_distance_pct !== null && (
                               <div>Support: {srData.meta.tradeViability.support_distance_pct}% away</div>
                             )}
-                            {srData.meta.tradeViability.risk_reward_context && (
+                            {srData.meta.tradeViability.risk_reward_context != null && (
                               <div>R:R Context: {srData.meta.tradeViability.risk_reward_context}</div>
                             )}
                             {/* Day 39: ADX + RSI indicators - Day 40: Added tooltips */}
@@ -1742,7 +1753,7 @@ function App() {
                                 </span>
                               )}
                               {/* Day 49 (v4.9): RVOL (Relative Volume) display */}
-                              {srData.meta?.rvol && (
+                              {srData.meta?.rvol != null && (
                                 <span
                                   title={`Relative Volume (RVOL):\nCurrent volume vs 50-day average.\n≥1.5x = High interest (breakout confirmation)\n1.0-1.5x = Normal activity\n<1.0x = Low interest\n\nCurrent: ${srData.meta.rvol_display}`}
                                   className={`px-1.5 py-0.5 rounded text-[10px] font-medium cursor-help ${
@@ -2435,18 +2446,20 @@ function App() {
                               <div className="flex items-center gap-2">
                                 <span className="text-gray-400 text-sm">Fear & Greed Index:</span>
                                 <span className={`text-lg font-bold ${
-                                  fearGreedData.value >= 60 && fearGreedData.value <= 80 ? 'text-green-400' :
-                                  fearGreedData.value >= 35 && fearGreedData.value < 60 ? 'text-gray-300' : 'text-red-400'
+                                  /* Day 107 audit fix: was 60/35 (pre-Bug-0G) — realigned to
+                                     assessSentiment()'s current 55/40 bands (categoricalAssessment.js) */
+                                  fearGreedData.value >= 55 && fearGreedData.value <= 80 ? 'text-green-400' :
+                                  fearGreedData.value >= 40 && fearGreedData.value < 55 ? 'text-gray-300' : 'text-red-400'
                                 }`}>{fearGreedData.value}</span>
                                 <span className="text-gray-500 text-sm">({fearGreedData.rating})</span>
                               </div>
                               <div className="w-full bg-gray-600 rounded-full h-3 mt-2">
                                 <div
                                   className={`h-3 rounded-full ${
-                                    fearGreedData.value < 25 ? 'bg-red-500' :
-                                    fearGreedData.value < 35 ? 'bg-orange-500' :
-                                    fearGreedData.value < 60 ? 'bg-gray-400' :
-                                    fearGreedData.value < 80 ? 'bg-green-500' : 'bg-red-500'
+                                    fearGreedData.value < 20 ? 'bg-red-500' :
+                                    fearGreedData.value < 40 ? 'bg-orange-500' :
+                                    fearGreedData.value < 55 ? 'bg-gray-400' :
+                                    fearGreedData.value <= 80 ? 'bg-green-500' : 'bg-red-500'
                                   }`}
                                   style={{ width: `${fearGreedData.value}%` }}
                                 ></div>
@@ -3364,7 +3377,12 @@ function App() {
                       <div className="text-2xl font-bold text-red-400">{stats.avgLossR}R</div>
                     </div>
                     <div className="bg-gray-700/50 rounded-lg p-3 text-center">
-                      <div className="text-gray-400 text-xs">Expectancy</div>
+                      {/* Day 107 audit fix: labeled "Expectancy (R)" — the
+                          automated Forward Test panel above shows an
+                          "Expectancy" stat too, but that one is a mean
+                          %-return figure, not this Van Tharp R-multiple
+                          formula. Same word, different statistic. */}
+                      <div className="text-gray-400 text-xs">Expectancy (R)</div>
                       <div className={`text-2xl font-bold ${stats.expectancy > 0 ? 'text-green-400' : 'text-red-400'}`}>
                         {stats.expectancy > 0 ? '+' : ''}{stats.expectancy}R
                       </div>
@@ -4242,7 +4260,7 @@ function App() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>v4.53 - Multi-Source Data Intelligence</p>
+          <p>v4.54 - Multi-Source Data Intelligence</p>
           <p className="mt-1">TwelveData • Finnhub • AlphaVantage • yfinance • Stooq</p>
         </div>
       </div>
