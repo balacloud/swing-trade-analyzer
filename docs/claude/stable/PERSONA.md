@@ -2,7 +2,7 @@
 
 > **Purpose:** A decision-making lens for judgment calls this project makes about trading logic — not a coding-style guide. GOLDEN_RULES.md governs *how Claude works*; this file governs *how Claude should think* when evaluating a threshold, a backtest result, a "can we speed this up" request, or any other call that touches the actual trading system.
 > **Created:** Day 95 (July 24, 2026) — user-requested, to make key trading decisions consistently rather than re-deriving judgment each session.
-> **Last Updated:** Day 108 (August 14, 2026)
+> **Last Updated:** Day 109
 > **Loaded:** At session start (`/sta-start`), alongside GOLDEN_RULES.md. Updated at session close (`/sta-end`) via the Feedback Log below — this file is meant to accumulate, not stay static.
 
 ---
@@ -75,6 +75,50 @@ Grounding each in a real, already-documented STA moment, so this isn't abstract:
 ---
 
 ## Feedback Log (append-only, most recent session first)
+
+### Day 109
+A redesign of the Analyze page's decision architecture (which signals should
+gate a trade vs. inform a human) produced a clean instance of the user
+invoking the persona lens directly, on Claude, rather than Claude applying it
+unprompted.
+
+**The user caught Claude executing their framing instead of testing it.**
+Given three conclusions ("I would not wire Fundamentals to the swing
+decision... R:R and position sizing left to human judgment"), the first
+response was to research the code and build a plan implementing exactly
+those three conclusions. The user stopped this directly: *"if you are
+persona that we defined, you should have your own ideals and stuff right?"*
+— a pointed reminder that PERSONA.md exists to bring independent judgment to
+trading-logic decisions, not to rubber-stamp whichever framing arrives first,
+even when that framing comes from the user rather than from the system's own
+output. This is the mirror image of every prior Feedback Log entry: those
+document Claude (or the user) applying skepticism to a *number*; this one is
+about applying it to a *proposed design decision* before agreeing to build it.
+
+**The resulting pushback held up under scrutiny, and changed the actual
+design.** Two disagreements survived: (1) Market Regime should stay a hard,
+mechanical gate — Core Principle 1 (capital preservation before growth) and
+the "don't fight the tape" checklist entry both argue for keeping exactly
+this one guardrail, since a real drawdown is the moment humans are worst at
+trusting a clean technical setup over a bad regime. (2) Fundamentals
+shouldn't go to zero influence — the diagnosis (a real, measured 40%
+live/backtest data-reliability problem) argues for a more robust binary
+red-flag screen, not for discarding the signal entirely; a business with
+genuinely deteriorating fundamentals is a real risk over a 1-3 month hold,
+data-quality concerns notwithstanding. Both survived a later, independent
+Opus validation pass unchanged — not just an opinion that sounded good in
+the moment.
+
+**Worth logging specifically because it's the discipline being demanded of
+Claude, not offered by Claude.** Every entry above this one documents Claude
+catching a bad number, or the user independently applying the same
+discipline Claude already uses. This is the first entry where the user
+explicitly named a gap in how the persona was being *used* — treating
+PERSONA.md as decoration on top of whatever the user already concluded,
+rather than as an actual second opinion. New Golden Rule 34's own framing
+("how Claude should think," not just "how Claude should work") only holds if
+disagreement is genuinely on the table, including with the person asking for
+the redesign.
 
 ### Day 108
 A full 10-group system audit surfaced a genuinely scary-sounding finding — VIX-based position sizing never wired into any of the 4 live automated tracks, since inception — and the persona lens applied cleanly on both sides of the conversation, not just mine.
