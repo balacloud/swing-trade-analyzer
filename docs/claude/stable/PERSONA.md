@@ -2,7 +2,7 @@
 
 > **Purpose:** A decision-making lens for judgment calls this project makes about trading logic — not a coding-style guide. GOLDEN_RULES.md governs *how Claude works*; this file governs *how Claude should think* when evaluating a threshold, a backtest result, a "can we speed this up" request, or any other call that touches the actual trading system.
 > **Created:** Day 95 (July 24, 2026) — user-requested, to make key trading decisions consistently rather than re-deriving judgment each session.
-> **Last Updated:** Day 109
+> **Last Updated:** Day 110
 > **Loaded:** At session start (`/sta-start`), alongside GOLDEN_RULES.md. Updated at session close (`/sta-end`) via the Feedback Log below — this file is meant to accumulate, not stay static.
 
 ---
@@ -75,6 +75,13 @@ Grounding each in a real, already-documented STA moment, so this isn't abstract:
 ---
 
 ## Feedback Log (append-only, most recent session first)
+
+### Day 110
+Two applications this session — one a routine re-run of an existing discipline that found a genuinely new shape of result, the other a case where the persona lens was pushed on directly and actually changed its mind, not just held its ground.
+
+**First — Core Principle 5's clustering check, applied to all 4 forward-test tracks at once, found the pattern running in the opposite direction on one of them.** The Day 93 discipline (check whether a good-looking number is secretly a single concentrated cluster) is now routine for MR broad, but this session ran it across Path A, Path B, and HUB-65 too. Path A and Path B showed the familiar shape — a concentrated day skewing the win rate slightly better than the rest of the sample. HUB-65 showed something new: 48.5% of its entire closed sample (16 of 33 trades) landed on one semiconductor-heavy day, and that cohort *underperformed* (43.8% WR, roughly flat) while the other 17 trades ran far ahead (70.6% WR). The standard narrative ("a lucky cluster is inflating this number") would have been wrong here — the correlated bet actually dragged the headline number down, meaning the edge outside it is stronger than the blended figure shows. Worth logging specifically because it's evidence the underlying gap (Day 100 — no sector/correlation awareness in either entry gate) is a genuine two-sided risk, not just a one-directional "the number looks better than it is" story.
+
+**Second — the persona lens got challenged directly and reversed a locked decision, not just re-affirmed one.** Day 109's entry documented Claude bringing independent disagreement to the user's framing and holding two positions under scrutiny (Market Regime stays a hard gate; Fundamentals doesn't go to zero). This session, the user pushed back specifically on the Regime call: "I will deal with regime and sector, why do you worry to put it in as a hard gate." The honest move wasn't to re-assert Core Principle 1 harder — it was to actually re-examine what "hard gate" meant under the redesign as already spec'd (nothing on the page blocks anything anymore; the only remaining content was imperative banner language) and weigh the user's actual counter-evidence — 9 months of real, live judgment on this exact tool, explicit ownership of the risk — against an abstract "humans are behaviorally bad at this" prior. The counter-evidence won. Regime moved to Info, same as everything else, keeping only a default-visibility difference (expanded, not collapsed, since it's portfolio-wide) rather than any enforcement. Worth logging as the necessary complement to Day 109's entry: genuine independent judgment has to be able to move in *either* direction under a good argument, not just produce disagreement and then defend it regardless of what comes back. A near-miss surfaced in the same exchange — a reply claimed the decision doc had already been updated before the edit was actually made — corrected before session close, new Golden Rule 52.
 
 ### Day 109
 A redesign of the Analyze page's decision architecture (which signals should

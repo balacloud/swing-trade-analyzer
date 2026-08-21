@@ -203,9 +203,40 @@ This is the one deliberate exception to the "nothing gates" rule on this
 page, and it says so in its own copy (§6).
 **What this does NOT change:** `assessRiskMacro()`'s thresholds or the
 early-bear cap logic.
-**Status:** Locked — split from the composite verdict badge into its own
+**Status:** ~~Locked — split from the composite verdict badge into its own
 element (resolved via AskUserQuestion, Recommended option: "Split into two
-elements").
+elements").~~ **REVISED Day 110 — see below.**
+
+**Revision (Day 110):** The user directly challenged the hard-gate framing
+("I will deal with regime and sector, why do you worry to put it in as a
+hard gate"). Re-examined rather than defended: under this same redesign,
+"hard gate" had already shrunk to something narrower than the label implied
+— item 12 makes the Technical Read never suppressed or grayed out by
+regime, so nothing on the page actually blocks the user from acting; the
+only remaining "gate" content was a non-collapsible banner using imperative
+language ("stand-down regime... deliberately not left to judgment") plus
+`determineVerdict()` still computing an internal HOLD nothing on the page
+displays. Tested against Persona Core Principle 1 a second time with the
+user's actual counter-evidence on the table (9 months of real, live
+judgment on this exact tool, explicit ownership of regime/sector risk in
+their own process) rather than an abstract "humans are bad at this" prior —
+the counter-evidence wins. **Decision reversed: Regime becomes Info, same
+treatment as Fundamentals/R:R/Sizing — no enforcement language, no
+non-collapsible banner.** One asymmetry kept, not as a gate but as a
+default-visibility choice: regime is portfolio-wide (affects every open
+position at once) where Fundamentals is idiosyncratic (affects one stock) —
+so it stays expanded by default rather than collapsed like Sentiment, but
+that's a display default, not a rule the page enforces. Explicitly
+confirmed this only touches the Analyze page's display — the **live
+momentum tracks' actual entry gate keeps regime wired into
+`categorical_engine.py`/`live_signals.py` unchanged**, per §1 constraint 3;
+nothing here proposes touching that. New PERSONA.md Feedback Log entry
+(Day 110) — logs the persona genuinely reversing a locked position under a
+good counter-argument, not just holding or folding on request.
+**Known inconsistency, not yet fixed:** the published mockup
+(`docs/claude/design/mockups/analyze_page_redesign_mockup.html`) still
+shows the old "stand-down" banner language — not updated this session,
+pending user confirmation.
 
 ---
 
@@ -641,7 +672,11 @@ applications):
 **Page subtitle** (under the ticker):
 > Independent reads, shown side by side. You make the call.
 
-**Regime band** (new element, always visible, three states):
+**Regime band** (superseded by the Day 110 revision to item 4 above — kept
+here as the pre-revision copy since the mockup still uses it; drop the
+imperative "stand-down"/"deliberately not left to judgment" language and
+treat this as Info, expanded by default, once the mockup is updated):
+
 > 🟢 **Regime: Favorable** — VIX 16.4, SPY above its 200-day SMA.
 >
 > 🟡 **Regime: Neutral** — VIX 24.1 (elevated), SPY above its 200-day SMA.
