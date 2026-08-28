@@ -38,13 +38,14 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation, clearBackendCache, clearMarketCache, fetchDataProvenance, getCacheStatus, fetchSectorRotation, fetchMRSignal, fetchBreakoutBatch, fetchBreakout, fetchSupportResistance } from './services/api';
+import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation, clearBackendCache, clearMarketCache, fetchDataProvenance, getCacheStatus, fetchSectorRotation, fetchMRSignal, fetchMRScan, fetchBreakoutBatch, fetchBreakout, fetchSupportResistance } from './services/api';
 import { calculateScore } from './utils/scoringEngine';
 import { calculateSimplifiedAnalysis } from './utils/simplifiedScoring';
 import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings } from './utils/positionSizing';
 import { runCategoricalAssessment, getActionablePatterns } from './utils/categoricalAssessment';
 import { calculateRiskReward, hasViabilityContradiction, getViabilityBadge } from './utils/riskRewardCalc';
 import { getLiquidityThreshold } from './utils/liquidityThresholds'; // Day 83
+import { getVolumeConfirmationRead, getVolumeDirectionRead } from './utils/volumeThresholds'; // Day 111/112
 // DecisionMatrix removed Day 70 — simplicity premium (full+simple views sufficient)
 // BottomLineCard removed Day 82 (user feedback: verdict banner + What's Good/Risky
 // duplicated the Verdict Card + Categorical Assessment card elsewhere on this page —
@@ -111,6 +112,11 @@ function App() {
   const [scanLoading, setScanLoading] = useState(false);
   const [scanError, setScanError] = useState(null);
   const [scanResults, setScanResults] = useState(null);
+  // Day 111: Mean-Reversion scanner — wires the already-existing fetchMRScan()
+  // (backend /api/mr/scan, live since Day 81) to a UI button for the first time.
+  const [mrScanLoading, setMrScanLoading] = useState(false);
+  const [mrScanError, setMrScanError] = useState(null);
+  const [mrScanResults, setMrScanResults] = useState(null);
   const [selectedStrategy, setSelectedStrategy] = useState('reddit');
   const [strategies, setStrategies] = useState(null);
   const [selectedMarketIndex, setSelectedMarketIndex] = useState('all');
@@ -768,6 +774,25 @@ function App() {
       setScanError(err.message || 'Failed to scan for candidates');
     } finally {
       setScanLoading(false);
+    }
+  };
+
+  // Day 111: scan the fixed 54-ticker MR universe for active RSI(2)<10 +
+  // above-200SMA signals. Separate system from the TradingView-based scan
+  // above (different backend endpoint, different response shape) — kept
+  // independent rather than forced into the strategy dropdown.
+  const runMrScan = async () => {
+    setMrScanLoading(true);
+    setMrScanError(null);
+    setMrScanResults(null);
+    try {
+      const results = await fetchMRScan();
+      if (!results) throw new Error('MR scan returned no data — check the backend is running');
+      setMrScanResults(results);
+    } catch (err) {
+      setMrScanError(err.message || 'Failed to scan for MR signals');
+    } finally {
+      setMrScanLoading(false);
     }
   };
 
@@ -1777,6 +1802,35 @@ function App() {
                           </div>
                         </div>
                       </div>
+                      );
+                    })()}
+
+                    {/* Day 111: Volume confirmation read — informational only, gates nothing.
+                        Independent of tradeViability (unlike the Vol chip above it, which
+                        disappears when tradeViability is absent from srData.meta). */}
+                    {srData.meta?.rvol != null && (() => {
+                      const vol = getVolumeConfirmationRead(srData.meta.rvol);
+                      if (!vol) return null;
+                      // Day 112: does the volume lean buying or selling? Still a
+                      // lean, never a verdict — daily bars can't show real order
+                      // flow. Guarded independently of `vol` so a missing candle/
+                      // OBV field just omits this line, never blanks the one above.
+                      const dir = getVolumeDirectionRead({
+                        changePct: srData.change,
+                        closeLocation: srData.meta?.candle?.closeLocation,
+                        obvTrend: srData.meta?.obv?.trend,
+                      });
+                      return (
+                        <div
+                          className="mb-4 p-3 rounded-lg text-sm bg-gray-700/30 border border-gray-600 text-gray-300"
+                          title="Relative volume vs. the 50-day average, from /api/sr. Direction is inferred from three daily-bar signals — day change, where price closed inside the day's range, and OBV trend. Daily bars cannot show actual buy or sell orders; that needs order-flow data this app doesn't have. This is a lean, not a verdict. None of this affects the BUY/HOLD/AVOID verdict, the Simple Checklist, or any entry gate. Intraday, today's bar and range are still partial, so both read as provisional until the close."
+                        >
+                          <span className="font-semibold">{vol.text}</span>
+                          {dir && <div className="mt-1">{dir.text}</div>}
+                          <div className="mt-1 text-xs text-gray-500">
+                            Informational only — this does not change the verdict.
+                          </div>
+                        </div>
                       );
                     })()}
 
@@ -2830,7 +2884,71 @@ function App() {
                   {scanLoading ? '⏳ Scanning...' : '🔍 Scan'}
                 </button>
               </div>
+
+              {/* Day 111: Mean-Reversion scanner — separate system, own button.
+                  Confirmed Day 111 (105 trades, 77.14% WR, PF 2.75, net of costs) —
+                  see docs/claude/stable/PAPER_TRADING_PREREGISTRATION.md §10. */}
+              <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-700">
+                <span className="text-sm text-gray-400 flex-1">
+                  Or check the 54-ticker liquid universe for active Mean-Reversion signals
+                  (RSI(2)&lt;10, above 200-SMA, $10+/$25M+ ADV) —{' '}
+                  <span className="text-teal-400">confirmed Day 111</span>.
+                </span>
+                <button
+                  onClick={runMrScan}
+                  disabled={mrScanLoading}
+                  className="bg-teal-600 hover:bg-teal-700 px-6 py-2.5 rounded-lg font-semibold disabled:opacity-50 text-sm whitespace-nowrap"
+                >
+                  {mrScanLoading ? '⏳ Scanning...' : '🔄 MR Signals'}
+                </button>
+              </div>
             </div>
+
+            {/* Day 111: MR scan error */}
+            {mrScanError && (
+              <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-6">
+                <p className="text-red-200 font-medium">MR Scan Error</p>
+                <p className="text-red-300 text-sm mt-1">{mrScanError}</p>
+              </div>
+            )}
+
+            {/* Day 111: MR scan results */}
+            {mrScanResults && !mrScanLoading && (
+              <div className="bg-gray-800 rounded-lg p-6 mb-6 border border-teal-700/40">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-teal-400">
+                    🔄 Mean-Reversion Signals — {mrScanResults.found} of {mrScanResults.scanned} tickers
+                  </h3>
+                </div>
+                {mrScanResults.found === 0 ? (
+                  <p className="text-gray-400 text-sm">
+                    No active MR signals right now — that's the common state, not an error.
+                    RSI(2)&lt;10 is a genuine short-term extreme; most days, most tickers won't qualify.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {mrScanResults.signals.map((signal) => (
+                      <div
+                        key={signal.ticker}
+                        onClick={() => analyzeStock(signal.ticker)}
+                        className="flex items-center justify-between bg-gray-700/60 hover:bg-gray-700 rounded-lg px-4 py-3 cursor-pointer transition-colors"
+                      >
+                        <div className="flex items-center gap-4">
+                          <span className="font-bold text-white w-16">{signal.ticker}</span>
+                          <span className="text-sm text-gray-300">RSI(2) <span className="text-teal-400 font-medium">{signal.rsi2}</span></span>
+                          <span className="text-sm text-gray-300">${signal.current_price}</span>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-gray-400">
+                          <span>Stop ${signal.stop}</span>
+                          <span>Target ${signal.target}</span>
+                          <span className="text-gray-500">{signal.exit_rule}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Day 62: Sector filter banner */}
             {sectorFilter && (

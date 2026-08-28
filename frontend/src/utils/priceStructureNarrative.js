@@ -14,8 +14,7 @@
  * Audit report: docs/claude/design/PRICE_STRUCTURE_CARD_AUDIT.md
  */
 
-// Volume threshold — same constant as pattern_detection.py check_breakout_quality()
-const BREAKOUT_VOLUME_THRESHOLD = 1.5;
+import { BREAKOUT_VOLUME_THRESHOLD } from './volumeThresholds';
 
 /**
  * Is price "near" a level? ATR-relative proximity.

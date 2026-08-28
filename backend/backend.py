@@ -1636,6 +1636,26 @@ def get_support_resistance(ticker):
         rvol = round(current_volume / avg_volume_50, 2) if avg_volume_50 > 0 else 1.0
         rvol_display = f"{rvol}x avg" if rvol >= 1.5 else f"{rvol}x"
 
+        # Day 112: last-bar candle geometry — same OHLCV frame as rvol above, no
+        # extra provider call (same precedent as the Day 85 volume/change fields,
+        # "already available from the OHLCV frame fetched above"). closeLocation
+        # is (close - low) / (high - low): 1.0 = closed at the high, 0.0 = closed
+        # at the low. Deliberately NOT imported from breakout_detection.py's
+        # candle_quality_ok — that gate answers a different question (it also
+        # requires body>=50%, upper wick<=35%, and range>=1.2x ATR) and reaching
+        # it would mean calling detect_breakout(), which needs its own SPY
+        # benchmark fetch. This is arithmetic, not shared logic.
+        last_high = float(df['high'].iloc[-1])
+        last_low = float(df['low'].iloc[-1])
+        last_open = float(df['open'].iloc[-1])
+        _candle_range = last_high - last_low
+        candle_meta = {
+            'closeLocation': round((current_price - last_low) / _candle_range, 2) if _candle_range > 0 else None,
+            'open': round(last_open, 2),
+            'high': round(last_high, 2),
+            'low': round(last_low, 2),
+        }
+
         # ============================================
         # PROXIMITY FILTER (Day 15 Fix)
         # Filter S&R levels to actionable range for swing trading
@@ -1735,7 +1755,8 @@ def get_support_resistance(ticker):
                 # Day 49 (v4.9): Add OBV and RVOL for enhanced volume analysis
                 'obv': obv_data,
                 'rvol': rvol,
-                'rvol_display': rvol_display
+                'rvol_display': rvol_display,
+                'candle': candle_meta  # Day 112
             }
         }
         
@@ -3523,6 +3544,21 @@ def scan_mr_signals():
             tickers = mean_reversion.DEFAULT_MR_UNIVERSE
 
         def fetch_data(ticker, period):
+            # Day 111 fix: this used to call yf.Ticker() directly, bypassing
+            # the orchestrator's fallback chain/rate-limiter/circuit-breaker —
+            # inconsistent with the sibling /api/mr/signal route just above,
+            # which was already fixed the same way at Day 82. Now that this
+            # scanner is wired to a real UI button (Day 111), the gap actually
+            # matters. Same DataProvider-first, yfinance-fallback pattern.
+            if DATA_PROVIDER_AVAILABLE:
+                try:
+                    dp = get_data_provider()
+                    hist = dp.get_ohlcv(ticker, period)
+                    if hist is not None and not hist.empty:
+                        hist.columns = [c.capitalize() for c in hist.columns]
+                        return hist
+                except Exception as e:
+                    print(f"⚠️ DataProvider OHLCV failed for {ticker} (MR scan): {e}")
             try:
                 hist = yf.Ticker(ticker).history(period=period, auto_adjust=True)
                 if hist is not None and not hist.empty:

@@ -2,7 +2,7 @@
 
 > **Purpose:** A decision-making lens for judgment calls this project makes about trading logic — not a coding-style guide. GOLDEN_RULES.md governs *how Claude works*; this file governs *how Claude should think* when evaluating a threshold, a backtest result, a "can we speed this up" request, or any other call that touches the actual trading system.
 > **Created:** Day 95 (July 24, 2026) — user-requested, to make key trading decisions consistently rather than re-deriving judgment each session.
-> **Last Updated:** Day 110
+> **Last Updated:** Day 111
 > **Loaded:** At session start (`/sta-start`), alongside GOLDEN_RULES.md. Updated at session close (`/sta-end`) via the Feedback Log below — this file is meant to accumulate, not stay static.
 
 ---
@@ -75,6 +75,47 @@ Grounding each in a real, already-documented STA moment, so this isn't abstract:
 ---
 
 ## Feedback Log (append-only, most recent session first)
+
+### Day 111
+Two applications this session, both Core Principle 5 ("skepticism scales with
+how good the number looks") run against a genuinely new milestone — but they
+landed on opposite verdicts, which is the point worth logging.
+
+**First — MR (broad) crossed 100 trades and the stress-test came back clean,
+for the first time in this project's history.** 138 closed, PF 3.0021.
+Applied the same cluster-removal check that has caught real problems every
+time it's been run since Day 93 — excluded the single largest entry-date
+cluster (3 consecutive days, 38% of the sample) and the number *held*: PF
+2.24, win rate actually rose to 80%. This is the first track to ever clear
+this bar for real, not on a technicality — worth naming plainly rather than
+downplaying it out of habitual caution. Skepticism that never updates when a
+number survives scrutiny isn't discipline, it's just pessimism.
+
+**Second — Momentum Path B crossed the same numeric bar (117 closed, PF
+1.2293) and the identical test told a completely different story.** 66.7% of
+the entire sample (78 of 117 trades) entered in one 4-day window (Aug 3-7);
+excluding it flips the track to PF 0.72, net losing. Checked whether this was
+the already-known sector-correlation shape first (Core Principle 6 — don't
+accept the first explanation that fits) — it wasn't; the cluster's tickers
+span five unrelated sectors, so this is a *regime/timing* correlation, a
+distinct variant of the Day 100 gap, not a re-run of HUB-65's Day 110 pattern.
+Not reported as confirmed despite clearing the pre-registration's own written
+bar — the number technically passes, but Core Principle 5 says the pass
+itself is exactly what should get the most scrutiny, not the least.
+
+**Where the two intersect — a live example of "process over outcome" cutting
+against the easy path.** The S&R fix that was about to be planned this
+session (`_pivot_sr()`'s extreme-vs-nearest bug) turned out to sit directly
+underneath Path B's live entry gate. Before writing any code, stopped to
+check the caller graph rather than trusting the fix's apparent scope — found
+`live_signals.py` imports `compute_sr_levels()` directly, meaning an in-place
+fix would reset Path B's count under Golden Rule 18. Surfaced this to the
+user as an explicit 3-option decision rather than picking the option that
+felt least disruptive. Path B's own stress-test failure this session changes
+that cost-benefit materially (resetting a count that doesn't survive scrutiny
+anyway costs less than it looked like an hour earlier) — flagged that
+connection explicitly rather than treating the two findings as unrelated.
+Decision intentionally left open for the next session, not defaulted.
 
 ### Day 110
 Two applications this session — one a routine re-run of an existing discipline that found a genuinely new shape of result, the other a case where the persona lens was pushed on directly and actually changed its mind, not just held its ground.

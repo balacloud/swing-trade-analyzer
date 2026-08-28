@@ -18,7 +18,7 @@
 >            93/101/103/105/106/108 (`ROADMAP.md`). **Zero changes to any of
 >            the 4 live forward-test tracks' logic.** See §8 for the file-by-
 >            file audit that makes this claim checkable, not just asserted.
-> **Last Updated:** Day 109
+> **Last Updated:** Day 111
 
 ---
 
@@ -669,43 +669,89 @@ applications):
 
 ## §6 — Final copy
 
+Every technical block below now carries a paired **Plain-English line** —
+shown directly underneath the technical copy, muted/smaller, same visual
+convention as the honesty notes this section already used (Golden Rule-style
+"translate the jargon, don't just gate on it"). Added Day 111, in response to
+a direct request that every card's technical label ship with a
+non-technical-reader translation alongside it, not instead of it.
+
 **Page subtitle** (under the ticker):
 > Independent reads, shown side by side. You make the call.
 
-**Regime band** (superseded by the Day 110 revision to item 4 above — kept
-here as the pre-revision copy since the mockup still uses it; drop the
-imperative "stand-down"/"deliberately not left to judgment" language and
-treat this as Info, expanded by default, once the mockup is updated):
+**Regime band** (Day 111: rewritten to match the Day 110 reversal — Info,
+not a gate; no imperative "stand-down" language; kept expanded by default
+since regime is portfolio-wide, not single-stock — **this also closes the
+mockup-sync gap tracked in §9/`KNOWN_ISSUES_DAY110.md`, the copy below is
+now the single source of truth**):
 
 > 🟢 **Regime: Favorable** — VIX 16.4, SPY above its 200-day SMA.
+> Plain-English: *The overall market backdrop is calm and healthy —
+> generally a good environment for new trades.*
 >
 > 🟡 **Regime: Neutral** — VIX 24.1 (elevated), SPY above its 200-day SMA.
-> Proceed with reduced conviction.
+> Plain-English: *The market's a bit jumpy right now. A good setup is still
+> a good setup, just maybe size it smaller.*
 >
-> 🔴 **Regime: Unfavorable** — SPY below its 200-day SMA. **This is a
-> stand-down regime regardless of how good an individual setup looks.**
-> Capital preservation before growth — the one rule on this page that is
-> deliberately not left to judgment.
+> 🔴 **Regime: Unfavorable** — SPY below its 200-day SMA.
+> Plain-English: *The broader market is in a downtrend. Even a great-looking
+> stock is swimming against the tide — worth weighing before you commit
+> capital.*
 
 **Technical Read chip:**
 > **Technical Read: Strong** · Trend Template 8/8, RSI 65.9, RS 1.03
+> Plain-English: *This stock is in a healthy uptrend and beating the
+> market — the classic "leader" pattern.*
 >
 > **Technical Read: Strong · trend not yet confirmed (ADX 14.2)** ← ADX<20
 > modifier
+> Plain-English: *The setup checks out on paper, but the move hasn't shown
+> real conviction yet — could still take off, could also fizzle. Worth a
+> tighter entry or a little patience.*
+>
+> **Technical Read: Developing**
+> Plain-English: *Some of the uptrend boxes are checked, not all — this
+> could turn into a leader, but it isn't one yet.*
+>
+> **Technical Read: Weak**
+> Plain-English: *This doesn't look like a market leader right now — either
+> the trend or the relative performance is lagging.*
 >
 > **Technical Read: Unavailable** — pattern detection didn't return for
 > this ticker
+> Plain-English: *We couldn't run the trend read for this ticker — try
+> again in a moment.*
+
+**Sentiment card** (Fear &amp; Greed — no copy previously drafted for this
+section; added Day 111 to close that gap):
+> **Sentiment: Neutral (F&amp;G 47)**
+> Plain-English: *Investors aren't especially fearful or greedy right now —
+> no crowd extreme to lean against.*
+>
+> **Sentiment: Extreme Fear (F&amp;G 14)**
+> Plain-English: *The crowd is panicking. Historically that's sometimes a
+> good time to buy, not a reason to run.*
+>
+> **Sentiment: Extreme Greed (F&amp;G 88)**
+> Plain-English: *The crowd is euphoric. Historically that's when pullbacks
+> tend to start — a caution flag, not a sell signal.*
+>
+> **Sentiment: Unavailable**
+> Plain-English: *We couldn't pull sentiment data right now.*
 
 **R:R below-1.0 note** (muted, teal-bulleted, same grammar as Price
 Structure's watch items):
 > • R:R is 0.34 because the nearest resistance (R1 $227.49) is only 1.0%
 > above price while the ATR-based stop sits 7.1% below. The constraint is
 > target proximity, not stop placement.
+> Plain-English: *For every $1 you're risking, this setup only offers about
+> 34 cents of reward to the nearest resistance — not great odds, at least
+> to that first target.*
 >
 > • This ratio is computed from the S&R levels shown above. Those levels
 > come from a pivot method that selects the most price-extreme levels in
-> range, not the nearest ones — a known open issue (Day 108). Read the
-> number as one input, not a verdict.
+> range, not the nearest ones — a known open issue (Day 108, now Golden
+> Rule 53). Read the number as one input, not a verdict.
 
 **R:R footnote** (persistent, replaces any "3 thresholds" framing — see §3
 correction 2):
@@ -716,14 +762,26 @@ correction 2):
 > support and resistance — no stop, no ATR. The Pattern Detection card's R:R
 > uses a fixed target multiple (1.12-1.20× pivot), not real resistance. All
 > three are shown; none gates anything.
+> Plain-English: *You'll see a few different "R:R" numbers here — they're
+> calculated differently and answer slightly different questions. They're
+> not supposed to match each other.*
 
 **Sizing inputs grid** (header + framing):
 > **Sizing inputs** — the raw numbers, no recommendation. Position sizing is
 > roughly 90% of a system's results (Van Tharp); it's the last thing this
 > page will decide for you.
+> Plain-English: *We're giving you the ingredients, not the recipe — how
+> much to buy is your call.*
 >
 > [ADX] [ATR] [Stop distance — pullback] [Stop distance — momentum] [RVOL]
 > [VIX]
+>
+> Plain-English per stat: ADX — *how strongly this stock is currently
+> trending.* ATR — *how much this stock typically moves in a day; a bigger
+> number usually means a wider stop.* Stop distance % — *how far below your
+> entry the stop-loss would sit.* RVOL — *is today busier or quieter than
+> usual? Below 1.0 means quieter.* VIX — *a gauge of how nervous the overall
+> market is right now.*
 >
 > ADX below 20 means no confirmed trend. A wider stop means fewer shares for
 > the same dollar risk. RVOL below 1.0 means today's volume is lighter than
@@ -739,12 +797,20 @@ purple button style and `autoFillPositionCalculator()`.
 >
 > No red flags found. *(ROE 31.2% · Revenue growth +8.4% · Debt/Equity
 > 0.41)*
+> Plain-English: *The underlying business looks healthy — profitable,
+> growing, and not overloaded with debt.*
 >
 > ⚑ **1 red flag** — Revenue declining −12.4% YoY.
+> Plain-English: *Sales are shrinking. Worth understanding why before
+> holding this for weeks or months.*
 >
 > Screen unavailable — fundamentals data didn't return for this ticker.
+> Plain-English: *We don't have financial data for this stock right now —
+> can't tell you either way.*
 >
 > Not applicable — ETF.
+> Plain-English: *This is a fund, not a company — there's no balance sheet
+> to check.*
 >
 > ⓘ *This screen flags facts, it doesn't score. The live fundamentals feed
 > disagrees with the data this system was backtested on about 40% of the
@@ -759,6 +825,9 @@ string):
 >
 > *Sets how prominently the fundamentals screen is shown — longer holds
 > surface it, shorter holds collapse it. It doesn't change any read.*
+> Plain-English: *How long you plan to hold changes how much the
+> Fundamentals section matters — over months, a company's health counts for
+> more than it does over days.*
 
 **Scan tab disclosure line** (one line under the "STA Verdict" column
 header, per item 12's cross-tab resolution):
@@ -866,6 +935,8 @@ verification afterthought.
 | `/api/sr/<ticker>`'s duplicate backend/frontend R:R arithmetic (item 8) | Post-freeze DRY cleanup | Touches `backend.py`'s S&R route, upstream of `compute_sr_levels` — deferred, not urgent |
 | No visual mockup built yet | Build the Artifact once remaining copy/threshold questions are closed | User explicitly asked for decisions to finalize before the mockup, not in parallel |
 | ROADMAP.md priority entry for this work | Add during §7.6 (docs phase) if/when implementation starts | Not yet added — this design doc exists independently of the roadmap today |
+| `scoringEngine.js`'s orphaned fundamentals score (incl. Forward P/E) — dead but not deleted | Delete `generateScoreExplanation()` (`App.jsx:1032-1071`) and `getSubScoreInfo()` (`App.jsx:1074-1091`) in the same pass as item 3's other dead-code cleanup, or explicitly wire them up if ever needed | Traced Day 111: `calculateScore()` itself is live (`App.jsx:448/651`, its `.breakdown.technical` feeds `runCategoricalAssessment()` directly) but its **fundamental** point-score — 5 metrics incl. Forward P/E, different thresholds than `assessFundamental()` for the same 3 shared metrics (e.g. ROE weak-line 8% vs. 10%, Debt/Equity strong-line 1.0 vs. 0.5) — is computed every run and stored in `analysisResult.scores.fundamental`/`analysisResult.details`, but the only two functions that would ever render it are defined and never called anywhere in the file (confirmed via grep, zero invocations). Not a live conflict today; a landmine if either function is ever wired up without this context — it would silently reintroduce a 3rd, differently-thresholded fundamentals verdict next to the redesigned red-flag card. |
+| Item 16 (new, Day 111-112): Volume Confirmation — **SHIPPED on the live page** | Done | ROADMAP Priority #11's volume-confirmation gap redesigned to match this doc's own Info-not-gate philosophy, then actually built — but not on "the Technical Read card" as originally planned. A dedicated Opus pass found Technical Read and the Sizing Inputs grid only exist in this doc's own unimplemented mockup; the live page has neither yet. Shipped instead on the live Trade Setup card (`App.jsx`, ~line 1808+), reusing the live RVOL computation and a newly-deduplicated 1.5x threshold (`frontend/src/utils/volumeThresholds.js` — the "already shared" threshold turned out to be 7 unlinked copies, now fixed on the frontend side). **Day 112 extension, also shipped:** a second line answering "buying or selling," combining day's price change, close-location-in-range (new `meta.candle` backend field), and OBV trend into an honest lean — "leans toward buying pressure" / "…selling pressure" / "mixed signals, no clear lean" / "no clear lean either way," explicitly never a verdict, since daily bars can't show real order flow. A second Opus pass found a real, pre-existing OBV sign bug along the way (logged in `KNOWN_ISSUES_DAY110.md`, not fixed — out of scope for a display-only change). **Re-homing note for whenever this redesign actually ships:** this note belongs on Technical Read once that card exists; until then it lives on Trade Setup so it isn't waiting on the whole redesign to land. Companion item (Dual/Absolute Momentum) decided **not** to pursue — tested clean but near-inert, correct but not worth the complexity. |
 
 ---
 
@@ -876,3 +947,13 @@ verification afterthought.
   corrections, 4 additional decisions resolved: default view, ADX modifier,
   Technical Read/Regime split, evidence-based red-flag thresholds). Full
   implementation plan drafted, not executed. No application code changed.
+- **Day 111:** §6 rewritten — every card's technical copy now carries a
+  paired plain-English line (Regime, Technical Read, Sentiment, R:R, Sizing
+  Inputs, Fundamentals, Holding Period), plus a new Sentiment card copy block
+  that didn't exist before. Regime band copy replaced with the actual Day 110
+  post-reversal wording (Info-toned, no "stand-down" language) — this is now
+  the single source of truth; the published mockup `.html` file itself still
+  needs a separate update to match, tracked in `KNOWN_ISSUES_DAY110.md`. New
+  §9 open item: `scoringEngine.js`'s orphaned fundamentals score (incl.
+  Forward P/E) is dead-but-not-deleted — traced directly, confirmed a landmine
+  not a live conflict. No application code changed.

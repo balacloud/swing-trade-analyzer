@@ -2,8 +2,9 @@
 
 > **Purpose:** Single canonical audit framework for ALL audits in STA — internal, external, design, behavioral, coherence
 > **Location:** `docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 72 (March 30, 2026)
+> **Last Updated:** Day 111
 > **History:** Evolved from Day 50 (exhaustive testing lesson), Day 57 (first coherence audit), Day 61 (4-layer audit), Day 64 (deep coherence audit), Day 68 (external LLM audit framework), Day 71 (behavioral audit), Day 72 (this consolidation)
+> **Companion doc:** `docs/claude/stable/AUDIT_COVERAGE_LEDGER.md` (Day 111) — tracks which component was last reviewed, at what depth (using this file's Layer 1/2/3 scale), and with what findings. Check it before scoping a new audit, so "new finding" and "re-verified known issue" stay distinguishable.
 
 ---
 
