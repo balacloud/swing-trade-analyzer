@@ -66,7 +66,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 # /api/sectors/pullback-screen endpoint (SRPS discretionary screener).
 # Day 105: bumped to 2.46 for the new /api/sectors/sub-industry-pullback-screen
 # endpoint + the shared _srps_true_rs()/_srps_evaluate_candidate() refactor.
-BACKEND_VERSION = '2.47'
+BACKEND_VERSION = '2.49'
 
 from constants import SUPPORT_PROXIMITY_PCT, RESISTANCE_PROXIMITY_PCT  # shared with support_resistance.py
 from sub_industry_clusters import SUB_INDUSTRY_CLUSTERS, NO_PROXY_CLUSTERS  # Day 100+ Sub-Industry Watch
@@ -1728,6 +1728,10 @@ def get_support_resistance(ticker):
             'timestamp': datetime.now().isoformat(),
             'meta': {
                 'methodUsed': sr_levels.method,
+                # Day 112: which pivot selection produced these levels ("nearest"
+                # post-GR53-fix, "extreme" on the rollback flag). null for the
+                # agglomerative/kmeans/volume-profile paths.
+                'pivotSelection': sr_levels.meta.get('selection'),
                 'supportCount': len(actionable_support_levels),
                 'resistanceCount': len(actionable_resistance_levels),
                 'allSupportCount': len(all_support_levels),

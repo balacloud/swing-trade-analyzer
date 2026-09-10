@@ -127,6 +127,8 @@ def main():
     parser.add_argument('--scan-interval', type=int, default=2)
     parser.add_argument('--mr-only', action='store_true',
                         help='Skip Config C (momentum) — re-test MR alone on the same universe/seed, e.g. after an MR-specific change')
+    parser.add_argument('--momentum-only', action='store_true',
+                        help='Skip the MR leg — re-test Config C alone on the same universe/seed, e.g. after an S&R change that cannot affect MR (Day 112)')
     args = parser.parse_args()
 
     print("=" * 70)
@@ -157,16 +159,21 @@ def main():
         momentum_c = momentum_results['results'].get('C_standard', {})
 
     # --- MR ---
-    print(f"\n{'=' * 70}\n  RUNNING MEAN-REVERSION\n{'=' * 70}")
-    mr_trades, mr_skipped = run_mr_on_universe(universe, args.start, args.end)
-    mr_metrics = compute_metrics(_translate_mr_trades_for_metrics(mr_trades))
+    if args.momentum_only:
+        print("\n  --momentum-only: skipping the MR leg (no S&R dependency; unchanged)")
+        mr_metrics = None
+        mr_skipped = []
+    else:
+        print(f"\n{'=' * 70}\n  RUNNING MEAN-REVERSION\n{'=' * 70}")
+        mr_trades, mr_skipped = run_mr_on_universe(universe, args.start, args.end)
+        mr_metrics = compute_metrics(_translate_mr_trades_for_metrics(mr_trades))
 
-    print(f"\n{'=' * 70}\n  MR RESULTS\n{'=' * 70}")
-    print(f"  Total trades:    {mr_metrics['total_trades']}")
-    print(f"  Win rate:        {mr_metrics['win_rate']}%")
-    print(f"  Profit Factor:   {mr_metrics['profit_factor']}")
-    print(f"  Sharpe:          {mr_metrics['sharpe_ratio']}")
-    print(f"  Skipped:         {len(mr_skipped)}/{len(universe)}")
+        print(f"\n{'=' * 70}\n  MR RESULTS\n{'=' * 70}")
+        print(f"  Total trades:    {mr_metrics['total_trades']}")
+        print(f"  Win rate:        {mr_metrics['win_rate']}%")
+        print(f"  Profit Factor:   {mr_metrics['profit_factor']}")
+        print(f"  Sharpe:          {mr_metrics['sharpe_ratio']}")
+        print(f"  Skipped:         {len(mr_skipped)}/{len(universe)}")
 
     if momentum_c is not None:
         print(f"\n{'=' * 70}\n  CONFIG C RESULTS\n{'=' * 70}")

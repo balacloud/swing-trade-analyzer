@@ -117,7 +117,15 @@ function buildKeyLevels(currentPrice, resistance, support, levelScores, confluen
   const levels = [];
 
   const addLevels = (prices, type) => {
-    const nearest = (prices || []).slice(0, 2);
+    // Day 112 (BUG-B / GR53 recurring): both arrays arrive ascending. For
+    // resistance, ascending IS nearest-first. For support it's farthest-first,
+    // so the old slice(0, 2) showed the two DEEPEST supports, not the nearest —
+    // the same "nearest actually means farthest" mistake this session fixes in
+    // the backend pivot selection.
+    const ordered = type === 'support'
+      ? [...(prices || [])].sort((a, b) => b - a)
+      : (prices || []);
+    const nearest = ordered.slice(0, 2);
     for (const price of nearest) {
       const dist = distancePct(currentPrice, price);
       levels.push({

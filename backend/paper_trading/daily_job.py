@@ -280,7 +280,7 @@ def print_report():
     ledger.init_db()
     print("\n=== MOMENTUM ===")
     _print_variant_stats('momentum', 'A_frozen', 'Path A (frozen, flat/ATR R:R proxy)')
-    _print_variant_stats('momentum', 'B_revised_rr', 'Path B (real S&R-based R:R gate, Day 95)')
+    _print_variant_stats('momentum', 'B_revised_rr', 'Path B (RETIRED Day 112 — real S&R gate, no live edge over 150 trades; open/pending winding down)')
 
     print("\n=== MR ===")
     _print_variant_stats('mr', 'A_frozen', 'MR (unchanged — not part of the Path B experiment)')

@@ -2,7 +2,7 @@
 
 > **Purpose:** A decision-making lens for judgment calls this project makes about trading logic — not a coding-style guide. GOLDEN_RULES.md governs *how Claude works*; this file governs *how Claude should think* when evaluating a threshold, a backtest result, a "can we speed this up" request, or any other call that touches the actual trading system.
 > **Created:** Day 95 (July 24, 2026) — user-requested, to make key trading decisions consistently rather than re-deriving judgment each session.
-> **Last Updated:** Day 111
+> **Last Updated:** Day 112
 > **Loaded:** At session start (`/sta-start`), alongside GOLDEN_RULES.md. Updated at session close (`/sta-end`) via the Feedback Log below — this file is meant to accumulate, not stay static.
 
 ---
@@ -75,6 +75,55 @@ Grounding each in a real, already-documented STA moment, so this isn't abstract:
 ---
 
 ## Feedback Log (append-only, most recent session first)
+
+### Day 112
+The session's spine was the S&R `_pivot_sr` fix (Golden Rule 53), and the
+persona lens did most of its work *after* the fix was verified correct, on
+what the backtest number then did.
+
+**"Process over outcome" in its purest form — the fix is right, the number
+it produces is worse, and the worse number is the honest one.** The
+corrected S&R selection dropped Config C's backtest from PF 0.97 to 0.53
+(trades 75 → 41). The reflex — and the temptation Golden Rule 20 exists to
+name — is to reach for `pivot_max_levels` or the spacing threshold and claw
+the trade count back. Held the line: run once, accept it, no re-tuning. The
+old number was itself partly a bug artifact (the extreme-level bug set the
+R:R reward target to the highest high in two years, inflating R:R past the
+1.2 gate on trades that were never real 1.2:1 setups — NE showed R:R 128 with
+the bug, 0.42 corrected). A veteran who's blown up knows the market
+eventually charges you for every number you chose not to believe; better the
+backtest tells you now, on paper, that the momentum edge is thin.
+
+**The pre-registered prediction was wrong in direction, and that was logged,
+not buried.** Predicted "trades rise"; they fell. Root-caused the miss (the
+prediction reasoned about the `is_viable` gate term and missed that
+`rr_ratio` inflation was the dominant effect) and wrote it into the
+re-baseline doc and a new Golden Rule (56) rather than quietly retrofitting
+the reasoning to match the result. The pre-registration did its job — it's
+what made the miss visible and forced an honest post-mortem.
+
+**The synthesis the lens forced: momentum has now failed every honesty test,
+and the disciplined response is to stop feeding it.** Path B (real S&R gate)
+→ null, retired. Path A → PF 1.11 and drifting at 74 trades. Day 79
+survivorship-free → 1.40, not significant. Day 107 → 0.97. Day 112 corrected
+→ 0.53. Five independent looks, same answer. Sunk-cost fallacy is on the
+veteran's checklist for a reason — the market doesn't know or care how much
+effort went into the momentum engine. But the *disciplined* version isn't
+"kill Path A now" (that's the premature call the 100-trade bar exists to
+prevent) — it's "let it finish saying no, then respect the answer." And the
+mirror of that: MR (broad), 194 trades / PF 2.56 / held steady across a
+week, is the one edge that survives every stress-test — so the next real
+work is deploying *it* (IBKR real paper execution), not polishing the
+Analyze page. Finding an edge that survives scrutiny is a call to act on it,
+not to keep auditing cards.
+
+This session also produced the scoped version of the user's proposed
+"Opus-plans-then-Sonnet-implements" rule (Golden Rule 55) — the persona-lens
+argument for scoping it rather than blanketing it was the same one behind
+"don't add complexity to fix a bad result; the fix is usually fewer, better
+filters": a process rule that fires universally when it's only needed
+sometimes is added complexity, and it invites the rubber-stamp failure mode
+Golden Rule 41 already guards against.
 
 ### Day 111
 Two applications this session, both Core Principle 5 ("skepticism scales with

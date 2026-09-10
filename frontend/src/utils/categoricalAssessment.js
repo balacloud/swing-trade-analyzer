@@ -53,17 +53,53 @@ const ETF_TICKERS = ['SPY', 'QQQ', 'IWM', 'DIA', 'VOO', 'VTI', 'VEA', 'VWO', 'VN
 const PATTERN_ACTIONABILITY_THRESHOLD = 60;
 
 /**
- * Day 83: shared builder for the 3 near-identical actionable-pattern blocks
- * below (VCP/Cup & Handle/Flat Base differ only in their target multiplier,
- * description text, and action text — the stop/target/R:R math and breakout
- * metadata shape were previously copy-pasted 3x).
+ * Day 112 (GR53 remediation, Phase 1): measured-move price target.
+ * Replaces the old flat `targetMultiplier` (1.20 C&H / 1.12 Flat Base — a
+ * made-up percentage never checked against the chart) with the real pattern
+ * geometry: cup depth / base height projected up from the breakout pivot
+ * (O'Neil's measured-move rule). Returns null when the geometry isn't in the
+ * payload, rather than falling back to a fabricated percentage
+ * (Architecture Rule 6 — "return null, not a plausible fake").
+ * VCP has no published measured move (Minervini uses trailing stops / R
+ * multiples); it keeps a 'flat_pct_legacy' flag until Phase 4 wires it to
+ * real resistance from the corrected S&R engine.
  */
-function buildActionablePattern({ name, fullName, patternData, atr, targetMultiplier, description, action }) {
+function measuredMoveTarget(patternData, basis) {
+  const pivot = patternData?.pivot_price;
+  if (pivot == null) return null;
+  if (basis === 'cup_depth') {
+    const lip = patternData.cup?.left_lip_price;
+    const bottom = patternData.cup?.bottom_price;
+    if (lip == null || bottom == null || lip <= bottom) return null;
+    return pivot + (lip - bottom);
+  }
+  if (basis === 'base_depth') {
+    const hi = patternData.base?.high;
+    const lo = patternData.base?.low;
+    if (hi == null || lo == null || hi <= lo) return null;
+    return pivot + (hi - lo);
+  }
+  return null;
+}
+
+/**
+ * Day 83: shared builder for the 3 near-identical actionable-pattern blocks
+ * below (VCP/Cup & Handle/Flat Base differ only in their target, description
+ * text, and action text — the stop/R:R math and breakout metadata shape were
+ * previously copy-pasted 3x).
+ * Day 112: takes a pre-computed `targetPrice` + `targetBasis` instead of a
+ * flat multiplier; `targetPrice` may be null, in which case targetPrice /
+ * targetBasis / riskReward all come back null.
+ */
+function buildActionablePattern({ name, fullName, patternData, atr, targetPrice, targetBasis, description, action }) {
   const pivotPrice = patternData.pivot_price;
   const stopPrice = atr
     ? pivotPrice - (atr * 2)  // 2 ATR below pivot
     : pivotPrice * 0.93;     // 7% below pivot as fallback
-  const targetPrice = pivotPrice * targetMultiplier;
+  const hasTarget = targetPrice != null && Number.isFinite(targetPrice) && targetPrice > pivotPrice;
+  const riskReward = hasTarget
+    ? ((targetPrice - pivotPrice) / (pivotPrice - stopPrice)).toFixed(1)
+    : null;
   const breakout = patternData.breakout || {};
 
   return {
@@ -73,8 +109,9 @@ function buildActionablePattern({ name, fullName, patternData, atr, targetMultip
     status: patternData.status,
     triggerPrice: pivotPrice,
     stopPrice: Math.round(stopPrice * 100) / 100,
-    targetPrice: Math.round(targetPrice * 100) / 100,
-    riskReward: ((targetPrice - pivotPrice) / (pivotPrice - stopPrice)).toFixed(1),
+    targetPrice: hasTarget ? Math.round(targetPrice * 100) / 100 : null,
+    targetBasis: hasTarget ? targetBasis : null,
+    riskReward,
     description,
     action,
     breakout: {
@@ -116,7 +153,10 @@ export function getActionablePatterns(patternsData, atr = null) {
       fullName: 'Volatility Contraction Pattern',
       patternData: vcp,
       atr,
-      targetMultiplier: 1.15, // 15% above pivot
+      // Day 112: VCP has no measured move. Left on the legacy flat 15% until
+      // Phase 4 wires it to real resistance from the corrected S&R engine.
+      targetPrice: vcp.pivot_price != null ? vcp.pivot_price * 1.15 : null,
+      targetBasis: 'flat_pct_legacy',
       description: `${vcp.contractions_count} contractions with ${vcp.base_tightness_pct}% base tightness`,
       action: vcp.status === 'at_pivot' ? 'Ready to buy on breakout above pivot' :
               vcp.status === 'broken_out' ? 'Already broken out - use pullback entry' :
@@ -132,7 +172,9 @@ export function getActionablePatterns(patternsData, atr = null) {
       fullName: 'Cup and Handle Pattern',
       patternData: cupHandle,
       atr,
-      targetMultiplier: 1.20, // 20% above pivot (C&H targets are higher)
+      // Day 112: measured move = cup depth (left lip − bottom) added to the pivot.
+      targetPrice: measuredMoveTarget(cupHandle, 'cup_depth'),
+      targetBasis: 'cup_depth',
       description: `Cup depth ${cupHandle.cup?.depth_pct}%, ${cupHandle.handle?.days || 0} day handle`,
       action: cupHandle.status === 'complete' ? 'Ready to buy on handle breakout' :
               cupHandle.status === 'broken_out' ? 'Already broken out - use pullback entry' :
@@ -148,7 +190,9 @@ export function getActionablePatterns(patternsData, atr = null) {
       fullName: 'Flat Base Consolidation',
       patternData: flatBase,
       atr,
-      targetMultiplier: 1.12, // 12% above pivot (flat base targets are modest)
+      // Day 112: measured move = base height (high − low) added to the pivot.
+      targetPrice: measuredMoveTarget(flatBase, 'base_depth'),
+      targetBasis: 'base_depth',
       description: `${flatBase.base?.range_pct}% range, ${flatBase.prior_uptrend?.pct}% prior uptrend`,
       action: flatBase.status === 'forming' ? 'Ready to buy on breakout above range' :
               flatBase.status === 'broken_out' ? 'Already broken out - use pullback entry' :

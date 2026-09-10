@@ -112,6 +112,9 @@ function PositionsTable({ positions, totalClosedCount }) {
 const BADGE_STYLES = {
   amber: { border: 'border-amber-600/50', bg: 'bg-amber-900/40', text: 'text-amber-400' },
   teal: { border: 'border-teal-600/50', bg: 'bg-teal-900/40', text: 'text-teal-400' },
+  // Day 112: neutral gray for a retired/wound-down track — deliberately not
+  // amber, so a retired experiment doesn't still read as an active one.
+  gray: { border: 'border-gray-600/50', bg: 'bg-gray-800/60', text: 'text-gray-400' },
 };
 
 function SystemCard({ name, label, data, badge, badgeColor = 'amber', caption }) {
@@ -276,13 +279,15 @@ export default function AutomatedPaperTradingPanel() {
           {status.systems?.momentumPathB && (
             <div className="mt-3">
               <p className="text-xs text-gray-500 mb-2">
-                <span className="text-amber-400 font-medium">Path B</span> — same daily momentum candidates as
-                Path A above, gated on the real support/resistance-based R:R check that the historical backtest
-                actually validated (Day 95 finding), instead of Path A's flat-target/ATR-clamp proxy. A parallel
-                experiment, own 100-trade bar — does not affect Path A's count or the frozen verdict logic.
+                <span className="text-gray-400 font-medium">Path B</span> — <span className="text-gray-400 font-medium">RETIRED Day 112.</span> Tested
+                the real support/resistance-based R:R gate (the one the historical backtest actually validated,
+                Day 95 finding) against the same daily momentum candidates as Path A. Result over 150 closed
+                trades: no live edge (PF ~1.01 — the only lift came from one Aug 3–7 2026 regime cluster,
+                ex-cluster PF 0.72). No new Path B signals are generated; open/pending positions below are
+                winding down by their own exit rules. Never affected Path A's count or the frozen verdict logic.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <SystemCard label="Momentum (Path B)" data={status.systems.momentumPathB} badge="Experimental" />
+                <SystemCard label="Momentum (Path B)" data={status.systems.momentumPathB} badge="Retired" badgeColor="gray" />
               </div>
             </div>
           )}

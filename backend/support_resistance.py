@@ -52,6 +52,13 @@ class SRConfig:
     pivot_right: int = 5
     pivot_max_levels: int = 5
     pivot_min_spacing_frac: float = 0.0025  # 0.25% of price
+    # Day 112 (Golden Rule 53 remediation): select the N pivots NEAREST to
+    # current price on each side, not the N most EXTREME in the lookback
+    # window (the pre-Day-112 behaviour, which made "nearest support" the
+    # deepest low in the 2y range). False = pre-Day-112 selection, kept as a
+    # true no-op rollback path for the backtest A/B.
+    pivot_nearest_selection: bool = True
+    touch_saturation: int = 5  # touch count at which a level's touch score saturates to 1.0 (Fix 2)
     kmeans_clusters: int = 5
     volatility_window: int = 3
     volatility_threshold: float = 0.08  # 8% avg move over window
@@ -798,7 +805,7 @@ def _agglomerative_sr(
             "raw_pivot_count": len(all_pivots),
             "clustered_level_count": len(clustered_levels),
             "valid_level_count": len(valid_levels),
-            "level_scores": {str(round(l, 2)): s for l, s in scored_levels[:10]},
+            "level_scores": {f"{round(l, 2):.2f}": s for l, s in scored_levels[:10]},  # Day 112: zero-padded 2dp (BUG-A)
             "atr": round(atr, 2),
             "merge_percent": cfg.merge_percent,
             "resistance_projected": resistance_projected,
@@ -1011,7 +1018,7 @@ def _enrich_with_mtf(
             "enabled": True,
             "weekly_support": [round(s, 2) for s in weekly_support],
             "weekly_resistance": [round(r, 2) for r in weekly_resistance],
-            "confluence_map": {str(round(k, 2)): v for k, v in confluence_map.items()},
+            "confluence_map": {f"{round(k, 2):.2f}": v for k, v in confluence_map.items()},  # Day 112: zero-padded 2dp — App.jsx looks up with .toFixed(2) (BUG-A)
             "confluent_levels": confluent_count,
             "total_levels": len(confluence_map),
             "confluence_pct": round(confluent_count / len(confluence_map) * 100, 1) if confluence_map else 0
@@ -1045,24 +1052,70 @@ def _pivot_sr(df: pd.DataFrame, cfg: SRConfig) -> Optional[Tuple[List[float], Li
         if not highs and not lows:
             return None
 
-        # keep last N extreme levels
-        highs = highs[-cfg.pivot_max_levels :]
-        lows = lows[: cfg.pivot_max_levels]
+        price = float(df["close"].iloc[-1])
 
-        # sanity check spacing
-        all_levels = sorted(highs + lows)
-        if len(all_levels) > 1:
-            diffs = np.diff(all_levels)
-            ref_price = float(df["close"].iloc[-1])
-            min_allowed = ref_price * cfg.pivot_min_spacing_frac
-            if np.any(diffs < min_allowed):
-                logger.info("Pivot levels too tightly packed; rejecting.")
-                return None
+        if cfg.pivot_nearest_selection:
+            # Day 112 (Golden Rule 53): keep the pivots NEAREST to current
+            # price on each side, not the N most EXTREME in the whole window.
+            # The old code sliced highs[-N:] / lows[:N] BEFORE the caller split
+            # around price, so a resistance sitting just above price was
+            # deleted whenever it wasn't among the 5 highest pivots overall —
+            # "nearest resistance" was structurally unrepresentable.
+            res_pool = sorted(h for h in highs if h > price)                  # ascending — nearest first
+            sup_pool = sorted((l for l in lows if l <= price), reverse=True)  # descending — nearest first
+            pool_scored = dict(_score_levels(res_pool + sup_pool, df, cfg.touch_threshold))
+            min_gap = price * cfg.pivot_min_spacing_frac
 
+            def _merge_outward(pool):
+                # Merge levels closer than min_gap instead of rejecting the
+                # whole method (the pre-Day-112 spacing check returned None,
+                # which under nearest-selection would fire constantly and
+                # silently punt every ticker to agglomerative). On a collision
+                # keep whichever level has more touches.
+                kept: List[float] = []
+                for lvl in pool:
+                    if kept and abs(lvl - kept[-1]) < min_gap:
+                        if pool_scored.get(lvl, 0) > pool_scored.get(kept[-1], 0):
+                            kept[-1] = lvl
+                        continue
+                    kept.append(lvl)
+                    if len(kept) >= cfg.pivot_max_levels:
+                        break
+                return kept
+
+            highs = sorted(_merge_outward(res_pool))
+            lows = sorted(_merge_outward(sup_pool))
+            selection = "nearest"
+        else:
+            # pre-Day-112 behaviour: keep the N most extreme levels. Retained
+            # as a true no-op rollback path for the backtest A/B (GR21).
+            highs = highs[-cfg.pivot_max_levels :]
+            lows = lows[: cfg.pivot_max_levels]
+
+            all_levels = sorted(highs + lows)
+            if len(all_levels) > 1:
+                diffs = np.diff(all_levels)
+                min_allowed = price * cfg.pivot_min_spacing_frac
+                if np.any(diffs < min_allowed):
+                    logger.info("Pivot levels too tightly packed; rejecting.")
+                    return None
+            selection = "extreme"
+
+        if not highs and not lows:
+            return None
+
+        # Day 112: touch scores for the pivot path. _agglomerative_sr already
+        # emits meta["level_scores"]; the pivot path never did, so the Price
+        # Structure card's touch counts silently vanished whenever pivot won.
+        # Same zero-padded 2dp key format as _agglomerative_sr / _enrich_with_mtf
+        # (see BUG-A) so all three maps use one convention.
+        final_scored = _score_levels(highs + lows, df, cfg.touch_threshold)
         meta = {
             "raw_high_count": len(highs),
             "raw_low_count": len(lows),
             "type": "pivot",
+            "selection": selection,
+            "level_scores": {f"{round(l, 2):.2f}": s for l, s in final_scored},
         }
         return highs, lows, meta
 

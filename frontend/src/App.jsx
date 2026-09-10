@@ -2267,9 +2267,25 @@ function App() {
                                 </div>
                                 <div className="text-center p-1 bg-gray-700/50 rounded">
                                   <div className="text-gray-400">Target</div>
-                                  <div className="text-green-400 font-mono font-medium">${pattern.targetPrice?.toFixed(2)}</div>
+                                  <div className="text-green-400 font-mono font-medium">
+                                    {pattern.targetPrice != null ? `$${pattern.targetPrice.toFixed(2)}` : '—'}
+                                  </div>
                                 </div>
                               </div>
+                              {/* Day 112: show where the target number comes from (measured move vs. legacy flat %) */}
+                              {pattern.targetBasis && (
+                                <div className="text-[11px] text-gray-500 mb-2">
+                                  {pattern.targetBasis === 'cup_depth' ? 'Target = pivot + cup depth (measured move)' :
+                                   pattern.targetBasis === 'base_depth' ? 'Target = pivot + base height (measured move)' :
+                                   pattern.targetBasis === 'flat_pct_legacy' ? 'Target = flat +15% (VCP has no measured move — pending resistance-based fix)' :
+                                   null}
+                                </div>
+                              )}
+                              {pattern.targetPrice == null && (
+                                <div className="text-[11px] text-gray-500 mb-2">
+                                  No structural target — pattern geometry unavailable for this ticker.
+                                </div>
+                              )}
                               {/* Volume Confirmation Row */}
                               {pattern.breakout?.volumeRatio != null && (
                                 <div className="flex items-center gap-2 text-xs mb-2">
@@ -2282,7 +2298,7 @@ function App() {
                                 </div>
                               )}
                               <div className="flex justify-between items-center text-xs">
-                                <span className="text-gray-400">R:R {pattern.riskReward}:1</span>
+                                <span className="text-gray-400">{pattern.riskReward != null ? `R:R ${pattern.riskReward}:1` : 'R:R —'}</span>
                                 <span className={`${
                                   pattern.breakout?.isTradeable ? 'text-green-400 font-medium' :
                                   pattern.status === 'at_pivot' || pattern.status === 'complete' ? 'text-yellow-400' :
@@ -4378,7 +4394,7 @@ function App() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>v4.54 - Multi-Source Data Intelligence</p>
+          <p>v4.56 - Multi-Source Data Intelligence</p>
           <p className="mt-1">TwelveData • Finnhub • AlphaVantage • yfinance • Stooq</p>
         </div>
       </div>

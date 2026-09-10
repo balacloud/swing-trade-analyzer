@@ -155,6 +155,13 @@ def check_sr_gate(stock_df, entry_idx):
     exactly: real support/resistance levels for risk/reward, is_viable +
     rr_ratio>=1.2 as the pass condition, flat 1.5 ATR-based fallback when no
     S&R levels exist. Returns (passes: bool, rr_ratio: float, viable, nearest_support, nearest_resistance).
+
+    DEAD as of Day 112 — Path B was retired and nothing calls this. It is kept
+    for a possible future corrected-S&R parallel run. NOTE: this gate was last
+    validated against the pre-Day-112 `_pivot_sr` (extreme-level selection).
+    Day 112's Golden Rule 53 fix changed that selection to nearest-to-price, so
+    any future Path-B successor MUST re-validate this gate before generating
+    live signals — its behaviour is no longer the one Path B accumulated on.
     """
     df_slice = stock_df.iloc[:entry_idx + 1]
     current_price = float(df_slice['Close'].iloc[-1])
@@ -242,12 +249,12 @@ def get_momentum_signals(as_of_date=None, limit=200, market_index='all'):
 
     for c in candidates:
         ticker = c['ticker']
-        # Cooldown checked per-variant below, not here — a candidate might
-        # qualify for Path B while Path A is on cooldown (or vice versa).
-        if (ledger.has_active_or_cooldown(ticker, 'momentum', cooldown_days=MOMENTUM_COOLDOWN_DAYS,
-                                           as_of_date=as_of_date, variant='A_frozen')
-                and ledger.has_active_or_cooldown(ticker, 'momentum', cooldown_days=MOMENTUM_COOLDOWN_DAYS,
-                                                   as_of_date=as_of_date, variant='B_revised_rr')):
+        # Day 112: Path B retired (see gate block below) — only Path A
+        # generates new signals now, so this pre-filter checks A's cooldown
+        # alone. The per-variant check in the gate loop below is still the
+        # authoritative one.
+        if ledger.has_active_or_cooldown(ticker, 'momentum', cooldown_days=MOMENTUM_COOLDOWN_DAYS,
+                                         as_of_date=as_of_date, variant='A_frozen'):
             continue
 
         time.sleep(0.4)  # light pacing — avoid tripping provider rate limits on batch scans
@@ -315,15 +322,19 @@ def get_momentum_signals(as_of_date=None, limit=200, market_index='all'):
             rr_a = (reward_a / risk_a) if risk_a > 0 else None
             path_a_passes = rr_a is not None and rr_a >= MIN_RR
 
-            sr_passes, sr_rr, sr_viable, sr_support, sr_resistance = check_sr_gate(stock_df, entry_idx)
-
+            # Day 112: Path B RETIRED. At retirement: 150 closed / 67 open /
+            # 15 pending. The real-S&R-gate experiment showed no live edge —
+            # blended PF ~1.01, and the only lift it ever had came from a
+            # single Aug 3-7 2026 regime cluster (66% of the closed sample;
+            # ex-cluster PF 0.72, net losing). No NEW Path B signals are
+            # generated from here; the open + pending positions wind down by
+            # their own rules and Path B's stats stay in --report as a frozen
+            # historical record. check_sr_gate() is left intact for a possible
+            # future corrected-S&R parallel run tied to the Golden Rule 53
+            # fix. See PAPER_TRADING_PREREGISTRATION.md §8b + Change Log.
             gates = []
             if path_a_passes:
                 gates.append(('A_frozen', f"BUY, TT {tt_score}/8, {rs_txt}, R:R(proxy) {rr_a:.2f}"))
-            if sr_passes:
-                gates.append(('B_revised_rr',
-                               f"BUY, TT {tt_score}/8, {rs_txt}, R:R(S&R) {sr_rr:.2f} "
-                               f"(support ${sr_support:.2f}, resistance ${sr_resistance:.2f})"))
 
             for variant, reason in gates:
                 if ledger.has_active_or_cooldown(ticker, 'momentum', cooldown_days=MOMENTUM_COOLDOWN_DAYS,
