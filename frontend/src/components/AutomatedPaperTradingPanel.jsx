@@ -250,14 +250,24 @@ export default function AutomatedPaperTradingPanel() {
           disabled={triggering}
           className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg text-white text-sm font-medium transition-colors"
         >
-          {triggering ? 'Running… (10-30s)' : 'Force Run Now'}
+          {triggering ? 'Running… (10-30s)' : 'Check for closes'}
         </button>
       </div>
+      {/* Day 113: program discontinued at the user's explicit direction — STA is
+          used as an analysis/recommendation tool now, not a path toward automated
+          execution. No new signals are generated on any track. This banner is the
+          user-facing counterpart to daily_job.py's PROGRAM_DISCONTINUED flag. */}
+      <div className="text-xs bg-gray-700/50 border border-gray-600 rounded px-3 py-2 mb-3 text-gray-300">
+        <b className="text-gray-100">Program discontinued (2026-09-12).</b> No new signals are generated on any
+        track — MR (broad) closed out as the one confirmed edge (PF 2.56, 194+ trades). Every open/pending position
+        below still resolves by its own exit rules; nothing is force-closed. "Check for closes" just lets today's
+        exits post — it queues nothing new.
+      </div>
       <p className="text-xs text-gray-500 mb-4">
-        Runs automatically every weekday at 17:30 ET — zero human filtering, this is the real gate on capital allocation.
-        Use "Force Run" if a scheduled run was missed (e.g. laptop asleep). Runs during market hours use the last
-        completed session's bar — new signals/exits from today appear after the close. Catches up open positions; can't
-        retroactively recover a missed day's entry signals (TradingView has no point-in-time query).
+        Previously ran automatically every weekday at 17:30 ET with zero human filtering. Now retained only to let
+        already-open positions wind down — new signals/exits from today appear after the close. Can't retroactively
+        recover a missed day's data (TradingView has no point-in-time query), which no longer matters since nothing
+        new is being generated.
       </p>
 
       {loading && !status ? (

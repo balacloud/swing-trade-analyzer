@@ -204,48 +204,65 @@ def run_daily_job(force=False):
     summary['closed'] = closed
     summary['still_open'] = still_open
 
-    print("Step 3/3: generating new signals from today's data...")
-    momentum_signals = live_signals.get_momentum_signals(as_of_date=today)
-    for s in momentum_signals:
-        variant = s.get('variant', 'A_frozen')
-        ledger.queue_pending_signal(
-            'momentum', s['ticker'], s['signal_date'], s['signal_price'],
-            holding_period=s['holding_period'], verdict_reason=s['verdict_reason'],
-            regime_snapshot=s.get('regime_snapshot'), variant=variant
-        )
-        summary['queued_momentum'] += 1
-        print(f"  queued momentum [{variant}]: {s['ticker']} — {s['verdict_reason']}")
+    # Day 113: the whole forward-testing/paper-trading program was
+    # discontinued at the user's explicit direction (2026-09-12) — STA is now
+    # used as an on-demand analysis/recommendation tool, with the user placing
+    # and managing any real trades themselves. No new signals are generated on
+    # ANY track (momentum Path A, MR broad, MR HUB-65 — Path B was already
+    # retired Day 112). Steps 1-2 above still run every day so the positions
+    # already open/pending when this took effect close out naturally by their
+    # own exit rules, same graceful-wind-down pattern as Path B's retirement.
+    # Once every track shows 0 open/0 pending, the launchd job itself should
+    # be unloaded (`launchctl unload ~/Library/LaunchAgents/com.sta.papertrading.daily.plist`)
+    # — see docs/claude/stable/PAPER_TRADING_PREREGISTRATION.md's Change Log.
+    # PROGRAM_DISCONTINUED is the single switch to flip if this is ever
+    # resumed; the signal-generation code below it is unreached, not deleted.
+    PROGRAM_DISCONTINUED = True
+    if not PROGRAM_DISCONTINUED:
+        print("Step 3/3: generating new signals from today's data...")
+        momentum_signals = live_signals.get_momentum_signals(as_of_date=today)
+        for s in momentum_signals:
+            variant = s.get('variant', 'A_frozen')
+            ledger.queue_pending_signal(
+                'momentum', s['ticker'], s['signal_date'], s['signal_price'],
+                holding_period=s['holding_period'], verdict_reason=s['verdict_reason'],
+                regime_snapshot=s.get('regime_snapshot'), variant=variant
+            )
+            summary['queued_momentum'] += 1
+            print(f"  queued momentum [{variant}]: {s['ticker']} — {s['verdict_reason']}")
 
-    mr_signals = live_signals.get_mr_signals(as_of_date=today)
-    for s in mr_signals:
-        ledger.queue_pending_signal(
-            'mr', s['ticker'], s['signal_date'], s['signal_price'],
-            holding_period=s['holding_period'], verdict_reason=s['verdict_reason'],
-            regime_snapshot=s.get('regime_snapshot'), variant=s.get('variant', 'A_frozen')
-        )
-        summary['queued_mr'] += 1
-        print(f"  queued MR: {s['ticker']} — {s['verdict_reason']}")
+        mr_signals = live_signals.get_mr_signals(as_of_date=today)
+        for s in mr_signals:
+            ledger.queue_pending_signal(
+                'mr', s['ticker'], s['signal_date'], s['signal_price'],
+                holding_period=s['holding_period'], verdict_reason=s['verdict_reason'],
+                regime_snapshot=s.get('regime_snapshot'), variant=s.get('variant', 'A_frozen')
+            )
+            summary['queued_mr'] += 1
+            print(f"  queued MR: {s['ticker']} — {s['verdict_reason']}")
 
-    # Day 97: HUB-65 curated-universe MR track — same unchanged MR gate, a
-    # different (smaller, thematically-concentrated) universe, tracked under
-    # its own variant so it never touches the broad track's count above.
-    # Iteration order is randomized per run (Golden Rule 25) — HUB runs last
-    # in this job, after momentum's and the broad MR scan's rate budget is
-    # already spent; a fixed order would silently starve the same tail
-    # tickers every single day if a rate-limit cutoff ever trips mid-loop.
-    hub_universe_shuffled = list(HUB_UNIVERSE)
-    random.Random(today).shuffle(hub_universe_shuffled)
-    mr_hub_signals = live_signals.get_mr_signals(
-        as_of_date=today, tickers=hub_universe_shuffled, variant='mr_hub65'
-    )
-    for s in mr_hub_signals:
-        ledger.queue_pending_signal(
-            'mr', s['ticker'], s['signal_date'], s['signal_price'],
-            holding_period=s['holding_period'], verdict_reason=s['verdict_reason'],
-            regime_snapshot=s.get('regime_snapshot'), variant=s.get('variant', 'mr_hub65')
+        # Day 97: HUB-65 curated-universe MR track — same unchanged MR gate, a
+        # different (smaller, thematically-concentrated) universe, tracked under
+        # its own variant so it never touches the broad track's count above.
+        # Iteration order is randomized per run (Golden Rule 25) — HUB runs last
+        # in this job, after momentum's and the broad MR scan's rate budget is
+        # already spent; a fixed order would silently starve the same tail
+        # tickers every single day if a rate-limit cutoff ever trips mid-loop.
+        hub_universe_shuffled = list(HUB_UNIVERSE)
+        random.Random(today).shuffle(hub_universe_shuffled)
+        mr_hub_signals = live_signals.get_mr_signals(
+            as_of_date=today, tickers=hub_universe_shuffled, variant='mr_hub65'
         )
-        summary['queued_mr_hub'] += 1
-        print(f"  queued MR [mr_hub65]: {s['ticker']} — {s['verdict_reason']}")
+        for s in mr_hub_signals:
+            ledger.queue_pending_signal(
+                'mr', s['ticker'], s['signal_date'], s['signal_price'],
+                holding_period=s['holding_period'], verdict_reason=s['verdict_reason'],
+                regime_snapshot=s.get('regime_snapshot'), variant=s.get('variant', 'mr_hub65')
+            )
+            summary['queued_mr_hub'] += 1
+            print(f"  queued MR [mr_hub65]: {s['ticker']} — {s['verdict_reason']}")
+    else:
+        print("Step 3/3: SKIPPED — paper-trading program discontinued 2026-09-12, no new signals generated.")
 
     ledger.record_job_run(today, summary)
 
@@ -279,12 +296,12 @@ def _print_variant_stats(system, variant, label):
 def print_report():
     ledger.init_db()
     print("\n=== MOMENTUM ===")
-    _print_variant_stats('momentum', 'A_frozen', 'Path A (frozen, flat/ATR R:R proxy)')
+    _print_variant_stats('momentum', 'A_frozen', 'Path A (PROGRAM DISCONTINUED 2026-09-12 — flat/ATR R:R proxy; open/pending winding down, no new signals)')
     _print_variant_stats('momentum', 'B_revised_rr', 'Path B (RETIRED Day 112 — real S&R gate, no live edge over 150 trades; open/pending winding down)')
 
     print("\n=== MR ===")
-    _print_variant_stats('mr', 'A_frozen', 'MR (unchanged — not part of the Path B experiment)')
-    _print_variant_stats('mr', 'mr_hub65', 'MR — Curated HUB-65 (different universe, Day 97)')
+    _print_variant_stats('mr', 'A_frozen', 'MR (PROGRAM DISCONTINUED 2026-09-12 — the sole confirmed edge at retirement; open/pending winding down, no new signals)')
+    _print_variant_stats('mr', 'mr_hub65', 'MR — Curated HUB-65 (PROGRAM DISCONTINUED 2026-09-12 — open/pending winding down, no new signals)')
 
     last_run = ledger.get_last_run_date()
     print(f"\nLast job run: {last_run or 'never'}")

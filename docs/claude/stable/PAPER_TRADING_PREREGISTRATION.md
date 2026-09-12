@@ -1,5 +1,23 @@
 # Paper Trading Pre-Registration
 
+> ## ⛔ PROGRAM DISCONTINUED — 2026-09-12
+> At the user's explicit direction, the entire automated paper-trading /
+> forward-testing program below is discontinued. STA is now used purely as an
+> on-demand analysis and recommendation tool — the user places and manages any
+> real trades themselves; no path toward automated execution (IBKR or
+> otherwise) is being pursued. **No new signals are generated on any track**
+> (`daily_job.py`'s `PROGRAM_DISCONTINUED` flag). Every open/pending position
+> at the time of this decision winds down by its own exit rules — nothing was
+> force-closed. **MR (broad) closes out as the project's one genuinely
+> confirmed edge** (194+ closed trades, PF ~2.5, survived every cluster
+> stress-test since Day 93) — that result stands as the answer to "did this
+> multi-month validation program work," even though the program itself is not
+> being carried forward into live capital. See the Change Log's final entry
+> for the full rationale. Everything below this notice is now **historical
+> record**, not an active configuration.
+
+---
+
 > **Purpose:** Freeze the exact configuration BEFORE paper trades are logged, so the forward-test result is a real out-of-sample test and not another round of in-sample tuning.
 > **Created:** Day 78 (July 5, 2026) — Fable Review Remediation Plan, Task 0.1
 > **Frozen commit:** `933ad297ed14ca3c2aad2fb16ca453890d7c43fa` (includes Task 0.2's RS 1.0/1.2 resolution)
@@ -183,3 +201,4 @@ Remediation Phases 2–5 address these in parallel; they do not need to complete
 | 95 | New Section 8b: **Path B** parallel momentum entry-gate experiment added — real S&R-based R:R gate (matches the actual historical Config C backtest logic), tracked under its own `variant='B_revised_rr'` ledger tag, own 100-trade bar. Sections 1-8/9 (Path A / MR) completely unchanged. | Live investigation found the live engine's R:R check (`compute_entry_levels()`'s flat/ATR proxy) was never the same logic the backtest actually validated — a live/backtest divergence bug, not a re-tune of a working threshold. Running as a parallel, separately-tracked experiment rather than replacing Path A preserves Path A's in-progress count entirely. |
 | 98 | New Section 9b: **HUB-65** parallel Mean-Reversion universe experiment added — same unchanged MR gate/exit, run against a curated 65-ticker watchlist instead of the broad dynamic scan, tracked under its own `variant='mr_hub65'` ledger tag, own 100-trade bar. Section 9 (broad MR) completely unchanged. | User asked to backtest+forward-test a curated watchlist idea from a sibling project's research. Recognized as the project's own existing MR engine applied to a new universe, not a new strategy — same legitimate parallel-experiment pattern as Path B (Day 95), this time varying universe instead of entry gate. New Golden Rule 38 codifies the `variant` column's dual per-system meaning. |
 | 112 | **Path B retired** (Section 8b) — `live_signals.get_momentum_signals()` stops generating new `B_revised_rr` signals; open/pending positions wind down by their own rules. Sections 1-8 (Path A) and Section 9 (MR broad) unchanged. | Path B's real-S&R-gate experiment reached 150 closed trades with no live edge (PF 1.01; the only lift was one Aug 3-7 regime cluster, ex-cluster PF 0.72). Experiment complete, answer recorded — not a re-tune. MR (broad), Confirmed at Day 111 (161 closed, PF 2.53, survives cluster stress-test), continues running as the live benchmark per Section 10's "Confirmed → continue as-is". `check_sr_gate()` kept in code for a possible future corrected-S&R run bundled with the Golden Rule 53 fix. |
+| 113 | **⛔ ENTIRE PROGRAM DISCONTINUED** — `daily_job.py` gains a `PROGRAM_DISCONTINUED` flag; Step 3 (new-signal generation) is skipped unconditionally for every remaining track (Path A, MR broad, MR HUB-65 — Path B was already retired Day 112). Steps 1-2 (activate pending, step open positions) keep running so everything already open/pending closes out by its own exit rules — same graceful wind-down as Day 112's Path B retirement, generalized to the whole engine. `launchd` stays loaded until every track shows 0 open/0 pending, then should be unloaded. | Explicit user decision, not a reaction to any result: "I don't want to paper trade... I want to use Claude and STA as analysis engine and recommendation, I will take care of stuff [myself]." This is a top-level product-direction change, not a threshold re-tune — Golden Rule 18 doesn't apply (nothing about the frozen entry/exit logic changed; the decision is to stop generating new observations at all). MR (broad) closes the program out as its one genuinely confirmed edge. IBKR real paper-trading execution (ROADMAP Priority #13) is formally closed as declined, not parked. The forward-testing freeze that governed every roadmap priority since Day 92 is lifted. |
