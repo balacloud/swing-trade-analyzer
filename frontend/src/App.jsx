@@ -1877,7 +1877,7 @@ function App() {
                           title={`Relative volume vs. the 50-day average, from /api/sr. Direction is inferred from three daily-bar signals — day change, where price closed inside the day's range, and OBV trend. Daily bars cannot show actual buy or sell orders; that needs order-flow data this app doesn't have. This is a lean, not a verdict. The 20-day line is On-Balance Volume: 20 days of price change compared against 20 days of net volume, the classic 'effort vs. result' check — its direction is reliable, its magnitude is not calibrated across tickers. The effort-vs-result line compares one bar's volume to that bar's own price move in units of ATR; its thresholds are first-principles, not backtested. None of this affects the BUY/HOLD/AVOID verdict, the Simple Checklist, or any entry gate.${staleNote}`}
                         >
                           <span className="font-semibold">{dayLabel}: {vol.text}</span>
-                          {dir && <div className="mt-1">{dayLabel} lean: {dir.text}</div>}
+                          {dir && <div className="mt-1">Lean: {dir.text}</div>}
                           {evr && <div className="mt-1">Effort vs. result: {evr.text}</div>}
                           {obvRead && <div className="mt-1">Last 20 days: {obvRead.text}</div>}
                           <div className="mt-1 text-xs text-gray-500">
