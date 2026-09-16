@@ -239,7 +239,16 @@ export function generatePriceStructure(sr, patterns, actionablePatternsList = []
   const support = sr.support || [];
   const meta = sr.meta || {};
   const atr = meta.atr || 0;
-  const rvol = meta.rvol || 1.0;
+  // Day 116: read the last COMPLETE bar's rvol instead of today's still-forming
+  // one when meta.candle.barComplete is false — meta.rvol has no partial-bar
+  // guard and mid-session reads roughly half its true value, which made the
+  // "needs volume > 1.5x for conviction" watch item below almost never fire
+  // during market hours. Same guard mirrored at the Volume card and DIST badge
+  // in App.jsx. See docs/claude/design/VOLUME_EFFORT_VS_RESULT_PLAN_DAY116.md
+  // Section 5 / Open Decision 1 (broadened here to existing surfaces, not just
+  // the new same-day read).
+  const barComplete = meta.candle?.barComplete !== false;
+  const rvol = (barComplete ? meta.rvol : meta.prevBar?.rvol) ?? meta.rvol ?? 1.0;
   const rsiDaily = meta.rsi_daily ?? null;
   const adx = meta.adx || {};
   const tradeViability = meta.tradeViability || {};

@@ -45,7 +45,7 @@ import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings }
 import { runCategoricalAssessment, getActionablePatterns } from './utils/categoricalAssessment';
 import { calculateRiskReward, hasViabilityContradiction, getViabilityBadge } from './utils/riskRewardCalc';
 import { getLiquidityThreshold } from './utils/liquidityThresholds'; // Day 83
-import { getVolumeConfirmationRead, getVolumeDirectionRead } from './utils/volumeThresholds'; // Day 111/112
+import { getVolumeConfirmationRead, getVolumeDirectionRead, getObvHorizonRead, getEffortVsResultRead } from './utils/volumeThresholds'; // Day 111/112/116
 // DecisionMatrix removed Day 70 — simplicity premium (full+simple views sufficient)
 // BottomLineCard removed Day 82 (user feedback: verdict banner + What's Good/Risky
 // duplicated the Verdict Card + Categorical Assessment card elsewhere on this page —
@@ -1790,14 +1790,24 @@ function App() {
                                   Vol {srData.meta.rvol_display}
                                 </span>
                               )}
-                              {/* Day 49: Distribution Warning - High RVOL + OBV Falling = big money selling */}
-                              {srData.meta?.rvol >= 1.5 && srData.meta?.obv?.trend === 'falling' && (
-                                <span
-                                  title="⚠️ Distribution Signal:\nHigh volume (≥1.5x avg) + Falling OBV\n\nPossible Meaning:\n• Large players may be selling into strength\n• Volume expansion but money leaving the stock\n• Be cautious with new long positions\n\nThis doesn't mean the stock will fall, but suggests caution."
-                                  className="px-1.5 py-0.5 rounded text-[10px] font-medium cursor-help bg-orange-600 text-white animate-pulse">
-                                  ⚠️ DIST
-                                </span>
-                              )}
+                              {/* Day 49: Distribution Warning - High RVOL + OBV Falling = big money selling.
+                                  Day 116: rvol read from the last COMPLETE bar when today's is still
+                                  forming — meta.rvol has no partial-bar guard and mid-session reads
+                                  roughly half its true value, which made this badge structurally unable
+                                  to fire before the last third of the session. Proven not to change
+                                  which tickers show 'falling' (the only other input) — see
+                                  docs/claude/design/VOLUME_EFFORT_VS_RESULT_PLAN_DAY116.md Section 3.3. */}
+                              {(() => {
+                                const barComplete = srData.meta?.candle?.barComplete !== false;
+                                const distRvol = barComplete ? srData.meta?.rvol : (srData.meta?.prevBar?.rvol ?? srData.meta?.rvol);
+                                return distRvol >= 1.5 && srData.meta?.obv?.trend === 'falling' && (
+                                  <span
+                                    title={`⚠️ Distribution Signal:\nHigh volume (≥1.5x avg) + Falling OBV\n\nPossible Meaning:\n• Large players may be selling into strength\n• Volume expansion but money leaving the stock\n• Be cautious with new long positions\n\nThis doesn't mean the stock will fall, but suggests caution.${!barComplete ? `\n\n(Volume from the last completed session, ${srData.meta?.prevBar?.date || 'prior day'} — today's bar is still forming.)` : ''}`}
+                                    className="px-1.5 py-0.5 rounded text-[10px] font-medium cursor-help bg-orange-600 text-white animate-pulse">
+                                    ⚠️ DIST
+                                  </span>
+                                );
+                              })()}
                             </div>
                           </div>
                         </div>
@@ -1807,28 +1817,72 @@ function App() {
 
                     {/* Day 111: Volume confirmation read — informational only, gates nothing.
                         Independent of tradeViability (unlike the Vol chip above it, which
-                        disappears when tradeViability is absent from srData.meta). */}
-                    {srData.meta?.rvol != null && (() => {
-                      const vol = getVolumeConfirmationRead(srData.meta.rvol);
+                        disappears when tradeViability is absent from srData.meta).
+                        Day 116: reads the last COMPLETE bar (meta.prevBar) instead of today's
+                        still-forming one whenever meta.candle.barComplete is false — meta.rvol
+                        has no partial-bar guard and mid-session reads roughly half its true
+                        value (measured: median 0.45x vs 0.92x true, 2026-09-15). Same guard
+                        mirrored at the DIST badge above and priceStructureNarrative.js. See
+                        docs/claude/design/VOLUME_EFFORT_VS_RESULT_PLAN_DAY116.md Section 5. */}
+                    {(srData.meta?.rvol != null || srData.meta?.prevBar?.rvol != null) && (() => {
+                      const barComplete = srData.meta?.candle?.barComplete !== false;
+                      const prevBar = srData.meta?.prevBar;
+                      const effRvol = barComplete ? srData.meta?.rvol : (prevBar?.rvol ?? srData.meta?.rvol);
+                      const effChangePct = barComplete ? srData.change : (prevBar?.changePct ?? srData.change);
+                      const effCloseLocation = barComplete ? srData.meta?.candle?.closeLocation : (prevBar?.closeLocation ?? srData.meta?.candle?.closeLocation);
+
+                      const vol = getVolumeConfirmationRead(effRvol);
                       if (!vol) return null;
                       // Day 112: does the volume lean buying or selling? Still a
                       // lean, never a verdict — daily bars can't show real order
                       // flow. Guarded independently of `vol` so a missing candle/
                       // OBV field just omits this line, never blanks the one above.
                       const dir = getVolumeDirectionRead({
-                        changePct: srData.change,
-                        closeLocation: srData.meta?.candle?.closeLocation,
+                        changePct: effChangePct,
+                        closeLocation: effCloseLocation,
                         obvTrend: srData.meta?.obv?.trend,
                       });
+                      // Day 116: Thing 1's 20-session effort-vs-result read (calculate_obv's
+                      // own `signal`) was already computed and already live, but reachable
+                      // only by hovering the OBV chip above. Promoted to visible text here,
+                      // labelled by horizon so "20-day OBV falling" can't misread as
+                      // contradicting a same-day "no clear lean" line just above it — both
+                      // can be true at once, different windows.
+                      const obvRead = getObvHorizonRead(srData.meta?.obv);
+                      // Day 116: same-day effort vs. result — today's volume crossed against
+                      // today's price progress (normalized by ATR). The one genuinely new
+                      // read; everything else on this card already existed in some form.
+                      const atrPct = srData.meta?.atr && srData.currentPrice
+                        ? (srData.meta.atr / srData.currentPrice) * 100
+                        : null;
+                      const evr = getEffortVsResultRead({
+                        rvol: effRvol,
+                        changePct: effChangePct,
+                        atrPct,
+                        closeLocation: effCloseLocation,
+                        barComplete,
+                        asOf: prevBar?.date,
+                      });
+                      const staleNote = !barComplete
+                        ? ` Today's bar is still forming — the lines above use the last completed session (${prevBar?.date || 'prior day'}) instead.`
+                        : '';
+                      // Day 116: the headline must not say "Today" while showing
+                      // yesterday's number — that's the exact mislabeling this fix
+                      // exists to remove. Swap the label itself, not just add a
+                      // footnote, whenever effRvol/effChangePct came from prevBar.
+                      const dayLabel = barComplete ? 'Today' : `Last session (${prevBar?.date || 'prior day'})`;
                       return (
                         <div
                           className="mb-4 p-3 rounded-lg text-sm bg-gray-700/30 border border-gray-600 text-gray-300"
-                          title="Relative volume vs. the 50-day average, from /api/sr. Direction is inferred from three daily-bar signals — day change, where price closed inside the day's range, and OBV trend. Daily bars cannot show actual buy or sell orders; that needs order-flow data this app doesn't have. This is a lean, not a verdict. None of this affects the BUY/HOLD/AVOID verdict, the Simple Checklist, or any entry gate. Intraday, today's bar and range are still partial, so both read as provisional until the close."
+                          title={`Relative volume vs. the 50-day average, from /api/sr. Direction is inferred from three daily-bar signals — day change, where price closed inside the day's range, and OBV trend. Daily bars cannot show actual buy or sell orders; that needs order-flow data this app doesn't have. This is a lean, not a verdict. The 20-day line is On-Balance Volume: 20 days of price change compared against 20 days of net volume, the classic 'effort vs. result' check — its direction is reliable, its magnitude is not calibrated across tickers. The effort-vs-result line compares one bar's volume to that bar's own price move in units of ATR; its thresholds are first-principles, not backtested. None of this affects the BUY/HOLD/AVOID verdict, the Simple Checklist, or any entry gate.${staleNote}`}
                         >
-                          <span className="font-semibold">{vol.text}</span>
-                          {dir && <div className="mt-1">{dir.text}</div>}
+                          <span className="font-semibold">{dayLabel}: {vol.text}</span>
+                          {dir && <div className="mt-1">{dayLabel} lean: {dir.text}</div>}
+                          {evr && <div className="mt-1">Effort vs. result: {evr.text}</div>}
+                          {obvRead && <div className="mt-1">Last 20 days: {obvRead.text}</div>}
                           <div className="mt-1 text-xs text-gray-500">
                             Informational only — this does not change the verdict.
+                            {!barComplete && ` (Showing ${prevBar?.date || 'the last completed session'} — today's bar is still forming.)`}
                           </div>
                         </div>
                       );
@@ -4394,7 +4448,7 @@ function App() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>v4.56 - Multi-Source Data Intelligence</p>
+          <p>v4.57 - Multi-Source Data Intelligence</p>
           <p className="mt-1">TwelveData • Finnhub • AlphaVantage • yfinance • Stooq</p>
         </div>
       </div>

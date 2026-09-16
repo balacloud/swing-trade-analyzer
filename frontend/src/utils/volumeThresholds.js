@@ -36,13 +36,13 @@ export function getVolumeConfirmationRead(rvol) {
 
   if (rvol >= BREAKOUT_VOLUME_THRESHOLD) {
     band = 'confirming';
-    text = `Volume: ${r}× the 50-day average — real participation behind this move`;
+    text = `${r}× the 50-day average — real participation behind this move`;
   } else if (rvol >= 1.0) {
     band = 'normal';
-    text = `Volume: ${r}× the 50-day average — about typical participation`;
+    text = `${r}× the 50-day average — about typical participation`;
   } else {
     band = 'light';
-    text = `Volume: ${r}× the 50-day average — below-average, worth noting`;
+    text = `${r}× the 50-day average — below-average, worth noting`;
   }
 
   return { ratio: rvol, band, text };
@@ -116,4 +116,140 @@ export function getVolumeDirectionRead({ changePct, closeLocation, obvTrend }) {
   else { lean = 'none'; tail = 'no clear lean either way'; }
 
   return { lean, text: `${parts.join(', ')} — ${tail}` };
+}
+
+/**
+ * Day 116: the 20-session effort-vs-result read, rendered as a sentence.
+ *
+ * This computes NOTHING new. backend.py's calculate_obv() (added Day 49) has
+ * always produced exactly the Wyckoff "effort vs. result" comparison — 20-day
+ * price change % against 20-day OBV change % — and already emits
+ * 'Bearish divergence - distribution warning' (price up, net volume leaving)
+ * and 'Weak trend - price rising without volume support'. It was reachable
+ * only through the hover tooltip on the small OBV arrow chip. This function
+ * is a presentation adapter: it surfaces a field that already crosses the
+ * API, it does not derive a new one.
+ *
+ * Kept separate from getVolumeConfirmationRead/getVolumeDirectionRead above
+ * rather than merged into them: those two describe TODAY'S bar, this one
+ * describes the last 20 sessions. Same deliberate non-merge as this file's
+ * exclusion of breakout_detection.py's rvol_confirm (see the header comment)
+ * — a shared arithmetic shape is not a shared question, and collapsing the
+ * horizons would make "20-day accumulation fine, today weak" unsayable.
+ *
+ * Deliberately prints ONLY the backend's own `signal` sentence rather than
+ * also deriving a "net volume rising/falling N%" headline from
+ * obv_change_pct: that headline and `trend` can genuinely disagree in sign
+ * on the same ticker (trend is position-vs-20-day-average, obv_change_pct is
+ * endpoint-to-endpoint), which would print two contradicting OBV directions
+ * on the same card. `signal` is the one field with a single, coherent story.
+ *
+ * @param {?object} obv - srData.meta.obv, i.e. calculate_obv()'s dict:
+ *                        {obv, obv_prev, obv_change_pct, trend, divergence, signal}
+ * @returns {?{divergence:'bullish'|'bearish'|'none', text:string}}
+ *          null when meta.obv is absent (calculate_obv returns None on <21
+ *          bars or any internal error) — render nothing, not a claim about
+ *          missing data. Same convention as getVolumeDirectionRead.
+ */
+export function getObvHorizonRead(obv) {
+  if (!obv || typeof obv.signal !== 'string') return null;
+
+  // Lowercase the backend's leading capital and normalize its " - " clause
+  // separator to an em dash for inline reading, without touching the words.
+  const text = obv.signal.replace(/^[A-Z]/, (c) => c.toLowerCase()).replace(' - ', ' — ');
+
+  return { divergence: obv.divergence || 'none', text };
+}
+
+/**
+ * Day 116: same-day effort vs. result — the classic Wyckoff check, on ONE
+ * bar (today's if complete, otherwise the last complete one — see
+ * `barComplete`/`asOf` below). Additive to, and deliberately separate from,
+ * the two reads above and from getObvHorizonRead's 20-session view.
+ *
+ * Why this is not already covered. calculate_obv() has always done
+ * effort-vs-result over a 20-SESSION window and does it well. What no
+ * existing read does is cross ONE DAY'S effort (rvol) against that SAME
+ * day's result (price progress) — getVolumeConfirmationRead computes the
+ * magnitude and getVolumeDirectionRead computes the direction, but they are
+ * computed independently and never checked against each other. That gap is
+ * the breakout-day case this was built for: heavy volume with no price
+ * progress is a warning, not confirmation (Wyckoff's effort-vs-result).
+ *
+ * RESULT is normalized by ATR, not a raw %: a 1.0% day is a large move for a
+ * low-volatility name and a rounding error for a high-volatility one. Caller
+ * passes atrPct = meta.atr (a dollar value) / price * 100.
+ *
+ * THRESHOLDS ARE FIRST-PRINCIPLES, NOT BACKTESTED, and the returned text
+ * says so. 1.5 reuses BREAKOUT_VOLUME_THRESHOLD above (one definition, Day
+ * 111's whole point). 0.5/1.0 ATR for "little"/"real" progress are chosen,
+ * not derived — a Day 107 backtest spike already showed that turning a
+ * volume number into a hard rule cut the trade sample 75->5, which is
+ * exactly why this returns a SENTENCE and not a score. Must never gate.
+ *
+ * PARTIAL-BAR HONESTY (why this takes barComplete/asOf at all). meta.rvol is
+ * computed from the still-forming intraday bar with no guard — measured
+ * 2026-09-15 mid-session: RVOL median 0.45 on the forming bar vs 0.92 on the
+ * prior complete one. An effort read on a half-formed bar would call
+ * everything "light volume" every day. So when barComplete is false the
+ * caller passes the last COMPLETE bar's numbers (meta.prevBar) and this
+ * function says which date it is describing.
+ *
+ * Non-gating, per this file's standing contract: no color, no className, no
+ * boolean, no score. `state` is a descriptive string for copy selection and
+ * test assertions only, never a pass/fail. No code path from here reaches
+ * the verdict, the score, or the Simple Checklist.
+ *
+ * @param {object}   args
+ * @param {?number}  args.rvol          - relative volume for the bar described
+ * @param {?number}  args.changePct     - that bar's close vs. prior close, %
+ * @param {?number}  args.atrPct        - meta.atr / price * 100
+ * @param {?number}  args.closeLocation - (close-low)/(high-low), 0..1
+ * @param {boolean} [args.barComplete]  - false => `asOf` describes a prior session
+ * @param {?string}  [args.asOf]        - date of the bar described, e.g. '2026-09-12'
+ * @returns {?{state:string, text:string}}
+ *          null when effort or result is unavailable — render nothing.
+ */
+export const EFFORT_RESULT_LITTLE_PROGRESS_ATR = 0.5;
+export const EFFORT_RESULT_REAL_PROGRESS_ATR = 1.0;
+
+export function getEffortVsResultRead({ rvol, changePct, atrPct, closeLocation, barComplete = true, asOf = null }) {
+  const haveEffort = typeof rvol === 'number' && Number.isFinite(rvol);
+  const haveResult = typeof changePct === 'number' && Number.isFinite(changePct)
+    && typeof atrPct === 'number' && Number.isFinite(atrPct) && atrPct > 0;
+  if (!haveEffort || !haveResult) return null;
+
+  const progressAtr = Math.abs(changePct) / atrPct;
+  const heavy = rvol >= BREAKOUT_VOLUME_THRESHOLD;
+  const little = progressAtr <= EFFORT_RESULT_LITTLE_PROGRESS_ATR;
+  const real = progressAtr >= EFFORT_RESULT_REAL_PROGRESS_ATR;
+
+  const effortStr = `${rvol.toFixed(2)}× volume`;
+  const resultStr = `${progressAtr.toFixed(2)}× its own ATR of price progress`;
+
+  let state, tail;
+  if (heavy && little) {
+    state = 'effort_without_result';
+    tail = 'heavy participation, little price progress — effort without result, historically a warning rather than confirmation';
+  } else if (heavy && real) {
+    state = 'effort_with_result';
+    tail = closeLocation != null && closeLocation >= CLOSE_LOCATION_STRONG
+      ? "real volume behind a real move, and it held into the close — effort and result agree"
+      : 'real volume behind a real move — effort and result agree';
+  } else if (!heavy && real) {
+    state = 'result_without_effort';
+    tail = 'a real move on unremarkable volume — the move is there, the participation behind it is not';
+  } else if (!heavy && little) {
+    state = 'quiet';
+    tail = 'quiet on both counts — nothing to read here either way';
+  } else {
+    state = 'mid';
+    tail = 'in between on both counts — no clear effort/result story';
+  }
+
+  const stamp = barComplete
+    ? ''
+    : ` (last completed session${asOf ? `, ${asOf}` : ''} — today's bar is still forming, so today's volume isn't comparable yet)`;
+
+  return { state, text: `${effortStr} for ${resultStr}${stamp} — ${tail} (thresholds are first-principles, not backtested)` };
 }

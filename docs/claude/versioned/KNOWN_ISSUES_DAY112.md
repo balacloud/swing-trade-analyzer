@@ -1,5 +1,13 @@
 # Known Issues — Day 112
 
+> **Note (Day 116):** the OBV/volume entries below were updated in place — 3
+> resolved, 3 new findings logged — for the Day 116 volume effort-vs-result
+> work (`docs/claude/design/VOLUME_EFFORT_VS_RESULT_PLAN_DAY116.md`). This
+> file's other entries still reflect Day 112; Day 113 (paper-trading program
+> discontinued) and Day 114-115 changes are not otherwise captured here — no
+> formal session close has run since Day 112. See `CLAUDE_CONTEXT.md` for the
+> authoritative current-day pointer.
+
 ## Changes from Day 111
 
 **Resolved / shipped this session:**
@@ -86,9 +94,63 @@ Generation). Frontend-only.
 **Severity:** Medium
 **Fix:** Not actioned. `/api/mr/scan`'s bypass was fixed Day 111; these two remain.
 
-### Low-Medium: OBV trend direction is biased toward "rising" when cumulative OBV is negative (carried from Day 111)
-**Severity:** Low-Medium
-**Fix:** Not actioned — feeds a shipped live badge (Distribution Warning), needs its own review.
+### RESOLVED (Day 116): OBV trend direction was biased toward "rising" when cumulative OBV is negative
+**Was:** Low-Medium. **Fix:** Shipped — `backend.py`'s `calculate_obv()` now compares
+`current_obv` against `obv_sma ± 2%·abs(obv_sma)` instead of `obv_sma·1.02`/`obv_sma·0.98`,
+which is sign-independent. Measured blast radius before shipping: 5/150 tickers changed
+(all `rising`→`flat`, zero `rising`↔`falling` flips), and the `falling` set was verified
+**bit-identical** before/after across the same 150-ticker sweep — proving the ⚠️ DIST badge
+(the "needs its own review" blocker noted above) cannot change behavior, since it fires only
+on `trend === 'falling'`. That review is done; this is why the fix was safe to ship. Full
+writeup: `docs/claude/design/VOLUME_EFFORT_VS_RESULT_PLAN_DAY116.md` Section 3.
+
+### RESOLVED (Day 116): calculate_obv()'s 20-day effort-vs-result read was live but invisible
+**Was:** not previously logged as an issue, but functionally the same "volume gap" the Day
+106/107 research spike investigated. `calculate_obv()`'s `signal` field (Day 49) already
+computed the Wyckoff effort-vs-result comparison and already emitted "Bearish divergence -
+distribution warning" / "Weak trend - price rising without volume support" — reachable only
+by hovering the 30px OBV arrow chip. **Fix:** promoted into visible text on the Volume card
+("Last 20 days: ...") via `getObvHorizonRead()` in `volumeThresholds.js`. Also added one
+genuinely new read — same-day effort (RVOL) vs. same-day result (price move ÷ ATR%) via
+`getEffortVsResultRead()` — since no existing function crossed those two. See
+`VOLUME_EFFORT_VS_RESULT_PLAN_DAY116.md` Sections 4-5.
+
+### NEW (Day 116) — RESOLVED same day: `meta.rvol` was computed from the still-forming intraday bar
+**Severity was Medium.** `/api/sr`'s `rvol`/`candle` fields read `df.iloc[-1]` with no
+partial-bar guard, unlike `paper_trading/live_signals.py`'s `_prepare_ohlcv()` (Day 99 fix,
+same bug class, never ported to the display path — Golden Rule 47). Measured mid-session
+2026-09-15: RVOL median 0.45 vs. 0.92 true (using the prior complete bar) — meant the Volume
+Confirmation card, the ⚠️ DIST badge, and `priceStructureNarrative.js`'s breakout-watch line
+all read as "light volume" for most of every trading day, regardless of actual participation.
+**Fix:** `backend.py` now exposes `meta.candle.barComplete` (bool, ET market-hours test
+mirroring `live_signals.py`'s guard) and `meta.prevBar` (the last complete bar's rvol/OHLC/
+changePct/closeLocation). All three consumers above now read `prevBar` instead of the partial
+bar when `barComplete` is false, with an explicit "last completed session" label so nothing
+reads today's number under a today's-date claim. `currentPrice`/`volume`/`change` (the Day 85
+Nirmal/Master Framework fields) deliberately left untouched — still today's live values.
+
+### Low-Medium: `divergence`'s ±5% thresholds are scale-unstable across tickers (new, Day 116)
+**Severity:** Low-Medium. `obv_change_pct`'s denominator (`abs(prev_obv)`) is an arbitrary
+cumsum offset reset 260 bars ago, not a comparable scale between tickers — measured
+`|obv_change_pct|` p50 = 20.6%, p90 = 99.5%, p99 = 1228% across 150 names. The ±5% divergence
+threshold sits below the median for some tickers and is effectively unreachable for others.
+**Direction is sound** (confirmed sign-safe, uses `abs()` in the denominator — does not share
+the `trend` sign bug above), **magnitude is not**. **Fix:** Not actioned — re-thresholding is
+a methodology change (Golden Rule 55), not a bug fix; disclosed in the UI copy instead
+(`getObvHorizonRead()`'s JSDoc + the Volume card's tooltip).
+
+### Low: same-day effort-vs-result thresholds are unbacktested (new, Day 116)
+**Severity:** Low. `EFFORT_RESULT_LITTLE_PROGRESS_ATR`/`REAL_PROGRESS_ATR` (0.5/1.0 ATR) are
+first-principles choices, disclosed as such in the rendered text ("thresholds are
+first-principles, not backtested"). Display-only, gates nothing. Revisit if a future session
+wants to calibrate against real trade outcomes.
+
+### Low: `meta.candle.barComplete`'s market-hours test assumes US/Canadian exchange hours (new, Day 116)
+**Severity:** Low. The new `barComplete` flag (`backend.py`) tests against `America/New_York`
+market hours. Correct for US and TSX-listed tickers (hours match); would misreport for any
+non-North-American listing reaching `/api/sr` (e.g. an NSE name whose session closed hours
+earlier would still show `barComplete: false` all US trading day). Not fixed this pass — scope
+unclear (which non-NA tickers actually reach this endpoint wasn't audited). Document only.
 
 ### Low-Medium: Momentum entry panel's position-size label is hardcoded, computed from nothing (carried from Day 109)
 **Severity:** Low-Medium
