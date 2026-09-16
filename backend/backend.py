@@ -28,6 +28,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import yfinance as yf
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 import traceback
 import pandas as pd
 import numpy as np
@@ -66,7 +67,17 @@ sys.path.insert(0, os.path.dirname(__file__))
 # /api/sectors/pullback-screen endpoint (SRPS discretionary screener).
 # Day 105: bumped to 2.46 for the new /api/sectors/sub-industry-pullback-screen
 # endpoint + the shared _srps_true_rs()/_srps_evaluate_candidate() refactor.
-BACKEND_VERSION = '2.49'
+BACKEND_VERSION = '2.50'
+
+# Day 116: market-hours test for "is /api/sr's last bar still forming?" Mirrors
+# paper_trading/live_signals.py's _prepare_ohlcv() guard (Day 99, Golden Rule 33 —
+# explicit market timezone, never machine-local) rather than reinventing it. Unlike
+# live_signals, /api/sr does NOT drop the forming bar (it must keep returning
+# today's live price) — it only labels it and exposes the prior complete bar
+# alongside, so display code can choose. See
+# docs/claude/design/VOLUME_EFFORT_VS_RESULT_PLAN_DAY116.md Section 5.
+MARKET_TZ = ZoneInfo('America/New_York')
+MARKET_CLOSE_HOUR, MARKET_CLOSE_MIN = 16, 5
 
 from constants import SUPPORT_PROXIMITY_PCT, RESISTANCE_PROXIMITY_PCT  # shared with support_resistance.py
 from sub_industry_clusters import SUB_INDUSTRY_CLUSTERS, NO_PROXY_CLUSTERS  # Day 100+ Sub-Industry Watch
@@ -438,7 +449,7 @@ def calculate_obv(close: pd.Series, volume: pd.Series, lookback: int = 20) -> di
         {
             'obv': float,           # Current OBV value
             'obv_prev': float,      # Previous OBV value (for trend)
-            'obv_change': float,    # % change in OBV over lookback
+            'obv_change_pct': float, # % change in OBV over lookback
             'trend': str,           # 'rising'/'falling'/'flat'
             'divergence': str,      # 'bullish'/'bearish'/'none' vs price
             'signal': str           # Interpretation for traders
@@ -463,14 +474,42 @@ def calculate_obv(close: pd.Series, volume: pd.Series, lookback: int = 20) -> di
         if prev_obv != 0:
             obv_change_pct = ((current_obv - prev_obv) / abs(prev_obv)) * 100
 
-        # Determine OBV trend
-        # Use regression slope over lookback period for smoother trend
+        # Determine OBV trend: is the latest OBV meaningfully above or below
+        # its own recent average? A +/-2% dead band suppresses noise.
         recent_obv = obv.tail(lookback)
-        obv_sma = recent_obv.mean()
+        obv_sma = float(recent_obv.mean())
 
-        if current_obv > obv_sma * 1.02:  # OBV above moving average by 2%
+        # Day 116 sign fix. The old form was `obv_sma * 1.02` / `obv_sma * 0.98`.
+        # OBV is a cumulative sum reset to 0 at the start of the window, so it is
+        # frequently negative (measured: 34.7% of 150 large/mid-caps, 2026-09-15).
+        # When obv_sma < 0, `obv_sma * 1.02` is MORE negative than obv_sma and
+        # `obv_sma * 0.98` is LESS negative, so the two bands overlap instead of
+        # leaving a dead zone -- and since `if` is evaluated first, the whole
+        # overlap was claimed by 'rising'. Net effect: 'flat' was unreachable
+        # whenever obv_sma < 0, and values that belonged in it reported 'rising'.
+        # Worked example: obv_sma = -1_000_000, current_obv = -1_000_000 (exactly
+        # at the average) -> -1_000_000 > -1_020_000 is True -> 'rising'.
+        # Taking the band off abs(obv_sma) makes the threshold sign-independent:
+        # identical results for obv_sma > 0, correct results for obv_sma < 0.
+        # Measured blast radius: 5/150 labels change, all 'rising' -> 'flat',
+        # zero rising<->falling flips, and the 'falling' set is bit-identical
+        # before and after -- so the DIST badge (App.jsx, the only consumer
+        # keyed on 'falling') cannot change behavior. Deliberately NOT re-based
+        # on obv_change_pct: that alternative changes 23/150 labels including 14
+        # hard rising<->falling flips, and obv_change_pct is itself scale-unstable
+        # (its own denominator is an arbitrary cumsum offset; measured p99 = 1228%).
+        # That would be a methodology change, not a sign fix. See
+        # docs/claude/design/VOLUME_EFFORT_VS_RESULT_PLAN_DAY116.md Section 3.
+        obv_band = abs(obv_sma) * 0.02
+
+        if obv_band == 0:
+            # Degenerate case: obv_sma itself is exactly 0 (e.g. a synthetic
+            # constant-volume series). No dead band to speak of -- fall back to
+            # a direct sign comparison rather than a knife-edge > / <.
+            trend = 'rising' if current_obv > 0 else ('falling' if current_obv < 0 else 'flat')
+        elif current_obv > obv_sma + obv_band:
             trend = 'rising'
-        elif current_obv < obv_sma * 0.98:  # OBV below moving average by 2%
+        elif current_obv < obv_sma - obv_band:
             trend = 'falling'
         else:
             trend = 'flat'
@@ -1656,6 +1695,49 @@ def get_support_resistance(ticker):
             'low': round(last_low, 2),
         }
 
+        # Day 116: is the final bar today's still-forming one? See Section 5 of
+        # docs/claude/design/VOLUME_EFFORT_VS_RESULT_PLAN_DAY116.md -- rvol above
+        # is computed from df['volume'].iloc[-1] with no partial-bar guard, so
+        # mid-session it reads roughly half its true value (measured: median
+        # 0.45 vs 0.92 on the prior complete bar, 2026-09-15, 150-ticker sweep).
+        # Additive: nothing existing changes here. currentPrice/volume/change
+        # stay live (Nirmal/Master Framework watchlists rely on those being
+        # today's actual numbers, Day 85). The frontend volume-narrative call
+        # sites choose whether to read today's (possibly partial) meta.rvol/
+        # candle or this prevBar block instead, based on barComplete.
+        _now_et = datetime.now(MARKET_TZ)
+        _last_bar_date = str(df.index[-1])[:10]
+        bar_complete = not (
+            _last_bar_date == _now_et.strftime('%Y-%m-%d')
+            and (_now_et.hour, _now_et.minute) < (MARKET_CLOSE_HOUR, MARKET_CLOSE_MIN)
+        )
+        candle_meta['barComplete'] = bar_complete
+
+        prev_bar_meta = None
+        if len(df) >= 3:
+            _pv = float(df['volume'].iloc[-2])
+            _pavg = df['volume'].iloc[-51:-1].mean() if len(df) >= 51 else df['volume'].iloc[:-1].mean()
+            _pc = float(df['close'].iloc[-2])
+            _ppc = float(df['close'].iloc[-3])
+            _ph = float(df['high'].iloc[-2])
+            _pl = float(df['low'].iloc[-2])
+            _prange = _ph - _pl
+            prev_bar_meta = {
+                # When today's bar is still forming, df.iloc[-2] IS "the prior
+                # complete session" -- same date candle_meta describes if
+                # bar_complete were true. When today's bar is already complete,
+                # df.iloc[-2] is the session BEFORE today, so date it explicitly
+                # as df.index[-2] rather than reusing _last_bar_date.
+                'date': _last_bar_date if not bar_complete else str(df.index[-2])[:10],
+                'rvol': round(_pv / _pavg, 2) if _pavg > 0 else None,
+                'changePct': round((_pc - _ppc) / _ppc * 100, 2) if _ppc > 0 else None,
+                'closeLocation': round((_pc - _pl) / _prange, 2) if _prange > 0 else None,
+                'open': round(float(df['open'].iloc[-2]), 2),
+                'high': round(_ph, 2),
+                'low': round(_pl, 2),
+                'close': round(_pc, 2),
+            }
+
         # ============================================
         # PROXIMITY FILTER (Day 15 Fix)
         # Filter S&R levels to actionable range for swing trading
@@ -1760,7 +1842,8 @@ def get_support_resistance(ticker):
                 'obv': obv_data,
                 'rvol': rvol,
                 'rvol_display': rvol_display,
-                'candle': candle_meta  # Day 112
+                'candle': candle_meta,  # Day 112; +barComplete Day 116
+                'prevBar': prev_bar_meta  # Day 116 — last COMPLETE bar, for display when barComplete is false
             }
         }
         
