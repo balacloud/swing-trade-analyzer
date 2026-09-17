@@ -108,6 +108,21 @@ export function calculateSimplifiedAnalysis(stockData, spyData, srData) {
     } else {
       results.criteria.momentum.reason = `RS ${rsRatio.toFixed(2)} - underperforming SPY (Stock: ${(stockReturn * 100).toFixed(1)}% vs SPY: ${(spyReturn * 100).toFixed(1)}%)`;
     }
+
+    // Day 117: expose the raw 1-year return this criterion already computed
+    // above. Display-only — nothing reads it back, and `pass` is already
+    // final above. It exists so the absolute-momentum read
+    // (utils/absoluteMomentum.js — informational, never a gate) can quote
+    // THE SAME number this gate just used, instead of a second,
+    // differently-sourced one. Until now it survived only inside the
+    // formatted `reason` string.
+    //
+    // Deliberately a sub-field on `momentum`, NOT a tenth key on
+    // `results.criteria`: that object is filtered by `c.pass` into
+    // `passCount`, mapped into the "missing" list, and rendered one-card-
+    // per-key in App.jsx against a hardcoded totalCriteria: 9. A new key
+    // there would silently become a tenth checklist criterion. (Golden Rule 54.)
+    results.criteria.momentum.stockReturnPct = stockReturn * 100;
   } else {
     results.criteria.momentum.reason = 'Insufficient data for RS calculation';
   }

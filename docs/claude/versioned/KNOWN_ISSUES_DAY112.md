@@ -2,11 +2,43 @@
 
 > **Note (Day 116):** the OBV/volume entries below were updated in place — 3
 > resolved, 3 new findings logged — for the Day 116 volume effort-vs-result
-> work (`docs/claude/design/VOLUME_EFFORT_VS_RESULT_PLAN_DAY116.md`). This
-> file's other entries still reflect Day 112; Day 113 (paper-trading program
-> discontinued) and Day 114-115 changes are not otherwise captured here — no
-> formal session close has run since Day 112. See `CLAUDE_CONTEXT.md` for the
-> authoritative current-day pointer.
+> work (`docs/claude/design/VOLUME_EFFORT_VS_RESULT_PLAN_DAY116.md`).
+> **Note (Day 117):** below that, 3 more findings logged for the absolute-
+> momentum informational read (`docs/claude/design/ABSOLUTE_MOMENTUM_READ_PLAN_DAY117.md`).
+> This file's other entries still reflect Day 112; Day 113 (paper-trading
+> program discontinued) and Day 114-115 changes are not otherwise captured
+> here — no formal session close has run since Day 112. See
+> `CLAUDE_CONTEXT.md` for the authoritative current-day pointer.
+
+### RESOLVED (Day 117): absolute/dual momentum — gate decision unchanged, read now surfaced
+**Was:** parked, low priority (Day 107/111). The Day 111 decision not to gate on Antonacci's
+absolute-momentum leg (`Config G` backtested clean but excluded only 1 of 75 trades) **stands,
+unchanged.** What changed: the read itself is now shown to the user — both the Simple
+Checklist's Momentum card and the Full Analysis RS card display the stock's own trailing 1-year
+return against a 5% cash proxy, informational only, sourced from the real Config G backtest
+constant (`backtest_holistic.py:108`), not an invented number. Zero backend changes — both views
+already had the underlying return computed; this exposes it. New module
+`frontend/src/utils/absoluteMomentum.js`. Full writeup, including the algebraic reason the gate
+barely mattered: `docs/claude/design/ABSOLUTE_MOMENTUM_READ_PLAN_DAY117.md`.
+
+### Low: short-history tickers get a mismatched "52W Return" label on Full Analysis (new, Day 117)
+**Severity:** Low. `backend.py`'s `price_52w_ago` falls back to the oldest available bar when a
+ticker has `200 < len(hist_data) < 252` bars (e.g. a recent IPO) — so the Full Analysis view's
+"Stock 52W Return" can be a ~250-bar return mislabeled as a full year, while the Simple
+Checklist's Momentum criterion (which requires a true 252-bar history) correctly reports
+"Insufficient data" for the same ticker. Live example found while verifying this session: STUB
+(StubHub), n=251. Pre-existing (not introduced by Day 117's work), inherited by the new
+absolute-momentum read on the Full Analysis side only. Not fixed — logged.
+
+### Info: two independent 1-year-return calculations exist in the frontend, currently in agreement (new, Day 117)
+`simplifiedScoring.js`'s inline RS calculation spans 251 bar-intervals (`n-1` to `n-252`);
+`rsCalculator.js`'s (used by the Full Analysis view) spans the same 251 via `currentPrice`/
+`price52wAgo`; the backtested `Config G` filter in `backtest_holistic.py` spans 252. Measured
+bit-identical across 50 live tickers on 2026-09-16, with a traced common origin in `backend.py`'s
+single `hist.tail(260)` slice — but two specific conditions could desync them (NaN-row skipping;
+the short-history case above). Not a live bug today. Do not "fix" the 251-vs-252 mismatch by
+changing `simplifiedScoring.js` — that line drives the live Momentum gate, and changing it is a
+methodology change (Golden Rule 55), not a bug fix.
 
 ## Changes from Day 111
 

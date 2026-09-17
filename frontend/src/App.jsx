@@ -46,6 +46,7 @@ import { runCategoricalAssessment, getActionablePatterns } from './utils/categor
 import { calculateRiskReward, hasViabilityContradiction, getViabilityBadge } from './utils/riskRewardCalc';
 import { getLiquidityThreshold } from './utils/liquidityThresholds'; // Day 83
 import { getVolumeConfirmationRead, getVolumeDirectionRead, getObvHorizonRead, getEffortVsResultRead } from './utils/volumeThresholds'; // Day 111/112/116
+import { getAbsoluteMomentumRead } from './utils/absoluteMomentum'; // Day 117: dual momentum's second leg, informational only
 // DecisionMatrix removed Day 70 — simplicity premium (full+simple views sufficient)
 // BottomLineCard removed Day 82 (user feedback: verdict banner + What's Good/Risky
 // duplicated the Verdict Card + Categorical Assessment card elsewhere on this page —
@@ -1649,6 +1650,27 @@ function App() {
                           </span>
                         </div>
                       )}
+                      {/* Day 117: absolute momentum — dual momentum's second leg
+                          (Antonacci 2014). Informational only: gates nothing, scores
+                          nothing, and is deliberately NOT wired into the RS colour
+                          bands above. Reuses rsData.stock52wReturn, already computed
+                          by rsCalculator.js and mapped in scoringEngine.js — no new
+                          arithmetic anywhere. Backtested as Config G
+                          (backtest_holistic.py:491-501) and deliberately NOT shipped
+                          as a gate: it excluded 1 of 75 trades. Full reasoning:
+                          docs/claude/design/ABSOLUTE_MOMENTUM_READ_PLAN_DAY117.md */}
+                      {(() => {
+                        const abs = getAbsoluteMomentumRead(analysisResult.rsData?.stock52wReturn);
+                        if (!abs) return null;
+                        return (
+                          <div
+                            className="mt-2 pt-2 border-t border-gray-700 text-xs text-gray-400"
+                            title="Dual momentum's second leg (Antonacci, 2014). Relative strength above asks whether the stock beat the market; this asks whether it beat cash. The 5% figure is a static risk-free proxy carried from this project's own Day 107 backtest, not a live T-bill yield. Informational only — it does not affect any score, the verdict, or the Simple Checklist."
+                          >
+                            <span className="text-gray-500">Absolute momentum (info only): </span>{abs.text}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -2798,6 +2820,28 @@ function App() {
                       <p className="text-sm text-gray-300 mt-2">
                         {criterion.reason}
                       </p>
+                      {/* Day 117: absolute momentum — dual momentum's second leg,
+                          shown only on the Momentum card, using the SAME 1-year
+                          return the RS gate above just evaluated
+                          (simplifiedScoring.js). Informational only: it is not a
+                          tenth criterion, it never changes `pass`, `passCount`,
+                          `totalCriteria`, `verdict` or `summary`, and no other
+                          criterion renders it (explicit `key === 'momentum'`
+                          rather than a generic field, so the shared card shape
+                          stays a pass/fail shape).
+                          docs/claude/design/ABSOLUTE_MOMENTUM_READ_PLAN_DAY117.md */}
+                      {key === 'momentum' && (() => {
+                        const abs = getAbsoluteMomentumRead(criterion.stockReturnPct);
+                        if (!abs) return null;
+                        return (
+                          <p
+                            className="text-xs text-gray-400 mt-2 pt-2 border-t border-gray-600/50"
+                            title="Dual momentum's second leg (Antonacci, 2014). The criterion above asks whether the stock beat SPY; this asks whether it beat cash. Note that whenever SPY's own trailing year is above the cash bar, passing the criterion above already implies clearing this one — this line only tells you something new in a flat or falling market. The 5% figure is a static risk-free proxy from this project's own Day 107 backtest, not a live T-bill yield. Informational only — it is not one of the 9 criteria and does not affect the pass/fail count or the verdict."
+                          >
+                            <span className="text-gray-500">Absolute momentum (info only, not one of the 9): </span>{abs.text}
+                          </p>
+                        );
+                      })()}
                     </div>
                   ))}
                 </div>
@@ -4448,7 +4492,7 @@ function App() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>v4.57 - Multi-Source Data Intelligence</p>
+          <p>v4.58 - Multi-Source Data Intelligence</p>
           <p className="mt-1">TwelveData • Finnhub • AlphaVantage • yfinance • Stooq</p>
         </div>
       </div>
