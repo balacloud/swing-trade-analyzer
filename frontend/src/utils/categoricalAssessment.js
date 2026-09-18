@@ -61,8 +61,8 @@ const PATTERN_ACTIONABILITY_THRESHOLD = 60;
  * payload, rather than falling back to a fabricated percentage
  * (Architecture Rule 6 — "return null, not a plausible fake").
  * VCP has no published measured move (Minervini uses trailing stops / R
- * multiples); it keeps a 'flat_pct_legacy' flag until Phase 4 wires it to
- * real resistance from the corrected S&R engine.
+ * multiples); its target is `vcpTarget()` below instead (Day 118, Phase 4) —
+ * real resistance from the corrected S&R engine, not a projected percentage.
  */
 function measuredMoveTarget(patternData, basis) {
   const pivot = patternData?.pivot_price;
@@ -79,6 +79,51 @@ function measuredMoveTarget(patternData, basis) {
     if (hi == null || lo == null || hi <= lo) return null;
     return pivot + (hi - lo);
   }
+  return null;
+}
+
+/**
+ * Day 118 (Phase 4): VCP has no published measured move (Minervini uses
+ * trailing stops / R-multiples, not a projection). Honest target is
+ * structural: the nearest real resistance above the pivot from the
+ * corrected S&R engine (Day 112, Golden Rule 53). Falls back to the
+ * largest contraction's depth if no real resistance exists above the pivot
+ * within the app's own proximity ceiling. Returns null (never a flat %)
+ * if neither is available.
+ *
+ * The `!srData?.meta?.resistanceProjected` guard matters: if the whole
+ * ticker is flagged ATH (ATR/Fibonacci-projected resistance), even a level
+ * that happens to sit in srData.resistance above the VCP pivot is
+ * synthetic, not real overhead supply, and must fall through to the
+ * contraction-depth fallback rather than being presented as "next
+ * resistance."
+ *
+ * Filter is `r > pivot`, not `r > currentPrice` — deliberate, documented
+ * rather than left implicit (Day 115 plan's open question). `srData.resistance`
+ * is already the proximity-filtered ACTIONABLE list, which by construction
+ * (backend.py's `r > current_price` filter) never contains a level below
+ * current price. So when the VCP already broke out and pulled back
+ * (pivot < currentPrice), every element already satisfies `r > pivot`
+ * trivially and the filter is a no-op in that branch — not a bug, just
+ * consistent with the still-forming case where pivot is at/near
+ * currentPrice. Either phrasing produces the same result; `r > pivot` is
+ * kept because it reads correctly for both cases without a branch.
+ */
+function vcpTarget(vcp, srData) {
+  const pivot = vcp?.pivot_price;
+  if (pivot == null) return null;
+
+  const resistances = (srData?.resistance || []).filter(r => r > pivot);
+  if (resistances.length > 0 && !srData?.meta?.resistanceProjected) {
+    return { price: Math.min(...resistances), basis: 'resistance' };
+  }
+
+  const firstContraction = vcp?.contractions?.[0];
+  const hi = firstContraction?.high_price, lo = firstContraction?.low_price;
+  if (hi != null && lo != null && hi > lo) {
+    return { price: pivot + (hi - lo), basis: 'vcp_contraction' };
+  }
+
   return null;
 }
 
@@ -133,9 +178,14 @@ function buildActionablePattern({ name, fullName, patternData, atr, targetPrice,
  *
  * @param {object} patternsData - Raw patterns data from backend
  * @param {number} atr - ATR value for stop calculation
+ * @param {object} [srData=null] - Day 118 (Phase 4): srData from state
+ *   (fetchSupportResistance result) — needed for VCP's resistance-based
+ *   target (vcpTarget()). Optional so the sole caller (App.jsx, verified —
+ *   grep shows one call site) degrades gracefully to "no VCP target"
+ *   rather than throwing if ever called without it.
  * @returns {object} { actionablePatterns, summary }
  */
-export function getActionablePatterns(patternsData, atr = null) {
+export function getActionablePatterns(patternsData, atr = null, srData = null) {
   if (!patternsData || !patternsData.patterns) {
     return {
       actionablePatterns: [],
@@ -148,15 +198,16 @@ export function getActionablePatterns(patternsData, atr = null) {
   // Check VCP
   const vcp = patternsData.patterns.vcp;
   if (vcp?.detected && vcp.confidence >= PATTERN_ACTIONABILITY_THRESHOLD) {
+    // Day 118 (Phase 4): real structural target — see vcpTarget() docstring.
+    // Replaces the flat pivot*1.15 legacy multiplier from Day 112.
+    const vcpT = vcpTarget(vcp, srData);
     actionablePatterns.push(buildActionablePattern({
       name: 'VCP',
       fullName: 'Volatility Contraction Pattern',
       patternData: vcp,
       atr,
-      // Day 112: VCP has no measured move. Left on the legacy flat 15% until
-      // Phase 4 wires it to real resistance from the corrected S&R engine.
-      targetPrice: vcp.pivot_price != null ? vcp.pivot_price * 1.15 : null,
-      targetBasis: 'flat_pct_legacy',
+      targetPrice: vcpT?.price ?? null,
+      targetBasis: vcpT?.basis ?? null,
       description: `${vcp.contractions_count} contractions with ${vcp.base_tightness_pct}% base tightness`,
       action: vcp.status === 'at_pivot' ? 'Ready to buy on breakout above pivot' :
               vcp.status === 'broken_out' ? 'Already broken out - use pullback entry' :

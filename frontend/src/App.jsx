@@ -480,7 +480,11 @@ function App() {
 
       // Day 47: v4.6.2 - Calculate actionable patterns (≥60% confidence only)
       const atr = data.sr?.meta?.atr || null;
-      const actionablePatterns = getActionablePatterns(data.patterns, atr);
+      // Day 118 (Phase 4): pass the local `data.sr`, NOT the `srData` state
+      // variable — setSrData() two lines above is async, so reading `srData`
+      // here in the same synchronous block risks the pre-update stale value.
+      // `data.sr` is the just-fetched payload, already resolved.
+      const actionablePatterns = getActionablePatterns(data.patterns, atr, data.sr);
       setActionablePatternsData(actionablePatterns);
 
       setFearGreedData(data.fearGreed); // Day 44: v4.5 Fear & Greed
@@ -2362,12 +2366,15 @@ function App() {
                                   </div>
                                 </div>
                               </div>
-                              {/* Day 112: show where the target number comes from (measured move vs. legacy flat %) */}
+                              {/* Day 112: show where the target number comes from (measured move vs. legacy flat %).
+                                  Day 118: VCP's flat_pct_legacy basis retired — replaced by 'resistance' /
+                                  'vcp_contraction' (real structural target, Phase 4). */}
                               {pattern.targetBasis && (
                                 <div className="text-[11px] text-gray-500 mb-2">
                                   {pattern.targetBasis === 'cup_depth' ? 'Target = pivot + cup depth (measured move)' :
                                    pattern.targetBasis === 'base_depth' ? 'Target = pivot + base height (measured move)' :
-                                   pattern.targetBasis === 'flat_pct_legacy' ? 'Target = flat +15% (VCP has no measured move — pending resistance-based fix)' :
+                                   pattern.targetBasis === 'resistance' ? `Target = nearest real resistance ($${pattern.targetPrice?.toFixed(2)})` :
+                                   pattern.targetBasis === 'vcp_contraction' ? 'Target = pivot + largest contraction depth (no real resistance overhead)' :
                                    null}
                                 </div>
                               )}
@@ -4506,7 +4513,7 @@ function App() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>v4.58 - Multi-Source Data Intelligence</p>
+          <p>v4.59 - Multi-Source Data Intelligence</p>
           <p className="mt-1">TwelveData • Finnhub • AlphaVantage • yfinance • Stooq</p>
         </div>
       </div>

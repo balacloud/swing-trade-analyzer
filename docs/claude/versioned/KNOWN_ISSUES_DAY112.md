@@ -78,23 +78,38 @@ confirmed), MR HUB-65 1 open / 68 closed (64.71% WR, PF 1.7360).
 
 ## Open Issues
 
-### Medium: MTF Confluence's confidence score is a hardcoded binary multiplier + counts synthetic projected levels in its denominator (carried from Day 111, plan written Day 112)
-**Severity:** Medium
-**Fix (planned, not actioned — Phase 3 of `SR_PIVOT_FIX_PLAN_DAY112.md` §4):**
-wire `mtf_daily_weight`/`mtf_weekly_weight` into a real graduated score
-(surface a Strong/Moderate/Weak *label*, keep the float in `meta`); exclude
-`resistance_projected`/`support_projected` levels from `confluence_pct`'s
-denominator (they can never be confluent with real weekly pivots and make the
-40%/20% badge thresholds meaningless for ATH stocks). Also noted: the `strength`
-field is currently *dead* — computed, serialized, read by nobody. Graded 3.0/10.
-Low priority — display polish on an informational page.
+### RESOLVED (Day 118): MTF Confluence's confidence score was a hardcoded binary multiplier + counted synthetic projected levels in its denominator
+**Was:** Medium (carried from Day 111, plan written Day 112). **Fix:** shipped, per
+`docs/claude/design/MTF_VCP_FIX_PLAN_DAY115.md` Phase 3. `strength` is now a real
+graduated score (blends normalized daily/weekly touch counts with proximity to
+the weekly match, verified to reproduce the old 1.0/0.6 constants at full touch
+saturation), surfaced as a Strong/Moderate/Weak label on the ★ tooltip.
+`resistance_projected`/`support_projected` levels are now excluded from the
+confluence set entirely (not just the denominator label), with the excluded
+count shown in the badge rather than left silent. Live-verified across 10
+tickers (NVDA "Confluent with weekly level (Strong)" confirmed in-browser);
+the projected-exclusion path itself had no live ATH candidate in a 47-ticker
+sweep under the current pivot-selection method, so verified via direct unit
+test instead (including the all-levels-projected division-by-zero edge case).
 
-### Low-Medium: Pattern Detection's VCP price target is still a flat +15% (carried from Day 111, C&H/Flat Base fixed Day 112)
-**Severity:** Low-Medium
-**Fix (planned — Phase 4 of the plan, §5):** primary = nearest real resistance
-above the pivot from the corrected S&R; fallback = largest contraction's
-measured move; neither → `null` + "no structural target" (never a flat %).
-Needs `srData` threaded into `getActionablePatterns()`. Low priority.
+### RESOLVED (Day 118): Pattern Detection's VCP price target was a flat +15%
+**Was:** Low-Medium (carried from Day 111, C&H/Flat Base fixed Day 112). **Fix:**
+shipped, per `MTF_VCP_FIX_PLAN_DAY115.md` Phase 4. VCP's target is now
+structural: nearest real resistance above the pivot from the corrected S&R
+engine, falling back to the largest contraction's measured-move depth when no
+real resistance exists above the pivot (or the ticker is flagged ATH/projected,
+in which case even a level that happens to sit above the pivot is synthetic
+and must not be presented as real overhead supply). Returns `null` — never a
+fabricated percentage — when neither is available. `getActionablePatterns()`
+now takes `srData` as a third argument; the sole caller (`App.jsx`) passes the
+just-fetched `data.sr`, not the async `srData` state variable, to avoid a
+stale-read race. Verified against CVX, the one live VCP-detected ticker found
+in a 58-ticker sweep (confidence 85, `at_pivot`) — its own resistance level
+sits below the pivot, so it live-exercised the fallback branch
+(`$217.78 + ($192.69-$164.78) = $245.69`, `vcp_contraction` basis); the
+primary resistance branch and the ATH-guard branch were verified via direct
+logic test against real CVX data plus constructed cases, matching the exact
+scenarios the plan's own verification section called for.
 
 ### High: Per-ticker provenance can't distinguish "never checked" from "just failed" (carried from Day 108)
 **Severity:** High
