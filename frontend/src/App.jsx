@@ -2105,7 +2105,11 @@ function App() {
                           }`}>
                             MTF Confluence: {srData.meta.mtf.confluence_pct?.toFixed(0)}%
                             <span className="ml-1 opacity-70">
-                              ({srData.meta.mtf.confluent_levels}/{srData.meta.mtf.total_levels} levels)
+                              ({srData.meta.mtf.confluent_levels}/{srData.meta.mtf.total_levels} levels
+                              {/* Day 115: projected (ATR/Fibonacci-synthetic) levels are now excluded
+                                  from this ratio entirely, not just silently dragging it down — say
+                                  so, so an improved percentage doesn't read as unexplained. */}
+                              {srData.meta.mtf.projected_excluded > 0 && `, ${srData.meta.mtf.projected_excluded} projected excluded`})
                             </span>
                           </div>
                         </div>
@@ -2121,7 +2125,12 @@ function App() {
                                 const isConfluent = mtfInfo?.confluent;
                                 return (
                                   <div key={i} className={`text-gray-400 ${isConfluent ? 'font-medium' : ''}`}>
-                                    {isConfluent && <span className="text-yellow-400 mr-1" title="Confluent with weekly level">★</span>}
+                                    {/* Day 115: surface the graduated strength_label (Strong/Moderate/Weak)
+                                        instead of a flat "Confluent with weekly level" — the descriptive-
+                                        state convention this redesign already uses elsewhere (Regime,
+                                        Technical Read, Fundamentals). Falls back to the old text if
+                                        strength_label is absent (older cached response shape). */}
+                                    {isConfluent && <span className="text-yellow-400 mr-1" title={mtfInfo?.strength_label ? `Confluent with weekly level (${mtfInfo.strength_label})` : 'Confluent with weekly level'}>★</span>}
                                     S{i + 1}: <span className={`font-mono ${isConfluent ? 'text-green-200' : 'text-green-300'}`}>{formatCurrency(level)}</span>
                                     <span className="text-gray-500 ml-1">
                                       ({((srData.currentPrice - level) / srData.currentPrice * 100).toFixed(1)}% below)
@@ -2144,7 +2153,12 @@ function App() {
                                 const isConfluent = mtfInfo?.confluent;
                                 return (
                                   <div key={i} className={`text-gray-400 ${isConfluent ? 'font-medium' : ''}`}>
-                                    {isConfluent && <span className="text-yellow-400 mr-1" title="Confluent with weekly level">★</span>}
+                                    {/* Day 115: surface the graduated strength_label (Strong/Moderate/Weak)
+                                        instead of a flat "Confluent with weekly level" — the descriptive-
+                                        state convention this redesign already uses elsewhere (Regime,
+                                        Technical Read, Fundamentals). Falls back to the old text if
+                                        strength_label is absent (older cached response shape). */}
+                                    {isConfluent && <span className="text-yellow-400 mr-1" title={mtfInfo?.strength_label ? `Confluent with weekly level (${mtfInfo.strength_label})` : 'Confluent with weekly level'}>★</span>}
                                     R{i + 1}: <span className={`font-mono ${isConfluent ? 'text-red-200' : 'text-red-300'}`}>{formatCurrency(level)}</span>
                                     <span className="text-gray-500 ml-1">
                                       ({((level - srData.currentPrice) / srData.currentPrice * 100).toFixed(1)}% above)

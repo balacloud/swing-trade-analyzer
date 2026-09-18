@@ -865,13 +865,23 @@ def _resample_to_weekly(df: pd.DataFrame) -> pd.DataFrame:
 def _find_mtf_confluence(
     daily_levels: List[float],
     weekly_levels: List[float],
-    threshold: float = 0.005
+    threshold: float = 0.005,
+    daily_scores: Optional[Dict[float, int]] = None,
+    weekly_scores: Optional[Dict[float, int]] = None,
+    cfg: Optional['SRConfig'] = None
 ) -> Dict[float, Dict[str, Any]]:
     """
     Find confluence between daily and weekly S&R levels.
 
     A level is "confluent" if a weekly level exists within threshold distance.
     Confluent levels are stronger (appear on multiple timeframes).
+
+    Day 115: `strength` used to be a dead field (1.0/0.6 constants, computed
+    but read by no consumer — App.jsx only ever read `.confluent`). Wired
+    into a real graduated score instead of deleting it: `strength` now blends
+    normalized daily/weekly touch counts with proximity to the weekly match,
+    so two confluent levels can be told apart by how *well* they line up and
+    how often price has actually respected them — not just a binary flag.
 
     Parameters
     ----------
@@ -881,13 +891,27 @@ def _find_mtf_confluence(
         S&R levels from weekly timeframe
     threshold : float
         Percentage threshold for confluence (default 0.5%)
+    daily_scores, weekly_scores : Optional[Dict[float, int]]
+        Touch counts per level (from `_score_levels`), used to normalize
+        `strength`. Optional so this function still works standalone/in
+        tests without them — falls back to 0 touches, i.e. minimum strength.
+    cfg : Optional[SRConfig]
+        Supplies `touch_saturation`, `mtf_daily_weight`, `mtf_weekly_weight`.
+        Falls back to their SRConfig defaults (5 / 0.6 / 0.4) when omitted.
 
     Returns
     -------
     Dict[float, Dict[str, Any]]
-        {level: {'confluent': bool, 'weekly_match': float|None, 'strength': float}}
+        {level: {'confluent': bool, 'weekly_match': float|None,
+                 'distance_pct': float|None, 'proximity': float,
+                 'strength': float, 'strength_label': str}}
     """
     confluence_map = {}
+    daily_scores = daily_scores or {}
+    weekly_scores = weekly_scores or {}
+    saturation = cfg.touch_saturation if cfg else 5
+    daily_weight = cfg.mtf_daily_weight if cfg else 0.6
+    weekly_weight = cfg.mtf_weekly_weight if cfg else 0.4
 
     for daily_level in daily_levels:
         # Check if any weekly level is within threshold
@@ -902,12 +926,35 @@ def _find_mtf_confluence(
 
         is_confluent = best_match is not None
 
+        # Day 115: graduated strength. `proximity` is 1.0 for an exact weekly
+        # match, decaying linearly to 0 at the threshold distance (0 when no
+        # match at all). Touch counts are normalized against a fixed
+        # saturation constant (cfg.touch_saturation), NEVER against the max
+        # touch count within this level set — normalizing locally would make
+        # a level's score swing day to day purely because a *different*
+        # level on the same chart gained a touch (Golden Rule 41 Pass-3
+        # "plausible but wrong" failure shape).
+        #
+        # Endpoints intentionally reproduce the old constants: a
+        # non-confluent level with 0 touches scores daily_weight * 0 = 0.0,
+        # approaching daily_weight (0.6) as daily touches saturate — matching
+        # the old non-confluent constant (0.6). A maximally-touched confluent
+        # level approaches daily_weight + weekly_weight = 1.0 — matching the
+        # old confluent constant (1.0).
+        proximity = max(0.0, 1 - (min_distance / threshold)) if best_match is not None else 0.0
+        daily_touch = daily_scores.get(daily_level, 0)
+        weekly_touch = weekly_scores.get(best_match, 0) if best_match is not None else 0
+        norm_daily = min(daily_touch, saturation) / saturation
+        norm_weekly = min(weekly_touch, saturation) / saturation
+        strength = daily_weight * norm_daily + weekly_weight * norm_weekly * proximity
+
         confluence_map[daily_level] = {
             'confluent': is_confluent,
             'weekly_match': best_match,
             'distance_pct': round(min_distance * 100, 3) if best_match else None,
-            # Confluent levels get higher strength score
-            'strength': 1.0 if is_confluent else 0.6
+            'proximity': round(proximity, 3),
+            'strength': round(strength, 3),
+            'strength_label': 'Strong' if strength >= 0.75 else 'Moderate' if strength >= 0.45 else 'Weak',
         }
 
     return confluence_map
@@ -916,7 +963,7 @@ def _find_mtf_confluence(
 def _compute_weekly_sr(
     df: pd.DataFrame,
     cfg: SRConfig
-) -> Tuple[List[float], List[float]]:
+) -> Tuple[List[float], List[float], Optional[pd.DataFrame]]:
     """
     Compute S&R levels on weekly timeframe.
 
@@ -931,8 +978,11 @@ def _compute_weekly_sr(
 
     Returns
     -------
-    Tuple[List[float], List[float]]
-        (weekly_support, weekly_resistance)
+    Tuple[List[float], List[float], Optional[pd.DataFrame]]
+        (weekly_support, weekly_resistance, weekly_df) — Day 115: also returns
+        the resampled weekly frame itself so _enrich_with_mtf can score weekly
+        touch counts without a second, duplicate resample call (Golden Rule 7).
+        weekly_df is None whenever an early-return path fires below.
     """
     try:
         # Resample to weekly
@@ -940,7 +990,7 @@ def _compute_weekly_sr(
 
         if weekly_df.empty or len(weekly_df) < 20:
             logger.info("Not enough weekly data for MTF analysis")
-            return [], []
+            return [], [], None
 
         current_price = float(df["close"].iloc[-1])
 
@@ -955,7 +1005,7 @@ def _compute_weekly_sr(
 
         if len(all_pivots) < 2:
             logger.info("Not enough weekly pivots for clustering")
-            return [], []
+            return [], [], None
 
         # Cluster weekly pivots
         pivot_array = np.array(all_pivots)
@@ -970,11 +1020,11 @@ def _compute_weekly_sr(
         weekly_resistance = sorted([l for l in clustered_levels if l > current_price])
 
         logger.info(f"Weekly S&R: {len(weekly_support)} support, {len(weekly_resistance)} resistance")
-        return weekly_support, weekly_resistance
+        return weekly_support, weekly_resistance, weekly_df
 
     except Exception as exc:
         logger.exception("Weekly S&R computation failed: %s", exc)
-        return [], []
+        return [], [], None
 
 
 def _enrich_with_mtf(
@@ -1007,10 +1057,32 @@ def _enrich_with_mtf(
         return
 
     try:
-        weekly_support, weekly_resistance = _compute_weekly_sr(df, cfg)
+        weekly_support, weekly_resistance, weekly_df = _compute_weekly_sr(df, cfg)
         all_daily = support + resistance
         all_weekly = weekly_support + weekly_resistance
-        confluence_map = _find_mtf_confluence(all_daily, all_weekly, cfg.mtf_confluence_threshold)
+
+        # Day 115: touch counts feed the new graduated `strength` score.
+        daily_scores = dict(_score_levels(all_daily, df, cfg.touch_threshold)) if all_daily else {}
+        weekly_scores = dict(_score_levels(all_weekly, weekly_df, cfg.touch_threshold)) if (all_weekly and weekly_df is not None) else {}
+
+        confluence_map = _find_mtf_confluence(all_daily, all_weekly, cfg.mtf_confluence_threshold, daily_scores, weekly_scores, cfg)
+
+        # Day 115: exclude synthetic (ATR/Fibonacci-projected) levels from the
+        # confluence set entirely, not just the denominator label. A
+        # projected level was never a real S&R level to begin with, so it
+        # can never be confluent with a real weekly pivot — counting it in
+        # the denominator silently understates confluence for every
+        # near-ATH/ATL stock (Day 111 finding: the badge's 40%/20% bands
+        # become meaningless whenever resistanceProjected/supportProjected
+        # is true, since the projected level(s) always drag the pct down).
+        projected_prices = set()
+        if meta.get('resistance_projected'):
+            projected_prices.update(resistance)
+        if meta.get('support_projected'):
+            projected_prices.update(support)
+        projected_excluded = len(projected_prices)
+        if projected_excluded:
+            confluence_map = {k: v for k, v in confluence_map.items() if k not in projected_prices}
 
         confluent_count = sum(1 for v in confluence_map.values() if v['confluent'])
 
@@ -1021,7 +1093,8 @@ def _enrich_with_mtf(
             "confluence_map": {f"{round(k, 2):.2f}": v for k, v in confluence_map.items()},  # Day 112: zero-padded 2dp — App.jsx looks up with .toFixed(2) (BUG-A)
             "confluent_levels": confluent_count,
             "total_levels": len(confluence_map),
-            "confluence_pct": round(confluent_count / len(confluence_map) * 100, 1) if confluence_map else 0
+            "confluence_pct": round(confluent_count / len(confluence_map) * 100, 1) if confluence_map else 0,
+            "projected_excluded": projected_excluded,  # Day 115: visible, not silent (Golden Rule 44 shape)
         }
         logger.info(f"MTF: {confluent_count}/{len(confluence_map)} levels confluent ({meta['mtf']['confluence_pct']}%)")
 
