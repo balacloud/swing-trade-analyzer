@@ -13,9 +13,11 @@
 >            session ends. A stale index is worse than no index.
 > **Created:** Day 111 (retroactively, cataloging 7 artifacts already
 >            published this session)
-> **Last Updated:** Day 112 — new Forward-Test Track Board added (#8);
->            all four previously-stale artifacts (#1, #5, #6, #7) republished
->            and are now current.
+> **Last Updated:** Day 118 — #1 repaired 2026-09-15 (kept from an earlier
+>            in-session pass); #4 flagged stale (MTF Confluence and Pattern
+>            Detection's price-target grades were fixed Day 118, the artifact
+>            page itself not republished). #5/#6/#7/#8 still reflect their
+>            Day 112 republish and have not been checked against Days 113-118.
 
 ---
 
@@ -23,10 +25,10 @@
 
 | # | Artifact | Favicon | Purpose | Current state |
 |---|---|---|---|---|
-| 1 | [Analyze Page Redesign — Decision Map](https://claude.ai/code/artifact/3e82355f-a495-49d0-9375-ce9cc257bd0b) | 🧭 | Maps all 16 redesign decisions against the 9-principle "100 years of trading" canon (`TRADING_PRINCIPLES_100YR_RESEARCH.md`); shows Locked/Open status per item. | **Current (republished Day 112).** Volume Confirmation now marked Partial "shipped as Info, Day 111–112" on both the canon card and the gaps box; the "published mockup shows stale Regime copy" open thread removed (fixed — see #7); item 15's MR trade count refreshed 105→161 (PF 2.75→2.53); open-thread count 6→5. The "item 15 (MR Read) vs. decision-doc §9 item 16 (Volume Confirmation) numbering collision" is a cross-document naming quirk only — no fix needed in this artifact. |
+| 1 | [Analyze Page Redesign — Decision Map](https://claude.ai/code/artifact/3e82355f-a495-49d0-9375-ce9cc257bd0b) | 🧭 | Maps all 16 redesign decisions against the 9-principle "100 years of trading" canon (`TRADING_PRINCIPLES_100YR_RESEARCH.md`); shows Locked/Open status per item. | **Current (republished 2026-09-15).** Item 08 (Entry/Stop/Target) now marked FIXED — the S&R `_pivot_sr` bug it described as "not yet implemented" shipped Day 112. The open-agenda "duplicate R:R arithmetic" item's deferral reason (touches `compute_sr_levels`) is now moot and says so. Header status-pill no longer claims "gated behind forward-testing" — the program was discontinued 2026-09-12. Item 15's MR numbers refreshed to the program's final standing result (217 closed, PF 2.46) with a note that no further trades will accumulate. The "Implement now, or stay parked?" agenda item's freeze-gating language removed — it's now purely a scheduling choice. |
 | 2 | [Fundamentals & Sentiment — Card Visual Design](https://claude.ai/code/artifact/ecb47fc2-1368-40d9-97e7-408ccc3ffa80) | 🎛️ | Visual mockup of the Fear & Greed gauge and the 4-state Fundamentals red-flag card. | **Current.** Static reference, nothing about either card's design has changed since publish. |
 | 3 | [Descriptive Cards — Who Actually Uses Them](https://claude.ai/code/artifact/403ee70f-af19-461f-a5a0-5b4feb2c563c) | 🧩 | Maps S&R / MTF Confluence / Price Structure / Pattern Detection / Breakout Status to which trading strategy (Momentum / Pullback / Breakout / Mean-Reversion) actually consumes each one. | **Current.** Nothing in this mapping has changed. |
-| 4 | [Descriptive Cards — Industry-Standard Report Card](https://claude.ai/code/artifact/c3ec8875-8b66-4edd-8597-9ce95e3f54ba) | 🔬 | Grades S&R (2/10), MTF Confluence (3/10), Price Structure (9/10), Pattern Detection recognition (8/10) vs. its price target (1.5/10), and Breakout Status (9/10) against named real methodology. | **Current.** The graded issues themselves (S&R's nearest-vs-extreme bug, MTF's arbitrary multiplier, Pattern Detection's flat-percentage target) are all still open per `KNOWN_ISSUES_DAY110.md` — none have been fixed yet, only *planned*. Grades still hold. |
+| 4 | [Descriptive Cards — Industry-Standard Report Card](https://claude.ai/code/artifact/c3ec8875-8b66-4edd-8597-9ce95e3f54ba) | 🔬 | Grades S&R (2/10), MTF Confluence (3/10), Price Structure (9/10), Pattern Detection recognition (8/10) vs. its price target (1.5/10), and Breakout Status (9/10) against named real methodology. | **⚑ STALE (Day 118) — grades not republished.** S&R's fix (Day 112) was already reflected as current at the time. But two of the three remaining below-standard grades are now out of date: MTF Confluence's "arbitrary multiplier" (3/10) and Pattern Detection's "flat-percentage target" (1.5/10) were both fixed Day 118 (`docs/claude/design/MTF_VCP_FIX_PLAN_DAY115.md`) — the artifact's page itself hasn't been republished to reflect either fix. Not done this session; flagged for next time this artifact is touched. |
 | 5 | [Audit Coverage Timeline](https://claude.ai/code/artifact/ba5ac987-da3d-4121-be9c-2e91269201b7) | 🗺️ | Visual timeline of every documented audit touch across the app's 11 components — reveals the Day 107 mega-sweep and its flagged gaps. | **Current (republished Day 112).** The S&R/Pattern-engine Day 111 audit no longer shows as a hollow "in progress" ring or a flagged gap — it's marked closed (the finding is fully written up in `KNOWN_ISSUES`, Golden Rule 53, and `AUDIT_COVERAGE_LEDGER.md`'s own RESOLVED gap-note). Flagged-gap count 3→2; today-line moved to Day 112; Analyze Tab row de-hollowed too (real shipped work Day 111–112). |
 | 6 | [STA Data Provenance Map](https://claude.ai/code/artifact/95843cfe-d814-448f-9428-9c6a0df1958c) | 📡 | Every tab mapped to its data source(s), fallback chains, field-level provenance, and what's locally computed. | **Current (republished Day 112).** The `/api/mr/scan` orchestrator-bypass (Finding 2) now shows **fixed Day 111** — a green "Fixed D111" badge on the Forward Test row and a resolved (✓) entry in the flagged list, instead of an open ⚑. Matches `DATA_PROVENANCE_FINDINGS_DAY111.md`. |
 | 7 | [Analyze Page Redesign — Mockup](https://claude.ai/code/artifact/ef8a4f89-b19c-480a-b757-26072dcd2a26) | 🧭 | The actual interactive mockup of the redesigned Analyze page — the only artifact in this list that's a full page mockup rather than a reference diagram. | **v0.4, current (republished Day 112).** The Regime band's copy is now the post-Day-110-reversal Info wording (matching `ANALYZE_PAGE_REDESIGN_DECISIONS.md` §6 verbatim) — the last known gap, now closed. Also carries the Day 111 Mean-Reversion Read card and the Day 112 Volume Confirmation + Direction read. The rest of the mockup remains a design vision, not live (see the table below). |
@@ -36,16 +38,18 @@
 
 ## Reading this table
 
-- **As of Day 112, all eight are current.** The four that lagged a fix
-  (#1, #5, #6, #7) were each republished the same session the fixes landed —
-  their "Current state" cells above say what changed.
+- **As of Day 118, one artifact (#4) is known stale** — its MTF Confluence
+  and Pattern Detection grades no longer match the live app (both fixed Day
+  118). The other seven have not been re-audited against Days 113-118's
+  changes; treat "Current (republished Day 112)" as "current as of Day 112,"
+  not verified since.
 - **Two artifacts (1, 7) are about the same subject** — the Analyze Page
   Redesign — but serve different jobs: #1 is a structured decision registry,
-  #7 is what the page would actually look like. Both now match the underlying
-  decision doc (`ANALYZE_PAGE_REDESIGN_DECISIONS.md`).
-- **Three artifacts (2, 3, 4) have never needed a change** — nothing they
-  describe has moved since publish. #4's grades still hold: the S&R /
-  MTF / Pattern-target issues it grades are *planned*, not yet fixed.
+  #7 is what the page would actually look like. Both matched the underlying
+  decision doc (`ANALYZE_PAGE_REDESIGN_DECISIONS.md`) as of their last check.
+- **Two artifacts (2, 3) have never needed a change** — nothing they
+  describe has moved since publish. #4 (previously grouped with them) no
+  longer belongs in this "never needs a change" set — see above.
 - **#8 is the only one whose numbers go stale on their own** — it's a live
   snapshot of forward-test track state. Re-pull via `daily_job.py --report`
   rather than trusting it between sessions; the decisions it records are

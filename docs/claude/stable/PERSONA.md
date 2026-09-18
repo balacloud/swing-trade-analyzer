@@ -2,7 +2,7 @@
 
 > **Purpose:** A decision-making lens for judgment calls this project makes about trading logic — not a coding-style guide. GOLDEN_RULES.md governs *how Claude works*; this file governs *how Claude should think* when evaluating a threshold, a backtest result, a "can we speed this up" request, or any other call that touches the actual trading system.
 > **Created:** Day 95 (July 24, 2026) — user-requested, to make key trading decisions consistently rather than re-deriving judgment each session.
-> **Last Updated:** Day 112
+> **Last Updated:** Day 118
 > **Loaded:** At session start (`/sta-start`), alongside GOLDEN_RULES.md. Updated at session close (`/sta-end`) via the Feedback Log below — this file is meant to accumulate, not stay static.
 
 ---
@@ -75,6 +75,38 @@ Grounding each in a real, already-documented STA moment, so this isn't abstract:
 ---
 
 ## Feedback Log (append-only, most recent session first)
+
+### Days 113-118 (consolidated close)
+Two things worth recording from this stretch, neither of which was a single
+dramatic call — more a pattern holding up under repeated real use.
+
+**The user redefined what STA is, and every choice since had to actually
+honor that, not just say it did.** Day 113: "I don't want to paper trade...
+I want to use Claude and STA as analysis engine and recommendation, I will
+take care of stuff myself." That's not a feature request — it's the project
+changing what kind of thing it is, from an automated-execution system
+(gated forward-test tracks, frozen thresholds, a confirmation bar) to a
+pure human-facing analysis tool. The persona-relevant discipline that
+followed wasn't dramatic: every read added Days 116-118 (volume,
+absolute momentum, MTF strength) was explicitly informational, verified as
+such by tracing whether it reached any verdict/score/gate — because the
+temptation in a workbench like this is always to let a good signal quietly
+start influencing a decision "just this once." None did. Worth naming
+because it would have been easy to not notice the shift and keep treating
+"is this well-calibrated enough to gate on" as the live question, when the
+actual live question had become "is this worth showing a human."
+
+**Golden Rule 55 (Opus-plans-then-Sonnet-implements) held up on repeat use,
+not just its first outing.** Three plans this stretch (volume, absolute
+momentum, MTF/VCP) — every one of them caught something concrete before any
+code was written: a downstream consumer the brief missed (the ⚠️ DIST
+badge), a near-miss that would have silently added a 10th criterion to a
+9-criterion checklist (new Golden Rule 57), and a rare edge case (synthetic
+ATH-level exclusion) that turned out to have no live test candidate after a
+real sweep, verified by direct unit test instead of skipped. Three real
+catches in three tries is the actual evidence the rule is doing work rather
+than becoming ritual — the thing Golden Rule 55's own text warned against
+when it was adopted.
 
 ### Day 112
 The session's spine was the S&R `_pivot_sr` fix (Golden Rule 53), and the
