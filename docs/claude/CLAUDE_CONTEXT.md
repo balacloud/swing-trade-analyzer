@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 118 — end of day
+> **Last Updated:** Day 119 — end of day
 
 ---
 
@@ -11,16 +11,43 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 118 |
-| Version | v4.62 (Backend v2.51, Frontend v4.59) |
-| Latest Status | PROJECT_STATUS_DAY118_SHORT.md (consolidated close, covers Days 113-118) |
-| Latest Issues | KNOWN_ISSUES_DAY118.md |
-| Latest API | API_CONTRACTS_DAY118.md (additive only — `meta.candle.barComplete`, `meta.prevBar`, `meta.mtf.confluence_map[level].proximity`/`.strength_label`, `meta.mtf.projected_excluded` on `/api/sr/<ticker>`; `strength`'s *values* changed from a 1.0/0.6 binary to a continuous score, same shape) |
-| Focus | **STA is a pure analysis/recommendation tool** (paper-trading discontinued Day 113, user's explicit direction) — no live forward-test gates exist anymore, so all recent work is informational display/read logic. Days 116-118 cleared the entire remaining Day-111-audit backlog: OBV sign bug + a real partial-bar RVOL bug (Day 116), Antonacci's absolute-momentum leg surfaced as a read (Day 117, new Golden Rule 57), MTF Confluence's dead `strength` field + VCP's flat target both fixed (Day 118, completes the S&R fix chain). Next real open item: the High-severity per-ticker provenance gap (Day 108, oldest unaddressed audit finding, no plan written yet) — see Next Session Priorities below. |
+| Current Day | 119 |
+| Version | v4.62 (Backend v2.51, Frontend v4.59) — unchanged, planning-only session |
+| Latest Status | PROJECT_STATUS_DAY119_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY119.md |
+| Latest API | API_CONTRACTS_DAY118.md (unchanged Day 119 — no code touched) |
+| Focus | **STA is a pure analysis/recommendation tool** (paper-trading discontinued Day 113) — no live forward-test gates exist anymore. Day 119 re-verified and corrected the Day 109 Analyze Page Redesign's implementation plan (Priority #17) against everything shipped since — found 9 corrections, most importantly two blocks of the plan's prescribed on-card copy that described bugs already fixed (Day 112/118). New plan: `docs/claude/design/ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md`, go/no-go **GO**, not yet built. This is now the project's one bounded, real piece of work — everything else left in the backlog is isolated Medium/Low-severity display fixes with no compounding value. See Next Session Priorities below. |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 119 Summary (Analyze Page Redesign implementation plan re-verified and corrected — no version bump)
+- User pushed back on the shape of the post-Day-118 backlog (mostly Medium/Low, informational,
+  no live gates) — agreed continuing to clear it item-by-item has diminishing returns. Recommended
+  the Analyze Page Redesign (Priority #17) as the one bounded, real piece of work left — fully
+  designed already, would change what's felt every time the app opens, unlike isolated point-fixes.
+- **Opus-planned re-verification of the Day 109 decision doc's own §7 (implementation plan) and §8
+  (freeze-safety audit)** against six sessions of intervening code changes (Golden Rule 55 —
+  touches shipped live displays, multiple downstream consumers, changes methodology). Verdict: the
+  17 locked decisions and §7's phase structure hold; §8's freeze-safety audit is obsolete in its
+  justification (the freeze it protected is gone, Day 113) but its "don't touch the backend"
+  conclusions survive, now on parity/backtest-comparability grounds (re-ran Golden Rule 54's
+  caller-graph check fresh — `compute_sr_levels()`/`categorical_engine.py` still have live callers:
+  the backtest harness, the 86,400-combo parity grid, several diagnostic scripts).
+- **9 corrections found**, most importantly: two blocks of the plan's prescribed on-card copy (§6)
+  described bugs that no longer exist — the pivot S&R extreme-vs-nearest selection (fixed Day 112,
+  Golden Rule 53) and Pattern Detection's flat-multiple target (replaced Day 112/118). Shipping
+  either as originally written would have put a fabricated open bug and formula in front of the
+  user. Also: a helper misnamed `describeRegimeGate()` renamed to `describeRegimeRead()` (Regime
+  is Info, not a gate, since Day 110); the negative-EPS red-flag question answered and declined
+  (`epsGrowth` is a YoY rate, misleading as a flag); both UI verification scripts confirmed
+  silently non-functional since Day 75 (block on text that only renders in the non-default view).
+- New plan: `docs/claude/design/ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md` — supersedes
+  only §7/§8's *execution* plan, not the 17 locked decisions. Go/no-go: **GO**. First phase: Phase
+  0 (copy correction + parity-test baseline) then Phase 1 (additive utilities, zero visible
+  change). **No application code touched.** `ROADMAP.md`/`README.md` updated to match (Priority
+  #17 no longer gated behind anything, since the freeze it was scoped around is gone).
 
 ### Days 113-118 Summary (consolidated close — paper-trading discontinued + OBV/RVOL fix + absolute-momentum read + MTF/VCP fix chain complete, new Golden Rule 57 — v4.61 → v4.62)
 - **Day 113 — the paper-trading program is discontinued, at the user's explicit direction.**
@@ -85,17 +112,7 @@
 - **Artifacts:** new **Forward-Test Track Board** (`906b779b-0440-4cf2-8de0-fb3d17f58678`); repaired 4 stale artifacts (Decision Map, Audit Coverage Timeline, Data Provenance Map, Analyze Page Mockup) — `SESSION_ARTIFACTS_INDEX_DAY111.md` now lists all 8 as current.
 - Version v4.60 → v4.61 (Backend v2.48 → v2.49, Frontend v4.55 → v4.56 — code constants were drifted at v2.47/v4.54, corrected).
 
-### Day 111 Summary (Deep technical audit + data-provenance map + MR Scanner & Volume Confirmation shipped + MR confirmed / Path B fails stress-test, new Golden Rules 53-54 — v4.59 → v4.60)
-- **Full technical audit of 5 Analyze-page cards**, graded against real, named methodology rather than a vibe check: Price Structure and Breakout Status both 9/10 (genuinely matches published Dow Theory / institutional breakout-confirmation standards); Pattern Detection's recognition logic 8/10 (matches Minervini/O'Neil's published VCP/Cup&Handle/Flat Base criteria) but its price target 1.5/10 (a flat percentage, never checked against real resistance); MTF Confluence 3/10 (the Day 108 critical bug is fixed, but its confidence score is an arbitrary hardcoded multiplier); Support & Resistance 2/10 — direct code read confirmed the pivot method's "nearest support" selection actually picks the most *extreme* level in range, not the nearest one. **New Golden Rule 53.** Full remediation plans written for all three below-standard findings, none implemented yet.
-- **Complete data-provenance map** of every tab — confirmed four separate data systems exist, not one pipeline (the multi-provider orchestrator, TradingView's screener, FRED, direct scrapes). 5 findings logged (`DATA_PROVENANCE_FINDINGS_DAY111.md`): `/api/mr/scan` inconsistently bypassed the orchestrator when its sibling endpoint didn't (**fixed**); two batch endpoints bypass circuit-breaker protection with zero Tradier fallback; Tradier's real capacity sits unused in exactly the scenario that's already caused a rate-limit incident; the Data Sources tab's own field-source documentation was stale ("Defeat Beta API," a provider no longer in any active chain).
-- **MR Scanner wired to the Scan tab — SHIPPED.** `fetchMRScan()`/`/api/mr/scan` had existed fully built, completely disconnected from the UI, since Day 81. Added a "🔄 MR Signals" button + results panel with click-through to Full Analysis. Verified live: 54-ticker scan, 7 real signals returned, click-through confirmed working. Found and restarted a genuinely stuck backend (unresponsive after 2 weeks of uptime) along the way, unrelated to this change.
-- **Volume Confirmation + Direction — SHIPPED, two-phase build, both Opus-planned before implementation.** Phase 1 (magnitude): redesigned the Day 107 volume-confirmation gap (previously tested as a hard gate, cut trades 93%, abandoned) using this project's own established fix for that failure shape — moved from gate to Info, matching Fundamentals/R:R/Regime. The Opus plan corrected two wrong premises in the original brief before any code was written (RVOL wasn't on a "Sizing Inputs grid" — that only exists in the unimplemented mockup; the "shared 1.5x threshold" was actually 7 unlinked copies). Phase 2 (direction): added a directional lean combining price change, close-location-in-range, and OBV trend — verified live on TSLA's genuine 3-way signal conflict, correctly rendering "mixed signals" rather than averaging it away. Found a real, separate, pre-existing OBV trend sign bug along the way (logged, not fixed — touches a shipped live badge). New backend field `meta.candle` on `/api/sr/<ticker>` (additive).
-- **Two forward-test tracks crossed their 100-trade bar, with opposite outcomes under the same scrutiny.** MR (broad): genuinely confirmed — 138 closed, 79.71% WR, PF 3.0021, holds at PF 2.24 (WR rises to 80%) excluding its single largest cluster. Momentum Path B: 117 closed, 50.43% WR, PF 1.2293 — technically clears the pre-registration's numeric bar, but 66.7% of the sample (78 of 117 trades) entered in one 4-day window (Aug 3-7); excluding it flips the track to PF 0.72, net losing. Confirmed this is a *new* regime/timing correlation, not the already-known sector-correlation gap (the cluster's tickers span five unrelated sectors). **Not treated as confirmed.**
-- **The S&R fix itself was scoped but not started — the session's central unresolved item.** Before writing any code, checked the caller graph directly and found `support_resistance.py`'s `compute_sr_levels()` (the function with the confirmed Golden-Rule-53 bug) is imported directly by Momentum Path B's live entry gate (`paper_trading/live_signals.py`), not just Analyze-page display. Per Golden Rule 18, an in-place fix would reset Path B's count. **New Golden Rule 54.** Given Path B's own stress-test failure the same session, that tradeoff looks materially different than it did an hour earlier — but the decision (fix in place / parallel-track / display-only) is explicitly left open for next session, not defaulted.
-- Session organization: built `AUDIT_COVERAGE_LEDGER.md` (last-reviewed date/depth for 11 app components) and `SESSION_ARTIFACTS_INDEX_DAY111.md` (catalogs all 7 Artifacts published this session with an honest current-state note on each). New PERSONA.md Feedback Log entry contrasting MR's clean confirmation against Path B's failed one.
-- Version v4.59 → v4.60 (Backend v2.47 → v2.48, Frontend v4.54 → v4.55).
-
-*(Day 110's summary rotated out — full detail preserved in `docs/claude/status/archive/PROJECT_STATUS_DAY110_SHORT.md` (Analyze Page Redesign interactive mockup published, forward-test cluster check-in across all 4 tracks, Regime gate reversed to Info after direct user pushback, new Golden Rule 52). Day 109's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY109_SHORT.md` (Analyze Page Redesign design phase complete, 17 locked decisions via item-by-item Q&A + Opus validation pass, no code changed, new Golden Rules 49-51). Day 108's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY108_SHORT.md` (full 10-group system audit, 15 bugs fixed incl. MTF Confluence's fabricated-dates CRITICAL bug, Canadian ticker question resolved, new Golden Rules 47-48). Day 107's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY107_SHORT.md` (STA-vs-100-years comparison Artifact + backtest-only volume/momentum research spike, new Golden Rules 45-46). Day 106's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY106_SHORT.md` (Scan tab labeling fix + STA Verdict column + self-description correction, new Golden Rule 44). Day 105's is in `docs/claude/status/PROJECT_STATUS_DAY105_SHORT.md` (Sub-Sector Pullback Screener + Sectors-tab staleness fix, new Golden Rule 43, SRPS R:R gap found). Day 104's is in `docs/claude/status/PROJECT_STATUS_DAY104_SHORT.md` (built `/watchlist-report` skill, new Golden Rule 42). Day 103's is in `docs/claude/status/archive/PROJECT_STATUS_DAY103_SHORT.md` (SRPS investigated + failed its own backtest, new Golden Rule 41). Day 102's is in `PROJECT_STATUS_DAY102_SHORT.md` (Questrade Flow experiment scoping, real-money ETF automation separate from STA). Day 101's is in `docs/claude/status/archive/PROJECT_STATUS_DAY101_SHORT.md` (Sub-Industry Watch, new Golden Rule 40). Day 100's is in `PROJECT_STATUS_DAY100_SHORT.md`. Day 99's is in `PROJECT_STATUS_DAY99_SHORT.md`. Day 98's is in `PROJECT_STATUS_DAY98_SHORT.md`. Day 97's is in `PROJECT_STATUS_DAY97_SHORT.md`. Day 96's is in `PROJECT_STATUS_DAY96_SHORT.md`. Day 94's is in `PROJECT_STATUS_DAY94_SHORT.md`.)*
+*(Day 111's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY111_SHORT.md` (full technical audit of 5 Analyze-page cards graded against real methodology, MR Scanner + Volume Confirmation shipped, MR confirmed at 100 trades / Path B fails its stress-test, new Golden Rules 53-54). Day 110's summary rotated out — full detail preserved in `docs/claude/status/archive/PROJECT_STATUS_DAY110_SHORT.md` (Analyze Page Redesign interactive mockup published, forward-test cluster check-in across all 4 tracks, Regime gate reversed to Info after direct user pushback, new Golden Rule 52). Day 109's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY109_SHORT.md` (Analyze Page Redesign design phase complete, 17 locked decisions via item-by-item Q&A + Opus validation pass, no code changed, new Golden Rules 49-51). Day 108's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY108_SHORT.md` (full 10-group system audit, 15 bugs fixed incl. MTF Confluence's fabricated-dates CRITICAL bug, Canadian ticker question resolved, new Golden Rules 47-48). Day 107's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY107_SHORT.md` (STA-vs-100-years comparison Artifact + backtest-only volume/momentum research spike, new Golden Rules 45-46). Day 106's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY106_SHORT.md` (Scan tab labeling fix + STA Verdict column + self-description correction, new Golden Rule 44). Day 105's is in `docs/claude/status/PROJECT_STATUS_DAY105_SHORT.md` (Sub-Sector Pullback Screener + Sectors-tab staleness fix, new Golden Rule 43, SRPS R:R gap found). Day 104's is in `docs/claude/status/PROJECT_STATUS_DAY104_SHORT.md` (built `/watchlist-report` skill, new Golden Rule 42). Day 103's is in `docs/claude/status/archive/PROJECT_STATUS_DAY103_SHORT.md` (SRPS investigated + failed its own backtest, new Golden Rule 41). Day 102's is in `PROJECT_STATUS_DAY102_SHORT.md` (Questrade Flow experiment scoping, real-money ETF automation separate from STA). Day 101's is in `docs/claude/status/archive/PROJECT_STATUS_DAY101_SHORT.md` (Sub-Industry Watch, new Golden Rule 40). Day 100's is in `PROJECT_STATUS_DAY100_SHORT.md`. Day 99's is in `PROJECT_STATUS_DAY99_SHORT.md`. Day 98's is in `PROJECT_STATUS_DAY98_SHORT.md`. Day 97's is in `PROJECT_STATUS_DAY97_SHORT.md`. Day 96's is in `PROJECT_STATUS_DAY96_SHORT.md`. Day 94's is in `PROJECT_STATUS_DAY94_SHORT.md`.)*
 
 ---
 
@@ -180,6 +197,16 @@ it) is discontinued as of Day 113 — STA is a pure analysis/recommendation tool
 places and manages every trade themselves. Every item below is available to work whenever —
 pick deliberately based on what the user actually wants next, not backlog order.
 
+**The one bounded, real piece of work — has a corrected, ready-to-execute plan (Day 119):**
+0. **Analyze Page Redesign (Priority #17)** — `docs/claude/design/ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md`.
+   17 decisions locked since Day 109, plan re-verified against current code Day 119, go/no-go
+   **GO**. Start with Phase 0 (copy correction in `ANALYZE_PAGE_REDESIGN_DECISIONS.md`'s §6/§9 +
+   a `test_verdict_parity.py` baseline) then Phase 1 (additive utility functions — zero visible
+   app change). Do not skip Phase 0: the decision doc's current §6 copy describes two bugs
+   (pivot S&R selection, Pattern Detection's target) that were fixed Day 112/118 — building
+   from it as-is would ship fabricated claims. Only start when explicitly requested — this is
+   the largest single change on the list, not a quick add.
+
 **High severity, no plan written yet:**
 1. **Per-ticker provenance can't distinguish "never checked" from "just failed."** Day 108
    finding, the oldest unaddressed item from that audit. Needs its own new failure-tracking
@@ -209,11 +236,11 @@ pick deliberately based on what the user actually wants next, not backlog order.
 10. Value Tab investor-name relabeling — same fix as item 4, could ship together.
 
 **Bigger open questions, no urgency:**
-11. Does the Analyze Page Redesign (full decision record + interactive mockup at
-    `docs/claude/design/ANALYZE_PAGE_REDESIGN_DECISIONS.md` / `mockups/analyze_page_redesign_mockup.html`,
-    17 locked decisions, design done Day 109, mockup Day 110) become a real implementation
-    project, or stay a documented reference? Includes one still-live bug: the Momentum entry
-    panel's position-size label has been hardcoded to "half" since Day 39.
+11. ~~Does the Analyze Page Redesign become a real implementation project, or stay a documented
+    reference?~~ **Answered Day 119: it has a corrected, ready-to-execute plan** (see priority 0
+    above) — the remaining question is purely "when," not "if/how." Includes one still-live bug
+    that Phase 2 of the plan fixes: the Momentum entry panel's position-size label has been
+    hardcoded to "half" since Day 39.
 12. Decide how the Analyze-page R:R should be *framed* now that `_pivot_sr` returns real
     nearest levels (it will honestly show sub-1.2:1 where real resistance is close, not a
     fabricated 3:1) — copy/framing, not logic, since R:R is already informational.
@@ -233,7 +260,7 @@ pick deliberately based on what the user actually wants next, not backlog order.
     orchestrator its two newer siblings use (Day 108) — the `fetchSectorRotation()` half of
     this was fixed Day 108 (Golden Rule 47); the backend half remains.
 
-**Full detail on every open item:** `docs/claude/versioned/KNOWN_ISSUES_DAY118.md`.
+**Full detail on every open item:** `docs/claude/versioned/KNOWN_ISSUES_DAY119.md`.
 
 ---
 
@@ -343,6 +370,7 @@ sqlite3 backend/validation_results/paper_trading_ledger.db "SELECT MAX(run_date)
 | 111 | Longest session in the project's history. Full technical audit of 5 Analyze-page cards graded against real methodology (S&R 2/10, MTF Confluence 3/10, Pattern Detection's price target 1.5/10 — new Golden Rule 53) + a complete data-provenance map (5 findings, 2 fixed). Two real features shipped and verified live: MR Scanner wired to the Scan tab (existed since Day 81, never connected), Volume Confirmation + Direction on the Trade Setup card (two-phase Opus-planned build, new `meta.candle` API field). MR (broad) crossed 100 trades and genuinely confirmed (PF 3.0021, holds at 2.24 ex-cluster) — the first track to ever clear the bar for real; Momentum Path B also crossed 100 but fails the identical stress-test (PF 1.2293 headline, PF 0.72 ex-cluster, 66.7% of the sample in one 4-day window) — not treated as confirmed. New Golden Rule 54 after discovering, before writing any code, that the planned S&R fix would reset Path B's live count — that decision is the top open item for next session. v4.59→v4.60 (BE v2.47→v2.48, FE v4.54→v4.55). Additive API change (`meta.candle`). |
 | 112 | **Momentum Path B RETIRED** (150 closed, no live edge, ex-cluster PF 0.72) — stops generating signals, open positions wind down, row kept as history. **S&R `_pivot_sr` nearest-level fix (Golden Rule 53)** — the pivot method kept the most *extreme* levels, not the *nearest*; fixed behind `SRConfig.pivot_nearest_selection`; + BUG-A (★ confluence-badge key-format mismatch, ~10% of levels) + BUG-B (Price Structure showed deepest supports not nearest) + touch scoring restored on the pivot path. Verified live on META (R1 $612.43 / 0.3% above vs pre-fix ~$745). **Config C backtest re-baselined PF 0.97 → 0.53** on corrected levels — the old number was partly a bug artifact (R:R inflated by a far reward target); pre-registered "trades rise" prediction was wrong, logged (Golden Rule 56). PF 1.40 formally retired. Fix ships anyway — Config C is not a live track. Closes the "corrected-S&R momentum forward-test variant" question: NO. **Pattern targets** — Cup & Handle / Flat Base now measured-move (cup depth / base height), null when geometry missing; VCP flagged flat +15% pending Phase 4. New Golden Rule 55 (scoped Opus-plan-then-Sonnet-implement). New `--momentum-only` backtest flag; additive `meta.pivotSelection` API field. 4 stale artifacts repaired + 1 new (Forward-Test Track Board). Version constants were drifted (BE v2.47/FE v4.54) — corrected to v2.49/v4.56. v4.60→v4.61. |
 | 113-118 | Consolidated close (no formal `/sta-end` had run since Day 112). **Day 113:** paper-trading program DISCONTINUED entirely at the user's explicit direction — pure analysis/recommendation tool from here on, no IBKR execution, MR (broad) stands as the final confirmed result. **Day 116:** OBV `trend` sign bug fixed + a real, previously-unlogged partial-bar RVOL bug found and fixed same session (new `barComplete`/`prevBar` API fields) + a new same-day effort-vs-result volume read. **Day 117:** Antonacci's absolute-momentum leg surfaced as an informational read on both Analyze-page views, sourced from the real Day 107 backtest constant — new Golden Rule 57 after the Opus plan caught a near-miss that would have silently added a 10th criterion to the 9-criterion checklist. **Day 118:** completed the S&R fix chain — MTF Confluence's dead `strength` field is now a real graduated score with synthetic-level exclusion; VCP's flat +15% target replaced with real nearest-resistance/measured-contraction-depth. Every read this stretch verified as gating nothing. v4.61→v4.62 (BE v2.49→v2.51, FE v4.56→v4.59). |
+| 119 | Planning-only, no version bump. User challenged the shape of the post-Day-118 backlog (diminishing-returns audit items, no live gates left); agreed and re-scoped the Analyze Page Redesign (Priority #17) as the one bounded piece of real work remaining. Opus-planned re-verification of the Day 109 decision doc's own §7/§8 execution plan against six sessions of intervening code (Golden Rule 55): 17 decisions and phase structure hold; freeze-safety audit's conclusions survive but for new reasons (parity/backtest-comparability, not forward-test — the freeze itself ended Day 113); 9 corrections found, most importantly two blocks of prescribed on-card copy that described bugs already fixed (Day 112/118) and would have shipped as fabrications. New plan: `ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md`, go/no-go GO, not yet built. Zero application code touched. |
 
 ---
 
