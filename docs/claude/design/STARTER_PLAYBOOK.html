@@ -1,0 +1,855 @@
+<title>Beginner Trading Starter Playbook</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: a field guide. Coloured masthead, sticky tab bar, and each tab has its own hue so you always know where you are. */
+:root{
+  --bg:#f4f6f8; --surface:#ffffff; --sunk:#eceff3; --ink:#152033; --muted:#566275; --line:#d9dee6;
+  --t1:#4f46e5; --t1s:#eef0ff;   /* trader type: indigo */
+  --t2:#0e7c86; --t2s:#e3f5f6;   /* macro: teal */
+  --t3:#e8590c; --t3s:#fff0e6;   /* reddit: orange */
+  --t4:#9c36b5; --t4s:#f8ebfb;   /* canon: plum */
+  --t5:#2b8a3e; --t5s:#e9f7ec;   /* coding: green */
+  --t6:#c48a00; --t6s:#fff7dc;   /* general: gold */
+  --t7:#d6336c; --t7s:#ffe8f0;   /* data & game: pink */
+  --t8:#1971c2; --t8s:#e7f1fc;   /* build: blue */
+  --good:#2b8a3e; --goods:#e6f6ea; --bad:#b7791f; --bads:#fff4dd; --ugly:#c92a2a; --uglys:#fde8e8;
+  --mast1:#3b3fb6; --mast2:#1971c2; --mastfg:#ffffff;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"Public Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --hue:var(--t1); --hues:var(--t1s);
+  color-scheme:light;
+}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 var(--body)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
+p{margin:0}
+a{color:var(--hue)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* masthead */
+.mast{background:linear-gradient(135deg,var(--mast1),var(--mast2));color:var(--mastfg);position:relative;overflow:hidden}
+.mast .wrap{padding-block:40px 34px;position:relative;z-index:1}
+.mast canvas{position:absolute;inset:0;width:100%;height:100%;opacity:.55}
+.eyebrow{font:600 12px/1 var(--body);letter-spacing:.14em;text-transform:uppercase;opacity:.75}
+.mast h1{font-size:clamp(32px,5.5vw,54px);font-weight:800;margin:10px 0 12px;letter-spacing:-.01em}
+.mast p.lead{max-width:62ch;font-size:17px;opacity:.9}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.chip{font-size:12.5px;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2)}
+
+/* tabs */
+.tabbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;padding-block:8px}
+.tab{flex:0 0 auto;display:flex;align-items:center;gap:8px;border:0;background:transparent;color:var(--muted);font:600 14px/1 var(--body);padding:9px 12px;border-radius:10px;cursor:pointer;white-space:nowrap}
+.tab .n{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:7px;font:700 12px/1 var(--mono);background:var(--sunk);color:var(--muted)}
+.tab:hover{background:var(--sunk);color:var(--ink)}
+.tab[aria-selected="true"]{background:var(--c-s);color:var(--c)}
+.tab[aria-selected="true"] .n{background:var(--c);color:var(--surface)}
+.tab:focus-visible{outline:2px solid var(--c);outline-offset:2px}
+
+main{padding-block:30px 60px}
+.panel{display:grid;gap:22px}
+.phead{display:grid;gap:8px;padding:22px 24px;border-radius:16px;background:var(--hues);border:1px solid color-mix(in srgb,var(--hue) 25%,transparent)}
+.phead .k{font:700 12px/1 var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--hue)}
+.phead h2{font-size:clamp(24px,3.6vw,34px);font-weight:800}
+.phead p{max-width:70ch;color:var(--ink)}
+h3{font-size:20px;font-weight:700}
+.sub{color:var(--muted);font-size:14.5px}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px;display:grid;gap:12px;min-width:0}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))}
+.grid3{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+.note{font-size:14px;color:var(--muted)}
+.callout{border-left:4px solid var(--hue);background:var(--surface);padding:14px 18px;border-radius:0 12px 12px 0}
+
+/* tab 1 cards */
+.ttype{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:10px;align-content:start;border-top:5px solid var(--cc)}
+.ttype h3{color:var(--cc);font-size:21px}
+.ttype dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:5px 12px;font-size:14px}
+.ttype dt{color:var(--muted);font-weight:600}
+.ttype dd{margin:0}
+.ttype .fit{font-size:14px;background:var(--sunk);border-radius:8px;padding:8px 10px}
+.ttype.featured{box-shadow:0 0 0 2px var(--cc)}
+.badge{display:inline-block;font:700 11px/1 var(--body);letter-spacing:.08em;text-transform:uppercase;padding:5px 8px;border-radius:6px;background:var(--cc);color:var(--surface);justify-self:start}
+.meter{display:flex;gap:3px}
+.meter i{width:14px;height:6px;border-radius:2px;background:var(--line)}
+.meter i.on{background:var(--cc)}
+ol.q{margin:0;padding:0;list-style:none;display:grid;gap:10px;counter-reset:q}
+ol.q li{counter-increment:q;display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:start}
+ol.q li::before{content:counter(q);display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--hue);color:var(--surface);font:700 15px/1 var(--mono)}
+
+/* tables */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:15px;white-space:nowrap}
+.trend-up{color:var(--ugly)} .trend-dn{color:var(--good)}
+.pill{display:inline-block;font:600 11.5px/1 var(--body);padding:4px 8px;border-radius:999px;white-space:nowrap}
+.p-ok{background:var(--goods);color:var(--good)}
+.p-warn{background:var(--bads);color:var(--bad)}
+.p-no{background:var(--uglys);color:var(--ugly)}
+
+/* tab 3 rules */
+.rule{display:grid;grid-template-columns:44px 1fr;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.rule .num{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:var(--hues);color:var(--hue);font:800 20px/1 var(--display)}
+.rule h3{font-size:18px}
+.rule .pass{margin-top:6px;font-size:14px;background:var(--sunk);border-radius:8px;padding:7px 10px}
+.rule .pass b{color:var(--hue)}
+.tag{display:inline-block;font:600 11px/1 var(--body);padding:4px 7px;border-radius:6px;background:var(--t4s);color:var(--t4);margin-left:6px;vertical-align:2px}
+
+details.ind{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+details.ind summary{cursor:pointer;list-style:none;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:14px 18px}
+details.ind summary::-webkit-details-marker{display:none}
+details.ind summary b{font-family:var(--display);font-size:17px}
+details.ind summary span.q{display:block;color:var(--muted);font-size:14px}
+details.ind summary::after{content:"+";font:700 20px/1 var(--mono);color:var(--hue)}
+details.ind[open] summary::after{content:"−"}
+details.ind summary:focus-visible{outline:2px solid var(--hue);outline-offset:-2px}
+.gbu{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:10px;padding:0 18px 18px}
+.gbu div{border-radius:10px;padding:10px 12px;font-size:14px}
+.gbu .g{background:var(--goods)} .gbu .b{background:var(--bads)} .gbu .u{background:var(--uglys)}
+.gbu strong{display:block;font:700 11.5px/1.4 var(--body);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+.gbu .g strong{color:var(--good)} .gbu .b strong{color:var(--bad)} .gbu .u strong{color:var(--ugly)}
+
+.more{display:grid;gap:10px}
+.more li{list-style:none}
+.more ul{margin:0;padding:0;display:grid;gap:10px}
+.mini{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+.mini .dot{width:12px;height:12px;border-radius:50%;background:var(--hue);margin-top:7px}
+
+/* tab 4 canon */
+.canon{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:8px;align-content:start}
+.canon .top{display:flex;align-items:baseline;gap:10px}
+.canon .no{font:800 30px/1 var(--display);color:var(--hue)}
+.canon h3{font-size:18px}
+.canon .who{font-size:13px;color:var(--muted);font-style:italic}
+.canon .use{font-size:14px;background:var(--hues);border-radius:8px;padding:8px 10px}
+.canon .trap{font-size:13.5px;color:var(--muted)}
+.canon .trap b{color:var(--ugly)}
+.canon .link{font-size:12px;font-weight:600;color:var(--t3)}
+
+/* tab 5 code */
+.crule{display:grid;grid-template-columns:52px 1fr;gap:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.crule .num{font:800 34px/1 var(--display);color:var(--hue);text-align:center}
+.crule h3{font-size:17.5px}
+.crule .why{font-size:14px;color:var(--muted);margin-top:4px}
+.crule code{font-family:var(--mono);font-size:13px;background:var(--sunk);padding:1px 5px;border-radius:4px}
+
+/* tab 2: macro */
+:root{--us:#1c4ed8;--ca:#d0312d}
+table.macro{min-width:820px}
+table.macro td{padding:14px}
+table.macro td:first-child{width:24%}
+table.macro .what{display:block;font-size:13px;color:var(--muted);margin-top:3px;line-height:1.45}
+table.macro td.num{font-size:17px;font-weight:500}
+table.macro td.num small{display:block;font:12px var(--body);color:var(--muted)}
+.cty{display:inline-block;font:800 11px/1 var(--body);letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;border-radius:5px;color:var(--surface)}
+.cty.us{background:var(--us)} .cty.ca{background:var(--ca)}
+.as{font-weight:700}
+.as.r{color:var(--ugly)} .as.a{color:var(--bad)} .as.g{color:var(--good)} .as.n{color:var(--muted)}
+.as.pillish{justify-self:start;font-size:12px;padding:4px 9px;border-radius:999px;background:var(--bads)}
+.cbox{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px;display:grid;gap:10px;align-content:start;border-top:5px solid var(--cc)}
+.cbox.us{--cc:var(--us)} .cbox.ca{--cc:var(--ca)}
+.cbox .cty{justify-self:start}
+.cbox h3{font-size:21px}
+.cbox p{font-size:15px}
+/* tab 6: general */
+.flow{margin:0;padding:0;list-style:none;display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));counter-reset:none}
+.flow li{position:relative;display:grid;gap:12px;align-content:start;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;border-top:5px solid var(--hue)}
+.flow .st{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--hue);color:var(--surface);font:800 19px/1 var(--display)}
+.flow li:nth-child(2) .st{opacity:.85}.flow li:nth-child(3) .st{opacity:.7}.flow li:nth-child(4) .st{opacity:.55}
+.flow h3{font-size:19px;margin-bottom:6px}
+.flow p{font-size:15px}
+.flow .chart{margin-top:10px;font-size:14px;background:var(--hues);border-radius:8px;padding:8px 10px}
+.flow .chart b{color:var(--hue)}
+/* tab 7 */
+table.react{min-width:640px}
+table.react code{font-family:var(--mono);font-size:12.5px;background:var(--sunk);padding:1px 5px;border-radius:4px}
+.steps{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
+.steps>div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center}
+.steps .st{grid-row:span 2;display:grid;place-items:center;width:36px;height:36px;border-radius:10px;background:var(--hue);color:var(--surface);font:800 17px/1 var(--display)}
+.steps p{font-size:14px;color:var(--muted)}
+table.pts td{padding:8px 4px;font-size:14px}
+table.pts td.num{text-align:right;font-weight:600}
+.pos{color:var(--good)} .neg{color:var(--ugly)}
+.lvls{display:grid;gap:8px}
+.lvls>div{display:grid;grid-template-columns:auto 1fr;gap:0 10px;align-items:baseline;padding:8px 12px;border-radius:10px;background:var(--hues)}
+.lvls b{font-family:var(--display);font-size:16px;color:var(--hue)}
+.lvls span{font:500 12.5px var(--mono);color:var(--muted)}
+.lvls p{grid-column:1/-1;font-size:13.5px}
+.story{display:grid;gap:8px}
+.scene{background:var(--sunk);border-radius:10px;padding:10px 14px;font-size:14.5px}
+.score{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding:14px 18px;border-radius:12px;background:var(--hues)}
+.score span{font:700 12px/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.score b{font:800 36px/1 var(--display)}
+.score em{font-style:normal;font-size:14.5px}
+.check{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.check label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--hue);margin-top:3px;flex:none}
+/* tab 8 */
+.arch{display:grid;grid-template-columns:1fr auto 1.3fr auto 1fr auto .8fr;gap:10px;align-items:stretch}
+.lane{border-radius:14px;padding:12px;display:grid;gap:8px;align-content:start;background:var(--surface);border:1px solid var(--line);border-top:5px solid var(--lc);min-width:0}
+.l-data{--lc:var(--t2)} .l-back{--lc:var(--t8)} .l-front{--lc:var(--t4)} .l-you{--lc:var(--t6)}
+.lane-k{font:700 11.5px/1.3 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--lc)}
+.node{background:var(--sunk);border-radius:9px;padding:8px 10px;font:600 14px/1.3 var(--mono)}
+.node small{display:block;font:400 12px/1.35 var(--body);color:var(--muted);margin-top:2px}
+.node.db{border:1px dashed var(--lc)} .node.job{border:1px dashed var(--muted)}
+.node.you{font-family:var(--body)}
+.node.lib{border:1px dashed var(--lc);margin-left:14px}
+.arrow{display:grid;place-items:center;position:relative;width:34px}
+.arrow::before{content:"";position:absolute;left:4px;right:4px;top:50%;height:2px;background:var(--muted)}
+.arrow::after{content:"";position:absolute;right:2px;top:calc(50% - 5px);border:6px solid transparent;border-left-color:var(--muted);border-right:0}
+.arrow span{position:relative;writing-mode:vertical-rl;transform:rotate(180deg);font:600 10.5px/1 var(--body);color:var(--muted);background:var(--bg);padding:4px 0;letter-spacing:.06em;text-transform:uppercase}
+@media (max-width:860px){.arch{grid-template-columns:1fr}.arrow{width:auto;height:34px}.arrow::before{left:50%;right:auto;top:4px;bottom:4px;width:2px;height:auto}.arrow::after{right:auto;left:calc(50% - 5px);top:auto;bottom:2px;border:6px solid transparent;border-top-color:var(--muted);border-bottom:0}.arrow span{writing-mode:horizontal-tb;transform:none;padding:0 6px}}
+.mocks{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))}
+.mock{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface);box-shadow:0 8px 24px -16px rgba(0,0,0,.35)}
+.mbar{display:flex;align-items:center;gap:5px;padding:8px 10px;background:var(--sunk);border-bottom:1px solid var(--line)}
+.mbar i{width:9px;height:9px;border-radius:50%;background:var(--line)}
+.mbar span{margin-left:8px;font:600 12.5px var(--body);color:var(--muted)}
+.mbody{padding:12px;display:grid;gap:10px}
+table.mt{font-size:13px}
+table.mt th,table.mt td{padding:6px 8px}
+table.mt tr.hit td{background:var(--goods)}
+.mcap{font-size:12.5px;color:var(--muted)}
+.mchart{width:100%;height:auto;background:var(--sunk);border-radius:8px}
+.mchart polyline{fill:none;stroke-width:2}
+.mchart .px{stroke:var(--t8)} .mchart .ma{stroke:var(--bad);stroke-dasharray:4 3}
+.mchart .st{stroke:var(--ugly);stroke-dasharray:3 3} .mchart .tg{stroke:var(--good);stroke-dasharray:3 3}
+.mchart text{font:600 9px var(--body);fill:var(--muted)}
+.mrules{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+.mrules li{font-size:12.5px;padding:4px 8px;border-radius:999px;background:var(--goods);color:var(--good);font-weight:600}
+.mrules li::before{content:"✓ "}
+pre.code{margin:0;overflow-x:auto;background:var(--sunk);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font:13px/1.55 var(--mono);color:var(--ink)}
+pre.code.sm{font-size:12.5px;padding:10px 12px}
+ol.prompts{margin:0;padding-left:20px;display:grid;gap:8px;font-size:14px}
+ol.prompts li::marker{color:var(--hue);font-weight:700}
+/* old tab 6 leftovers */
+.form{display:grid;gap:10px}
+.field{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.field:last-child{border-bottom:0}
+.field label{font-weight:600;font-size:14.5px}
+.field input{width:100%;font:15px var(--body);color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+.field input:focus{outline:2px solid var(--hue);outline-offset:1px;border-color:transparent}
+@media (max-width:560px){.field{grid-template-columns:1fr;gap:6px}}
+.check{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.check label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--hue);margin-top:3px;flex:none}
+.stat{display:grid;gap:4px;background:var(--hues);border-radius:12px;padding:14px 16px}
+.stat b{font:800 22px/1.1 var(--display);color:var(--hue)}
+
+footer{border-top:1px solid var(--line);padding-block:22px;color:var(--muted);font-size:13.5px}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+
+<header class="mast">
+  <canvas id="spark" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="eyebrow">A starter guide · built Nov 3, 2026</div>
+    <h1>Beginner Trading Starter Playbook</h1>
+    <p class="lead">A trading system is a short list of rules you write down before you trade and then follow every time. Work through the tabs in order, starting with what kind of trader you are.</p>
+    <div class="chips"><span class="chip">For total beginners</span><span class="chip">Paper trade first</span><span class="chip">Not financial advice</span></div>
+  </div>
+</header>
+
+<nav class="tabbar" aria-label="Playbook sections">
+  <div class="wrap"><div class="tabs" role="tablist" id="tabs"></div></div>
+</nav>
+
+<main class="wrap">
+
+<!-- ================= TAB 1 ================= -->
+<section class="panel" id="p-type" role="tabpanel" data-hue="1">
+  <div class="phead">
+    <div class="k">Tab 1 · Start here</div>
+    <h2>What kind of trader are you?</h2>
+    <p>Before any rules, pick a style that fits your job, your nerves and the time you actually have. Scalper, day, swing and position trading differ in how long you hold a trade. Directional trading describes something else: what you're betting on. It can apply to any of the four.</p>
+  </div>
+
+  <div class="grid">
+    <article class="ttype" style="--cc:#e8590c">
+      <h3>Scalper</h3>
+      <dl><dt>Hold</dt><dd>Seconds to minutes</dd><dt>Screen time</dt><dd>All session, eyes glued</dd><dt>Chart</dt><dd>1-minute, order book</dd></dl>
+      <div><span class="note">Time demand</span><div class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div></div>
+      <p class="fit"><b>Suits:</b> full-time traders with fast execution and low fees. Very hard for beginners.</p>
+    </article>
+    <article class="ttype" style="--cc:#c92a2a">
+      <h3>Day trader</h3>
+      <dl><dt>Hold</dt><dd>Minutes to hours. Flat by the close.</dd><dt>Screen time</dt><dd>Most of the session</dd><dt>Chart</dt><dd>5- to 15-minute, intraday levels</dd></dl>
+      <div><span class="note">Time demand</span><div class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div></div>
+      <p class="fit"><b>Suits:</b> people who can watch the market all day. No overnight risk, but a lot of stress.</p>
+    </article>
+    <article class="ttype featured" style="--cc:#4f46e5">
+      <span class="badge">This playbook</span>
+      <h3>Swing trader</h3>
+      <dl><dt>Hold</dt><dd>Days to a few weeks</dd><dt>Screen time</dt><dd>About 30 minutes a day, after the close</dd><dt>Chart</dt><dd>Daily, with a weekly check</dd></dl>
+      <div><span class="note">Time demand</span><div class="meter"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div></div>
+      <p class="fit"><b>Suits:</b> people with a day job. You catch one move in a trend, and you plan the trade in the evening.</p>
+    </article>
+    <article class="ttype" style="--cc:#0e7c86">
+      <h3>Position trader</h3>
+      <dl><dt>Hold</dt><dd>Weeks to months</dd><dt>Screen time</dt><dd>About an hour a week</dd><dt>Chart</dt><dd>Weekly, plus the economy</dd></dl>
+      <div><span class="note">Time demand</span><div class="meter"><i class="on"></i><i></i><i></i><i></i><i></i></div></div>
+      <p class="fit"><b>Suits:</b> patient people. Your stops sit far from the price, so you need fewer, larger trades and the nerve to sit through dips.</p>
+    </article>
+    <article class="ttype" style="--cc:#9c36b5">
+      <h3>Directional</h3>
+      <dl><dt>Hold</dt><dd>Any of the four above</dd><dt>The bet</dt><dd>Price goes up (long) or down (short)</dd><dt>Opposite</dt><dd>Neutral or hedged trades</dd></dl>
+      <div><span class="note">This describes what you bet on, not how long you hold</span></div>
+      <p class="fit"><b>Beginner note:</b> start long-only. Short selling has no ceiling on losses and costs money to hold.</p>
+    </article>
+  </div>
+
+  <div class="grid3">
+    <div class="box">
+      <h3>Quick self-check</h3>
+      <ol class="q">
+        <li><span><b>Can you watch prices during market hours?</b> If not, day trading and scalping are out. That leaves swing or position.</span></li>
+        <li><span><b>Can you sleep with an open trade?</b> Swing and position trades are held overnight and over weekends, and prices can jump at the open.</span></li>
+        <li><span><b>How long can you wait for a result?</b> If you need to know within days, swing. If you're fine waiting months, position.</span></li>
+      </ol>
+    </div>
+    <div class="box">
+      <h3>Every trade answers four questions</h3>
+      <ol class="q">
+        <li><span><b>Which way is it going?</b> Only trade in the direction of the trend.</span></li>
+        <li><span><b>Is this a good moment?</b> Wait for a dip or a quiet pause. Don't chase a big run.</span></li>
+        <li><span><b>Where am I wrong?</b> Know the price that proves the idea failed, before you buy.</span></li>
+        <li><span><b>How much?</b> Size the trade so being wrong is a small, survivable loss.</span></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TAB 2 ================= -->
+<section class="panel" id="p-macro" role="tabpanel" data-hue="2" hidden>
+  <div class="phead">
+    <div class="k">Tab 2 · The weather</div>
+    <h2>US vs Canada: six key economic indicators</h2>
+    <p>The economy is the weather your trades sail in. Each row says what the number is, the latest reading, and what it means right now.</p>
+  </div>
+
+  <div class="tw">
+    <table class="macro">
+      <thead><tr><th>Indicator</th><th><span class="cty us">US</span> latest</th><th>US assessment</th><th><span class="cty ca">Canada</span> latest</th><th>Canada assessment</th></tr></thead>
+      <tbody>
+        <tr><td><b>1. Central bank rate</b><span class="what">The rate the central bank sets. Higher rates put the brakes on the economy and on stocks.</span></td>
+          <td class="num">3.75–4.00%</td><td><span class="as r">Restrictive</span> Held Oct 28. 2 of 12 voters wanted a hike.</td>
+          <td class="num">2.50%</td><td><span class="as r">Hawkish</span> Raised 0.25 on Oct 28, the first hike since 2023.</td></tr>
+        <tr><td><b>2. CPI inflation</b><span class="what">How fast prices rise over a year. The target is 2%. Above 3% means rate hikes are likely.</span></td>
+          <td class="num">3.7%</td><td><span class="as r">High</span> September, up from 3.4%. Energy is pushing it.</td>
+          <td class="num">3.1%</td><td><span class="as r">High</span> September, above the 2% target. Gasoline is up 27.8%.</td></tr>
+        <tr><td><b>3. Unemployment</b><span class="what">The share of people looking for work. When it rises, the economy is cooling.</span></td>
+          <td class="num">4.2%</td><td><span class="as a">Watch</span> Only 29,000 jobs were added in September.</td>
+          <td class="num">6.5%</td><td><span class="as r">Weak</span> 68,300 jobs were lost in September.</td></tr>
+        <tr><td><b>4. GDP growth</b><span class="what">How fast the economy is growing. Two negative quarters in a row is a recession.</span></td>
+          <td class="num">+3.4%<small>Q3, annualized</small></td><td><span class="as g">Growing</span> Fastest pace in a year (first estimate).</td>
+          <td class="num">0.0%<small>Aug, monthly</small></td><td><span class="as a">Stalling</span> Flat in July and August.</td></tr>
+        <tr><td><b>5. Bond yields</b><span class="what">Long-term borrowing cost. Above about 4.5% on the US 10-year, expensive growth stocks struggle. In Canada, the 5-year drives mortgage rates.</span></td>
+          <td class="num">4.95%<small>10-year</small></td><td><span class="as r">Pressure</span> Live from IBKR on Nov 3. It was 5.31% a month ago.</td>
+          <td class="num">3.57%<small>5-year</small></td><td><span class="as a">Watch</span> As of Oct 27. Matters for mortgages and Canadian banks. From another AI's summary, not checked by us.</td></tr>
+        <tr><td><b>6. Next rate move</b><span class="what">What markets and the central bank signal for the next meeting.</span></td>
+          <td class="num">Dec meeting</td><td><span class="as r">Hike risk</span> Markets are pricing a possible December hike.</td>
+          <td class="num">Dec 9 meeting</td><td><span class="as a">Hike risk</span> The governor left the door open to more hikes.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">As of Nov 3, 2026. The US and Canada report GDP differently (an annualized quarter vs a single month), so don't compare those two numbers directly.</p>
+
+  <h3>Overall assessment by country</h3>
+  <div class="grid3">
+    <article class="cbox us"><span class="cty us">United States</span><h3>Inflation pressure</h3><span class="as a pillish">Cautious</span>
+      <p><b>What it means:</b> inflation near 4% and a 10-year yield near 5% make expensive growth stocks (tech, semiconductors) the most exposed. The economy is still growing fast, so earnings can hold up. The jobs data decides whether that lasts.</p></article>
+    <article class="cbox ca"><span class="cty ca">Canada</span><h3>Inflation plus weaker jobs</h3><span class="as a pillish">Cautious</span>
+      <p><b>What it means:</b> the Bank of Canada is raising rates while jobs are being lost and growth has stalled. That is a harder trade-off, and it raises the risk of a slowdown in Canadian stocks.</p></article>
+  </div>
+
+  <div class="callout"><p style="font-size:15.5px"><b>Verdict for a swing trader:</b> both countries are in a "rates up, growth cooling" mood. That doesn't block trades, but it argues for smaller positions, extra respect for the 200-day trend rule, and no new trades the day before a jobs or inflation report.</p></div>
+
+  <h3>How markets usually react <span class="sub">· when a number surprises</span></h3>
+  <p class="sub">What moves the market is the <b>surprise</b>: the gap between the actual number and what economists expected. A number that matches expectations usually changes little.</p>
+  <div class="tw">
+    <table class="react">
+      <thead><tr><th>When this happens</th><th>Typical first reaction</th><th>What a swing trader does</th></tr></thead>
+      <tbody>
+        <tr><td><b>Inflation comes in hotter than expected</b></td><td><span class="as r">Stocks down</span> Yields jump, and growth and tech fall hardest. The dollar strengthens.</td><td>Don't buy the morning drop. Wait for the close and see whether price holds above the 21-day.</td></tr>
+        <tr><td><b>Inflation comes in cooler than expected</b></td><td><span class="as g">Stocks up</span> Yields fall, and growth stocks and small caps rally.</td><td>Breakouts that day are more believable. Check that volume confirms.</td></tr>
+        <tr><td><b>Surprise rate hike, or a hawkish tone</b></td><td><span class="as r">Stocks down</span> Rate-sensitive sectors (real estate, utilities) fall hardest.</td><td>Watch open trades closely. Never widen a stop.</td></tr>
+        <tr><td><b>Rate cut, or a softer tone</b></td><td><span class="as g">Stocks up</span> Often a fast rally, then a fade if the cut signals a weak economy.</td><td>Let the first day settle. The second-day close tells you more.</td></tr>
+        <tr><td><b>Jobs much weaker than expected</b></td><td><span class="as a">Mixed</span> "Bad news is good news" if it means rate cuts. "Bad news is bad news" if recession fears take over.</td><td>Watch SPY vs its 200-day. It tells you which story the market chose.</td></tr>
+        <tr><td><b>Jobs much stronger than expected</b></td><td><span class="as a">Mixed</span> Good for the economy, but yields rise on fears of more hikes.</td><td>Favour sectors leading on relative strength, not the whole market.</td></tr>
+        <tr><td><b>US 10-year yield breaks above 5%</b></td><td><span class="as r">Pressure</span> Expensive growth stocks get re-priced lower. Value and energy hold up better.</td><td>Be choosier with high-flying tech setups. Trend rule 1 matters more.</td></tr>
+        <tr><td><b>GDP surprises, up or down</b></td><td><span class="as n">Usually small</span> GDP looks backward, so markets have mostly priced it in.</td><td>Rarely a reason to act on its own.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">These are common patterns, not rules. The first hour after a release is often reversed by the close, so swing traders judge the reaction on the daily close.</p>
+
+  <p class="note">The US 10-year yield is live from IBKR (TNX, 15-minute delay). The other figures come from news reports of each release, so confirm them at the source: <a href="https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm" target="_blank" rel="noopener">Federal Reserve</a> · <a href="https://www.bankofcanada.ca/core-functions/monetary-policy/key-interest-rate/" target="_blank" rel="noopener">Bank of Canada</a> · <a href="https://www.bls.gov/cpi/" target="_blank" rel="noopener">BLS CPI</a> · <a href="https://www.bls.gov/news.release/empsit.nr0.htm" target="_blank" rel="noopener">BLS jobs</a> · <a href="https://www.bea.gov/data/gdp/gross-domestic-product" target="_blank" rel="noopener">BEA GDP</a> · <a href="https://www.statcan.gc.ca/en/subjects-start/prices_and_price_indexes/consumer_price_indexes" target="_blank" rel="noopener">StatCan CPI</a> · <a href="https://www.statcan.gc.ca/en/subjects-start/labour" target="_blank" rel="noopener">StatCan jobs</a> · <a href="https://www.bankofcanada.ca/rates/interest-rates/canadian-bonds/" target="_blank" rel="noopener">Canadian bond yields</a>.</p>
+</section>
+
+<!-- ================= TAB 3 ================= -->
+<section class="panel" id="p-reddit" role="tabpanel" data-hue="3" hidden>
+  <div class="phead">
+    <div class="k">Tab 3 · What traders on Reddit say</div>
+    <h2>The Reddit checklist: 10 rules</h2>
+    <p>These are the swing-trading rules that come up again and again in beginner threads on Reddit. Five of them are entry rules you check on a chart. The other five are habits. Purple tags show where a rule matches the 100-year canon in tab 4.</p>
+  </div>
+
+  <h3>The five entry rules <span class="sub">· check on a daily chart before every trade</span></h3>
+  <div class="grid3">
+    <div class="rule"><div class="num">1</div><div><h3>Trade with the trend <span class="tag">Canon 01</span></h3><p class="sub">Price vs its 200-day moving average.</p><p class="pass"><b>Passes when</b> the last close is above the 200-day average.</p></div></div>
+    <div class="rule"><div class="num">2</div><div><h3>Wait for a pullback <span class="tag">Canon 03</span></h3><p class="sub">RSI(2), or the distance to the 21-day average.</p><p class="pass"><b>Passes when</b> RSI(2) is below 10, or price has dipped to the 21-day average, <i>and</i> rule 1 passes.</p></div></div>
+    <div class="rule"><div class="num">3</div><div><h3>Know support and resistance</h3><p class="sub">Recent swing lows (support) and swing highs (resistance).</p><p class="pass"><b>Passes when</b> there is support close below the price, so your stop has a sensible place to go.</p></div></div>
+    <div class="rule"><div class="num">4</div><div><h3>Watch consolidation <span class="tag">part of Canon 04</span></h3><p class="sub">The high-to-low range of the last 20 days.</p><p class="pass"><b>Passes when</b> the range has narrowed and gone quiet. A break above it is the signal.</p></div></div>
+    <div class="rule"><div class="num">5</div><div><h3>Keep indicators simple</h3><p class="sub">Only the six indicators below.</p><p class="pass"><b>Passes when</b> you can explain the trade in one sentence without opening another indicator.</p></div></div>
+    <div class="callout" style="align-self:start"><p style="font-size:15px"><b>You decide how many rules must pass.</b> Write that number down and stick to it. These thresholds are common starting points, not numbers proven for every market.</p></div>
+  </div>
+
+  <h3>The six indicators <span class="sub">· tap one to see the good, the bad and the ugly</span></h3>
+  <div class="more">
+    <details class="ind"><summary><span><b>8 and 21-day EMA</b><span class="q">Short-term trend: which way have the last few weeks pointed? Price above both, with the 8 above the 21, means up.</span></span></summary>
+      <div class="gbu"><div class="g"><strong>Good</strong>Dips back to the 21 are a common place to buy in an uptrend.</div><div class="b"><strong>Bad</strong>It flips back and forth in a choppy market.</div><div class="u"><strong>Ugly</strong>One bad day can drop price below both and shake you out.</div></div></details>
+    <details class="ind"><summary><span><b>50 and 200-day SMA</b><span class="q">Long-term trend. Above the 200 is good weather, below it is bad weather.</span></span></summary>
+      <div class="gbu"><div class="g"><strong>Good</strong>The simplest filter there is. It keeps you out of falling stocks.</div><div class="b"><strong>Bad</strong>It's slow. By the time price crosses back above, much of the move is gone.</div><div class="u"><strong>Ugly</strong>Price can hover around the 200 for weeks: pass, fail, pass, fail.</div></div></details>
+    <details class="ind"><summary><span><b>RSI (14)</b><span class="q">A 0–100 score of how one-sided the last three weeks were. Above 70 is stretched, below 30 is washed out.</span></span></summary>
+      <div class="gbu"><div class="g"><strong>Good</strong>A quick check on whether you'd be chasing.</div><div class="b"><strong>Bad</strong>Strong stocks stay above 70 for weeks, and weak ones stay below 30.</div><div class="u"><strong>Ugly</strong>Buying at 30 in a downtrend is catching a falling knife.</div></div></details>
+    <details class="ind"><summary><span><b>RSI (2)</b><span class="q">The same score over just two days. Below 10 means a sudden sharp dip.</span></span></summary>
+      <div class="gbu"><div class="g"><strong>Good</strong>Below 10 while above the 200-day is a well-known, published dip-buying rule (Larry Connors).</div><div class="b"><strong>Bad</strong>On its own, without the uptrend, it means nothing.</div><div class="u"><strong>Ugly</strong>It fires again and again during a crash. That's why it needs rule 1.</div></div></details>
+    <details class="ind"><summary><span><b>ATR (14)</b><span class="q">Average True Range: the size of a normal day's move, in dollars.</span></span></summary>
+      <div class="gbu"><div class="g"><strong>Good</strong>The honest way to place a stop: beyond the normal daily wiggle.</div><div class="b"><strong>Bad</strong>On a jumpy stock the stop ends up far away.</div><div class="u"><strong>Ugly</strong>A stop inside one ATR is likely to be hit by ordinary noise, not by being wrong.</div></div></details>
+    <details class="ind"><summary><span><b>Relative volume</b><span class="q">Today's volume compared with a normal day. 1.0 is normal, 2.0 is twice as busy.</span></span></summary>
+      <div class="gbu"><div class="g"><strong>Good</strong>A breakout on 1.5× or more is more believable, because real money is behind it.</div><div class="b"><strong>Bad</strong>It's noisy from day to day, and news days skew it.</div><div class="u"><strong>Ugly</strong>Thinly traded stocks can show huge readings from a handful of orders.</div></div></details>
+  </div>
+
+  <h3>The other five <span class="sub">· habits</span></h3>
+  <div class="grid">
+    <div class="mini"><span class="dot"></span><span><b>Define entry, stop and target</b> before you buy, not after.</span></div>
+    <div class="mini"><span class="dot"></span><span><b>Risk management first.</b> Small losses keep you in the game. <span class="tag">Canon 05–06</span></span></div>
+    <div class="mini"><span class="dot"></span><span><b>Practise one setup</b> until you know it cold.</span></div>
+    <div class="mini"><span class="dot"></span><span><b>Use fundamentals to pick</b> what to watch, and charts to time it.</span></div>
+    <div class="mini"><span class="dot"></span><span><b>Patience and records.</b> Most days nothing qualifies. Write every trade down.</span></div>
+  </div>
+</section>
+
+<!-- ================= TAB 4 ================= -->
+<section class="panel" id="p-canon" role="tabpanel" data-hue="4" hidden>
+  <div class="phead">
+    <div class="k">Tab 4 · A hundred years of trading</div>
+    <h2>The 100-year canon: 9 principles</h2>
+    <p>These ideas have held up in books and studies from the 1900s to now. Reddit rediscovers most of them, and orange tags show where. Two of them (sentiment and sector rotation) almost never come up on Reddit.</p>
+  </div>
+  <div class="grid3">
+    <article class="canon"><div class="top"><span class="no">01</span><h3>Trend following</h3></div><p class="who">Dow Theory · Faber (2007)</p><p>Prices that are rising tend to keep rising. Trade in the direction of the trend.</p><p class="use"><b>Beginner use:</b> only buy above the 200-day average.</p><p class="trap"><b>Misuse:</b> it is late by design, so expect to miss tops and bottoms.</p><span class="link">Reddit rule 1</span></article>
+    <article class="canon"><div class="top"><span class="no">02</span><h3>Momentum and relative strength</h3></div><p class="who">Jegadeesh &amp; Titman (1993) · Antonacci, Dual Momentum (2014)</p><p>Winners over the last 3–12 months tend to keep beating losers, so favour leaders over laggards.</p><p class="use"><b>Beginner use:</b> compare your stock with the market (SPY) and its peers.</p><p class="trap"><b>Misuse:</b> momentum crashes hard when the market turns.</p></article>
+    <article class="canon"><div class="top"><span class="no">03</span><h3>Mean reversion</h3></div><p class="who">Larry Connors (2009)</p><p>Short, sharp dips inside an uptrend tend to bounce back.</p><p class="use"><b>Beginner use:</b> RSI(2) below 10 while above the 200-day.</p><p class="trap"><b>Misuse:</b> buying dips in a downtrend means catching falling knives.</p><span class="link">Reddit rule 2</span></article>
+    <article class="canon"><div class="top"><span class="no">04</span><h3>Volume confirms the move</h3></div><p class="who">Wyckoff (1910s–30s) · O'Neil, CANSLIM</p><p>Real moves come with real volume. A breakout from a base should come on heavy trading.</p><p class="use"><b>Beginner use:</b> look for relative volume of 1.5× or more on a breakout day.</p><p class="trap"><b>Misuse:</b> news spikes can look like accumulation.</p><span class="link">Reddit rule 4 (part)</span></article>
+    <article class="canon"><div class="top"><span class="no">05</span><h3>Position sizing</h3></div><p class="who">Turtle Traders (1983) · Van Tharp</p><p>How much you buy matters more than what you buy. Size every trade from the risk, not from a hunch.</p><p class="use"><b>Beginner use:</b> pick your stop first, then work out the share count.</p><p class="trap"><b>Misuse:</b> doubling up after a loss to "win it back".</p><span class="link">Reddit habit: risk first</span></article>
+    <article class="canon"><div class="top"><span class="no">06</span><h3>Stop placement</h3></div><p class="who">Livermore (1940) · Turtle Traders</p><p>Decide where you're wrong before you enter, and set the stop from real volatility (ATR), not a round number.</p><p class="use"><b>Beginner use:</b> place it below support and beyond about 1–2 ATR.</p><p class="trap"><b>Misuse:</b> moving the stop further away when price gets close.</p><span class="link">Reddit habit: entry, stop, target</span></article>
+    <article class="canon"><div class="top"><span class="no">07</span><h3>Market regime</h3></div><p class="who">Dow Theory · Faber (2007) · Moreira &amp; Muir (2017)</p><p>Most stocks follow the market. When the market is in a downtrend or very volatile, good setups fail more often.</p><p class="use"><b>Beginner use:</b> check SPY vs its 200-day and the VIX before you trade.</p><p class="trap"><b>Misuse:</b> ignoring it because your one stock looks great.</p></article>
+    <article class="canon"><div class="top"><span class="no">08</span><h3>Sentiment as a contrarian signal</h3></div><p class="who">CNN Fear &amp; Greed Index · long-standing market lore</p><p>When fear or greed hits an extreme, the crowd is usually on the wrong side.</p><p class="use"><b>Beginner use:</b> treat it as a tilt, not a trigger.</p><p class="trap"><b>Misuse:</b> extremes can last for weeks. Wait for price to confirm the turn.</p></article>
+    <article class="canon"><div class="top"><span class="no">09</span><h3>Sector rotation</h3></div><p class="who">Business-cycle investing · sector rotation maps</p><p>Money moves between sectors in waves. Stocks in a leading sector have the wind at their backs.</p><p class="use"><b>Beginner use:</b> check whether the stock's sector ETF is above its own 200-day.</p><p class="trap"><b>Misuse:</b> chasing last month's hot sector after the move is done.</p></article>
+  </div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Canon principle</th><th>On the Reddit list?</th></tr></thead>
+      <tbody>
+        <tr><td>01 Trend · 03 Mean reversion</td><td><span class="pill p-ok">Yes</span> rules 1 and 2</td></tr>
+        <tr><td>04 Volume · 05 Sizing · 06 Stops</td><td><span class="pill p-warn">Partly</span> as rule 4 and the risk habits</td></tr>
+        <tr><td>02 Momentum · 07 Regime</td><td><span class="pill p-warn">Rarely</span> mentioned in passing</td></tr>
+        <tr><td>08 Sentiment · 09 Sector rotation</td><td><span class="pill p-no">No</span> missing from the Reddit list</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================= TAB 5 ================= -->
+<section class="panel" id="p-code" role="tabpanel" data-hue="5" hidden>
+  <div class="phead">
+    <div class="k">Tab 5 · If you build it in code</div>
+    <h2>Golden rules for coding a trading system</h2>
+    <p>These ten come from building and running a real swing-trading system with Claude Code: over 120 working sessions and dozens of bugs caught. Each one is here because breaking it once cost real time or produced a false result. They apply whether you code it yourself or have an AI write it.</p>
+  </div>
+  <div class="grid3">
+    <div class="crule"><div class="num">1</div><div><h3>Never trust a result nobody ran</h3><p class="why">"The backtest shows 60% wins" means nothing until you've seen it run and read its output. Ask the AI for the command and the raw numbers.</p></div></div>
+    <div class="crule"><div class="num">2</div><div><h3>Check every item, not a sample</h3><p class="why">A spot-check once passed 93% of items. Checking all of them found only 21% were actually correct.</p></div></div>
+    <div class="crule"><div class="num">3</div><div><h3>Freeze the rules before you forward-test</h3><p class="why">Every time you peek at the test period and tweak a number, that period stops being a test. Tweaking until the past looks good is fooling yourself.</p></div></div>
+    <div class="crule"><div class="num">4</div><div><h3>Use equal weights; don't optimize on a small sample</h3><p class="why">With a few hundred trades, "tuned" weights fit noise. Simple equal weights usually hold up better out of sample.</p></div></div>
+    <div class="crule"><div class="num">5</div><div><h3>Backtest and live must share one piece of code</h3><p class="why">Two copies of the same rule drift apart. Test that they match across many inputs, not just a few hand-picked ones.</p></div></div>
+    <div class="crule"><div class="num">6</div><div><h3>Drop today's unfinished bar</h3><p class="why">During market hours, data providers include today's half-formed candle. It is not a close. Only count a bar after the market shuts.</p></div></div>
+    <div class="crule"><div class="num">7</div><div><h3>Date records from the data, not the computer's clock</h3><p class="why">A job run on a weekend or holiday stamps the wrong day and creates signals that never happened.</p></div></div>
+    <div class="crule"><div class="num">8</div><div><h3>A price jump between data sources may be a split</h3><p class="why">Before calling it a bug, check for a stock split. A 3-for-1 split looks like a 66% crash in unadjusted data.</p></div></div>
+    <div class="crule"><div class="num">9</div><div><h3>Lock the stop and target in when you enter</h3><p class="why">Recalculating them every day lets the plan quietly move under an open trade. Save them once, then only read them back.</p></div></div>
+    <div class="crule"><div class="num">10</div><div><h3>Review every fix three times, each pass harder</h3><p class="why">Pass 1: does it work? Pass 2: assume it missed an edge case. Pass 3: what breaks it in real use? Most bugs hide in pass 2 and 3.</p></div></div>
+  </div>
+</section>
+
+<!-- ================= TAB 6 ================= -->
+<section class="panel" id="p-general" role="tabpanel" data-hue="6" hidden>
+  <div class="phead">
+    <div class="k">Tab 6 · General</div>
+    <h2>The anatomy of a market move</h2>
+    <p>Big moves tend to unfold in four stages. Knowing which stage you're in tells you whether you're early, on time or late.</p>
+  </div>
+  <ol class="flow">
+    <li><span class="st">1</span><div><h3>The catalyst</h3><p>A major fundamental spark, such as an unexpected central bank rate cut or a blowout earnings report, instantly shifts market expectations.</p><p class="chart"><b>On the chart:</b> a gap or one very large candle.</p></div></li>
+    <li><span class="st">2</span><div><h3>Institutional flow</h3><p>The real heavyweight move comes when hedge funds, mutual funds and pension funds move billions of dollars based on the new information.</p><p class="chart"><b>On the chart:</b> heavy volume for days and a steady trend.</p></div></li>
+    <li><span class="st">3</span><div><h3>Retail momentum</h3><p>Smaller investors notice the new trend and jump in, making the move faster in whichever direction it is going.</p><p class="chart"><b>On the chart:</b> a steep move with RSI stretched above 70.</p></div></li>
+    <li><span class="st">4</span><div><h3>Valuation re-anchoring</h3><p>The frenzy cools, and prices settle at a realistic multiple of the company's actual earnings.</p><p class="chart"><b>On the chart:</b> a sideways range, which is consolidation.</p></div></li>
+  </ol>
+</section>
+
+<!-- ================= TAB 7 ================= -->
+<section class="panel" id="p-data" role="tabpanel" data-hue="7" hidden>
+  <div class="phead">
+    <div class="k">Tab 7 · Live data and practice</div>
+    <h2>Where to get live data, and how to make practice a game</h2>
+    <p>Start free and manual. Pay for data only after your paper trades show the system is worth automating.</p>
+  </div>
+
+  <h3>Where to pull data from</h3>
+  <div class="tw">
+    <table class="react">
+      <thead><tr><th>Source</th><th>What you get</th><th>Cost</th><th>Best for</th></tr></thead>
+      <tbody>
+        <tr><td><b>TradingView</b></td><td>Charts with all six indicators, a stock screener and alerts. No coding.</td><td><span class="as g">Free</span> tier, paid for more alerts</td><td>Step 1: reading charts and checking the five rules by eye.</td></tr>
+        <tr><td><b>Yahoo Finance</b> / <code>yfinance</code></td><td>Daily prices for US and Canadian stocks. The Python library is unofficial.</td><td><span class="as g">Free</span></td><td>Your first script. It can break without warning, so don't build anything serious on it.</td></tr>
+        <tr><td><b>EODHD</b> (EOD Historical Data)</td><td>End-of-day prices for many exchanges including the TSX, plus splits, dividends and fundamentals through a clean API.</td><td><span class="as a">Paid</span> monthly, with a free trial</td><td>A dependable daily feed once you code your system. Good Canadian coverage.</td></tr>
+        <tr><td><b>Interactive Brokers (IBKR)</b></td><td>Real-time and historical bars, watchlists and scanners, through TWS, its API, or Claude's IBKR connector.</td><td><span class="as a">Account</span> plus market-data fees</td><td>Live prices for the stocks you actually trade. Claude can read it directly.</td></tr>
+        <tr><td><b>FRED</b> (St. Louis Fed)</td><td>US macro data: rates, CPI, jobs, GDP and yields, with a free API.</td><td><span class="as g">Free</span></td><td>Filling the US half of tab 2 automatically.</td></tr>
+        <tr><td><b>Bank of Canada Valet</b> · <b>StatCan</b></td><td>Canadian policy rate, bond yields, CPI and jobs, with free APIs.</td><td><span class="as g">Free</span></td><td>The Canadian half of tab 2.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="steps">
+    <div><span class="st">1</span><b>Weeks 1–4</b><p>TradingView only. Check the rules by hand and keep the journal in a spreadsheet.</p></div>
+    <div><span class="st">2</span><b>Months 2–3</b><p>A small script on free data scores your watchlist each evening.</p></div>
+    <div><span class="st">3</span><b>After 30 paper trades</b><p>Move to EODHD or IBKR, and only if the journal says the setup works.</p></div>
+  </div>
+
+  <h3>More data sources</h3>
+  <div class="tw">
+    <table class="react">
+      <thead><tr><th>Data needed</th><th>Sources, in fallback order</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td><b>Daily price bars</b></td><td>TwelveData → yfinance → Tradier</td><td>The core of every indicator. If one source fails, the next one takes over.</td></tr>
+        <tr><td><b>Intraday bars</b></td><td>TwelveData → yfinance</td><td>For checking a move during the day.</td></tr>
+        <tr><td><b>Live quotes</b></td><td>yfinance → Finnhub → Tradier</td><td>The current price on the analysis page.</td></tr>
+        <tr><td><b>Company fundamentals</b></td><td>Finnhub → Alpha Vantage → yfinance</td><td>Earnings, growth and valuation.</td></tr>
+        <tr><td><b>Stock screener</b></td><td>TradingView scanner</td><td>Finds candidates that pass the filters each day.</td></tr>
+        <tr><td><b>Macro and cycles</b></td><td>FRED (St. Louis Fed)</td><td>Yield curve, industrial production and other economic series.</td></tr>
+        <tr><td><b>News sentiment</b></td><td>Alpha Vantage (plus yfinance for short interest)</td><td>Whether recent news is positive or negative.</td></tr>
+        <tr><td><b>Fear and greed</b></td><td>CNN Fear &amp; Greed Index</td><td>The sentiment principle (canon 08).</td></tr>
+        <tr><td><b>Historical fundamentals</b></td><td>SimFin</td><td>Backtests only, so past tests use the data that existed at the time.</td></tr>
+        <tr><td><b>Live board prices</b></td><td>IBKR, through Claude's connector</td><td>Live prices for any watchlist.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Make practice a game</h3>
+  <p style="max-width:70ch">Score <b>discipline, not profit</b>. The profit on one trade is partly luck. Following your rules is fully in your control, and it is the habit that pays over time. Rewarding profit teaches you to gamble.</p>
+
+  <div class="grid3">
+    <div class="box">
+      <h3 style="font-size:17px">Points table</h3>
+      <table class="pts"><tbody>
+        <tr><td>Checked all five rules before entering</td><td class="num pos">+10</td></tr>
+        <tr><td>Stop and target written down before buying</td><td class="num pos">+10</td></tr>
+        <tr><td>Skipped a trade that failed the checklist</td><td class="num pos">+5</td></tr>
+        <tr><td>Exited at the planned stop, target or time limit</td><td class="num pos">+5</td></tr>
+        <tr><td>Journal row filled the same day</td><td class="num pos">+5</td></tr>
+        <tr><td>Traded without the checklist</td><td class="num neg">−15</td></tr>
+        <tr><td>Moved the stop further away</td><td class="num neg">−20</td></tr>
+        <tr><td>Revenge trade right after a loss</td><td class="num neg">−20</td></tr>
+      </tbody></table>
+    </div>
+    <div class="box">
+      <h3 style="font-size:17px">Levels</h3>
+      <div class="lvls">
+        <div><b>Rookie</b><span>0–99 pts</span><p>Paper trades only.</p></div>
+        <div><b>Apprentice</b><span>100–299 pts</span><p>Plus at least 15 journaled trades.</p></div>
+        <div><b>Journeyman</b><span>300–599 pts</span><p>Plus 30 trades with a profit factor above 1.0.</p></div>
+        <div><b>Pro</b><span>600+ pts</span><p>Unlocks small real money.</p></div>
+      </div>
+      <p class="note"><b>Streak bonus:</b> +20 for every 5 trades in a row with no minus points. Any minus resets the streak.</p>
+    </div>
+  </div>
+
+  <div class="box">
+    <h3>One example, scored</h3>
+    <p class="sub">A paper trade in a large stock, called XYZ here. Tick what actually happened, and the score updates.</p>
+    <div class="story">
+      <div class="scene"><b>Monday evening.</b> XYZ is above its 200-day (rule 1 ✓). RSI(2) is 6 after a 3-day dip (rule 2 ✓). Support at $48 sits just below the price (rule 3 ✓). The plan: buy at $50.20, stop at $47.80 (below support and beyond 1.5 ATR), target $55 (the last swing high), and sell after 10 days if neither is hit.</div>
+      <div class="scene"><b>Wednesday.</b> Price drops to $48.30. It's tempting to move the stop down to $46 "to give it room".</div>
+      <div class="scene"><b>Ten days in.</b> Price is at $54.10. The target wasn't hit, but the time limit arrives, so the trade closes at $54.10. The journal row is filled that evening.</div>
+    </div>
+    <ul class="check" id="game">
+      <li><label><input type="checkbox" id="g1" data-p="10" checked> Checked all five rules before entering (+10)</label></li>
+      <li><label><input type="checkbox" id="g2" data-p="10" checked> Stop and target written down before buying (+10)</label></li>
+      <li><label><input type="checkbox" id="g3" data-p="-20"> Moved the stop to $46 on Wednesday (−20)</label></li>
+      <li><label><input type="checkbox" id="g4" data-p="5" checked> Exited at the time limit as planned (+5)</label></li>
+      <li><label><input type="checkbox" id="g5" data-p="5" checked> Journal filled the same day (+5)</label></li>
+    </ul>
+    <div class="score"><span>Trade score</span><b id="score">+30</b><em id="verdict">Clean trade. It counts toward a streak.</em></div>
+    <p class="note">The score ignores the $390 profit. If the same trade had stopped out at $47.80 with the same behaviour, it would still score +30. That is the point.</p>
+  </div>
+</section>
+
+<!-- ================= TAB 8 ================= -->
+<section class="panel" id="p-build" role="tabpanel" data-hue="8" hidden>
+  <div class="phead">
+    <div class="k">Tab 8 · Build it with code</div>
+    <h2>Build your own system with Claude Code</h2>
+    <p>A small, real app: three Reddit rules, five indicators, a watchlist screen and a journal. Claude Code writes the code. You decide the rules and check the results.</p>
+  </div>
+
+  <h3>The scope <span class="sub">· keep version 1 this small</span></h3>
+  <div class="grid">
+    <div class="mini"><span class="dot"></span><span><b>Rule 1 · Trend</b><br>Close above the 200-day SMA.</span></div>
+    <div class="mini"><span class="dot"></span><span><b>Rule 2 · Pullback</b><br>RSI(2) below 10, or close within 1 ATR of the 21-day EMA.</span></div>
+    <div class="mini"><span class="dot"></span><span><b>Rule 3 · Support</b><br>The 20-day low is within 1.5 ATR below the price.</span></div>
+    <div class="mini"><span class="dot"></span><span><b>Indicators</b><br>SMA 200 · EMA 21 · RSI 2 · ATR 14 · relative volume</span></div>
+  </div>
+
+  <h3>System design</h3>
+  <div class="arch" role="img" aria-label="Data sources feed a Python backend that computes indicators and rules, stores results in SQLite, and serves a web frontend with three screens">
+    <div class="lane l-data"><span class="lane-k">Data</span>
+      <div class="node">yfinance<small>free, to start</small></div>
+      <div class="node">EODHD or IBKR<small>later, when it's worth paying</small></div>
+    </div>
+    <div class="arrow" aria-hidden="true"><span>daily bars</span></div>
+    <div class="lane l-back"><span class="lane-k">Backend · Python + FastAPI</span>
+      <div class="node">fetch.py<small>download and cache bars</small></div>
+      <div class="node">indicators.py<small>SMA, EMA, RSI, ATR, RVOL</small></div>
+      <div class="node">rules.py<small>3 rules → pass or fail + plan</small></div>
+      <div class="node db">SQLite<small>bars, scores, journal</small></div>
+      <div class="node job">nightly job<small>scores the watchlist after the close</small></div>
+    </div>
+    <div class="arrow" aria-hidden="true"><span>JSON API</span></div>
+    <div class="lane l-front"><span class="lane-k">Frontend · React + Vite</span>
+      <div class="node">Watchlist<small>who passes today</small></div>
+      <div class="node">Ticker detail<small>chart, rules, plan</small></div>
+      <div class="node lib">Lightweight Charts<small>TradingView's free chart library, drawn inside Ticker detail</small></div>
+      <div class="node">Journal<small>log trades and score them</small></div>
+    </div>
+    <div class="arrow" aria-hidden="true"><span>clicks</span></div>
+    <div class="lane l-you"><span class="lane-k">You</span>
+      <div class="node you">Decide and place the trade yourself<small>the app never trades</small></div>
+    </div>
+  </div>
+  <p class="note">Simpler start: a single-file <b>Streamlit</b> app does the backend and screens in one Python file. Move to FastAPI and React when you outgrow it.</p>
+
+  <h3>What the screens look like <span class="sub">· example data</span></h3>
+  <div class="mocks">
+    <div class="mock"><div class="mbar"><i></i><i></i><i></i><span>Watchlist</span></div>
+      <div class="mbody">
+        <table class="mt"><thead><tr><th>Ticker</th><th>1</th><th>2</th><th>3</th><th>Score</th></tr></thead><tbody>
+          <tr class="hit"><td>AAA</td><td>✓</td><td>✓</td><td>✓</td><td><span class="pill p-ok">3/3 ready</span></td></tr>
+          <tr><td>BBB</td><td>✓</td><td>✗</td><td>✓</td><td><span class="pill p-warn">2/3</span></td></tr>
+          <tr><td>CCC</td><td>✓</td><td>✓</td><td>✗</td><td><span class="pill p-warn">2/3</span></td></tr>
+          <tr><td>DDD</td><td>✗</td><td>✓</td><td>✓</td><td><span class="pill p-no">trend fails</span></td></tr>
+        </tbody></table>
+        <p class="mcap">Sorted by score. Updated nightly. Tap a row.</p>
+      </div></div>
+    <div class="mock"><div class="mbar"><i></i><i></i><i></i><span>AAA · detail</span></div>
+      <div class="mbody">
+        <svg viewBox="0 0 260 90" class="mchart" aria-hidden="true">
+          <polyline class="ma" points="0,62 40,58 80,52 120,48 160,45 200,42 260,38"/>
+          <polyline class="px" points="0,60 20,50 40,54 60,40 80,44 100,30 120,36 140,26 160,34 180,44 200,50 220,46 240,40 260,36"/>
+          <line class="st" x1="0" x2="260" y1="66" y2="66"/><text x="4" y="80">stop 47.80</text>
+          <line class="tg" x1="0" x2="260" y1="14" y2="14"/><text x="4" y="11">target 55.00</text>
+        </svg>
+        <ul class="mrules"><li class="ok">Above 200-day</li><li class="ok">RSI(2) = 6</li><li class="ok">Support 1.1 ATR below</li></ul>
+        <p class="mcap">Plan: entry 50.20 · stop 47.80 · target 55.00 · reward-to-risk 2.0</p>
+      </div></div>
+    <div class="mock"><div class="mbar"><i></i><i></i><i></i><span>Journal</span></div>
+      <div class="mbody">
+        <table class="mt"><thead><tr><th>Trade</th><th>Result</th><th>Rules</th><th>Pts</th></tr></thead><tbody>
+          <tr><td>AAA</td><td class="pos">+390</td><td>✓</td><td class="pos">+30</td></tr>
+          <tr><td>BBB</td><td class="neg">−120</td><td>✓</td><td class="pos">+30</td></tr>
+          <tr><td>CCC</td><td class="pos">+210</td><td>moved stop</td><td class="neg">+10</td></tr>
+        </tbody></table>
+        <p class="mcap">Level: Apprentice · 170 pts · streak 2</p>
+      </div></div>
+  </div>
+
+  <h3>How you use it, day to day</h3>
+  <div class="steps">
+    <div><span class="st">1</span><b>After the close</b><p>The nightly job scores every ticker on your watchlist.</p></div>
+    <div><span class="st">2</span><b>Evening, 15 min</b><p>Open the Watchlist and look only at the 3/3 rows.</p></div>
+    <div><span class="st">3</span><b>Check the detail</b><p>Look at the chart, the stop and target, and whether the reward-to-risk is at least 2.</p></div>
+    <div><span class="st">4</span><b>Decide and log</b><p>Place the paper trade yourself, then add it to the Journal to earn points.</p></div>
+  </div>
+
+  <h3>The core logic <span class="sub">· about 30 lines of Python</span></h3>
+  <pre class="code"><code>import pandas as pd
+
+def add_indicators(df):
+    c = df["Close"]
+    df["sma200"] = c.rolling(200).mean()
+    df["ema21"]  = c.ewm(span=21, adjust=False).mean()
+    d  = c.diff()
+    up = d.clip(lower=0).ewm(alpha=1/2, adjust=False).mean()
+    dn = (-d.clip(upper=0)).ewm(alpha=1/2, adjust=False).mean()
+    df["rsi2"]  = 100 - 100 / (1 + up / dn)
+    tr = pd.concat([df["High"] - df["Low"],
+                    (df["High"] - c.shift()).abs(),
+                    (df["Low"]  - c.shift()).abs()], axis=1).max(axis=1)
+    df["atr14"] = tr.rolling(14).mean()
+    df["rvol"]  = df["Volume"] / df["Volume"].rolling(50).mean()
+    return df
+
+def check_rules(df):
+    x = df.iloc[-1]
+    support = df["Low"].iloc[-20:].min()
+    r1 = x.Close > x.sma200
+    r2 = r1 and (x.rsi2 < 10 or abs(x.Close - x.ema21) <= x.atr14)
+    r3 = 0 <= x.Close - support <= 1.5 * x.atr14
+    stop   = min(support - 0.25 * x.atr14, x.Close - 1.5 * x.atr14)
+    target = df["High"].iloc[-60:].max()
+    return {"rules": [r1, r2, r3], "score": sum([r1, r2, r3]),
+            "entry": x.Close, "stop": stop, "target": target,
+            "reward_risk": (target - x.Close) / (x.Close - stop)}</code></pre>
+  <p class="note">Only use bars that have closed. If you run this during market hours, drop today's unfinished bar first (coding rule 6).</p>
+
+  <h3>Set up Claude Code and build it in 5 prompts</h3>
+  <div class="grid3">
+    <div class="box">
+      <h3 style="font-size:17px">1 · Install and start</h3>
+      <pre class="code sm"><code># needs Node.js 18+ and a Claude Pro or Max plan
+npm install -g @anthropic-ai/claude-code
+mkdir swing-system &amp;&amp; cd swing-system
+git init
+claude
+/init      # creates CLAUDE.md</code></pre>
+      <p class="note">Paste the five coding rules from tab 5 into CLAUDE.md. Claude Code reads that file every session.</p>
+    </div>
+    <div class="box">
+      <h3 style="font-size:17px">2 · Prompts, one at a time</h3>
+      <ol class="prompts">
+        <li>"Create a Python backend with FastAPI. fetch.py downloads 2 years of daily bars with yfinance and caches them in SQLite. Drop today's bar if the market is still open."</li>
+        <li>"Add indicators.py and rules.py using exactly these rules: [paste the scope above]. Write tests that check RSI and ATR against hand-calculated values."</li>
+        <li>"Add endpoints GET /api/watchlist, GET /api/ticker/{symbol}, and GET and POST /api/journal."</li>
+        <li>"Create a React + Vite frontend with three screens: Watchlist, Ticker detail with a TradingView Lightweight Charts chart, and Journal with the points table from my playbook."</li>
+        <li>"Add a nightly job that scores the watchlist at 5 pm Eastern and saves the results."</li>
+      </ol>
+    </div>
+  </div>
+  <div class="callout"><p style="font-size:15px"><b>After every prompt:</b> run it, look at the real output, and ask Claude to show you the numbers for one ticker. Compare them with TradingView before moving on. If the app and the chart disagree, fix that first.</p></div>
+
+  <h3>Where TradingView's chart library goes</h3>
+  <div class="grid3">
+    <div class="box">
+      <p><b>Lightweight Charts</b> is TradingView's free, open-source chart library. It only draws charts and does no maths, so it belongs in the <b>frontend</b>, on the Ticker detail screen. The backend sends the bars and the stop and target. The chart just displays them.</p>
+      <ol class="prompts">
+        <li>Install it inside the frontend folder (shown on the right).</li>
+        <li>Use it in <code>TickerDetail.jsx</code>.</li>
+        <li>Or simply tell Claude Code: "Add a TradingView Lightweight Charts candlestick chart to TickerDetail.jsx, with the 200-day SMA as a line and the stop and target as horizontal price lines from /api/ticker/{symbol}."</li>
+      </ol>
+    </div>
+    <div class="box">
+      <pre class="code sm"><code>cd frontend
+npm install lightweight-charts@4
+
+// TickerDetail.jsx
+import { createChart } from "lightweight-charts";
+
+const chart  = createChart(boxRef.current, { height: 360 });
+const candles = chart.addCandlestickSeries();
+candles.setData(data.bars);            // from the backend
+chart.addLineSeries({ color: "orange" })
+     .setData(data.sma200);
+candles.createPriceLine({ price: data.stop,   color: "red",   title: "stop" });
+candles.createPriceLine({ price: data.target, color: "green", title: "target" });</code></pre>
+      <p class="note">Written for version 4 of the library. Version 5 renamed some calls, so if you install the latest, ask Claude Code to adapt it.</p>
+    </div>
+  </div>
+
+  <h3>Folder layout</h3>
+  <pre class="code"><code>swing-system/
+├── CLAUDE.md            # your rules for Claude
+├── backend/
+│   ├── app.py           # FastAPI endpoints
+│   ├── fetch.py         # data download + cache
+│   ├── indicators.py
+│   ├── rules.py
+│   ├── nightly.py       # scores the watchlist
+│   ├── tests/
+│   └── data.db          # SQLite
+└── frontend/
+    ├── package.json     # lists lightweight-charts
+    └── src/
+        ├── Watchlist.jsx
+        ├── TickerDetail.jsx # the chart lives here
+        └── Journal.jsx</code></pre>
+</section>
+
+</main>
+
+<footer><div class="wrap">This playbook is for learning. It is not financial advice, and no set of rules guarantees a profit. Macro figures as of Nov 3, 2026.</div></footer>
+
+<script>
+(function(){
+  const TABS=[["type","Trader type",1],["macro","US–Canada macro",2],["reddit","Reddit rules",3],["canon","100-year canon",4],["code","Coding rules",5],["general","General",6],["data","Live data & game",7],["build","Build it",8]];
+  const bar=document.getElementById("tabs");
+  const root=document.documentElement;
+  TABS.forEach(([id,label,n])=>{
+    const b=document.createElement("button");
+    b.className="tab";b.type="button";b.setAttribute("role","tab");b.id="t-"+id;
+    b.setAttribute("aria-controls","p-"+id);
+    b.style.setProperty("--c",`var(--t${n})`);b.style.setProperty("--c-s",`var(--t${n}s)`);
+    b.innerHTML=`<span class="n">${n}</span>${label}`;
+    b.addEventListener("click",()=>show(id,true));
+    bar.appendChild(b);
+  });
+  function show(id,scroll){
+    if(!TABS.some(t=>t[0]===id)) id="type";
+    TABS.forEach(([t,,n])=>{
+      const on=t===id;
+      document.getElementById("p-"+t).hidden=!on;
+      document.getElementById("t-"+t).setAttribute("aria-selected",on);
+      if(on){root.style.setProperty("--hue",`var(--t${n})`);root.style.setProperty("--hues",`var(--t${n}s)`);}
+    });
+    try{history.replaceState(null,"","#"+id)}catch(e){}
+    if(scroll){const top=document.querySelector(".tabbar").offsetTop;if(window.scrollY>top)window.scrollTo({top});}
+    document.getElementById("t-"+id).scrollIntoView({block:"nearest",inline:"nearest"});
+  }
+  show((location.hash||"").slice(1),false);
+  bar.addEventListener("keydown",e=>{
+    if(e.key!=="ArrowRight"&&e.key!=="ArrowLeft")return;
+    const ids=TABS.map(t=>t[0]);const cur=ids.indexOf((location.hash||"#type").slice(1));
+    const nx=ids[(cur+(e.key==="ArrowRight"?1:ids.length-1))%ids.length];show(nx,false);document.getElementById("t-"+nx).focus();
+  });
+
+  const g=document.querySelectorAll("#game input"),sc=document.getElementById("score"),vd=document.getElementById("verdict");
+  function tally(){let t=0,neg=false;g.forEach(x=>{if(x.checked){t+=+x.dataset.p;if(+x.dataset.p<0)neg=true}});
+    sc.textContent=(t>0?"+":"")+t;sc.className=t<0?"neg":"pos";
+    vd.textContent=neg?"A broken rule. The streak resets, even though the trade made money.":"Clean trade. It counts toward a streak.";}
+  g.forEach(x=>x.addEventListener("change",tally));tally();
+
+  // masthead: a drawn price line with a pullback and breakout
+  const c=document.getElementById("spark"),ctx=c.getContext("2d");
+  function draw(){
+    const r=c.getBoundingClientRect(),d=window.devicePixelRatio||1;
+    c.width=r.width*d;c.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);
+    const w=r.width,h=r.height;let s=7;const rnd=()=>{s=(s*9301+49297)%233280;return s/233280};
+    const pts=[];let y=0.78;
+    for(let i=0;i<=120;i++){
+      const t=i/120;let drift=-0.006;
+      if(t>0.42&&t<0.52)drift=0.009; if(t>0.62&&t<0.78)drift=0.0004;
+      y+=drift+(rnd()-0.5)*0.03;y=Math.min(0.92,Math.max(0.12,y));pts.push([t*w,y*h]);
+    }
+    const ma=pts.map((p,i)=>{const a=pts.slice(Math.max(0,i-14),i+1);return[p[0],a.reduce((s,q)=>s+q[1],0)/a.length]});
+    ctx.clearRect(0,0,w,h);
+    ctx.lineWidth=1.6;ctx.strokeStyle="rgba(140,200,255,.7)";ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.stroke();
+    ctx.setLineDash([5,5]);ctx.strokeStyle="rgba(255,190,90,.75)";ctx.beginPath();ma.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.stroke();ctx.setLineDash([]);
+  }
+  draw();let rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(draw,150)});
+})();
+</script>

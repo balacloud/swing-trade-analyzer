@@ -1,0 +1,247 @@
+<title>STA Status Board</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column, ticker-tape status strip on top, then results, priorities, bugs, artifact map, sources */
+:root{
+  --bg:#F2F4F3; --surface:#FFFFFF; --ink:#16201C; --muted:#5A6762; --line:#D7DDDA;
+  --accent:#1F6F5C; --accent-soft:#DDEEE8;
+  --ok:#22744E; --ok-soft:#E1F1E8; --warn:#93650A; --warn-soft:#F6ECD4;
+  --bad:#B0352B; --bad-soft:#F7E2DF; --hist:#5F6866; --hist-soft:#E8EBEA;
+  --display:"IBM Plex Sans Condensed",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111715; --surface:#18201D; --ink:#E4EBE8; --muted:#97A4A0; --line:#2A3531;
+  --accent:#5FC2A5; --accent-soft:#17302A;
+  --ok:#6BCB98; --ok-soft:#15301F; --warn:#E2B656; --warn-soft:#33290F;
+  --bad:#EE7D72; --bad-soft:#3A1E1B; --hist:#A2ACA9; --hist-soft:#222B28; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111715; --surface:#18201D; --ink:#E4EBE8; --muted:#97A4A0; --line:#2A3531;
+  --accent:#5FC2A5; --accent-soft:#17302A;
+  --ok:#6BCB98; --ok-soft:#15301F; --warn:#E2B656; --warn-soft:#33290F;
+  --bad:#EE7D72; --bad-soft:#3A1E1B; --hist:#A2ACA9; --hist-soft:#222B28; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15.5px;line-height:1.5}
+.wrap{max-width:1000px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 72px;display:flex;flex-direction:column;gap:36px}
+h1,h2{font-family:var(--display);margin:0;line-height:1.1;text-wrap:balance}
+h1{font-size:clamp(2rem,6vw,2.8rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.35rem;font-weight:700}
+p{margin:0;max-width:70ch}
+.eyebrow{font-family:var(--mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+code{font-family:var(--mono);font-size:.84em;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:0 5px;overflow-wrap:anywhere}
+header{display:flex;flex-direction:column;gap:10px}
+
+.strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.tile .k{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tile .v{font-family:var(--display);font-weight:700;font-size:1.25rem}
+.tile .s{font-size:.85rem;color:var(--muted)}
+
+section{display:flex;flex-direction:column;gap:12px}
+.shead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:2px solid var(--ink);padding-bottom:7px}
+.shead .src{font-family:var(--mono);font-size:.74rem;color:var(--muted)}
+
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:.93rem;min-width:560px}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+tr:last-child td{border-bottom:none}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.hero td{background:var(--accent-soft)}
+.note{font-size:.9rem;color:var(--muted)}
+
+ol.pri{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px}
+ol.pri li::marker{font-family:var(--mono);color:var(--muted)}
+.sev{font-family:var(--mono);font-size:.7rem;font-weight:500;padding:1px 7px;border-radius:999px;margin-right:6px;white-space:nowrap}
+.sev.high{background:var(--bad-soft);color:var(--bad)}
+.sev.med{background:var(--warn-soft);color:var(--warn)}
+.sev.go{background:var(--ok-soft);color:var(--ok)}
+ul.bugs{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+ul.bugs li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 12px}
+
+.filters{display:flex;flex-wrap:wrap;gap:8px}
+.filters button{font:inherit;font-size:.88rem;font-weight:600;cursor:pointer;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:5px 13px}
+.filters button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.filters button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.group{display:flex;flex-direction:column;gap:8px}
+.gname{font-family:var(--display);font-weight:600;font-size:1.05rem;margin-top:6px}
+.row{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,2fr) auto;gap:4px 16px;align-items:start}
+.row a{font-weight:600;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line)}
+.row a:hover,.row a:focus-visible{color:var(--accent);border-color:var(--accent);outline:none}
+.row .meta{font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-top:3px}
+.row .what{font-size:.92rem}
+.row .why{font-size:.86rem;color:var(--muted);margin-top:3px}
+.pill{font-size:.74rem;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap;justify-self:end}
+.p-current{background:var(--ok-soft);color:var(--ok)}
+.p-snap{background:var(--warn-soft);color:var(--warn)}
+.p-stale{background:var(--bad-soft);color:var(--bad)}
+.p-hist{background:var(--hist-soft);color:var(--hist)}
+.empty{color:var(--muted);font-size:.9rem}
+
+ul.src{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px}
+footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:4px}
+
+@media (max-width:760px){
+  .strip{grid-template-columns:repeat(2,1fr)}
+  .row{grid-template-columns:minmax(0,1fr)}
+  .pill{justify-self:start;grid-row:1}
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Swing Trade Analyzer · updated at every session close · last updated Day 120, Nov 4, 2026</span>
+    <h1>STA Status Board</h1>
+    <p class="muted">Where the project stands, what's next, and which published pages you can still trust. Numbers come from the live paper-trading report and the repo's status files, not from older pages.</p>
+  </header>
+
+  <div class="strip">
+    <div class="tile"><span class="k">Mode</span><span class="v">Analysis only</span><span class="s">You place every trade. Paper trading stopped Sep 12.</span></div>
+    <div class="tile"><span class="k">Version</span><span class="v">v4.62</span><span class="s">Backend v2.51 · Frontend v4.59. No code change since Day 118.</span></div>
+    <div class="tile"><span class="k">Open bugs</span><span class="v">7 Medium+</span><span class="s">1 High, 6 Medium. None urgent.</span></div>
+    <div class="tile"><span class="k">Next project</span><span class="v">Analyze redesign</span><span class="s">Plan ready (GO). Phase 0 not started.</span></div>
+  </div>
+
+  <section>
+    <div class="shead"><h2>Forward-test final results</h2><span class="src">daily_job.py --report · pulled Nov 4, 2026 (last job run Nov 3)</span></div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Track</th><th>Closed</th><th>Win rate</th><th>Profit factor</th><th>Avg R</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr class="hero"><td><strong>Mean reversion (broad)</strong></td><td class="n">241</td><td class="n">70.5%</td><td class="n">2.00</td><td class="n">+0.28</td><td>The one confirmed edge. All positions closed.</td></tr>
+          <tr><td>Mean reversion (HUB-65 list)</td><td class="n">70</td><td class="n">64.3%</td><td class="n">1.67</td><td class="n">+0.26</td><td>Positive, but a hand-picked list. All closed.</td></tr>
+          <tr><td>Momentum Path A</td><td class="n">120</td><td class="n">39.2%</td><td class="n">0.70</td><td class="n">−0.25</td><td>No edge. 2 positions still winding down.</td></tr>
+          <tr><td>Momentum Path B</td><td class="n">232</td><td class="n">42.2%</td><td class="n">0.87</td><td class="n">−0.05</td><td>Retired Day 112. No edge.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Older repo docs quote mean reversion at "PF ~2.5". That was the mid-September figure; the Day 120 status files now carry the final number. Trades that were still open then have since closed, and the final number is <strong>2.00</strong>. Still a solid edge, just lower than the docs say.</p>
+  </section>
+
+  <section>
+    <div class="shead"><h2>Next priorities</h2><span class="src">CLAUDE_CONTEXT.md</span></div>
+    <ol class="pri">
+      <li><span class="sev go">Ready</span><strong>Analyze Page Redesign.</strong> Start with Phase 0 (fix the decision doc's wording, capture a parity-test baseline), then Phase 1 (helper functions with no visible change). Plan: <code>ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md</code>.</li>
+      <li><span class="sev high">High</span>Per-ticker data tracking can't tell "never checked" from "just failed." Needs a written plan first.</li>
+      <li><span class="sev med">Medium</span>Six smaller fixes (listed below). Two need your decision.</li>
+      <li>Zero-risk cleanup: 5 dead functions in <code>App.jsx</code>, a stale "Defeat Beta API" line on the Data Sources tab, Value tab relabeling.</li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="shead"><h2>Open bugs, Medium and above</h2><span class="src">KNOWN_ISSUES_DAY120.md</span></div>
+    <ul class="bugs">
+      <li><span class="sev high">High</span>Per-ticker provenance can't distinguish "never checked" from "just failed."</li>
+      <li><span class="sev med">Medium</span>VIX position sizing was never wired into the paper-trading engine. Probably moot now that the engine is stopped.</li>
+      <li><span class="sev med">Medium</span>Context tab bypasses the shared fetch layer in <code>api.js</code>.</li>
+      <li><span class="sev med">Medium</span>Value tab's "Buffett" ROE label overstates certainty. Fix decided, not built.</li>
+      <li><span class="sev med">Medium</span>Settings risk slider allows 5% per trade against the 2% ceiling. Needs your decision.</li>
+      <li><span class="sev med">Medium</span>Backtest and live fundamentals come from different data sources (~40% disagree). Needs your decision.</li>
+      <li><span class="sev med">Medium</span>Sectors Rotation and Market Phase breadth skip circuit-breaker protection.</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="shead"><h2>Recent sessions</h2><span class="src">PROJECT_STATUS files</span></div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Day</th><th>Date</th><th>What happened</th></tr></thead>
+        <tbody>
+          <tr><td class="n">120</td><td class="n">Nov 2–4</td><td>Compared a Reddit swing-trading summary with STA (about 8 of 10 points match). Built the Leveraged ETF Board on your 8-fund IBKR watchlist (Canadian SOXL/GDXU, not the US ones; new Golden Rule 58). Built the Beginner Trading Starter Playbook for a friend. No app code changed.</td></tr>
+          <tr><td class="n">119</td><td class="n">Oct 31</td><td>Rechecked the Analyze Page Redesign plan against six sessions of changes. Found 9 corrections. Verdict: GO. No app code changed.</td></tr>
+          <tr><td class="n">116–118</td><td class="n">Sep–Oct</td><td>Fixed the OBV trend sign and a partial-bar volume bug. Added an absolute-momentum read. Fixed MTF Confluence scoring and the VCP target. v4.61 → v4.62.</td></tr>
+          <tr><td class="n">113</td><td class="n">Sep 12</td><td>Paper trading stopped at your direction. STA became an analysis-only tool.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><h2>Artifact map</h2><span class="src">checked Nov 4, 2026</span></div>
+    <p class="note">Every published page that relates to STA, with whether you can still trust it. "Snapshot" means it was accurate on the date shown and hasn't been rechecked since.</p>
+    <div class="filters" role="group" aria-label="Filter pages">
+      <button type="button" id="f-all" data-f="all" aria-pressed="true">All</button>
+      <button type="button" id="f-trust" data-f="trust" aria-pressed="false">Current only</button>
+      <button type="button" id="f-check" data-f="check" aria-pressed="false">Stale or snapshot</button>
+    </div>
+    <div id="map"></div>
+  </section>
+
+  <section>
+    <div class="shead"><h2>Where the accurate status lives</h2><span class="src">repo files</span></div>
+    <p class="note">If this board and a file disagree, the file wins. These are updated at every session close.</p>
+    <ul class="src">
+      <li><code>docs/claude/CLAUDE_CONTEXT.md</code>: current state and next priorities</li>
+      <li><code>docs/claude/status/PROJECT_STATUS_DAY[N]_SHORT.md</code>: what the last session did</li>
+      <li><code>docs/claude/versioned/KNOWN_ISSUES_DAY[N].md</code>: every open bug</li>
+      <li><code>backend/paper_trading/daily_job.py --report</code>: live forward-test numbers</li>
+      <li><code>docs/claude/design/STA_STATUS_BOARD.html</code>: the source of this page</li>
+    </ul>
+  </section>
+
+  <footer>
+    <span>Not STA, so not listed above: Two Paths vs. What's Actually Proven, What All This Code Actually Does, What Real Money Would Look Like (all Trading Intelligence Hub), and Options IQ Gemini: A Self-Audit.</span>
+    <span>Statuses: Current = matches today's code and docs · Snapshot = accurate on its date, not rechecked · Stale = known to be wrong now · Historical = kept for the record.</span>
+  </footer>
+</div>
+
+<script>
+const A = "https://claude.ai/artifact/";
+const GROUPS = [
+  ["status", "Status and plan"],
+  ["redesign", "Analyze Page Redesign"],
+  ["audit", "Audits and reference"],
+  ["explain", "Explainers"],
+  ["reports", "Watchlist reports (from /watchlist-report)"],
+  ["hist", "Historical"]
+];
+// s: current | snap | stale | hist
+const ITEMS = [
+  {g:"status", t:"STA Status Board", id:"", u:"Nov 4", s:"current", w:"This page. Status, results, priorities, bugs, and this map.", self:true},
+  {g:"status", t:"STA vs. 100 Years of Trading Principles", id:"SGUQPDct284KF4uGnPZGrE", u:"Nov 2", s:"current", w:"STA checked against 9 classic trading principles (7 match, 2 partial), plus a side-by-side with Reddit swing-trading advice.", why:"Gallery name: artifact-cc9d82c6…. Source copy: docs/claude/design/artifacts_src/principles_100yr/index.html"},
+  {g:"status", t:"Leveraged ETF Board", id:"HdErxTqUhq8KYs6McSU5V7", u:"Nov 2", s:"current", w:"Live IBKR data for the 8 funds on your AI_Leveraged watchlist (Canadian SOXL and GDXU, DRAL and others), counted against your adopted rules (trend, pullback, S&R, consolidation) plus background reads.", why:"Pulls fresh data each time you open it. Source: docs/claude/design/LEVERAGED_ETF_BOARD.html. Formulas match STA's Python (parity-checked Nov 2)."},
+  {g:"explain", t:"Beginner Trading Starter Playbook", id:"CfnNDEEs8jS112MuTU4HPp", u:"Nov 4", s:"current", w:"8-tab beginner guide for a friend: trader types, US–Canada macro, Reddit rules, 100-year canon, coding rules, live data and gamification, and building it with Claude Code.", why:"Shared with anyone who has the link. Macro numbers are a Nov 3 snapshot, mostly from secondary sources; Canada 5Y is unchecked."},
+  {g:"hist", t:"Swing Trading Starter Playbook (Claude Docs)", id:"LdDnS6HvtMi5GjQPao9Fpt", u:"Nov 3", s:"hist", w:"First version of the friend's playbook.", why:"Replaced by the Beginner Trading Starter Playbook."},
+  {g:"redesign", t:"Analyze Page Redesign: Decision Map", id:"8ih9hWm6N8Sq6vy7VjHq6A", u:"Sep 15", s:"snap", w:"All redesign decisions mapped to the trading principles, with locked and open items.", why:"Gallery name: decision-map-v2. Still lists negative-EPS as open; Day 119 answered it (declined). MR numbers show 217 trades / PF 2.46; final is 241 / PF 2.00."},
+  {g:"redesign", t:"Analyze Page Redesign: Mockup", id:"WacHXh9VioxQgzwsPGdX1X", u:"Sep 3", s:"snap", w:"What the redesigned Analyze page would look like. A design, not the live app.", why:"Gallery name: mockup. Not yet checked against Day 119's copy corrections to the R:R note."},
+  {g:"redesign", t:"Fundamentals & Sentiment: Card Visual Design", id:"WEJYGp2cWK3EmfRZApfp2j", u:"Aug 22", s:"current", w:"Mockup of the Fear & Greed gauge and the fundamentals red-flag card."},
+  {g:"audit", t:"Descriptive Cards: Who Actually Uses Them", id:"8w8jmqZh3bmDLfkRnSYYDZ", u:"Aug 22", s:"current", w:"Which strategy uses S&R, MTF Confluence, Price Structure, Pattern Detection and Breakout Status."},
+  {g:"audit", t:"Descriptive Cards: Industry-Standard Report Card", id:"RCE29bGhqJizBoMWAKuYnD", u:"Aug 22", s:"stale", w:"Grades five Analyze-page cards against real methodology.", why:"MTF Confluence (3/10) and the pattern price target (1.5/10) were both fixed on Day 118. The page still shows the old grades."},
+  {g:"audit", t:"STA Data Provenance Map", id:"KTrLVAFTQdeqjRgfLQeqMm", u:"Sep 3", s:"snap", w:"Every tab and where its data comes from, field by field.", why:"Gallery name: prov-map. Accurate as of Day 112."},
+  {g:"audit", t:"STA Audit Coverage Timeline", id:"Q1gv2e8T1Z8qYGgkWFDSAA", u:"Sep 3", s:"snap", w:"When each part of the app was last audited.", why:"Gallery name: audit-timeline. Accurate as of Day 112; Days 113–118 fixes not shown."},
+  {g:"audit", t:"IBKR Web API: Market Data Field Availability", id:"WTPQEY2xuQt1FQ5sZvNgX5", u:"Jul 27", s:"snap", w:"Which IBKR market-data fields are actually available. Reference for the watchlist report."},
+  {g:"explain", t:"How the Simple Checklist & Full Analysis Pick a Stock", id:"CAqaUie8TowKKRgMeTYtSD", u:"Jul 28", s:"stale", w:"Plain-language explainer of both decision paths and the scanners, plus test scenarios.", why:"Written before paper trading stopped. Still describes the automated Path A engine and older backtest numbers."},
+  {g:"reports", t:"AI_Leveraged Watchlist: Catalyst & Readiness Report", id:"Tssufxyro18nmtWihnifWh", u:"Aug 13", s:"snap", w:"Catalyst and readiness report for the leveraged-ETF watchlist (includes SOXL and GDXU).", why:"Prices and setups from August. Rerun /watchlist-report for current data."},
+  {g:"reports", t:"Space: Watchlist Catalyst Report", id:"AwwB8wFKrUFmJcXrkmLsxj", u:"Aug 11", s:"snap", w:"Catalyst report for the space watchlist.", why:"August snapshot."},
+  {g:"reports", t:"AI Supply Chain ETF: Watchlist Catalyst Report", id:"1QLgQys7hWcTu44w2yif41", u:"Aug 7", s:"snap", w:"Catalyst report for the AI supply-chain ETF watchlist.", why:"August snapshot."},
+  {g:"hist", t:"Forward-Test Track Board", id:"JqM8sJ5EeAFfCF7NUyFZmq", u:"Sep 3", s:"hist", w:"The four forward-test tracks as of Day 112.", why:"Shows two tracks still running; all stopped Sep 12. Final numbers are in the results table above."},
+  {g:"hist", t:"How the Forward Test Actually Works", id:"WhTh9sBnocsfv9PCK6kvpT", u:"Jul 28", s:"hist", w:"How the automated paper-trading engine worked.", why:"Engine stopped Sep 12."},
+  {g:"hist", t:"How the Simple Checklist & Full Analysis Pick a Stock (older copy)", id:"QDpkSMGcrJBWWBvRqLxnQ9", u:"Jul 28", s:"hist", w:"First version of the explainer, without the scanners section.", why:"Replaced by the newer copy above."}
+];
+const LABEL = {current:"Current", snap:"Snapshot", stale:"Stale", hist:"Historical"};
+const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function render(f){
+  const keep = i => f==="all" || (f==="trust" && i.s==="current") || (f==="check" && (i.s==="snap"||i.s==="stale"));
+  const html = GROUPS.map(([k,name]) => {
+    const rows = ITEMS.filter(i => i.g===k && keep(i));
+    if (!rows.length) return "";
+    return `<div class="group"><div class="gname">${name}</div>${rows.map(i => `
+      <div class="row"><div>${i.self ? `<strong>${esc(i.t)}</strong>` : `<a href="${A+i.id}" target="_blank" rel="noopener">${esc(i.t)}</a>`}
+        <div class="meta">Updated ${i.u}</div></div>
+        <div><div class="what">${esc(i.w)}</div>${i.why ? `<div class="why">${esc(i.why)}</div>` : ""}</div>
+        <span class="pill p-${i.s}">${LABEL[i.s]}</span></div>`).join("")}</div>`;
+  }).join("");
+  document.getElementById("map").innerHTML = html || `<p class="empty">Nothing matches this filter.</p>`;
+}
+document.querySelectorAll(".filters button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".filters button").forEach(x => x.setAttribute("aria-pressed", x===b ? "true" : "false"));
+  render(b.dataset.f);
+}));
+render("all");
+</script>

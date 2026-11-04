@@ -1,0 +1,562 @@
+<title>Leveraged ETF Board</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header + market strip, then one full-width card per ETF (rules left, numbers right), formulas footer */
+:root{
+  --bg:#EEF1F4; --surface:#FFFFFF; --ink:#141B22; --muted:#5B6773; --line:#D5DCE3;
+  --accent:#2457A6; --accent-soft:#E1EAF7;
+  --pass:#1F7A4A; --pass-soft:#DFF1E6; --fail:#B23A2E; --fail-soft:#F7E0DD;
+  --na:#6B7480; --na-soft:#E7EAEE; --warn:#946209; --warn-soft:#F6EBD2;
+  --display:"Barlow Condensed",ui-sans-serif,system-ui,sans-serif;
+  --body:"Barlow",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1419; --surface:#171E25; --ink:#E3E9EF; --muted:#94A1AE; --line:#28323C;
+  --accent:#7FA8E8; --accent-soft:#1B2A40;
+  --pass:#5CC98C; --pass-soft:#143222; --fail:#EE7B6E; --fail-soft:#3A1C19;
+  --na:#9AA4AF; --na-soft:#222A32; --warn:#E3B358; --warn-soft:#352914; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1419; --surface:#171E25; --ink:#E3E9EF; --muted:#94A1AE; --line:#28323C;
+  --accent:#7FA8E8; --accent-soft:#1B2A40;
+  --pass:#5CC98C; --pass-soft:#143222; --fail:#EE7B6E; --fail-soft:#3A1C19;
+  --na:#9AA4AF; --na-soft:#222A32; --warn:#E3B358; --warn-soft:#352914; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15.5px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 72px;display:flex;flex-direction:column;gap:26px}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.1;text-wrap:balance}
+h1{font-size:clamp(2rem,6vw,2.7rem);font-weight:700;letter-spacing:.01em}
+p{margin:0;max-width:72ch}
+.mono,.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:14px}
+header .left{display:flex;flex-direction:column;gap:8px;min-width:0}
+.controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+button.btn{font:inherit;font-weight:600;font-size:.92rem;cursor:pointer;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:var(--surface);padding:7px 16px}
+button.btn.ghost{background:var(--surface);color:var(--accent)}
+button.btn:disabled{opacity:.55;cursor:default}
+button.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#stamp{font-size:.85rem;color:var(--muted)}
+
+.notice{border-radius:10px;padding:12px 16px;font-size:.95rem;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.notice.bad{background:var(--fail-soft);color:var(--fail);border:1px solid var(--fail)}
+.notice.warn{background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn)}
+.notice.info{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent)}
+.notice b{font-weight:600}
+
+.strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.tile .k{font-family:var(--mono);font-size:.68rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.tile .v{font-family:var(--display);font-weight:700;font-size:1.45rem}
+.tile .s{font-size:.86rem;color:var(--muted)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.chead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:10px 18px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.chead .t{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.chead h2{font-size:2rem;font-weight:700;letter-spacing:.02em}
+.chead .name{color:var(--muted);font-size:.92rem}
+.price{font-family:var(--mono);font-size:1.05rem}
+.up{color:var(--pass)} .down{color:var(--fail)}
+.count{font-family:var(--display);font-weight:700;font-size:1.15rem;padding:4px 12px;border-radius:8px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.cbody{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:0}
+.rules{padding:6px 0;border-right:1px solid var(--line)}
+.rule{display:grid;grid-template-columns:72px minmax(0,1fr);gap:4px 12px;padding:11px 18px;border-bottom:1px solid var(--line)}
+.rule:last-child{border-bottom:none}
+.chip{font-family:var(--mono);font-size:.7rem;font-weight:500;letter-spacing:.04em;text-align:center;padding:3px 0;border-radius:6px;align-self:start;margin-top:2px}
+.c-pass{background:var(--pass-soft);color:var(--pass)}
+.c-fail{background:var(--fail-soft);color:var(--fail)}
+.c-na{background:var(--na-soft);color:var(--na)}
+.c-info{background:var(--accent-soft);color:var(--accent)}
+.rule .rn{font-weight:600}
+.rule .rd{font-size:.92rem;color:var(--muted)}
+.rule .rd b{color:var(--ink);font-weight:600}
+.subs{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.sub{font-family:var(--mono);font-size:.74rem;padding:2px 8px;border-radius:6px;border:1px solid var(--line)}
+.side{padding:14px 18px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.side h3{font-size:1rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--muted)}
+dl.kv{margin:6px 0 0;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:.92rem}
+dl.kv dt{color:var(--muted)}
+dl.kv dd{margin:0;font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.bg p{font-size:.9rem;color:var(--muted);margin-top:4px}
+.bg p b{color:var(--ink);font-weight:600}
+.src{display:inline-block;font-family:var(--mono);font-size:.66rem;font-weight:500;letter-spacing:.03em;padding:1px 6px;border-radius:5px;margin-left:6px;vertical-align:2px;text-transform:none}
+.src.r{background:var(--warn-soft);color:var(--warn)}
+.src.c{background:var(--accent-soft);color:var(--accent)}
+.src.n{background:var(--na-soft);color:var(--na)}
+.tap{font-size:.8rem;color:var(--muted);margin-top:4px}
+.ind{border-top:1px solid var(--line)}
+.ind:first-of-type{margin-top:6px}
+.ind summary{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:8px 0;cursor:pointer;list-style:none;font-size:.92rem}
+.ind summary::-webkit-details-marker{display:none}
+.ind summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.ind .nm{color:var(--muted)}
+.ind .nm::before{content:"▸ ";color:var(--accent)}
+.ind[open] .nm::before{content:"▾ "}
+.ind .val{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.ind .hint{display:block;font-family:var(--body);font-size:.78rem;color:var(--muted);text-align:right}
+.gbu{display:flex;flex-direction:column;gap:5px;font-size:.85rem;color:var(--muted);padding:0 0 12px 14px}
+.gbu b{font-weight:600;margin-right:4px}
+.gbu .g{color:var(--pass)} .gbu .b{color:var(--warn)} .gbu .u{color:var(--fail)}
+.cov{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:12px}
+.cov h3{font-size:1.05rem;font-weight:600;margin-bottom:6px}
+.cov table{width:100%;border-collapse:collapse;font-size:.88rem}
+.cov td{padding:6px 6px 6px 0;border-top:1px solid var(--line);vertical-align:top}
+.cov td:first-child{width:46%}
+.cov .off{color:var(--muted)}
+@media (max-width:820px){.cov{grid-template-columns:minmax(0,1fr)}}
+.cerr{padding:16px 18px;font-size:.95rem}
+.loading{padding:22px 18px;color:var(--muted)}
+
+details.formulas{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px}
+details.formulas summary{cursor:pointer;font-weight:600}
+details.formulas ul{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:.92rem}
+footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+
+@media (max-width:820px){
+  .cbody{grid-template-columns:minmax(0,1fr)}
+  .rules{border-right:none;border-bottom:1px solid var(--line)}
+  .strip{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="left">
+      <span class="eyebrow">Your AI_Leveraged watchlist · daily bars from Interactive Brokers</span>
+      <h1>Leveraged ETF Board</h1>
+      <p class="muted">Your adopted rules, checked against live IBKR data. Each rule shows pass or fail with the numbers behind it. How many need to agree is your call.</p>
+    </div>
+    <div class="controls">
+      <span id="stamp">Not loaded yet</span>
+      <button type="button" class="btn" id="refresh">Refresh</button>
+    </div>
+  </header>
+
+  <div id="notices"></div>
+
+  <section aria-label="Market backdrop">
+    <div class="strip" id="strip">
+      <div class="tile"><span class="k">S&amp;P 500 (SPY) vs 200-day</span><span class="v" id="spy-v">…</span><span class="s" id="spy-s">Loading</span></div>
+      <div class="tile"><span class="k">VIX (fear gauge)</span><span class="v" id="vix-v">…</span><span class="s" id="vix-s">Loading</span></div>
+      <div class="tile"><span class="k">Market regime (background only) <span class="src c">Canon 07</span></span><span class="v" id="reg-v">…</span><span class="s" id="reg-s">Not counted in your rules</span></div>
+    </div>
+  </section>
+
+  <details class="formulas">
+    <summary>Which checklist each item comes from: Reddit (10) and the 100-year canon (9)</summary>
+    <p class="muted" style="margin-top:8px">Tags on the cards show the source: <span class="src r">Reddit</span> for the Reddit advice you adopted, <span class="src c">Canon 01–09</span> for the nine principles on the "STA vs. 100 Years" page. Items with neither aren't on this board, and the table says why.</p>
+    <div class="cov">
+      <div><h3>Reddit advice</h3><table>
+        <tr><td>Trade with the trend</td><td>Rule 1 (also Canon 01)</td></tr>
+        <tr><td>Wait for a pullback</td><td>Rule 2 (also Canon 03)</td></tr>
+        <tr><td>Support &amp; resistance</td><td>Rule 3</td></tr>
+        <tr><td>Consolidation, then breakout</td><td>Rule 4 (part of Canon 04)</td></tr>
+        <tr><td>Keep indicators simple</td><td>Indicator panel (5)</td></tr>
+        <tr><td>Define entry, stop, target</td><td class="off">Not on board. You haven't decided this yet.</td></tr>
+        <tr><td>Risk management first</td><td class="off">Not on board. Your call.</td></tr>
+        <tr><td>Practise one setup</td><td class="off">Not on board. You haven't decided this yet.</td></tr>
+        <tr><td>Fundamentals to pick</td><td class="off">Not on board. Your call.</td></tr>
+        <tr><td>Patience and records</td><td class="off">Not on board. Your own journal.</td></tr>
+      </table></div>
+      <div><h3>100-year canon</h3><table>
+        <tr><td>01 Trend following</td><td>Rule 1</td></tr>
+        <tr><td>02 Momentum &amp; relative strength</td><td>Background: relative strength vs SPY. Partial, since the canon compares against peers, not just the market.</td></tr>
+        <tr><td>03 Mean reversion</td><td>Rule 2: RSI(2) below 10 above the 200-day, the same threshold as STA's mean-reversion engine</td></tr>
+        <tr><td>04 Volume confirms the move</td><td>Background: relative volume. Shown, not required by rule 4.</td></tr>
+        <tr><td>05 Position sizing</td><td class="off">Not on board. Your call.</td></tr>
+        <tr><td>06 Stop placement</td><td>The ATR line shows how far 2 × ATR is, for reference only</td></tr>
+        <tr><td>07 Market regime</td><td>Top strip: SPY vs its 200-day and the VIX</td></tr>
+        <tr><td>08 Sentiment</td><td class="off">Not on board. IBKR doesn't provide the Fear &amp; Greed index.</td></tr>
+        <tr><td>09 Sector rotation</td><td>Partial: each underlying vs its 200-day, under rule 1</td></tr>
+      </table></div>
+    </div>
+  </details>
+
+  <div id="cards"></div>
+
+
+  <details class="formulas">
+    <summary>How each rule is calculated</summary>
+    <ul>
+      <li><b>Data:</b> IBKR daily bars, two years. A bar for today is dropped until 4:15 pm New York time, so a half-finished day never counts as a close.</li>
+      <li><b>1. Trend:</b> passes when the ETF's last close is above its 200-day simple average. The underlying's position is shown next to it, because 2x and 3x funds drift lower over time and can look worse than their sector.</li>
+      <li><b>2. Pullback:</b> passes when the trend passes and RSI(2) is below 10 (Connors' oversold dip). RSI uses Wilder's smoothing, the same formula as STA.</li>
+      <li><b>3. Support &amp; resistance:</b> swing lows and highs over the last 60 days (a bar lower or higher than the 3 bars on each side). Passes when the nearest support is no more than 1 ATR below the close. Simpler than STA's full S&amp;R engine.</li>
+      <li><b>4. Consolidation:</b> passes when the 20-day high-to-low range is at most 3.5 × ATR, meaning price has gone quiet. This threshold is a judgment call, not a tested number.</li>
+      <li><b>5. Simple indicators:</b> RSI(14), RSI(2), 8 and 21-day EMAs, 50 and 200-day SMAs, ATR(14) and relative volume. Shown as numbers, not counted.</li>
+      <li><b>Background (not counted):</b> relative strength is the underlying's return minus SPY's over 3 and 12 months. Relative volume is today's volume over the prior 50-day average. Regime is SPY vs its 200-day average plus the VIX level (above 30 is high, matching STA).</li>
+      <li><b>Splits:</b> each load asks IBKR for corporate actions and also flags any one-day move of 50% or more as a possible split to check.</li>
+    </ul>
+  </details>
+
+  <footer>Read-only: this page only reads price history from your IBKR connector and cannot place orders. For your own analysis, not advice.</footer>
+</div>
+
+<script>
+/*CALC-START*/
+function sma(a, n){ const out = new Array(a.length).fill(null); let s = 0;
+  for (let i = 0; i < a.length; i++){ s += a[i]; if (i >= n) s -= a[i-n]; if (i >= n-1) out[i] = s/n; } return out; }
+function ema(a, n){ const k = 2/(n+1); const out = []; let prev = a[0];
+  for (let i = 0; i < a.length; i++){ prev = i === 0 ? a[0] : a[i]*k + prev*(1-k); out.push(prev); } return out; }
+// pandas ewm(alpha=1/period, min_periods=period, adjust=True), matching STA's calculate_rsi_short
+function rsi(closes, period){ const a = 1/period, out = new Array(closes.length).fill(null);
+  let gN = 0, lN = 0, D = 0;
+  for (let i = 1; i < closes.length; i++){
+    const d = closes[i] - closes[i-1], g = d > 0 ? d : 0, l = d < 0 ? -d : 0;
+    gN = g + (1-a)*gN; lN = l + (1-a)*lN; D = 1 + (1-a)*D;
+    if (i >= period){ const ag = gN/D, al = lN/D; out[i] = al === 0 ? 100 : 100 - 100/(1 + ag/al); }
+  } return out; }
+// STA's calculate_atr: simple 14-day mean of true range
+function atr(h, l, c, n){ const tr = h.map((x, i) => i === 0 ? x - l[i] : Math.max(x - l[i], Math.abs(x - c[i-1]), Math.abs(l[i] - c[i-1])));
+  const out = sma(tr, n); out[0] = null; return out; }
+function nyParts(ms){ const f = new Intl.DateTimeFormat("en-CA",{timeZone:"America/New_York",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false});
+  const p = Object.fromEntries(f.formatToParts(new Date(ms)).map(x => [x.type, x.value]));
+  return {date:`${p.year}-${p.month}-${p.day}`, mins:(+p.hour % 24)*60 + (+p.minute)}; }
+// IBKR payload -> bars; drops today's bar until 16:15 New York time (partial-bar rule, Golden Rule 39)
+function toBars(p, nowMs){
+  const n = (p.time || []).length, bars = [];
+  for (let i = 0; i < n; i++){
+    const c = p.close?.[i]; if (c == null) continue;
+    bars.push({date: nyParts(Date.parse(p.time[i])).date, o:p.open?.[i] ?? c, h:p.high?.[i] ?? c, l:p.low?.[i] ?? c, c, v:p.volume?.[i] ?? null});
+  }
+  const now = nyParts(nowMs);
+  if (bars.length && bars[bars.length-1].date === now.date && now.mins < 16*60+15) bars.pop();
+  return bars; }
+function swings(bars, look, w){ const s = Math.max(w, bars.length - look), lows = [], highs = [];
+  for (let i = s; i < bars.length - w; i++){
+    let lo = true, hi = true;
+    for (let j = 1; j <= w; j++){
+      if (!(bars[i].l < bars[i-j].l && bars[i].l < bars[i+j].l)) lo = false;
+      if (!(bars[i].h > bars[i-j].h && bars[i].h > bars[i+j].h)) hi = false; }
+    if (lo) lows.push(bars[i].l); if (hi) highs.push(bars[i].h); }
+  return {lows, highs}; }
+function analyze(bars){
+  const c = bars.map(b => b.c), h = bars.map(b => b.h), l = bars.map(b => b.l), L = bars.length - 1;
+  const last = x => x[L];
+  const s200 = last(sma(c,200)), s50 = last(sma(c,50)), e8 = last(ema(c,8)), e21 = last(ema(c,21));
+  const r2 = last(rsi(c,2)), r14 = last(rsi(c,14)), a14 = last(atr(h,l,c,14));
+  const vols = bars.map(b => b.v);
+  let rvol = null;
+  if (L >= 50 && vols[L] != null){ const prior = vols.slice(L-50, L).filter(v => v != null); if (prior.length >= 40){ const avg = prior.reduce((x,y)=>x+y,0)/prior.length; if (avg > 0) rvol = vols[L]/avg; } }
+  const sw = swings(bars, 60, 3), close = c[L];
+  const below = sw.lows.filter(x => x < close), above = sw.highs.filter(x => x > close);
+  const sup = below.length ? Math.max(...below) : null, res = above.length ? Math.min(...above) : null;
+  let range20 = null; if (L >= 19){ range20 = Math.max(...h.slice(L-19)) - Math.min(...l.slice(L-19)); }
+  let splitFlag = null;
+  for (let i = Math.max(1, L-260); i <= L; i++){ const r = c[i]/c[i-1]; if (r >= 1.5 || r <= 0.5){ splitFlag = {date: bars[i].date, move: (r-1)*100}; } }
+  return {n: bars.length, date: bars[L].date, close, prev: L > 0 ? c[L-1] : null, s200, s50, e8, e21, r2, r14, a14, rvol, sup, res, range20, splitFlag}; }
+function retOver(bars, k){ if (bars.length <= k) return null; const L = bars.length-1; return bars[L].c / bars[L-k].c - 1; }
+function rules(a){
+  const out = [];
+  const pct = (x, y) => (x/y - 1)*100;
+  if (a.s200 == null){ out.push({k:"trend", st:"na"}); }
+  else out.push({k:"trend", st: a.close > a.s200 ? "pass" : "fail", d: pct(a.close, a.s200)});
+  const trend = out[0].st;
+  if (trend === "na" || a.r2 == null) out.push({k:"pullback", st:"na"});
+  else if (trend === "fail") out.push({k:"pullback", st:"fail", why:"notrend"});
+  else out.push({k:"pullback", st: a.r2 < 10 ? "pass" : "fail"});
+  if (a.a14 == null) out.push({k:"sr", st:"na"});
+  else if (a.sup == null) out.push({k:"sr", st:"fail", why:"nosupport"});
+  else out.push({k:"sr", st: (a.close - a.sup) <= a.a14 ? "pass" : "fail"});
+  if (a.range20 == null || a.a14 == null) out.push({k:"base", st:"na"});
+  else out.push({k:"base", st: a.range20 <= 3.5*a.a14 ? "pass" : "fail"});
+  return out; }
+/*CALC-END*/
+
+const SERVER = "Interactive Brokers (IBKR)";
+const TOOL = "get_price_history";
+const C = {
+  // ETF conids are the exact contracts on the user's IBKR "AI_Leveraged" watchlist (id 122).
+  // SOXL and GDXU there are the Canadian BetaPro funds (CAD), not the US Direxion / MicroSectors ones.
+  QPUX:{id:866508540}, DRAL:{id:895506712}, SPCL:{id:871422657}, UBOT:{id:416854785},
+  URAA:{id:712146384}, COPZ:{id:854950287}, GDXU:{id:393460407}, SOXL:{id:805995437},
+  QTUM:{id:332274918}, DRAM:{id:870556708}, MU:{id:9939}, SPCX:{id:890493863}, BOTZ:{id:247691382},
+  URA:{id:211651685}, COPX:{id:211651700}, GDX:{id:229726316}, SOXX:{id:12658194}, SMH:{id:229725622},
+  SPY:{id:756733}, VIX:{id:13455763, type:"IND", exchange:"CBOE", period:"ONE_MONTH"}
+};
+const ETFS = [
+  {t:"QPUX", name:"Defiance Daily 2x Long Pure Quantum · Nasdaq", lev:"2x", unders:[{t:"QTUM", stand:true}]},
+  {t:"DRAL", name:"Defiance Daily Target 2x Long DRAM · Cboe BZX", lev:"2x", unders:[{t:"DRAM"},{t:"MU", stand:true}]},
+  {t:"SPCL", name:"Defiance Daily 2x Space · Cboe BZX", lev:"2x", unders:[{t:"SPCX"}],
+    note:"Since SpaceX's June 2026 IPO this fund tracks SpaceX alone. Its earlier history was a basket of space stocks, so older levels are a different portfolio."},
+  {t:"UBOT", name:"Direxion Daily Robotics, AI & Automation Bull 2x · NYSE Arca", lev:"2x", unders:[{t:"BOTZ", stand:true}]},
+  {t:"URAA", name:"Direxion Daily Uranium Industry Bull 2x · NYSE Arca", lev:"2x", unders:[{t:"URA", stand:true}]},
+  {t:"COPZ", name:"Defiance Daily Target 2x Long Copper Miners · NYSE Arca", lev:"2x", unders:[{t:"COPX"}]},
+  {t:"GDXU", name:"BetaPro Canadian Gold Miners 2x Daily Bull · TSX, CAD", lev:"2x", cur:"C$", unders:[{t:"GDX", stand:true}]},
+  {t:"SOXL", name:"BetaPro 3x Semiconductor Daily Bull · Cboe Canada, CAD", lev:"3x", cur:"C$", unders:[{t:"SOXX"},{t:"SMH", stand:true}]}
+];
+const ETF_SET = new Set(ETFS.map(e => e.t));
+const RULE_NAMES = {trend:"1. Trend", pullback:"2. Pullback", sr:"3. Support & resistance", base:"4. Consolidation"};
+const RULE_SRC = {
+  trend:'<span class="src r">Reddit</span><span class="src c">Canon 01</span>',
+  pullback:'<span class="src r">Reddit</span><span class="src c">Canon 03</span>',
+  sr:'<span class="src r">Reddit</span>',
+  base:'<span class="src r">Reddit</span><span class="src c">part of Canon 04</span>'
+};
+
+const state = {data:{}, err:{}, stamp:null, loading:false, mcp:null};
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+const f2 = x => x == null ? "–" : x.toFixed(2);
+const f1 = x => x == null ? "–" : x.toFixed(1);
+const sp = x => x == null ? "–" : (x >= 0 ? "+" : "−") + Math.abs(x).toFixed(1) + "%";
+const money = (x, cur = "$") => x == null ? "–" : cur + (x >= 1000 ? x.toLocaleString("en-US",{maximumFractionDigits:0}) : x.toFixed(2));
+
+function inputFor(t){
+  const c = C[t];
+  const inp = {contract_id:c.id, security_type:c.type || "STK", step:"ONE_DAY", period:c.period || "TWO_YEARS", outside_rth:false};
+  if (c.exchange) inp.exchange = c.exchange;
+  if (ETF_SET.has(t)) inp.include_corporate_actions = true;
+  return inp;
+}
+
+const ERR_COPY = {
+  needs_reauth: "Your IBKR connection has expired. Reconnect Interactive Brokers in claude.ai Settings → Connectors, then press Refresh.",
+  server_not_connected: "No Interactive Brokers connector found. Add it in claude.ai Settings → Connectors, then press Refresh.",
+  selection_required: "You have more than one Interactive Brokers connector. Choose one when claude.ai asks, then press Refresh.",
+  not_in_manifest: "IBKR isn't allowed for this page. Turn it on from this page's Permissions menu, then press Refresh.",
+  blocked_by_policy: "Your organization's policy blocks this IBKR tool for your account.",
+  server_unavailable: "IBKR didn't answer in time. Try Refresh in a minute.",
+  approval_required: "This page needs your OK to read IBKR data.",
+  not_granted: "This view can't use connectors. Open the page on claude.ai.",
+  capability_disabled: "This view can't use connectors. Open the page on claude.ai."
+};
+function errText(e){ return ERR_COPY[e.code] || ("Couldn't load from IBKR (" + (e.code || "error") + (e.message ? ": " + e.message : "") + ")."); }
+
+async function fetchOne(t, refresh){
+  const opts = {cache: refresh ? {staleTime: 10*60e3, gcTime: 24*3600e3, refresh:true} : {staleTime: 10*60e3, gcTime: 24*3600e3}};
+  let res;
+  try { res = await state.mcp.callTool(SERVER, TOOL, inputFor(t), opts); }
+  catch (e){
+    if (e && e.retryable){
+      await new Promise(r => setTimeout(r, (e.retryAfterMs || 1500) + Math.random()*800));
+      res = await state.mcp.callTool(SERVER, TOOL, inputFor(t), opts);
+    } else throw e;
+  }
+  let p = res.payload;
+  if (typeof p === "string"){ try { p = JSON.parse(p); } catch(_){} }
+  if (!p || typeof p !== "object") throw {code:"tool_error", message:"Unexpected reply from IBKR."};
+  if (p.error) throw {code:"tool_error", message: String(p.error)};
+  const bars = toBars(p, Date.now());
+  if (!bars.length) throw {code:"tool_error", message:"IBKR returned no bars."};
+  const splits = (p.corp_actions || []).filter(x => /split/i.test(x.type || ""));
+  return {bars, splits, storedAt: res.cache?.storedAt ?? Date.now(), delayed: p.delayed};
+}
+
+async function loadAll(refresh){
+  if (!state.mcp || state.loading) return;
+  state.loading = true; $("refresh").disabled = true; $("refresh").textContent = "Loading…";
+  const names = Object.keys(C);
+  // 20 contracts: fetch four at a time so IBKR doesn't rate-limit a burst
+  const results = new Array(names.length);
+  let next = 0;
+  const worker = async () => { while (next < names.length){ const i = next++;
+    try { results[i] = {status:"fulfilled", value:[names[i], await fetchOne(names[i], refresh)]}; }
+    catch (reason){ results[i] = {status:"rejected", reason}; } } };
+  await Promise.all(Array.from({length:4}, worker));
+  results.forEach((r, i) => {
+    const t = names[i];
+    if (r.status === "fulfilled"){ state.data[t] = r.value[1]; delete state.err[t]; }
+    else {
+      state.err[t] = r.reason || {code:"upstream_error"};
+      const c = state.err[t].code;
+      if (["needs_reauth","server_not_connected","not_in_manifest","blocked_by_policy","approval_required","selection_required"].includes(c)) delete state.data[t];
+    }
+  });
+  const stamps = Object.values(state.data).map(d => d.storedAt);
+  state.stamp = stamps.length ? Math.min(...stamps) : null;
+  state.loading = false; $("refresh").disabled = false; $("refresh").textContent = "Refresh";
+  render();
+}
+
+function noticeHTML(){
+  const out = [];
+  const codes = Object.values(state.err).map(e => e.code);
+  const all = Object.keys(C).length;
+  if (codes.length === all && codes.every(c => c === codes[0])){
+    const e = Object.values(state.err)[0];
+    out.push(`<div class="notice bad"><span>${esc(errText(e))}</span>${e.code === "approval_required" ? '<button type="button" class="btn" id="approve">Allow IBKR and load</button>' : ""}</div>`);
+  } else if (codes.length){
+    out.push(`<div class="notice warn"><span><b>Some data didn't load:</b> ${esc(Object.entries(state.err).map(([t,e]) => t).join(", "))}. The affected sections say why.</span></div>`);
+  }
+  for (const e of ETFS){
+    const d = state.data[e.t]; if (!d) continue;
+    const yearAgo = Date.now() - 366*864e5;
+    d.splits.filter(s => Date.parse(String(s.date).replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3")) > yearAgo).forEach(s => {
+      out.push(`<div class="notice bad"><span><b>${e.t}: IBKR reports a split on ${esc(s.date)}</b> (${esc(s.value)}). Check that the levels below are adjusted for it.</span></div>`);
+    });
+    const a = analyze(d.bars);
+    if (a.splitFlag) out.push(`<div class="notice warn"><span><b>${e.t}: one-day move of ${sp(a.splitFlag.move)} on ${a.splitFlag.date}.</b> That size of move can be a split. Check it before trusting levels from before that date.</span></div>`);
+  }
+  if (Object.values(state.data).some(d => d.delayed)) out.push(`<div class="notice info"><span>Some IBKR data is delayed (no live subscription for that market). Daily closes are unaffected.</span></div>`);
+  return out.join("");
+}
+
+function renderStrip(){
+  const spy = state.data.SPY, vix = state.data.VIX;
+  let spyAbove = null;
+  if (spy){ const a = analyze(spy.bars);
+    if (a.s200 != null){ spyAbove = a.close > a.s200; const d = (a.close/a.s200 - 1)*100;
+      $("spy-v").innerHTML = `<span class="${spyAbove ? "up" : "down"}">${sp(d)}</span>`;
+      $("spy-s").textContent = `${spyAbove ? "Above" : "Below"} its 200-day average · close ${money(a.close)} on ${a.date}`; }
+  } else { $("spy-v").textContent = "–"; $("spy-s").textContent = state.err.SPY ? errText(state.err.SPY) : "Loading"; }
+  let vixLvl = null;
+  if (vix){ const L = vix.bars[vix.bars.length-1]; vixLvl = L.c;
+    $("vix-v").textContent = f1(L.c);
+    $("vix-s").textContent = (L.c > 30 ? "High fear (above 30)" : L.c >= 20 ? "Elevated (20–30)" : "Calm (below 20)") + ` · ${L.date}`;
+  } else { $("vix-v").textContent = "–"; $("vix-s").textContent = state.err.VIX ? errText(state.err.VIX) : "Loading"; }
+  if (spyAbove == null || vixLvl == null){ $("reg-v").textContent = "–"; $("reg-s").textContent = "Needs SPY and VIX"; }
+  else {
+    const fav = spyAbove && vixLvl <= 30;
+    $("reg-v").innerHTML = `<span class="${fav ? "up" : "down"}">${fav ? (vixLvl < 20 ? "Favorable" : "Neutral") : "Unfavorable"}</span>`;
+    $("reg-s").textContent = fav ? "Market in an uptrend, VIX not extreme" : (!spyAbove ? "S&P 500 below its 200-day average" : "VIX above 30");
+  }
+}
+
+function ruleRow(r, a, e){
+  const m = x => money(x, e.cur);
+  const chip = r.st === "pass" ? '<span class="chip c-pass">PASS</span>' : r.st === "fail" ? '<span class="chip c-fail">FAIL</span>' : '<span class="chip c-na">N/A</span>';
+  let d = "";
+  if (r.k === "trend"){
+    if (r.st === "na") d = `Only ${a.n} days of history; the 200-day average needs 200.`;
+    else {
+      const stackUp = a.e8 > a.e21 && a.e21 > a.s50 && a.s50 > a.s200, stackDn = a.e8 < a.e21 && a.e21 < a.s50 && a.s50 < a.s200;
+      d = `Close <b>${m(a.close)}</b> is <b>${sp(r.d)}</b> ${r.d >= 0 ? "above" : "below"} the 200-day average (${m(a.s200)}). Averages ${stackUp ? "stacked up (8 > 21 > 50 > 200)" : stackDn ? "stacked down (8 < 21 < 50 < 200)" : "mixed"}.`;
+    }
+    const subs = e.unders.map(u => {
+      const ud = state.data[u.t]; if (!ud) return `<span class="sub">${u.t}: ${state.err[u.t] ? "not loaded" : "…"}</span>`;
+      const ua = analyze(ud.bars);
+      if (ua.s200 == null) return `<span class="sub">${u.t}${u.stand ? " (stand-in)" : ""}: ${ua.n} days, no 200-day yet</span>`;
+      const dd = (ua.close/ua.s200 - 1)*100;
+      return `<span class="sub ${dd >= 0 ? "up" : "down"}">${u.t}${u.stand ? " (stand-in)" : ""}: ${sp(dd)} vs 200-day</span>`;
+    }).join("");
+    d += `<div class="subs">${subs}</div>`;
+  } else if (r.k === "pullback"){
+    if (r.st === "na") d = "Needs the trend rule first.";
+    else if (r.why === "notrend") d = `No uptrend to pull back within. RSI(2) is ${f1(a.r2)}, RSI(14) ${f1(a.r14)}.`;
+    else d = r.st === "pass" ? `RSI(2) <b>${f1(a.r2)}</b>: an oversold dip inside an uptrend.` : `RSI(2) <b>${f1(a.r2)}</b>: no short-term dip right now (needs below 10).`;
+  } else if (r.k === "sr"){
+    const sup = a.sup != null ? `support <b>${m(a.sup)}</b> (${sp((a.sup/a.close-1)*100)}, ${f1((a.close-a.sup)/a.a14)} ATR)` : "no swing low below price in 60 days";
+    const res = a.res != null ? `resistance <b>${m(a.res)}</b> (${sp((a.res/a.close-1)*100)})` : "no swing high above price in 60 days";
+    d = r.st === "na" ? "Not enough history." : `Nearest ${sup}; nearest ${res}. ${r.st === "pass" ? "Close is within 1 ATR of support." : r.why === "nosupport" ? "Price is below every recent swing low." : "Close is more than 1 ATR above support."}`;
+  } else if (r.k === "base"){
+    d = r.st === "na" ? "Not enough history." : `20-day range is <b>${f1(a.range20/a.a14)} × ATR</b> (${m(a.range20)}). ${r.st === "pass" ? "Price has gone quiet: a base is forming." : "Too wide to call a base (needs 3.5 or less)."}`;
+  }
+  return `<div class="rule">${chip}<div><div class="rn">${RULE_NAMES[r.k]}${RULE_SRC[r.k]}</div><div class="rd">${d}</div></div></div>`;
+}
+
+// Plain-language readings for the indicator panel. Descriptive only, not buy or sell calls.
+function hints(a, m){
+  const t = s => `<span class="hint">${s}</span>`;
+  const o = {};
+  o.r14 = a.r14 == null ? "" : t(a.r14 >= 70 ? "stretched high" : a.r14 <= 30 ? "oversold" : a.r14 >= 50 ? "healthy momentum" : "weak momentum");
+  o.r2 = a.r2 == null ? "" : t(a.r2 < 10 ? "sharp dip (rule 2 level)" : a.r2 > 90 ? "short-term stretched" : "no extreme");
+  o.e8 = a.e8 == null || a.e21 == null ? "" : t(a.close > a.e8 && a.e8 > a.e21 ? "pointing up" : a.close < a.e8 && a.e8 < a.e21 ? "pointing down" : "mixed");
+  o.s50 = a.s200 == null ? (a.s50 == null ? "" : t(a.close > a.s50 ? "above the 50 · no 200 yet" : "below the 50 · no 200 yet"))
+    : t(a.close > a.s200 ? (a.s50 > a.s200 ? "good weather" : "above the 200, 50 still below") : "bad weather: below the 200");
+  o.atr = a.a14 == null ? "" : t(`a normal day · 2 × ATR = ${m(2*a.a14)}`);
+  o.rvol = a.rvol == null ? "" : t(a.rvol >= 1.5 ? "heavy" : a.rvol < 0.7 ? "quiet" : "normal");
+  return o; }
+
+// One indicator line: name, value and reading; tapping it opens what it is plus the good, the bad and the ugly
+function ind(name, val, hint, what, good, bad, ugly){
+  return `<details class="ind"><summary><span class="nm">${name}</span><span class="val">${val}${hint}</span></summary>
+    <div class="gbu"><span>${what}</span><span><b class="g">Good</b> ${good}</span><span><b class="b">Bad</b> ${bad}</span><span><b class="u">Ugly</b> ${ugly}</span></div></details>`; }
+
+function cardHTML(e){
+  const d = state.data[e.t], err = state.err[e.t], m = x => money(x, e.cur);
+  const head = (extra) => `<div class="chead"><div class="t"><h2>${e.t}</h2><span class="name">${esc(e.name)}</span></div>${extra || ""}</div>` +
+    (e.note ? `<div class="notice info"><span>${esc(e.note)}</span></div>` : "");
+  if (!d){
+    if (err) return `<article class="card">${head()}<div class="cerr notice bad">${esc(errText(err))}</div></article>`;
+    return `<article class="card">${head()}<div class="loading">Loading from IBKR…</div></article>`;
+  }
+  const a = analyze(d.bars), rs = rules(a);
+  const checkable = rs.filter(r => r.st !== "na"), passed = checkable.filter(r => r.st === "pass").length;
+  const na = rs.length - checkable.length;
+  const chg = a.prev != null ? (a.close/a.prev - 1)*100 : null;
+  const countTxt = `${passed} of ${checkable.length} rules pass` + (na ? ` · ${na} not available` : "");
+  const price = `<span class="price">${m(a.close)} <span class="${chg >= 0 ? "up" : "down"}">${sp(chg)}</span> <span class="muted">· ${a.date}</span></span>`;
+  const atrPct = a.a14 != null ? a.a14/a.close*100 : null;
+  const h = hints(a, m);
+  const prim = state.data[e.unders[0].t];
+  let rsTxt = "Underlying not loaded.";
+  if (prim && state.data.SPY){
+    const r3 = retOver(prim.bars, 63), r12 = retOver(prim.bars, 252), s3 = retOver(state.data.SPY.bars, 63), s12 = retOver(state.data.SPY.bars, 252);
+    const part = (r, s, lbl) => r == null || s == null ? `${lbl}: not enough history` : `${lbl} <b class="${r-s >= 0 ? "up" : "down"}">${sp((r-s)*100)}</b> vs SPY`;
+    rsTxt = `${e.unders[0].t}: ${part(r3, s3, "3 months")} · ${part(r12, s12, "12 months")}.`;
+  }
+  const volTxt = a.rvol == null ? "Not enough volume history." : `Last day traded <b>${f2(a.rvol)}×</b> its 50-day average volume on ${chg >= 0 ? "an up" : "a down"} day.`;
+  return `<article class="card">
+    ${head(`${price}<span class="count">${countTxt}</span>`)}
+    <div class="cbody">
+      <div class="rules">${rs.map(r => ruleRow(r, a, e)).join("")}</div>
+      <div class="side">
+        <div><h3>5. Indicators <span class="src r">Reddit: keep it simple</span></h3>
+          <p class="tap">Tap a line for the good, the bad and the ugly.</p>
+          ${ind("Short-term trend · 8 / 21 EMA", `${m(a.e8)} / ${m(a.e21)}`, h.e8, "Which way the last few weeks are pointing.",
+            "Price above both means buyers have been in control lately. Dips to the 21 are a common place to buy.",
+            "It flips back and forth a lot in a choppy market.",
+            "On a 2x or 3x fund one bad day can drop the price below both.")}
+          ${ind("Long-term trend · 50 / 200 SMA", `${m(a.s50)} / ${a.s200 == null ? "n/a" : m(a.s200)}`, h.s50, "Which way the last few months are pointing. Above the 200 is good weather (rule 1).",
+            "It's the simplest filter there is, and it keeps you out of falling funds.",
+            "It's slow. By the time the price crosses back above the 200, much of the move has already happened.",
+            "Leveraged funds lose value in choppy markets, so a fund can sit below its 200 while its sector is fine. Check the underlying under rule 1.")}
+          ${ind("RSI (14)", f1(a.r14), h.r14, "A 0 to 100 score of how one-sided the last 3 weeks were. Above 70 is overheated, below 30 is washed out.",
+            "A quick check on whether you'd be chasing.",
+            "Strong funds can stay above 70 for weeks, and weak ones below 30 for weeks.",
+            "Buying at 30 in a downtrend is catching a falling knife. That's why Reddit says not to buy just because RSI is low.")}
+          ${ind("RSI (2)", f1(a.r2), h.r2, "The same score over just 2 days. Below 10 means a sudden sharp dip.",
+            "Below 10 while above the 200-day is STA's one proven edge: 241 trades, profit factor 2.00.",
+            "On its own, without the uptrend, it means nothing.",
+            "It fires constantly in a crash. That's why rule 2 needs rule 1 to pass.")}
+          ${ind("ATR (14)", `${m(a.a14)}${atrPct != null ? ` · ${f1(atrPct)}%` : ""}`, h.atr, "The size of a normal day's move.",
+            "It's the honest way to set a stop: put it beyond the normal wiggle, about 1.5 to 2 × ATR.",
+            "On a wild fund the stop ends up far away.",
+            atrPct != null ? `Here 2 × ATR is about a ${f1(2*atrPct)}% drop. A stop that far away means buying a much smaller position.` : "Not enough history yet.")}
+          ${ind("Relative volume", a.rvol == null ? "–" : f2(a.rvol) + "×", h.rvol, "Today's volume against a normal day. 1.0 is normal.",
+            "It separates a real breakout (1.5× or more) from drift.",
+            "It's noisy from day to day, and news days skew it.",
+            "These funds trade thinly, so a few orders can make it look huge.")}
+        </div>
+        <div class="bg"><h3>Background (not counted)</h3>
+          <p><b>Relative strength</b><span class="src c">Canon 02</span> ${rsTxt}</p>
+          <p><b>Volume</b><span class="src c">Canon 04</span> ${volTxt}</p>
+          <p><b>Leverage</b><span class="src c">Canon 06</span> ${e.lev} daily. A normal day moves about ${f1(atrPct)}%, so any stop needs room beyond that.</p>
+        </div>
+      </div>
+    </div>
+  </article>`;
+}
+
+function render(){
+  $("notices").innerHTML = noticeHTML();
+  const ap = $("approve"); if (ap) ap.addEventListener("click", () => loadAll(false));
+  renderStrip();
+  $("cards").innerHTML = ETFS.map(cardHTML).join("");
+  if (state.stamp){
+    const ago = Math.round((Date.now() - state.stamp)/60000);
+    $("stamp").textContent = `IBKR data from ${new Date(state.stamp).toLocaleString()}` + (ago >= 2 ? ` (${ago} min ago)` : "");
+  }
+}
+
+$("refresh").addEventListener("click", () => loadAll(true));
+render();
+(async () => {
+  const mcp = window.claude && window.claude.use ? await window.claude.use("mcp") : null;
+  if (!mcp){
+    $("notices").innerHTML = `<div class="notice info"><span>Open this page on claude.ai, signed in, to load IBKR data. It reads from your Interactive Brokers connector.</span></div>`;
+    $("refresh").disabled = true; $("stamp").textContent = "IBKR not available here";
+    $("cards").innerHTML = ETFS.map(e => `<article class="card"><div class="chead"><div class="t"><h2>${e.t}</h2><span class="name">${esc(e.name)}</span></div></div><div class="loading">Waiting for IBKR.</div></article>`).join("");
+    return;
+  }
+  state.mcp = mcp;
+  loadAll(false);
+})();
+</script>

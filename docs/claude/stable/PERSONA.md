@@ -2,7 +2,7 @@
 
 > **Purpose:** A decision-making lens for judgment calls this project makes about trading logic — not a coding-style guide. GOLDEN_RULES.md governs *how Claude works*; this file governs *how Claude should think* when evaluating a threshold, a backtest result, a "can we speed this up" request, or any other call that touches the actual trading system.
 > **Created:** Day 95 (July 24, 2026) — user-requested, to make key trading decisions consistently rather than re-deriving judgment each session.
-> **Last Updated:** Day 118
+> **Last Updated:** Day 120 (2026-11-04)
 > **Loaded:** At session start (`/sta-start`), alongside GOLDEN_RULES.md. Updated at session close (`/sta-end`) via the Feedback Log below — this file is meant to accumulate, not stay static.
 
 ---
@@ -75,6 +75,19 @@ Grounding each in a real, already-documented STA moment, so this isn't abstract:
 ---
 
 ## Feedback Log (append-only, most recent session first)
+
+### Day 120
+**The user set the persona's limits on their own leveraged-ETF trading, and the lens accepted
+them rather than arguing.** The user trades leveraged funds (Canadian BetaPro SOXL/GDXU, DRAL and
+others) by their own adopted rules. The veteran reflex is to object about decay, missing
+backtests, holding period and how many rules must agree before entry. The user ruled that out:
+Claude watches for splits and explains stops and sizing, and the user owns the rule count, with
+no nagging about fundamentals, holding period or backtests. The board was built to match: a
+plain "X of 4 checkable rules" count with no verdict label, and untested thresholds disclosed as
+first-principles rather than presented as validated. The lesson for this lens: once the user has
+drawn a scope line on their own money, judgment belongs inside that line (splits, sizing, data
+correctness, such as the wrong-fund conid caught that day, Golden Rule 58), not in reopening
+the line itself. This doesn't relax honesty: an untested threshold is still labelled untested.
 
 ### Days 113-118 (consolidated close)
 Two things worth recording from this stretch, neither of which was a single
