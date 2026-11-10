@@ -83,6 +83,17 @@ ul.bugs li{background:var(--surface);border:1px solid var(--line);border-radius:
 .p-hist{background:var(--hist-soft);color:var(--hist)}
 .empty{color:var(--muted);font-size:.9rem}
 
+ol.steps{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+ol.steps li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;display:grid;grid-template-columns:2.2rem minmax(0,1fr) auto;gap:2px 12px;align-items:start}
+ol.steps .num{font-family:var(--mono);font-size:.8rem;color:var(--muted);padding-top:2px}
+ol.steps .what{font-size:.92rem}
+ol.steps .chk{font-size:.86rem;color:var(--muted);margin-top:3px}
+ol.steps li.now{border-color:var(--accent);background:var(--accent-soft)}
+.p-todo{background:var(--hist-soft);color:var(--hist)}
+.p-doing{background:var(--warn-soft);color:var(--warn)}
+.p-done{background:var(--ok-soft);color:var(--ok)}
+@media (max-width:760px){ol.steps li{grid-template-columns:2rem minmax(0,1fr)} ol.steps .pill{grid-column:2;justify-self:start}}
+
 ul.src{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px}
 footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:4px}
 
@@ -95,20 +106,20 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
 
 <div class="wrap">
   <header>
-    <span class="eyebrow">Swing Trade Analyzer · updated at every session close · last updated Day 120, Nov 4, 2026</span>
+    <span class="eyebrow">Swing Trade Analyzer · updated at every session close · last updated Day 122, Nov 10, 2026</span>
     <h1>STA Status Board</h1>
     <p class="muted">Where the project stands, what's next, and which published pages you can still trust. Numbers come from the live paper-trading report and the repo's status files, not from older pages.</p>
   </header>
 
   <div class="strip">
     <div class="tile"><span class="k">Mode</span><span class="v">Analysis only</span><span class="s">You place every trade. Paper trading stopped Sep 12.</span></div>
-    <div class="tile"><span class="k">Version</span><span class="v">v4.62</span><span class="s">Backend v2.51 · Frontend v4.59. No code change since Day 118.</span></div>
+    <div class="tile"><span class="k">Version</span><span class="v">v4.62</span><span class="s">Backend v2.51 · Frontend v4.59. Day 121 helpers added but not wired in yet.</span></div>
     <div class="tile"><span class="k">Open bugs</span><span class="v">7 Medium+</span><span class="s">1 High, 6 Medium. None urgent.</span></div>
-    <div class="tile"><span class="k">Next project</span><span class="v">Analyze redesign</span><span class="s">Plan ready (GO). Phase 0 not started.</span></div>
+    <div class="tile"><span class="k">Next project</span><span class="v">Analyze redesign</span><span class="s">Steps 1–2 done; Technical Read card designed. Step 3 waits for your go-ahead.</span></div>
   </div>
 
   <section>
-    <div class="shead"><h2>Forward-test final results</h2><span class="src">daily_job.py --report · pulled Nov 4, 2026 (last job run Nov 3)</span></div>
+    <div class="shead"><h2>Forward-test final results</h2><span class="src">daily_job.py --report · pulled Nov 10, 2026 (last job run Nov 10)</span></div>
     <div class="tablewrap">
       <table>
         <thead><tr><th>Track</th><th>Closed</th><th>Win rate</th><th>Profit factor</th><th>Avg R</th><th>Verdict</th></tr></thead>
@@ -126,7 +137,7 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
   <section>
     <div class="shead"><h2>Next priorities</h2><span class="src">CLAUDE_CONTEXT.md</span></div>
     <ol class="pri">
-      <li><span class="sev go">Ready</span><strong>Analyze Page Redesign.</strong> Start with Phase 0 (fix the decision doc's wording, capture a parity-test baseline), then Phase 1 (helper functions with no visible change). Plan: <code>ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md</code>.</li>
+      <li><span class="sev go">Ready</span><strong>Analyze Page Redesign, Step 3: Trade Setup card.</strong> Starts when you say go. The Technical Read card design is signed off (mockup v0.8) and gets built with the top-of-page step.</li>
       <li><span class="sev high">High</span>Per-ticker data tracking can't tell "never checked" from "just failed." Needs a written plan first.</li>
       <li><span class="sev med">Medium</span>Six smaller fixes (listed below). Two need your decision.</li>
       <li>Zero-risk cleanup: 5 dead functions in <code>App.jsx</code>, a stale "Defeat Beta API" line on the Data Sources tab, Value tab relabeling.</li>
@@ -134,7 +145,22 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
   </section>
 
   <section>
-    <div class="shead"><h2>Open bugs, Medium and above</h2><span class="src">KNOWN_ISSUES_DAY120.md</span></div>
+    <div class="shead"><h2>Redesign progress</h2><span class="src">ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md §E · updated after each step</span></div>
+    <p class="note">One step at a time; you sign off on each before the next starts. Every step must keep the verdict parity test passing, touch no backend code, and add no new Simple Checklist criterion (Golden Rule 57).</p>
+    <p class="note">What we're building toward: <a href="https://claude.ai/artifact/WacHXh9VioxQgzwsPGdX1X" target="_blank" rel="noopener">Mockup</a> (what the page will look like) · <a href="https://claude.ai/artifact/8ih9hWm6N8Sq6vy7VjHq6A" target="_blank" rel="noopener">Decision Map</a> (every decision and why). Decision Map synced Nov 5; Mockup v0.8 synced Nov 10 (Technical Read card signed off).</p>
+    <ol class="steps">
+      <li><span class="num">1</span><div><div class="what"><strong>Phase 0: fix the plan's text + record a baseline.</strong> Rewrite the two blocks of planned card text that describe bugs fixed on Day 112/118. Run the parity test and the two UI scripts and record how they behave today.</div><div class="chk">Done Day 121. Plan text corrected (the two flagged blocks, plus a stale Scan-tab line). Parity test: 86,400/86,400 match. Both UI scripts time out at their 60s wait, as predicted; that failure predates the redesign. Side effect: one script overwrote the untracked Day 53 report file (PDFs untouched).</div></div><span class="pill p-done">Done</span></li>
+      <li><span class="num">2</span><div><div class="what"><strong>Phase 1: helper functions.</strong> 3 new functions in <code>categoricalAssessment.js</code>, 1 in <code>positionSizing.js</code>. Nothing uses them yet.</div><div class="chk">Done Day 121. Pure additions (205 + 16 lines, 0 removed). Parity test still 86,400/86,400. 30/30 branch checks pass, including edge values. Build clean (no new warnings). Not imported anywhere, so the app is unchanged. Approved Nov 6: the Engine/Info split, and the Regime read including its 3 new plain-English lines.</div></div><span class="pill p-done">Done · approved</span></li>
+      <li class="now"><span class="num">3</span><div><div class="what"><strong>Phase 2: Trade Setup card.</strong> Rebuild the S&amp;R / R:R card with the corrected notes.</div><div class="chk">Visible change.</div></div><span class="pill p-todo">Not started</span></li>
+      <li><span class="num">4</span><div><div class="what"><strong>Phase 3: top of page + dead code.</strong> Plain-label Technical Read and Regime read at the top; delete the 5 listed dead blocks.</div><div class="chk">Visible change. Technical Read card design signed off Day 122 (mockup v0.8): 4 key checks + full-score line, engine keeps all 8.</div></div><span class="pill p-todo">Not started</span></li>
+      <li><span class="num">5</span><div><div class="what"><strong>Phase 4: Fundamentals card + Assessment Breakdown.</strong> Red-flag check; the "Fundamentals unavailable" banner moves into this card.</div><div class="chk">Visible change. Needs Step 4 first.</div></div><span class="pill p-todo">Not started</span></li>
+      <li><span class="num">6</span><div><div class="what"><strong>Phase 5: Simple view, then default switch.</strong> The page opens on Full Analysis instead of Simple.</div><div class="chk">Visible change. Needs Step 4 first.</div></div><span class="pill p-todo">Not started</span></li>
+      <li><span class="num">7</span><div><div class="what"><strong>Phase 6: tests + docs.</strong> Fixes the two UI scripts that have silently failed since Day 75. Same commit as Steps 3–6.</div><div class="chk">No visible app change.</div></div><span class="pill p-todo">Not started</span></li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="shead"><h2>Open bugs, Medium and above</h2><span class="src">KNOWN_ISSUES_DAY122.md</span></div>
     <ul class="bugs">
       <li><span class="sev high">High</span>Per-ticker provenance can't distinguish "never checked" from "just failed."</li>
       <li><span class="sev med">Medium</span>VIX position sizing was never wired into the paper-trading engine. Probably moot now that the engine is stopped.</li>
@@ -152,17 +178,17 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
       <table>
         <thead><tr><th>Day</th><th>Date</th><th>What happened</th></tr></thead>
         <tbody>
+          <tr><td class="n">121–122</td><td class="n">Nov 5–10</td><td>Redesign Steps 1–2 done (plan text fixed, baseline, 4 helper functions not yet wired in). Technical Read card designed with you: 4 key trend checks plus a full-score line; checks 5–8 stay in the engine after the architect question (new Golden Rule 59 + a verdict parity hook). Volume check: TwelveData = Yahoo to the share; IBKR shows about half (filtered trades), prices identical.</td></tr>
           <tr><td class="n">120</td><td class="n">Nov 2–4</td><td>Compared a Reddit swing-trading summary with STA (about 8 of 10 points match). Built the Leveraged ETF Board on your 8-fund IBKR watchlist (Canadian SOXL/GDXU, not the US ones; new Golden Rule 58). Built the Beginner Trading Starter Playbook for a friend. No app code changed.</td></tr>
           <tr><td class="n">119</td><td class="n">Oct 31</td><td>Rechecked the Analyze Page Redesign plan against six sessions of changes. Found 9 corrections. Verdict: GO. No app code changed.</td></tr>
           <tr><td class="n">116–118</td><td class="n">Sep–Oct</td><td>Fixed the OBV trend sign and a partial-bar volume bug. Added an absolute-momentum read. Fixed MTF Confluence scoring and the VCP target. v4.61 → v4.62.</td></tr>
-          <tr><td class="n">113</td><td class="n">Sep 12</td><td>Paper trading stopped at your direction. STA became an analysis-only tool.</td></tr>
         </tbody>
       </table>
     </div>
   </section>
 
   <section>
-    <div class="shead"><h2>Artifact map</h2><span class="src">checked Nov 4, 2026</span></div>
+    <div class="shead"><h2>Artifact map</h2><span class="src">checked Nov 10, 2026</span></div>
     <p class="note">Every published page that relates to STA, with whether you can still trust it. "Snapshot" means it was accurate on the date shown and hasn't been rechecked since.</p>
     <div class="filters" role="group" aria-label="Filter pages">
       <button type="button" id="f-all" data-f="all" aria-pressed="true">All</button>
@@ -207,8 +233,8 @@ const ITEMS = [
   {g:"status", t:"Leveraged ETF Board", id:"HdErxTqUhq8KYs6McSU5V7", u:"Nov 2", s:"current", w:"Live IBKR data for the 8 funds on your AI_Leveraged watchlist (Canadian SOXL and GDXU, DRAL and others), counted against your adopted rules (trend, pullback, S&R, consolidation) plus background reads.", why:"Pulls fresh data each time you open it. Source: docs/claude/design/LEVERAGED_ETF_BOARD.html. Formulas match STA's Python (parity-checked Nov 2)."},
   {g:"explain", t:"Beginner Trading Starter Playbook", id:"CfnNDEEs8jS112MuTU4HPp", u:"Nov 4", s:"current", w:"8-tab beginner guide for a friend: trader types, US–Canada macro, Reddit rules, 100-year canon, coding rules, live data and gamification, and building it with Claude Code.", why:"Shared with anyone who has the link. Macro numbers are a Nov 3 snapshot, mostly from secondary sources; Canada 5Y is unchecked."},
   {g:"hist", t:"Swing Trading Starter Playbook (Claude Docs)", id:"LdDnS6HvtMi5GjQPao9Fpt", u:"Nov 3", s:"hist", w:"First version of the friend's playbook.", why:"Replaced by the Beginner Trading Starter Playbook."},
-  {g:"redesign", t:"Analyze Page Redesign: Decision Map", id:"8ih9hWm6N8Sq6vy7VjHq6A", u:"Sep 15", s:"snap", w:"All redesign decisions mapped to the trading principles, with locked and open items.", why:"Gallery name: decision-map-v2. Still lists negative-EPS as open; Day 119 answered it (declined). MR numbers show 217 trades / PF 2.46; final is 241 / PF 2.00."},
-  {g:"redesign", t:"Analyze Page Redesign: Mockup", id:"WacHXh9VioxQgzwsPGdX1X", u:"Sep 3", s:"snap", w:"What the redesigned Analyze page would look like. A design, not the live app.", why:"Gallery name: mockup. Not yet checked against Day 119's copy corrections to the R:R note."},
+  {g:"redesign", t:"Analyze Page Redesign: Decision Map", id:"8ih9hWm6N8Sq6vy7VjHq6A", u:"Nov 5", s:"current", w:"All redesign decisions mapped to the trading principles, with locked and open items.", why:"Gallery name: decision-map-v2. Synced Day 121: build started, negative-EPS closed, Day 118 fixes, final MR numbers. Source: docs/claude/design/artifacts_src/decision_map/index.html. Update when a build step changes a decision's status."},
+  {g:"redesign", t:"Analyze Page Redesign: Mockup", id:"WacHXh9VioxQgzwsPGdX1X", u:"Nov 10", s:"current", w:"What the redesigned Analyze page will look like. A design, not the live app.", why:"Gallery name: mockup. v0.8, Day 122: Technical Read card signed off (4 key checks, full-score line, timing and volume answers). Source: docs/claude/design/mockups/analyze_page_redesign_mockup.html."},
   {g:"redesign", t:"Fundamentals & Sentiment: Card Visual Design", id:"WEJYGp2cWK3EmfRZApfp2j", u:"Aug 22", s:"current", w:"Mockup of the Fear & Greed gauge and the fundamentals red-flag card."},
   {g:"audit", t:"Descriptive Cards: Who Actually Uses Them", id:"8w8jmqZh3bmDLfkRnSYYDZ", u:"Aug 22", s:"current", w:"Which strategy uses S&R, MTF Confluence, Price Structure, Pattern Detection and Breakout Status."},
   {g:"audit", t:"Descriptive Cards: Industry-Standard Report Card", id:"RCE29bGhqJizBoMWAKuYnD", u:"Aug 22", s:"stale", w:"Grades five Analyze-page cards against real methodology.", why:"MTF Confluence (3/10) and the pattern price target (1.5/10) were both fixed on Day 118. The page still shows the old grades."},

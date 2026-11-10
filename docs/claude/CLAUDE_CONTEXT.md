@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 120 — 2026-11-04
+> **Last Updated:** Day 122 — 2026-11-10
 
 ---
 
@@ -11,16 +11,32 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 120 |
-| Version | v4.62 (Backend v2.51, Frontend v4.59) — unchanged, no STA app code touched Day 120 |
-| Latest Status | PROJECT_STATUS_DAY120_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY120.md |
-| Latest API | API_CONTRACTS_DAY118.md (unchanged Days 119-120 — no code touched) |
-| Focus | **STA is a pure analysis/recommendation tool** (paper-trading discontinued Day 113) — no live forward-test gates exist anymore. Day 120 built two standalone Artifacts (Leveraged ETF Board, Beginner Trading Starter Playbook), with no app code touched and the next priority unchanged. Day 119 re-verified and corrected the Day 109 Analyze Page Redesign's implementation plan (Priority #17) against everything shipped since — found 9 corrections, most importantly two blocks of the plan's prescribed on-card copy that described bugs already fixed (Day 112/118). New plan: `docs/claude/design/ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md`, go/no-go **GO**, not yet built. This is now the project's one bounded, real piece of work — everything else left in the backlog is isolated Medium/Low-severity display fixes with no compounding value. See Next Session Priorities below. |
-
+| Current Day | 122 |
+| Version | v4.62 (Backend v2.51, Frontend v4.59) — unchanged; Day 121 added 4 display-only frontend helpers that nothing imports yet |
+| Latest Status | PROJECT_STATUS_DAY122_SHORT.md (consolidated Days 121–122) |
+| Latest Issues | KNOWN_ISSUES_DAY122.md |
+| Latest API | API_CONTRACTS_DAY118.md (unchanged Days 119-122) |
+| Focus | **Analyze Page Redesign in progress, one signed-off step at a time.** Steps 1–2 (Phase 0 copy fixes + baseline, Phase 1 helpers) done Day 121. Day 122 signed off the Technical Read card design (mockup v0.8): 4 key checks + full-score line, engine keeps all 8 checks (Golden Rule 59). Next: Step 3 (Phase 2, Trade Setup card) — **only on the user's go-ahead**. |
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Days 121–122 Summary (Analyze Page Redesign Steps 1–2 built, Technical Read card designed — no version bump, new Golden Rule 59)
+- **Day 121 (Nov 5–6), Phase 0 + Phase 1:** decision doc §6/§9 copy corrected (two blocks that
+  described bugs fixed Day 112/118); baseline: parity 86,400/86,400, both UI scripts time out
+  (pre-existing). 4 display-only helpers added, not imported: `deriveTechnicalRead`,
+  `screenFundamentalRedFlags`, `describeRegimeRead`, `getVixPositionMultiplier`. User approved.
+- **Day 122 (Nov 6–10), Technical Read card signed off (mockup v0.8):** 4 key trend checks
+  (200-day above + rising, above 50-day, within 25% of 52-week high — cutoff kept after canon +
+  Reddit check) plus a full-score line; "taking a breather" / "momentum n/a" wording; timing
+  ("Is now a good moment to get in?", vs the 21-day EMA) and volume ("Are buyers behind the
+  move?") as Info-only answers; "support" reserved for the Trade Setup card.
+- **Checks 5–8 stay in the engine.** Claude first suggested a frontend-only removal; the user's
+  architect question reversed it (the 7-of-8 rule lives in 4 places). New **Golden Rule 59**,
+  PERSONA "Architect's Lens", and a PostToolUse **verdict parity hook**
+  (`.claude/hooks/verdict_parity.sh`).
+- **Volume data check:** TwelveData = yfinance to the share; IBKR is 46–65% of that (filtered
+  trades), closes identical. STA's volume is the full count; never mix IBKR volume in.
 
 ### Day 120 Summary (Leveraged ETF Board + Beginner Trading Starter Playbook, standalone Artifacts — no version bump, new Golden Rule 58)
 - **Leveraged ETF Board** (`LEVERAGED_ETF_BOARD.html`, https://claude.ai/artifact/HdErxTqUhq8KYs6McSU5V7):
@@ -67,64 +83,6 @@
   0 (copy correction + parity-test baseline) then Phase 1 (additive utilities, zero visible
   change). **No application code touched.** `ROADMAP.md`/`README.md` updated to match (Priority
   #17 no longer gated behind anything, since the freeze it was scoped around is gone).
-
-### Days 113-118 Summary (consolidated close — paper-trading discontinued + OBV/RVOL fix + absolute-momentum read + MTF/VCP fix chain complete, new Golden Rule 57 — v4.61 → v4.62)
-- **Day 113 — the paper-trading program is discontinued, at the user's explicit direction.**
-  "I don't want to paper trade... I want to use Claude and STA as analysis engine and
-  recommendation, I will take care of stuff myself." `daily_job.py` gained a
-  `PROGRAM_DISCONTINUED` flag gating only new-signal generation (Step 3); existing
-  open/pending positions across all 4 tracks wind down by their own exit rules, verified live
-  via `--force` (0 new signals, 2 positions closed normally). Path B's remaining signal-gen
-  code (already dormant since its Day 112 retirement) and IBKR execution (Priority #13,
-  formally DECLINED not parked) are both closed out. MR (broad) — 194+ closed, PF ~2.5 at the time (final ledger: 241 closed, PF 2.00, see Day 120) —
-  stands as the program's one confirmed result, permanently.
-- **Day 116 — OBV sign bug + a real, unlogged partial-bar RVOL bug, both fixed.**
-  `calculate_obv()`'s `trend` was biased toward `'rising'` for negative cumulative OBV (sign-safe
-  band fix; measured 5/150 tickers flip, zero `rising`↔`falling` flips, proving the live ⚠️ DIST
-  badge is unaffected). Separately found — not in the brief, not previously logged — that
-  `meta.rvol` read the still-forming intraday bar with no partial-bar guard, silently
-  understating volume conviction (~half its true value) for most of every trading day across 3
-  live surfaces; fixed with new `meta.candle.barComplete`/`meta.prevBar` fields. Also surfaced
-  the existing 20-day OBV divergence sentence (previously hover-only) as visible text, and
-  added one new same-day effort-vs-result read. 3 commits, Opus-planned.
-- **Day 117 — Antonacci's "absolute momentum" leg, previously invisible anywhere, now an
-  informational read.** New `frontend/src/utils/absoluteMomentum.js`, zero backend changes.
-  Sourced the 5% threshold from the real Day 107 backtest constant rather than inventing one.
-  Shows on both the Simple Checklist Momentum card and the Full Analysis RS card, each quoting
-  its own view's already-flowing 1-year return (the two bases measured bit-identical across 50
-  live tickers). **New Golden Rule 57**: the Opus plan caught that the natural
-  implementation — adding the new number as a 10th key on the Simple Checklist's `criteria`
-  object — would have silently rendered a 10th criterion card, counted into `passCount` against
-  a hardcoded `totalCriteria: 9`. Fixed by nesting it as a sub-field on the existing `momentum`
-  entry instead. The Day 111 decision not to *gate* on this is unchanged and stays closed.
-- **Day 118 — Phases 3-4 of the S&R fix chain, deferred since Day 112, now shipped.** MTF
-  Confluence's `strength` field was dead (computed, never read) — now a real graduated score
-  (Strong/Moderate/Weak) that also excludes synthetic ATH/ATL-projected levels from the
-  confluence set entirely (previously they silently dragged the badge's percentage down for
-  every near-ATH/ATL stock). VCP's flat +15% target replaced with real nearest-resistance,
-  falling back to measured contraction depth. Live-verified on 10+ tickers (MTF) and against
-  CVX, the one live VCP-detected ticker found in a 58-ticker sweep (VCP); the projected-level
-  exclusion and the VCP primary-resistance/ATH-guard branches had no live example after
-  thorough sweeps, so verified via direct unit/logic test instead — matching the exact
-  scenarios the Opus plan's own verification section called for.
-- **Every read added across this stretch is informational only** — traced against the verdict,
-  score, and Simple Checklist pass/fail before shipping each one; none of it gates anything.
-  No live forward-test gates exist anymore post-Day-113, so nothing here risked a frozen
-  track's count.
-- **Artifacts:** "STA vs. 100 Years of Trading Principles" updated twice — row 04 (Volume, Day
-  116) and row 02 (Momentum, Day 117) — both stay Partial by design (informational, not gated),
-  with the reasoning now stated precisely rather than the old "STA has the first half, not the
-  second" framing (which was no longer accurate once the second half shipped as a read).
-- New PERSONA.md Feedback Log entry: the project's redefinition from automated-execution system
-  to pure analysis tool held up in every concrete choice this stretch (nothing shipped ended up
-  gating); Golden Rule 55 (Opus-plan-first) validated 3-for-3 on real catches, not ritual.
-- Version v4.61 → v4.62 (Backend v2.49 → v2.51, Frontend v4.56 → v4.59). This was a
-  consolidated close — no formal `/sta-end` had run between Day 112 and this one; see
-  `status/archive/PROJECT_STATUS_DAY118_SHORT.md` for full per-day detail.
-
-*(Day 112's summary rotated out — full detail preserved in `docs/claude/status/archive/PROJECT_STATUS_DAY112_SHORT.md` (Path B retired, S&R `_pivot_sr` nearest-level fix, Config C re-baselined PF 0.97→0.53, measured-move pattern targets, new Golden Rules 55-56). Day 111's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY111_SHORT.md` (full technical audit of 5 Analyze-page cards graded against real methodology, MR Scanner + Volume Confirmation shipped, MR confirmed at 100 trades / Path B fails its stress-test, new Golden Rules 53-54). Day 110's summary rotated out — full detail preserved in `docs/claude/status/archive/PROJECT_STATUS_DAY110_SHORT.md` (Analyze Page Redesign interactive mockup published, forward-test cluster check-in across all 4 tracks, Regime gate reversed to Info after direct user pushback, new Golden Rule 52). Day 109's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY109_SHORT.md` (Analyze Page Redesign design phase complete, 17 locked decisions via item-by-item Q&A + Opus validation pass, no code changed, new Golden Rules 49-51). Day 108's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY108_SHORT.md` (full 10-group system audit, 15 bugs fixed incl. MTF Confluence's fabricated-dates CRITICAL bug, Canadian ticker question resolved, new Golden Rules 47-48). Day 107's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY107_SHORT.md` (STA-vs-100-years comparison Artifact + backtest-only volume/momentum research spike, new Golden Rules 45-46). Day 106's summary rotated out — full detail preserved in `docs/claude/status/PROJECT_STATUS_DAY106_SHORT.md` (Scan tab labeling fix + STA Verdict column + self-description correction, new Golden Rule 44). Day 105's is in `docs/claude/status/PROJECT_STATUS_DAY105_SHORT.md` (Sub-Sector Pullback Screener + Sectors-tab staleness fix, new Golden Rule 43, SRPS R:R gap found). Day 104's is in `docs/claude/status/PROJECT_STATUS_DAY104_SHORT.md` (built `/watchlist-report` skill, new Golden Rule 42). Day 103's is in `docs/claude/status/archive/PROJECT_STATUS_DAY103_SHORT.md` (SRPS investigated + failed its own backtest, new Golden Rule 41). Day 102's is in `PROJECT_STATUS_DAY102_SHORT.md` (Questrade Flow experiment scoping, real-money ETF automation separate from STA). Day 101's is in `docs/claude/status/archive/PROJECT_STATUS_DAY101_SHORT.md` (Sub-Industry Watch, new Golden Rule 40). Day 100's is in `PROJECT_STATUS_DAY100_SHORT.md`. Day 99's is in `PROJECT_STATUS_DAY99_SHORT.md`. Day 98's is in `PROJECT_STATUS_DAY98_SHORT.md`. Day 97's is in `PROJECT_STATUS_DAY97_SHORT.md`. Day 96's is in `PROJECT_STATUS_DAY96_SHORT.md`. Day 94's is in `PROJECT_STATUS_DAY94_SHORT.md`.)*
-
----
 
 ## SCENARIO DETECTION
 
@@ -208,14 +166,13 @@ places and manages every trade themselves. Every item below is available to work
 pick deliberately based on what the user actually wants next, not backlog order.
 
 **The one bounded, real piece of work — has a corrected, ready-to-execute plan (Day 119):**
-0. **Analyze Page Redesign (Priority #17)** — `docs/claude/design/ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md`.
-   17 decisions locked since Day 109, plan re-verified against current code Day 119, go/no-go
-   **GO**. Start with Phase 0 (copy correction in `ANALYZE_PAGE_REDESIGN_DECISIONS.md`'s §6/§9 +
-   a `test_verdict_parity.py` baseline) then Phase 1 (additive utility functions — zero visible
-   app change). Do not skip Phase 0: the decision doc's current §6 copy describes two bugs
-   (pivot S&R selection, Pattern Detection's target) that were fixed Day 112/118 — building
-   from it as-is would ship fabricated claims. Only start when explicitly requested — this is
-   the largest single change on the list, not a quick add.
+0. **Analyze Page Redesign (Priority #17)** — `docs/claude/design/ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md`,
+   progress on the Status Board's "Redesign progress" section. Steps 1–2 done Day 121; Technical
+   Read card design signed off Day 122 (decisions doc §10, mockup v0.8). **Next: Step 3 (Phase 2,
+   Trade Setup card) — wait for the user's go-ahead; the user signs off on each piece.** Every
+   step keeps the parity test passing, touches no backend code, adds no Simple Checklist
+   criterion (Golden Rule 57). Any rule/threshold change: run the Architect's Lens first
+   (Golden Rule 59).
 
 **High severity, no plan written yet:**
 1. **Per-ticker provenance can't distinguish "never checked" from "just failed."** Day 108

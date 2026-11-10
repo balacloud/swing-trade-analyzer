@@ -1,4 +1,4 @@
-<title>Analyze Page Redesign — Mockup</title>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
 <style>
   @font-face {
     font-family: 'Plex Sans';
@@ -771,8 +771,8 @@
 <div class="page">
 
   <div class="meta-strip">
-    <span><b>MOCKUP</b> — Analyze Page Redesign<span class="meta-dot"></span>Day 109 decision log · no live data · for design review</span>
-    <span>v0.1</span>
+    <span><b>MOCKUP</b> — Analyze Page Redesign<span class="meta-dot"></span>Day 109 decision log + Day 111 MR addition + Day 112 Volume read + Day 112 Regime copy synced to the Day 110 reversal + Day 121 R:R notes, Scan-tab line and MR numbers synced to current code + Day 122 Technical Read: 4 trend checks + plain-English timing and volume answers · no live data · for design review</span>
+    <span>v0.8</span>
   </div>
 
   <header class="app-header">
@@ -801,7 +801,7 @@
       <input class="state-radio" type="radio" name="regime" id="r-bad">
 
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
-        <span class="tag tag-engine"><span class="tag-glyph">⚙</span>Engine — the one hard gate on this page</span>
+        <span class="tag tag-info"><span class="tag-glyph">◇</span>Info — portfolio-wide context, expanded by default · never gates this page (Day 110 reversal)</span>
         <div class="state-toggle">
           <label for="r-fav">Favorable</label>
           <label for="r-neu">Neutral</label>
@@ -812,17 +812,16 @@
       <div class="panels">
         <div class="regime-banner panel-fav">
           <span class="regime-dot"></span>
-          <span class="regime-text"><b>Regime: Favorable</b> — <span class="stat">VIX 16.4</span>, SPY above its 200-day SMA.</span>
+          <span class="regime-text"><b>Regime: Favorable</b> — <span class="stat">VIX 16.4</span>, SPY above its 200-day SMA. The overall market backdrop is calm and healthy — generally a good environment for new trades.</span>
         </div>
         <div class="regime-banner panel-neu">
           <span class="regime-dot"></span>
-          <span class="regime-text"><b>Regime: Neutral</b> — <span class="stat">VIX 24.1</span> (elevated), SPY above its 200-day SMA. Proceed with reduced conviction.</span>
+          <span class="regime-text"><b>Regime: Neutral</b> — <span class="stat">VIX 24.1</span> (elevated), SPY above its 200-day SMA. The market's a bit jumpy right now — a good setup is still a good setup, just maybe size it smaller.</span>
         </div>
         <div class="regime-banner panel-bad">
           <span class="regime-dot"></span>
           <span class="regime-text"><b>Regime: Unfavorable</b> — SPY below its 200-day SMA.
-            <span class="regime-strong">This is a stand-down regime regardless of how good an individual setup looks.</span>
-            Capital preservation before growth — the one rule on this page that is deliberately not left to judgment.
+            The broader market is in a downtrend — even a great-looking stock is swimming against the tide. Worth weighing before you commit capital.
           </span>
         </div>
       </div>
@@ -830,12 +829,28 @@
   </section>
 
   <!-- ================= TECHNICAL READ ================= -->
+  <style>
+    .tr-section{ margin-top:16px; }
+    .tr-h{ font-size:0.75rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px; }
+    .tr-h span{ font-weight:400; text-transform:none; letter-spacing:0; color:var(--text-faint); }
+    .tr-row{ display:grid; grid-template-columns:20px 1fr auto; gap:4px 8px; align-items:baseline; padding:6px 0; border-top:1px solid var(--border-soft); }
+    .tr-row:first-of-type{ border-top:none; }
+    .tr-mark{ font-weight:700; }
+    .tr-mark.pass{ color:var(--good); }
+    .tr-mark.fail{ color:var(--bad); }
+    .tr-mark.info{ color:var(--info); }
+    .tr-what{ font-size:0.9375rem; }
+    .tr-what small{ display:block; color:var(--text-muted); font-size:0.8125rem; margin-top:1px; }
+    .tr-num{ font-family:'Plex Mono',monospace; font-size:0.8125rem; color:var(--text-muted); text-align:right; white-space:nowrap; }
+    .tr-engine{ margin-top:14px; font-size:0.8125rem; color:var(--text-muted); }
+    @media (max-width:560px){ .tr-row{ grid-template-columns:20px 1fr; } .tr-num{ grid-column:2; text-align:left; } }
+  </style>
   <section>
     <div class="card">
       <div class="card-head">
         <div>
           <div class="card-title">Technical Read</div>
-          <div class="card-sub">Never gated by regime — this describes the stock, not the market</div>
+          <div class="card-sub">About this stock only. The market's mood is in the card above.</div>
         </div>
         <span class="tag tag-engine"><span class="tag-glyph">⚙</span>Engine</span>
       </div>
@@ -843,18 +858,127 @@
       <div class="read-chip">
         <span class="label">Read</span>
         <span class="read-value">Strong</span>
-        <span class="read-modifier">· trend not yet confirmed (ADX 14.2)</span>
+        <span class="read-modifier">· taking a breather: moving sideways for now (ADX 14.2)</span>
       </div>
-      <div class="read-stats">
-        <span>Trend Template 8/8</span><span>RSI 65.9</span><span>RS 1.03</span>
+
+      <div class="tr-section">
+        <div class="tr-h">Is it in an uptrend? <span>· simple averages</span></div>
+        <div class="tr-row">
+          <span class="tr-mark pass">✓</span>
+          <span class="tr-what">Above its 200-day average<small>The long-term trend is up.</small></span>
+          <span class="tr-num">$224.80 vs $196.40 · +14.5%</span>
+        </div>
+        <div class="tr-row">
+          <span class="tr-mark pass">✓</span>
+          <span class="tr-what">The 200-day average is still rising<small>The long-term trend hasn't stalled.</small></span>
+          <span class="tr-num">up 2.1% from a month ago</span>
+        </div>
+        <div class="tr-row">
+          <span class="tr-mark pass">✓</span>
+          <span class="tr-what">Above its 50-day average<small>The recent trend is up too.</small></span>
+          <span class="tr-num">$224.80 vs $217.10 · +3.5%</span>
+        </div>
+        <div class="tr-row">
+          <span class="tr-mark pass">✓</span>
+          <span class="tr-what">Close to its 1-year high<small>It's a leader, not a laggard.</small></span>
+          <span class="tr-num">4.9% below the $236.50 high</span>
+        </div>
       </div>
+
+      <div class="tr-section">
+        <div class="tr-h" style="text-transform:none; letter-spacing:0; font-weight:400; color:var(--text-faint);">The next two answers are info only. They don't change the read.</div>
+      </div>
+
+      <div class="tr-section">
+        <div class="tr-h">Is now a good moment to get in?</div>
+        <div class="tr-row">
+          <span class="tr-mark info">◇</span>
+          <span class="tr-what">Yes, close to its 21-day average<small>Buying near this line keeps your stop close and your risk small.</small></span>
+          <span class="tr-num">$224.80 vs $222.10 · +1.2%</span>
+        </div>
+      </div>
+
+      <div class="tr-section">
+        <div class="tr-h">Are buyers behind the move?</div>
+        <div class="tr-row">
+          <span class="tr-mark info">◇</span>
+          <span class="tr-what">Yes<small>It rose 2.2% on 1.8× normal volume and closed near the day's high. Heavy volume on up days is what buyer demand looks like.</small></span>
+          <span class="tr-num">1.8× normal volume</span>
+        </div>
+      </div>
+
+      <div class="tr-engine">Full score behind the read: passes 8 of 8 trend checks (the 4 above plus 4 more) · momentum 65.9 on a 0–100 scale (rising, not overheated) · beat the S&amp;P 500 by 3% over the past year</div>
 
       <details class="formed">
         <summary>How this read was formed</summary>
         <div class="formed-body">
-          <p><b>Technical Read</b> comes from three inputs: Trend Template stage (8 of 8 criteria met), RSI (65.9 — inside the 50–70 healthy-momentum band), and Relative Strength vs. the market (1.03, market-leading). All three clear the bar, so the base read is <b>Strong</b>.</p>
-          <p>ADX is checked separately. At 14.2 it's below the 20 threshold this app uses everywhere else to mean "no confirmed trend" — so the read carries that caution as a modifier rather than silently omitting it.</p>
-          <p>This read does not know about VIX or the S&amp;P's 200-day SMA. That's the Regime band's job, shown separately above — a Favorable technical read next to an Unfavorable regime is two true things, not a contradiction.</p>
+          <p><b>The read needs three things:</b> the stock passes at least 7 of 8 trend checks, its momentum score (RSI) is between 50 and 70, meaning rising but not overheated, and it has done better than the S&amp;P 500 over the past year. This stock clears all three, so the read is <b>Strong</b>.</p>
+          <p><b>Why only 4 checks are shown:</b> the full score uses 8 checks from trader Mark Minervini's rulebook. The 4 shown are the ones backed by long-standing trading research and by what experienced traders say most often. The other 4 mostly repeat them. If a stock passes all 4 here but the read still isn't Strong, the full score line above shows why.</p>
+          <p><b>"Taking a breather":</b> a separate measure (ADX) checks how hard the price is pushing in one direction. Below 20 means it's moving sideways right now. In a stock that's in an uptrend, that usually means it's resting before its next move, not that the trend is broken.</p>
+          <p><b>Slow vs fast averages:</b> the trend checks use simple averages, which move slowly and don't flip on a few noisy days. The timing line uses a fast (exponential) average, which reacts to the latest prices. Slow for the trend, fast for timing. Stop-losses use neither; they're based on how much the stock normally moves in a day.</p>
+          <p><b>"Is now a good moment to get in?"</b> follows the oldest timing rule in trading: don't chase, buy close to where you'd be proven wrong (Livermore's pivotal points, O'Neil's "don't buy extended"). Buying far above that point means a far-away stop and more risk for the same gain. The answer is one of three: <i>Yes, close to its 21-day average</i>; <i>Not yet, stretched above it</i> (wait for a pullback); or <i>Not yet, below it</i> (wait for it to get back above). If the read isn't Strong or Decent, it shows <i>Not applicable: not in an uptrend</i>, because timing only matters once the trend is OK. The word "support" is kept for the real price levels in the Trade Setup card below. Distance is measured in how much the stock normally moves in a day. The 21-day average is common trader practice, and the cutoffs are rules of thumb, not tested.</p>
+          <p><b>"Are buyers behind the move?"</b> follows Wyckoff and O'Neil: up days on heavy volume and pullbacks on light volume mean buyers are in control; heavy volume on down days means big holders are selling. The answer is <i>Yes</i>, <i>Mixed</i> or <i>No, heavy selling</i>. Daily prices can't show who actually bought or sold, so this is a best guess from volume, the day's close and recent buying vs selling.</p>
+          <p><b>What this read doesn't cover:</b> the overall market. That's the market card above. A Strong stock in a weak market is two true facts, not a contradiction.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+
+
+  <!-- ================= MEAN-REVERSION READ (NEW, Day 111) ================= -->
+  <section>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Mean-Reversion Read</div>
+          <div class="card-sub">A second, independent lens — different question than Technical Read, doesn't gate it or get gated by it</div>
+        </div>
+        <span class="tag tag-engine"><span class="tag-glyph">&#9881;</span>Engine &mdash; confirmed Day 111</span>
+      </div>
+
+      <input class="state-radio" type="radio" name="mr" id="mr-none" checked>
+      <input class="state-radio" type="radio" name="mr" id="mr-signal">
+
+      <div style="display:flex; align-items:center; justify-content:flex-end; margin-bottom:10px;">
+        <div class="state-toggle">
+          <label for="mr-none">No Signal</label>
+          <label for="mr-signal">Signal</label>
+        </div>
+      </div>
+
+      <div class="panels">
+        <div class="panel-fav" style="display:block;" id="mr-panel-none">
+          <div class="read-chip">
+            <span class="label">Read</span>
+            <span class="read-value" style="color:var(--text-muted);">No Signal</span>
+            <span class="read-modifier">&middot; RSI(2) 48.2 &mdash; needs to drop below 10</span>
+          </div>
+          <div class="read-stats">
+            <span>RSI(2) 48.2</span><span>Above 200-SMA &#10003;</span><span>20d ADV $12.4B &#10003;</span>
+          </div>
+        </div>
+        <div class="panel-bad" style="display:none;" id="mr-panel-signal">
+          <div class="read-chip">
+            <span class="label">Read</span>
+            <span class="read-value" style="color:var(--good);">Signal &mdash; Buy the Dip</span>
+            <span class="read-modifier">&middot; short-term oversold inside a confirmed uptrend</span>
+          </div>
+          <div class="read-stats">
+            <span>RSI(2) 6.8</span><span>Above 200-SMA &#10003;</span><span>20d ADV $12.4B &#10003;</span>
+          </div>
+        </div>
+      </div>
+      <style>
+        #mr-signal:checked ~ .panels #mr-panel-none{ display:none; }
+        #mr-signal:checked ~ .panels #mr-panel-signal{ display:block; }
+      </style>
+
+      <details class="formed">
+        <summary>How this read was formed</summary>
+        <div class="formed-body">
+          <p><b>Mean-Reversion Read</b> is a completely separate system from Technical Read above &mdash; it asks "is this a good short-term bounce," not "is this a good multi-week trend." Three gates, all required together: RSI(2) below 10 (a 2-day momentum oscillator reading an extreme short-term dip), price still above its 200-day SMA (the trend filter &mdash; this system never buys a dip in an actual downtrend), and a liquidity floor (price &gt;$10, 20-day avg dollar volume &gt;$25M).</p>
+          <p><b>Why this one gets the Engine tag, not Info:</b> unlike Fundamentals or R:R elsewhere on this page, this signal cleared its own pre-registered 100-trade confirmation bar (Day 111) and survived every cluster stress-test since. The forward test ended Sep 12 at your direction; its final result is <b>241 closed trades, 70.5% win rate, profit factor 2.00</b>, net of costs &mdash; the only one of STA's four tracks with a real edge.</p>
+          <p>It doesn't gate Technical Read, and Technical Read doesn't gate it &mdash; a stock can show "Strong" on one and "No Signal" on the other at the same time. Two true, independent reads.</p>
         </div>
       </details>
     </div>
@@ -896,11 +1020,11 @@
 
       <div class="rr-note">
         <p>• Momentum's R:R is 0.31 because the nearest resistance ($231.20) is only 2.7% above entry, while the ATR-based stop sits 8.8% below it. The constraint is target proximity, not stop placement.</p>
-        <p>• Both ratios are computed from the S&amp;R levels above. Those levels come from a pivot method that selects the most price-extreme levels in range, not the nearest ones — a known open issue (Day 108). Read either number as one input, not a verdict.</p>
+        <p>• <i>(Shown only when the target is a projection.)</i> This stock is at or near its all-time high, so there's no real overhead resistance to aim at. The target in this ratio is a projected level (ATR/Fibonacci), not a price where sellers have actually shown up before. Read the number as one input, not a verdict.</p>
       </div>
 
       <div class="rr-footnote">
-        <b>Note on the R:R numbers above.</b> They're computed differently on purpose (2× ATR for the pullback stop, 1.5× ATR below support for the momentum stop) and won't usually agree — that's expected, not an error. Neither one grays out, gates, or ranks the panel it belongs to.
+        <b>Note on the R:R numbers on this page.</b> Several numbers here are labeled R:R, and they measure different things, so they won't match. The two entry panels both aim at the same target (the nearest resistance) but use different entries and stops: pullback enters at support with a stop 2×ATR below it; momentum enters at today's price with a stop 1.5×ATR below support. "R:R Context" in the setup banner is just distance-to-resistance divided by distance-to-support, in percent — no stop, no ATR. The Pattern Detection card measures from the pattern's own pivot, with a stop 2×ATR below the pivot and a target from the pattern's measured move (or, for a VCP, the nearest real resistance). All are shown; none gates anything.
       </div>
     </div>
   </section>
@@ -1031,11 +1155,12 @@
   </section>
 
   <div class="scan-note">
-    Scan-tab verdict uses the frozen backtested BUY/HOLD/AVOID tree, the same engine the paper-trading tracks are pre-registered against. This page's read is a separate, display-only summary.
+    Scan-tab verdict uses the backtested BUY/HOLD/AVOID tree, unchanged so it stays comparable with the backtest results. The Analyze page's read is a separate, display-only summary.
   </div>
 
   <div class="footer-meta">
-    Mockup implements decision-log items 1–14 (§2) against <code>docs/claude/design/ANALYZE_PAGE_REDESIGN_DECISIONS.md</code>. Not shown: the Assessment Breakdown, MTF Confluence, Price Structure, and Pattern Detection cards (§2 item 11, unchanged by this redesign). No backend or live paper-trading logic is affected — see §7/§8 of the decision log for the freeze-safety audit.
+    Mockup implements decision-log items 1–14 (§2) against <code>docs/claude/design/ANALYZE_PAGE_REDESIGN_DECISIONS.md</code>, plus a new Mean-Reversion Read card (Day 111, not yet in the decision log — MR was never addressed by the original 17-item redesign). Not shown: the Assessment Breakdown, MTF Confluence, Price Structure, and Pattern Detection cards (§2 item 11, unchanged by this redesign). The MR scanner (<code>/api/mr/scan</code>) has been wired to the Scan tab since Day 111. No backend logic is affected. The build follows <code>ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md</code>; Steps 1–2 of 7 were done Day 121 with no visible change yet, so this mockup is still ahead of the live app.
   </div>
 
 </div>
+</body></html>

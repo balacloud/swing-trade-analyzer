@@ -1,0 +1,767 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<style>
+  :root{
+    --bg:#eef0e7;
+    --surface:#f8f7f1;
+    --surface-raised:#ffffff;
+    --ink:#1c1f19;
+    --ink-muted:#5c6156;
+    --ink-faint:#8b8f80;
+    --rule:#dad6c7;
+    --rule-strong:#c7c2ae;
+    --accent:#a5672e;
+    --accent-strong:#8a5423;
+    --accent-bg:#f1e3d1;
+    --engine:#3f5d3f;
+    --engine-bg:#e3ead9;
+    --info:#395872;
+    --info-bg:#e2ebf0;
+    --locked:#4f7a58;
+    --locked-bg:#e4ede2;
+    --open:#b8622a;
+    --open-bg:#f5e6d8;
+    --match:#4f7a58;
+    --partial:#a8792a;
+    --gap:#a23b3b;
+    --new:#5f6fa8;
+    --new-bg:#e6e8f3;
+    --shadow: 0 1px 2px rgba(28,31,25,0.06), 0 4px 14px rgba(28,31,25,0.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#181a13;
+      --surface:#202318;
+      --surface-raised:#262a1c;
+      --ink:#ece7d8;
+      --ink-muted:#a6a290;
+      --ink-faint:#767a68;
+      --rule:#34382a;
+      --rule-strong:#454a37;
+      --accent:#d99a52;
+      --accent-strong:#e8b073;
+      --accent-bg:#3a2c1a;
+      --engine:#8fbf8f;
+      --engine-bg:#263323;
+      --info:#8db4cf;
+      --info-bg:#212f38;
+      --locked:#86c497;
+      --locked-bg:#223226;
+      --open:#e8944f;
+      --open-bg:#3a2a1c;
+      --match:#86c497;
+      --partial:#d9ac5c;
+      --gap:#d97a7a;
+      --new:#9aa6e0;
+      --new-bg:#242840;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#181a13; --surface:#202318; --surface-raised:#262a1c;
+    --ink:#ece7d8; --ink-muted:#a6a290; --ink-faint:#767a68;
+    --rule:#34382a; --rule-strong:#454a37;
+    --accent:#d99a52; --accent-strong:#e8b073; --accent-bg:#3a2c1a;
+    --engine:#8fbf8f; --engine-bg:#263323;
+    --info:#8db4cf; --info-bg:#212f38;
+    --locked:#86c497; --locked-bg:#223226;
+    --open:#e8944f; --open-bg:#3a2a1c;
+    --match:#86c497; --partial:#d9ac5c; --gap:#d97a7a;
+    --new:#9aa6e0; --new-bg:#242840;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+  }
+  :root[data-theme="light"]{
+    --bg:#eef0e7; --surface:#f8f7f1; --surface-raised:#ffffff;
+    --ink:#1c1f19; --ink-muted:#5c6156; --ink-faint:#8b8f80;
+    --rule:#dad6c7; --rule-strong:#c7c2ae;
+    --accent:#a5672e; --accent-strong:#8a5423; --accent-bg:#f1e3d1;
+    --engine:#3f5d3f; --engine-bg:#e3ead9;
+    --info:#395872; --info-bg:#e2ebf0;
+    --locked:#4f7a58; --locked-bg:#e4ede2;
+    --open:#b8622a; --open-bg:#f5e6d8;
+    --match:#4f7a58; --partial:#a8792a; --gap:#a23b3b;
+    --new:#5f6fa8; --new-bg:#e6e8f3;
+    --shadow: 0 1px 2px rgba(28,31,25,0.06), 0 4px 14px rgba(28,31,25,0.05);
+  }
+
+  *{ box-sizing:border-box; }
+  body{ margin:0; }
+
+  .page{
+    background:var(--bg);
+    color:var(--ink);
+    font-family: ui-sans-serif, "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    line-height:1.5;
+    min-height:100vh;
+  }
+  .wrap{ max-width:920px; margin:0 auto; padding:3rem 1.5rem 5rem; }
+
+  .serif{ font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", ui-serif, Georgia, serif; }
+  .mono{ font-family: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+
+  header{ margin-bottom:2.6rem; }
+  .eyebrow{
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size:.72rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--accent-strong);
+    margin:0 0 .7rem;
+  }
+  h1{
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", ui-serif, Georgia, serif;
+    font-weight:600;
+    font-size:clamp(1.7rem, 1.2rem + 2vw, 2.5rem);
+    line-height:1.15;
+    margin:0 0 .6rem;
+    text-wrap:balance;
+    letter-spacing:-.01em;
+  }
+  .dek{
+    font-size:1.02rem;
+    color:var(--ink-muted);
+    max-width:62ch;
+    margin:0 0 1.3rem;
+  }
+  .status-row{
+    display:flex; flex-wrap:wrap; gap:.5rem;
+    padding-top:1.1rem;
+    border-top:1px solid var(--rule);
+  }
+  .status-pill{
+    display:inline-flex; align-items:center; gap:.4rem;
+    padding:.32rem .7rem;
+    border-radius:999px;
+    font-size:.78rem;
+    background:var(--surface-raised);
+    border:1px solid var(--rule);
+    color:var(--ink-muted);
+  }
+  .status-pill b{ color:var(--ink); font-weight:600; }
+  .dot{ width:6px; height:6px; border-radius:50%; flex:none; }
+
+  section{ margin-bottom:2.8rem; }
+  .section-head{ margin-bottom:1.1rem; }
+  h2{
+    font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",ui-serif,Georgia,serif;
+    font-size:1.35rem;
+    font-weight:600;
+    margin:0 0 .35rem;
+    letter-spacing:-.01em;
+  }
+  .section-sub{ font-size:.9rem; color:var(--ink-muted); max-width:60ch; }
+
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.5rem 1.3rem;
+    padding:.9rem 1.1rem;
+    background:var(--surface);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    margin-bottom:2.2rem;
+    font-size:.82rem;
+    color:var(--ink-muted);
+  }
+  .legend-item{ display:flex; align-items:center; gap:.45rem; }
+
+  .canon-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(168px,1fr));
+    gap:.7rem;
+  }
+  .canon-card{
+    background:var(--surface-raised);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:.85rem .9rem;
+    box-shadow:var(--shadow);
+  }
+  .canon-top{ display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem; }
+  .canon-num{
+    width:22px; height:22px; border-radius:50%;
+    border:1.5px solid var(--accent);
+    color:var(--accent-strong);
+    display:flex; align-items:center; justify-content:center;
+    font-family: ui-monospace, monospace; font-size:.72rem; font-weight:600;
+    flex:none;
+  }
+  .canon-name{ font-weight:600; font-size:.85rem; line-height:1.25; }
+  .canon-src{ font-size:.72rem; color:var(--ink-faint); margin:.3rem 0 .5rem; line-height:1.35; }
+  .verdict{
+    display:inline-flex; align-items:center; gap:.35rem;
+    font-family: ui-monospace, monospace; font-size:.68rem; letter-spacing:.04em; text-transform:uppercase;
+    font-weight:600;
+  }
+  .verdict.match{ color:var(--match); }
+  .verdict.partial{ color:var(--partial); }
+  .verdict.gap{ color:var(--gap); }
+  .verdict .dot.match{ background:var(--match); }
+  .verdict .dot.partial{ background:var(--partial); }
+  .verdict .dot.gap{ background:var(--gap); }
+
+  .cluster{ margin-bottom:1.6rem; }
+  .cluster-label{
+    font-family: ui-monospace, monospace;
+    font-size:.72rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    display:flex; align-items:center; gap:.7rem;
+    margin-bottom:.6rem;
+  }
+  .cluster-label::after{
+    content:""; flex:1; height:1px; background:var(--rule);
+  }
+
+  .item-list{ display:flex; flex-direction:column; gap:.6rem; }
+  .item-card{
+    background:var(--surface-raised);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:.95rem 1.1rem;
+    box-shadow:var(--shadow);
+  }
+  .item-card.revised{ border-color:var(--accent); }
+  .item-card.new{ border-color:var(--new); }
+  .item-head{
+    display:flex; align-items:baseline; flex-wrap:wrap; gap:.5rem .6rem;
+    margin-bottom:.4rem;
+  }
+  .item-num{
+    font-family: ui-monospace, monospace;
+    font-size:.78rem;
+    color:var(--ink-faint);
+    flex:none;
+  }
+  .item-name{
+    font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",ui-serif,Georgia,serif;
+    font-weight:600;
+    font-size:1.02rem;
+  }
+  .chips{ display:flex; gap:.4rem; flex-wrap:wrap; margin-left:auto; }
+  .chip{
+    display:inline-flex; align-items:center; gap:.32rem;
+    padding:.2rem .55rem;
+    border-radius:999px;
+    font-size:.7rem;
+    font-weight:600;
+    letter-spacing:.02em;
+    white-space:nowrap;
+  }
+  .chip.engine{ background:var(--engine-bg); color:var(--engine); }
+  .chip.info{ background:var(--info-bg); color:var(--info); }
+  .chip.locked{ background:var(--locked-bg); color:var(--locked); }
+  .chip.revised{ background:var(--accent-bg); color:var(--accent-strong); }
+  .chip.new{ background:var(--new-bg); color:var(--new); }
+  .chip.principle{
+    background:transparent; border:1px solid var(--rule-strong); color:var(--ink-muted);
+    font-family: ui-monospace, monospace;
+  }
+  .item-note{ font-size:.87rem; color:var(--ink-muted); max-width:70ch; }
+  .item-note em{ font-style:normal; color:var(--ink); font-weight:600; }
+  .item-note .plan{ color:var(--accent-strong); font-weight:600; }
+
+  .gap-box{
+    background:var(--surface);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:1.1rem 1.2rem;
+  }
+  .gap-row{
+    display:flex; gap:.9rem; padding:.6rem 0;
+    border-bottom:1px solid var(--rule);
+  }
+  .gap-row:last-child{ border-bottom:none; }
+  .gap-row .verdict{ flex:none; width:80px; }
+  .gap-row-text b{ display:block; font-size:.9rem; margin-bottom:.15rem; }
+  .gap-row-text span{ font-size:.85rem; color:var(--ink-muted); }
+
+  .resolved-strip{
+    background:var(--surface);
+    border:1px solid var(--rule);
+    border-left:3px solid var(--accent);
+    border-radius:8px;
+    padding:.85rem 1rem;
+    margin-bottom:1.4rem;
+    font-size:.86rem;
+    color:var(--ink-muted);
+  }
+  .resolved-strip b{ color:var(--ink); }
+
+  .agenda{
+    background:var(--open-bg);
+    border:1px solid color-mix(in srgb, var(--open) 40%, var(--rule));
+    border-radius:12px;
+    padding:1.3rem 1.4rem;
+  }
+  .agenda h2{ color:var(--open); }
+  .agenda-list{ counter-reset:agenda; display:flex; flex-direction:column; gap:.85rem; margin-top:1rem; }
+  .agenda-item{
+    display:flex; gap:.8rem;
+    counter-increment:agenda;
+  }
+  .agenda-item::before{
+    content:counter(agenda);
+    font-family: ui-monospace, monospace;
+    font-weight:700;
+    font-size:.78rem;
+    color:var(--open);
+    background:var(--surface-raised);
+    width:24px; height:24px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    flex:none; margin-top:.05rem;
+  }
+  .agenda-body b{ font-size:.95rem; }
+  .agenda-body .ref{
+    font-family:ui-monospace, monospace; font-size:.7rem; color:var(--open);
+    margin-left:.4rem;
+  }
+  .agenda-body p{ margin:.25rem 0 0; font-size:.87rem; color:var(--ink-muted); }
+
+  footer{
+    margin-top:3rem; padding-top:1.3rem; border-top:1px solid var(--rule);
+    font-size:.78rem; color:var(--ink-faint);
+  }
+
+  @media (max-width:560px){
+    .item-head{ flex-direction:column; align-items:flex-start; }
+    .chips{ margin-left:0; }
+  }
+</style>
+
+<div class="page">
+  <div class="wrap">
+
+    <header>
+      <p class="eyebrow">STA · Analyze Page Redesign · Decision Map</p>
+      <h1>Sixteen decisions, nine old rules, one page.</h1>
+      <p class="dek">Every component of the Analyze page, mapped against the trading canon that's survived a century of markets — and marked by what STA has actually locked in versus what's still open. <b>Updated 2026-11-05 (Day 121):</b> implementation has started (Steps 1–2 of 7 done, no visible change yet), negative-EPS is closed as declined, the Day 118 MTF and pattern-target fixes are recorded, and MR shows its final numbers. Updated 2026-09-15 before that: the S&amp;R fix (item 08) was marked shipped, the forward-testing gate is removed (the program was discontinued 2026-09-12 — STA is now an on-demand analysis/recommendation tool), and MR Read's numbers are refreshed. On top of the Day 112 changes (Volume Confirmation shipped, mockup Regime synced) and the Day 111 changes before that.</p>
+      <div class="status-row">
+        <span class="status-pill"><span class="dot" style="background:var(--locked)"></span>14 of 15 original items <b>Locked</b></span>
+        <span class="status-pill"><span class="dot" style="background:var(--accent)"></span>1 item <b>Locked · Revised Day 110</b></span>
+        <span class="status-pill"><span class="dot" style="background:var(--new)"></span>1 item <b>added Day 111</b>, outside the original process</span>
+        <span class="status-pill"><span class="dot" style="background:var(--open)"></span>3 threads <b>still open</b></span>
+        <span class="status-pill">Implementation: <b>in progress</b> — Steps 1–2 of 7 done Day 121 (plan text fixed, helper functions added); Step 3, the Trade Setup card, is next</span>
+      </div>
+    </header>
+
+    <div class="legend">
+      <span class="legend-item"><span class="chip engine" style="padding:.15rem .5rem;">Engine</span> mechanical, gates something</span>
+      <span class="legend-item"><span class="chip info" style="padding:.15rem .5rem;">Info</span> shown, informs a human, gates nothing</span>
+      <span class="legend-item"><span class="chip new" style="padding:.15rem .5rem;">New</span> added after the original 17-decision process</span>
+      <span class="legend-item"><span class="verdict match"><span class="dot match"></span>Match</span> STA implements this principle</span>
+      <span class="legend-item"><span class="verdict partial"><span class="dot partial"></span>Partial</span> implements half of it</span>
+      <span class="legend-item"><span class="verdict gap"><span class="dot gap"></span>Gap</span> not implemented at all</span>
+    </div>
+
+    <section>
+      <div class="section-head">
+        <h2>The canon</h2>
+        <p class="section-sub">Nine principles, cross-checked against three independent sources (Perplexity, ChatGPT, Gemini) and STA's own code, Day 107. This is the yardstick every item below gets measured against.</p>
+      </div>
+      <div class="canon-grid">
+        <div class="canon-card">
+          <div class="canon-top"><span class="canon-num">1</span><span class="canon-name">Trend Following</span></div>
+          <div class="canon-src">Dow Theory · Faber's 200/10-mo SMA</div>
+          <span class="verdict match"><span class="dot match"></span>Match</span>
+        </div>
+        <div class="canon-card">
+          <div class="canon-top"><span class="canon-num">2</span><span class="canon-name">Momentum &amp; Relative Strength</span></div>
+          <div class="canon-src">O'Neil RS≥80 · Jegadeesh–Titman</div>
+          <span class="verdict partial"><span class="dot partial"></span>Partial</span>
+        </div>
+        <div class="canon-card">
+          <div class="canon-top"><span class="canon-num">3</span><span class="canon-name">Mean Reversion</span></div>
+          <div class="canon-src">Connors RSI(2), 200-SMA filtered</div>
+          <span class="verdict match"><span class="dot match"></span>Match <span style="color:var(--ink-faint); font-weight:400; text-transform:none; letter-spacing:0;">— confirmed Day 111</span></span>
+        </div>
+        <div class="canon-card">
+          <div class="canon-top"><span class="canon-num">4</span><span class="canon-name">Volume Confirmation</span></div>
+          <div class="canon-src">Wyckoff effort-vs-result · O'Neil</div>
+          <span class="verdict partial"><span class="dot partial"></span>Partial <span style="color:var(--ink-faint); font-weight:400; text-transform:none; letter-spacing:0;">— shipped as Info, Day 111–112</span></span>
+        </div>
+        <div class="canon-card">
+          <div class="canon-top"><span class="canon-num">5</span><span class="canon-name">Position Sizing</span></div>
+          <div class="canon-src">Van Tharp R-multiple · Turtles</div>
+          <span class="verdict match"><span class="dot match"></span>Match</span>
+        </div>
+        <div class="canon-card">
+          <div class="canon-top"><span class="canon-num">6</span><span class="canon-name">Stop-Loss Placement</span></div>
+          <div class="canon-src">Livermore · O'Neil 7–8% · Turtles 2N</div>
+          <span class="verdict match"><span class="dot match"></span>Match</span>
+        </div>
+        <div class="canon-card">
+          <div class="canon-top"><span class="canon-num">7</span><span class="canon-name">Volatility Regime Filters</span></div>
+          <div class="canon-src">Moreira &amp; Muir · VIX-banded sizing</div>
+          <span class="verdict match"><span class="dot match"></span>Match</span>
+        </div>
+        <div class="canon-card">
+          <div class="canon-top"><span class="canon-num">8</span><span class="canon-name">Sentiment, Contrarian</span></div>
+          <div class="canon-src">Graham's Mr. Market · CNN F&amp;G</div>
+          <span class="verdict match"><span class="dot match"></span>Match</span>
+        </div>
+        <div class="canon-card">
+          <div class="canon-top"><span class="canon-num">9</span><span class="canon-name">Sector Rotation</span></div>
+          <div class="canon-src">de Kempenaer RRG · Faber</div>
+          <span class="verdict match"><span class="dot match"></span>Match <span style="color:var(--ink-faint); font-weight:400; text-transform:none; letter-spacing:0;">— Sectors tab, not this page</span></span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>Decision register</h2>
+        <p class="section-sub">Fifteen sections from the original decision log (<span class="mono">ANALYZE_PAGE_REDESIGN_DECISIONS.md §2</span>) plus one added Day 111, each mapped to the canon principle that actually governs it.</p>
+      </div>
+
+      <div class="cluster">
+        <div class="cluster-label">Technical Read</div>
+        <div class="item-list">
+
+          <div class="item-card">
+            <div class="item-head">
+              <span class="item-num">01</span>
+              <span class="item-name">Trend Template / RSI / RS Rating</span>
+              <div class="chips">
+                <span class="chip engine">Engine</span>
+                <span class="chip locked">Locked</span>
+                <span class="chip principle">① Trend · ② Momentum</span>
+              </div>
+            </div>
+            <p class="item-note">Backtest-validated, parity-tested across 86,400 combos. No reliability problem — the opposite of Fundamentals' situation.</p>
+          </div>
+
+          <div class="item-card">
+            <div class="item-head">
+              <span class="item-num">02</span>
+              <span class="item-name">ADX — trend-confirmation modifier</span>
+              <div class="chips">
+                <span class="chip engine">Engine</span>
+                <span class="chip locked">Locked</span>
+                <span class="chip principle">① Trend</span>
+              </div>
+            </div>
+            <p class="item-note">Appends <em>"trend not yet confirmed"</em> instead of silently vanishing — the classic "flat/tangled average is a no-trade signal" caution, made visible.</p>
+          </div>
+
+          <div class="item-card">
+            <div class="item-head">
+              <span class="item-num">03</span>
+              <span class="item-name">ADX — position-size trigger</span>
+              <div class="chips">
+                <span class="chip info">Info</span>
+                <span class="chip locked">Locked</span>
+                <span class="chip principle">⑤ Sizing</span>
+              </div>
+            </div>
+            <p class="item-note">The card carried three mutually contradicting ADX→size mappings at once. Reduced to a raw number — no recommendation to be wrong about.</p>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="cluster">
+        <div class="cluster-label">Market Regime</div>
+        <div class="item-list">
+
+          <div class="item-card revised">
+            <div class="item-head">
+              <span class="item-num">04</span>
+              <span class="item-name">Market Regime (VIX + SPY vs. 200-SMA)</span>
+              <div class="chips">
+                <span class="chip info">Info</span>
+                <span class="chip revised">Locked · Revised Day 110</span>
+                <span class="chip principle">① Trend · ⑦ Volatility</span>
+              </div>
+            </div>
+            <p class="item-note">Was a hard gate (Day 109); reversed under direct pushback (Day 110). Even Moreira &amp; Muir's own mechanism <em>scales exposure</em> — it doesn't block a trade outright. <b>Update (Day 111):</b> the decision doc's own copy (§6) is now fixed to the post-reversal wording. <b>Update (Day 112):</b> the published mockup file — the last piece out of sync — has been synced to match.</p>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="cluster">
+        <div class="cluster-label">Fundamentals &amp; Sentiment</div>
+        <div class="item-list">
+
+          <div class="item-card">
+            <div class="item-head">
+              <span class="item-num">05</span>
+              <span class="item-name">Fundamentals (ROE / Rev. Growth / D-E)</span>
+              <div class="chips">
+                <span class="chip info">Info</span>
+                <span class="chip locked">Locked</span>
+                <span class="chip principle">outside the canon</span>
+              </div>
+            </div>
+            <p class="item-note">Value/fundamental analysis (Graham-Buffett) is a separate tradition from these nine technical principles. Becomes a binary red-flag screen — a 40% live/backtest data mismatch made the scored version fragile, not the idea of fundamentals itself.</p>
+          </div>
+
+          <div class="item-card">
+            <div class="item-head">
+              <span class="item-num">06</span>
+              <span class="item-name">Sentiment (Fear &amp; Greed)</span>
+              <div class="chips">
+                <span class="chip info">Info</span>
+                <span class="chip locked">Locked, unchanged</span>
+                <span class="chip principle">⑧ Sentiment</span>
+              </div>
+            </div>
+            <p class="item-note">Already the reference implementation this whole redesign extends — informational since Day 70. Only a silent-fallback display fix is queued.</p>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="cluster">
+        <div class="cluster-label">Risk, Reward &amp; Execution</div>
+        <div class="item-list">
+
+          <div class="item-card">
+            <div class="item-head">
+              <span class="item-num">07</span>
+              <span class="item-name">Risk:Reward</span>
+              <div class="chips">
+                <span class="chip info">Info</span>
+                <span class="chip locked">Locked</span>
+                <span class="chip principle">⑤ Sizing · ⑥ Stops</span>
+              </div>
+            </div>
+            <p class="item-note">R:R is a downstream computation of two Match-verdict principles — the math is sound in theory. The problem is implementation: 4 different formulas exist in-app, 2 on the same card. Shown plain, no color ramp, no gate. <span class="plan">Update (Day 111): the root cause is now precisely identified</span> — see item 08's note below.</p>
+          </div>
+
+          <div class="item-card">
+            <div class="item-head">
+              <span class="item-num">08</span>
+              <span class="item-name">Entry / Stop / Target computation</span>
+              <div class="chips">
+                <span class="chip engine">Engine</span>
+                <span class="chip locked">Locked</span>
+                <span class="chip principle">⑥ Stops</span>
+              </div>
+            </div>
+            <p class="item-note">ATR-based stops — the Turtles' N-multiple mechanic, unchanged. Computing the level stays automated; judging if the resulting R:R is good enough moves to the human (item 07). <span class="plan">Update (Day 111, Golden Rule 53):</span> the S&amp;R engine's "nearest support" selection was found to actually select the most <em>extreme</em> level in range, not the nearest one — graded 2/10 against industry proximity-weighted standards. Every R:R and stop on this page is downstream of it. <b>Update (Day 112) — FIXED and shipped:</b> <span class="mono">_pivot_sr()</span> now genuinely selects the nearest levels per side, verified live (e.g. META's nearest resistance moved from a phantom ~22%-away level to a real one 0.3% above price). A paired backtest also showed the old momentum profit-factor number was partly propped up by this same bug — corrected honestly, logged, not tuned back (Golden Rule 56). This was "just arithmetic" only in the sense that it's now <em>correct</em> arithmetic.</p>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="cluster">
+        <div class="cluster-label">Position Sizing</div>
+        <div class="item-list">
+
+          <div class="item-card">
+            <div class="item-head">
+              <span class="item-num">09</span>
+              <span class="item-name">Position size label (FULL / HALF / REDUCED)</span>
+              <div class="chips">
+                <span class="chip info">Info</span>
+                <span class="chip locked">Locked</span>
+                <span class="chip principle">⑤ Sizing</span>
+              </div>
+            </div>
+            <p class="item-note">One of three sources was hardcoded <span class="mono">"half"</span> — zero computation behind it, live since Day 39. Deleted; replaced by raw sizing inputs plus an unconditional calculator CTA.</p>
+          </div>
+
+          <div class="item-card">
+            <div class="item-head">
+              <span class="item-num">10</span>
+              <span class="item-name">VIX position-size multiplier</span>
+              <div class="chips">
+                <span class="chip engine">Engine in calculator</span>
+                <span class="chip info">Info on card</span>
+                <span class="chip locked">Locked</span>
+                <span class="chip principle">⑦ Volatility</span>
+              </div>
+            </div>
+            <p class="item-note">The literal VIX-banded sizing variant the research names. Stays mechanical only inside the tool a human deliberately opens — not on the page shown unprompted.</p>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="cluster">
+        <div class="cluster-label">Descriptive Cards</div>
+        <div class="item-list">
+
+          <div class="item-card">
+            <div class="item-head">
+              <span class="item-num">11</span>
+              <span class="item-name">MTF Confluence · S&amp;R · Price Structure · Pattern · Breakout</span>
+              <div class="chips">
+                <span class="chip info">Info</span>
+                <span class="chip locked">Locked, unchanged</span>
+                <span class="chip principle">① Trend · ④ Volume</span>
+              </div>
+            </div>
+            <p class="item-note">Already the target pattern — descriptive, never suppresses anything. <span class="plan">Update (Day 111):</span> a full technical audit graded all five — Price Structure and Breakout Status both scored 9/10 (genuinely well-built); MTF Confluence 3/10 (concept sound, confidence score arbitrary); Pattern Detection's <em>recognition</em> logic 8/10 but its <em>price target</em> only 1.5/10 (a flat percentage, never checked against real resistance). <b>Update (Day 118) — both weak spots FIXED:</b> MTF Confluence now has a graduated score in place of the arbitrary one, and Pattern Detection's target uses the measured move (Day 112) or, for a VCP, the nearest real resistance (Day 118). The card's R:R caveat is closed.</p>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="cluster">
+        <div class="cluster-label">Page Architecture</div>
+        <div class="item-list">
+
+          <div class="item-card">
+            <div class="item-head">
+              <span class="item-num">12</span>
+              <span class="item-name">Composite verdict → Technical Read + Regime band</span>
+              <div class="chips">
+                <span class="chip engine">Engine, split</span>
+                <span class="chip locked">Locked</span>
+                <span class="chip principle">① Trend · ⑦ Volatility</span>
+              </div>
+            </div>
+            <p class="item-note">Zero change to <span class="mono">determineVerdict()</span> — purely which already-computed values become the page's headline.</p>
+          </div>
+
+          <div class="item-card">
+            <div class="item-head">
+              <span class="item-num">12c</span>
+              <span class="item-name">Simple Checklist — vocabulary reconciliation</span>
+              <div class="chips">
+                <span class="chip locked">Locked</span>
+                <span class="chip principle">n/a</span>
+              </div>
+            </div>
+            <p class="item-note">Deletes a 3rd BUY/HOLD/AVOID strip that would have competed with the new "Technical Read" language, one click away.</p>
+          </div>
+
+          <div class="item-card">
+            <div class="item-head">
+              <span class="item-num">13</span>
+              <span class="item-name">Holding Period selector</span>
+              <div class="chips">
+                <span class="chip info">Info, repurposed</span>
+                <span class="chip locked">Locked</span>
+                <span class="chip principle">cross-cutting</span>
+              </div>
+            </div>
+            <p class="item-note">No single principle owns "how long you hold" — it now only controls how prominently the Fundamentals red-flag card is shown, never gates anything.</p>
+          </div>
+
+          <div class="item-card">
+            <div class="item-head">
+              <span class="item-num">14</span>
+              <span class="item-name">Default view (Full Analysis vs. Simple Checklist)</span>
+              <div class="chips">
+                <span class="chip locked">Locked</span>
+                <span class="chip principle">n/a</span>
+              </div>
+            </div>
+            <p class="item-note">Default flips to Full — the redesign's philosophy now lives on the page a user actually sees first, not one click deeper.</p>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="cluster">
+        <div class="cluster-label">Added Day 111 — outside the original process</div>
+        <div class="item-list">
+
+          <div class="item-card new">
+            <div class="item-head">
+              <span class="item-num">15</span>
+              <span class="item-name">Mean-Reversion Read</span>
+              <div class="chips">
+                <span class="chip engine">Engine</span>
+                <span class="chip new">New · Locked Day 111</span>
+                <span class="chip principle">③ Mean Reversion</span>
+              </div>
+            </div>
+            <p class="item-note">Never part of the original 13-item Q&amp;A process — MR's own signal card has existed on the Analyze page since Day 70, but this whole redesign conversation never once addressed it. Added to the mockup Day 111, tagged <b>Engine</b> rather than Info: unlike Fundamentals or R:R, this signal was confirmed against its own pre-registered bar (Day 111) and stress-tested for cluster inflation (held at PF 2.24 with the worst 3-day cluster removed) — the only track in the project's history to genuinely clear that bar. <b>Update (Day 113):</b> the whole paper-trading/forward-testing program was discontinued at the user's own direction ("I want to use Claude and STA as analysis engine and recommendation, I will take care of stuff myself") — MR closes it out as its final result: <b>241 closed trades, 70.5% win rate, profit factor 2.00</b> (all positions now closed; the 2.46 shown here in September was before the last trades closed). No further trades will accumulate. Doesn't gate Technical Read; Technical Read doesn't gate it — two independent, parallel reads. The scanner behind it (<span class="mono">/api/mr/scan</span>) is live-wired to the Scan tab.</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="resolved-strip">
+        <b>Also new since this was first published (Day 111):</b> the legacy fundamentals scorer (<span class="mono">scoringEngine.js</span>) was found to still compute a second, differently-thresholded fundamentals score — including a Forward P/E component this redesign never discussed — every single analysis run. It's dead code today (nothing renders it), but a landmine if ever reconnected without this context. Logged in <span class="mono">ANALYZE_PAGE_REDESIGN_DECISIONS.md</span> §9, not yet deleted.
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>Findings this redesign doesn't fully own</h2>
+        <p class="section-sub">Real findings from the Day 107 canon comparison, none of them a numbered item above. Volume confirmation has since shipped as a display read (Day 111–112); the rest stay parked behind the forward-testing freeze.</p>
+      </div>
+      <div class="gap-box">
+        <div class="gap-row">
+          <span class="verdict partial"><span class="dot partial"></span>② Partial</span>
+          <div class="gap-row-text">
+            <b>Volume confirmation</b>
+            <span>Still not in the verdict tree — but <b>shipped as an Info read on the Trade Setup card (Day 111–112)</b>: magnitude vs. the 50-day average, plus a directional lean from price change / close-location-in-range / OBV. The hard-gate version (Config F, 1.5× volume) had cut trades ~93%, so it went to Info instead, matching Fundamentals / R:R / Regime. Roadmap #11.</span>
+          </div>
+        </div>
+        <div class="gap-row">
+          <span class="verdict partial"><span class="dot partial"></span>② Partial</span>
+          <div class="gap-row-text">
+            <b>Dual / absolute momentum</b>
+            <span>Tested clean as a gate (Config G) but near-inert — excludes ~1% of trades. <b>Shipped as an Info read Day 117</b> (absolute momentum shown, not gated), matching Volume. Roadmap #7b.</span>
+          </div>
+        </div>
+        <div class="gap-row">
+          <span class="verdict match"><span class="dot match"></span>⑨ Match</span>
+          <div class="gap-row-text">
+            <b>Sector rotation</b>
+            <span>Fully implemented — just lives on the Sectors tab, not the Analyze page. Not a redesign candidate here.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="agenda">
+      <h2>Open — still unresolved</h2>
+      <p class="section-sub" style="color:var(--ink-muted);">Down to three (Day 121). Negative-EPS was declined and the implement-or-park question was answered by starting the build; both are shown struck through below.</p>
+      <div class="agenda-list">
+
+        <div class="agenda-item">
+          <div class="agenda-body">
+            <b><s>Negative-EPS red flag</s> — CLOSED, declined (Day 119)</b><span class="ref">→ item 05</span>
+            <p>Not added. The red-flag screen keeps three triggers: revenue growth ≤ −10%, Debt/Equity &gt; 2.0, ROE &lt; 0.</p>
+          </div>
+        </div>
+
+        <div class="agenda-item">
+          <div class="agenda-body">
+            <b>Backend/frontend duplicate R:R arithmetic</b><span class="ref">→ item 08</span>
+            <p><b>Update (Day 115):</b> the original deferral reason — "risky, it touches <span class="mono">compute_sr_levels</span>" — is moot; that function was already touched and fixed safely (item 08, above). The underlying DRY gap itself (multiple R:R formulas across backend/frontend) is still real and still open on its own merits — worth a decision independent of the old S&amp;R-risk reasoning, not automatically unblocked by it.</p>
+          </div>
+        </div>
+
+        <div class="agenda-item">
+          <div class="agenda-body">
+            <b><span class="mono">scoringEngine.js</span>'s orphaned Forward-P/E score</b><span class="ref">→ item 05, new</span>
+            <p>Delete the two dead functions that would render it, or decide to reconnect them deliberately — don't leave it as a silent landmine. <b>Scheduled:</b> both are among the 5 dead functions Step 4 of the build deletes.</p>
+          </div>
+        </div>
+
+        <div class="agenda-item">
+          <div class="agenda-body">
+            <b>ROADMAP.md priority entry</b>
+            <p>Administrative — this doc exists independent of the roadmap today. Add once implementation is scheduled. Unchanged since first published.</p>
+          </div>
+        </div>
+
+        <div class="agenda-item">
+          <div class="agenda-body">
+            <b><s>Implement now, or stay parked?</s> — ANSWERED, build started Day 121</b>
+            <p>Built one step at a time with your sign-off after each; progress is tracked on the STA Status Board. <b>Earlier (Day 113):</b> the freeze this was gated behind no longer exists — the forward-testing program that Priority #1 protected was discontinued at the user's direction. Nothing external blocks implementation anymore; it's purely a "does the user want to spend the time on this" scheduling call.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <footer>
+      Source: <span class="mono">docs/claude/design/ANALYZE_PAGE_REDESIGN_DECISIONS.md</span> (Day 109–112) · updated 2026-11-05 (Day 121) against current project state (build started, negative-EPS declined, Day 118 fixes, final MR numbers) · build plan: <span class="mono">ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md</span> ·
+      Canon: <span class="mono">docs/research/TRADING_PRINCIPLES_100YR_RESEARCH.md</span> (Day 107) ·
+      Remediation detail: <span class="mono">GOLDEN_RULES.md</span> Rules 53/56, <span class="mono">SR_PIVOT_FIX_REBASELINE_DAY112.md</span>, <span class="mono">PAPER_TRADING_PREREGISTRATION.md</span>'s discontinuation notice
+    </footer>
+
+  </div>
+</div>
+
+</body></html>

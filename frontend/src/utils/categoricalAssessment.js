@@ -1007,3 +1007,208 @@ export function runCategoricalAssessment(
     timestamp: new Date().toISOString()
   };
 }
+
+// ============================================================================
+// Analyze Page Redesign — display-layer reads (Day 121, Phase 1 of
+// docs/claude/design/ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md).
+//
+// Everything below is additive and display-only. Nothing above this line was
+// changed, and none of these functions feeds determineVerdict(), the Simple
+// Checklist's criteria, or the parity grid (test_verdict_parity.py /
+// scripts/verdict_grid.mjs). They only re-describe results the assess*()
+// functions have already computed.
+// ============================================================================
+
+/**
+ * ADX "no confirmed trend" line. Mirrors the literal 20 already used in
+ * determineVerdict() (the `adxValue < 20` HOLD branch) and
+ * simplifiedScoring.js — not a new threshold. Kept as its own constant here
+ * so that line inside determineVerdict() (parity-tested) doesn't have to be
+ * edited to share it.
+ */
+export const ADX_NO_TREND_THRESHOLD = 20;
+
+const TECHNICAL_READ_PLAIN = {
+  Strong: 'This stock is in a healthy uptrend and beating the market — the classic "leader" pattern.',
+  StrongUnconfirmed: 'The setup checks out on paper, but the move hasn\'t shown real conviction yet — could still take off, could also fizzle. Worth a tighter entry or a little patience.',
+  Developing: 'Some of the uptrend boxes are checked, not all — this could turn into a leader, but it isn\'t one yet.',
+  Weak: 'This doesn\'t look like a market leader right now — either the trend or the relative performance is lagging.',
+  Unavailable: 'We couldn\'t run the trend read for this ticker — try again in a moment.'
+};
+
+/**
+ * Technical Read (redesign item 12): assessTechnical()'s result relabeled
+ * Strong / Developing / Weak, plus a 4th Unavailable state (item 1) and the
+ * ADX<20 modifier (item 2). Never influenced by regime or fundamentals.
+ *
+ * @param {object} technicalAssessment - assessTechnical() return value
+ * @param {object} adxData - { adx: number, ... } or null
+ * @returns {object} { read, detail, adx, adxModifier, plainEnglish, color }
+ */
+export function deriveTechnicalRead(technicalAssessment, adxData = null) {
+  const data = technicalAssessment?.data || {};
+  const adxRaw = adxData?.adx;
+  const adx = Number.isFinite(adxRaw) ? adxRaw : null;
+
+  // Display-layer branch only: assessTechnical() reports a missing trend
+  // template as 'Weak', which would read as a real Stage-4 call.
+  if (!technicalAssessment || data.trendTemplateAvailable === false) {
+    return {
+      read: 'Unavailable',
+      detail: 'pattern detection didn\'t return for this ticker',
+      adx,
+      adxModifier: null,
+      plainEnglish: TECHNICAL_READ_PLAIN.Unavailable,
+      color: 'gray'
+    };
+  }
+
+  const read = technicalAssessment.assessment === 'Strong' ? 'Strong'
+    : technicalAssessment.assessment === 'Decent' ? 'Developing'
+    : 'Weak';
+
+  const rsiText = Number.isFinite(data.rsi) ? data.rsi.toFixed(1) : 'n/a';
+  const rsText = data.rs52WeekAvailable && Number.isFinite(data.rs52Week) ? data.rs52Week.toFixed(2) : 'n/a';
+  const detail = `Trend Template ${data.trendTemplateScore}, RSI ${rsiText}, RS ${rsText}`;
+
+  const unconfirmed = adx !== null && adx < ADX_NO_TREND_THRESHOLD;
+  const adxModifier = unconfirmed ? `trend not yet confirmed (ADX ${adx.toFixed(1)})` : null;
+
+  return {
+    read,
+    detail,
+    adx,
+    adxModifier,
+    plainEnglish: read === 'Strong' && unconfirmed
+      ? TECHNICAL_READ_PLAIN.StrongUnconfirmed
+      : TECHNICAL_READ_PLAIN[read],
+    color: read === 'Strong' ? 'green' : read === 'Developing' ? 'yellow' : 'red'
+  };
+}
+
+/**
+ * Red-flag triggers (redesign §5). Deliberately not the scoring bands:
+ * revenue moved out to -10% (the 0% line is where TTM vs. annualized
+ * quarterly data flip sign), D/E reused as-is, ROE changed to a fact
+ * (negative) rather than a quality judgment. Negative EPS was checked and
+ * declined (Day 119 plan, C4: epsGrowth is a growth rate, not a level).
+ */
+export const RED_FLAG_THRESHOLDS = {
+  revenueGrowthMax: -10,  // flag when revenue growth <= -10% YoY
+  debtToEquityMin: 2.0,   // flag when D/E > 2.0
+  roeMax: 0               // flag when ROE < 0%
+};
+
+/**
+ * Fundamentals red-flag screen (redesign item 5 / §5). Four states, never
+ * collapsed (§5 display rule 1): a missing feed must not read as "no flags."
+ * Consumes assessFundamental()'s output only.
+ *
+ * Limitation (Day 119 plan, C8): 'not_applicable' relies on
+ * assessFundamental()'s hardcoded ETF_TICKERS list. An ETF outside it falls
+ * through to the fundamentals path; the card must say so.
+ *
+ * @param {object} fundamentalResult - assessFundamental() return value
+ * @returns {object} { state, flags: [{metric, value, text}], checked: [], missing: [] }
+ */
+export function screenFundamentalRedFlags(fundamentalResult) {
+  const empty = { flags: [], checked: [], missing: [] };
+
+  if (fundamentalResult?.assessment === 'N/A' || fundamentalResult?.data?.isETF) {
+    return { state: 'not_applicable', ...empty };
+  }
+  if (!fundamentalResult || fundamentalResult.assessment === 'Unknown') {
+    return { state: 'unavailable', ...empty };
+  }
+
+  const { roe, revenueGrowth, debtToEquity } = fundamentalResult.data || {};
+  const flags = [];
+  const checked = [];
+  const missing = [];
+  const isNum = (v) => v != null && Number.isFinite(v);
+
+  if (isNum(revenueGrowth)) {
+    checked.push('revenueGrowth');
+    if (revenueGrowth <= RED_FLAG_THRESHOLDS.revenueGrowthMax) {
+      flags.push({ metric: 'revenueGrowth', value: revenueGrowth, text: `Revenue declining ${revenueGrowth.toFixed(1)}% YoY` });
+    }
+  } else {
+    missing.push('revenueGrowth');
+  }
+
+  if (isNum(debtToEquity)) {
+    checked.push('debtToEquity');
+    if (debtToEquity > RED_FLAG_THRESHOLDS.debtToEquityMin) {
+      flags.push({ metric: 'debtToEquity', value: debtToEquity, text: `Debt/Equity ${debtToEquity.toFixed(2)} (above 2.0)` });
+    }
+  } else {
+    missing.push('debtToEquity');
+  }
+
+  if (isNum(roe)) {
+    checked.push('roe');
+    if (roe < RED_FLAG_THRESHOLDS.roeMax) {
+      flags.push({ metric: 'roe', value: roe, text: `Negative ROE ${roe.toFixed(1)}%` });
+    }
+  } else {
+    missing.push('roe');
+  }
+
+  return { state: flags.length > 0 ? 'flags' : 'no_flags', flags, checked, missing };
+}
+
+/**
+ * Regime read (redesign item 4, Info since the Day 110 reversal — not a
+ * gate, so no imperative language). Named ...Read, not ...Gate (Day 119
+ * plan, C5). Describes assessRiskMacro()'s result; the plain-English line
+ * follows the actual cause, so a VIX spike isn't described as a downtrend.
+ *
+ * @param {object} riskMacroResult - assessRiskMacro() return value
+ * @returns {object} { read, detail, plainEnglish, color }
+ */
+export function describeRegimeRead(riskMacroResult) {
+  if (!riskMacroResult) {
+    return {
+      read: 'Unavailable',
+      detail: 'market data didn\'t return',
+      plainEnglish: 'We couldn\'t pull market data right now.',
+      color: 'gray'
+    };
+  }
+
+  const read = riskMacroResult.assessment;
+  const { vix, spyAbove200EMA, sma50Declining } = riskMacroResult.data || {};
+  const hasVix = Number.isFinite(vix);
+
+  const parts = [];
+  if (hasVix) {
+    parts.push(vix > 30 ? `VIX ${vix.toFixed(1)} (extreme)` : vix >= 20 ? `VIX ${vix.toFixed(1)} (elevated)` : `VIX ${vix.toFixed(1)}`);
+  } else {
+    parts.push('VIX unavailable');
+  }
+  parts.push(spyAbove200EMA ? 'SPY above its 200-day SMA' : 'SPY below its 200-day SMA');
+  if (sma50Declining && spyAbove200EMA) parts.push('50-day SMA declining');
+  const detail = parts.join(', ');
+
+  let plainEnglish;
+  if (read === 'Unfavorable') {
+    plainEnglish = !spyAbove200EMA
+      ? 'The broader market is in a downtrend. Even a great-looking stock is swimming against the tide — worth weighing before you commit capital.'
+      : 'The market is very nervous right now — big swings in either direction are more likely than usual. Worth weighing before you commit capital.';
+  } else if (read === 'Favorable') {
+    plainEnglish = 'The overall market backdrop is calm and healthy — generally a good environment for new trades.';
+  } else if (!hasVix) {
+    plainEnglish = 'The market is still in its long-term uptrend, but we couldn\'t check how nervous it is right now.';
+  } else if (sma50Declining && vix < 20) {
+    plainEnglish = 'The market is calm and still above its long-term trend, but its shorter-term trend has started to slip — an early warning sign, not a downtrend.';
+  } else {
+    plainEnglish = 'The market\'s a bit jumpy right now. A good setup is still a good setup, just maybe size it smaller.';
+  }
+
+  return {
+    read,
+    detail,
+    plainEnglish,
+    color: read === 'Favorable' ? 'green' : read === 'Neutral' ? 'yellow' : read === 'Unfavorable' ? 'red' : 'gray'
+  };
+}

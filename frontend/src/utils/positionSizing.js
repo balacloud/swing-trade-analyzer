@@ -241,3 +241,19 @@ export function saveSettings(settings) {
     return false;
   }
 }
+
+/**
+ * VIX position-size multiplier (Tier 2A ladder). Same ladder that's
+ * currently written out twice in App.jsx (the two Tier 2A blocks); Day 121,
+ * Phase 1 of the Analyze Page Redesign — not yet wired in.
+ * Returns isDefault so a missing VIX shows as "VIX unknown → 1.0×" instead
+ * of being applied silently (redesign item 10).
+ *
+ * @param {number|null} vix - Current VIX level
+ * @returns {object} { multiplier, isDefault }
+ */
+export function getVixPositionMultiplier(vix) {
+  if (vix == null) return { multiplier: 1.0, isDefault: true };
+  const multiplier = vix < 20 ? 1.0 : vix <= 30 ? 0.75 : 0.50;
+  return { multiplier, isDefault: false };
+}

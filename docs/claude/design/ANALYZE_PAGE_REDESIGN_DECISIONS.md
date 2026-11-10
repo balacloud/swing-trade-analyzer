@@ -18,7 +18,10 @@
 >            93/101/103/105/106/108 (`ROADMAP.md`). **Zero changes to any of
 >            the 4 live forward-test tracks' logic.** See §8 for the file-by-
 >            file audit that makes this claim checkable, not just asserted.
-> **Last Updated:** Day 111
+> **Implementation:** Phase 0 of the Day 119 plan done Day 121 (§6/§9 copy
+>            corrections — see §10). Build from
+>            `ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md`, not §7.
+> **Last Updated:** Day 121
 
 ---
 
@@ -748,23 +751,51 @@ Structure's watch items):
 > 34 cents of reward to the nearest resistance — not great odds, at least
 > to that first target.*
 >
-> • This ratio is computed from the S&R levels shown above. Those levels
-> come from a pivot method that selects the most price-extreme levels in
-> range, not the nearest ones — a known open issue (Day 108, now Golden
-> Rule 53). Read the number as one input, not a verdict.
+> • *(Shown only when `srData.meta.resistanceProjected` is true.)* This
+> stock is at or near its all-time high, so there's no real overhead
+> resistance to aim at. The target in this ratio is a projected level
+> (ATR/Fibonacci), not a price where sellers have actually shown up before.
+> Read the number as one input, not a verdict.
+> Plain-English: *There's no "ceiling" on the chart above this price yet,
+> so the target is an estimate — treat the reward side of this ratio as a
+> guess.*
+>
+> *(Day 121 correction, Phase 0 of the Day 119 plan — Correction C1: the
+> bullet previously here said the S&R levels came from a pivot method that
+> picks the most price-extreme levels rather than the nearest. That was
+> fixed Day 112 — `support_resistance.py` `pivot_nearest_selection = True`,
+> re-checked Day 121 — so the old bullet would have described a bug that no
+> longer exists. The honest caveat today is the projected-target case
+> above: `calculateRiskReward()`'s reward leg is `srData.suggestedTarget`,
+> which is a synthetic projection whenever `resistanceProjected` is true,
+> and nothing on the live card says so.)*
 
 **R:R footnote** (persistent, replaces any "3 thresholds" framing — see §3
 correction 2):
-> **Note on the R:R numbers on this page.** Three different quantities are
-> labeled R:R here and they are not comparable. The two entry panels use
-> ATR-based stops (2×ATR for pullback, 1.5×ATR below support for momentum).
-> "R:R Context" in the setup banner is a ratio of percentage distances to
-> support and resistance — no stop, no ATR. The Pattern Detection card's R:R
-> uses a fixed target multiple (1.12-1.20× pivot), not real resistance. All
-> three are shown; none gates anything.
+> **Note on the R:R numbers on this page.** Several numbers here are
+> labeled R:R, and they measure different things, so they won't match. The
+> two entry panels both aim at the same target (the nearest resistance) but
+> use different entries and stops: pullback enters at support with a stop
+> 2×ATR below it; momentum enters at today's price with a stop 1.5×ATR below
+> support. "R:R Context" in the setup banner is just distance-to-resistance
+> divided by distance-to-support, in percent — no stop, no ATR. The Pattern
+> Detection card measures from the pattern's own pivot, with a stop 2×ATR
+> below the pivot and a target from the pattern's measured move (or, for a
+> VCP, the nearest real resistance). All are shown; none gates anything.
 > Plain-English: *You'll see a few different "R:R" numbers here — they're
 > calculated differently and answer slightly different questions. They're
 > not supposed to match each other.*
+>
+> *(Day 121 correction, Phase 0 — Correction C2: the footnote previously
+> said the Pattern Detection card's R:R used a fixed 1.12-1.20× pivot
+> multiple, not real resistance. That formula was replaced Day 112
+> (measured-move target, `categoricalAssessment.js` `measuredMoveTarget()`)
+> and Day 118 (VCP: nearest real resistance, `vcpTarget()`), and the card
+> now returns no R:R at all rather than inventing one when there's no
+> target. Pattern Detection stays in the footnote — its R:R is still
+> computed differently from the entry panels' — but it's no longer on the
+> "not real resistance" list. Stop formulas re-checked against
+> `riskRewardCalc.js:30,36` and `categoricalAssessment.js:142` on Day 121.)*
 
 **Sizing inputs grid** (header + framing):
 > **Sizing inputs** — the raw numbers, no recommendation. Position sizing is
@@ -831,13 +862,26 @@ string):
 
 **Scan tab disclosure line** (one line under the "STA Verdict" column
 header, per item 12's cross-tab resolution):
-> Scan-tab verdict uses the frozen backtested BUY/HOLD/AVOID tree, the same
-> engine the paper-trading tracks are pre-registered against. The Analyze
-> page's read is a separate, display-only summary.
+> Scan-tab verdict uses the backtested BUY/HOLD/AVOID tree, unchanged so it
+> stays comparable with the backtest results. The Analyze page's read is a
+> separate, display-only summary.
+>
+> *(Day 121 correction, found during Phase 0, not in the Day 119 plan: the
+> old line said the tree was the engine "the paper-trading tracks are
+> pre-registered against." The paper-trading program was discontinued Day
+> 113, so that reason no longer holds. The tree is still kept unchanged, now
+> for backtest/parity comparability — the same grounds the Day 119 plan's
+> §D gives for leaving the backend alone.)*
 
 ---
 
 ## §7 — Implementation plan
+
+> **Superseded for execution (Day 119):** build from
+> `docs/claude/design/ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md`
+> §E, not from §7/§8 below. Its line anchors have drifted and §8's freeze
+> rationale no longer applies (paper trading discontinued Day 113). §7/§8
+> are kept as the historical record.
 
 Not executed this session — recorded for when the user asks for it.
 
@@ -930,8 +974,8 @@ verification afterthought.
 
 | Item | What would close it | Why it's open |
 |---|---|---|
-| Negative-EPS red flag | A live-payload check of what `epsGrowth` actually contains (growth rate vs. level) | Golden Rule 3 — don't assume structure before verifying |
-| Pattern Detection card's fixed-multiple R:R caveat | A one-line honesty note, same family as §6's R:R footnote | Low effort, not yet scheduled — flagged in item 11's entry |
+| ~~Negative-EPS red flag~~ — **CLOSED: checked, declined (Day 119, recorded Day 121)** | Done | `epsGrowth` is a YoY growth *rate*, not an earnings level (`providers/base.py:31`; `yfinance_provider.py:166` computes `(current − year_ago) / abs(year_ago) × 100`). A negative value means earnings fell, not that the company loses money, and the `abs()` denominator makes the sign misleading when the prior year was a loss. Red-flag screen ships with §5's three metrics only (revenue ≤ −10%, D/E > 2.0, ROE < 0). See Day 119 plan, Correction C4. |
+| ~~Pattern Detection card's fixed-multiple R:R caveat~~ — **CLOSED by Days 112/118 (recorded Day 121)** | Done | The fixed multiple no longer exists: measured-move targets (Day 112) and VCP nearest-resistance targets (Day 118) replaced it. §6's footnote rewritten to match. See Day 119 plan, Corrections C2/C3. |
 | `/api/sr/<ticker>`'s duplicate backend/frontend R:R arithmetic (item 8) | Post-freeze DRY cleanup | Touches `backend.py`'s S&R route, upstream of `compute_sr_levels` — deferred, not urgent |
 | No visual mockup built yet | Build the Artifact once remaining copy/threshold questions are closed | User explicitly asked for decisions to finalize before the mockup, not in parallel |
 | ROADMAP.md priority entry for this work | Add during §7.6 (docs phase) if/when implementation starts | Not yet added — this design doc exists independently of the roadmap today |
@@ -957,3 +1001,143 @@ verification afterthought.
   §9 open item: `scoringEngine.js`'s orphaned fundamentals score (incl.
   Forward P/E) is dead-but-not-deleted — traced directly, confirmed a landmine
   not a live conflict. No application code changed.
+- **Day 119:** Execution plan superseded by
+  `ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md` (9 corrections; the
+  17 decisions unchanged). This file was not edited that day.
+- **Day 121 — Phase 0 of the Day 119 plan.** §6 copy corrected: the R:R
+  below-1.0 note's second bullet (C1 — the pivot extreme-vs-nearest bug, fixed
+  Day 112, replaced with a `meta.resistanceProjected` caveat) and the R:R
+  footnote (C2 — Pattern Detection no longer uses a fixed multiple; footnote
+  now describes each R:R accurately, stop formulas re-checked against code).
+  Also corrected, not in the Day 119 plan: the Scan-tab disclosure line still
+  cited "the paper-trading tracks" as the reason the tree is frozen
+  (discontinued Day 113). §9: negative-EPS (C4) and Pattern Detection caveat
+  (C3) recorded as closed. Pointer to the Day 119 plan added at §7.
+  **Baseline captured (Day 121, before any app code changes):**
+  - `backend/backtest/test_verdict_parity.py`: **PASS**, 86,400/86,400
+    combinations match (technical/fundamental/risk_macro/verdict all 0
+    mismatches).
+  - `frontend/scripts/ui-verify-checklist.js AAPL`: **FAILS (pre-existing)** —
+    "Waiting failed: 60000ms exceeded" at the results-loaded wait, as §B7 of
+    the Day 119 plan predicted (waits for "Holding Period", which only renders
+    in Full Analysis; default view is Simple).
+  - `frontend/scripts/ui-cohesiveness-test.js AAPL`: **FAILS (pre-existing)** —
+    same 60s timeout, same cause.
+  - These two failures predate the redesign; they are not regressions. Phase
+    5's default flip is expected to fix their entry point.
+  - **Side effect, logged for Phase 6:** `ui-verify-checklist.js:702`
+    hard-codes its output to
+    `docs/test/UI_Cohesiveness_Test_Day53_AllPeriods/VERIFICATION_REPORT.md`,
+    and that folder is untracked in git. Running the baseline overwrote the
+    Day 53 report with today's failure report; the Day 53 content isn't
+    recoverable from git, and no summary of it exists in the status
+    archives. The PDFs in that folder are untouched. Phase 6 should write to
+    a dated folder instead. No application code changed.
+- **Day 121 — Phase 1 (helper functions), user sign-off:** 3 functions added
+  to `categoricalAssessment.js` (`deriveTechnicalRead`,
+  `screenFundamentalRedFlags`, `describeRegimeRead`) and 1 to
+  `positionSizing.js` (`getVixPositionMultiplier`). Pure additions, not yet
+  imported; parity still 86,400/86,400. **User approved (Day 122):**
+  - The Engine/Info split as built (Technical Read = Engine; Regime,
+    Fundamentals, R:R, sizing = Info).
+  - The Regime read, including the 3 plain-English lines Phase 1 added for
+    cases §6 didn't cover: VIX > 30 with SPY above its 200-day ("very
+    nervous… big swings in either direction"); VIX unavailable ("couldn't
+    check how nervous it is right now"); 50-day slipping while calm ("an
+    early warning sign, not a downtrend"). These are now part of the
+    approved copy alongside §6.
+- **Day 122 — Technical Read card: 4 key checks (SMA) + 1 timing line (EMA),
+  user-approved.** Display change only; the engine still scores all 8
+  Trend Template checks, so `determineVerdict()` and the parity test are
+  untouched.
+  - **Rule:** SMA is for trend ("is this stock in an uptrend?"); EMA is for
+    timing ("is now a good moment to get in?"); stops use ATR, neither.
+  - **The 4 key checks shown** (all SMA, from
+    `pattern_detection.py` `check_trend_template()`): price above the
+    200-day; 200-day rising vs 1 month ago; price above the 50-day; price
+    within 25% of the 52-week high.
+  - **Why these 4:** cross-checked against the 9 canon principles
+    (`TRADING_PRINCIPLES_100YR_RESEARCH.md`), the 10-comment Reddit set on
+    the principles artifact, and a Day 122 Reddit SMA/EMA research pass
+    (user-run, AI-summarised, threads not independently verified). The
+    200-day SMA is the only rule all three back. Reddit names the 50 and
+    200 as "the most important"; the 150-day is rarely used. Checks #2,
+    #4, #5 (the 150-day checks) are Minervini-only, backed by neither
+    source; #7 (30% above the 52-week low) mostly repeats #8.
+  - **Timing line (Info, never gates):** price vs the 21-day EMA, labelled
+    trader practice, not canon (the canon is silent on EMAs). Reddit's most
+    common entry reference. Already computed client-side
+    (`technicalIndicators.js:136`).
+  - **SMA, not EMA, for the 4 checks:** canon (Faber's 10-month SMA) and the
+    backtest both use SMA; Reddit itself says the SMA/EMA difference is
+    negligible at 50/200 lengths.
+  - **Honesty requirement:** because the Read label (Strong/Developing/Weak)
+    is still computed from all 8 checks + RSI + RS, the card must also show
+    the full engine score (e.g. "Trend Template 8/8") so a 4/4 stock that
+    reads "Developing" isn't a visible contradiction.
+  - **Later, separate project (not this redesign):** backtest a 4-check
+    engine vs the current 8, prediction written down first (Golden Rule
+    56). Switch the engine only if 4 does as well or better. This would
+    retire the last Minervini-only piece of STA's verdict.
+
+- **Day 122 — "Close to its 1-year high" check kept, 25% cutoff kept
+  (user-approved).**
+  - **Kept:** strongest canon backing of the 4 (O'Neil's "N", Minervini,
+    Darvas/Livermore; George & Hwang 2004 52-week-high study). Partly
+    redundant with the 200-day checks, but cheap to show.
+  - **Reddit check (Day 122, user-run, AI-summarised, quotes not
+    verified):** agrees on the idea (near the high beats far below it;
+    "falling knives"). No shared cutoff: some use 5%, many use none.
+    Dissent came mostly from long-term value investors. Backtest evidence
+    thin (one unsourced 58% hit-rate claim).
+  - **Why 25% stays:** it is the engine's number (display must match the
+    engine; no engine change in this redesign). A tight cutoff like 5%
+    would reject the pullback setups MR (the one confirmed edge) buys.
+    No alternative has evidence behind it. Any cutoff change belongs to
+    the later 4-vs-8 engine backtest, prediction written down first.
+
+- **Day 122 — Technical Read wording + RSI fallback (user-approved).**
+  - Low-ADX modifier reads "taking a breather: moving sideways for now
+    (ADX n)", replacing the §6 wording "trend not yet confirmed".
+  - When RSI is missing, show "momentum n/a" instead of the silent `|| 50`
+    fallback (`categoricalAssessment.js` assessTechnical). Display change
+    in the deriveTechnicalRead helper; engine scoring untouched.
+
+- **Day 122 — Timing and volume lines answer their questions
+  (user-approved, mockup v0.7).**
+  - "Is now a good moment to get in?" gives one of three answers: Yes,
+    close to support / Not yet, it's stretched / Not yet, it's below
+    support. Canon: don't chase, buy near where you'd be proven wrong
+    (Livermore pivotal points, O'Neil "extended", Minervini low-risk
+    entry). Reference line stays the 21-day EMA; distance measured in ATR.
+    Cutoffs are rules of thumb, untested, and the card says so.
+  - Volume moved to its own question, "Are buyers behind the move?":
+    Yes / Mixed / No, heavy selling. Canon: Wyckoff and O'Neil (heavy
+    volume on up days, light on pullbacks). Replaces the vague "plenty of
+    buyers and sellers" line.
+  - Both Info only; neither changes the read. Fits MR: points toward
+    pullback entries, not chasing.
+
+- **Day 122 — Trend checks 5–8 stay in the engine (user-approved,
+  option 1).** User declined a 4-vs-8 backtest; asked whether checks 5–8
+  could be archived. Answer: not frontend-only. The 7-of-8 rule lives in
+  4 places (`categoricalAssessment.js:342` verdict,
+  `pattern_detection.py:282` Stage 2 badge shown on the Analyze page,
+  `backtest/categorical_engine.py:71`, `backtest/parameter_stability.py:183`).
+  Changing one would let the verdict and the Stage 2 badge disagree on the
+  same screen and detach the quoted backtest numbers from the live rule.
+  Decision: engine keeps all 8; the card shows 4 plus the full-score line.
+  This supersedes the "later 4-vs-8 engine backtest" note above (not
+  planned). If 5–8 are ever archived, all 4 places change in one step.
+
+- **Day 122 — Architect-lens fixes to the timing block (user-approved,
+  mockup v0.8).**
+  - "Support" is reserved for the Trade Setup card's real S&R levels. The
+    timing answer now says "close to its 21-day average" / "stretched above
+    it" / "below it", so one page never uses "support" for two things.
+  - When the read isn't Strong or Decent, the timing answer shows "Not
+    applicable: not in an uptrend", so a Weak read can't sit next to "Yes,
+    good moment to get in".
+  - "Info only, doesn't change the read" stated once above both questions.
+  - Full-score line reads "passes 8 of 8 trend checks (the 4 above plus 4
+    more)".

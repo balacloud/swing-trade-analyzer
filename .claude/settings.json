@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/verdict_parity.sh",
+            "timeout": 60,
+            "statusMessage": "Checking verdict parity..."
+          }
+        ]
+      }
+    ]
+  }
+}

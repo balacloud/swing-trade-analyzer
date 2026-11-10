@@ -68,6 +68,30 @@ Always. Update all of the following:
 - **NEXT SESSION PRIORITIES**: Update to reflect what's actually next
 - **"Last Updated" header**: Update to today's date
 
+## Step 6b: Update and republish the STA Status Board
+
+Always. Source: `docs/claude/design/STA_STATUS_BOARD.html`. Published at
+`https://claude.ai/artifact/Bk4WTv5EYKfXxBbhNtfXPz`. Always pass this `url` when republishing from
+a new session, or the publish creates a duplicate page.
+
+1. Run `cd backend && venv/bin/python paper_trading/daily_job.py --report` and update the
+   "Forward-test final results" table from it. Never copy numbers from a status doc.
+2. Update the header's "last updated" line, the four status tiles, Next priorities, Open bugs
+   (Medium+ from the new KNOWN_ISSUES file), and add the new day at the top of Recent sessions
+   (keep about 4 rows).
+3. Artifact map (`ITEMS` array in the script): run Artifact `action: "list"`. Add a row for every
+   new STA-related artifact. Change the status of any artifact whose subject changed this session
+   (current → snapshot/stale), and of any that was republished (→ current). Leave out non-STA pages
+   (CanStack, personal finance, Trading Intelligence Hub, Options IQ).
+   Then list every Snapshot row whose "Updated" date is more than 30 days old in the session-close
+   summary as "needs recheck", so old snapshots don't sit unreviewed indefinitely.
+   If an Analyze Page Redesign build step shipped this session, update the Decision Map
+   (`8ih9hWm6N8Sq6vy7VjHq6A`, source `docs/claude/design/artifacts_src/decision_map/index.html`) and
+   the Mockup (`WacHXh9VioxQgzwsPGdX1X`, source `docs/claude/design/mockups/analyze_page_redesign_mockup.html`)
+   to match, republish both to their existing URLs, and keep the repo source copies identical to what
+   was published.
+4. Republish with the Artifact tool (`file_path` above plus `url`).
+
 ## Step 7: Update memory files (conditional)
 
 Only if this session produced new information worth persisting across future conversations:
