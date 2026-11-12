@@ -106,16 +106,16 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
 
 <div class="wrap">
   <header>
-    <span class="eyebrow">Swing Trade Analyzer · updated at every session close · last updated Day 124, Nov 12, 2026</span>
+    <span class="eyebrow">Swing Trade Analyzer · updated at every session close · last updated Day 125, Nov 12, 2026</span>
     <h1>STA Status Board</h1>
     <p class="muted">Where the project stands, what's next, and which published pages you can still trust. Numbers come from the live paper-trading report and the repo's status files, not from older pages.</p>
   </header>
 
   <div class="strip">
     <div class="tile"><span class="k">Mode</span><span class="v">Analysis only</span><span class="s">You place every trade. Paper trading stopped Sep 12.</span></div>
-    <div class="tile"><span class="k">Version</span><span class="v">v4.64</span><span class="s">Backend v2.53 · Frontend v4.61. Analyze page redesign finished.</span></div>
-    <div class="tile"><span class="k">Open bugs</span><span class="v">11 Medium+</span><span class="s">1 High, 10 Medium. 1 new Day 124 (today's unfinished bar in /api/stock).</span></div>
-    <div class="tile"><span class="k">Next project</span><span class="v">Engine bugs</span><span class="s">Redesign done. Next: the two logged engine bugs, each with a plan.</span></div>
+    <div class="tile"><span class="k">Version</span><span class="v">v4.65</span><span class="s">Backend v2.54 · Frontend v4.62. Analyze page trimmed: less to read.</span></div>
+    <div class="tile"><span class="k">Open bugs</span><span class="v">11 Medium+</span><span class="s">1 High, 10 Medium. None new Day 125.</span></div>
+    <div class="tile"><span class="k">Next project</span><span class="v">Simple S&amp;R</span><span class="s">Plan reviewed by Fable, Reddit agrees. You decide the switch after an old-vs-new review.</span></div>
   </div>
 
   <section>
@@ -137,6 +137,7 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
   <section>
     <div class="shead"><h2>Next priorities</h2><span class="src">CLAUDE_CONTEXT.md</span></div>
     <ol class="pri">
+      <li><span class="sev med">Next</span><strong>Simple support/resistance engine.</strong> Daily and weekly swing highs and lows, zones no wider than a normal day's move, nearest only, no invented levels. Not tested (a convention, like the breakout). Some stocks may flip between TRADE and No Trade, so you review old vs new on ~30 stocks before we switch.</li>
       <li><span class="sev med">Medium</span><strong>Two engine bugs logged Day 123:</strong> a missing RSI counts as a pass, and missing SPY data reads as a falling market. Each changes verdicts, so each needs a plan and the parity test.</li>
       <li><span class="sev med">Medium</span><strong>/api/stock keeps today's unfinished bar.</strong> Check first that a mid-day fetch really returns one; then use the same cut-off rule as the other routes. The header price already says "intraday, not a close" when it happens.</li>
       <li><span class="sev high">High</span>Per-ticker data tracking can't tell "never checked" from "just failed." Needs a written plan first.</li>
@@ -146,7 +147,7 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
   <section>
     <div class="shead"><h2>Redesign progress</h2><span class="src">ANALYZE_PAGE_REDESIGN_DECISIONS.md · per-step plans ANALYZE_REDESIGN_STEP4–8_PLAN_DAY123/124.md</span></div>
     <p class="note">One step at a time; you sign off on each before the next starts. Every step: a written plan reviewed by Fable, then the build, a code review and live checks. The verdict parity test must pass and no Simple Checklist criterion is added (Golden Rule 57). Backend changes are allowed when a card needs real data the API didn't send.</p>
-    <p class="note">What we're building toward: <a href="https://claude.ai/artifact/WacHXh9VioxQgzwsPGdX1X" target="_blank" rel="noopener">Mockup</a> (what the page will look like) · <a href="https://claude.ai/artifact/8ih9hWm6N8Sq6vy7VjHq6A" target="_blank" rel="noopener">Decision Map</a> (every decision and why). Both synced Nov 12 (Day 124): the redesign is complete.</p>
+    <p class="note">What we're building toward: <a href="https://claude.ai/artifact/WacHXh9VioxQgzwsPGdX1X" target="_blank" rel="noopener">Mockup</a> (what the page will look like) · <a href="https://claude.ai/artifact/8ih9hWm6N8Sq6vy7VjHq6A" target="_blank" rel="noopener">Decision Map</a> (every decision and why). Both synced Nov 12 (Day 125): includes today's cleanup.</p>
     <ol class="steps">
       <li><span class="num">1</span><div><div class="what"><strong>Fix the plan's text + record a baseline.</strong></div><div class="chk">Done Day 121. Parity 86,400/86,400; both UI scripts already timing out (predates the redesign).</div></div><span class="pill p-done">Done</span></li>
       <li><span class="num">2</span><div><div class="what"><strong>Helper functions.</strong> 4 display-only helpers.</div><div class="chk">Done Day 121, approved Nov 6.</div></div><span class="pill p-done">Done · approved</span></li>
@@ -155,12 +156,13 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
       <li><span class="num">5</span><div><div class="what"><strong>Mean-Reversion Read.</strong> The tested rules only.</div><div class="chk">Done Day 123. Found the PF 2.00 entry-basis error; re-tested at the next open: PF 1.50. Tells you if the tested open has already passed.</div></div><span class="pill p-done">Done</span></li>
       <li><span class="num">6</span><div><div class="what"><strong>Fundamentals card + removals.</strong> 3 red flags, P/E guide, next earnings.</div><div class="chk">Done Day 123. Fixed yfinance debt/equity units, ROE ≥100%, earnings off by one. Holding Period, Assessment Breakdown and BUY/HOLD/AVOID removed everywhere.</div></div><span class="pill p-done">Done</span></li>
       <li><span class="num">7</span><div><div class="what"><strong>Market backdrop + open on Full Analysis.</strong> Facts-only market card first; Simple says "No Trade".</div><div class="chk">Done Day 124. You dropped the Favorable/Unfavorable label: S&amp;P 500 and Nasdaq-100 trend, biggest recent drop, VIX. ETFs say "ETF". One VIX wording everywhere.</div></div><span class="pill p-done">Done</span></li>
+      <li><span class="num">9</span><div><div class="what"><strong>Cleanup: less to read.</strong> You went card by card.</div><div class="chk">Done Day 125. Nearest Resistance/Support only; Breakout on common trader rules (not tested); Price Structure, Pattern Detection, P/E guide and the MR track-record box removed. No in-app chart (decided).</div></div><span class="pill p-done">Done</span></li>
       <li><span class="num">8</span><div><div class="what"><strong>Tests + docs.</strong> Page checker rewritten; cleanup.</div><div class="chk">Done Day 124. 8 checks, 40/40 on five stocks, each check proven to catch its own break. One VIX sizing table. Header price now dated.</div></div><span class="pill p-done">Done</span></li>
     </ol>
   </section>
 
   <section>
-    <div class="shead"><h2>Open bugs, Medium and above</h2><span class="src">KNOWN_ISSUES_DAY124.md</span></div>
+    <div class="shead"><h2>Open bugs, Medium and above</h2><span class="src">KNOWN_ISSUES_DAY125.md</span></div>
     <ul class="bugs">
       <li><span class="sev high">High</span>Per-ticker provenance can't distinguish "never checked" from "just failed."</li>
       <li><span class="sev med">Medium</span>New Day 124: <code>/api/stock</code> doesn't drop today's unfinished bar, so a mid-day fetch may compute on a partial day.</li>
@@ -182,10 +184,10 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
       <table>
         <thead><tr><th>Day</th><th>Date</th><th>What happened</th></tr></thead>
         <tbody>
+          <tr><td class="n">125</td><td class="n">Nov 12</td><td>Analyze page trimmed, card by card. Trade Setup ends with the nearest Resistance and Support. Breakout uses common trader rules (a close above the 60-day high, 1.5× volume, no more than 5% above) and says "not tested". Price Structure, Pattern Detection, the P/E guide and the MR track-record box were removed. Simple S&amp;R engine planned, reviewed by Fable and checked against Reddit. No in-app chart. Golden Rule 63: one label, one number. v4.64 → v4.65.</td></tr>
           <tr><td class="n">124</td><td class="n">Nov 12</td><td>Analyze page redesign finished. The market card shows facts only (you dropped the verdict) and comes first; Full Analysis opens by default; "PASS" became "No Trade". One VIX wording on every screen. The page checker was rewritten and passes 40/40. Your AVGO question was a bounce, not a contradiction, and it showed the header price needed its date (fixed). Golden Rule 62: explain in simple English. v4.63 → v4.64.</td></tr>
           <tr><td class="n">123</td><td class="n">Nov 11–12</td><td>Redesign Steps 3–6 built: Regime, Technical, Mean-Reversion and Fundamentals cards and a hardened Trade Setup, each plan reviewed by Fable first. Mean reversion corrected from PF 2.00 to 1.50 (priced at the next open; Golden Rule 60). Fixed data-unit bugs: debt/equity, ROE, earnings days (Golden Rule 61). You removed Holding Period, the Assessment Breakdown and BUY/HOLD/AVOID. v4.62 → v4.63.</td></tr>
           <tr><td class="n">121–122</td><td class="n">Nov 5–10</td><td>Redesign Steps 1–2 done (plan text fixed, baseline, 4 helper functions not yet wired in). Technical Read card designed with you: 4 key trend checks plus a full-score line; checks 5–8 stay in the engine after the architect question (new Golden Rule 59 + a verdict parity hook). Volume check: TwelveData = Yahoo to the share; IBKR shows about half (filtered trades), prices identical.</td></tr>
-          <tr><td class="n">120</td><td class="n">Nov 2–4</td><td>Compared a Reddit swing-trading summary with STA (about 8 of 10 points match). Built the Leveraged ETF Board on your 8-fund IBKR watchlist (Canadian SOXL/GDXU, not the US ones; new Golden Rule 58). Built the Beginner Trading Starter Playbook for a friend. No app code changed.</td></tr>
         </tbody>
       </table>
     </div>
@@ -237,11 +239,11 @@ const ITEMS = [
   {g:"status", t:"Leveraged ETF Board", id:"HdErxTqUhq8KYs6McSU5V7", u:"Nov 2", s:"current", w:"Live IBKR data for the 8 funds on your AI_Leveraged watchlist (Canadian SOXL and GDXU, DRAL and others), counted against your adopted rules (trend, pullback, S&R, consolidation) plus background reads.", why:"Pulls fresh data each time you open it. Source: docs/claude/design/LEVERAGED_ETF_BOARD.html. Formulas match STA's Python (parity-checked Nov 2)."},
   {g:"explain", t:"Beginner Trading Starter Playbook", id:"CfnNDEEs8jS112MuTU4HPp", u:"Nov 4", s:"current", w:"8-tab beginner guide for a friend: trader types, US–Canada macro, Reddit rules, 100-year canon, coding rules, live data and gamification, and building it with Claude Code.", why:"Shared with anyone who has the link. Macro numbers are a Nov 3 snapshot, mostly from secondary sources; Canada 5Y is unchecked."},
   {g:"hist", t:"Swing Trading Starter Playbook (Claude Docs)", id:"LdDnS6HvtMi5GjQPao9Fpt", u:"Nov 3", s:"hist", w:"First version of the friend's playbook.", why:"Replaced by the Beginner Trading Starter Playbook."},
-  {g:"redesign", t:"Analyze Page Redesign: Decision Map", id:"8ih9hWm6N8Sq6vy7VjHq6A", u:"Nov 12", s:"current", w:"All redesign decisions mapped to the trading principles, with locked and open items.", why:"Gallery name: index. Synced Day 124: redesign complete (Steps 1–8); market label replaced by facts-only backdrop; Full Analysis default. Source: docs/claude/design/artifacts_src/decision_map/index.html. Update when a build step changes a decision's status."},
-  {g:"redesign", t:"Analyze Page Redesign: Mockup", id:"WacHXh9VioxQgzwsPGdX1X", u:"Nov 12", s:"current", w:"What the redesigned Analyze page looks like. A design, not the live app (all 8 steps now built to it).", why:"Gallery name: analyze_page_redesign_mockup. v0.16, Day 124: facts-only Market backdrop card first; MR open-basis PF 1.50; Holding Period and verdict removed. Source: docs/claude/design/mockups/analyze_page_redesign_mockup.html."},
+  {g:"redesign", t:"Analyze Page Redesign: Decision Map", id:"8ih9hWm6N8Sq6vy7VjHq6A", u:"Nov 12", s:"current", w:"All redesign decisions mapped to the trading principles, with locked and open items.", why:"Gallery name: index. Synced Day 125: item 11 simplified (Price Structure / Pattern Detection removed, nearest Resistance/Support, breakout on trader rules). Source: docs/claude/design/artifacts_src/decision_map/index.html. Update when a build step changes a decision's status."},
+  {g:"redesign", t:"Analyze Page Redesign: Mockup", id:"WacHXh9VioxQgzwsPGdX1X", u:"Nov 12", s:"current", w:"What the redesigned Analyze page looks like. A design, not the live app (all 8 steps now built to it).", why:"Gallery name: analyze_page_redesign_mockup. v0.17, Day 125: nearest Resistance/Support rows, Breakout card on trader rules; P/E guide and MR track record removed. Source: docs/claude/design/mockups/analyze_page_redesign_mockup.html."},
   {g:"redesign", t:"Fundamentals & Sentiment: Card Visual Design", id:"WEJYGp2cWK3EmfRZApfp2j", u:"Aug 22", s:"snap", w:"Mockup of the Fear & Greed gauge and the fundamentals red-flag card.", why:"The Fundamentals card was built Day 123 from the redesign mockup, not this page; this is the August design."},
-  {g:"audit", t:"Descriptive Cards: Who Actually Uses Them", id:"8w8jmqZh3bmDLfkRnSYYDZ", u:"Aug 22", s:"current", w:"Which strategy uses S&R, MTF Confluence, Price Structure, Pattern Detection and Breakout Status."},
-  {g:"audit", t:"Descriptive Cards: Industry-Standard Report Card", id:"RCE29bGhqJizBoMWAKuYnD", u:"Aug 22", s:"stale", w:"Grades five Analyze-page cards against real methodology.", why:"MTF Confluence (3/10) and the pattern price target (1.5/10) were both fixed on Day 118. The page still shows the old grades."},
+  {g:"audit", t:"Descriptive Cards: Who Actually Uses Them", id:"8w8jmqZh3bmDLfkRnSYYDZ", u:"Aug 22", s:"hist", w:"Which strategy uses S&R, MTF Confluence, Price Structure, Pattern Detection and Breakout Status.", why:"Day 125: Price Structure and Pattern Detection cards removed, breakout rules replaced. History only."},
+  {g:"audit", t:"Descriptive Cards: Industry-Standard Report Card", id:"RCE29bGhqJizBoMWAKuYnD", u:"Aug 22", s:"hist", w:"Grades five Analyze-page cards against real methodology.", why:"Day 125: two of the five cards were removed and breakout was rebuilt on simple rules. History only."},
   {g:"audit", t:"STA Data Provenance Map", id:"KTrLVAFTQdeqjRgfLQeqMm", u:"Sep 3", s:"snap", w:"Every tab and where its data comes from, field by field.", why:"Gallery name: prov-map. Accurate as of Day 112."},
   {g:"audit", t:"STA Audit Coverage Timeline", id:"Q1gv2e8T1Z8qYGgkWFDSAA", u:"Sep 3", s:"snap", w:"When each part of the app was last audited.", why:"Gallery name: audit-timeline. Accurate as of Day 112; Days 113–118 fixes not shown."},
   {g:"audit", t:"IBKR Web API: Market Data Field Availability", id:"WTPQEY2xuQt1FQ5sZvNgX5", u:"Jul 27", s:"snap", w:"Which IBKR market-data fields are actually available. Reference for the watchlist report."},

@@ -2,7 +2,7 @@
 
 > **Purpose:** A decision-making lens for judgment calls this project makes about trading logic — not a coding-style guide. GOLDEN_RULES.md governs *how Claude works*; this file governs *how Claude should think* when evaluating a threshold, a backtest result, a "can we speed this up" request, or any other call that touches the actual trading system.
 > **Created:** Day 95 (July 24, 2026) — user-requested, to make key trading decisions consistently rather than re-deriving judgment each session.
-> **Last Updated:** Day 124 (2026-11-12)
+> **Last Updated:** Day 125 (2026-11-12)
 > **Loaded:** At session start (`/sta-start`), alongside GOLDEN_RULES.md. Updated at session close (`/sta-end`) via the Feedback Log below — this file is meant to accumulate, not stay static.
 
 ---
@@ -106,6 +106,22 @@ reruns the 86,400-combo parity test and reports any mismatch immediately.
 ---
 
 ## Feedback Log (append-only, most recent session first)
+
+### Day 125
+**Accepted convention over proof, on purpose, and said so on the page.** The user wanted the
+breakout and support/resistance reads rebuilt on "what most traders agree on" and said
+backtesting them was a rabbit hole. That cuts against this persona's "first-principles, not
+folklore" trait, so it was weighed rather than waved through. It was accepted for three reasons.
+These cards describe a state and gate nothing, so the price of being wrong is a misleading label,
+not a lost trade. The project's one tested edge (MR) stays the only thing called an edge. And
+every such card now says "Common trader rules, not tested", so convention is never dressed up as
+proof. Where the rule did matter, it was applied: volume is judged on the breakout bar, not today;
+the pivot excludes the breakout bars; the levels' "N touches" became "near it on N days" because
+that is what the engine counts. **Second call: no chart in the app.** The user asked whether a
+chart would help or add decision fatigue, and how Claude would use it. Honest answer: Claude
+reads the numbers, and the user already reads charts in TradingView. A second chart is a second
+place to look and a new question when they disagree. **Lesson:** a veteran's tool should remove
+work from the decision, not add another screen to reconcile.
 
 ### Day 124
 **Reframed a "contradiction" as bounce vs trend.** The user saw AVGO up from ~$290 to ~$362 in a

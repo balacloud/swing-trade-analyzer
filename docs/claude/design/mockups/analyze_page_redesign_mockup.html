@@ -773,8 +773,8 @@
 <div class="page">
 
   <div class="meta-strip">
-    <span><b>MOCKUP</b> — Analyze Page Redesign<span class="meta-dot"></span>Day 109 decision log + Day 111 MR addition + Day 112 Volume read + Day 112 Regime copy synced to the Day 110 reversal + Day 121 R:R notes, Scan-tab line and MR numbers synced to current code + Day 122 Technical Read: 4 trend checks + plain-English timing and volume answers + Day 123 Steps 3–6 as built (MR open-basis PF 1.50, Holding Period and verdict removed) · no live data · for design review + Day 124 Step 7: Market backdrop card (facts only, first), Full Analysis default, No Trade wording</span>
-    <span>v0.16</span>
+    <span><b>MOCKUP</b> — Analyze Page Redesign<span class="meta-dot"></span>Day 109 decision log + Day 111 MR addition + Day 112 Volume read + Day 112 Regime copy synced to the Day 110 reversal + Day 121 R:R notes, Scan-tab line and MR numbers synced to current code + Day 122 Technical Read: 4 trend checks + plain-English timing and volume answers + Day 123 Steps 3–6 as built (MR open-basis PF 1.50, Holding Period and verdict removed) · no live data · for design review + Day 124 Step 7: Market backdrop card (facts only, first), Full Analysis default, No Trade wording + Day 125 cleanup: nearest Resistance/Support only, P/E guide and MR track record removed, Breakout on simple trader rules</span>
+    <span>v0.17</span>
   </div>
 
   <header class="app-header">
@@ -1212,12 +1212,6 @@
           </div>
         </div>
 
-        <div class="mr-record">
-          <span>Track record (forward test re-run at the next open):</span>
-          <span><span class="n">241</span> trades</span>
-          <span><span class="n">63.5%</span> wins</span>
-          <span><span class="n">1.50</span> profit factor</span>
-        </div>
       </div>
 
       <details class="formed">
@@ -1333,6 +1327,13 @@
         </div>
 
         <div class="ts-ref">Common rules of thumb, for reference: most traders want the reward to be at least <b>2×</b> the risk, and won't let a stop sit more than <b>7–8%</b> below their buy (O'Neil). This card doesn't judge; you do.</div>
+        <!-- Day 125: nearest support/resistance only (replaces S/R lists, MTF badge, Price Structure card) -->
+        <div class="ts-levels" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border-soft);font-size:0.875rem;display:grid;grid-template-columns:5.5rem 1fr;gap:4px 10px">
+          <span style="color:var(--text-faint)">Price is</span><span>Uptrend pulling back to support</span>
+          <span style="color:var(--text-faint)">Resistance</span><span><span class="num">$230.05 – $232.36</span> · 7.3% above · near it on 9 days <span style="color:var(--amber,#d4a017)">★ weekly</span></span>
+          <span style="color:var(--text-faint)">Support</span><span><span class="num">$214.32 – $216.48</span> · 4.2% below · near it on 14 days</span>
+          <span></span><span style="font-size:0.75rem;color:var(--text-muted)">Levels are zones (±0.5%) where price turned before. Common trader rules, not tested. At an all-time high: "No real resistance within 30% above; $X is a projected level, not a real one."</span>
+        </div>
       </div>
 
       <details class="formed">
@@ -1431,7 +1432,6 @@
             <div><div class="lbl"><span class="ok">✓</span> Profitable</div><div class="val">ROE 31.2%</div><div class="sub">flag if losing money (below 0%)</div></div>
             <div><div class="lbl"><span class="ok">✓</span> Debt</div><div class="val">D/E 0.41</div><div class="sub">flag if above 2.0</div></div>
           </div>
-          <div class="fd-pe"><div class="fd-pe-top"><span><span class="k">P/E guide</span><br><span class="v">38.2</span></span><span class="band">priced for growth</span></div><div class="pe-wrap"><div class="pe-strip"><span style="width:30%"></span><span style="width:20%"></span><span style="width:50%; border-right:none"></span></div><span class="pe-dot" style="left:76.4%"></span></div><div class="pe-lbl"><span style="left:15%">under 15</span><span style="left:40%">15–25</span><span style="left:75%">25+</span></div><div class="note">Investors pay $38 for each $1 of yearly profit. Context only, never a flag. For swing trades P/E doesn't predict the move (O'Neil); a high P/E mainly means bigger jumps on earnings.</div></div>
           <div class="fd-earn"><span><span class="k">Next earnings</span><br><span class="v">Nov 26 · in 15 days</span></span><span class="note">More than a week away. If you'll still hold on that date, the price can jump either way on the report.</span></div>
         </div>
 
@@ -1443,7 +1443,6 @@
             <div><div class="lbl"><span class="ok">✓</span> Profitable</div><div class="val">ROE 18.0%</div><div class="sub">flag if losing money (below 0%)</div></div>
             <div><div class="lbl"><span class="ok">✓</span> Debt</div><div class="val">D/E 0.85</div><div class="sub">flag if above 2.0</div></div>
           </div>
-          <div class="fd-pe"><div class="fd-pe-top"><span><span class="k">P/E guide</span><br><span class="v">14.1</span></span><span class="band">cheap</span></div><div class="pe-wrap"><div class="pe-strip"><span style="width:30%"></span><span style="width:20%"></span><span style="width:50%; border-right:none"></span></div><span class="pe-dot" style="left:28.2%"></span></div><div class="pe-lbl"><span style="left:15%">under 15</span><span style="left:40%">15–25</span><span style="left:75%">25+</span></div><div class="note">Investors pay $14 for each $1 of yearly profit. Cheap can also mean the market expects shrinking sales, like here. Context only, never a flag. For swing trades P/E doesn't predict the move (O'Neil); a high P/E mainly means bigger jumps on earnings.</div></div>
           <div class="fd-earn soon"><span><span class="k">Next earnings</span><br><span class="v">Nov 14 · in 3 days</span></span><span class="note">Within a week. The price can jump either way on the report, so decide before then whether to hold through it.</span></div>
         </div>
 
@@ -1455,7 +1454,6 @@
             <div class="gone"><div class="lbl">Profitable</div><div class="val muted">no data</div><div class="sub">not checked</div></div>
             <div class="gone"><div class="lbl">Debt</div><div class="val muted">no data</div><div class="sub">not checked</div></div>
           </div>
-          <div class="fd-pe"><div class="fd-pe-top"><span><span class="k">P/E guide</span><br><span class="v">no data</span></span><span class="band">not checked</span></div><div class="note">P/E comes from the same fundamentals feed, so it is missing too.</div></div>
           <div class="fd-earn"><span><span class="k">Next earnings</span><br><span class="v">Nov 26 · in 15 days</span></span><span class="note">Earnings dates come from a separate source, so they can still show.</span></div>
         </div>
 
@@ -1474,10 +1472,22 @@
           <p><b>Losing money (ROE below 0%):</b> a company losing money on its shareholders' equity. A plain fact that reads the same in every data source.</p>
           <p><b>Debt/Equity above 2.0:</b> heavy borrowing. Banks, utilities and REITs carry high debt by design, so a flag on those is weaker.</p>
           <p><b>Next earnings:</b> O'Neil and Minervini both avoid holding a fresh swing trade through an earnings report, because the price can gap far past any stop. Shown every time; highlighted when it falls within the next 7 days (the app's existing warning window).</p>
-          <p><b>P/E guide:</b> trailing P/E only (price ÷ the last 12 months of profit). The bands are the common rule of thumb: under 15 is Graham's "cheap", 15–25 is typical for the S&amp;P 500, above 25 means the market expects growth. O'Neil found the biggest winners often had high P/Es, so it is never a flag here. No P/E means the company is losing money.</p>
-          <p><b>Not here on purpose:</b> earnings growth (O'Neil's "C"), the canon's most important fundamental. STA's earnings field is a year-over-year growth rate, which swings wildly when last year's earnings were tiny, so it misleads as a red flag. Decided Day 119 to leave it out.</p>
+          <p><b>Not here on purpose:</b> P/E (removed Day 125: a normal P/E differs a lot by sector, and it doesn't predict a 2-week move; it's on the Value tab), and earnings growth (O'Neil's "C"), the canon's most important fundamental. STA's earnings field is a year-over-year growth rate, which swings wildly when last year's earnings were tiny, so it misleads as a red flag. Decided Day 119 to leave it out.</p>
         </div>
       </details>
+    </div>
+  </section>
+
+  <!-- ================= BREAKOUT (Day 125: simple trader rules, not tested) ================= -->
+  <section>
+    <div class="card" style="padding:16px 18px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap">
+        <span style="font-weight:600">🚀 Breakout</span>
+        <span class="tag tag-info">Near 60-day High</span>
+      </div>
+      <p style="margin:6px 0 2px">Within 3% under the 60-day high. Watch for a close above it on heavy volume.</p>
+      <p style="margin:0;font-size:0.8125rem;color:var(--text-muted)">60-day high $226.10 · close 0.58% below · Nov 11 close</p>
+      <p style="margin:6px 0 0;font-size:0.75rem;color:var(--text-faint)">Common trader rules, not tested: a close above the 60-day high (measured before the last 10 days), volume 1.5× normal or more, no more than 5% above. A stock that keeps climbing re-qualifies about every 10 days.</p>
     </div>
   </section>
 

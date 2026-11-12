@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 124 — 2026-11-12
+> **Last Updated:** Day 125 — 2026-11-12
 
 ---
 
@@ -11,15 +11,30 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 124 |
-| Version | v4.64 (Backend v2.53, Frontend v4.61) |
-| Latest Status | PROJECT_STATUS_DAY124_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY124.md |
-| Latest API | API_CONTRACTS_DAY124.md |
-| Focus | **Analyze Page Redesign complete (Day 124).** Market backdrop (facts only) first, Full Analysis default, page checker 40/40. MR is **PF 1.50 at the next open** (2.00 was close-priced). Next: the two logged engine bugs (RSI `\|\| 50`, missing SPY → Unfavorable) and `/api/stock`'s forming bar, each plan → Fable review → build. |
+| Current Day | 125 |
+| Version | v4.65 (Backend v2.54, Frontend v4.62) |
+| Latest Status | PROJECT_STATUS_DAY125_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY125.md |
+| Latest API | API_CONTRACTS_DAY125.md |
+| Focus | **Analyze cleanup done (Day 125):** nearest Resistance/Support only, breakout on simple trader rules (not tested), Price Structure / Pattern Detection / P/E guide / MR track record removed. **Next: build the simple S&R engine** (`SIMPLE_SR_PLAN_DAY125.md`, Fable GO), with an old-vs-new table on ~30 stocks before the user decides the switch. No in-app chart (decided). |
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 125 Summary (Analyze cleanup — v4.65, Golden Rule 63)
+- **Card by card, "does it help or just add words?" (user).** Trade Setup ends with the nearest
+  **Resistance** and **Support** (zone, "near it on N days", weekly ★; projected levels never
+  shown as real; one-line state fixed to use the nearest level). Removed: Price Structure, Pattern
+  Detection (the fetch stays because it feeds the verdict), P/E guide, MTF extras, MR track-record box.
+- **Breakout = widely agreed trader rules, not backtested** (user: rabbit hole): a close above the
+  60-day high measured before the last 10 days, volume 1.5× on the breakout day, ≤5% above.
+  Completed bars only, 7 states, no SPY. Fable caught the moving pivot ("Failed" on day 1) and
+  volume judged on the wrong day before build.
+- **Golden Rule 63:** one label, one number ("Ceiling" meant two prices; plan had two Buy prices).
+- **Simple S&R engine planned** (`SIMPLE_SR_PLAN_DAY125.md`): Fable GO, Reddit check agrees.
+  The switch waits for the user's old-vs-new review. **No in-app chart** (Claude reads numbers;
+  the user reads TradingView). PERSONA log entry.
+- Puppeteer's new headless mode hung on any `click()` late in the day; `headless: 'shell'` works.
 
 ### Day 124 Summary (Analyze Page Redesign complete — Steps 7–8, v4.64, Golden Rule 62)
 - **Step 7 (user decision: no market verdict):** the Regime band became the facts-only
@@ -55,23 +70,6 @@
 - **Data-unit bugs:** yfinance D/E in percent, ROE ≥100% shown as 1.5%, earnings days off by
   one. Golden Rule 61.
 - Two engine bugs logged, not fixed: RSI `|| 50` passes, missing SPY → Unfavorable.
-
-### Days 121–122 Summary (Analyze Page Redesign Steps 1–2 built, Technical Read card designed — no version bump, new Golden Rule 59)
-- **Day 121 (Nov 5–6), Phase 0 + Phase 1:** decision doc §6/§9 copy corrected (two blocks that
-  described bugs fixed Day 112/118); baseline: parity 86,400/86,400, both UI scripts time out
-  (pre-existing). 4 display-only helpers added, not imported: `deriveTechnicalRead`,
-  `screenFundamentalRedFlags`, `describeRegimeRead`, `getVixPositionMultiplier`. User approved.
-- **Day 122 (Nov 6–10), Technical Read card signed off (mockup v0.8):** 4 key trend checks
-  (200-day above + rising, above 50-day, within 25% of 52-week high — cutoff kept after canon +
-  Reddit check) plus a full-score line; "taking a breather" / "momentum n/a" wording; timing
-  ("Is now a good moment to get in?", vs the 21-day EMA) and volume ("Are buyers behind the
-  move?") as Info-only answers; "support" reserved for the Trade Setup card.
-- **Checks 5–8 stay in the engine.** Claude first suggested a frontend-only removal; the user's
-  architect question reversed it (the 7-of-8 rule lives in 4 places). New **Golden Rule 59**,
-  PERSONA "Architect's Lens", and a PostToolUse **verdict parity hook**
-  (`.claude/hooks/verdict_parity.sh`).
-- **Volume data check:** TwelveData = yfinance to the share; IBKR is 46–65% of that (filtered
-  trades), closes identical. STA's volume is the full count; never mix IBKR volume in.
 
 ## SCENARIO DETECTION
 
@@ -155,8 +153,12 @@ places and manages every trade themselves. Every item below is available to work
 pick deliberately based on what the user actually wants next, not backlog order.
 
 **Next up (each: plan → Fable review → build → sign-off):**
-0. ~~**Analyze Page Redesign (Priority #17).**~~ **DONE Day 124** (Steps 1–8). Run
-   `cd frontend && node scripts/ui-verify-checklist.js` after any Analyze-page change.
+0. **Simple S&R engine (Priority #18) — start here.** Plan: `SIMPLE_SR_PLAN_DAY125.md` §2,
+   with §8 (Fable fixes) and §9 (Reddit) overriding. Tests first (`test_simple_sr.py`, rewrite
+   `test_key_levels.mjs`), build `simple_sr.py` behind `SR_ENGINE`, then the ~30-stock table plus a
+   one-time SVG review page. **The user decides the switch**, then a Fable code review. Run
+   `cd frontend && node scripts/ui-verify-checklist.js` after any Analyze-page change (use
+   `headless: 'shell'` if it times out).
 0b. **Two engine bugs (Medium, Day 123):** `assessTechnical` RSI `|| 50` counts as a pass;
    `assessRiskMacro` treats missing SPY as below its 200-day. Each is a parity-tested JS +
    Python change (Golden Rule 59) that changes verdicts, so plan first.
@@ -320,6 +322,7 @@ sqlite3 backend/validation_results/paper_trading_ledger.db "SELECT MAX(run_date)
 | 112 | **Momentum Path B RETIRED** (150 closed, no live edge, ex-cluster PF 0.72) — stops generating signals, open positions wind down, row kept as history. **S&R `_pivot_sr` nearest-level fix (Golden Rule 53)** — the pivot method kept the most *extreme* levels, not the *nearest*; fixed behind `SRConfig.pivot_nearest_selection`; + BUG-A (★ confluence-badge key-format mismatch, ~10% of levels) + BUG-B (Price Structure showed deepest supports not nearest) + touch scoring restored on the pivot path. Verified live on META (R1 $612.43 / 0.3% above vs pre-fix ~$745). **Config C backtest re-baselined PF 0.97 → 0.53** on corrected levels — the old number was partly a bug artifact (R:R inflated by a far reward target); pre-registered "trades rise" prediction was wrong, logged (Golden Rule 56). PF 1.40 formally retired. Fix ships anyway — Config C is not a live track. Closes the "corrected-S&R momentum forward-test variant" question: NO. **Pattern targets** — Cup & Handle / Flat Base now measured-move (cup depth / base height), null when geometry missing; VCP flagged flat +15% pending Phase 4. New Golden Rule 55 (scoped Opus-plan-then-Sonnet-implement). New `--momentum-only` backtest flag; additive `meta.pivotSelection` API field. 4 stale artifacts repaired + 1 new (Forward-Test Track Board). Version constants were drifted (BE v2.47/FE v4.54) — corrected to v2.49/v4.56. v4.60→v4.61. |
 | 113-118 | Consolidated close (no formal `/sta-end` had run since Day 112). **Day 113:** paper-trading program DISCONTINUED entirely at the user's explicit direction — pure analysis/recommendation tool from here on, no IBKR execution, MR (broad) stands as the final confirmed result. **Day 116:** OBV `trend` sign bug fixed + a real, previously-unlogged partial-bar RVOL bug found and fixed same session (new `barComplete`/`prevBar` API fields) + a new same-day effort-vs-result volume read. **Day 117:** Antonacci's absolute-momentum leg surfaced as an informational read on both Analyze-page views, sourced from the real Day 107 backtest constant — new Golden Rule 57 after the Opus plan caught a near-miss that would have silently added a 10th criterion to the 9-criterion checklist. **Day 118:** completed the S&R fix chain — MTF Confluence's dead `strength` field is now a real graduated score with synthetic-level exclusion; VCP's flat +15% target replaced with real nearest-resistance/measured-contraction-depth. Every read this stretch verified as gating nothing. v4.61→v4.62 (BE v2.49→v2.51, FE v4.56→v4.59). |
 | 119 | Planning-only, no version bump. User challenged the shape of the post-Day-118 backlog (diminishing-returns audit items, no live gates left); agreed and re-scoped the Analyze Page Redesign (Priority #17) as the one bounded piece of real work remaining. Opus-planned re-verification of the Day 109 decision doc's own §7/§8 execution plan against six sessions of intervening code (Golden Rule 55): 17 decisions and phase structure hold; freeze-safety audit's conclusions survive but for new reasons (parity/backtest-comparability, not forward-test — the freeze itself ended Day 113); 9 corrections found, most importantly two blocks of prescribed on-card copy that described bugs already fixed (Day 112/118) and would have shipped as fabrications. New plan: `ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md`, go/no-go GO, not yet built. Zero application code touched. |
+| 125 | **Analyze cleanup:** nearest Resistance/Support only, breakout on trader rules (not tested, completed bars, 7 states), Price Structure / Pattern Detection / P/E guide / MR track record removed. Simple S&R engine planned + Fable-reviewed; no in-app chart. Golden Rule 63. v4.65. |
 | 124 | **Analyze Page Redesign complete** (Steps 7–8): facts-only Market backdrop first, Full Analysis default, No Trade wording, one VIX band, MR next-open on Forward Test, page checker rewritten (40/40), header price dated. Golden Rule 62. v4.64. |
 
 ---

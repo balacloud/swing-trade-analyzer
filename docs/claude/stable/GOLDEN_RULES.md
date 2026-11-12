@@ -2,13 +2,13 @@
 
 > **Purpose:** Core rules and cumulative lessons learned — stable reference
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 124 (2026-11-12)
+> **Last Updated:** Day 125 (2026-11-12)
 > **Session protocols:** See `CLAUDE_CONTEXT.md` for startup/close checklists
 > **Decision-making lens:** See `docs/claude/stable/PERSONA.md` for the trading-judgment persona (Golden Rule 34)
 
 ---
 
-## CORE RULES (59 Golden Rules)
+## CORE RULES (63 Golden Rules)
 
 1. **START of session:** Read PROJECT_STATUS_DAY[N].md first
 2. **BEFORE modifying any file:** READ it first using Read tool
@@ -108,6 +108,7 @@
 60. **A BACKTEST OR FORWARD-TEST RESULT MUST BE PRICED AT A FILL A PERSON COULD ACTUALLY GET. CHECK WHERE THE SIMULATOR ENTERS, NOT WHERE THE LEDGER SAYS IT ENTERED.** MR's forward test was quoted as PF 2.00 for weeks. The ledger recorded each entry at the open, but `daily_job.py` re-scored every trade through `simulate_mr_trade()`, which enters at the entry day's CLOSE (`mr_simulator.py:69`): a price nobody acting on the signal could get. Re-run on the same trades at the next open (`backtest/mr_open_entry_retest.py`), broad MR is **PF 1.50, 63.5% wins, +0.70%/trade**, and HUB-65 is PF 1.07 (break-even). It was caught by a Fable plan review only when the Analyze page was about to tell the user "buy at the open" next to a number earned at the close. **How to apply:** before quoting any system's result, open the simulator and find the line that sets the entry price. Confirm it is a price available after the signal (usually the next open), and that the shown plan uses the same entry. Re-run on the honest basis before quoting, and pre-register the expected change (Golden Rule 56). (Day 123, MR Read card)
 61. **NORMALIZE UNITS PER PROVIDER AT THE FIELD MAP, AND TEST THEM WITH VALUES ON BOTH SIDES OF 1.** The same field arrives in different units from different providers. yfinance reports debt/equity in percent (AAPL ≈154) where Finnhub and FMP give a ratio (1.54), and the orchestrator filled D/E from yfinance whenever Finnhub lacked it, so a healthy company could be flagged as heavily indebted. ROE/ROA converters multiplied by 100 only when `abs(v) < 1`, so a real ROE of 150% (1.5 as a decimal) displayed as "1.5%". Both also skewed `assessFundamental()`. A magnitude guess (`< 1` means decimal) fails exactly at the extremes that matter most. **How to apply:** convert unconditionally, per provider, in `providers/field_maps.py` (one place). Bump the cache schema version so cached wrong-unit values are discarded. Add a unit test with real-world values above and below 1 (`backtest/test_data_units.py`). When a card shows a provider number, show which provider supplied it. (Day 123, Fundamentals card)
 62. **TALK TO THE USER IN VERY SIMPLE ENGLISH, EVERY TIME.** Short sentences, everyday words. Say what you are doing and why in plain terms first; put file names, code and jargon after, only if needed. Explain any technical word in a few plain words the first time it appears. Progress updates are one or two simple lines ("I'm checking that the market numbers on screen match the data"), not a list of functions. **How to apply:** before sending, ask "would a non-programmer follow this?" If not, rewrite it simpler. (Day 124, user: "always use simple terms to explain, put this in golden rules going forward")
+63. **ONE LABEL, ONE NUMBER: A WORD OR PRICE ON THE PAGE MEANS ONE THING EVERYWHERE.** Fable caught this twice in one day. "Ceiling" meant Trade Setup's nearest resistance in one card and the breakout's 60-day high in another, two different prices for the same stock (RIVN $14.31 vs $17.16). And the first S&R plan would have shown two different Buy prices, because Trade Setup reads `max(support)` while the Simple Checklist reads `suggestedEntry`. A reader who sees the same word twice assumes it is the same number. **How to apply:** before adding a label or a price to a card, grep the page for the same word and for every other place that computes the same quantity. If two numbers differ, give them different names ("Resistance" vs "60-day high"), or make both read one source. Check badges, tooltips, skills and help text too, not only the card body. (Day 125, Analyze cleanup)
 
 ---
 
