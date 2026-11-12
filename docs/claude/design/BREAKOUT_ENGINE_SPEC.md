@@ -171,6 +171,14 @@ Warnings have priority over bullish states.
 
 ## 11. State Definitions and Priority Order
 
+> **SUPERSEDED Day 125.** The 8 states below (RS, candle-quality, ATR, supply gates) were
+> replaced by simple trader-consensus rules on completed daily bars, 7 states:
+> `FAILED_BREAKOUT` → `EXTENDED_CHASE_RISK` → `RETEST_ENTRY` → `BREAKOUT_CONFIRMED` →
+> `BREAKOUT_LIGHT_VOLUME` → `BREAKOUT_WATCH` → `NOT_READY`. `SUPPLY_WARNING` and
+> `BUILDING_BASE` no longer exist. Rules: `backend/breakout_detection.py` docstring; plan and
+> Fable review: `ANALYZE_CLEANUP_PLAN_DAY125.md` §7.1. Not backtested (user decision). The
+> §13/§15 rule still holds: a state, never a buy signal. Kept below as history.
+
 The engine returns exactly one status.
 
 Priority order:

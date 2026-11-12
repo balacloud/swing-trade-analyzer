@@ -23,12 +23,13 @@ const NAMES = {
   A8: 'Simple view badge',
   A9: 'Cards fit at 390px',
 };
-const ORDER = ['card-market-backdrop', 'card-stock-header', 'card-technical-read', 'card-mr-read', 'card-trade-setup', 'card-fundamentals'];
+const ORDER = ['card-market-backdrop', 'card-stock-header', 'card-technical-read', 'card-mr-read', 'card-trade-setup', 'card-fundamentals', 'card-breakout'];
 // A6 measures each card's BODY: the text below its title row and subtitle, which carry
 // data-card-head in the app (Fable code review #1: those alone are ~40-130 chars, so a
 // whole-card length test passed even when the body was empty).
 const MIN_BODY_TEXT = 20;
-// A card folded closed by design (data-collapsed="true", e.g. Price Structure) shows only
+// A card folded closed by design (data-collapsed="true"; Price Structure was the example until Day 125;
+// no card folds today, the branch is kept for future folded cards) shows only
 // its header; that header must still carry a status word beyond the title.
 const MIN_COLLAPSED_TEXT = 20;
 const norm = (s) => String(s ?? '').replace(/\s+/g, ' ').trim();

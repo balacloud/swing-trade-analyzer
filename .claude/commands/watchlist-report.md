@@ -171,7 +171,7 @@ For names that don't cleanly fit a theme cluster, research individually.
 ## Step 4: Bucket by readiness state, most-actionable-first
 
 Using Step 2's indicators, bucket every ticker into one of four states —
-same most-actionable-first convention as `breakout_detection.py`'s 8-state
+same most-actionable-first convention as `breakout_detection.py`'s state list (7 states since Day 125)
 engine, deliberately condensed to 4 here since these are diversified ETFs,
 not single stocks with pattern-level detail to report:
 

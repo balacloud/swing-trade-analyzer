@@ -67,7 +67,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 # /api/sectors/pullback-screen endpoint (SRPS discretionary screener).
 # Day 105: bumped to 2.46 for the new /api/sectors/sub-industry-pullback-screen
 # endpoint + the shared _srps_true_rs()/_srps_evaluate_candidate() refactor.
-BACKEND_VERSION = '2.53'
+BACKEND_VERSION = '2.54'
 
 # Day 116: market-hours test for "is /api/sr's last bar still forming?" Mirrors
 # paper_trading/live_signals.py's _prepare_ohlcv() guard (Day 99, Golden Rule 33 —
@@ -1751,11 +1751,9 @@ def get_support_resistance(ticker):
         # extra provider call (same precedent as the Day 85 volume/change fields,
         # "already available from the OHLCV frame fetched above"). closeLocation
         # is (close - low) / (high - low): 1.0 = closed at the high, 0.0 = closed
-        # at the low. Deliberately NOT imported from breakout_detection.py's
-        # candle_quality_ok — that gate answers a different question (it also
-        # requires body>=50%, upper wick<=35%, and range>=1.2x ATR) and reaching
-        # it would mean calling detect_breakout(), which needs its own SPY
-        # benchmark fetch. This is arithmetic, not shared logic.
+        # at the low. Plain arithmetic, not shared logic (breakout_detection.py
+        # had a candle-quality gate until Day 125; its simple rules no longer
+        # look at candle shape).
         last_high = float(df['high'].iloc[-1])
         last_low = float(df['low'].iloc[-1])
         last_open = float(df['open'].iloc[-1])

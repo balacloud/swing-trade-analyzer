@@ -329,7 +329,7 @@ export async function fetchScanResults(strategy = 'reddit', limit = 50, marketIn
  * One request for up to 20 tickers instead of one request per row.
  *
  * @param {string[]} tickers - up to 20 ticker symbols
- * @returns {object} - { results: { TICKER: { status, humanAction, breakoutLevel, rvol, checks, warnings } | { error } }, requested, benchmarkAvailable }
+ * @returns {object} - { results: { TICKER: { status, humanAction, breakoutLevel, rvol, asOfDate, source } | { error } }, requested }
  */
 export async function fetchBreakoutBatch(tickers) {
   try {
@@ -353,19 +353,24 @@ export async function fetchBreakoutBatch(tickers) {
 }
 
 /**
- * Single-ticker breakout status for the Analyze Stock page (Day 82).
- * Same 8-state engine as fetchBreakoutBatch, one ticker at a time.
+ * Single-ticker breakout status for the Analyze Stock page (Day 82; simple rules Day 125).
  * @param {string} ticker
- * @returns {object|null} - { status, humanAction, breakoutLevel, rvol, checks, warnings } or null on error
+ * @returns {object} - { status, humanAction, asOfDate, currentPrice, breakoutLevel, pctFromLevel,
+ *   breakoutDate, breakoutAge, rvol, ... } or { error } (Day 125: a failure is
+ *   returned as { error } so the card can say so, never null/hidden)
  */
 export async function fetchBreakout(ticker) {
   try {
     const response = await fetch(`${API_BASE_URL}/breakout/${ticker.toUpperCase()}`);
-    if (!response.ok) throw new Error(`Breakout fetch failed: ${response.status}`);
+    if (!response.ok) {
+      let msg = `HTTP ${response.status}`;
+      try { const body = await response.json(); msg = body.message || body.error || msg; } catch (_) { /* non-JSON body */ }
+      return { error: msg };
+    }
     return await response.json();
   } catch (error) {
     console.error('Error fetching breakout status:', error);
-    return null;
+    return { error: 'backend not reachable' };
   }
 }
 

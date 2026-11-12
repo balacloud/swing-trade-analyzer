@@ -6,9 +6,9 @@
  * target that were never the tested rule, and rendered nothing on loading,
  * error or no signal. Every rule number comes from the API's `rules`
  * (mean_reversion.MR_RULES); ✓/✗ come only from the backend's `conditions`
- * (None = input missing, shown as "no data", never as a fail). The track
- * record is the forward test re-run at the next open
- * (backtest/mr_open_entry_retest.py), matching the plan's "buy at the open".
+ * (None = input missing, shown as "no data", never as a fail). Day 125: the
+ * track record box was removed at the user's direction (less to read); it
+ * lives on the Forward Test tab. The API still returns `trackRecord`.
  */
 import React from 'react';
 import useMissingInputWarning from '../hooks/useMissingInputWarning';
@@ -48,44 +48,11 @@ function Shell({ children }) {
   );
 }
 
-function TrackRecord({ trackRecord }) {
-  if (!trackRecord?.variants?.length) {
-    return <div className="text-xs text-gray-500">Track record unavailable (see the server log).</div>;
-  }
-  const bt = trackRecord.backtest;
-  return (
-    <div className="text-xs text-gray-400 space-y-1.5">
-      <div className="text-gray-300 font-semibold">
-        Track record · forward test, {trackRecord.basis}
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {trackRecord.variants.map((v) => (
-          <div key={v.variant} className="rounded bg-gray-700/40 border border-gray-700 px-2.5 py-1.5">
-            <div className="text-gray-300">{v.label} <span className="text-gray-500">· {v.firstEntry} to {v.lastExit}</span></div>
-            <div className="font-mono text-gray-200">
-              {v.trades} trades · {v.winPct}% wins · PF {isNum(v.profitFactor) ? v.profitFactor.toFixed(2) : 'n/a (no losing trades)'}
-            </div>
-            <div className="text-gray-500">{v.avgPnlPct >= 0 ? '+' : ''}{v.avgPnlPct?.toFixed(2)}% average per trade</div>
-          </div>
-        ))}
-      </div>
-      {bt && (
-        <div>2020–2025 backtest ({bt.universe}, buying at the {bt.entry}): PF {bt.profitFactor.toFixed(2)}, {bt.note}.</div>
-      )}
-      <div className="text-gray-500">
-        Profit factor = dollars won ÷ dollars lost; 1.0 is break-even. These results are across many stocks, not this one,
-        from about ten weeks of mostly rising markets.
-      </div>
-    </div>
-  );
-}
-
 export default function MRRead({ mrData, loading, ticker }) {
   const missing = [];
   if (!loading && (!mrData || mrData.error)) missing.push(`couldn't check: ${mrData?.reason || mrData?.error || 'no response'}`);
   if (!loading && mrData && !mrData.error) {
     if (mrData.missing?.length) missing.push(`inputs missing: ${mrData.missing.join(', ')}`);
-    if (!mrData.trackRecord) missing.push('track record missing');
     if (!mrData.rules) missing.push('rules missing from response');
   }
   useMissingInputWarning('MRRead', ticker, missing);
@@ -107,7 +74,7 @@ export default function MRRead({ mrData, loading, ticker }) {
   }
 
   const { signal, rsi2, current_price: price, pct_above_sma200: pctAbove, avg_dollar_volume: dollarVol,
-    conditions = {}, rules, asOf, barDropped, trackRecord } = mrData;
+    conditions = {}, rules, asOf, barDropped } = mrData;
   const order = ['rsi2_oversold', 'above_200sma', 'price_filter', 'volume_filter'];
   const passing = order.filter((k) => conditions[k] === true).length;
   const unchecked = order.filter((k) => conditions[k] == null).length;
@@ -168,10 +135,6 @@ export default function MRRead({ mrData, loading, ticker }) {
         </div>
       )}
 
-      <div className="mt-4 pt-3 border-t border-gray-700">
-        <TrackRecord trackRecord={trackRecord} />
-      </div>
-
       <details className="mt-3 text-xs text-gray-400">
         <summary className="cursor-pointer text-blue-400">How this read was formed</summary>
         <div className="mt-2 space-y-2">
@@ -180,9 +143,8 @@ export default function MRRead({ mrData, loading, ticker }) {
             stock is above its 200-day average, so it doesn't buy a falling knife.</p>
           <p><b className="text-gray-300">The four rules:</b> RSI(2) below {rules.rsi2_entry}, close above the 200-day average, price above
             ${rules.price_min}, and average daily trading above {bigMoney(rules.dollar_volume_min)} (so you can get in and out cleanly). All four must pass.</p>
-          <p><b className="text-gray-300">About the numbers:</b> the forward test was first scored as if each trade was bought at the
-            entry day's close, which made it look better than it was. The track record above is the same trades re-run at the
-            next open, which is what you can actually do.</p>
+          <p><b className="text-gray-300">Track record:</b> on the Forward Test tab, re-run at the next open (what you can actually do).
+            It covers many stocks, not this one.</p>
           <p><b className="text-gray-300">Independent of the Technical Read:</b> a stock can be Strong there and show No signal here,
             or the other way round. They answer different questions, and neither gates the other.</p>
         </div>

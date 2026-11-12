@@ -132,8 +132,8 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
    - Provenance tracking (which provider supplied each data field)
    - ETF detection with special handling
 
-9. **Breakout Detection Engine** (Day 79-87)
-   - Standalone 8-state classifier: `NOT_READY`, `BUILDING_BASE`, `BREAKOUT_WATCH`, `BREAKOUT_CONFIRMED`, `RETEST_ENTRY`, `SUPPLY_WARNING`, `FAILED_BREAKOUT`, `EXTENDED_CHASE_RISK`
+9. **Breakout Detection Engine** (Day 79-87, simple rules Day 125)
+   - Common trader rules on completed daily bars, **not backtested**: a close above the 60-day high (measured before the last 10 days), volume on the breakout day 1.5× the 50-day average, no more than 5% above. 7 states, checked in this order: `FAILED_BREAKOUT`, `EXTENDED_CHASE_RISK`, `RETEST_ENTRY`, `BREAKOUT_CONFIRMED`, `BREAKOUT_LIGHT_VOLUME`, `BREAKOUT_WATCH`, `NOT_READY`. A state, never a buy signal
    - Per-ticker (`/api/breakout/<ticker>`) and batch (`/api/breakout/batch`, up to 20 tickers) endpoints
    - Breakout badge column on Scan tab results, breakout status on the Analyze page
    - `/breakout-watch` Claude skill for an EOD sweep across a watchlist
@@ -168,11 +168,9 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
     - **Sector Pullback Screener** — `/api/sectors/pullback-screen`, a discretionary screen (NOT an automated signal) surfacing strong names in Improving-quadrant sectors pulling back to their 21-EMA. Backed by a mechanical rule set that was fully backtested (survivorship-free, 2020-2025) and failed its own pre-registered bar (34.1% win rate, PF 1.177) — so it's shown purely as candidates for the user's own judgment, with a permanent disclaimer, not a live forward-test track. Collapsible section on the Sectors tab (Day 103)
     - **Sub-Sector Pullback Screener** — `/api/sectors/sub-industry-pullback-screen`, the same discretionary screen applied to the 21 Sub-Industry Watch clusters instead of the 11 broad sectors. This sub-industry universe has NOT been separately backtested — it's the already-failed rule set applied to a finer, untested universe, disclaimed accordingly. Collapsible section on the Sectors tab (Day 105)
 
-11. **Pattern Detection** (Day 44 - v4.2, refined Day 64)
-    - VCP (Volatility Contraction Pattern), Cup & Handle, Flat Base
-    - Minervini's 8-point Trend Template
-    - Pattern confidence scoring with actionability threshold (>= 60%)
-    - Breakout quality assessment (High/Medium/Low)
+11. **Pattern Detection** (Day 44 - v4.2, refined Day 64; card removed from the Analyze page Day 125)
+    - Backend `/api/patterns` still runs: Minervini's 8-point Trend Template feeds the verdict and the Technical Read
+    - VCP / Cup & Handle / Flat Base detection is no longer displayed (decision fatigue; never shown to make money)
 
 12. **Earnings Calendar Warning** (Day 49 - v4.10)
     - Flags stocks with earnings within 7 days
@@ -1180,16 +1178,24 @@ Manually force-runs the daily paper-trading job (catch-up after a missed schedul
 
 ### GET /api/breakout/\<ticker\>
 
-Returns one of 8 breakout states: `NOT_READY`, `BUILDING_BASE`, `BREAKOUT_WATCH`, `BREAKOUT_CONFIRMED`, `RETEST_ENTRY`, `SUPPLY_WARNING`, `FAILED_BREAKOUT`, `EXTENDED_CHASE_RISK`.
+Returns one of 7 states (Day 125 simple rules, completed daily bars only — today's unfinished bar is dropped until 16:30 ET): `FAILED_BREAKOUT`, `EXTENDED_CHASE_RISK`, `RETEST_ENTRY`, `BREAKOUT_CONFIRMED`, `BREAKOUT_LIGHT_VOLUME`, `BREAKOUT_WATCH`, `NOT_READY`.
 
 ```json
 {
   "ticker": "AAPL",
-  "status": "BREAKOUT_WATCH",
+  "status": "BREAKOUT_LIGHT_VOLUME",
+  "humanAction": "Closed above the 60-day high on light volume. Not confirmed.",
+  "asOfDate": "2026-11-11",
+  "currentPrice": 355.63,
+  "breakoutLevel": 351.73,
+  "pctFromLevel": 1.11,
+  "breakoutDate": "2026-11-11",
+  "breakoutAge": 0,
+  "rvol": 0.78,
   "dataPoints": 260,
-  "source": "twelvedata",
-  "benchmark": {"ticker": "SPY", "source": "twelvedata", "available": true},
-  "apiTimestamp": "2026-07-22T16:24:13Z"
+  "source": "DataProvider",
+  "barDropped": true,
+  "apiTimestamp": "2026-11-12T13:31:36"
 }
 ```
 
@@ -1599,7 +1605,7 @@ swing-trade-analyzer/
 │   ├── mean_reversion.py      # RSI(2) mean-reversion engine (Day 69-70)
 │   ├── scan_queries.py        # Shared TradingView query builder (live Scan tab + paper-trading engine)
 │   ├── breakout_routes.py     # Breakout API routes
-│   ├── breakout_detection.py  # 8-state breakout classifier
+│   ├── breakout_detection.py  # Simple-rules breakout state (7 states, Day 125)
 │   ├── constants.py           # Shared thresholds and configuration
 │   ├── cycles_engine.py       # FRED macro cycles (yield curve, FOMC, seasonal)
 │   ├── econ_engine.py         # FRED economic indicators (CPI, Fed funds)
@@ -1660,10 +1666,9 @@ swing-trade-analyzer/
 │   │   │   ├── ContextTab.jsx             # Context tab
 │   │   │   ├── ValueTab.jsx               # Value Investing tab (Day 75)
 │   │   │   ├── MarketPhaseBanner.jsx      # N4 Market Phase banner (Day 87)
-│   │   │   ├── PriceStructureCard.jsx     # Price Structure card (Day 72, 87)
 │   │   │   ├── AutomatedPaperTradingPanel.jsx # Paper-trading status panel (Day 88)
 │   │   │   ├── MRSignalCard.jsx           # Mean-reversion signal (Day 70)
-│   │   │   ├── PatternMiniCard.jsx        # Shared pattern-detection tile
+│   │   │   ├── KeyLevels.jsx              # Trade Setup floor/ceiling rows (Day 125)
 │   │   │   ├── AssessmentTile.jsx         # Shared categorical-assessment tile
 │   │   │   ├── CycleCard.jsx              # Context tab card (cycles/econ)
 │   │   │   ├── ArticleRow.jsx             # News article row
@@ -1672,7 +1677,7 @@ swing-trade-analyzer/
 │   │   └── utils/
 │   │       ├── categoricalAssessment.js  # v4.5 Categorical System
 │   │       ├── simplifiedScoring.js      # 9-criteria binary checklist
-│   │       ├── priceStructureNarrative.js # Price Structure narrative generation (Day 72)
+│   │       ├── keyLevels.js              # Nearest floor/ceiling + one-line price state (Day 125)
 │   │       ├── alignmentStyles.js        # Shared status→color/icon map (Day 93)
 │   │       ├── liquidityThresholds.js    # Unified liquidity threshold constants
 │   │       ├── riskRewardCalc.js         # Shared R:R utility

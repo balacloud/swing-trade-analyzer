@@ -1,3 +1,5 @@
+> **SUPERSEDED Day 125:** the Price Structure card was removed from the Analyze page (decision fatigue). Only its one-line state survives, in Trade Setup (`frontend/src/utils/keyLevels.js` `deriveStructureState`, nearest-level bug fixed). See `ANALYZE_CLEANUP_PLAN_DAY125.md`.
+
 # Audit Report: Price Structure Card Design Spec
 
 > **Audit Date:** March 30, 2026 (Day 72)

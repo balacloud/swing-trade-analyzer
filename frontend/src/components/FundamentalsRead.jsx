@@ -4,13 +4,14 @@
  *
  * Plan: docs/claude/design/ANALYZE_REDESIGN_STEP6_PLAN_DAY123.md (Fable-reviewed).
  * Facts, not a score: three red-flag checks from screenFundamentalRedFlags()
- * (thresholds from RED_FLAG_THRESHOLDS), a P/E guide that is never a flag,
- * and the next earnings date. Info only; gates nothing. A failed feed reads
+ * (thresholds from RED_FLAG_THRESHOLDS) and the next earnings date. The P/E
+ * guide was removed Day 125 (one scale across sectors misleads; P/E is on the
+ * Value tab). Info only; gates nothing. A failed feed reads
  * "Can't check", never "No red flags".
  */
 import React, { useMemo } from 'react';
 import { screenFundamentalRedFlags, RED_FLAG_THRESHOLDS } from '../utils/categoricalAssessment';
-import { describePE, describeEarnings, detectEtf, revenueBasis, describeSources, PE_GUIDE_BANDS, PE_EXTREME } from '../utils/fundamentalsRead';
+import { describeEarnings, detectEtf, revenueBasis, describeSources } from '../utils/fundamentalsRead';
 import { EARNINGS_WARNING_DAYS } from '../services/api';
 import useMissingInputWarning from '../hooks/useMissingInputWarning';
 
@@ -27,46 +28,6 @@ function Tile({ label, value, sub, flagged, checked, uncheckedNote = null }) {
       </div>
       <div className="font-mono text-gray-100 mt-0.5">{checked ? value : uncheckedNote ? 'not meaningful' : 'no data'}</div>
       <div className="text-xs text-gray-400 mt-0.5">{checked ? sub : uncheckedNote || 'not checked'}</div>
-    </div>
-  );
-}
-
-function PEGuide({ pe }) {
-  const d = describePE(pe);
-  if (d.state === 'not_reported') {
-    return <div className="text-sm text-gray-400">P/E not reported by the data feed.</div>;
-  }
-  if (d.state === 'negative') {
-    return <div className="text-sm text-gray-300">P/E is negative: the company's trailing 12-month earnings are negative.</div>;
-  }
-  // Strip spans 0-40; anything above is pinned to the right end.
-  const pos = Math.min(100, (d.pe / 40) * 100);
-  return (
-    <div>
-      <div className="flex justify-between items-baseline">
-        <span className="text-sm text-gray-300">P/E guide</span>
-        <span className="font-mono text-gray-100">
-          {d.state === 'extreme' ? `>${PE_EXTREME}` : d.pe.toFixed(1)}{' '}
-          <span className="font-sans text-xs text-gray-400">{d.band.label}</span>
-        </span>
-      </div>
-      <div className="relative h-2 mt-2 rounded-full flex overflow-visible">
-        <span className="h-full bg-gray-600 rounded-l-full" style={{ width: `${(15 / 40) * 100}%` }} />
-        <span className="h-full bg-gray-500" style={{ width: `${(10 / 40) * 100}%` }} />
-        <span className="h-full bg-gray-600 rounded-r-full" style={{ width: `${(15 / 40) * 100}%` }} />
-        <span className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white border-2 border-gray-900" style={{ left: `${pos}%` }} />
-      </div>
-      <div className="flex text-[10px] text-gray-500 mt-1">
-        <span style={{ width: `${(15 / 40) * 100}%` }}>under {PE_GUIDE_BANDS[0].max}</span>
-        <span style={{ width: `${(10 / 40) * 100}%` }}>{PE_GUIDE_BANDS[0].max}–{PE_GUIDE_BANDS[1].max}</span>
-        <span>{PE_GUIDE_BANDS[1].max}+</span>
-      </div>
-      <div className="text-xs text-gray-400 mt-1">
-        {d.state === 'extreme'
-          ? 'Earnings are close to zero, so the ratio is huge and says little.'
-          : `Investors pay $${Math.round(d.pe)} for each $1 of yearly profit.`}
-        {' '}Context only, never a flag: for swing trades P/E doesn't predict the move (O'Neil); a high P/E mainly means bigger jumps on earnings.
-      </div>
     </div>
   );
 }
@@ -164,14 +125,6 @@ export default function FundamentalsRead({ ticker, fundamental, rawFundamentals,
         </div>
       )}
 
-      {state !== 'not_applicable' && (
-        <div className="mt-4">
-          {state === 'unavailable'
-            ? <div className="text-sm text-gray-400">P/E comes from the same fundamentals feed, so it is missing too.</div>
-            : <PEGuide pe={rawFundamentals?.pe} />}
-        </div>
-      )}
-
       <div className="mt-4">
         <EarningsRow earnings={earnings} />
         {state === 'unavailable' && <div className="text-xs text-gray-500 mt-1">Earnings dates come from a separate source, so they can still show.</div>}
@@ -196,10 +149,9 @@ export default function FundamentalsRead({ ticker, fundamental, rawFundamentals,
             REITs carry high debt by design, so a flag on those is weaker.</p>
           <p><b className="text-gray-300">Next earnings:</b> O'Neil and Minervini avoid holding a fresh swing trade through a report, because the price
             can gap far past any stop. Highlighted within the app's {EARNINGS_WARNING_DAYS}-day earnings warning window.</p>
-          <p><b className="text-gray-300">P/E guide:</b> trailing P/E (price ÷ the last 12 months of earnings). Under 15 is Graham's "cheap", 15–25 is
-            typical for the S&amp;P 500, above 25 means the market expects growth. Never a flag.</p>
-          <p><b className="text-gray-300">Left out on purpose:</b> earnings growth (O'Neil's "C"). STA's field is a year-over-year rate that swings
-            wildly when last year's earnings were tiny, so it misleads as a red flag (Day 119).</p>
+          <p><b className="text-gray-300">Left out on purpose:</b> earnings growth (O'Neil's "C"): STA's field is a year-over-year rate that swings
+            wildly when last year's earnings were tiny, so it misleads as a red flag (Day 119). P/E: a normal P/E differs a lot by sector
+            (a bank near 10, software near 40), and it doesn't predict a 2-week move. P/E is on the Value tab.</p>
         </div>
       </details>
     </div>

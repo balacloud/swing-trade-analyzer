@@ -13,7 +13,7 @@
  * backtest_holistic.py's VOLUME_CONFIRM_RATIO. Those are separate Python
  * literals (frontend/backend can't share a JS module), so this is the single
  * frontend definition — previously duplicated as a module-local constant
- * inside priceStructureNarrative.js, now centralized here (same reason
+ * inside priceStructureNarrative.js (the Price Structure card, removed Day 125), now centralized here (same reason
  * liquidityThresholds.js exists: Day 83, one place instead of drifting
  * copies).
  *

@@ -4,7 +4,7 @@ Flask route registration for STA Breakout Detection.
 This module is intentionally thin and follows the STA backend pattern:
 - fetch OHLCV with DataProvider first
 - fall back to yfinance when needed
-- fetch SPY benchmark when available for RS check
+- drop today's forming bar (Day 125: rules judge completed daily closes)
 - call breakout_detection.detect_breakout()
 - return transparent JSON without inventing fallback values
 
@@ -22,7 +22,7 @@ from typing import Any, Callable, Optional
 import pandas as pd
 from flask import jsonify, request
 
-from breakout_detection import detect_breakout
+from breakout_detection import detect_breakout, prepare_breakout_frame, MIN_BARS
 
 # Day 81 (Breakout Enhancement Plan Task 2.1): hard cap on /api/breakout/batch
 # to protect provider rate limits — mirrors the plan's explicit instruction.
@@ -57,13 +57,6 @@ def _fetch_ohlcv(
     return hist, source or "unknown"
 
 
-def _normalize_ohlcv_columns(hist: pd.DataFrame) -> pd.DataFrame:
-    """Normalize OHLCV DataFrame columns to lowercase for breakout engine."""
-    out = hist.copy()
-    out.columns = [str(c).lower() for c in out.columns]
-    return out
-
-
 def register_breakout_routes(
     app,
     get_data_provider: Optional[Callable[[], Any]],
@@ -75,17 +68,11 @@ def register_breakout_routes(
     @app.route('/api/breakout/<ticker>', methods=['GET'])
     def get_breakout_status(ticker):
         """
-        Get STA breakout state for a ticker.
+        Get STA breakout state for a ticker (simple trader rules, Day 125).
 
-        Returns one of:
-        - NOT_READY
-        - BUILDING_BASE
-        - BREAKOUT_WATCH
-        - BREAKOUT_CONFIRMED
-        - RETEST_ENTRY
-        - SUPPLY_WARNING
-        - FAILED_BREAKOUT
-        - EXTENDED_CHASE_RISK
+        Status is one of: FAILED_BREAKOUT, EXTENDED_CHASE_RISK, RETEST_ENTRY,
+        BREAKOUT_CONFIRMED, BREAKOUT_LIGHT_VOLUME, BREAKOUT_WATCH, NOT_READY.
+        See breakout_detection.py for the rules.
         """
         try:
             ticker_symbol = ticker.upper()
@@ -102,47 +89,22 @@ def register_breakout_routes(
             if hist is None or hist.empty:
                 return jsonify({'error': f'No data found for {ticker_symbol}'}), 404
 
-            hist = _normalize_ohlcv_columns(hist)
+            hist, dropped = prepare_breakout_frame(hist)
 
-            if len(hist) < 80:
+            if len(hist) < MIN_BARS:
                 return jsonify({
                     'error': f'Insufficient data for {ticker_symbol}',
-                    'message': f'Need at least 80 bars, got {len(hist)}'
+                    'message': f'Need at least {MIN_BARS} completed bars, got {len(hist)}'
                 }), 400
 
-            # Benchmark: SPY for U.S. equities in v1. Canadian benchmark unresolved.
-            benchmark = None
-            benchmark_source = None
-            try:
-                benchmark, benchmark_source = _fetch_ohlcv(
-                    ticker='SPY',
-                    period='2y',
-                    get_data_provider=get_data_provider,
-                    yf_module=yf_module,
-                    data_provider_available=data_provider_available,
-                )
-                if benchmark is not None and not benchmark.empty:
-                    benchmark = _normalize_ohlcv_columns(benchmark)
-            except Exception as e:
-                print(f"⚠️ Benchmark fetch failed for breakout RS check: {e}")
-                benchmark = None
-                benchmark_source = None
-
-            result = detect_breakout(
-                ohlcv=hist.tail(260),
-                ticker=ticker_symbol,
-                benchmark_ohlcv=benchmark.tail(260) if benchmark is not None and not benchmark.empty else None,
-            )
+            frame = hist.tail(260)
+            result = detect_breakout(frame, ticker=ticker_symbol)
 
             # Keep API flat and explicit. Do not fake missing values.
             result['ticker'] = ticker_symbol
-            result['dataPoints'] = int(len(hist.tail(260)))
+            result['dataPoints'] = int(len(frame))
             result['source'] = source
-            result['benchmark'] = {
-                'ticker': 'SPY',
-                'source': benchmark_source,
-                'available': bool(benchmark is not None and not benchmark.empty)
-            }
+            result['barDropped'] = bool(dropped)
             result['apiTimestamp'] = datetime.now().isoformat()
 
             print(f"✅ Breakout {ticker_symbol}: {result.get('status')} | source={source}")
@@ -183,23 +145,6 @@ def register_breakout_routes(
                     'error': f'Max {BATCH_TICKER_LIMIT} tickers per batch request, got {len(tickers)}'
                 }), 400
 
-            # Benchmark fetched once, reused across all tickers (cache-first —
-            # same _fetch_ohlcv path as the single-ticker route above).
-            benchmark = None
-            try:
-                benchmark, _bsource = _fetch_ohlcv(
-                    ticker='SPY',
-                    period='2y',
-                    get_data_provider=get_data_provider,
-                    yf_module=yf_module,
-                    data_provider_available=data_provider_available,
-                )
-                if benchmark is not None and not benchmark.empty:
-                    benchmark = _normalize_ohlcv_columns(benchmark)
-            except Exception as e:
-                print(f"⚠️ Benchmark fetch failed for breakout batch: {e}")
-                benchmark = None
-
             results: dict[str, Any] = {}
             # Sequential, not parallel: reuses the same provider rate-limiter
             # path as every other STA endpoint — no established backend
@@ -218,18 +163,14 @@ def register_breakout_routes(
                         results[ticker_symbol] = {'error': f'No data found for {ticker_symbol}'}
                         continue
 
-                    hist = _normalize_ohlcv_columns(hist)
-                    if len(hist) < 80:
+                    hist, _dropped = prepare_breakout_frame(hist)
+                    if len(hist) < MIN_BARS:
                         results[ticker_symbol] = {
-                            'error': f'Insufficient data for {ticker_symbol} (need 80+ bars, got {len(hist)})'
+                            'error': f'Insufficient data for {ticker_symbol} (need {MIN_BARS}+ completed bars, got {len(hist)})'
                         }
                         continue
 
-                    result = detect_breakout(
-                        ohlcv=hist.tail(260),
-                        ticker=ticker_symbol,
-                        benchmark_ohlcv=benchmark.tail(260) if benchmark is not None and not benchmark.empty else None,
-                    )
+                    result = detect_breakout(hist.tail(260), ticker=ticker_symbol)
                     # Flat, explicit subset per Task 2.1's design — full detail
                     # remains available via the single-ticker route.
                     results[ticker_symbol] = {
@@ -237,8 +178,7 @@ def register_breakout_routes(
                         'humanAction': result.get('humanAction'),
                         'breakoutLevel': result.get('breakoutLevel'),
                         'rvol': result.get('rvol'),
-                        'checks': result.get('checks'),
-                        'warnings': result.get('warnings'),
+                        'asOfDate': result.get('asOfDate'),
                         'source': source,
                     }
                 except ValueError as e:
@@ -250,7 +190,6 @@ def register_breakout_routes(
             return jsonify({
                 'results': results,
                 'requested': len(tickers),
-                'benchmarkAvailable': bool(benchmark is not None and not benchmark.empty),
                 'apiTimestamp': datetime.now().isoformat(),
             })
 

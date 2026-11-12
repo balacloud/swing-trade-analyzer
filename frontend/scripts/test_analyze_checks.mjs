@@ -43,7 +43,8 @@ const DOM = {
     { id: 'card-mr-read', text: '🔄 Mean-Reversion Read ⚙ FORWARD-TESTED A separate question ... No signal today: RSI(2) is 54', bodyText: 'No signal today: RSI(2) is 54, the rule needs below 10' },
     { id: 'card-trade-setup', text: '🎯 Trade Setup ⚙ LEVELS The pullback plan ... Buy $262.10  Stop $250.40', bodyText: 'Buy $262.10  Stop $250.40  Target $281.00  1.6 : 1' },
     { id: 'card-fundamentals', text: '🏢 Fundamentals ◇ INFO Is the business behind the stock in trouble? No red flags.', bodyText: 'No red flags. Next earnings 2027-01-29 · in 78 days' },
-    { id: 'card-price-structure', text: '▼Price StructureUptrend Higher highs and higher lows over the last 60 sessions', bodyText: 'Higher highs and higher lows over the last 60 sessions', collapsed: false },
+    { id: 'card-breakout', text: '🚀 Breakout Not Ready More than 3% under the 60-day high.', bodyText: 'More than 3% under the 60-day high. 60-day high $280.00 · close 3.2% below' },
+    { id: 'card-example-collapsible', text: '▼Example CardUptrend Higher highs and higher lows over the last 60 sessions', bodyText: 'Higher highs and higher lows over the last 60 sessions', collapsed: false },
   ],
   header: 'AAPL - Apple Inc. Technology • Consumer Electronics $271.00',
   shortTexts: [{ text: '$271.00', card: 'card-stock-header' }, { text: 'INFO', card: 'card-market-backdrop' }, { text: 'BUY', card: 'card-trade-setup' }],
@@ -181,11 +182,11 @@ mustPass('A6', 'short but real body ("Couldn\'t load …") counts', d => {
   d.cards.find(x => x.id === 'card-mr-read').bodyText = "Couldn't load the dip rules (no response)";
 });
 mustFail('A6', 'no cards found', d => { d.cards = []; });
-mustPass('A6', 'collapsed card showing title + status word (RIVN Price Structure)', d => {
-  const c = d.cards.find(x => x.id === 'card-price-structure'); c.text = '▶Price StructureDowntrend'; c.bodyText = ''; c.collapsed = true;
+mustPass('A6', 'collapsed card showing title + status word (RIVN Example Card)', d => {
+  const c = d.cards.find(x => x.id === 'card-example-collapsible'); c.text = '▶Example CardDowntrend'; c.bodyText = ''; c.collapsed = true;
 });
 mustFail('A6', 'collapsed card with only its title', d => {
-  const c = d.cards.find(x => x.id === 'card-price-structure'); c.text = '▶Price Structure'; c.bodyText = ''; c.collapsed = true;
+  const c = d.cards.find(x => x.id === 'card-example-collapsible'); c.text = '▶Example Card'; c.bodyText = ''; c.collapsed = true;
 });
 
 // ---------- A8 Simple badge ----------

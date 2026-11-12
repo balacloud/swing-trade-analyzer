@@ -3,6 +3,9 @@ indicator("STA Breakout Companion — Human-in-the-Loop v2", overlay=true, max_l
 
 // -----------------------------------------------------------------------------
 // STA Breakout Companion v2
+// NOTE (Day 125): STA's Python breakout_detection.py no longer mirrors this
+// script. It moved to simple trader rules (close above the 60-day high,
+// volume 1.5x, no more than 5% above). This file is kept as history.
 // Purpose: Visual TradingView companion for Swing Trade Analyzer (STA).
 // This is NOT a standalone trading system. It is a charting/alert layer that
 // helps a human review breakout candidates before sending screenshots to Claude/GPT.

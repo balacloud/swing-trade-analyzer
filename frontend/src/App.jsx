@@ -42,7 +42,7 @@ import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchSc
 import { calculateScore } from './utils/scoringEngine';
 import { calculateSimplifiedAnalysis } from './utils/simplifiedScoring';
 import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings, getVixPositionMultiplier } from './utils/positionSizing';
-import { runCategoricalAssessment, getActionablePatterns } from './utils/categoricalAssessment';
+import { runCategoricalAssessment } from './utils/categoricalAssessment';
 import { describePriceAsOf } from './utils/priceAsOf'; // Day 124: header price date label
 import PullbackPlan from './components/PullbackPlan'; // Day 123: redesign Step 3, Trade Setup pullback plan
 import RegimeRead from './components/RegimeRead'; // Day 123: redesign Step 4
@@ -58,11 +58,10 @@ import SectorRotationTab from './components/SectorRotationTab'; // Day 62: v4.24
 import ContextTab from './components/ContextTab'; // Day 62: v4.24 Context Tab
 import ValueTab from './components/ValueTab'; // Day 75: Value investing lens
 import MRRead from './components/MRRead'; // Day 123: redesign Step 5 (replaces MRSignalCard)
-import PatternMiniCard from './components/PatternMiniCard'; // Day 83: shared VCP/Cup&Handle/Flat Base tile
 import FundamentalsRead from './components/FundamentalsRead'; // Day 123: redesign Step 6
-import PriceStructureCard from './components/PriceStructureCard'; // Day 72: Price Structure narrative
+import KeyLevels from './components/KeyLevels'; // Day 125: nearest floor/ceiling
+import { fmtDate } from './utils/marketBackdrop';
 import AutomatedPaperTradingPanel from './components/AutomatedPaperTradingPanel'; // Day 87: automated engine ledger status + manual trigger
-import { generatePriceStructure } from './utils/priceStructureNarrative'; // Day 72
 import {
   createTrade, closeTrade, calculateStatistics, getSQNRating,
   loadTrades, saveTrades, addTrade, updateTrade, deleteTrade,
@@ -89,7 +88,6 @@ function App() {
   const [analysisResult, setAnalysisResult] = useState(null);
   const [srData, setSrData] = useState(null);
   const [patternsData, setPatternsData] = useState(null); // Day 44: Pattern detection
-  const [actionablePatternsData, setActionablePatternsData] = useState(null); // Day 47: Actionable patterns ≥60%
   const [earningsData, setEarningsData] = useState(null); // Day 49: v4.10 Earnings Calendar
   const [categoricalResult, setCategoricalResult] = useState(null); // Day 44: v4.5 Categorical Assessment
   const [rawAnalysisData, setRawAnalysisData] = useState(null); // Day 53: Stored for re-assessment on period change
@@ -106,7 +104,6 @@ function App() {
   // Day 83 fix (Task E3): identifies the most recent Scan tab request, see
   // loadBreakoutBadges()/runScan() below.
   const scanRequestIdRef = useRef(0);
-  const [priceStructure, setPriceStructure] = useState(null); // Day 72: Price Structure narrative
 
   // Forward Testing state (Day 47: v4.7)
   const [forwardTrades, setForwardTrades] = useState(() => loadTrades());
@@ -131,7 +128,7 @@ function App() {
   const [selectedMarketIndex, setSelectedMarketIndex] = useState('all');
 
   // Breakout badges (Day 81, Breakout Enhancement Plan Task 2.2)
-  // ticker -> { status, humanAction, breakoutLevel, rvol, checks, warnings } | { error }
+  // ticker -> { status, humanAction, breakoutLevel, rvol, asOfDate, source } | { error }
   const [breakoutBadges, setBreakoutBadges] = useState({});
   const [breakoutBadgesLoading, setBreakoutBadgesLoading] = useState(false);
   // Set of tickers actually included in the last batch request (the top-20 slice),
@@ -168,7 +165,7 @@ function App() {
   const [refreshMessage, setRefreshMessage] = useState(null); // Feedback message
 
   // Day 70: Collapsible sections for progressive disclosure (simplicity premium)
-  // Keys: 'priceRS', 'patterns' (Day 123: holdingPeriod/categorical/indicators sections removed)
+  // Keys: 'priceRS' (Day 123: holdingPeriod/categorical/indicators removed; Day 125: patterns/priceStructure removed)
   // Default: all collapsed (undefined = falsy = collapsed)
   const [expandedSections, setExpandedSections] = useState({});
   const toggleSection = (key) => setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }));
@@ -402,7 +399,6 @@ function App() {
     setCategoricalResult(null);
     setSimplifiedResult(null);
     setMrSignalData(null);
-    setPriceStructure(null);
     setBreakoutData(null);
     setActiveTab('analyze');
 
@@ -431,7 +427,7 @@ function App() {
         if (latestTickerRequestRef.current === targetTicker) setBreakoutData(data);
       })
       .catch(() => {
-        if (latestTickerRequestRef.current === targetTicker) setBreakoutData(null);
+        if (latestTickerRequestRef.current === targetTicker) setBreakoutData({ error: 'request failed' });
       })
       .finally(() => {
         if (latestTickerRequestRef.current === targetTicker) setBreakoutLoading(false);
@@ -465,28 +461,11 @@ function App() {
       setSrData(data.sr);
       setPatternsData(data.patterns); // Day 44: Pattern detection
 
-      // Day 47: v4.6.2 - Calculate actionable patterns (≥60% confidence only)
-      const atr = data.sr?.meta?.atr || null;
-      // Day 118 (Phase 4): pass the local `data.sr`, NOT the `srData` state
-      // variable — setSrData() two lines above is async, so reading `srData`
-      // here in the same synchronous block risks the pre-update stale value.
-      // `data.sr` is the just-fetched payload, already resolved.
-      const actionablePatterns = getActionablePatterns(data.patterns, atr, data.sr);
-      setActionablePatternsData(actionablePatterns);
-
       // Day 123: Fear & Greed is no longer displayed (Assessment Breakdown removed); it still
       // reaches runCategoricalAssessment above via data.fearGreed.
       setEarningsData(data.earnings); // Day 49: v4.10 Earnings Calendar
       setCategoricalResult(categorical); // Day 44: v4.5 Categorical Assessment
 
-      // Day 72: Price Structure narrative (display-only, no verdict impact)
-      // Day 83 fix (Task A3): pass BOTH the raw patterns payload (still needed for
-      // trendTemplate) AND the computed actionablePatterns.actionablePatterns array —
-      // priceStructureNarrative.js's Priority-5 "pattern forming" watch item was
-      // reading patterns?.actionablePatterns, a field that only exists on
-      // getActionablePatterns()'s frontend-computed result, never on the raw API
-      // payload. Passing just the raw payload meant that watch item could never fire.
-      setPriceStructure(generatePriceStructure(data.sr, data.patterns, actionablePatterns.actionablePatterns));
       setSimplifiedResult(simplified);
       setTicker(targetTicker);
 
@@ -531,11 +510,11 @@ function App() {
   // "Muted" treatment) instead of hidden entirely — hiding it was
   // indistinguishable from the breakout check having failed/not run at all.
   const BREAKOUT_BADGE_CONFIG = {
+    // Day 125: simple trader rules (breakout_detection.py); BUILDING_BASE/SUPPLY_WARNING removed.
     BREAKOUT_CONFIRMED: { label: 'Breakout Confirmed', color: 'bg-green-900/40 text-green-400 border-green-700' },
-    RETEST_ENTRY: { label: 'Retest Entry', color: 'bg-blue-900/40 text-blue-400 border-blue-700' },
-    BREAKOUT_WATCH: { label: 'Breakout Watch', color: 'bg-amber-900/40 text-amber-400 border-amber-700' },
-    BUILDING_BASE: { label: 'Building Base', color: 'bg-gray-700/40 text-gray-400 border-gray-600' },
-    SUPPLY_WARNING: { label: 'Supply Warning', color: 'bg-red-900/40 text-red-400 border-red-700' },
+    RETEST_ENTRY: { label: 'Retest Holding', color: 'bg-blue-900/40 text-blue-400 border-blue-700' },
+    BREAKOUT_LIGHT_VOLUME: { label: 'Breakout, Light Volume', color: 'bg-amber-900/40 text-amber-300 border-amber-700' },
+    BREAKOUT_WATCH: { label: 'Near 60-day High', color: 'bg-amber-900/40 text-amber-400 border-amber-700' },
     FAILED_BREAKOUT: { label: 'Failed Breakout', color: 'bg-red-900/40 text-red-400 border-red-700' },
     EXTENDED_CHASE_RISK: { label: 'Extended', color: 'bg-orange-900/40 text-orange-400 border-orange-700' },
     NOT_READY: { label: 'Not Ready', color: 'bg-gray-800/40 text-gray-500 border-gray-700' },
@@ -1320,117 +1299,9 @@ function App() {
                     <p data-card-head className="text-sm text-gray-400 mb-4">The pullback plan: wait for a dip to support, then buy. Plain arithmetic, not a tested system.</p>
                     <PullbackPlan srData={srData} ticker={analysisResult.ticker} />
                     {/* Day 123: levels need srData; when it failed, PullbackPlan above already says so. */}
-                    {srData && (<>
-                    {/* Day 40: Removed legacy Trade Levels Grid - now using dual strategy cards above */}
-                    {/* Day 26: Show actual S&R levels - Day 33: Enhanced with MTF confluence */}
-                    <div className="mt-4 pt-3 border-t border-gray-700">
-                      {/* Day 33: MTF Confluence Badge */}
-                      {srData.meta?.mtf?.enabled && (
-                        <div className="mb-3 flex items-center justify-center gap-2">
-                          <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            srData.meta.mtf.confluence_pct >= 40 ? 'bg-green-900/50 text-green-300 border border-green-700' :
-                            srData.meta.mtf.confluence_pct >= 20 ? 'bg-yellow-900/50 text-yellow-300 border border-yellow-700' :
-                            'bg-gray-700/50 text-gray-400 border border-gray-600'
-                          }`}>
-                            MTF Confluence: {srData.meta.mtf.confluence_pct?.toFixed(0)}%
-                            <span className="ml-1 opacity-70">
-                              ({srData.meta.mtf.confluent_levels}/{srData.meta.mtf.total_levels} levels
-                              {/* Day 115: projected (ATR/Fibonacci-synthetic) levels are now excluded
-                                  from this ratio entirely, not just silently dragging it down — say
-                                  so, so an improved percentage doesn't read as unexplained. */}
-                              {srData.meta.mtf.projected_excluded > 0 && `, ${srData.meta.mtf.projected_excluded} projected excluded`})
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                      <div className="grid grid-cols-2 gap-4 text-xs">
-                        <div>
-                          <div className="text-green-400 font-semibold mb-1">Support Levels</div>
-                          {srData.support?.length > 0 ? (
-                            <div className="space-y-0.5">
-                              {srData.support.slice().sort((a, b) => b - a).map((level, i) => {
-                                const levelKey = level.toFixed(2);
-                                const mtfInfo = srData.meta?.mtf?.confluence_map?.[levelKey];
-                                const isConfluent = mtfInfo?.confluent;
-                                return (
-                                  <div key={i} className={`text-gray-400 ${isConfluent ? 'font-medium' : ''}`}>
-                                    {/* Day 115: surface the graduated strength_label (Strong/Moderate/Weak)
-                                        instead of a flat "Confluent with weekly level" — the descriptive-
-                                        state convention this redesign already uses elsewhere (Regime,
-                                        Technical Read, Fundamentals). Falls back to the old text if
-                                        strength_label is absent (older cached response shape). */}
-                                    {isConfluent && <span className="text-yellow-400 mr-1" title={mtfInfo?.strength_label ? `Confluent with weekly level (${mtfInfo.strength_label})` : 'Confluent with weekly level'}>★</span>}
-                                    S{i + 1}: <span className={`font-mono ${isConfluent ? 'text-green-200' : 'text-green-300'}`}>{formatCurrency(level)}</span>
-                                    <span className="text-gray-500 ml-1">
-                                      ({((srData.currentPrice - level) / srData.currentPrice * 100).toFixed(1)}% below)
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ) : (
-                            <div className="text-gray-500 italic">None within range</div>
-                          )}
-                        </div>
-                        <div>
-                          <div className="text-red-400 font-semibold mb-1">Resistance Levels</div>
-                          {srData.resistance?.length > 0 ? (
-                            <div className="space-y-0.5">
-                              {srData.resistance.slice().sort((a, b) => a - b).map((level, i) => {
-                                const levelKey = level.toFixed(2);
-                                const mtfInfo = srData.meta?.mtf?.confluence_map?.[levelKey];
-                                const isConfluent = mtfInfo?.confluent;
-                                return (
-                                  <div key={i} className={`text-gray-400 ${isConfluent ? 'font-medium' : ''}`}>
-                                    {/* Day 115: surface the graduated strength_label (Strong/Moderate/Weak)
-                                        instead of a flat "Confluent with weekly level" — the descriptive-
-                                        state convention this redesign already uses elsewhere (Regime,
-                                        Technical Read, Fundamentals). Falls back to the old text if
-                                        strength_label is absent (older cached response shape). */}
-                                    {isConfluent && <span className="text-yellow-400 mr-1" title={mtfInfo?.strength_label ? `Confluent with weekly level (${mtfInfo.strength_label})` : 'Confluent with weekly level'}>★</span>}
-                                    R{i + 1}: <span className={`font-mono ${isConfluent ? 'text-red-200' : 'text-red-300'}`}>{formatCurrency(level)}</span>
-                                    <span className="text-gray-500 ml-1">
-                                      ({((level - srData.currentPrice) / srData.currentPrice * 100).toFixed(1)}% above)
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ) : (
-                            <div className="text-gray-500 italic">None within range</div>
-                          )}
-                        </div>
-                      </div>
-                      {/* Day 33: Weekly Levels (collapsed by default) */}
-                      {srData.meta?.mtf?.enabled && (srData.meta.mtf.weekly_support?.length > 0 || srData.meta.mtf.weekly_resistance?.length > 0) && (
-                        <details className="mt-3 text-xs">
-                          <summary className="text-gray-500 cursor-pointer hover:text-gray-400">
-                            Weekly Levels ({srData.meta.mtf.weekly_support?.length || 0} support, {srData.meta.mtf.weekly_resistance?.length || 0} resistance)
-                          </summary>
-                          <div className="mt-2 grid grid-cols-2 gap-4 pl-2 border-l-2 border-gray-700">
-                            <div>
-                              {srData.meta.mtf.weekly_support?.slice().sort((a, b) => b - a).map((level, i) => (
-                                <div key={i} className="text-gray-500">
-                                  W-S{i + 1}: <span className="text-green-400/70 font-mono">${level.toFixed(2)}</span>
-                                </div>
-                              ))}
-                            </div>
-                            <div>
-                              {srData.meta.mtf.weekly_resistance?.slice().sort((a, b) => a - b).map((level, i) => (
-                                <div key={i} className="text-gray-500">
-                                  W-R{i + 1}: <span className="text-red-400/70 font-mono">${level.toFixed(2)}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </details>
-                      )}
-                      <div className="mt-2 text-xs text-gray-500 text-center">
-                        Method: {srData.method} • ATR: {srData.meta?.atr ? `$${srData.meta.atr.toFixed(2)}` : 'N/A'}
-                        {srData.meta?.mtf?.enabled && <span> • MTF: Weekly</span>}
-                      </div>
-                    </div>
-                    </>)}
+                    {/* Day 125: nearest floor/ceiling + one-line price state (KeyLevels) replace the
+                        S/R lists, MTF badge, Weekly Levels dropdown and the Price Structure card. */}
+                    <KeyLevels srData={srData} trendTemplate={patternsData?.trendTemplate} />
                   </div>
                 )}
 
@@ -1444,243 +1315,9 @@ function App() {
                   name={analysisResult.name}
                 />
 
-                {/* Price Structure Card — Day 72: Tier 2, between Trade Setup and Pattern Detection */}
-                <PriceStructureCard
-                  srData={srData}
-                  priceStructure={priceStructure}
-                  expanded={!!expandedSections.priceStructure}
-                  onToggle={() => toggleSection('priceStructure')}
-                />
-
-                {/* Pattern Detection Card — Day 70: collapsed by default */}
-                {patternsData && (
-                  <div className="bg-gray-800 rounded-lg">
-                    <button
-                      onClick={() => toggleSection('patterns')}
-                      className="flex items-center gap-2 w-full px-6 py-4 text-left hover:bg-gray-700/30 transition-colors rounded-lg"
-                    >
-                      <span className="text-sm text-gray-500">{expandedSections.patterns ? '▼' : '▶'}</span>
-                      <span className="text-lg font-semibold text-purple-400">Pattern Detection</span>
-                      {patternsData.summary?.count > 0 && (
-                        <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-purple-900/50 text-purple-300 border border-purple-600">
-                          {patternsData.summary.count} Pattern{patternsData.summary.count > 1 ? 's' : ''}
-                        </span>
-                      )}
-                      <span className="ml-auto text-xs text-gray-500">
-                        {patternsData.summary?.bestPattern || 'No strong patterns'}
-                      </span>
-                    </button>
-                    {expandedSections.patterns && (
-                    <div className="px-6 pb-6">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold text-purple-400">VCP, Cup & Handle, Flat Base</h3>
-                    </div>
-
-                    {/* Trend Template Score */}
-                    {patternsData.trendTemplate && (
-                      <div className="mb-4 p-3 rounded-lg bg-gray-700/50 border border-gray-600">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-gray-300 font-medium cursor-help" title="Mark Minervini's 8-point Trend Template. Stocks meeting 7+/8 criteria are in a Stage 2 uptrend - ideal for swing trades.">
-                            Trend Template
-                          </span>
-                          <span className={`font-bold ${
-                            patternsData.trendTemplate.criteria_met >= 7 ? 'text-green-400' :
-                            patternsData.trendTemplate.criteria_met >= 5 ? 'text-yellow-400' :
-                            'text-red-400'
-                          }`}>
-                            {patternsData.trendTemplate.criteria_met}/8
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-1 text-xs">
-                          {Object.entries(patternsData.trendTemplate.criteria || {}).map(([key, value]) => (
-                            <div key={key} className="flex items-center gap-1">
-                              <span className={value ? 'text-green-400' : 'text-red-400'}>{value ? '✓' : '✗'}</span>
-                              <span className="text-gray-400">{key.replace(/_/g, ' ')}</span>
-                            </div>
-                          ))}
-                        </div>
-                        {patternsData.trendTemplate.in_stage2_uptrend && (
-                          <div className="mt-2 text-xs text-green-400 font-medium">
-                            ✅ In Stage 2 Uptrend (ideal for swing trades)
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Pattern Cards — Day 83: 3 copy-pasted blocks replaced with PatternMiniCard */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      <PatternMiniCard
-                        title="VCP"
-                        tooltip="Volatility Contraction Pattern (VCP) - Mark Minervini's signature pattern. Price makes a series of smaller pullbacks, showing selling pressure drying up before breakout."
-                        pattern={patternsData.patterns?.vcp}
-                        highlightStatus="at_pivot"
-                        statRows={[
-                          { label: 'Contractions', value: patternsData.patterns?.vcp?.contractions_count || 0 },
-                          {
-                            label: 'Tight Base',
-                            value: patternsData.patterns?.vcp?.tight_base ? 'Yes' : 'No',
-                            colorClass: patternsData.patterns?.vcp?.tight_base ? 'text-green-400' : 'text-gray-500',
-                          },
-                        ]}
-                        description="Sellers exhausted — each pullback smaller. Lowest risk breakout entry."
-                      />
-                      <PatternMiniCard
-                        title="Cup & Handle"
-                        tooltip="Cup and Handle - William O'Neil's classic pattern. U-shaped cup formation followed by a small handle pullback before breakout."
-                        pattern={patternsData.patterns?.cupHandle}
-                        highlightStatus="complete"
-                        statRows={[
-                          { label: 'Cup Depth', value: `${patternsData.patterns?.cupHandle?.cup?.depth_pct?.toFixed(1) || 'N/A'}%` },
-                          {
-                            label: 'U-Shaped',
-                            value: patternsData.patterns?.cupHandle?.cup?.u_shaped ? 'Yes' : 'No',
-                            colorClass: patternsData.patterns?.cupHandle?.cup?.u_shaped ? 'text-green-400' : 'text-gray-500',
-                          },
-                        ]}
-                        description="Institutional accumulation. Handle shakes out weak hands before real move."
-                      />
-                      <PatternMiniCard
-                        title="Flat Base"
-                        tooltip="Flat Base - Tight consolidation after a strong uptrend. Price moves sideways in a narrow range as the stock digests gains before continuing higher."
-                        pattern={patternsData.patterns?.flatBase}
-                        highlightStatus="forming"
-                        statRows={[
-                          { label: 'Range', value: `${patternsData.patterns?.flatBase?.base?.range_pct?.toFixed(1) || 'N/A'}%` },
-                          {
-                            label: 'Prior Uptrend',
-                            value: `${patternsData.patterns?.flatBase?.prior_uptrend?.pct?.toFixed(0) || 'N/A'}%`,
-                            colorClass: patternsData.patterns?.flatBase?.prior_uptrend?.has_30pct_move ? 'text-green-400' : 'text-gray-500',
-                          },
-                        ]}
-                        description="Digesting gains in tight range. Compression before next leg up."
-                      />
-                    </div>
-
-                    {/* Day 47: Actionable Patterns Section (≥60% confidence only) */}
-                    {actionablePatternsData?.summary?.hasActionable && (
-                      <div className="mt-4 p-3 bg-green-900/20 border border-green-600 rounded-lg">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="text-green-400 font-semibold">✅ Actionable Patterns</span>
-                          <span className="text-xs text-gray-400">(≥60% confidence)</span>
-                        </div>
-                        <div className="space-y-3">
-                          {actionablePatternsData.actionablePatterns.map((pattern, idx) => (
-                            <div key={idx} className="bg-gray-800/50 rounded p-3">
-                              <div className="flex justify-between items-center mb-2">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium text-green-300">{pattern.name}</span>
-                                  {/* Breakout Quality Badge */}
-                                  {pattern.breakout?.quality && (
-                                    <span className={`text-xs px-1.5 py-0.5 rounded ${
-                                      pattern.breakout.quality === 'High' ? 'bg-green-600 text-white' :
-                                      pattern.breakout.quality === 'Medium' ? 'bg-yellow-600 text-white' :
-                                      pattern.breakout.quality === 'Low' ? 'bg-red-600 text-white' :
-                                      pattern.breakout.quality === 'Approaching' ? 'bg-blue-600 text-white' :
-                                      'bg-gray-600 text-gray-200'
-                                    }`} title={pattern.breakout.reasons?.join(' | ')}>
-                                      {pattern.breakout.quality} Breakout
-                                    </span>
-                                  )}
-                                </div>
-                                <span className="text-xs px-2 py-0.5 bg-green-600 text-white rounded">
-                                  {pattern.confidence}%
-                                </span>
-                              </div>
-                              <div className="grid grid-cols-3 gap-2 text-xs mb-2">
-                                <div className="text-center p-1 bg-gray-700/50 rounded">
-                                  <div className="text-gray-400">Trigger</div>
-                                  <div className="text-blue-400 font-mono font-medium">${pattern.triggerPrice?.toFixed(2)}</div>
-                                </div>
-                                <div className="text-center p-1 bg-gray-700/50 rounded">
-                                  <div className="text-gray-400">Stop</div>
-                                  <div className="text-red-400 font-mono font-medium">${pattern.stopPrice?.toFixed(2)}</div>
-                                </div>
-                                <div className="text-center p-1 bg-gray-700/50 rounded">
-                                  <div className="text-gray-400">Target</div>
-                                  <div className="text-green-400 font-mono font-medium">
-                                    {pattern.targetPrice != null ? `$${pattern.targetPrice.toFixed(2)}` : '—'}
-                                  </div>
-                                </div>
-                              </div>
-                              {/* Day 112: show where the target number comes from (measured move vs. legacy flat %).
-                                  Day 118: VCP's flat_pct_legacy basis retired — replaced by 'resistance' /
-                                  'vcp_contraction' (real structural target, Phase 4). */}
-                              {pattern.targetBasis && (
-                                <div className="text-[11px] text-gray-500 mb-2">
-                                  {pattern.targetBasis === 'cup_depth' ? 'Target = pivot + cup depth (measured move)' :
-                                   pattern.targetBasis === 'base_depth' ? 'Target = pivot + base height (measured move)' :
-                                   pattern.targetBasis === 'resistance' ? `Target = nearest real resistance ($${pattern.targetPrice?.toFixed(2)})` :
-                                   pattern.targetBasis === 'vcp_contraction' ? 'Target = pivot + largest contraction depth (no real resistance overhead)' :
-                                   null}
-                                </div>
-                              )}
-                              {pattern.targetPrice == null && (
-                                <div className="text-[11px] text-gray-500 mb-2">
-                                  No structural target — pattern geometry unavailable for this ticker.
-                                </div>
-                              )}
-                              {/* Volume Confirmation Row */}
-                              {pattern.breakout?.volumeRatio != null && (
-                                <div className="flex items-center gap-2 text-xs mb-2">
-                                  <span className={pattern.breakout.volumeConfirmed ? 'text-green-400' : 'text-yellow-400'}>
-                                    {pattern.breakout.volumeConfirmed ? '✓' : '⚠'} Volume: {pattern.breakout.volumeRatio}x avg
-                                  </span>
-                                  <span className="text-gray-500">
-                                    {pattern.breakout.volumeConfirmed ? '(confirmed ≥1.5x)' : '(needs 1.5x+ for confirmation)'}
-                                  </span>
-                                </div>
-                              )}
-                              <div className="flex justify-between items-center text-xs">
-                                <span className="text-gray-400">{pattern.riskReward != null ? `R:R ${pattern.riskReward}:1` : 'R:R —'}</span>
-                                <span className={`${
-                                  pattern.breakout?.isTradeable ? 'text-green-400 font-medium' :
-                                  pattern.status === 'at_pivot' || pattern.status === 'complete' ? 'text-yellow-400' :
-                                  pattern.status === 'broken_out' ? 'text-green-400' :
-                                  'text-gray-400'
-                                }`}>
-                                  {pattern.breakout?.isTradeable ? '🎯 Ready to Trade' : pattern.action}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Day 47: Patterns below threshold (transparency) */}
-                    {actionablePatternsData?.belowThreshold?.length > 0 && (
-                      <div className="mt-2 p-2 bg-gray-700/30 rounded-lg">
-                        <div className="text-xs text-gray-500">
-                          Patterns below 60% threshold:{' '}
-                          {actionablePatternsData.belowThreshold.map((p, i) => (
-                            <span key={i} className="text-gray-400">
-                              {p.name} ({p.confidence}%)
-                              {i < actionablePatternsData.belowThreshold.length - 1 ? ', ' : ''}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Summary */}
-                    {patternsData.summary?.bestPattern && !actionablePatternsData?.summary?.hasActionable && (
-                      <div className="mt-3 p-2 bg-purple-900/30 rounded-lg text-center text-sm">
-                        <span className="text-purple-300">Best Pattern: </span>
-                        <span className="font-semibold text-purple-200">{patternsData.summary.bestPattern}</span>
-                        <span className="text-purple-300"> ({patternsData.summary.bestConfidence}% confidence)</span>
-                        <div className="text-xs text-gray-400 mt-1">
-                          Below 60% actionability threshold
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="mt-3 text-xs text-gray-500 text-center">
-                      Data: Multi-Source (OHLCV) • Quality: algorithmic detection • Threshold: ≥60% for actionability
-                    </div>
-                    </div>
-                    )}
-                  </div>
-                )}
+                {/* Day 125: Price Structure and Pattern Detection cards removed (decision fatigue;
+                    see ANALYZE_CLEANUP_PLAN_DAY125.md). /api/patterns is still fetched: its
+                    trendTemplate feeds the verdict and the Technical Read. */}
 
                 {/* TradingView Chart removed Day 70 — simplicity premium (S&R in Trade Setup is sufficient) */}
 
@@ -1689,24 +1326,19 @@ function App() {
                     BUY/HOLD/AVOID verdict and the same underlying tech/fund/risk
                     facts, just reworded a third time. */}
 
-                {/* Day 82: Breakout state card — single-ticker /api/breakout/<ticker>,
-                    same 8-state engine and badge styling as the Scan tab's batch
-                    column. State only, never a signal (BREAKOUT_ENGINE_SPEC.md §13). */}
-                {/* Day 83 fix (Task E1): loading skeleton (was missing — card just
-                    popped in with no feedback while fetching); p-6/text-lg to match
-                    neighbor cards (was p-4/text-sm); removed the mb-4 (parent already
-                    uses space-y-6, so it was double-spacing); surfaces breakoutLevel
-                    and active warnings, previously fetched but silently dropped. */}
+                {/* Breakout card — /api/breakout/<ticker>. Day 125: simple trader-consensus rules on
+                    completed daily bars (breakout_detection.py). Describes a state, never a buy
+                    signal (BREAKOUT_ENGINE_SPEC.md §15). A failed check is said, not hidden. */}
                 {breakoutLoading && (
                   <div className="bg-gray-800 rounded-lg p-6 animate-pulse">
                     <div className="h-4 bg-gray-700 rounded w-1/3"></div>
                   </div>
                 )}
-                {!breakoutLoading && breakoutData && !breakoutData.error && (
-                  <div className="bg-gray-800 rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-semibold text-gray-300">🚀 Breakout Status</h3>
-                      {(() => {
+                {!breakoutLoading && breakoutData && (
+                  <div data-testid="card-breakout" className="bg-gray-800 rounded-lg p-6">
+                    <div data-card-head className="flex items-center justify-between mb-2">
+                      <h3 className="text-lg font-semibold text-gray-300">🚀 Breakout</h3>
+                      {!breakoutData.error && (() => {
                         const cfg = BREAKOUT_BADGE_CONFIG[breakoutData.status];
                         if (!cfg) return <span className="text-xs text-gray-500">{breakoutData.status}</span>;
                         return (
@@ -1716,28 +1348,22 @@ function App() {
                         );
                       })()}
                     </div>
-                    <p className="text-sm text-gray-400">{breakoutData.humanAction}</p>
-                    <div className="flex flex-wrap gap-3 mt-1">
-                      {breakoutData.rvol != null && (
-                        <p className="text-xs text-gray-500">RVOL: {breakoutData.rvol.toFixed(2)}x</p>
-                      )}
-                      {breakoutData.breakoutLevel != null && (
-                        <p className="text-xs text-gray-500">Breakout Level: {formatCurrency(breakoutData.breakoutLevel)}</p>
-                      )}
-                    </div>
-                    {breakoutData.warnings && Object.values(breakoutData.warnings).some(Boolean) && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {Object.entries(breakoutData.warnings)
-                          .filter(([, active]) => active)
-                          .map(([key]) => (
-                            <span
-                              key={key}
-                              className="text-xs px-2 py-0.5 rounded border bg-red-900/40 text-red-400 border-red-700"
-                            >
-                              {key.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase())}
-                            </span>
-                          ))}
-                      </div>
+                    {breakoutData.error ? (
+                      <p className="text-sm text-gray-400">Breakout check unavailable: {breakoutData.error}</p>
+                    ) : (
+                      <>
+                        <p className="text-sm text-gray-300">{breakoutData.humanAction}</p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          60-day high {formatCurrency(breakoutData.breakoutLevel)}
+                          {breakoutData.pctFromLevel != null && ` · close ${Math.abs(breakoutData.pctFromLevel).toFixed(2)}% ${breakoutData.pctFromLevel >= 0 ? 'above' : 'below'}`}
+                          {breakoutData.breakoutDate && ` · broke out ${fmtDate(breakoutData.breakoutDate)}`}
+                          {breakoutData.breakoutDate && (breakoutData.rvol != null ? ` on ${breakoutData.rvol.toFixed(2)}× normal volume` : ' (volume unknown)')}
+                          {breakoutData.asOfDate && ` · ${fmtDate(breakoutData.asOfDate)} close`}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          Common trader rules, not tested: a close above the 60-day high (measured before the last 10 days), volume 1.5× normal or more, no more than 5% above. A stock that keeps climbing re-qualifies about every 10 days.
+                        </p>
+                      </>
                     )}
                   </div>
                 )}
@@ -1772,9 +1398,13 @@ function App() {
                             </span>
                           );
                         })()}
-                        {breakoutData && !breakoutData.error && (() => {
+                        {breakoutData && (() => {
+                          // Day 125 (Fable code review #4): a failed check or unknown status is shown, not hidden.
+                          if (breakoutData.error) {
+                            return <span className="ml-2 px-1.5 py-0.5 rounded text-xs border border-gray-500 text-white/70" title={breakoutData.error}>Breakout: unavailable</span>;
+                          }
                           const cfg = BREAKOUT_BADGE_CONFIG[breakoutData.status];
-                          if (!cfg) return null;
+                          if (!cfg) return <span className="ml-2 text-xs text-white/70">{breakoutData.status}</span>;
                           return (
                             <span
                               className={`ml-2 px-1.5 py-0.5 rounded text-xs font-medium border ${cfg.color}`}
@@ -2217,7 +1847,7 @@ function App() {
                                   </span>
                                 );
                               }
-                              const cfg = BREAKOUT_BADGE_CONFIG[b.status] || BREAKOUT_BADGE_CONFIG.NOT_READY;
+                              const cfg = BREAKOUT_BADGE_CONFIG[b.status]; // unknown status shows raw, never as Not Ready
                               if (cfg == null) {
                                 return <span className="text-gray-500 text-xs">{b.status}</span>;
                               }
@@ -3445,7 +3075,7 @@ function App() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>v4.61 - Multi-Source Data Intelligence</p>
+          <p>v4.62 - Multi-Source Data Intelligence</p>
           <p className="mt-1">TwelveData • Finnhub • AlphaVantage • yfinance • Stooq</p>
         </div>
       </div>

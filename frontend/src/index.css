@@ -4,6 +4,7 @@
 
 body {
   margin: 0;
+  background-color: #111827; /* Day 125: same as the app's bg-gray-900, so no white strip below a short page */
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;

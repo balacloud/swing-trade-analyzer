@@ -9,29 +9,6 @@
 const isNum = (v) => typeof v === 'number' && Number.isFinite(v);
 
 /**
- * P/E guide bands: under 15 is Graham's "cheap", 15-25 the S&P 500's usual
- * range, above 25 means the market expects growth. Context only, never a flag
- * (O'Neil: leaders often had high P/Es).
- */
-export const PE_GUIDE_BANDS = [
-  { key: 'cheap', label: 'cheap', max: 15 },
-  { key: 'typical', label: 'typical', max: 25 },
-  { key: 'growth', label: 'priced for growth', max: Infinity },
-];
-export const PE_EXTREME = 500;  // above this, earnings are near zero and the ratio stops meaning much
-
-/**
- * @param {?number} pe - trailing P/E (stock.fundamentals.pe)
- * @returns {{state: 'ok'|'negative'|'extreme'|'not_reported', pe?: number, band?: object}}
- */
-export function describePE(pe) {
-  if (!isNum(pe) || pe === 0) return { state: 'not_reported' };
-  if (pe < 0) return { state: 'negative', pe };
-  if (pe > PE_EXTREME) return { state: 'extreme', pe, band: PE_GUIDE_BANDS[2] };
-  return { state: 'ok', pe, band: PE_GUIDE_BANDS.find((b) => pe < b.max) };
-}
-
-/**
  * Next-earnings line. Uses the backend's own daysUntil and hasUpcoming (its
  * 7-day window) — never re-parses the date string (UTC-midnight trap).
  *
@@ -78,11 +55,11 @@ export function revenueBasis(fieldSources) {
 }
 
 const PROVIDER_NAMES = { finnhub: 'Finnhub', yfinance: 'yfinance', fmp: 'FMP', alphavantage: 'Alpha Vantage' };
-const SOURCE_FIELDS = [['revenueGrowth', 'sales'], ['roe', 'ROE'], ['debtToEquity', 'debt'], ['pe', 'P/E']];
+const SOURCE_FIELDS = [['revenueGrowth', 'sales'], ['roe', 'ROE'], ['debtToEquity', 'debt']];  // Day 125: P/E no longer shown
 
 /**
  * Which provider supplied each number on the card, grouped by provider:
- * "Finnhub (ROE, P/E) · Alpha Vantage (sales) · yfinance (debt)".
+ * "Finnhub (ROE) · Alpha Vantage (sales) · yfinance (debt)".
  * Falls back to the primary source name when per-field sources are missing.
  */
 export function describeSources(fieldSources, primarySource) {

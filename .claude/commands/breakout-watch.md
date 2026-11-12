@@ -44,13 +44,18 @@ never fabricate breakout states from memory or a prior run.
 ## Step 4: Bucket and report, most actionable first
 
 1. **Confirmed breakouts** (`BREAKOUT_CONFIRMED`) — ticker, RVOL, humanAction text
-2. **Retest entries** (`RETEST_ENTRY`)
-3. **Watch** (`BREAKOUT_WATCH`)
-4. **Warnings** (`SUPPLY_WARNING`, `FAILED_BREAKOUT`, `EXTENDED_CHASE_RISK`) —
-   surface these prominently; they are risk flags, not opportunities
-5. **Building base** (`BUILDING_BASE`)
+2. **Retest holding** (`RETEST_ENTRY`)
+3. **Broke out on light volume** (`BREAKOUT_LIGHT_VOLUME`) — not confirmed
+4. **Near the 60-day high** (`BREAKOUT_WATCH`)
+5. **Warnings** (`FAILED_BREAKOUT`, `EXTENDED_CHASE_RISK`) — surface these
+   prominently; they are risk flags, not opportunities
 6. Everything `NOT_READY`: one summary line ("N others: not ready"), not
    itemized per ticker
+
+(Day 125: the engine now uses simple trader rules on completed daily bars —
+close above the 60-day high, volume 1.5× normal on the breakout day, no
+more than 5% above; not tested. `SUPPLY_WARNING` and `BUILDING_BASE` no
+longer exist. See `backend/breakout_detection.py`.)
 
 For every ticker reported in buckets 1–5, append the engine's own
 `humanAction` text **verbatim** — do not paraphrase it into a stronger
