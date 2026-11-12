@@ -33,9 +33,10 @@ export default function PriceStructureCard({ srData, priceStructure, expanded, o
   const support    = keyLevels.filter(l => l.type === 'support');
 
   return (
-    <div className="bg-gray-800 rounded-lg">
+    <div data-testid="card-price-structure" data-collapsed={expanded ? 'false' : 'true'} className="bg-gray-800 rounded-lg">
       {/* Header — always visible */}
       <button
+        data-card-head
         onClick={onToggle}
         className="flex items-center gap-2 w-full px-6 py-4 text-left hover:bg-gray-700/30 transition-colors rounded-lg"
       >

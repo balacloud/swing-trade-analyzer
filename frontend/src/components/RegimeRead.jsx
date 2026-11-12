@@ -8,32 +8,23 @@
  * Facts come from describeMarketBackdrop() (utils/marketBackdrop.js).
  */
 import React, { useMemo } from 'react';
-import { describeMarketBackdrop } from '../utils/marketBackdrop';
+import { describeMarketBackdrop, fmtDate, fmtPct } from '../utils/marketBackdrop';
 import useMissingInputWarning from '../hooks/useMissingInputWarning';
 
-const fmtDate = (iso, withYear = false) => {
-  if (!iso) return '';
-  const d = new Date(`${iso}T12:00:00`);
-  return d.toLocaleDateString('en-US', withYear
-    ? { month: 'short', day: 'numeric', year: 'numeric' }
-    : { month: 'short', day: 'numeric' });
-};
-const fmtPct = (v) => `${v > 0 ? '+' : ''}${v.toFixed(1)}%`;
-
-function TrendCell({ line }) {
-  if (line.state !== 'ok') return <span className="text-gray-500 italic">not enough history</span>;
+function TrendCell({ line, testId }) {
+  if (line.state !== 'ok') return <span data-testid={testId} className="text-gray-500 italic">not enough history</span>;
   return (
-    <span className={line.above ? 'text-green-400' : 'text-red-400'}>
+    <span data-testid={testId} className={line.above ? 'text-green-400' : 'text-red-400'}>
       {line.above ? '↑ above' : '↓ below'} <span className="tabular-nums">{fmtPct(line.pct)}</span>
     </span>
   );
 }
 
 function DropCell({ drop }) {
-  if (drop.state === 'no_down_day') return <span className="text-gray-300">no down day in the last 10 sessions</span>;
-  if (drop.state !== 'drop') return <span className="text-gray-500 italic">not enough history</span>;
+  if (drop.state === 'no_down_day') return <span data-testid="backdrop-drop" className="text-gray-300">no down day in the last 10 sessions</span>;
+  if (drop.state !== 'drop') return <span data-testid="backdrop-drop" className="text-gray-500 italic">not enough history</span>;
   return (
-    <span className="text-gray-200">
+    <span data-testid="backdrop-drop" className="text-gray-200">
       <span className="tabular-nums text-red-400">{drop.pct.toFixed(1)}%</span> on {fmtDate(drop.date)}
       <span className="text-gray-400">
         {drop.since
@@ -55,8 +46,8 @@ export default function RegimeRead({ spy, qqq, vix, ticker, onOpenContext }) {
   useMissingInputWarning('Market', ticker, warnings);
 
   return (
-    <div className="rounded-lg border px-4 py-3 bg-gray-800 border-gray-600">
-      <div className="flex justify-between items-start gap-3 flex-wrap">
+    <div data-testid="card-market-backdrop" className="rounded-lg border px-4 py-3 bg-gray-800 border-gray-600">
+      <div data-card-head className="flex justify-between items-start gap-3 flex-wrap">
         <span className="text-sm font-semibold text-gray-200">Market backdrop</span>
         <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-900/40 text-amber-300 shrink-0">
           ◇ INFO · NEVER GATES THIS PAGE
@@ -76,7 +67,7 @@ export default function RegimeRead({ spy, qqq, vix, ticker, onOpenContext }) {
             <span>Biggest 1-day drop, last 10 sessions</span>
           </div>
           {b.rows.map(row => (
-            <div key={row.label} className={`${COLS} py-1.5 border-b border-gray-700/60 last:border-b-0`}>
+            <div key={row.label} data-testid="backdrop-row" data-label={row.label} className={`${COLS} py-1.5 border-b border-gray-700/60 last:border-b-0`}>
               <div className="font-medium text-gray-200">
                 {row.label}
                 {row.state === 'ok' && !b.asOfDate && row.asOfDate && (
@@ -84,20 +75,20 @@ export default function RegimeRead({ spy, qqq, vix, ticker, onOpenContext }) {
                 )}
               </div>
               {row.state !== 'ok' ? (
-                <div className="sm:col-span-3 text-gray-400 italic border border-dashed border-gray-600 rounded px-2 mt-1 sm:mt-0">
+                <div data-testid="backdrop-unavailable" className="sm:col-span-3 text-gray-400 italic border border-dashed border-gray-600 rounded px-2 mt-1 sm:mt-0">
                   couldn't load{row.reason ? ` (${row.reason})` : ''}
                 </div>
               ) : (
                 <>
-                  <div><MobileLabel>Long-term (200-day)</MobileLabel><TrendCell line={row.longTerm} /></div>
-                  <div><MobileLabel>Short-term (50-day)</MobileLabel><TrendCell line={row.shortTerm} /></div>
+                  <div><MobileLabel>Long-term (200-day)</MobileLabel><TrendCell line={row.longTerm} testId="backdrop-long" /></div>
+                  <div><MobileLabel>Short-term (50-day)</MobileLabel><TrendCell line={row.shortTerm} testId="backdrop-short" /></div>
                   <div><MobileLabel>Biggest 1-day drop, last 10 sessions</MobileLabel><DropCell drop={row.drop} /></div>
                 </>
               )}
             </div>
           ))}
           <div className="flex justify-between gap-3 flex-wrap text-xs mt-2">
-            <span className="text-gray-300">
+            <span data-testid="backdrop-vix" className="text-gray-300">
               {b.vix.state === 'ok'
                 ? <>VIX <span className="tabular-nums">{b.vix.value.toFixed(1)}</span>{b.vix.label ? ` · ${b.vix.label}` : ''} <span className="text-gray-500">(latest quote)</span></>
                 : <span className="text-gray-400 italic">VIX: couldn't load</span>}

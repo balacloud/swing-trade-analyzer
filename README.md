@@ -33,7 +33,7 @@ An institutional-grade, multi-engine stock analysis system for swing traders. Th
 
 A **data-driven swing trade recommendation engine** that analyzes stocks and provides:
 - **Categorical Assessment System** (v4.5+) - Strong/Decent/Weak ratings across Technical, Fundamental, Sentiment (info-only), and Risk
-- **BUY / HOLD / AVOID verdicts** based on Technical + Fundamental categories (2 Strong = BUY, Risk/Macro = gate)
+- **Facts, not a verdict, on the Analyze page** (Day 123–124): each card answers one question with the data behind it; you make the call. The engine's internal BUY / HOLD / AVOID verdict (2 Strong = BUY, Risk/Macro = gate) still runs and is saved with logged trades, but is not shown
 - **Pattern Detection** - VCP, Cup & Handle, Flat Base + Minervini Trend Template
 - **Fear & Greed Index** - Real market sentiment data (replaces placeholder)
 - **Trade setups** with Entry, Stop Loss, Target, and Risk/Reward ratios
@@ -73,10 +73,9 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 
 1. **Single Stock Analysis**
    - Enter any ticker symbol
-   - Get categorical assessment (Strong/Decent/Weak) across 4 dimensions
-   - BUY / HOLD / AVOID verdict with detailed reasoning
-   - 3-tier progressive disclosure (always visible / collapsed / hidden)
-   - Holding period selector: Quick (5-10d) / Standard (15-30d) / Position (1-3mo)
+   - Full Analysis (default view): Market backdrop first (S&P 500 and Nasdaq-100 long/short-term trend, biggest recent drop, VIX), then Technical Read, Mean-Reversion Read, Trade Setup, Fundamentals
+   - Simple Checklist view: 9 pass/fail criteria, "✅ TRADE" only at 9/9, otherwise "⏸️ No Trade"
+   - No BUY / HOLD / AVOID verdict and no Holding Period selector (both removed Day 123)
 
 2. **Position Sizing Calculator** (Day 28-29)
    - Van Tharp R-multiple principles
@@ -186,9 +185,9 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
     - Enhanced RVOL display ("2.3x avg")
 
 14. **~~Decision Matrix~~ (Removed Day 70 — Simplicity Premium)**
-    - Replaced by 3-tier progressive disclosure in full analysis view
+    - Replaced by 3-tier progressive disclosure in full analysis view (itself replaced Day 123 by the one-question-per-card layout)
 
-15. **Holding Period Selector** (Day 53 - v4.13)
+15. **Holding Period Selector** (Day 53 - v4.13) — *removed Day 123 (Analyze Page Redesign); its only effect was the verdict weighting*
     - Quick (5-10d) / Standard (15-30d) / Position (1-3mo)
     - Signal weighting by horizon (Quick=70% Tech, Position=70% Fund)
     - Bottom Line Card with action plan summary
@@ -410,6 +409,7 @@ User enters ticker
         ├──► /api/stock/AAPL ──────► TwelveData → yfinance → Tradier → stale cache
         ├──► /api/fundamentals/AAPL ► Finnhub → AlphaVantage → yfinance (merge)
         ├──► /api/market/spy ──────► Same OHLCV chain (for RS)
+        ├──► /api/market/index/QQQ ► Nasdaq-100 trend facts for the Market backdrop (Day 124)
         ├──► /api/market/vix ──────► Cache(1h) → yfinance → Finnhub → Tradier → stale cache
         ├──► /api/sr/AAPL ─────────► S&R Engine (Entry/Stop/Target)
         ├──► /api/patterns/AAPL ───► VCP, Cup&Handle, Flat Base detection
@@ -438,9 +438,9 @@ User enters ticker
         │
         ▼
 ┌───────────────────────────┐
-│ 3-Tier Progressive         │
-│ Disclosure + Dual Entry    │
-│ Strategy Cards             │
+│ Internal only since Day 123│
+│ (saved with logged trades; │
+│  not shown on the page)    │
 └───────────────────────────┘
 ```
 
@@ -479,6 +479,8 @@ Replaced the original 75-point numerical scoring (which had 0.011 score-to-retur
 
 ### Verdict Logic
 
+> **Not displayed since Day 123.** The engine below still runs (its verdict is saved with each logged trade, and `backend/backtest/test_verdict_parity.py` keeps the JS and Python copies identical across 86,400 combinations), but the Analyze page shows the facts card by card and leaves the decision to you.
+
 Only Technical and Fundamental feed the strong/weak count that drives the verdict — Sentiment is display-only, Risk/Macro is a gate, not a vote.
 
 | Verdict | Conditions |
@@ -493,7 +495,7 @@ Only Technical and Fundamental feed the strong/weak count that drives the verdic
 
 - **ADX < 20** downgrades a would-be BUY (2 strong categories) to HOLD — it does not override every other path (e.g. it never overrides a Weak-Technical AVOID)
 - **Pattern confidence >= 60%** = actionable (backtested threshold)
-- **Holding period weighting**: Quick = 70% Technical, Position = 70% Fundamental
+- ~~**Holding period weighting**: Quick = 70% Technical, Position = 70% Fundamental~~ — removed Day 123 with the selector; the engine runs at the Standard horizon
 - **Bear market regime**: SPY 50 SMA declining caps risk at "Neutral"
 
 ### Backtest Validation
@@ -695,11 +697,10 @@ npm start
 2. Enter ticker symbol (e.g., "AAPL")
 3. Click "Analyze" or press Enter
 4. View results:
-   - Verdict (BUY/HOLD/AVOID) with categorical assessment
-   - **Dual Entry Strategy cards** (Conservative vs Aggressive)
-   - Trade setup (Entry/Stop/Target)
+   - Market backdrop, Technical Read, Mean-Reversion Read, Trade Setup (pullback plan: Entry/Stop/Target from real support/resistance), Fundamentals
+   - No verdict is shown; the facts are laid out and you decide (Day 123–124)
    - Pattern detection and volume analysis
-5. Optionally adjust the **holding period** (Quick 5-10d / Standard 15-30d / Position 1-3mo) — this appears after results load, collapsed by default, and re-weights the signal (Quick=70% Technical, Position=70% Fundamental)
+5. Switch to **✅ Simple Checklist** for the 9 pass/fail criteria (TRADE only at 9/9, otherwise No Trade)
 
 ### Scan for Opportunities
 
@@ -1562,7 +1563,7 @@ A full-system audit (Day 78) found the backtested edge was likely overstated —
 8. *(parked, idea only)* **Scheduled/proactive breakout-alert watcher** — the breakout engine already works on demand against any ticker list (`/breakout-watch`, Scan tab badges); nothing today runs on a schedule or notifies unprompted. Flagged Day 100, needs its own design session before any build.
 9. *(parked)* `/ibkr-scan` skill, Price Structure Phase 3 (visual chart) — queued behind the above.
 10. **Dual/absolute momentum filter** — ~~parked, low priority~~ **surfaced as information, Day 117.** Antonacci's dual-momentum research (found Day 107) says a stock should also beat a risk-free/cash return in absolute terms, not just beat the market relatively. The *gate* decision stays closed exactly as Day 111 left it — Config G backtested clean but only excluded 1 of 75 trades, correct but pointless — but the read itself is now shown to the user: both the Simple Checklist's Momentum card and the Full Analysis RS card show the stock's own trailing 1-year return against a 5% cash proxy, informational only, never gating. Zero backend changes; reuses a number both views already computed. See `docs/claude/design/ABSOLUTE_MOMENTUM_READ_PLAN_DAY117.md`.
-11. *(building — Steps 1–6 done, Day 123)* **Analyze Page Redesign** — decision record at `docs/claude/design/ANALYZE_PAGE_REDESIGN_DECISIONS.md`. Built: Regime, Technical, Mean-Reversion and Fundamentals cards, hardened Trade Setup; Holding Period, Assessment Breakdown and BUY/HOLD/AVOID removed. Next: Step 7 (Full Analysis as the default view, Simple-view wording), Step 8 (UI test scripts, cleanup, docs).
+11. *(DONE — Days 121–124; Steps 7–8 finished Day 124)* **Analyze Page Redesign** — decision record at `docs/claude/design/ANALYZE_PAGE_REDESIGN_DECISIONS.md`. Built: Regime, Technical, Mean-Reversion and Fundamentals cards, hardened Trade Setup; Holding Period, Assessment Breakdown and BUY/HOLD/AVOID removed. Next: Step 7 (Full Analysis as the default view, Simple-view wording), Step 8 (UI test scripts, cleanup, docs).
 12. *(parked)* **Day 108 full-audit findings needing a decision or bigger scope** — VIX-based position sizing was never wired into the live automated engine (verified this doesn't affect any current live-track statistic, so not urgent); a couple of UI wording questions on the Value tab. Full detail in the project's internal audit log.
 13. ~~*(parked, Day 111)*~~ **MTF Confluence's arbitrary confidence multiplier, and Pattern Detection's flat-percentage price target** — **DONE (Day 118).** Both graded below industry standard in a Day 111 technical audit (3/10 and 1.5/10); Cup & Handle/Flat Base fixed Day 112. MTF Confluence's `strength` is now a real graduated score (Strong/Moderate/Weak) that excludes synthetic ATH/ATL-projected levels from the confluence set; VCP's target is now real nearest-resistance (falling back to measured contraction depth) instead of a flat +15%. See `docs/claude/design/MTF_VCP_FIX_PLAN_DAY115.md`.
 

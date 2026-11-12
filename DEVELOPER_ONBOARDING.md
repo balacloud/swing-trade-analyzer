@@ -114,7 +114,33 @@ cd frontend && npm start
 curl http://localhost:5001/api/health
 ```
 
-You should get back `"status": "healthy"` plus a `providers` block showing which of your configured API keys are recognized. Then open http://localhost:3000 and analyze a real ticker (e.g. AAPL) — if it returns a categorical assessment with a verdict, you're fully set up.
+You should get back `"status": "healthy"` plus a `providers` block showing which of your configured API keys are recognized. Then open http://localhost:3000 and analyze a real ticker (e.g. AAPL). If the Full Analysis view shows the Market backdrop, Technical Read, Mean-Reversion Read, Trade Setup and Fundamentals cards, you're fully set up. (The page shows facts, not a BUY/HOLD/AVOID verdict, since Day 123.)
+
+### Run the tests
+
+Unit tests (no servers needed):
+
+```bash
+cd frontend
+node scripts/test_analyze_checks.mjs     # the Analyze page checks themselves
+node scripts/test_market_backdrop.mjs    # Market backdrop card facts
+node scripts/test_vix_multiplier.mjs     # VIX position-size multiplier
+cd ../backend
+venv/bin/python backtest/test_verdict_parity.py   # JS vs Python verdict engine, 86,400 combinations
+venv/bin/python backtest/test_index_trend.py      # index trend facts
+venv/bin/python backtest/test_vix_bands.py        # VIX bands
+```
+
+Browser checks (backend and frontend both running):
+
+```bash
+cd frontend
+node scripts/ui-verify-checklist.js          # 8 automated checks on AAPL, NVDA, SMH, JPM, RIVN; exit 1 on any failure
+node scripts/ui-verify-checklist.js TSLA     # any tickers you like
+node scripts/ui-cohesiveness-test.js AAPL    # saves a PDF of the page for a manual look
+```
+
+Reports go to `docs/test/` in a new dated folder each run.
 
 ---
 

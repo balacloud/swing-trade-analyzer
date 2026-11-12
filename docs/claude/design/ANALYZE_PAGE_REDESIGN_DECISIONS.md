@@ -1407,3 +1407,29 @@ verification afterthought.
     the Full view. Fable code review: 2 MUST-FIX + 8 smaller, all fixed.
   - Step 8 cleanup candidates: scoringEngine still computes `qualityGates`
     nothing renders.
+
+- **Day 124 — Step 7 built (plan: `ANALYZE_REDESIGN_STEP7_PLAN_DAY124.md`).**
+  User decision: no market verdict; the Regime band became the "Market
+  backdrop" card (S&P 500 and Nasdaq-100 long/short-term trend, biggest
+  1-day drop in 10 sessions, VIX), first on the page. Full Analysis is the
+  default view; Simple says "⏸️ No Trade". ETFs say "Exchange-traded fund
+  (ETF)". Follow-up the same day: one VIX band wording on every screen
+  (`backend/vix_bands.py`), honest MR next-open figures on Forward Test,
+  backdrop → Context link.
+
+- **Day 124 — Step 8 built: tests, cleanup, docs. Redesign complete.**
+  Plan: `ANALYZE_REDESIGN_STEP8_PLAN_DAY124.md` (Fable: GO WITH FIXES, all
+  10 findings accepted, §5; build notes §6).
+  - `ui-verify-checklist.js` rewritten: 8 checks (A1–A6, A8, A9) in a pure,
+    unit-tested module (`scripts/lib/analyzeChecks.js`, 66 checks); compares
+    the screen with the exact JSON the page received; new dated report
+    folder per run; exit 1 on any failure. `ui-cohesiveness-test.js` fixed
+    (card hooks, no holding period, new manual checklist).
+  - Stable `data-testid` hooks on every card (no visible change).
+  - The two inline VIX position-size ladders now call
+    `getVixPositionMultiplier`; the calculator says "VIX not loaded" instead
+    of silently using 1.0×.
+  - `qualityGates` / `checkQualityGates` removed from scoringEngine.
+  - Day 119 Phase 6 Scan-tab disclosure line: moot (column removed Step 6).
+  - Verified: 5 tickers 40/40 live, two deliberate breaks both caught,
+    parity 86,400/86,400, build clean apart from the old ValueTab warning.

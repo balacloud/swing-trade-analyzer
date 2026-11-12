@@ -41,7 +41,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation, clearBackendCache, clearMarketCache, fetchDataProvenance, getCacheStatus, fetchSectorRotation, fetchMRSignal, fetchMRScan, fetchBreakoutBatch, fetchBreakout, fetchSupportResistance } from './services/api';
 import { calculateScore } from './utils/scoringEngine';
 import { calculateSimplifiedAnalysis } from './utils/simplifiedScoring';
-import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings } from './utils/positionSizing';
+import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings, getVixPositionMultiplier } from './utils/positionSizing';
 import { runCategoricalAssessment, getActionablePatterns } from './utils/categoricalAssessment';
 import PullbackPlan from './components/PullbackPlan'; // Day 123: redesign Step 3, Trade Setup pullback plan
 import RegimeRead from './components/RegimeRead'; // Day 123: redesign Step 4
@@ -348,13 +348,13 @@ function App() {
       return;
     }
     // Day 29: Pass options for max position size and manual shares
-    // Tier 2A: VIX-based position scaling
-    const vixCurrent = rawAnalysisData?.vix?.current;
-    const vixMultiplier = vixCurrent == null ? 1.0 : vixCurrent < 20 ? 1.0 : vixCurrent <= 30 ? 0.75 : 0.50;
+    // Tier 2A: VIX-based position scaling (Day 124: one shared ladder, positionSizing.js)
+    const { multiplier: vixMultiplier, isDefault: vixUnknown } = getVixPositionMultiplier(rawAnalysisData?.vix?.current);
     const options = {
       maxPositionPercent: settings.maxPositionPercent || 25,
       manualShares: settings.useManualShares ? (settings.manualShares || 0) : 0,
       vixMultiplier,
+      vixUnknown,
     };
     const result = calculatePositionSize(settings.accountSize, settings.riskPercent, entry, stop, options);
     setPositionResult(result);
@@ -370,13 +370,13 @@ function App() {
     setCalcStop(stop.toFixed(2));
 
     // Day 29: Pass options for max position size (don't use manual shares on auto-fill)
-    // Tier 2A: VIX-based position scaling
-    const vixCurrent = rawAnalysisData?.vix?.current;
-    const vixMultiplier = vixCurrent == null ? 1.0 : vixCurrent < 20 ? 1.0 : vixCurrent <= 30 ? 0.75 : 0.50;
+    // Tier 2A: VIX-based position scaling (Day 124: one shared ladder, positionSizing.js)
+    const { multiplier: vixMultiplier, isDefault: vixUnknown } = getVixPositionMultiplier(rawAnalysisData?.vix?.current);
     const options = {
       maxPositionPercent: settings.maxPositionPercent || 25,
       manualShares: 0, // Auto-fill always uses calculated shares
       vixMultiplier,
+      vixUnknown,
     };
     const result = calculatePositionSize(settings.accountSize, settings.riskPercent, entry, stop, options);
     setPositionResult(result);
@@ -1045,7 +1045,7 @@ function App() {
 
             {/* Error Display - Day 50: Added retry button */}
             {error && (
-              <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-6 text-red-200">
+              <div data-testid="analysis-error" className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-6 text-red-200">
                 <div className="flex items-center justify-between">
                   <span>{error}</span>
                   <button
@@ -1080,7 +1080,7 @@ function App() {
                   onOpenContext={() => { setActiveTab('context'); window.scrollTo({ top: 0 }); }}
                 />
                 {/* Verdict Card - v4.5 Categorical Assessment (Neutral design) */}
-                <div className="rounded-lg p-6 bg-gray-800 border border-gray-700">
+                <div data-testid="card-stock-header" className="rounded-lg p-6 bg-gray-800 border border-gray-700">
                   <div className="flex justify-between items-center">
                     <div>
                       <h2 className="text-2xl font-bold text-white">{analysisResult.ticker} - {analysisResult.name}</h2>
@@ -1103,6 +1103,7 @@ function App() {
                         {/* Day 49: v4.10 Earnings Warning Badge */}
                         {earningsData?.hasUpcoming && (
                           <span
+                            data-testid="earnings-badge"
                             title={`${earningsData.recommendation}\n\nEarnings Date: ${earningsData.earningsDate}\nDays Until: ${earningsData.daysUntil}`}
                             className={`px-2 py-0.5 rounded text-xs font-medium cursor-help ${
                               earningsData.daysUntil <= 3
@@ -1298,15 +1299,15 @@ function App() {
                     checks (4H RSI dropped: its tooltip described momentum entries). The card
                     always renders; PullbackPlan says why when srData is missing. */}
                 {analysisResult && (
-                  <div className="bg-gray-800 rounded-lg p-6">
-                    <div className="flex justify-between items-start gap-3 mb-1">
+                  <div data-testid="card-trade-setup" className="bg-gray-800 rounded-lg p-6">
+                    <div data-card-head className="flex justify-between items-start gap-3 mb-1">
                       <h3 className="text-lg font-semibold text-blue-400">🎯 Trade Setup</h3>
                       <div className="flex gap-1.5 shrink-0">
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-700 text-gray-300">⚙ LEVELS</span>
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-900/40 text-amber-300">◇ YOUR CALL</span>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-400 mb-4">The pullback plan: wait for a dip to support, then buy. Plain arithmetic, not a tested system.</p>
+                    <p data-card-head className="text-sm text-gray-400 mb-4">The pullback plan: wait for a dip to support, then buy. Plain arithmetic, not a tested system.</p>
                     <PullbackPlan srData={srData} ticker={analysisResult.ticker} />
                     {/* Day 123: levels need srData; when it failed, PullbackPlan above already says so. */}
                     {srData && (<>
@@ -1775,7 +1776,7 @@ function App() {
                         })()}
                       </p>
                     </div>
-                    <div className="text-right">
+                    <div data-testid="card-simple-verdict" className="text-right">
                       <div className="text-4xl font-bold">
                         {simplifiedResult.verdict === 'TRADE' ? '✅ TRADE' : '⏸️ No Trade'}
                       </div>
@@ -3029,6 +3030,12 @@ function App() {
                     <div className="bg-orange-900/30 border border-orange-600 rounded-lg px-4 py-2 text-sm text-orange-300 flex items-center gap-2">
                       <span>⚠️</span>
                       <span>{positionResult.limitApplied}</span>
+                    </div>
+                  )}
+                  {/* Day 124 (redesign item 10): say so when VIX scaling couldn't be applied */}
+                  {positionResult.vixUnknown && (
+                    <div data-testid="vix-unknown-note" className="border border-dashed border-gray-600 rounded-lg px-4 py-2 text-sm text-gray-400">
+                      VIX not loaded — no VIX size scaling applied (1.0×). Analyze a stock to load it.
                     </div>
                   )}
 

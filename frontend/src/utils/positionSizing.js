@@ -92,6 +92,7 @@ export function calculatePositionSize(accountSize, riskPercent, entryPrice, stop
     targets,
     rMultiple: 1, // Initial R is always 1
     vixMultiplier, // Tier 2A: VIX-based position scaling factor
+    vixUnknown: options.vixUnknown === true, // Day 124: VIX not loaded -> 1.0x shown, not silent
     limitApplied, // Day 29: Shows if position was capped or manual
     summary: {
       position: `${shares} shares @ $${entryPrice.toFixed(2)}`,
@@ -243,17 +244,19 @@ export function saveSettings(settings) {
 }
 
 /**
- * VIX position-size multiplier (Tier 2A ladder). Same ladder that's
- * currently written out twice in App.jsx (the two Tier 2A blocks); Day 121,
- * Phase 1 of the Analyze Page Redesign — not yet wired in.
- * Returns isDefault so a missing VIX shows as "VIX unknown → 1.0×" instead
- * of being applied silently (redesign item 10).
+ * VIX position-size multiplier (Tier 2A ladder): VIX < 20 -> 1.0x, 20-30 -> 0.75x,
+ * above 30 -> 0.50x. The one copy of this ladder; App.jsx's position calculator
+ * calls it (Day 124, Analyze Redesign Step 8, replaced two inline copies).
+ * Thresholds match the engine's assessRiskMacro (20/30), deliberately separate
+ * from the display bands in backend/vix_bands.py.
+ * A missing or non-finite VIX returns isDefault so the calculator can say
+ * "VIX not loaded -> 1.0x" instead of applying it silently (redesign item 10).
  *
  * @param {number|null} vix - Current VIX level
  * @returns {object} { multiplier, isDefault }
  */
 export function getVixPositionMultiplier(vix) {
-  if (vix == null) return { multiplier: 1.0, isDefault: true };
+  if (typeof vix !== 'number' || !Number.isFinite(vix)) return { multiplier: 1.0, isDefault: true };
   const multiplier = vix < 20 ? 1.0 : vix <= 30 ? 0.75 : 0.50;
   return { multiplier, isDefault: false };
 }

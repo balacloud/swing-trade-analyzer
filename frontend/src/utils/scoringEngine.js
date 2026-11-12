@@ -27,7 +27,6 @@
 
 import { calculateSMA, calculateEMA, calculateATR, calculateRSI } from './technicalIndicators';
 import { calculateRelativeStrength } from './rsCalculator';
-import { getLiquidityThreshold } from './liquidityThresholds';
 
 // Day 25: Known ETF tickers - these don't have traditional fundamentals
 const ETF_TICKERS = ['SPY', 'QQQ', 'IWM', 'DIA', 'VOO', 'VTI', 'VEA', 'VWO', 'VNQ',
@@ -407,78 +406,6 @@ function calculateRiskScore(spyData, vixData) {
 }
 
 /**
- * Check Quality Gates (Auto-AVOID triggers)
- */
-function checkQualityGates(stockData, spyData, technicalResult) {
-  const gates = [];
-  const rsData = technicalResult?.rsData;
-  const indicators = technicalResult?.indicators;
-  const prices = stockData.priceHistory.map(d => d.close);
-  const currentPrice = prices[prices.length - 1];
-  
-  // 1. RS below 0.8 (significant underperformance)
-  // Day 83 fix: previously `rsData?.rs52Week && ...` silently skipped this
-  // gate entirely whenever rs52Week was null/undefined (uncomputable) — a
-  // stock with genuinely missing RS data raised no warning at all, the
-  // opposite of what a quality gate should do on missing data. Now flags it
-  // as a non-critical, informational gate entry instead of staying silent.
-  if (rsData?.rs52Week != null) {
-    if (rsData.rs52Week < 0.8) {
-      gates.push({
-        name: 'RS Below Threshold',
-        value: rsData.rs52Week.toFixed(2),
-        threshold: '< 0.8',
-        critical: true
-      });
-    }
-  } else {
-    gates.push({
-      name: 'RS Unavailable',
-      value: 'N/A',
-      threshold: 'data missing',
-      critical: false
-    });
-  }
-
-  // 2. Stock below 200 SMA (downtrend)
-  if (indicators?.sma200 && currentPrice < indicators.sma200) {
-    gates.push({
-      name: 'Below 200 SMA',
-      value: `$${currentPrice.toFixed(2)}`,
-      threshold: `> $${indicators.sma200.toFixed(2)}`,
-      critical: true
-    });
-  }
-
-  // 3. Illiquid for its cap tier (Day 70B cap-aware threshold)
-  // Day 83 fix: was a flat $10M cutoff regardless of market cap — inconsistent
-  // with the Simple Checklist's cap-aware tiers ($2M small / $5M mid / $10M
-  // large), so the same stock's liquidity could pass here and fail there (or
-  // vice versa). Now sourced from the same shared threshold both views use.
-  const marketCap = stockData.fundamentals?.marketCap || stockData.marketCap || 0;
-  const { threshold: liquidityThreshold, label: liquidityLabel } = getLiquidityThreshold(marketCap);
-  const avgVolume = stockData.avgVolume || 0;
-  const avgDollarVolume = avgVolume * currentPrice;
-  if (avgDollarVolume < liquidityThreshold) {
-    gates.push({
-      name: 'Low Liquidity',
-      value: `$${(avgDollarVolume / 1000000).toFixed(1)}M`,
-      threshold: `> ${liquidityLabel}`,
-      critical: true
-    });
-  }
-  
-  // Count critical failures
-  const criticalFails = gates.filter(g => g.critical).length;
-  
-  return {
-    passed: criticalFails === 0,
-    gates: gates,
-    criticalFails: criticalFails
-  };
-}
-
-/**
  * Main scoring function
  * Calculates complete analysis for a stock
  * 
@@ -495,9 +422,6 @@ export function calculateScore(stockData, spyData, vixData) {
   const totalScore = technicalAnalysis.score + fundamentalAnalysis.score + 
                      sentimentAnalysis.score + riskAnalysis.score;
   
-  // Quality gates
-  const qualityGates = checkQualityGates(stockData, spyData, technicalAnalysis);
-
   // Get RS data for clean API
   const rsData = technicalAnalysis.rsData || {};
   
@@ -534,8 +458,6 @@ export function calculateScore(stockData, spyData, vixData) {
       sentiment: sentimentAnalysis.score,
       risk: riskAnalysis.score
     },
-    
-    qualityGates: qualityGates,
     
     // RS Data - Normalized field names for UI
     rsData: {

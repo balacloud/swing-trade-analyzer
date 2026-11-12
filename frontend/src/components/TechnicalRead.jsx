@@ -221,12 +221,12 @@ export default function TechnicalRead({ ticker, technical, adxData, rsData, patt
       : "Pattern detection didn't return for this ticker, so the trend checks couldn't run. Try again in a moment.";
 
   return (
-    <div className="bg-gray-800 rounded-lg p-6">
-      <div className="flex justify-between items-start gap-3 mb-1">
+    <div data-testid="card-technical-read" className="bg-gray-800 rounded-lg p-6">
+      <div data-card-head className="flex justify-between items-start gap-3 mb-1">
         <h3 className="text-lg font-semibold text-blue-400">📈 Technical Read</h3>
         <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-700 text-gray-300 shrink-0">⚙ ENGINE</span>
       </div>
-      <p className="text-sm text-gray-400 mb-3">About this stock only. The market's mood is in the band above.</p>
+      <p data-card-head className="text-sm text-gray-400 mb-3">About this stock only. The market's mood is in the band above.</p>
 
       <div className="text-xl font-bold">
         <span className={READ_COLOR[read.color]}>{read.read}</span>

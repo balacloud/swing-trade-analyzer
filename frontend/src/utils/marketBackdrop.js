@@ -10,6 +10,17 @@
 
 const isNum = (v) => typeof v === 'number' && Number.isFinite(v);
 
+// Display formatters, shared by RegimeRead.jsx and the UI verifier
+// (frontend/scripts/lib/analyzeChecks.js) so the test builds the exact text the card shows.
+export const fmtDate = (iso, withYear = false) => {
+  if (!iso) return '';
+  const d = new Date(`${iso}T12:00:00`);
+  return d.toLocaleDateString('en-US', withYear
+    ? { month: 'short', day: 'numeric', year: 'numeric' }
+    : { month: 'short', day: 'numeric' });
+};
+export const fmtPct = (v) => `${v > 0 ? '+' : ''}${v.toFixed(1)}%`;
+
 // Words for the backend's VIX bands (backend/vix_bands.py); no thresholds here.
 // Shared with the Context tab's Market Phase banner so one VIX reads the same everywhere.
 export const VIX_BAND_LABELS = {

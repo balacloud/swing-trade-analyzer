@@ -384,6 +384,16 @@
     color: var(--text);
   }
 
+  .panel-head .caution {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: var(--accent-dim);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text);
+  }
+
   .headline-takeaway {
     margin-top: 22px;
     text-align: center;
@@ -610,7 +620,7 @@
 
       <div class="verdict-row">
         <span class="badge trade">9 / 9 &rarr; TRADE</span>
-        <span class="badge pass-skip">anything less &rarr; PASS</span>
+        <span class="badge pass-skip">anything less &rarr; No Trade</span>
         <span class="badge-note">no in-between &mdash; this path is all-or-nothing</span>
       </div>
     </section>
@@ -621,6 +631,7 @@
         <div class="panel-tag">Path 2 &middot; Full Analysis</div>
         <h2>4 broad judgments, blended by a rulebook.</h2>
         <p>Each category is rated Strong / Decent / Weak, then a set of priority rules &mdash; not a simple point total &mdash; turns those four ratings into BUY / HOLD / AVOID.</p>
+        <div class="caution"><strong>Update, Day 123&ndash;124:</strong> the Full Analysis page no longer <em>shows</em> this verdict. It lays out the facts card by card &mdash; Market backdrop first (S&amp;P 500 and Nasdaq-100 trend, biggest recent drop, VIX), then Technical, Mean-Reversion, Trade Setup and Fundamentals &mdash; and you make the call. The rulebook below still runs behind the scenes and is saved with each logged trade, so this section explains what the engine does, not what the page displays.</div>
       </div>
 
       <div class="categories">
@@ -723,7 +734,7 @@
       <div class="example-grid">
         <div class="example-card">
           <h3>Simple Checklist</h3>
-          <p><strong>No.</strong> Question 8 ("is the whole market healthy?") tests the S&amp;P against its 200-day average &mdash; plain yes/no. If the market is genuinely in a downtrend, that one bulb fails, and this path has <strong>no override</strong>. It never asks "but is the stock itself great" &mdash; one failed bulb is enough to land on PASS, however good the other eight look.</p>
+          <p><strong>No.</strong> Question 8 ("is the whole market healthy?") tests the S&amp;P against its 200-day average &mdash; plain yes/no. If the market is genuinely in a downtrend, that one bulb fails, and this path has <strong>no override</strong>. It never asks "but is the stock itself great" &mdash; one failed bulb is enough to land on No Trade, however good the other eight look.</p>
           <div class="caution">A sudden 5% drop can also cost bulbs #1 (Trend), #5 (52-Wk Range), or #3 (Setup) if it breaks a key level &mdash; the real outcome is often worse than "8/9 minus regime," not just capped by it.</div>
         </div>
         <div class="example-card">
@@ -755,9 +766,9 @@
   </div>
 
   <footer>
-    <div>Simplified for readability &mdash; the real rulebook has a few more edge cases (holding-period weighting, ETF handling, missing-data fallbacks) not shown here.</div>
+    <div>Simplified for readability &mdash; the real rulebook has a few more edge cases (ETF handling, missing-data fallbacks) not shown here. The Holding Period selector was removed on Day 123.</div>
     <div class="src">Source: frontend/src/utils/simplifiedScoring.js · frontend/src/utils/categoricalAssessment.js</div>
-    <div>Last revised: 2026-07-28</div>
+    <div>Last revised: 2026-11-12 (Full Analysis no longer shows the verdict; Simple view says No Trade, not PASS)</div>
   </footer>
 
 </div>
