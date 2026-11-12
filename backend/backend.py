@@ -78,6 +78,7 @@ BACKEND_VERSION = '2.52'
 # docs/claude/design/VOLUME_EFFORT_VS_RESULT_PLAN_DAY116.md Section 5.
 # Day 123: moved to market_time.py (one definition, shared with the MR routes).
 from market_time import MARKET_TZ, MARKET_CLOSE_HOUR, MARKET_CLOSE_MIN, is_forming_bar, drop_forming_bar  # noqa: F401
+from index_trend import index_trend_facts  # Day 124: Market backdrop card
 
 from constants import SUPPORT_PROXIMITY_PCT, RESISTANCE_PROXIMITY_PCT  # shared with support_resistance.py
 from sub_industry_clusters import SUB_INDUSTRY_CLUSTERS, NO_PROXY_CLUSTERS  # Day 100+ Sub-Industry Watch
@@ -1154,30 +1155,73 @@ def get_fundamentals(ticker):
         return jsonify({'error': str(e)}), 500
 
 
+def _index_history(ticker):
+    """2y daily OHLCV for an index ETF with capitalized columns, or None.
+    Day 51 provider chain (TwelveData → yfinance → Stooq), then direct yfinance.
+    Shared by /api/market/spy and /api/market/index/<ticker> (Day 124)."""
+    hist = None
+    if DATA_PROVIDER_AVAILABLE:
+        try:
+            dp = get_data_provider()
+            hist = dp.get_ohlcv(ticker, '2y')
+        except Exception as e:
+            print(f"⚠️ DataProvider {ticker} failed: {e}")
+
+    if hist is None:
+        hist = yf.Ticker(ticker).history(period='2y')
+
+    if hist is None or hist.empty:
+        return None
+
+    hist = hist.copy()  # don't rename columns on a frame the provider may still hold
+    hist.columns = [c.capitalize() for c in hist.columns]
+    return hist
+
+
+def _safe_trend_facts(ticker, hist):
+    """index_trend_facts for an endpoint whose other fields must survive a failure here:
+    /api/market/spy feeds the whole Analyze page, so a display-only extra can't take it
+    down. Logged, and the card shows "couldn't load" for a null trend."""
+    try:
+        return index_trend_facts(hist)
+    except Exception as e:
+        print(f"⚠️ Index trend facts failed for {ticker}: {e}")
+        traceback.print_exc()
+        return None
+
+
+# Day 124 (redesign Step 7): indexes the Market backdrop card may request.
+MARKET_INDEX_TICKERS = {'SPY', 'QQQ'}
+
+
+@app.route('/api/market/index/<ticker>', methods=['GET'])
+def get_market_index_trend(ticker):
+    """Trend facts (completed bars only) for the Analyze page's Market backdrop card.
+    Display only; nothing here feeds the verdict engine."""
+    ticker = ticker.upper()
+    if ticker not in MARKET_INDEX_TICKERS:
+        return jsonify({'error': f'Unsupported index {ticker}; allowed: {sorted(MARKET_INDEX_TICKERS)}'}), 400
+    try:
+        hist = _index_history(ticker)
+        trend = index_trend_facts(hist)
+        if trend is None:
+            return jsonify({'error': f'No {ticker} data found'}), 404
+        return jsonify({'ticker': ticker, 'trend': trend})
+    except Exception as e:
+        print(f"Error fetching index trend for {ticker}: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/market/spy', methods=['GET'])
 def get_spy_data():
     """
     Get SPY (S&P 500 ETF) data for relative strength calculations
     """
     try:
-        # Day 51: Use DataProvider for SPY (TwelveData → yfinance → Stooq)
-        hist = None
-        if DATA_PROVIDER_AVAILABLE:
-            try:
-                dp = get_data_provider()
-                hist = dp.get_ohlcv('SPY', '2y')
-            except Exception as e:
-                print(f"⚠️ DataProvider SPY failed: {e}")
-
+        hist = _index_history('SPY')
         if hist is None:
-            spy = yf.Ticker('SPY')
-            hist = spy.history(period='2y')
-
-        if hist is None or hist.empty:
             return jsonify({'error': 'No SPY data found'}), 404
-
-        # Capitalize columns for existing code
-        hist.columns = [c.capitalize() for c in hist.columns]
 
         # Get last 260 days
         hist_data = hist.tail(260)
@@ -1228,6 +1272,9 @@ def get_spy_data():
             'sma200': sma_200,
             'aboveSma200': bool(current_price > sma_200),  # FIX: Convert to Python bool
             'sma50Declining': bool(sma50_declining),
+            # Day 124: Market backdrop card facts (completed bars, full 2y frame). The
+            # legacy keys above are unchanged and still feed the engine.
+            'trend': _safe_trend_facts('SPY', hist),
             'priceHistory': price_history,
             'dataPoints': len(price_history)
         }

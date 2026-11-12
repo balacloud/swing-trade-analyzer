@@ -68,6 +68,14 @@ import {
   downloadTradesCSV, TradeStatus
 } from './utils/forwardTesting';
 
+// Day 124: header line under the ticker. The backend fills a missing sector/industry with
+// the string 'Unknown' (an ETF has neither), which printed as "Unknown • Unknown".
+const describeClassification = (sector, industry, quoteType) => {
+  if (quoteType === 'ETF') return 'Exchange-traded fund (ETF)';
+  const parts = [sector, industry].filter(v => v && v !== 'Unknown');
+  return parts.length > 0 ? parts.join(' • ') : 'Sector and industry not reported';
+};
+
 function App() {
   // Tab state
   const [activeTab, setActiveTab] = useState('analyze'); // 'analyze', 'scan', or 'validate'
@@ -142,7 +150,7 @@ function App() {
 
   // Simplified analysis state (Day 27)
   const [simplifiedResult, setSimplifiedResult] = useState(null);
-  const [analysisView, setAnalysisView] = useState('simple'); // 'full' or 'simple' — default simple (Day 75)
+  const [analysisView, setAnalysisView] = useState('full'); // 'full' or 'simple' — default full since Day 124 (redesign Step 7; was simple from Day 75)
 
   // Settings state (Day 28)
   const [settings, setSettings] = useState(getDefaultSettings);
@@ -498,6 +506,7 @@ function App() {
       setRawAnalysisData({
         stock: data.stock,
         spy: data.spy,
+        qqq: data.qqq,  // Day 124: Market backdrop card (this literal is a whitelist, Golden Rule 30)
         vix: data.vix,
         fearGreed: data.fearGreed,
         trendTemplate,
@@ -1062,13 +1071,20 @@ function App() {
               <div className="space-y-6">
                 {/* Day 123 (redesign Step 6): Holding Period selector removed — its only effect was the
                     BUY/HOLD/AVOID verdict's tech/fund weighting, and that verdict is no longer shown. */}
+                {/* Day 124 (user): the market backdrop is the first card, then the stock. */}
+                <RegimeRead
+                  spy={rawAnalysisData?.spy}
+                  qqq={rawAnalysisData?.qqq}
+                  vix={rawAnalysisData?.vix}
+                  ticker={analysisResult.ticker}
+                />
                 {/* Verdict Card - v4.5 Categorical Assessment (Neutral design) */}
                 <div className="rounded-lg p-6 bg-gray-800 border border-gray-700">
                   <div className="flex justify-between items-center">
                     <div>
                       <h2 className="text-2xl font-bold text-white">{analysisResult.ticker} - {analysisResult.name}</h2>
                       <p className="text-gray-400">
-                        {analysisResult.sector} • {analysisResult.industry}
+                        {describeClassification(analysisResult.sector, analysisResult.industry, rawAnalysisData?.stock?.quoteType)}
                         {(() => {
                           const sc = getSectorContext(analysisResult.sector);
                           if (!sc) return null;
@@ -1123,14 +1139,13 @@ function App() {
                     {/* Day 123 (redesign Step 4): the BUY/HOLD/AVOID badge and the T/F/S/R letter
                         row were here. The Full view now leads with the Regime band and the
                         Technical Read card below (Day 109 decisions; Day 119 plan Phase 3). The
-                        Simple view keeps its own TRADE/PASS checklist verdict. (Step 6 later removed the
+                        Simple view keeps its own TRADE / No Trade checklist verdict. (Step 6 later removed the
                         Assessment Breakdown and BUY/HOLD/AVOID everywhere.) */}
                   </div>
                 </div>
 
                 {/* Day 123 (Step 6): the fundamentals-unavailable banner moved into the Fundamentals card's "Can't check" state. */}
-                {/* Day 123 (redesign Step 4): market backdrop, then the stock's own read. */}
-                <RegimeRead riskMacro={categoricalResult?.riskMacro} ticker={analysisResult.ticker} />
+                {/* Day 124: Market backdrop moved to the top of the page (above the stock header). */}
                 <TechnicalRead
                   ticker={analysisResult.ticker}
                   technical={categoricalResult?.technical}
@@ -1733,7 +1748,7 @@ function App() {
                     <div>
                       <h2 className="text-2xl font-bold">{analysisResult.ticker} - {analysisResult.name}</h2>
                       <p className="text-white/80">
-                        {analysisResult.sector} • {analysisResult.industry}
+                        {describeClassification(analysisResult.sector, analysisResult.industry, rawAnalysisData?.stock?.quoteType)}
                         {(() => {
                           const sc = getSectorContext(analysisResult.sector);
                           if (!sc) return null;
@@ -1761,7 +1776,7 @@ function App() {
                     </div>
                     <div className="text-right">
                       <div className="text-4xl font-bold">
-                        {simplifiedResult.verdict === 'TRADE' ? '✅ TRADE' : '⏸️ PASS'}
+                        {simplifiedResult.verdict === 'TRADE' ? '✅ TRADE' : '⏸️ No Trade'}
                       </div>
                       <div className="text-xl">{simplifiedResult.passCount}/{simplifiedResult.totalCriteria} criteria met</div>
                     </div>
@@ -1884,7 +1899,7 @@ function App() {
                   <p><strong>Simplified Binary System</strong> - Day 27, enhanced Day 60 with Minervini SEPA + backtest-validated filters</p>
                   <p className="mt-1">Based on: AQR Momentum Research • Turtle Trading Principles • Minervini SEPA Criteria • Holistic 3-Layer Backtest</p>
                   <p className="mt-2 text-gray-400">
-                    <strong>Rule:</strong> ALL 9 criteria must be YES to take a trade. Any NO = PASS. No exceptions.
+                    <strong>Rule:</strong> ALL 9 criteria must be YES to take a trade. Any NO = no trade. No exceptions.
                   </p>
                 </div>
 

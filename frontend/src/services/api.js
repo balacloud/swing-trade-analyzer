@@ -119,24 +119,32 @@ export async function fetchSPYData() {
       throw new Error(error.error || 'Failed to fetch SPY data');
     }
     
+    // Day 124: pass-through, not a field whitelist (Golden Rule 30/47), so `trend`
+    // (Market backdrop card) arrives. Every reader uses named keys.
     const data = await response.json();
-    
-    return {
-      ticker: data.ticker,
-      currentPrice: data.currentPrice,
-      price52wAgo: data.price52wAgo,
-      price13wAgo: data.price13wAgo,
-      sma200: data.sma200,
-      aboveSma200: data.aboveSma200,
-      sma50Declining: data.sma50Declining || false,  // Day 57: early bear indicator
-      priceHistory: data.priceHistory,
-      dataPoints: data.dataPoints
-    };
-    
+    return { ...data, sma50Declining: data.sma50Declining || false };  // Day 57: early bear indicator
+
   } catch (error) {
     console.error('Error fetching SPY data:', error);
     throw error;
   }
+}
+
+/**
+ * Day 124 (redesign Step 7): trend facts for one market index (SPY or QQQ),
+ * completed bars only. Throws on failure; callers decide how to isolate it.
+ */
+export async function fetchIndexTrend(ticker) {
+  const response = await fetch(`${API_BASE_URL}/market/index/${ticker}`);
+  if (!response.ok) {
+    let message = `Failed to fetch ${ticker} trend (HTTP ${response.status})`;
+    try {
+      const body = await response.json();
+      if (body?.error) message = body.error;
+    } catch (_) { /* non-JSON error body: keep the status message */ }
+    throw new Error(message);
+  }
+  return response.json();
 }
 
 /**
@@ -422,7 +430,7 @@ export async function fetchSupportResistance(ticker) {
  */
 export async function fetchFullAnalysisData(ticker) {
   try {
-    const [stockData, fundamentals, spyData, vixData, srData, patterns, fearGreed, earnings, sectorData, freshness] = await Promise.all([
+    const [stockData, fundamentals, spyData, vixData, srData, patterns, fearGreed, earnings, sectorData, freshness, qqqData] = await Promise.all([
       fetchStockData(ticker),
       fetchFundamentals(ticker),
       fetchSPYData(),
@@ -439,6 +447,12 @@ export async function fetchFullAnalysisData(ticker) {
         return null;
       }),  // Day 58: Fetch sector rotation (cached per trading day)
       fetchDataFreshness(ticker),  // Day 59: Data freshness for UI meter
+      // Day 124: Nasdaq-100 for the Market backdrop card. Isolated so a QQQ failure
+      // shows "couldn't load" on that row instead of failing the page (Golden Rule 32).
+      fetchIndexTrend('QQQ').catch(err => {
+        console.error('Error fetching QQQ trend:', err);
+        return { error: err.message };
+      }),
     ]);
 
     // Attach fundamentals to stock data (single source: /api/fundamentals/)
@@ -460,6 +474,7 @@ export async function fetchFullAnalysisData(ticker) {
     return {
       stock: stockData,
       spy: spyData,
+      qqq: qqqData,  // Day 124: { ticker, trend } or { error }
       vix: vixData,
       fundamentals: fundamentals,
       sr: srData,
