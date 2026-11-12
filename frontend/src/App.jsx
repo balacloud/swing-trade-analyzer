@@ -1077,6 +1077,7 @@ function App() {
                   qqq={rawAnalysisData?.qqq}
                   vix={rawAnalysisData?.vix}
                   ticker={analysisResult.ticker}
+                  onOpenContext={() => { setActiveTab('context'); window.scrollTo({ top: 0 }); }}
                 />
                 {/* Verdict Card - v4.5 Categorical Assessment (Neutral design) */}
                 <div className="rounded-lg p-6 bg-gray-800 border border-gray-700">
@@ -1984,13 +1985,14 @@ function App() {
               </div>
 
               {/* Day 111: Mean-Reversion scanner — separate system, own button.
-                  Confirmed Day 111 (105 trades, 77.14% WR, PF 2.75, net of costs) —
-                  see docs/claude/stable/PAPER_TRADING_PREREGISTRATION.md §10. */}
+                  Day 124: the old "confirmed Day 111 (PF 2.75)" was priced at the entry-day
+                  close (Golden Rule 60). The honest next-open record lives on the Analyze
+                  page's MR card and the Forward Test tab (one source: get_mr_track_record). */}
               <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-700">
                 <span className="text-sm text-gray-400 flex-1">
                   Or check the 54-ticker liquid universe for active Mean-Reversion signals
-                  (RSI(2)&lt;10, above 200-SMA, $10+/$25M+ ADV) —{' '}
-                  <span className="text-teal-400">confirmed Day 111</span>.
+                  (RSI(2)&lt;10, above 200-SMA, $10+/$25M+ ADV) — the one positive forward-test edge;
+                  its next-open track record is on each stock's Mean-Reversion card.
                 </span>
                 <button
                   onClick={runMrScan}

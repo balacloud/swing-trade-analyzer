@@ -117,6 +117,28 @@ const BADGE_STYLES = {
   gray: { border: 'border-gray-600/50', bg: 'bg-gray-800/60', text: 'text-gray-400' },
 };
 
+// Day 124: MR ledger rows are scored at the entry-day close (Golden Rule 60). The
+// next-open re-test comes from the backend's MR track record (same source as the
+// Analyze page's MR card). undefined = not an MR track; null = re-test unavailable.
+function OpenBasisNote({ openBasis }) {
+  if (openBasis === undefined) return null;
+  if (openBasis === null) {
+    return (
+      <p className="mt-2 text-xs text-gray-400 border border-dashed border-gray-600 rounded px-2 py-1">
+        Figures above are priced at the entry-day close. The next-open re-test couldn't be loaded.
+      </p>
+    );
+  }
+  const { profitFactor, winPct, avgPnlPct, trades } = openBasis;
+  return (
+    <p className="mt-2 text-xs text-gray-300 bg-gray-800/60 rounded px-2 py-1">
+      Figures above are priced at the entry-day close, a price nobody acting on the signal could get.
+      {' '}<b className="text-gray-100">At the next open: PF {Number(profitFactor).toFixed(2)} · {Number(winPct).toFixed(1)}% wins · {avgPnlPct > 0 ? '+' : ''}{Number(avgPnlPct).toFixed(2)}%/trade</b>
+      {' '}({trades} trades, Day 123 re-test).
+    </p>
+  );
+}
+
 function SystemCard({ name, label, data, badge, badgeColor = 'amber', caption }) {
   const [expanded, setExpanded] = useState(false);
   if (!data) return null;
@@ -182,6 +204,7 @@ function SystemCard({ name, label, data, badge, badgeColor = 'amber', caption })
       {stats?.warnings?.length > 0 && (
         <div className="mt-2 text-xs text-yellow-500">{stats.warnings[0]}</div>
       )}
+      <OpenBasisNote openBasis={data.openBasis} />
       {data.closedTrades === 0 && data.openPositions === 0 && (
         <div className="mt-2 text-xs text-gray-500">No closed trades yet</div>
       )}
@@ -259,7 +282,7 @@ export default function AutomatedPaperTradingPanel() {
           user-facing counterpart to daily_job.py's PROGRAM_DISCONTINUED flag. */}
       <div className="text-xs bg-gray-700/50 border border-gray-600 rounded px-3 py-2 mb-3 text-gray-300">
         <b className="text-gray-100">Program discontinued (2026-09-12).</b> No new signals are generated on any
-        track — MR (broad) closed out as the one confirmed edge (PF 2.56, 194+ trades). Every open/pending position
+        track — MR (broad) closed out as the one positive edge (its card shows the honest next-open figures). Every open/pending position
         below still resolves by its own exit rules; nothing is force-closed. "Check for closes" just lets today's
         exits post — it queues nothing new.
       </div>

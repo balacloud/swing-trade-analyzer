@@ -79,6 +79,7 @@ BACKEND_VERSION = '2.52'
 # Day 123: moved to market_time.py (one definition, shared with the MR routes).
 from market_time import MARKET_TZ, MARKET_CLOSE_HOUR, MARKET_CLOSE_MIN, is_forming_bar, drop_forming_bar  # noqa: F401
 from index_trend import index_trend_facts  # Day 124: Market backdrop card
+from vix_bands import vix_band  # Day 124: one on-screen VIX band definition
 
 from constants import SUPPORT_PROXIMITY_PCT, RESISTANCE_PROXIMITY_PCT  # shared with support_resistance.py
 from sub_industry_clusters import SUB_INDUSTRY_CLUSTERS, NO_PROXY_CLUSTERS  # Day 100+ Sub-Industry Watch
@@ -1323,17 +1324,8 @@ def get_vix_data():
 
         current_vix = round(float(current_vix), 2)
         
-        # VIX levels interpretation
-        if current_vix < 15:
-            regime = 'low_volatility'
-        elif current_vix < 20:
-            regime = 'normal'
-        elif current_vix < 25:
-            regime = 'elevated'
-        elif current_vix < 30:
-            regime = 'high'
-        else:
-            regime = 'extreme'
+        # VIX levels interpretation — Day 124: one shared definition (vix_bands.py)
+        regime = vix_band(current_vix)
         
         # Day 41: Include previous close and change
         change_pct = None
@@ -3608,6 +3600,21 @@ def get_paper_trading_status():
                 'closed': [_position_row(r) for r in reversed(mrh_closed)][:20],
             },
         }
+
+        # Day 124: the ledger scores MR trades at the entry-day CLOSE (Golden Rule 60).
+        # Attach the next-open re-test per MR track from the same source as the
+        # Analyze page's MR card, so this tab can't quote a different number.
+        # None = re-test unavailable (the card says so); never a hardcoded figure.
+        track = mean_reversion.get_mr_track_record()
+        by_variant = {v['variant']: v for v in (track or {}).get('variants', [])}
+        for key, variant in (('mr', 'A_frozen'), ('mrHub', 'mr_hub65')):
+            if key in systems:
+                v = by_variant.get(variant)
+                systems[key]['openBasis'] = None if v is None else {
+                    'trades': v['trades'], 'winPct': v['winPct'],
+                    'profitFactor': v['profitFactor'], 'avgPnlPct': v['avgPnlPct'],
+                    'source': track.get('source'),
+                }
 
         return jsonify({
             'lastRunDate': pt_ledger.get_last_run_date(),

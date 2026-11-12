@@ -10,8 +10,9 @@
 
 const isNum = (v) => typeof v === 'number' && Number.isFinite(v);
 
-// The backend's own VIX buckets (/api/market/vix); no new thresholds here.
-const VIX_LABELS = {
+// Words for the backend's VIX bands (backend/vix_bands.py); no thresholds here.
+// Shared with the Context tab's Market Phase banner so one VIX reads the same everywhere.
+export const VIX_BAND_LABELS = {
   low_volatility: 'low',
   normal: 'normal range',
   elevated: 'elevated',
@@ -60,7 +61,7 @@ export function describeMarketBackdrop({ spy, qqq, vix } = {}) {
   const rows = [describeRow('S&P 500', spy), describeRow('Nasdaq-100 (QQQ)', qqq)];
 
   const vixRead = isNum(vix?.current)
-    ? { state: 'ok', value: vix.current, label: VIX_LABELS[vix.regime] || null }
+    ? { state: 'ok', value: vix.current, label: VIX_BAND_LABELS[vix.regime] || null }
     : { state: 'unavailable' };
 
   const dates = [...new Set(rows.filter(r => r.state === 'ok').map(r => r.asOfDate))];

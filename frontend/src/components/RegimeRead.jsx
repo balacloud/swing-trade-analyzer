@@ -49,7 +49,7 @@ function DropCell({ drop }) {
 const COLS = 'sm:grid sm:grid-cols-[8.5rem_1fr_1fr_2fr] sm:gap-x-3';
 const MobileLabel = ({ children }) => <span className="sm:hidden text-gray-500 text-xs mr-2">{children}</span>;
 
-export default function RegimeRead({ spy, qqq, vix, ticker }) {
+export default function RegimeRead({ spy, qqq, vix, ticker, onOpenContext }) {
   const b = useMemo(() => describeMarketBackdrop({ spy, qqq, vix }), [spy, qqq, vix]);
   const warnings = b.missing.map(m => `${m} market data missing`);
   useMissingInputWarning('Market', ticker, warnings);
@@ -104,6 +104,11 @@ export default function RegimeRead({ spy, qqq, vix, ticker }) {
             </span>
             {b.asOfDate && <span className="text-gray-500">Index figures as of {fmtDate(b.asOfDate)} close</span>}
           </div>
+          {onOpenContext && (
+            <button onClick={onOpenContext} className="mt-1 text-xs text-blue-400 hover:text-blue-300">
+              More market context (breadth, sectors, economy) →
+            </button>
+          )}
         </div>
       )}
     </div>

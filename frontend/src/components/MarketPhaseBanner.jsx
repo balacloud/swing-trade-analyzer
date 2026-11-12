@@ -2,6 +2,7 @@
 // Context Tab banner: SPY trend + VIX level -> one of 5 phases, with
 // breadth/sector leadership shown as supporting evidence, not a gate.
 // Purely informational — zero impact on verdicts.
+import { VIX_BAND_LABELS } from '../utils/marketBackdrop';
 
 const PHASE_STYLES = {
   'Bull Rally': {
@@ -87,7 +88,9 @@ export default function MarketPhaseBanner({ data, loading, error }) {
           <div className="bg-gray-800/50 rounded px-2 py-1.5">
             <div className="text-gray-500">VIX</div>
             <div className="text-gray-200 font-mono">
-              {signals.vix.current} ({signals.vix.levelBucket.toLowerCase()}) · {fmtPct(signals.vix.pctChange10d)} (10d)
+              {/* Day 124: the on-screen word comes from the shared VIX band (same as the Analyze
+                  page). levelBucket is the phase grid's input (20/25), not a label. */}
+              {signals.vix.current}{VIX_BAND_LABELS[signals.vix.band] ? ` (${VIX_BAND_LABELS[signals.vix.band]})` : ''} · {fmtPct(signals.vix.pctChange10d)} (10d)
             </div>
           </div>
           <div className="bg-gray-800/50 rounded px-2 py-1.5">

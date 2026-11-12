@@ -23,6 +23,8 @@ from datetime import datetime
 
 import yfinance as yf
 
+from vix_bands import vix_band
+
 try:
     from providers import get_data_provider
     DATA_PROVIDER_AVAILABLE = True
@@ -218,7 +220,9 @@ def get_market_phase():
                 'vix': {
                     'current': latest_vix,
                     'pctChange10d': vix_chg_10d,
-                    'levelBucket': vix_bucket,
+                    'levelBucket': vix_bucket,  # phase-grid input (20/25), not the on-screen word
+                    'band': vix_band(latest_vix),  # Day 124: on-screen word, shared with Analyze
+
                 },
                 'breadth': {
                     'rspSpyRatio': latest_ratio,
