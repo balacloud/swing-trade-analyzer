@@ -271,3 +271,20 @@ and the now-unused `getLiquidityThreshold` import removed).
 Fable verified clean: response capture (each payload fetched once, before the cards render),
 A3/A5 state mirroring, the A8 emoji bytes, the VIX helper callers and GR57, the `qualityGates`
 removal, `data-testid` placement on every render path, and the doc paths.
+
+---
+
+## 8. Follow-up (Day 124): date next to the header price
+
+User asked about AVGO showing $345.45 while Google showed $361.64. The header price is the
+last bar's close (`/api/stock` `current_price`), but it had no date, so it read as live.
+Trivial display change (GR55, no plan review).
+- New `src/utils/priceAsOf.js` `describePriceAsOf(newestDate, now)`: "Nov 11 close", or
+  "Nov 12 · intraday, not a close" when the bar is dated today in New York before 16:30 ET
+  (the same cutoff as `market_time.py`). `/api/stock` doesn't drop the forming bar, so this
+  case is real on a cache miss during market hours. A missing date shows "date not reported".
+- Test first: `scripts/test_price_as_of.mjs` (9 checks: yesterday's bar, today's bar before
+  and after 16:30, evening ET vs UTC date, a Friday bar on Monday, prior year, missing or bad
+  date).
+- Live: AVGO header shows "$345.45 · Nov 11 close" at 10:46 ET. The verifier on AVGO passes
+  8/8. The build shows only the old ValueTab warning.

@@ -43,6 +43,7 @@ import { calculateScore } from './utils/scoringEngine';
 import { calculateSimplifiedAnalysis } from './utils/simplifiedScoring';
 import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings, getVixPositionMultiplier } from './utils/positionSizing';
 import { runCategoricalAssessment, getActionablePatterns } from './utils/categoricalAssessment';
+import { describePriceAsOf } from './utils/priceAsOf'; // Day 124: header price date label
 import PullbackPlan from './components/PullbackPlan'; // Day 123: redesign Step 3, Trade Setup pullback plan
 import RegimeRead from './components/RegimeRead'; // Day 123: redesign Step 4
 import TechnicalRead from './components/TechnicalRead'; // Day 123: redesign Step 4
@@ -1099,7 +1100,16 @@ function App() {
                         })()}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
-                        <p className="text-gray-500 text-sm">{formatCurrency(analysisResult.currentPrice)}</p>
+                        <p className="text-gray-500 text-sm">
+                          {formatCurrency(analysisResult.currentPrice)}
+                          {/* Day 124: say which day this price is from (it's the last bar, not a live quote) */}
+                          {(() => {
+                            const asOf = describePriceAsOf(rawAnalysisData?.stock?.newestDate);
+                            return asOf
+                              ? <span data-testid="price-as-of" className="text-gray-500"> · {asOf}</span>
+                              : <span data-testid="price-as-of" className="text-gray-600 italic"> · date not reported</span>;
+                          })()}
+                        </p>
                         {/* Day 49: v4.10 Earnings Warning Badge */}
                         {earningsData?.hasUpcoming && (
                           <span

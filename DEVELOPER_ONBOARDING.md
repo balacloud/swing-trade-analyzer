@@ -125,6 +125,7 @@ cd frontend
 node scripts/test_analyze_checks.mjs     # the Analyze page checks themselves
 node scripts/test_market_backdrop.mjs    # Market backdrop card facts
 node scripts/test_vix_multiplier.mjs     # VIX position-size multiplier
+node scripts/test_price_as_of.mjs        # header price date label (close vs intraday)
 cd ../backend
 venv/bin/python backtest/test_verdict_parity.py   # JS vs Python verdict engine, 86,400 combinations
 venv/bin/python backtest/test_index_trend.py      # index trend facts
