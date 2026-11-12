@@ -1,0 +1,440 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<meta charset="utf-8">
+<title>STA vs. 100 Years of Trading Principles</title>
+<style>
+  :root {
+    --bg: #f6f3ec;
+    --surface: #ffffff;
+    --surface-2: #efeade;
+    --border: #e0d9c8;
+    --text: #211d15;
+    --text-muted: #6f6754;
+    --text-faint: #948c78;
+    --accent: #146b66;
+    --accent-soft: #d9ece9;
+    --green: #2f7a4f;
+    --green-soft: #e2f0e6;
+    --amber: #a1710f;
+    --amber-soft: #f5ead2;
+    --red: #a13a2c;
+    --red-soft: #f5e0da;
+    --shadow: 0 1px 2px rgba(33,29,21,0.04), 0 6px 20px -8px rgba(33,29,21,0.12);
+  }
+  :root[data-theme="dark"] {
+    --bg: #17150f;
+    --surface: #1f1c15;
+    --surface-2: #262219;
+    --border: #35301f;
+    --text: #ece6d6;
+    --text-muted: #a89e87;
+    --text-faint: #7d735d;
+    --accent: #4fd1c1;
+    --accent-soft: #1c3634;
+    --green: #6bc48f;
+    --green-soft: #1e3226;
+    --amber: #e0b34f;
+    --amber-soft: #362a13;
+    --red: #e2695c;
+    --red-soft: #3a221d;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 30px -12px rgba(0,0,0,0.6);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17150f; --surface: #1f1c15; --surface-2: #262219; --border: #35301f;
+      --text: #ece6d6; --text-muted: #a89e87; --text-faint: #7d735d;
+      --accent: #4fd1c1; --accent-soft: #1c3634;
+      --green: #6bc48f; --green-soft: #1e3226;
+      --amber: #e0b34f; --amber-soft: #362a13;
+      --red: #e2695c; --red-soft: #3a221d;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 30px -12px rgba(0,0,0,0.6);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.55; -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 44px 24px 90px; }
+
+  header { margin-bottom: 28px; }
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin: 0 0 10px; }
+  h1 { font-size: clamp(26px, 4vw, 34px); font-weight: 800; letter-spacing: -0.01em; margin: 0 0 10px; text-wrap: balance; }
+  .subhead { color: var(--text-muted); font-size: 15px; margin: 0 0 16px; max-width: 68ch; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12.5px; }
+  .meta-chip { font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace; background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 9px; color: var(--text-muted); }
+
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin: 22px 0 26px; padding: 14px 18px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); font-size: 13px; }
+  .legend-item { display: flex; align-items: center; gap: 7px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .dot.match { background: var(--green); } .dot.partial { background: var(--amber); } .dot.gap { background: var(--red); }
+
+  .col-heads { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 0 0 6px; padding: 0 22px; }
+  .col-heads .h { font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-faint); }
+
+  .rows { display: flex; flex-direction: column; gap: 14px; }
+  .row-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+  .row-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 22px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .row-title { display: flex; align-items: baseline; gap: 10px; }
+  .row-num { font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace; color: var(--text-faint); font-size: 13px; }
+  .row-name { font-size: 16px; font-weight: 700; }
+  .status-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; border-radius: 999px; padding: 4px 11px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .status-badge.match { background: var(--green-soft); color: var(--green); }
+  .status-badge.partial { background: var(--amber-soft); color: var(--amber); }
+  .status-badge.gap { background: var(--red-soft); color: var(--red); }
+
+  .row-body { display: grid; grid-template-columns: 1fr 1fr; }
+  .cell { padding: 18px 22px; font-size: 14px; }
+  .cell.sta { border-right: 1px solid var(--border); }
+  .cell p { margin: 0 0 8px; }
+  .cell p:last-child { margin-bottom: 0; }
+  .cell b { font-weight: 700; }
+  .src-tag { display: inline-block; font-size: 10.5px; color: var(--text-faint); margin-top: 8px; font-style: italic; }
+
+  .foot { margin-top: 34px; padding-top: 22px; border-top: 1px solid var(--border); }
+  .foot h2 { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); margin: 0 0 12px; }
+  .gap-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 26px; }
+  .gap-item { display: flex; gap: 10px; background: var(--amber-soft); border-radius: 8px; padding: 11px 14px; font-size: 13px; color: var(--text); }
+  .gap-item b { color: var(--amber); }
+  .gap-item.fixed { background: var(--green-soft); }
+  .gap-item.fixed b { color: var(--green); }
+  .sources { font-size: 12.5px; color: var(--text-faint); line-height: 1.7; }
+  .sources b { color: var(--text-muted); }
+  .disclaimer { margin-top: 22px; padding: 14px 16px; border: 1px dashed var(--border); border-radius: 8px; font-size: 12.5px; color: var(--text-muted); background: var(--surface); }
+
+  @media (max-width: 720px) {
+    .row-body, .col-heads { grid-template-columns: 1fr; }
+    .cell.sta { border-right: none; border-bottom: 1px solid var(--border); }
+    .col-heads { display: none; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Self-Audit</p>
+    <h1>STA vs. 100 Years of Trading Principles</h1>
+    <p class="subhead">What the Swing Trade Analyzer's code actually does, checked line-by-line, next to what has genuinely held up across a century of trading history — sourced independently from three different research assistants and cross-checked against each other before being trusted.</p>
+    <div class="meta-row">
+      <span class="meta-chip">Generated 2026-08-13</span>
+      <span class="meta-chip">Updated 2026-09-15 — rows 02/03/04</span>
+      <span class="meta-chip">Updated 2026-09-16 — row 04, Day 116</span>
+      <span class="meta-chip">Updated 2026-09-17 — row 02, Day 117</span>
+      <span class="meta-chip">Updated 2026-11-02 — row 03 final numbers, Reddit comparisons added, Day 120</span>
+      <span class="meta-chip">Updated 2026-11-12 — row 03 corrected to the next-open basis (PF 1.50), Day 123</span>
+      <span class="meta-chip">STA side: code-audited, 3-pass verified</span>
+      <span class="meta-chip">Principles side: Perplexity + ChatGPT + Gemini, cross-checked</span>
+    </div>
+  </header>
+
+  <div class="legend">
+    <div class="legend-item"><span class="dot match"></span> Matches the classic principle</div>
+    <div class="legend-item"><span class="dot partial"></span> Partially follows it</div>
+    <div class="legend-item"><span class="dot gap"></span> Doesn't do this yet</div>
+  </div>
+
+  <div class="col-heads">
+    <div class="h">What STA Actually Does</div>
+    <div class="h">What ~100 Years of Trading Says</div>
+  </div>
+
+  <div class="rows">
+
+    <div class="row-card">
+      <div class="row-top">
+        <div class="row-title"><span class="row-num">01</span><span class="row-name">Trend Following</span></div>
+        <span class="status-badge match">Matches</span>
+      </div>
+      <div class="row-body">
+        <div class="cell sta">
+          <p>Checks a stock against Minervini's 8-point "Trend Template": price above a <b>rising</b> 50-day, 150-day and 200-day average, at least 30% above its 52-week low, and within 25% of its 52-week high. Needs 7 of 8 to count as a real uptrend.</p>
+          <span class="src-tag">pattern_detection.py</span>
+        </div>
+        <div class="cell">
+          <p>The oldest rule in the book: only trade in the direction of the primary trend, and accept getting in a little late rather than trying to predict a turn. The simplest version is just "price above its 200-day average."</p>
+          <span class="src-tag">Dow Theory · Faber (2007)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row-card">
+      <div class="row-top">
+        <div class="row-title"><span class="row-num">02</span><span class="row-name">Momentum &amp; Relative Strength</span></div>
+        <span class="status-badge partial">Partial</span>
+      </div>
+      <div class="row-body">
+        <div class="cell sta">
+          <p>Requires a stock to simply be beating the S&amp;P 500 over the past year (a loose "better than the market" bar) before it's considered strong — <b>gated</b>, one of 9 pass/fail checklist criteria. <b>Update (Day 117):</b> the stock's own absolute 1-year return is now shown right alongside it too, on both the Simple Checklist's Momentum card and the Full Analysis view — but purely as information, never gating anything.</p>
+          <span class="src-tag">simplifiedScoring.js · absoluteMomentum.js (Day 117)</span>
+        </div>
+        <div class="cell">
+          <p>Two ideas, not one: buy stocks already <b>leading</b> their peers (top ~20%, not just "beating the market"), <b>and</b> only if that stock is also up in absolute terms over the past year — otherwise sit in cash, as one combined, enforced rule. STA still doesn't combine them that way — that's still the real gap. <b>Update (Day 111):</b> the missing half was actually backtested as a gate (an absolute-momentum filter vs. a 5% risk-free proxy) — it came back clean but excluded only ~1% of trades, because the relative-strength check already does most of that filtering as a side effect (whenever the S&amp;P's own trailing year clears the cash bar, beating the S&amp;P already implies beating cash too). Decided not to pursue it as a gate: correct, but not worth the added complexity. <b>Update (Day 117):</b> the second half is no longer invisible, at least — it's now a readable line on screen, sourced from that same backtested 5% figure rather than a guess. It just isn't combined with the first half into one rule the way this principle actually prescribes, which is why this row stays Partial rather than moving to Match.</p>
+          <span class="src-tag">Jegadeesh &amp; Titman (1993) · Antonacci, "Dual Momentum" (2014)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row-card">
+      <div class="row-top">
+        <div class="row-title"><span class="row-num">03</span><span class="row-name">Mean Reversion / Buying Dips</span></div>
+        <span class="status-badge match">Matches</span>
+      </div>
+      <div class="row-body">
+        <div class="cell sta">
+          <p>A separate strategy inside STA: buy a short-term oversold dip (2-day RSI under 10) only while the stock is still above its 200-day average — never in a downtrend. Exits on a bounce or after 10 days.</p>
+          <span class="src-tag">mean_reversion.py</span>
+        </div>
+        <div class="cell">
+          <p>The exact same idea, same math (2-day RSI, usually under 5), same guardrail (only above the 200-day average). This is one of the most literally research-backed rules in the whole list. <b>Update (2026-09-15):</b> this is no longer just a code-match claim — it's the one strategy in this whole document that got taken all the way to a real, unattended forward test: 241 closed live paper trades, 70.5% win rate, profit factor 2.00 when scored at the entry-day close; <b>re-run at the next open (the price you can actually get): 63.5% wins, profit factor 1.50</b> (Day 123 correction) (final, every position now closed; this row showed a mid-September snapshot of 217 trades / PF 2.46 before), survived every cluster/overfitting stress-test run against it. The paper-trading program was discontinued 2026-09-12 (STA is now used as an analysis tool, not an automated-execution path) — but that number stands as the program's final result, and it's the strongest evidence anywhere in this project that a "Matches" verdict actually holds up live, not just on paper.</p>
+          <span class="src-tag">Larry Connors (2009)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row-card">
+      <div class="row-top">
+        <div class="row-title"><span class="row-num">04</span><span class="row-name">Volume Confirms the Move</span></div>
+        <span class="status-badge partial">Partial</span>
+      </div>
+      <div class="row-body">
+        <div class="cell sta">
+          <p>STA's "Volume" check only asks "<b>is there enough trading activity to get in and out easily</b>" — a liquidity test, not a confirmation test — and that part is unchanged. <b>Update (Day 111–112):</b> a magnitude + direction read shipped on the Trade Setup card — today's volume vs. its 50-day average, plus a directional lean combining price change, close-location-in-range, and OBV trend.</p>
+          <p><b>Update (Day 116):</b> this row's own principle — heavy volume with little price progress is a warning, not a green light — now has a direct read: today's volume crossed against today's price move, in units of the stock's own ATR. The existing 20-day OBV divergence sentence (previously buried in a hover tooltip nobody saw) is now visible text on the same card. Two real bugs were found and fixed along the way: OBV's trend label was silently biased toward "rising" for negative cumulative OBV (~3% of names affected); and the volume number itself was being read from the still-forming intraday bar, understating true participation for most of every trading day, not just this one card. All of it stays informational — a hard 1.5x-volume gate was tested first (Day 107) and cut trades 93%, too strict to keep, and "volume informs, never gates" is now a standing rule for this project. "Doesn't gate the decision" is still true; the read itself is now materially more complete and more honest than it was even a week ago.</p>
+          <span class="src-tag">simplifiedScoring.js · pattern_detection.py · backend.py · volumeThresholds.js (Day 111, 116)</span>
+        </div>
+        <div class="cell">
+          <p>One of the oldest technical ideas there is: a real breakout should come with a real jump in volume (roughly 40-50% above normal) — that's proof real money is behind the move. Heavy volume with little price progress is often a warning sign, not a green light.</p>
+          <span class="src-tag">Wyckoff (1910s-30s) · O'Neil / CANSLIM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row-card">
+      <div class="row-top">
+        <div class="row-title"><span class="row-num">05</span><span class="row-name">Position Sizing &amp; Risk</span></div>
+        <span class="status-badge match">Matches</span>
+      </div>
+      <div class="row-body">
+        <div class="cell sta">
+          <p>Risks a fixed 2% of the account per trade by default, capped at 25% of the account in any one position, and automatically cuts position size in half when the VIX (market fear gauge) spikes above 30.</p>
+          <span class="src-tag">positionSizing.js · trade_simulator.py</span>
+        </div>
+        <div class="cell">
+          <p>Decide your maximum acceptable loss first, then size the trade backward from that — never size off "how confident you feel." The standard range across every source is roughly 1-2% of the account per trade, scaled by volatility.</p>
+          <span class="src-tag">Turtle Traders (1983) · Van Tharp</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row-card">
+      <div class="row-top">
+        <div class="row-title"><span class="row-num">06</span><span class="row-name">Stop-Loss Placement</span></div>
+        <span class="status-badge match">Matches</span>
+      </div>
+      <div class="row-body">
+        <div class="cell sta">
+          <p>Stops are set from real volatility (ATR), not a flat guess — and once a trade is up enough, the stop only ever moves up to lock in gains, never back down. A stop that gaps through overnight fills honestly at the worse price, not the "ideal" one.</p>
+          <span class="src-tag">trade_simulator.py</span>
+        </div>
+        <div class="cell">
+          <p>Set the stop outside normal day-to-day noise using the stock's own volatility (2× its average true range is the classic figure), and once it's set, only ever tighten it — never widen a losing stop hoping it comes back.</p>
+          <span class="src-tag">Livermore (1940) · Turtle Traders</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row-card">
+      <div class="row-top">
+        <div class="row-title"><span class="row-num">07</span><span class="row-name">Market Regime / Volatility Filter</span></div>
+        <span class="status-badge match">Matches</span>
+      </div>
+      <div class="row-body">
+        <div class="cell sta">
+          <p>Checks the VIX and whether the S&amp;P is in an uptrend before giving any stock a green light — calm market + uptrend = favorable, VIX over 30 or a broken market trend caps every verdict at HOLD, no exceptions.</p>
+          <span class="src-tag">categoricalAssessment.js</span>
+        </div>
+        <div class="cell">
+          <p>Scale back exposure when the market gets more volatile — this is a risk-control rule, not a prediction that prices must fall. The original academic result scaled by recent realized volatility; scaling directly off the VIX (what STA does) is a widely-used real-world version of the same idea, not identical to the original study but a legitimate practical relative.</p>
+          <span class="src-tag">Moreira &amp; Muir (2017)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row-card">
+      <div class="row-top">
+        <div class="row-title"><span class="row-num">08</span><span class="row-name">Sentiment as a Contrarian Signal</span></div>
+        <span class="status-badge match">Matches</span>
+      </div>
+      <div class="row-body">
+        <div class="cell sta">
+          <p>Reads the same CNN Fear &amp; Greed Index this principle is built on, treats extreme readings with caution — and, correctly, never lets sentiment decide anything on its own; it's one of four inputs a stock has to pass. (One real bug found while checking this: the on-screen sentiment gauge's colors were quietly using outdated boundaries, different from the ones actually driving the decision — flagged below. <b>Fixed Day 108,</b> realigned to the correct 55/50/40 bands.)</p>
+          <span class="src-tag">categoricalAssessment.js</span>
+        </div>
+        <div class="cell">
+          <p>When fear or greed hits a real extreme, the crowd is usually positioned wrong — but treat it as a tilt, not a trigger. Extremes can persist for weeks, so acting on sentiment alone, without the price actually confirming a turn, is the classic way this gets misused.</p>
+          <span class="src-tag">Graham, "Mr. Market" (1949) · Neill (1954)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row-card">
+      <div class="row-top">
+        <div class="row-title"><span class="row-num">09</span><span class="row-name">Sector Rotation</span></div>
+        <span class="status-badge match">Matches</span>
+      </div>
+      <div class="row-body">
+        <div class="cell sta">
+          <p>Tracks which sectors are leading, weakening, lagging or improving relative to the market (a rotation map), and correctly treats it as background context, not a hard trading rule.</p>
+          <span class="src-tag">backend.py</span>
+        </div>
+        <div class="cell">
+          <p>Own the sectors currently showing the strongest relative performance, and rotate out as their ranking fades. (A separate, older tradition rotates by calendar season instead — STA doesn't do that version, which is fine; they're two different valid takes on the same underlying idea.)</p>
+          <span class="src-tag">de Kempenaer (RRG) · Moskowitz &amp; Grinblatt</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <style>
+    .reddit { margin-top: 40px; }
+    .reddit h2 { font-size: 22px; font-weight: 800; margin: 0 0 8px; text-wrap: balance; }
+    .reddit .lede { color: var(--text-muted); font-size: 14.5px; margin: 0 0 18px; max-width: 70ch; }
+    .rtable-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); }
+    table.rtable { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 720px; }
+    table.rtable th, table.rtable td { padding: 11px 14px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--border); }
+    table.rtable th { font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-faint); background: var(--surface-2); }
+    table.rtable tr:last-child td { border-bottom: none; }
+    table.rtable td:first-child { font-weight: 700; width: 20%; }
+    .vb { display: inline-block; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 3px 10px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.03em; }
+    .vb.agree { background: var(--green-soft); color: var(--green); }
+    .vb.only { background: var(--accent-soft); color: var(--accent); }
+    .vb.half { background: var(--amber-soft); color: var(--amber); }
+    .vb.miss { background: var(--red-soft); color: var(--red); }
+    .subh { font-size: 16px; font-weight: 700; margin: 26px 0 10px; }
+    .score { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; font-size: 13.5px; }
+    .score span { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; }
+    .score b { font-variant-numeric: tabular-nums; }
+    ol.findings { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; max-width: 75ch; }
+    .bottomline { margin-top: 14px; padding: 14px 18px; background: var(--accent-soft); border-radius: 10px; font-size: 14.5px; max-width: 75ch; }
+    .rgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+    .rbox { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; font-size: 14px; }
+    .rbox h3 { font-size: 14px; margin: 0 0 8px; }
+    .rbox ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+    .rbox p { margin: 0 0 8px; } .rbox p:last-child { margin-bottom: 0; }
+    @media (max-width: 720px) { .rgrid { grid-template-columns: 1fr; } }
+  </style>
+
+  <section class="reddit">
+    <p class="eyebrow">Side comparison · added 2026-11-02</p>
+    <h2>What Reddit swing traders say, next to the canon and STA</h2>
+    <p class="lede">Ten pieces of advice from a set of Reddit swing-trading comments, each matched to the nearest of the nine principles above and to what STA does. These are forum opinions, not tested results. Five line up with a canon principle; the other five are practical habits the research doesn't cover.</p>
+    <h3 class="subh">Reddit vs. the nine principles</h3>
+    <div class="rtable-wrap">
+      <table class="rtable">
+        <thead><tr><th>Classic principle</th><th>What ~100 years says</th><th>What Reddit says</th><th>Coverage</th></tr></thead>
+        <tbody>
+          <tr><td>01 Trend following</td><td>Trade with the primary trend; price above its 200-day average.</td><td>"Trade with the trend."</td><td><span class="vb agree">Same idea</span></td></tr>
+          <tr><td>02 Momentum &amp; relative strength</td><td>Buy what is already leading its peers.</td><td>Not mentioned.</td><td><span class="vb miss">Missing</span></td></tr>
+          <tr><td>03 Mean reversion</td><td>Buy short-term dips (very low 2-day RSI) inside an uptrend.</td><td>"Wait for a pullback," but also "don't buy just because RSI is low."</td><td><span class="vb half">Half</span></td></tr>
+          <tr><td>04 Volume confirms the move</td><td>A real breakout comes on heavy volume.</td><td>"Watch consolidation"; relative volume listed as one indicator.</td><td><span class="vb half">Half</span></td></tr>
+          <tr><td>05 Position sizing</td><td>Risk 1&ndash;2% of the account per trade; size backward from the stop.</td><td>"Risk management comes first." No numbers.</td><td><span class="vb agree">Same idea</span></td></tr>
+          <tr><td>06 Stop-loss placement</td><td>Set the stop outside normal noise, using the stock's volatility (about 2&times; ATR).</td><td>"Define entry, stop and target." Says to have a stop, not where.</td><td><span class="vb half">Half</span></td></tr>
+          <tr><td>07 Market regime</td><td>Cut exposure when the whole market turns volatile.</td><td>Not mentioned.</td><td><span class="vb miss">Missing</span></td></tr>
+          <tr><td>08 Sentiment</td><td>Extreme fear or greed usually means the crowd is wrong.</td><td>Not mentioned.</td><td><span class="vb miss">Missing</span></td></tr>
+          <tr><td>09 Sector rotation</td><td>Stay in the sectors that are leading.</td><td>Not mentioned.</td><td><span class="vb miss">Missing</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="score"><span>Same idea: <b>2</b></span><span>Half covered: <b>3</b></span><span>Missing: <b>4</b></span><span>Reddit-only habits: <b>5</b> (support and resistance, simple indicators, one setup, fundamentals for selection, patience and records)</span></div>
+
+    <h3 class="subh">What the comparison shows</h3>
+    <ol class="findings">
+      <li><b>Reddit looks at one trade at a time; the canon also looks at the whole market.</b> Everything Reddit misses is about the wider market: whether a stock leads its peers, the market's mood, and which sectors lead.</li>
+      <li><b>Reddit says what to do; the canon says how.</b> "Have a stop" versus "about 2&times; ATR away." "Manage risk" versus "1&ndash;2% of the account." Reddit's version is easier to follow and harder to check.</li>
+      <li><b>The one real conflict is RSI.</b> Reddit is right about low RSI on its own. The canon's version, very low 2-day RSI but only above the 200-day average, is the one with evidence behind it.</li>
+      <li><b>Reddit is stronger on behaviour.</b> Patience, one setup and keeping records aren't in the canon, but they're how a trader actually follows rules. The two complement each other more than they compete.</li>
+    </ol>
+    <p class="bottomline">Reddit is a good habit checklist for placing one trade. The canon is the evidence for where an edge comes from. Reddit on its own gives discipline but misses most of the market-wide filters.</p>
+
+    <h3 class="subh">Reddit vs. the canon vs. STA</h3>
+    <div class="rtable-wrap">
+      <table class="rtable">
+        <thead><tr><th>Reddit says</th><th>Closest canon principle</th><th>What STA does</th><th>Fit</th></tr></thead>
+        <tbody>
+          <tr><td>Trade with the trend</td><td>01 Trend following: trade with the primary trend, price above its 200-day average.</td><td>Trend Template; mean reversion only buys above the 200-day average.</td><td><span class="vb agree">Agrees</span></td></tr>
+          <tr><td>Wait for a pullback, don't chase</td><td>03 Mean reversion: buy short-term dips inside an uptrend (Connors).</td><td>Mean-reversion engine; Breakout Status flags retest entries.</td><td><span class="vb agree">Agrees</span></td></tr>
+          <tr><td>Understand support and resistance</td><td>Not one of the nine. Livermore's "pivotal points" are the closest idea.</td><td>S&amp;R engine, nearest-level selection fixed Day 112.</td><td><span class="vb only">Reddit only</span></td></tr>
+          <tr><td>Watch consolidation for a breakout</td><td>Partly 04: O'Neil's bases should break out on heavy volume.</td><td>VCP, Cup &amp; Handle and Flat Base detection; Breakout Status.</td><td><span class="vb agree">Agrees</span></td></tr>
+          <tr><td>Keep indicators simple</td><td>Not a canon principle, though the research warns that more conditions often means more curve-fitting.</td><td>Shows many reads; only a few of them affect the verdict.</td><td><span class="vb only">Reddit only</span></td></tr>
+          <tr><td>Define entry, stop and target</td><td>06 Stops: set outside normal noise using the stock's own volatility.</td><td>ATR-based stops; Trade Setup card shows entry, stop and target.</td><td><span class="vb agree">Agrees</span></td></tr>
+          <tr><td>Risk management first</td><td>05 Position sizing: risk about 1&ndash;2% of the account per trade.</td><td>2% default (the Settings slider still allows up to 5%).</td><td><span class="vb agree">Agrees</span></td></tr>
+          <tr><td>Practise one setup</td><td>Not in the canon.</td><td>Runs several engines; which one to trade is your call.</td><td><span class="vb only">Reddit only</span></td></tr>
+          <tr><td>Fundamentals to pick, charts to time</td><td>Outside the nine: Graham/Buffett value investing is a separate tradition.</td><td>Not used in your process, by your choice.</td><td><span class="vb only">Reddit only</span></td></tr>
+          <tr><td>Be patient and keep records</td><td>Not in the canon.</td><td>You keep your own journal.</td><td><span class="vb only">Reddit only</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="rgrid">
+      <div class="rbox">
+        <h3>Canon principles Reddit doesn't mention</h3>
+        <ul>
+          <li><b>02 Relative strength:</b> favor stocks already leading their peers.</li>
+          <li><b>04 Volume as confirmation:</b> Reddit lists relative volume as an indicator, not as proof behind a breakout.</li>
+          <li><b>07 Market regime:</b> cut exposure when the whole market turns volatile.</li>
+          <li><b>08 Sentiment:</b> extreme fear or greed as a contrarian tilt.</li>
+          <li><b>09 Sector rotation:</b> stay in the sectors that are leading.</li>
+        </ul>
+      </div>
+      <div class="rbox">
+        <h3>Where Reddit and the canon disagree</h3>
+        <p>Reddit says not to buy just because RSI is low. Row 03 says the opposite: buy when 2-day RSI is very low. Both are right about different versions.</p>
+        <p>Low RSI on its own, in any stock, is catching a falling knife. Low RSI on a liquid stock that is still above its 200-day average is Connors' rule, and it's STA's one strategy that held up live (241 trades, profit factor 1.50 when bought at the next open).</p>
+      </div>
+    </div>
+
+    <h3 class="subh">My decisions (Nov 2, 2026)</h3>
+    <p class="lede">Which pieces of the Reddit advice I'm adopting, which stay my own judgment, and which are still open.</p>
+    <div class="rtable-wrap">
+      <table class="rtable">
+        <thead><tr><th>Reddit says</th><th>Decision</th><th>What it means in practice</th></tr></thead>
+        <tbody>
+          <tr><td>Trade with the trend</td><td><span class="vb agree">Adopt</span></td><td>Only look at names above their 200-day average. STA: Trend Template and the 200-day check.</td></tr>
+          <tr><td>Wait for a pullback</td><td><span class="vb agree">Adopt</span></td><td>Don't chase after a big run; wait for a dip or a retest. STA: mean-reversion scanner, Breakout Status retest entries.</td></tr>
+          <tr><td>Understand support and resistance</td><td><span class="vb agree">Adopt</span></td><td>Know the nearest levels before entering. STA: S&amp;R engine and Price Structure card.</td></tr>
+          <tr><td>Watch consolidation for a breakout</td><td><span class="vb agree">Adopt</span></td><td>Sideways bases are setups to watch. STA: VCP, Cup &amp; Handle and Flat Base detection, Breakout Status.</td></tr>
+          <tr><td>Keep indicators simple</td><td><span class="vb agree">Adopt</span></td><td>RSI, moving averages and relative volume first; STA's other reads are optional background.</td></tr>
+          <tr><td>Define entry, stop and target</td><td><span class="vb half">Not decided</span></td><td>Not covered yet. Could fall under risk management below.</td></tr>
+          <tr><td>Risk management first</td><td><span class="vb only">My call</span></td><td>I decide position size and risk per trade. STA shows the numbers; it doesn't decide.</td></tr>
+          <tr><td>Practise one setup</td><td><span class="vb half">Not decided</span></td><td>Not covered yet.</td></tr>
+          <tr><td>Fundamentals to pick, charts to time</td><td><span class="vb only">My call</span></td><td>Fundamentals stay outside this process; I handle them myself if at all.</td></tr>
+          <tr><td>Be patient and keep records</td><td><span class="vb only">My call</span></td><td>I keep my own trade journal.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="score"><span>Adopt: <b>5</b></span><span>My call: <b>3</b></span><span>Not decided: <b>2</b></span></div>
+  </section>
+
+  <div class="foot">
+    <h2>Known Inconsistencies Found While Auditing STA's Own Code</h2>
+    <div class="gap-list">
+      <div class="gap-item"><span>⚠</span><span><b>Three different "good enough" risk/reward numbers coexist</b> in the app at once — the main checklist wants 2:1, the automated trading gate (discontinued Sep 12) wanted 1.2:1, and an on-screen badge wants 1:1. Not a bug exactly, but there's no single honest answer to "what R:R does STA actually require."</span></div>
+      <div class="gap-item"><span>⚠</span><span><b>A code comment says one thing, the code does another.</b> The mean-reversion engine's own documentation claims it "only trades when ADX is under 20" (a range-bound market) — the actual code never checks ADX at all when deciding to trade.</span></div>
+      <div class="gap-item fixed"><span>✓</span><span><b>The Fear &amp; Greed gauge you saw wasn't using the same math as the decision engine — FIXED Day 108.</b> Found while checking this exact page — the real verdict logic used one set of boundaries; the backend had a second, older, unused set; the actual color bar on the Analyze page used a <b>third</b>, also outdated, set. All three realigned to the correct 55/50/40 bands. Kept here as a record of what auditing this document itself turned up, not because it's still open.</span></div>
+    </div>
+
+    <h2>Sources</h2>
+    <p class="sources">
+      <b>STA's own behavior:</b> verified directly against the live codebase (`pattern_detection.py`, `mean_reversion.py`, `trade_simulator.py`, `simplifiedScoring.js`, `categoricalAssessment.js`, `positionSizing.js`, `backend.py`, `live_signals.py`), re-checked in three escalating review passes rather than taken at face value.<br>
+      <b>Trading principles:</b> independently researched by three separate AI research assistants (Perplexity, ChatGPT, Gemini) against the same nine categories, then cross-checked against each other — where they disagreed (notably on exactly what the 2017 Moreira &amp; Muir volatility paper actually measured), the more precise, source-checked account was used. Underlying named sources across all three: Charles Dow / Robert Rhea (Dow Theory), Richard Wyckoff, Jesse Livermore, Benjamin Graham, William O'Neil (CANSLIM), Larry Connors, Richard Dennis &amp; William Eckhardt (Turtle Traders), Van Tharp, Narasimhan Jegadeesh &amp; Sheridan Titman, Gary Antonacci, Alan Moreira &amp; Tyler Muir, Humphrey Neill, Julius de Kempenaer, Meb Faber, and Sam Stovall.
+    </p>
+  </div>
+
+  <div class="disclaimer">
+    This is a self-audit for understanding, not investment advice and not a claim that following these principles guarantees any specific return. Every "STA does X" line traces to real code; every "principle says Y" line traces to real, cross-checked research — nothing here was invented to make a row look tidier than it is.
+  </div>
+
+</div>
+
+</body></html>

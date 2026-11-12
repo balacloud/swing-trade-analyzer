@@ -167,7 +167,9 @@ function generateWatchItems(currentPrice, resistance, support, atr, rvol, rsiDai
   // Priority 2: Near resistance
   if (R1 && isNearLevel(currentPrice, R1, atr)) {
     const touchStr = r1Touches ? `, tested ${r1Touches}x` : '';
-    if (rvol >= BREAKOUT_VOLUME_THRESHOLD) {
+    if (rvol == null) {
+      items.push(`Approaching R1 ($${R1.toFixed(2)}${touchStr}) — volume unavailable, can't judge conviction`);
+    } else if (rvol >= BREAKOUT_VOLUME_THRESHOLD) {
       items.push(`Breakout watch: near R1 ($${R1.toFixed(2)}${touchStr}) — volume confirming (${rvol}x avg)`);
     } else {
       items.push(`Approaching R1 ($${R1.toFixed(2)}${touchStr}) — needs volume > ${BREAKOUT_VOLUME_THRESHOLD}x for conviction (current: ${rvol}x)`);
@@ -248,7 +250,8 @@ export function generatePriceStructure(sr, patterns, actionablePatternsList = []
   // Section 5 / Open Decision 1 (broadened here to existing surfaces, not just
   // the new same-day read).
   const barComplete = meta.candle?.barComplete !== false;
-  const rvol = (barComplete ? meta.rvol : meta.prevBar?.rvol) ?? meta.rvol ?? 1.0;
+  // Day 123: no `?? 1.0` — a missing RVOL must not read as "normal volume".
+  const rvol = (barComplete ? meta.rvol : meta.prevBar?.rvol) ?? meta.rvol ?? null;
   const rsiDaily = meta.rsi_daily ?? null;
   const adx = meta.adx || {};
   const tradeViability = meta.tradeViability || {};

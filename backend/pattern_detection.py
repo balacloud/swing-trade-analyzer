@@ -283,7 +283,9 @@ def check_trend_template(df: pd.DataFrame) -> Dict:
         'sma_values': {
             'sma_50': round(sma_50, 2),
             'sma_150': round(sma_150, 2),
-            'sma_200': round(sma_200, 2)
+            'sma_200': round(sma_200, 2),
+            # Day 123: additive, for the Technical Read's "200-day rising" line
+            'sma_200_30d_ago': round(sma_200_30d_ago, 2) if sma_200_30d_ago is not None and pd.notna(sma_200_30d_ago) else None
         },
         'price_position': {
             'current': round(current_price, 2),

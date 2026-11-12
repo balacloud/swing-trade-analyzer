@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 122 — 2026-11-10
+> **Last Updated:** Day 123 — 2026-11-12
 
 ---
 
@@ -11,15 +11,33 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 122 |
-| Version | v4.62 (Backend v2.51, Frontend v4.59) — unchanged; Day 121 added 4 display-only frontend helpers that nothing imports yet |
-| Latest Status | PROJECT_STATUS_DAY122_SHORT.md (consolidated Days 121–122) |
-| Latest Issues | KNOWN_ISSUES_DAY122.md |
-| Latest API | API_CONTRACTS_DAY118.md (unchanged Days 119-122) |
-| Focus | **Analyze Page Redesign in progress, one signed-off step at a time.** Steps 1–2 (Phase 0 copy fixes + baseline, Phase 1 helpers) done Day 121. Day 122 signed off the Technical Read card design (mockup v0.8): 4 key checks + full-score line, engine keeps all 8 checks (Golden Rule 59). Next: Step 3 (Phase 2, Trade Setup card) — **only on the user's go-ahead**. |
+| Current Day | 123 |
+| Version | v4.63 (Backend v2.52, Frontend v4.60) |
+| Latest Status | PROJECT_STATUS_DAY123_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY123.md |
+| Latest API | API_CONTRACTS_DAY123.md |
+| Focus | **Analyze Page Redesign Steps 1–6 built** (Regime, Technical, Mean-Reversion, Trade Setup, Fundamentals cards; Holding Period, Assessment Breakdown and BUY/HOLD/AVOID removed). MR is **PF 1.50 at the next open** (2.00 was close-basis, Golden Rule 60). Next: Step 7 (Full Analysis default view), then Step 8 (UI scripts, cleanup). Each step: plan → Fable review → build → user sign-off. |
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 123 Summary (Analyze Page Redesign Steps 3–6 built, MR PF corrected — v4.63, Golden Rules 60–61)
+- **Process (user standard):** every step had a written plan reviewed by Fable before code, then
+  a Fable code review and live checks. The rules: no silent failures, logged warnings, distinct
+  loading / error / data states, and no invented fallback numbers.
+- **Built:** Trade Setup hardened (explicit `no_data / no_support / no_atr` states, no 3% stop
+  or ×1.10 target). New cards: Regime Read, Technical Read, Mean-Reversion Read (tested rules
+  from `MR_RULES`, clock-aware "buy at the open" line), Fundamentals (3 red flags, P/E guide,
+  next earnings, per-field sources). Shared `market_time.py` forming-bar rule.
+- **Removed (user-decided):** Holding Period selector, Assessment Breakdown, Raw Indicators,
+  Quality Gates, and BUY/HOLD/AVOID on every screen (including the Scan tab's verdict column).
+  The engine and its parity test are untouched.
+- **MR PF corrected:** the forward test priced trades at the entry-day close. At the next open,
+  broad is **PF 1.50 / 63.5% / +0.70%** (241 trades) and HUB-65 is **PF 1.07** (pre-registered
+  1.5–1.7). Golden Rule 60.
+- **Data-unit bugs:** yfinance D/E in percent, ROE ≥100% shown as 1.5%, earnings days off by
+  one. Golden Rule 61.
+- Two engine bugs logged, not fixed: RSI `|| 50` passes, missing SPY → Unfavorable.
 
 ### Days 121–122 Summary (Analyze Page Redesign Steps 1–2 built, Technical Read card designed — no version bump, new Golden Rule 59)
 - **Day 121 (Nov 5–6), Phase 0 + Phase 1:** decision doc §6/§9 copy corrected (two blocks that
@@ -54,35 +72,9 @@
   (FastAPI, React, Lightweight Charts). Data provenance is disclosed on the page. The tab bar now
   wraps, because the 8th tab had been hidden off-screen.
 - **Final MR number corrected:** the live ledger shows 241 closed, 70.54% win rate, **PF 2.00**.
-  The "PF ~2.5" in older docs is stale. STA Status Board republished.
+  The "PF ~2.5" in older docs is stale. STA Status Board republished. *(Superseded Day 123:
+  PF 2.00 was close-basis; at the next open it is PF 1.50.)*
 - No STA application code touched. Version unchanged (v4.62).
-
-### Day 119 Summary (Analyze Page Redesign implementation plan re-verified and corrected — no version bump)
-- User pushed back on the shape of the post-Day-118 backlog (mostly Medium/Low, informational,
-  no live gates) — agreed continuing to clear it item-by-item has diminishing returns. Recommended
-  the Analyze Page Redesign (Priority #17) as the one bounded, real piece of work left — fully
-  designed already, would change what's felt every time the app opens, unlike isolated point-fixes.
-- **Opus-planned re-verification of the Day 109 decision doc's own §7 (implementation plan) and §8
-  (freeze-safety audit)** against six sessions of intervening code changes (Golden Rule 55 —
-  touches shipped live displays, multiple downstream consumers, changes methodology). Verdict: the
-  17 locked decisions and §7's phase structure hold; §8's freeze-safety audit is obsolete in its
-  justification (the freeze it protected is gone, Day 113) but its "don't touch the backend"
-  conclusions survive, now on parity/backtest-comparability grounds (re-ran Golden Rule 54's
-  caller-graph check fresh — `compute_sr_levels()`/`categorical_engine.py` still have live callers:
-  the backtest harness, the 86,400-combo parity grid, several diagnostic scripts).
-- **9 corrections found**, most importantly: two blocks of the plan's prescribed on-card copy (§6)
-  described bugs that no longer exist — the pivot S&R extreme-vs-nearest selection (fixed Day 112,
-  Golden Rule 53) and Pattern Detection's flat-multiple target (replaced Day 112/118). Shipping
-  either as originally written would have put a fabricated open bug and formula in front of the
-  user. Also: a helper misnamed `describeRegimeGate()` renamed to `describeRegimeRead()` (Regime
-  is Info, not a gate, since Day 110); the negative-EPS red-flag question answered and declined
-  (`epsGrowth` is a YoY rate, misleading as a flag); both UI verification scripts confirmed
-  silently non-functional since Day 75 (block on text that only renders in the non-default view).
-- New plan: `docs/claude/design/ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md` — supersedes
-  only §7/§8's *execution* plan, not the 17 locked decisions. Go/no-go: **GO**. First phase: Phase
-  0 (copy correction + parity-test baseline) then Phase 1 (additive utilities, zero visible
-  change). **No application code touched.** `ROADMAP.md`/`README.md` updated to match (Priority
-  #17 no longer gated behind anything, since the freeze it was scoped around is gone).
 
 ## SCENARIO DETECTION
 
@@ -165,14 +157,17 @@ it) is discontinued as of Day 113 — STA is a pure analysis/recommendation tool
 places and manages every trade themselves. Every item below is available to work whenever —
 pick deliberately based on what the user actually wants next, not backlog order.
 
-**The one bounded, real piece of work — has a corrected, ready-to-execute plan (Day 119):**
-0. **Analyze Page Redesign (Priority #17)** — `docs/claude/design/ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md`,
-   progress on the Status Board's "Redesign progress" section. Steps 1–2 done Day 121; Technical
-   Read card design signed off Day 122 (decisions doc §10, mockup v0.8). **Next: Step 3 (Phase 2,
-   Trade Setup card) — wait for the user's go-ahead; the user signs off on each piece.** Every
-   step keeps the parity test passing, touches no backend code, adds no Simple Checklist
-   criterion (Golden Rule 57). Any rule/threshold change: run the Architect's Lens first
-   (Golden Rule 59).
+**The one bounded, real piece of work, in progress:**
+0. **Analyze Page Redesign (Priority #17).** Steps 1–6 done (Days 121–123). **Next: Step 7:**
+   Full Analysis as the default view (`analysisView` 'simple' → 'full'), Simple-view copy (PASS
+   wording), and the hardcoded "half" position label (`App.jsx:2074`). **Then Step 8:** rewrite
+   `ui-verify-checklist.js` / `ui-cohesiveness-test.js`, remove `scoringEngine`'s unrendered
+   `qualityGates`, swap the two inline VIX ladders for `getVixPositionMultiplier`, docs. Every
+   step: plan → Fable review → build → review passes → user sign-off
+   (`feedback_plan_review_engineering_standard`). Parity must stay 86,400/86,400.
+0b. **Two engine bugs (Medium, Day 123):** `assessTechnical` RSI `|| 50` counts as a pass;
+   `assessRiskMacro` treats missing SPY as below its 200-day. Each is a parity-tested JS +
+   Python change (Golden Rule 59) that changes verdicts, so plan first.
 
 **High severity, no plan written yet:**
 1. **Per-ticker provenance can't distinguish "never checked" from "just failed."** Day 108
@@ -196,18 +191,13 @@ pick deliberately based on what the user actually wants next, not backlog order.
    protection, no Tradier fallback (Day 111) — `/api/mr/scan`'s sibling bypass was fixed Day 111.
 
 **Zero-risk cleanup batch, any order, no planning needed:**
-8. 5 dead `App.jsx` functions (confirmed via build warnings): `cacheResult`,
-   `getViabilityStyle`, `generateActionableRecommendation`, `generateScoreExplanation`,
-   `getSubScoreInfo`.
+8. ~~5 dead `App.jsx` functions~~ **removed Day 123 (Step 4).**
 9. Data Sources tab's field-source doc still says "Defeat Beta API" (stale, Day 111).
 10. Value Tab investor-name relabeling — same fix as item 4, could ship together.
 
 **Bigger open questions, no urgency:**
-11. ~~Does the Analyze Page Redesign become a real implementation project, or stay a documented
-    reference?~~ **Answered Day 119: it has a corrected, ready-to-execute plan** (see priority 0
-    above) — the remaining question is purely "when," not "if/how." Includes one still-live bug
-    that Phase 2 of the plan fixes: the Momentum entry panel's position-size label has been
-    hardcoded to "half" since Day 39.
+11. ~~Does the Analyze Page Redesign become a real implementation project?~~ **Building; Steps
+    1–6 done Day 123** (priority 0 above).
 12. Decide how the Analyze-page R:R should be *framed* now that `_pivot_sr` returns real
     nearest levels (it will honestly show sub-1.2:1 where real resistance is close, not a
     fabricated 3:1) — copy/framing, not logic, since R:R is already informational.

@@ -67,7 +67,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 # /api/sectors/pullback-screen endpoint (SRPS discretionary screener).
 # Day 105: bumped to 2.46 for the new /api/sectors/sub-industry-pullback-screen
 # endpoint + the shared _srps_true_rs()/_srps_evaluate_candidate() refactor.
-BACKEND_VERSION = '2.51'
+BACKEND_VERSION = '2.52'
 
 # Day 116: market-hours test for "is /api/sr's last bar still forming?" Mirrors
 # paper_trading/live_signals.py's _prepare_ohlcv() guard (Day 99, Golden Rule 33 —
@@ -76,8 +76,8 @@ BACKEND_VERSION = '2.51'
 # today's live price) — it only labels it and exposes the prior complete bar
 # alongside, so display code can choose. See
 # docs/claude/design/VOLUME_EFFORT_VS_RESULT_PLAN_DAY116.md Section 5.
-MARKET_TZ = ZoneInfo('America/New_York')
-MARKET_CLOSE_HOUR, MARKET_CLOSE_MIN = 16, 5
+# Day 123: moved to market_time.py (one definition, shared with the MR routes).
+from market_time import MARKET_TZ, MARKET_CLOSE_HOUR, MARKET_CLOSE_MIN, is_forming_bar, drop_forming_bar  # noqa: F401
 
 from constants import SUPPORT_PROXIMITY_PCT, RESISTANCE_PROXIMITY_PCT  # shared with support_resistance.py
 from sub_industry_clusters import SUB_INDUSTRY_CLUSTERS, NO_PROXY_CLUSTERS  # Day 100+ Sub-Industry Watch
@@ -1092,6 +1092,7 @@ def get_stock_data(ticker):
             'fiftyTwoWeekLow': safe_float(safe_get(info, 'fiftyTwoWeekLow')),
             'avgVolume': safe_int(safe_get(info, 'averageVolume') or safe_get(info, 'avgVolume')),
             'avgVolume10d': safe_int(safe_get(info, 'averageVolume10days') or safe_get(info, 'avgVolume10d')),
+            'quoteType': safe_get(info, 'quoteType'),  # Day 123: ETF detection for the Fundamentals card
             'priceHistory': price_history,
             'dataPoints': len(price_history),
             'oldestDate': price_history[0]['date'] if price_history else None,
@@ -1396,6 +1397,13 @@ def get_fear_greed():
 # Warns about upcoming earnings to avoid gap risk
 # ============================================
 
+def calendar_days_until(when, today=None):
+    """Whole calendar days from today (New York) to `when`'s date. 0 = today."""
+    today = today or datetime.now(MARKET_TZ).date()
+    when_date = when.date() if hasattr(when, 'date') else when
+    return (when_date - today).days
+
+
 @app.route('/api/earnings/<ticker>', methods=['GET'])
 def get_earnings_calendar(ticker):
     """
@@ -1418,8 +1426,10 @@ def get_earnings_calendar(ticker):
         # Day 51: Try DataProvider for earnings first
         earnings_date = None
         earnings_source = None
+        attempts, failures = 0, 0  # Day 123: all methods raising != "no date found"
 
         if DATA_PROVIDER_AVAILABLE:
+            attempts += 1
             try:
                 dp = get_data_provider()
                 earnings_result = dp.get_earnings(ticker)
@@ -1427,6 +1437,7 @@ def get_earnings_calendar(ticker):
                     earnings_date = earnings_result.earnings_date
                     earnings_source = earnings_result.source
             except Exception as e:
+                failures += 1
                 print(f"⚠️ DataProvider earnings failed for {ticker}: {e}")
 
         # Legacy fallback: direct yfinance 3-method approach
@@ -1435,6 +1446,7 @@ def get_earnings_calendar(ticker):
 
         # Method 1: Try .calendar (only if legacy path)
         if earnings_date is None:
+            attempts += 1
             try:
                 calendar = stock.calendar
                 if calendar is not None and not calendar.empty:
@@ -1444,10 +1456,12 @@ def get_earnings_calendar(ticker):
                             earnings_date = earnings_date.iloc[0]
                         earnings_source = 'calendar'
             except Exception as e:
+                failures += 1
                 print(f"Calendar method failed for {ticker}: {e}")
 
         # Method 2: Try .earnings_dates
         if earnings_date is None:
+            attempts += 1
             try:
                 earnings_dates = stock.earnings_dates
                 if earnings_dates is not None and len(earnings_dates) > 0:
@@ -1458,21 +1472,36 @@ def get_earnings_calendar(ticker):
                         earnings_date = min(future_dates)
                         earnings_source = 'earnings_dates'
             except Exception as e:
+                failures += 1
                 print(f"Earnings dates method failed for {ticker}: {e}")
 
         # Method 3: Try info dict
         if earnings_date is None:
+            attempts += 1
             try:
                 info = stock.info
                 if info and 'earningsTimestamp' in info:
                     ts = info['earningsTimestamp']
                     if ts:
-                        earnings_date = datetime.fromtimestamp(ts)
+                        earnings_date = datetime.fromtimestamp(ts, MARKET_TZ)  # Day 123: NY date
                         earnings_source = 'info'
             except Exception as e:
+                failures += 1
                 print(f"Info method failed for {ticker}: {e}")
 
         # Process the earnings date
+        if earnings_date is None and attempts > 0 and failures == attempts:
+            # Day 123: every source raised -> unknown (null), not "no date found"
+            print(f"⚠️ Earnings {ticker}: every source failed ({failures}/{attempts})")
+            return jsonify({
+                'ticker': ticker,
+                'has_upcoming': None,
+                'earnings_date': None,
+                'days_until': None,
+                'warning': None,
+                'recommendation': 'Could not fetch earnings data',
+                'source': None
+            })
         if earnings_date is None:
             return jsonify({
                 'ticker': ticker,
@@ -1490,12 +1519,13 @@ def get_earnings_calendar(ticker):
         elif isinstance(earnings_date, str):
             earnings_date = datetime.fromisoformat(earnings_date.replace('Z', '+00:00'))
 
-        # Make timezone-naive for comparison
+        # Make timezone-naive in New York time (Day 123: convert, don't just strip)
         if hasattr(earnings_date, 'tzinfo') and earnings_date.tzinfo is not None:
-            earnings_date = earnings_date.replace(tzinfo=None)
+            earnings_date = earnings_date.astimezone(MARKET_TZ).replace(tzinfo=None)
 
-        now = datetime.now()
-        days_until = (earnings_date - now).days
+        # Day 123: calendar-day difference. `(earnings_date - datetime.now()).days`
+        # was one short whenever the clock was past midnight and -1 on the day itself.
+        days_until = calendar_days_until(earnings_date)
 
         # Determine warning status
         has_upcoming = 0 <= days_until <= warning_days
@@ -1672,8 +1702,11 @@ def get_support_resistance(ticker):
         # Day 49 (v4.9): Calculate RVOL (Relative Volume) for display
         avg_volume_50 = df['volume'].tail(50).mean()
         current_volume = df['volume'].iloc[-1]
-        rvol = round(current_volume / avg_volume_50, 2) if avg_volume_50 > 0 else 1.0
-        rvol_display = f"{rvol}x avg" if rvol >= 1.5 else f"{rvol}x"
+        # Day 123: no volume history -> None (was a made-up 1.0, "normal volume")
+        rvol = round(float(current_volume / avg_volume_50), 2) if avg_volume_50 > 0 else None
+        if rvol is None:
+            print(f"   ⚠️ S&R {ticker}: 50-day average volume is 0, RVOL left empty")
+        rvol_display = None if rvol is None else (f"{rvol}x avg" if rvol >= 1.5 else f"{rvol}x")
 
         # Day 112: last-bar candle geometry — same OHLCV frame as rvol above, no
         # extra provider call (same precedent as the Day 85 volume/change fields,
@@ -1705,13 +1738,10 @@ def get_support_resistance(ticker):
         # today's actual numbers, Day 85). The frontend volume-narrative call
         # sites choose whether to read today's (possibly partial) meta.rvol/
         # candle or this prevBar block instead, based on barComplete.
-        _now_et = datetime.now(MARKET_TZ)
         _last_bar_date = str(df.index[-1])[:10]
-        bar_complete = not (
-            _last_bar_date == _now_et.strftime('%Y-%m-%d')
-            and (_now_et.hour, _now_et.minute) < (MARKET_CLOSE_HOUR, MARKET_CLOSE_MIN)
-        )
+        bar_complete = not is_forming_bar(_last_bar_date)  # Day 123: shared helper, same rule
         candle_meta['barComplete'] = bar_complete
+        candle_meta['date'] = _last_bar_date  # Day 123: so the UI never calls a past session "Today"
 
         prev_bar_meta = None
         if len(df) >= 3:
@@ -1728,7 +1758,10 @@ def get_support_resistance(ticker):
                 # bar_complete were true. When today's bar is already complete,
                 # df.iloc[-2] is the session BEFORE today, so date it explicitly
                 # as df.index[-2] rather than reusing _last_bar_date.
-                'date': _last_bar_date if not bar_complete else str(df.index[-2])[:10],
+                # Day 123: was `_last_bar_date if not bar_complete`, which labelled
+                # yesterday's bar with today's date while today's bar was forming.
+                # iloc[-2] is always the bar dated df.index[-2].
+                'date': str(df.index[-2])[:10],
                 'rvol': round(_pv / _pavg, 2) if _pavg > 0 else None,
                 'changePct': round((_pc - _ppc) / _ppc * 100, 2) if _ppc > 0 else None,
                 'closeLocation': round((_pc - _pl) / _prange, 2) if _prange > 0 else None,
@@ -1765,13 +1798,14 @@ def get_support_resistance(ticker):
         if actionable_support:
             suggested_entry = round(max(actionable_support), 2)  # Nearest support
             # Stop: 2×ATR below entry (matches riskRewardCalc.js pullback stop formula)
-            # Falls back to 3% if ATR unavailable
+            # Day 123: no ATR -> no stop (was a silent 3% fallback, a made-up
+            # level the Simple view displayed and sized positions from).
             atr_value = sr_levels.meta.get('atr') or 0
             if atr_value > 0:
                 # Floor at $0.01 — stop can never be negative (e.g. low-price stock with high ATR)
                 suggested_stop = max(0.01, round(suggested_entry - (2 * atr_value), 2))
             else:
-                suggested_stop = round(suggested_entry * 0.97, 2)  # 3% fallback
+                print(f"   ⚠️ S&R {ticker}: ATR unavailable, suggestedStop left empty")
         
         # Target: Nearest ACTIONABLE resistance above current price
         if actionable_resistance:
@@ -1949,6 +1983,10 @@ def get_patterns(ticker):
         if results['trend_template']:
             tt_score = results['trend_template']['criteria_met']
             print(f"   📈 Trend Template: {tt_score}/8 criteria met")
+        else:
+            # Day 123: check_trend_template() needs 252 bars and returns None
+            # below that; the frontend shows "under 1 year of history".
+            print(f"   ⚠️ Trend Template {ticker}: not computed ({len(df)} bars, needs 252)")
 
         return jsonify(results)
 
@@ -2839,7 +2877,7 @@ def _srps_evaluate_candidate(ticker, df, rs_val, dp):
     try:
         earnings = dp.get_earnings(ticker)
         if earnings and earnings.earnings_date:
-            days_until_earnings = (earnings.earnings_date.date() - datetime.now().date()).days
+            days_until_earnings = calendar_days_until(earnings.earnings_date)  # Day 123: NY calendar days
             if 0 <= days_until_earnings <= SRPS_EARNINGS_EXCLUSION_DAYS:
                 earnings_warning = f"Earnings in {days_until_earnings}d — Rule 6 would exclude this"
     except Exception:
@@ -3582,12 +3620,14 @@ def get_mr_signal(ticker):
         # DataProvider first, with the original yfinance call kept as a
         # legacy fallback only if DataProvider itself is unavailable.
         hist = None
+        source = None
         if DATA_PROVIDER_AVAILABLE:
             try:
                 dp = get_data_provider()
                 hist = dp.get_ohlcv(ticker, '1y')
                 if hist is not None and not hist.empty:
                     hist.columns = [c.capitalize() for c in hist.columns]
+                    source = 'DataProvider'
             except Exception as e:
                 print(f"⚠️ DataProvider OHLCV failed for {ticker} (MR signal): {e}")
                 hist = None
@@ -3597,12 +3637,28 @@ def get_mr_signal(ticker):
             # Flatten MultiIndex if present (yfinance quirk)
             if isinstance(hist.columns, pd.MultiIndex):
                 hist.columns = hist.columns.get_level_values(0)
+            source = 'yfinance fallback'
+            print(f"⚠️ MR signal {ticker}: using yfinance fallback")
+
+        # Day 123: the tested system decided on completed days only. Drop
+        # today's forming bar on every data path BEFORE the length check.
+        hist, bar_dropped = drop_forming_bar(hist)
 
         if hist is None or hist.empty or len(hist) < 200:
-            return jsonify({'error': f'Insufficient data for {ticker}', 'signal': False}), 200
+            bars = 0 if hist is None else len(hist)
+            print(f"⚠️ MR signal {ticker}: insufficient data ({bars} completed bars, need 200)")
+            return jsonify({'error': f'Insufficient data for {ticker}',
+                            'reason': f'only {bars} days of history; the rules need 200',
+                            'bars': bars, 'signal': False}), 200
 
         result = mean_reversion.detect_mr_signal(hist)
         result['ticker'] = ticker
+        result['asOf'] = str(hist.index[-1])[:10]
+        result['barDropped'] = bar_dropped
+        result['dataSource'] = source
+        result['trackRecord'] = mean_reversion.get_mr_track_record()
+        if result.get('missing'):
+            print(f"⚠️ MR signal {ticker}: inputs missing {result['missing']} (as of {result['asOf']})")
         return jsonify(result)
 
     except Exception as e:
@@ -3643,7 +3699,7 @@ def scan_mr_signals():
                     hist = dp.get_ohlcv(ticker, period)
                     if hist is not None and not hist.empty:
                         hist.columns = [c.capitalize() for c in hist.columns]
-                        return hist
+                        return drop_forming_bar(hist)[0]  # Day 123: completed days only
                 except Exception as e:
                     print(f"⚠️ DataProvider OHLCV failed for {ticker} (MR scan): {e}")
             try:
@@ -3651,9 +3707,9 @@ def scan_mr_signals():
                 if hist is not None and not hist.empty:
                     if isinstance(hist.columns, pd.MultiIndex):
                         hist.columns = hist.columns.get_level_values(0)
-                    return hist
-            except Exception:
-                pass
+                    return drop_forming_bar(hist)[0]  # Day 123: completed days only
+            except Exception as e:
+                print(f"⚠️ yfinance fallback failed for {ticker} (MR scan): {e}")
             return None
 
         signals = mean_reversion.scan_universe_for_mr(tickers, fetch_data)

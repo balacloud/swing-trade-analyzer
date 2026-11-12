@@ -148,6 +148,11 @@ export function calculateSimplifiedAnalysis(stockData, spyData, srData) {
     } else {
       results.criteria.setup.reason = 'Invalid stop placement';
     }
+  } else if (srData?.suggestedEntry && srData.suggestedStop == null) {
+    // Day 123: backend leaves the stop empty when ATR is missing (was a fake 3%).
+    // Fail visibly rather than switch to the support-distance formula below,
+    // which would answer a different question than the stop shown elsewhere.
+    results.criteria.setup.reason = 'Stop unavailable (ATR missing) - can\'t measure risk';
   } else if (srData?.support?.length > 0) {
     // Calculate from nearest support
     const nearestSupport = Math.max(...srData.support);

@@ -2,7 +2,7 @@
 
 > **Purpose:** A decision-making lens for judgment calls this project makes about trading logic — not a coding-style guide. GOLDEN_RULES.md governs *how Claude works*; this file governs *how Claude should think* when evaluating a threshold, a backtest result, a "can we speed this up" request, or any other call that touches the actual trading system.
 > **Created:** Day 95 (July 24, 2026) — user-requested, to make key trading decisions consistently rather than re-deriving judgment each session.
-> **Last Updated:** Day 122 (2026-11-10)
+> **Last Updated:** Day 123 (2026-11-12)
 > **Loaded:** At session start (`/sta-start`), alongside GOLDEN_RULES.md. Updated at session close (`/sta-end`) via the Feedback Log below — this file is meant to accumulate, not stay static.
 
 ---
@@ -106,6 +106,23 @@ reruns the 86,400-combo parity test and reports any mismatch immediately.
 ---
 
 ## Feedback Log (append-only, most recent session first)
+
+### Day 123
+**"Too good to be true" caught the project's headline number.** MR (broad) had been quoted as
+PF 2.00 / 70.5% wins since Day 120, and as "the one confirmed edge". When the Mean-Reversion
+Read card was about to tell the user "buy at the next open" next to that number, the Fable plan
+review asked where the simulator actually bought. It bought at the entry day's close, a price
+nobody acting on the signal could get. The lens question was: would a 30-year trader accept a
+number earned at a fill they couldn't take? No. The user chose to re-test rather than relabel.
+With the prediction pre-registered (PF 1.5–1.7), the same 241 trades at the next open came out
+**PF 1.50, 63.5% wins, +0.70%/trade**. That is still positive, but half the edge per trade;
+HUB-65 fell to PF 1.07, break-even. The prediction held only at its bottom edge. The card shows
+the open-basis numbers, the 2020–25 backtest PF 1.16, and a note on why the older figure was
+higher. Lesson: the more a result anchors decisions, the more its entry and exit prices need
+checking against what a person can actually do (Golden Rule 60). Also reframed this session:
+the user cut the Holding Period selector, the Assessment Breakdown and BUY/HOLD/AVOID from every
+screen. The lens agreed: the verdict was a blend the cards now explain item by item, and the
+holding period only re-weighted that blend, not any plan, stop or size.
 
 ### Day 122
 **The trader lens missed a consistency problem; adding an architect lens caught it.** Claude

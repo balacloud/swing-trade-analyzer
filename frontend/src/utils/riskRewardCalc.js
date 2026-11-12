@@ -2,94 +2,57 @@
  * Shared Risk/Reward Calculator
  * Day 61: Extracted from 4 duplicated locations to single source of truth
  *
- * Used by: App.jsx (viability badge, contradiction check, Trade Setup entry-strategy display)
+ * Used by: components/PullbackPlan.jsx (Trade Setup card)
  *
- * Tier 1A: ATR stops are PRIMARY. Percentage caps are safety floors only.
- * Pullback entry: Buy at nearest support, stop 2×ATR below support
- * Momentum entry: Buy at current price, stop 1.5×ATR below support
+ * Pullback plan: buy at the nearest support, stop 2×ATR below it, target the
+ * nearest resistance (backend `suggestedTarget`, which is a projection when
+ * `meta.resistanceProjected` is true).
  * Day 83: removed a stale "max stop cap: 7% from entry" claim — that cap
  * belongs to the backtest's own position-sizing layer (trade_simulator.py),
  * not this function, which is purely ATR-based with a $0.01 floor.
+ * Day 123 (redesign Step 3): momentum plan, viability flags and the
+ * getViabilityBadge / hasViabilityContradiction helpers removed with the
+ * momentum panel (STA's momentum system failed every test). The
+ * `currentPrice * 1.10` target fallback is gone too — it invented a target
+ * when no resistance was found (Code Architecture Rule 6); target is now null.
  */
 
 /**
- * Calculate R:R for both pullback and momentum entry types
+ * Calculate the pullback plan's levels and reward:risk.
  *
- * @param {object} srData - Support/Resistance data from backend
- * @param {number} currentPrice - Current stock price
- * @returns {object} { pullbackRR, momentumRR, pullbackViable, momentumViable, anyViable, nearestSupport, target, atr }
- */
-export function calculateRiskReward(srData, currentPrice) {
-  const nearestSupport = srData?.support?.length > 0 ? Math.max(...srData.support) : null;
-  const atr = srData?.meta?.atr || 0;
-  const target = srData?.suggestedTarget || (currentPrice ? currentPrice * 1.10 : 0);
-
-  // Pullback R:R: entry at support, stop 2×ATR below
-  // Floor at $0.01 — stop price can never be negative or zero
-  const pullbackEntry = nearestSupport;
-  const pullbackStop = nearestSupport ? Math.max(0.01, nearestSupport - (atr * 2)) : 0;
-  const pullbackRisk = pullbackEntry ? pullbackEntry - pullbackStop : 0;
-  const pullbackReward = pullbackEntry ? target - pullbackEntry : 0;
-  const pullbackRR = pullbackRisk > 0 ? pullbackReward / pullbackRisk : 0;
-
-  // Momentum R:R: entry at current price, stop 1.5×ATR below support
-  const momentumStop = nearestSupport ? Math.max(0.01, nearestSupport - (atr * 1.5)) : 0;
-  const momentumRisk = currentPrice && momentumStop ? currentPrice - momentumStop : 0;
-  const momentumReward = currentPrice ? target - currentPrice : 0;
-  const momentumRR = momentumRisk > 0 ? momentumReward / momentumRisk : 0;
-
-  const pullbackViable = pullbackRR >= 1.0;
-  const momentumViable = momentumRR >= 1.0;
-
-  return {
-    pullbackRR,
-    momentumRR,
-    pullbackViable,
-    momentumViable,
-    anyViable: pullbackViable || momentumViable,
-    nearestSupport,
-    target,
-    atr,
-    // Pre-computed stop prices for display
-    pullbackStop,
-    momentumStop,
-    pullbackRisk,
-    pullbackReward,
-    momentumRisk,
-    momentumReward,
-  };
-}
-
-/**
- * Detect contradiction between backend viability and frontend R:R
- * Backend says "structurally sound" but both R:R < 1.0
+ * Day 123 (engineering-standard pass): every outcome carries an explicit
+ * `state` so the card can say *why* something is missing instead of hiding
+ * or inventing it. Never throws.
+ *   'no_data'    — srData is null (the /api/sr fetch failed)
+ *   'no_support' — no support level below today's price
+ *   'no_atr'     — support found but ATR missing/zero, so no stop can be placed
+ *                  (was `atr || 0`, which put the stop on the buy price)
+ *   'ok'         — full plan
  *
- * @param {object} srData - S&R data with meta.tradeViability
- * @param {object} rr - Result from calculateRiskReward()
- * @returns {boolean} true if contradiction detected
+ * @param {object|null} srData - Support/Resistance data from backend
+ * @returns {object} { state, entry?, stop?, target?, atr?, risk?, reward?, rr?, targetProjected? }
+ *   target/reward/rr are null when the backend found no resistance target.
  */
-export function hasViabilityContradiction(srData, rr) {
-  const backendViable = srData?.meta?.tradeViability?.viable;
-  // Check both directions: backend YES but R:R fails, OR backend NO but R:R passes
-  return (
-    (backendViable === 'YES' && !rr.anyViable) ||
-    (backendViable === 'NO' && rr.anyViable)
-  );
-}
+export function calculateRiskReward(srData) {
+  if (srData == null) return { state: 'no_data' };
 
-/**
- * Get viability badge label for Trade Setup card
- *
- * @param {object} rr - Result from calculateRiskReward()
- * @returns {{ label: string, bg: string, icon: string }}
- */
-export function getViabilityBadge(rr) {
-  if (rr.pullbackViable && rr.momentumViable) {
-    return { label: 'BOTH VIABLE', bg: 'bg-green-600', icon: '✅' };
-  } else if (rr.pullbackViable) {
-    return { label: 'PULLBACK OK', bg: 'bg-green-700', icon: '✅' };
-  } else if (rr.momentumViable) {
-    return { label: 'MOMENTUM OK', bg: 'bg-blue-600', icon: '✅' };
+  const supports = Array.isArray(srData.support) ? srData.support.filter(Number.isFinite) : [];
+  if (supports.length === 0) return { state: 'no_support' };
+
+  const entry = Math.max(...supports);
+  const target = Number.isFinite(srData.suggestedTarget) ? srData.suggestedTarget : null;
+  const targetProjected = srData.meta?.resistanceProjected === true;
+  const atr = srData.meta?.atr;
+
+  if (!Number.isFinite(atr) || atr <= 0) {
+    return { state: 'no_atr', entry, stop: null, target, atr: null, risk: null, reward: null, rr: null, targetProjected };
   }
-  return { label: 'NOT VIABLE', bg: 'bg-red-600', icon: '🚫' };
+
+  // Floor at $0.01 — stop price can never be negative or zero
+  const stop = Math.max(0.01, entry - (atr * 2));
+  const risk = entry - stop;
+  const reward = target != null ? target - entry : null;
+  const rr = reward != null && risk > 0 ? reward / risk : null;
+
+  return { state: 'ok', entry, stop, target, atr, risk, reward, rr, targetProjected };
 }

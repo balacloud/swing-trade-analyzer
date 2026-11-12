@@ -79,29 +79,35 @@ const DAY_CHANGE_FLAT_PCT = 0.1;
  * @param {?number} args.changePct     - srData.change (% vs prior close)
  * @param {?number} args.closeLocation - srData.meta.candle.closeLocation (0..1)
  * @param {?string} args.obvTrend      - srData.meta.obv.trend: 'rising'|'falling'|'flat'
- * @returns {?{lean:'buying'|'selling'|'mixed'|'none', text:string}}
+ * @returns {?{lean:'buying'|'selling'|'mixed'|'none', text:string, signals:Array<{signal, vote, text}>}}
  *          null when no signal is available at all — render nothing, not a
  *          claim about missing data.
  */
 export function getVolumeDirectionRead({ changePct, closeLocation, obvTrend }) {
   const votes = [];
   const parts = [];
+  const signals = [];  // Day 123: per-signal detail for the Entry checks chips
 
   if (typeof changePct === 'number' && Number.isFinite(changePct)) {
     if (changePct > DAY_CHANGE_FLAT_PCT) { votes.push(1); parts.push(`closed up ${changePct.toFixed(1)}%`); }
     else if (changePct < -DAY_CHANGE_FLAT_PCT) { votes.push(-1); parts.push(`closed down ${Math.abs(changePct).toFixed(1)}%`); }
     else { votes.push(0); parts.push('closed flat'); }
+    signals.push({ signal: 'change', vote: votes[votes.length - 1], text: parts[parts.length - 1] });
   }
 
   if (typeof closeLocation === 'number' && Number.isFinite(closeLocation)) {
     if (closeLocation >= CLOSE_LOCATION_STRONG) { votes.push(1); parts.push("settled near the day's high"); }
     else if (closeLocation <= CLOSE_LOCATION_WEAK) { votes.push(-1); parts.push("near the day's low"); }
     else { votes.push(0); parts.push('mid-range'); }
+    signals.push({ signal: 'closeLocation', vote: votes[votes.length - 1], text: parts[parts.length - 1] });
   }
 
   if (obvTrend === 'rising') { votes.push(1); parts.push('OBV rising'); }
   else if (obvTrend === 'falling') { votes.push(-1); parts.push('OBV falling'); }
   else if (obvTrend === 'flat') { votes.push(0); parts.push('OBV flat'); }
+  if (['rising', 'falling', 'flat'].includes(obvTrend)) {
+    signals.push({ signal: 'obv', vote: votes[votes.length - 1], text: parts[parts.length - 1] });
+  }
   // any other obvTrend value (or meta.obv absent/null) casts no vote
 
   if (votes.length === 0) return null;
@@ -115,7 +121,7 @@ export function getVolumeDirectionRead({ changePct, closeLocation, obvTrend }) {
   else if (score <= -2) { lean = 'selling'; tail = 'leans toward selling pressure'; }
   else { lean = 'none'; tail = 'no clear lean either way'; }
 
-  return { lean, text: `${parts.join(', ')} — ${tail}` };
+  return { lean, text: `${parts.join(', ')} — ${tail}`, signals };
 }
 
 /**

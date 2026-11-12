@@ -11,6 +11,9 @@ Implements: OHLCVProvider, IntradayProvider, FundamentalsProvider,
 import yfinance as yf
 import pandas as pd
 from datetime import datetime
+from zoneinfo import ZoneInfo
+
+_NY_TZ = ZoneInfo('America/New_York')  # Day 123: earnings dates in market time
 
 from .base import (
     OHLCVProvider, IntradayProvider, FundamentalsProvider,
@@ -341,7 +344,8 @@ class YFinanceProvider(
                     if info and 'earningsTimestamp' in info:
                         ts = info['earningsTimestamp']
                         if ts:
-                            earnings_date = datetime.fromtimestamp(ts)
+                            # Day 123: New York date, not the server's local clock
+                            earnings_date = datetime.fromtimestamp(ts, _NY_TZ)
                             source_method = 'info'
                 except Exception:
                     pass
@@ -352,9 +356,9 @@ class YFinanceProvider(
                     earnings_date = earnings_date.to_pydatetime()
                 elif isinstance(earnings_date, str):
                     earnings_date = datetime.fromisoformat(earnings_date.replace('Z', '+00:00'))
-                # Make timezone-naive
+                # Make timezone-naive in New York time (Day 123: convert, don't just strip)
                 if hasattr(earnings_date, 'tzinfo') and earnings_date.tzinfo is not None:
-                    earnings_date = earnings_date.replace(tzinfo=None)
+                    earnings_date = earnings_date.astimezone(_NY_TZ).replace(tzinfo=None)
 
             breaker.record_success()
             return EarningsResult(

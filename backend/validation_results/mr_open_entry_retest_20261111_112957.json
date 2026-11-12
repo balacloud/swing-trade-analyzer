@@ -1,0 +1,186 @@
+{
+  "generated": "2026-11-11T11:29:57",
+  "ledger": "/Users/balajik/projects/swing-trade-analyzer/backend/validation_results/paper_trading_ledger.db",
+  "variants": {
+    "A_frozen": {
+      "stored_all": {
+        "trades": 241,
+        "wins": 170,
+        "win_pct": 70.5,
+        "profit_factor": 2.0,
+        "avg_pnl_pct": 1.396
+      },
+      "reproduced_close_basis": {
+        "trades": 230,
+        "wins": 163,
+        "win_pct": 70.9,
+        "profit_factor": 2.38,
+        "avg_pnl_pct": 1.63
+      },
+      "open_basis": {
+        "trades": 230,
+        "wins": 145,
+        "win_pct": 63.0,
+        "profit_factor": 1.45,
+        "avg_pnl_pct": 0.649
+      },
+      "open_basis_exits": {
+        "rsi2_exit": 169,
+        "stop_hit": 50,
+        "stop_hit_gap": 8,
+        "time_exit": 3
+      },
+      "all_trades_close_basis": {
+        "trades": 241,
+        "wins": 171,
+        "win_pct": 71.0,
+        "profit_factor": 2.4,
+        "avg_pnl_pct": 1.63
+      },
+      "all_trades_open_basis": {
+        "trades": 241,
+        "wins": 153,
+        "win_pct": 63.5,
+        "profit_factor": 1.5,
+        "avg_pnl_pct": 0.704
+      },
+      "skipped": [
+        {
+          "id": 25,
+          "ticker": "APH",
+          "why": "close basis did not reproduce stored pnl",
+          "stored": 4.8303,
+          "replayed": 4.8103
+        },
+        {
+          "id": 79,
+          "ticker": "APH",
+          "why": "close basis did not reproduce stored pnl",
+          "stored": 11.081,
+          "replayed": 11.0601
+        },
+        {
+          "id": 517,
+          "ticker": "BHP",
+          "why": "close basis did not reproduce stored pnl",
+          "stored": -5.4622,
+          "replayed": 1.2356
+        },
+        {
+          "id": 136,
+          "ticker": "C",
+          "why": "close basis did not reproduce stored pnl",
+          "stored": 0.922,
+          "replayed": 1.435
+        },
+        {
+          "id": 317,
+          "ticker": "CSX",
+          "why": "close basis did not reproduce stored pnl",
+          "stored": 0.629,
+          "replayed": 0.9385
+        },
+        {
+          "id": 254,
+          "ticker": "CVS",
+          "why": "close basis did not reproduce stored pnl",
+          "stored": 0.925,
+          "replayed": 0.9457
+        },
+        {
+          "id": 476,
+          "ticker": "MCD",
+          "why": "close basis did not reproduce stored pnl",
+          "stored": -2.1547,
+          "replayed": -2.8453
+        },
+        {
+          "id": 219,
+          "ticker": "MNST",
+          "why": "close basis did not reproduce stored pnl",
+          "stored": -50.7963,
+          "replayed": -0.9344
+        },
+        {
+          "id": 566,
+          "ticker": "NEM",
+          "why": "close basis did not reproduce stored pnl",
+          "stored": 4.4035,
+          "replayed": 4.1866
+        },
+        {
+          "id": 602,
+          "ticker": "PLTR",
+          "why": "close basis did not reproduce stored pnl",
+          "stored": -5.1816,
+          "replayed": -5.0164
+        },
+        {
+          "id": 612,
+          "ticker": "WDC",
+          "why": "close basis did not reproduce stored pnl",
+          "stored": 2.0986,
+          "replayed": 2.1314
+        }
+      ]
+    },
+    "mr_hub65": {
+      "stored_all": {
+        "trades": 70,
+        "wins": 45,
+        "win_pct": 64.3,
+        "profit_factor": 1.67,
+        "avg_pnl_pct": 1.283
+      },
+      "reproduced_close_basis": {
+        "trades": 68,
+        "wins": 43,
+        "win_pct": 63.2,
+        "profit_factor": 1.58,
+        "avg_pnl_pct": 1.127
+      },
+      "open_basis": {
+        "trades": 68,
+        "wins": 37,
+        "win_pct": 54.4,
+        "profit_factor": 0.99,
+        "avg_pnl_pct": -0.029
+      },
+      "open_basis_exits": {
+        "rsi2_exit": 39,
+        "stop_hit": 24,
+        "stop_hit_gap": 5
+      },
+      "all_trades_close_basis": {
+        "trades": 70,
+        "wins": 45,
+        "win_pct": 64.3,
+        "profit_factor": 1.67,
+        "avg_pnl_pct": 1.283
+      },
+      "all_trades_open_basis": {
+        "trades": 70,
+        "wins": 39,
+        "win_pct": 55.7,
+        "profit_factor": 1.07,
+        "avg_pnl_pct": 0.161
+      },
+      "skipped": [
+        {
+          "id": 97,
+          "ticker": "APH",
+          "why": "close basis did not reproduce stored pnl",
+          "stored": 11.081,
+          "replayed": 11.0601
+        },
+        {
+          "id": 614,
+          "ticker": "WDC",
+          "why": "close basis did not reproduce stored pnl",
+          "stored": 2.0986,
+          "replayed": 2.1314
+        }
+      ]
+    }
+  }
+}

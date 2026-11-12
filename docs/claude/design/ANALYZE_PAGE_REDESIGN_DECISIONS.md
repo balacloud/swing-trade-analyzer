@@ -1141,3 +1141,269 @@ verification afterthought.
   - "Info only, doesn't change the read" stated once above both questions.
   - Full-score line reads "passes 8 of 8 trend checks (the 4 above plus 4
     more)".
+
+- **Day 123 — Technical Read visuals (mockup v0.9, pending user sign-off).**
+  - Full-score line became three tiles under "Strong needs all three", each
+    with ✓/✗ and its bar: trend 7+ of 8, momentum (RSI) 50–70, beat the
+    S&P 500 over the past year. Matches `categoricalAssessment.js:342`.
+  - Timing and volume became an "Entry checks" block (Info only): a strip
+    showing distance from the 21-day EMA in ATR (close ≤1 ATR, extended
+    1–2 ATR still answers Yes, stretched >2 ATR = Keltner Channel default
+    band; cutoffs untested), and 20-day volume bars plus the 3 engine votes
+    (day change, close location, OBV). Explanations moved behind "why? ⓘ".
+  - Data check (Day 123): Tradier, TwelveData and yfinance daily closes
+    identical, volume within 0.6% (5 US large caps × 12 days).
+
+- **Day 123 — Momentum rule: logged for one test after the redesign
+  (user-decided).** Trader consensus (Brown/Cardwell RSI ranges; "don't
+  fade overbought leaders") uses RSI as a floor, not a cap. The 70 cap can
+  mark a breaking-out leader Decent instead of Strong. Plan: after the
+  redesign, backtest "RSI above 50, no cap" against the current 50–70,
+  prediction written first (Golden Rule 56). Switch only if it does as well
+  or better, changing every copy together (Golden Rule 59). No change now.
+
+- **Day 123 — Mean-Reversion Read card redesigned (mockup v0.10, pending
+  sign-off).** Same pattern as the Technical Read: one big answer ("No
+  signal" / "Buy the dip"), then "Buy the dip needs all four" tiles with
+  ✓/✗ (RSI(2) below 10, above the 200-day average, price above $10, daily
+  trading above $25M). On a signal, "The plan, exactly as tested": buy at
+  tomorrow's open, stop 5% below the buy, sell on the first close with
+  RSI(2) above 70, or after 10 trading days; no price target. Track record
+  line: 241 trades, 70.5% wins, PF 2.00. Fixed in the mockup: No-signal
+  panel used the green "favorable" colour and Signal used red.
+  - **Bug found (to fix when the card is built):** the live
+    `MRSignalCard.jsx` shows `detect_mr_signal()`'s stop (tighter of 5% or
+    1.5 ATR) and target (entry + 2 ATR). Neither is the tested rule: the
+    PF 2.00 ledger used a flat 5% stop, no target, RSI(2) > 70 or 10-day
+    exit, entry at next open (`daily_job.py:87-90`, `mr_simulator.py`). The
+    redesigned card shows only the tested rules.
+
+- **Day 123 — Trade Setup card redesigned (mockup v0.11, pending sign-off).**
+  - Two plans (Pullback: buy at support; Momentum: buy now), each with a
+    risk/reward bar on one shared price scale (red = stop to buy, green =
+    buy to target, "now" line), three fact tiles (Buy / Stop / Target with
+    % and why), the reward:risk ratio, and a plain sentence ("Risk $12.68
+    to make $15.80 a share"). Second state: at an all-time high the target
+    is a projection, drawn dashed with "?".
+  - No new pass/fail rules. One reference line gives the common rules of
+    thumb (reward ≥ 2× risk; stop no more than 7–8% below the buy, O'Neil)
+    without judging, because neither threshold exists in the engine
+    (Golden Rule 59: a third R:R threshold on the page would disagree with
+    the existing ones).
+  - Card says plainly it is arithmetic, not a tested system (momentum
+    failed every test; MR is the tested edge).
+  - Mockup numbers corrected to the engine formula
+    (`riskRewardCalc.js:30,36`): pullback stop = support − 2 ATR = $202.72
+    (was shown as $208.90); momentum buy = today's $224.80 (was $225.10).
+    Sizing card synced (stop distances 5.9% / 8.4%; RVOL 1.80 to match the
+    Entry checks' 1.8×; ADX wording "moving sideways for now").
+  - **Bug found (fix when built):** `riskRewardCalc.js:24` falls back to
+    `currentPrice * 1.10` when there is no resistance target, a made-up
+    number (Code Architecture Rule 6). The redesign shows the backend's
+    projected target labelled as a projection, or no target.
+
+- **Day 123 — Momentum plan and Sizing Inputs card removed (user-decided,
+  mockup v0.12).**
+  - Trade Setup shows only the pullback plan (buy at support, stop 2 ATR
+    below, target nearest resistance). Reason: STA's own momentum system
+    failed every backtest and the forward test (Path A PF 0.70, Path B
+    retired). Breakout buying itself is canon (O'Neil); STA's version never
+    earned its place. The pullback plan is untested by STA too, kept
+    because it matches MR (the tested edge buys dips in an uptrend) and the
+    canon low-risk entry.
+  - Sizing Inputs card removed from the Analyze page. The Settings-tab
+    position calculator stays as is.
+  - **Build impact (Golden Rule 51/59):** `riskRewardCalc.js`'s
+    `anyViable = pullbackViable || momentumViable` feeds the viability
+    badge and the "⚠️ Stock not recommended" warning (`App.jsx:1691-1716`).
+    When the momentum panel goes, those must stop counting momentum (or be
+    removed with the old card), or the page could call a setup viable
+    because of a plan it no longer shows. Removing the momentum panel also
+    retires the hardcoded "half" position-size label bug (Day 109).
+
+- **Day 123 — Fundamentals card redesigned (mockup v0.13, pending sign-off).**
+  - Same pattern as the other cards: one answer ("No red flags" in plain
+    text, never green; "⚑ 1 red flag" in amber; "Can't check"; "Not
+    applicable" for ETFs), then three check tiles from
+    `screenFundamentalRedFlags` (`categoricalAssessment.js:1114`): sales
+    falling 10%+ a year, ROE below 0%, Debt/Equity above 2.0. Missing data
+    shows dashed "no data / not checked" tiles so it never reads as "no
+    flags" (§5 display rule).
+  - New row: **next earnings date, always shown**, highlighted when within
+    7 days (the existing `/api/earnings` warning window, `backend.py:1416`;
+    no new threshold). Canon: O'Neil and Minervini avoid holding a fresh
+    swing trade through earnings. Today the date only appears as a header
+    badge inside 7 days.
+  - Backing: sales decline and losing money match canon (O'Neil's
+    growth/profit requirements) and Reddit; D/E above 2.0 is a common screen
+    with a sector caveat (banks, utilities, REITs), stated on the card.
+    Earnings growth (O'Neil's "C") stays out per the Day 119 decision.
+
+- **Day 123 — P/E guide added to the Fundamentals card (user-requested,
+  mockup v0.14).** Trailing P/E only, on a guide strip (under 15 / 15–25 /
+  25+, labelled cheap / typical / priced for growth) with a plain sentence
+  ("investors pay $38 for each $1 of yearly profit"). Never a flag, never
+  coloured. Backing: O'Neil and Minervini found P/E doesn't predict the
+  move (leaders often had high P/Es); Graham's "under 15 = cheap" is for
+  long-term value investing; Reddit says compare to the sector and that a
+  high P/E means bigger earnings reactions. No P/E = losing money. Data:
+  `pe` already reaches the frontend (`api.js:93`). No sector average exists
+  in STA, so no sector comparison.
+  - **Bug found (Low):** `forwardPe` is mapped to Finnhub's
+    `peBasicExclExtraTTM` (`field_maps.py:73`), which is a trailing P/E,
+    not forward. Anything labelled "forward P/E" from Finnhub is wrong. The
+    card uses trailing P/E only.
+
+- **Day 123 — User signed off the full v0.14 design and said "start
+  building".** Build order (amends the Day 119 plan's §E): Step 3 Trade
+  Setup (pullback only; no Sizing grid; no momentum panel; no +10% target
+  fallback), Step 4 Technical Read + Regime (adds score tiles and Entry
+  checks; volume read moves here from Trade Setup), Step 5 MR card (new;
+  tested rules only), Step 6 Fundamentals (adds P/E guide and earnings
+  date), Step 7 default flip + Simple-view copy, Step 8 tests + docs. Built
+  in the app's dark Tailwind theme with the mockup's layout. Each step is
+  verified and shown to the user before the next.
+
+- **Day 123 — Step 3 built: Trade Setup card (pullback plan only).**
+  - New `frontend/src/components/PullbackPlan.jsx` (bar, Buy/Stop/Target
+    tiles, plain sentence, reference line, "How this setup was formed").
+  - `riskRewardCalc.js` reduced to the pullback plan; returns null target
+    (not `price × 1.10`) when no resistance is found; `getViabilityBadge` /
+    `hasViabilityContradiction` deleted (no other callers).
+  - `App.jsx`: viability badge, "⚠️ Stock not recommended", advice banner,
+    both entry panels (incl. the hardcoded momentum "half", Day 39) removed.
+    Indicator chips (ADX / 4H RSI / OBV / Vol / ⚠️ DIST) kept unchanged as a
+    row under the plan; the Day 111/116 volume block, S&R levels and MTF
+    unchanged. Step 4 decides the chips' and volume block's final home.
+  - Verified: `npm run build` clean (only the 6 pre-existing warnings);
+    live NVDA renders (support $164.27 − 2×ATR $8.70 = stop $146.87,
+    target R1 $188.00, 1.4 : 1); edge cases unit-checked (projected target,
+    no target → no ratio, no support → message, $0.01 stop floor). Simple
+    view's entry/stop unaffected (reads backend `suggestedEntry/Stop`).
+    Not yet seen live: an all-time-high ticker. `ui-verify-checklist.js`
+    still asserts the removed panels — rewritten in Step 8 as planned.
+
+- **Day 123 — Engineering standard adopted (user).** Every step from now:
+  a written plan reviewed by an independent Opus/Fable agent before code;
+  no silent failures; logging; helpers that never throw; every UI element
+  backed by real backend data; logic true to the engine. Plan:
+  `ANALYZE_REDESIGN_STEP4_PLAN_DAY123.md` (Fable: GO WITH FIXES, all 14
+  findings accepted, §7).
+
+- **Day 123 — Step 3 hardened + Step 4 built (Technical Read + Regime).**
+  - Silent failures fixed: failed `/api/sr` no longer hides the Trade Setup
+    card (it says "Couldn't load support and resistance levels");
+    `calculateRiskReward` returns an explicit state (`no_data` /
+    `no_support` / `no_atr` / `ok`) instead of `atr || 0`; backend
+    `suggestedStop` is null with a logged warning when ATR is missing (was a
+    made-up 3% stop the Simple view showed and sized from; the Simple
+    Checklist setup criterion now falls to its existing support-distance
+    branch in that case); backend RVOL is None, not a made-up 1.0, when the
+    50-day average volume is 0; `prevBar.date` labelled yesterday's bar with
+    today's date while today's bar was forming (fixed:
+    `df.index[-2]` always); trend template missing is logged with bar count.
+  - New: `RegimeRead.jsx` band, `TechnicalRead.jsx` card (read + ADX
+    "taking a breather"; 4 trend checks with labels that follow pass/fail;
+    "Strong needs all three" tiles from `deriveStrongCriteria`, which reads
+    the new shared `STRONG_RULE` constants that `assessTechnical` now also
+    uses; Entry checks: timing vs 21-day EMA in ATR, 20 volume bars with the
+    backend's own 50-day average definition and partial-bar outline, 3 votes,
+    distribution warning), `technicalReadChecks.js`, `useMissingInputWarning`
+    hook (`[STA][card]` console warnings).
+  - Removed from the Full view: BUY/HOLD/AVOID badge and T/F/S/R row in the
+    header (Simple view and Assessment Breakdown keep theirs), the indicator
+    chip row (ADX → read line; OBV/Vol/DIST → Entry checks; 4H RSI dropped),
+    5 dead functions. The Day 111/116 volume read moved unchanged into
+    Entry checks' "Volume detail".
+  - RS tile shows both 52-week returns ("+43% vs +10%"), never
+    `(ratio − 1) × 100`; ✓ stays on ratio ≥ 1.0 (equivalent test).
+  - **Engine bug logged (not fixed in Step 4):** a missing RSI becomes 50
+    (`runCategoricalAssessment`, `assessTechnical`) and counts as a pass
+    toward Strong. The card now says "RSI didn't load; the engine assumed
+    50". Fixing it changes verdicts, so it needs its own parity-tested change.
+  - Verified: build clean (only the pre-existing ValueTab warning; 5 dead-
+    function warnings gone); verdict parity 86,400/86,400; 26 Node unit
+    checks incl. a 112-combo grid proving tiles == engine Strong call; live
+    NVDA (Weak), AVGO, GOOGL (Weak), LLY (Strong, extended, projected
+    target "?"), SPY (Developing, ADX breather, below EMA), bad ticker
+    (explicit error), forced `/api/sr` failure (every section says why, one
+    `[STA]` warning per card), 390px mobile (no overflow in the new cards;
+    the app's tab bar/Analyze button overflow at 390px is pre-existing).
+  - Known breakage (Step 8): `ui-verify-checklist.js`,
+    `ui-cohesiveness-test.js` scrape the removed verdict badge / T:X row.
+  - **Code review (Fable) fixes, same day:** no MUST-FIX. Applied: Price
+    Structure's fake `?? 1.0` RVOL removed; Regime band says "SPY trend
+    unavailable" instead of "downtrend" when SPY data is missing (**second
+    engine bug logged:** `assessRiskMacro` treats missing SPY as below its
+    200-day → Unfavorable); young tickers say "under a year of history"
+    not "try again"; backend `candle.date` so a past session is never
+    labelled "Today"; Simple Checklist setup fails visibly with no stop.
+    34 Node checks, parity green, build clean, live LLY/NVDA/SPY re-checked.
+
+- **Day 123 — Step 5 built: Mean-Reversion Read card (tested rules only).**
+  - **Finding (Fable plan review, verified):** the forward test's PF 2.00
+    priced every trade at the entry day's CLOSE (`daily_job.py` replay via
+    `simulate_mr_trade`, `mr_simulator.py:69`), although the ledger recorded
+    the open. User chose: card plan = buy at the next open; re-test the
+    forward trades on that basis. Prediction pre-registered (PF 1.5–1.7, WR
+    63–68%). Result (`backtest/mr_open_entry_retest.py`, all trades, same
+    data both bases): **broad 241 trades: close PF 2.40 → open PF 1.50, WR
+    63.5%, +0.70%/trade; HUB-65 70 trades: open PF 1.07, +0.16%/trade.**
+    Prediction held at the bottom edge. Ledger also holds a fake MNST −50.8%
+    (split artifact). PF 2.00 to be corrected wherever quoted (session close).
+  - Backend: `market_time.py` (one forming-bar rule, cutoff 16:30 ET to match
+    the OHLCV cache expiry; S&R and MR routes use it), `MR_RULES` single
+    definition (frozen simulator/daily_job values asserted equal by
+    `backtest/test_mr_rules.py`), `detect_mr_signal` tri-state conditions
+    with `missing`, ATR stop / +2 ATR target / 2% ATR fallback removed,
+    `/api/mr/signal` drops the forming bar before the 200-bar check and
+    returns `asOf`, `barDropped`, `dataSource`, `trackRecord` (from the
+    re-test file + ledger dates), scan rows carry `asOf`.
+  - Frontend: `MRRead.jsx` replaces `MRSignalCard.jsx` (deleted); always
+    shown (loading / couldn't check (reason) / No signal / Buy the dip);
+    4 rule tiles (no-data tiles dashed); clock-aware entry line
+    (`mrEntryTiming.js`: says when the tested open has already passed);
+    track record per universe with its own dates + backtest PF 1.16;
+    moved under the Technical Read. Scan tab MR rows show the tested plan,
+    not the old stop/target. `fetchMRSignal` returns `{error, reason}`.
+  - Verified: 21 Python checks, 8 timing checks, build clean, parity green,
+    live XOM (signal, open already passed), NVDA (no signal: below 200-day),
+    forced failure, 390px, Scan tab MR list. Fable code review: 1 MUST-FIX
+    (HUB-65 shown with broad dates) + 8 smaller, all fixed.
+
+- **Day 123 — Holding Period, Assessment Breakdown and BUY/HOLD/AVOID removed
+  (user-decided).** Holding period's only consumer was `determineVerdict`'s
+  tech/fund weighting; the Breakdown repeated cards that now exist. User
+  chose "BUY/HOLD/AVOID everywhere": removed from the Analyze page, the
+  Simple view comparison strip, and the Scan tab's Day 106 STA Verdict
+  column. Engine code + parity test untouched; verdict still computed at a
+  fixed 'standard' horizon for the trade journal's stored field.
+
+- **Day 123 — Step 6 built: Fundamentals card + removals.**
+  - New `FundamentalsRead.jsx` + `fundamentalsRead.js`: three red-flag
+    tiles (sales, return on equity, debt; thresholds from
+    `RED_FLAG_THRESHOLDS`), P/E guide (never a flag; "P/E not reported"
+    unless negative — no profitability inference), next earnings always
+    shown (backend `daysUntil`/`hasUpcoming`, highlighted in the 7-day
+    window), "Can't check" vs "No red flags" vs "Not applicable" (ETF via
+    yfinance `quoteType`, engine list, or name fallback), per-field data
+    sources, negative-equity D/E shown as not meaningful.
+  - **Data bugs fixed (Fable plan review):** yfinance D/E was in percent
+    (AAPL ≈154 would have been flagged); yfinance/FMP ROE ≥100% showed as
+    "1.5%". Both also skewed `assessFundamental`. Fundamentals cache schema
+    v2 → v3. Earnings `days_until` was off by one (−1 on the day itself);
+    now New York calendar days via `calendar_days_until`, timestamps
+    converted to NY time, and "every source failed" returns unknown instead
+    of "no date found". Alpha Vantage sales basis is quarterly YoY (FMP is
+    the annual one).
+  - Removed: Holding Period selector + effect, Assessment Breakdown +
+    `AssessmentTile.jsx`, Raw Indicators, Quality Gate Warnings (their
+    content: 200 SMA/RS in the Technical Read, liquidity in Price & RS),
+    fundamentals-unavailable banner (now the card's "Can't check"), Simple
+    view comparison strip, Scan STA Verdict column, dead state/helpers.
+  - Verified: 27 Node + 13 Python checks, parity 86,400/86,400, build clean,
+    live AAPL / NVDA / RIVN (⚑ negative ROE) / JPM (⚑ D/E 3.32, bank caveat)
+    / SMH / SPY / forced fundamentals failure; no BUY/HOLD/AVOID verdict in
+    the Full view. Fable code review: 2 MUST-FIX + 8 smaller, all fixed.
+  - Step 8 cleanup candidates: scoringEngine still computes `qualityGates`
+    nothing renders.

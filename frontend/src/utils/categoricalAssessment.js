@@ -299,6 +299,18 @@ export function getActionablePatterns(patternsData, atr = null, srData = null) {
  * @param {number} rsi - Current RSI(14) value
  * @returns {object} { assessment, reasons, data }
  */
+/**
+ * The Strong rule's thresholds (Day 123). Single frontend definition, read by
+ * assessTechnical() below and by deriveStrongCriteria() for the tiles.
+ * Mirrored in backend/backtest/categorical_engine.py (parity-tested).
+ */
+export const STRONG_RULE = {
+  minTrendChecks: 7,  // of 8 Trend Template criteria
+  rsiMin: 50,
+  rsiMax: 70,
+  rsMin: 1.0          // rs52Week, stock growth ÷ S&P 500 growth over 52 weeks
+};
+
 export function assessTechnical(technicalData, trendTemplate, rsi) {
   const reasons = [];
   const data = {};
@@ -309,6 +321,7 @@ export function assessTechnical(technicalData, trendTemplate, rsi) {
   const hasTrendTemplate = trendTemplate !== null && trendTemplate !== undefined;
   data.trendTemplateScore = `${passCount}/${totalCriteria}`;
   data.trendTemplateAvailable = hasTrendTemplate;
+  data.trendTemplatePassCount = passCount;  // Day 123: numeric, for the Strong tiles
 
   // Get RSI value (prefer passed RSI, fallback to technicalData)
   const rsiValue = rsi || technicalData?.indicators?.rsi || 50;
@@ -339,7 +352,10 @@ export function assessTechnical(technicalData, trendTemplate, rsi) {
   let assessment = 'Weak';
 
   // Strong: 7-8/8 trend template, RSI 50-70, good RS (RS must be available)
-  if (passCount >= 7 && rsiValue >= 50 && rsiValue <= 70 && rs52WeekAvailable && rs52Week >= 1.0) {
+  // Day 123: literals moved to STRONG_RULE so deriveStrongCriteria() (the
+  // Technical Read tiles) reads the same numbers. Values unchanged.
+  if (passCount >= STRONG_RULE.minTrendChecks && rsiValue >= STRONG_RULE.rsiMin && rsiValue <= STRONG_RULE.rsiMax
+      && rs52WeekAvailable && rs52Week >= STRONG_RULE.rsMin) {
     assessment = 'Strong';
     reasons.push(`Trend Template: ${passCount}/8 Minervini criteria passed`);
     reasons.push(`RSI ${rsiValue.toFixed(1)} in optimal pullback range (50-70)`);
@@ -657,6 +673,10 @@ export function assessRiskMacro(vixData, spyData) {
   data.spyAbove200EMA = spyAbove200EMA;
   data.sma50Declining = sma50Declining;
   data.vixUnavailable = vix === null;
+  // Day 123: additive, display only. A missing SPY reading becomes `false`
+  // above and so reads as "below its 200-day" (engine bug logged; verdict
+  // unchanged). The Regime band uses this to say the data is missing.
+  data.spyAvailable = spyData?.aboveSma200 != null;
 
   let assessment = 'Neutral';
 
@@ -982,6 +1002,11 @@ export function runCategoricalAssessment(
 
   // Run individual assessments (these don't change with holding period)
   const technical = assessTechnical(technicalResult, trendTemplate, rsi);
+  // Day 123: additive. The `|| 50` above hides a missing RSI from the display;
+  // record it so the Technical Read can say "RSI unavailable, engine assumed
+  // 50" instead of showing 50 as real. Engine behavior unchanged (logged as a
+  // known issue: the assumed 50 counts as a pass toward Strong).
+  technical.data.rsiAvailable = Boolean(technicalResult?.indicators?.rsi || stockData?.technicals?.rsi14);
   const fundamental = assessFundamental(fundamentalResult || stockData?.fundamentals, ticker);
   const sentiment = assessSentiment(fearGreedData);
   const riskMacro = assessRiskMacro(vixData, spyData);
@@ -1072,7 +1097,8 @@ export function deriveTechnicalRead(technicalAssessment, adxData = null) {
   const detail = `Trend Template ${data.trendTemplateScore}, RSI ${rsiText}, RS ${rsText}`;
 
   const unconfirmed = adx !== null && adx < ADX_NO_TREND_THRESHOLD;
-  const adxModifier = unconfirmed ? `trend not yet confirmed (ADX ${adx.toFixed(1)})` : null;
+  // Day 122 wording (decisions doc): "taking a breather", not "not yet confirmed".
+  const adxModifier = unconfirmed ? `taking a breather: moving sideways for now (ADX ${adx.toFixed(1)})` : null;
 
   return {
     read,
@@ -1083,6 +1109,59 @@ export function deriveTechnicalRead(technicalAssessment, adxData = null) {
       ? TECHNICAL_READ_PLAIN.StrongUnconfirmed
       : TECHNICAL_READ_PLAIN[read],
     color: read === 'Strong' ? 'green' : read === 'Developing' ? 'yellow' : 'red'
+  };
+}
+
+/**
+ * "Strong needs all three" tiles (Day 123). Splits the Strong rule in
+ * assessTechnical() into its three parts using the same STRONG_RULE numbers
+ * and the same engine values (data.rsi is the engine's RSI, including its
+ * assumed 50 when RSI is missing). `consistent` is false if the tiles would
+ * disagree with the engine's own Strong call — the card then warns rather
+ * than show tiles that contradict the read.
+ *
+ * @param {object} technicalAssessment - assessTechnical() return value
+ * @param {object} rsData - scoringEngine rsData ({ stock52wReturn, spy52wReturn }), optional
+ * @returns {object} { state, trend, momentum, rs, allPass, consistent } or { state: 'unavailable', reason }
+ */
+export function deriveStrongCriteria(technicalAssessment, rsData = null) {
+  const data = technicalAssessment?.data;
+  if (!data) return { state: 'unavailable', reason: 'technical assessment missing' };
+
+  const isNum = (v) => typeof v === 'number' && Number.isFinite(v);
+  const count = isNum(data.trendTemplatePassCount) ? data.trendTemplatePassCount : 0;
+  const trend = {
+    available: data.trendTemplateAvailable !== false,
+    count,
+    total: 8,
+    pass: count >= STRONG_RULE.minTrendChecks
+  };
+
+  const rsi = isNum(data.rsi) ? data.rsi : null;
+  const momentum = {
+    rsi,
+    rsiAvailable: data.rsiAvailable !== false,
+    pass: rsi !== null && rsi >= STRONG_RULE.rsiMin && rsi <= STRONG_RULE.rsiMax
+  };
+
+  const stockReturn = isNum(rsData?.stock52wReturn) ? rsData.stock52wReturn : null;
+  const spyReturn = isNum(rsData?.spy52wReturn) ? rsData.spy52wReturn : null;
+  const rs = {
+    available: data.rs52WeekAvailable === true && isNum(data.rs52Week),
+    ratio: isNum(data.rs52Week) ? data.rs52Week : null,
+    stockReturn,
+    spyReturn,
+    pass: data.rs52WeekAvailable === true && isNum(data.rs52Week) && data.rs52Week >= STRONG_RULE.rsMin
+  };
+
+  const allPass = trend.pass && momentum.pass && rs.pass;
+  return {
+    state: 'ok',
+    trend,
+    momentum,
+    rs,
+    allPass,
+    consistent: allPass === (technicalAssessment.assessment === 'Strong')
   };
 }
 
@@ -1186,12 +1265,16 @@ export function describeRegimeRead(riskMacroResult) {
   } else {
     parts.push('VIX unavailable');
   }
-  parts.push(spyAbove200EMA ? 'SPY above its 200-day SMA' : 'SPY below its 200-day SMA');
+  const spyMissing = riskMacroResult.data?.spyAvailable === false;
+  if (spyMissing) parts.push('SPY trend unavailable');
+  else parts.push(spyAbove200EMA ? 'SPY above its 200-day SMA' : 'SPY below its 200-day SMA');
   if (sma50Declining && spyAbove200EMA) parts.push('50-day SMA declining');
   const detail = parts.join(', ');
 
   let plainEnglish;
-  if (read === 'Unfavorable') {
+  if (spyMissing) {
+    plainEnglish = 'We couldn\'t load the S&P 500\'s trend, so this read is incomplete. The engine treats missing SPY data as a downtrend, which is why it may say Unfavorable.';
+  } else if (read === 'Unfavorable') {
     plainEnglish = !spyAbove200EMA
       ? 'The broader market is in a downtrend. Even a great-looking stock is swimming against the tide — worth weighing before you commit capital.'
       : 'The market is very nervous right now — big swings in either direction are more likely than usual. Worth weighing before you commit capital.';

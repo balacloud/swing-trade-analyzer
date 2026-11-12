@@ -31,7 +31,8 @@ SPY_VIX_TTL_HOURS = 24
 # Schema version — increment when field_maps.py transforms change
 # Day 61: Added to prevent stale cache serving wrong format after transform updates
 # v1 = original transforms, v2 = Day 60 _growth_to_pct + Day 61 NaN sanitization
-FUNDAMENTALS_SCHEMA_VERSION = 2
+# v3 = Day 123: yfinance D/E percent -> ratio, yfinance/FMP ROE/ROA/ROIC always x100
+FUNDAMENTALS_SCHEMA_VERSION = 3
 
 # US Eastern timezone for market hours
 ET = pytz.timezone('US/Eastern')

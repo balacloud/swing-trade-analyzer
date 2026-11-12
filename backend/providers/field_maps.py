@@ -30,6 +30,23 @@ def _pct_to_decimal(val):
         return None
 
 
+def _decimal_to_pct(val):
+    """Day 123: a ratio that is always a decimal (yfinance/FMP returnOnEquity
+    etc.) -> percent. Unconditional: the old `abs(v) < 1` test left ROE >= 100%
+    (AAPL ~1.5) as "1.5%"."""
+    if val is None or _is_nan(val):
+        return None
+    return float(val) * 100
+
+
+def _pct_to_ratio(val):
+    """Day 123: yfinance reports debtToEquity in percent (AAPL ~154 = 1.54x);
+    Finnhub and FMP report a ratio. Normalize to the ratio."""
+    if val is None or _is_nan(val):
+        return None
+    return float(val) / 100
+
+
 def _growth_to_pct(val):
     """Convert growth decimal (0.15) to percentage (15.0).
     APIs (FMP, yfinance) return growth as decimals. Categorical assessment expects percentages.
@@ -96,9 +113,9 @@ FMP_FUNDAMENTALS = {
     'forwardPe':        (None, None),
     'pegRatio':         ('pegRatioTTM', _identity),
     'marketCap':        ('marketCapTTM', _to_int),
-    'roe':              ('roeTTM', lambda v: v * 100 if v and not _is_nan(v) and abs(v) < 1 else (None if v is None or _is_nan(v) else v)),
-    'roa':              ('returnOnTangibleAssetsTTM', lambda v: v * 100 if v and not _is_nan(v) and abs(v) < 1 else (None if v is None or _is_nan(v) else v)),
-    'roic':             ('roicTTM', lambda v: v * 100 if v and not _is_nan(v) and abs(v) < 1 else (None if v is None or _is_nan(v) else v)),
+    'roe':              ('roeTTM', _decimal_to_pct),
+    'roa':              ('returnOnTangibleAssetsTTM', _decimal_to_pct),
+    'roic':             ('roicTTM', _decimal_to_pct),
     'epsGrowth':        (None, None),                   # Comes from /financial-growth endpoint
     'revenueGrowth':    (None, None),                   # Comes from /financial-growth endpoint
     'debtToEquity':     ('debtToEquityTTM', _identity),
@@ -131,12 +148,12 @@ YFINANCE_FUNDAMENTALS = {
     'forwardPe':        ('forwardPE', _identity),
     'pegRatio':         ('pegRatio', _identity),
     'marketCap':        ('marketCap', _to_int),
-    'roe':              ('returnOnEquity', lambda v: v * 100 if v and not _is_nan(v) and abs(v) < 1 else (None if v is None or _is_nan(v) else v)),
-    'roa':              ('returnOnAssets', lambda v: v * 100 if v and not _is_nan(v) and abs(v) < 1 else (None if v is None or _is_nan(v) else v)),
+    'roe':              ('returnOnEquity', _decimal_to_pct),
+    'roa':              ('returnOnAssets', _decimal_to_pct),
     'roic':             (None, None),                   # Not in yfinance
     'epsGrowth':        ('earningsGrowth', _growth_to_pct),  # Decimal → Percentage (0.15 → 15.0)
     'revenueGrowth':    ('revenueGrowth', _growth_to_pct),   # Decimal → Percentage (0.10 → 10.0)
-    'debtToEquity':     ('debtToEquity', _identity),
+    'debtToEquity':     ('debtToEquity', _pct_to_ratio),  # Day 123: yfinance gives percent
     'profitMargin':     ('profitMargins', _identity),   # Already decimal
     'operatingMargin':  ('operatingMargins', _identity),
     'beta':             ('beta', _identity),
@@ -157,6 +174,7 @@ YFINANCE_STOCK_INFO = {
     'fiftyTwoWeekLow':  ('fiftyTwoWeekLow', _identity),
     'avgVolume':        ('averageVolume', _to_int),
     'avgVolume10d':     ('averageVolume10days', _to_int),
+    'quoteType':        ('quoteType', None),            # Day 123: 'EQUITY' / 'ETF' / ...
 }
 
 

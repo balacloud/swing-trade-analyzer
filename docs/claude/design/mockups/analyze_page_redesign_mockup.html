@@ -371,6 +371,8 @@
     pointer-events:none;
   }
   .regime-block{ position:relative; }
+  .regime-block .tag{ white-space:normal; }
+  code{ overflow-wrap:anywhere; }
   .state-toggle{
     display:inline-flex;
     gap:2px;
@@ -771,8 +773,8 @@
 <div class="page">
 
   <div class="meta-strip">
-    <span><b>MOCKUP</b> — Analyze Page Redesign<span class="meta-dot"></span>Day 109 decision log + Day 111 MR addition + Day 112 Volume read + Day 112 Regime copy synced to the Day 110 reversal + Day 121 R:R notes, Scan-tab line and MR numbers synced to current code + Day 122 Technical Read: 4 trend checks + plain-English timing and volume answers · no live data · for design review</span>
-    <span>v0.8</span>
+    <span><b>MOCKUP</b> — Analyze Page Redesign<span class="meta-dot"></span>Day 109 decision log + Day 111 MR addition + Day 112 Volume read + Day 112 Regime copy synced to the Day 110 reversal + Day 121 R:R notes, Scan-tab line and MR numbers synced to current code + Day 122 Technical Read: 4 trend checks + plain-English timing and volume answers + Day 123 Steps 3–6 as built (MR open-basis PF 1.50, Holding Period and verdict removed) · no live data · for design review</span>
+    <span>v0.15</span>
   </div>
 
   <header class="app-header">
@@ -844,6 +846,81 @@
     .tr-num{ font-family:'Plex Mono',monospace; font-size:0.8125rem; color:var(--text-muted); text-align:right; white-space:nowrap; }
     .tr-engine{ margin-top:14px; font-size:0.8125rem; color:var(--text-muted); }
     @media (max-width:560px){ .tr-row{ grid-template-columns:20px 1fr; } .tr-num{ grid-column:2; text-align:left; } }
+
+    /* ---------- Entry checks (v0.9): answer first, picture second, reason on tap ---------- */
+    .ec{ position:relative; margin-top:18px; padding-top:14px; border-top:1px solid var(--border-soft); }
+    .ec-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+    .ec-head .tr-h{ margin:0; }
+    .ec-tag{ font-size:0.75rem; color:var(--info); background:var(--info-soft); border:1px solid var(--info-border); border-radius:12px; padding:2px 9px; }
+    .ec-toggle{ display:inline-flex; gap:2px; padding:3px; background:var(--surface-2); border:1px solid var(--border); border-radius:22px; margin-bottom:10px; flex-wrap:wrap; }
+    .ec-toggle label{ padding:4px 11px; font-size:0.75rem; color:var(--text-muted); border-radius:18px; cursor:pointer; user-select:none; }
+    .ec-toggle label:hover{ color:var(--text); }
+    #ec-good:checked ~ .ec-toggle label[for="ec-good"],
+    #ec-str:checked ~ .ec-toggle label[for="ec-str"],
+    #ec-sell:checked ~ .ec-toggle label[for="ec-sell"]{ background:var(--surface); color:var(--text); border:1px solid var(--border); }
+    .ec-panel{ display:none; }
+    #ec-good:checked ~ .ec-good,
+    #ec-str:checked ~ .ec-str,
+    #ec-sell:checked ~ .ec-sell{ display:block; }
+
+    .ec-q{ padding:10px 0 12px; border-top:1px solid var(--border-soft); }
+    .ec-q:first-child{ border-top:none; }
+    .ec-qrow{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+    .ec-qtext{ font-size:0.9375rem; font-weight:500; }
+    .ec-ans{ font-size:0.8125rem; font-weight:600; border-radius:12px; padding:3px 10px; border:1px solid; white-space:nowrap; }
+    .ec-ans.good{ color:var(--good); background:var(--good-soft); border-color:var(--good-border); }
+    .ec-ans.warn{ color:var(--warn); background:var(--warn-soft); border-color:var(--warn-border); }
+    .ec-ans.bad { color:var(--bad);  background:var(--bad-soft);  border-color:var(--bad-border); }
+    .ec-ans.mix { color:var(--text-muted); background:var(--surface-2); border-color:var(--border); }
+
+    /* timing strip: -1.5 ATR .. +3.5 ATR mapped to 0..100% */
+    .strip{ position:relative; margin:24px 0 4px; }
+    .strip-avg{ position:absolute; left:30%; top:-17px; transform:translateX(-50%); font-size:0.6875rem; color:var(--text-faint); white-space:nowrap; }
+    .strip-track{ display:flex; height:10px; border-radius:5px; overflow:hidden; }
+    .strip-track span{ display:block; height:100%; }
+    .z-below{ width:30%; background:var(--surface-2); }
+    .z-close{ width:20%; background:var(--good-soft); border-left:2px solid var(--text-faint); }
+    .z-ext  { width:20%; background:var(--warn-soft); }
+    .z-str  { width:30%; background:var(--bad-soft); }
+    .strip-dot{ position:absolute; top:-4px; width:18px; height:18px; margin-left:-9px; border-radius:50%; background:var(--text); border:3px solid var(--surface); box-shadow:0 0 0 1px var(--border); }
+    .strip-labels{ position:relative; height:16px; font-size:0.6875rem; color:var(--text-faint); margin-top:4px; }
+    .strip-labels span{ position:absolute; transform:translateX(-50%); white-space:nowrap; }
+    .ec-cap{ font-family:'Plex Mono',monospace; font-size:0.8125rem; color:var(--text-muted); margin-top:6px; }
+
+    /* volume bars: last 20 sessions, scaled so 2.2x avg = full height */
+    .vol{ display:flex; align-items:flex-end; gap:3px; height:52px; position:relative; margin:12px 0 4px; }
+    .vol i{ flex:1; display:block; background:var(--border); border-radius:2px 2px 0 0; min-height:2px; }
+    .vol i.dn{ background:var(--bad-border); }
+    .vol i.today{ background:var(--good); }
+    .vol i.today.dn{ background:var(--bad); }
+    .vol-avg{ position:absolute; left:0; right:0; bottom:45%; border-top:1px dashed var(--text-faint); }
+    .vol-avg::after{ content:'avg'; position:absolute; left:0; top:-14px; font-size:0.625rem; color:var(--text-faint); }
+    .votes{ display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center; font-size:0.8125rem; color:var(--text-muted); margin-top:6px; }
+    .votes b{ font-weight:700; margin-right:3px; }
+    .votes .up b{ color:var(--good); }
+    .votes .dn b{ color:var(--bad); }
+    .votes .agree{ margin-left:auto; font-family:'Plex Mono',monospace; font-size:0.75rem; color:var(--text-faint); }
+
+    .ec-why{ margin-top:6px; font-size:0.75rem; color:var(--text-faint); }
+    .ec-why summary{ cursor:pointer; list-style:none; display:inline; }
+    .ec-why summary::-webkit-details-marker{ display:none; }
+    .ec-why p{ margin:4px 0 0; color:var(--text-muted); font-size:0.8125rem; }
+
+    /* full score tiles */
+    .score{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:16px; }
+    .score > div{ background:var(--surface-2); border:1px solid var(--border-soft); border-radius:10px; padding:10px 12px; }
+    .score .lbl{ font-size:0.6875rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-faint); }
+    .score .val{ font-family:'Plex Mono',monospace; font-size:1rem; margin-top:4px; }
+    .score .sub{ font-size:0.75rem; color:var(--text-muted); margin-top:4px; }
+    .dots{ display:flex; gap:4px; margin-top:7px; }
+    .dots i{ width:9px; height:9px; border-radius:50%; background:var(--good); display:block; }
+    .dots i.off{ background:var(--border); }
+    .mbar{ position:relative; height:6px; background:var(--border); border-radius:3px; margin-top:10px; }
+    .mbar .rng{ position:absolute; left:50%; width:20%; top:0; bottom:0; background:var(--good-border); }
+    .mbar .pt{ position:absolute; top:-4px; width:4px; height:14px; margin-left:-2px; background:var(--text); border-radius:2px; }
+    .mbar-l{ position:relative; height:12px; font-size:0.625rem; color:var(--text-faint); }
+    .mbar-l span{ position:absolute; transform:translateX(-50%); top:2px; }
+    @media (max-width:560px){ .score{ gap:6px; } .score > div{ padding:8px; } .score .sub{ font-size:0.6875rem; } .votes .agree{ margin-left:0; } }
   </style>
   <section>
     <div class="card">
@@ -885,29 +962,103 @@
         </div>
       </div>
 
-      <div class="tr-section">
-        <div class="tr-h" style="text-transform:none; letter-spacing:0; font-weight:400; color:var(--text-faint);">The next two answers are info only. They don't change the read.</div>
-      </div>
-
-      <div class="tr-section">
-        <div class="tr-h">Is now a good moment to get in?</div>
-        <div class="tr-row">
-          <span class="tr-mark info">◇</span>
-          <span class="tr-what">Yes, close to its 21-day average<small>Buying near this line keeps your stop close and your risk small.</small></span>
-          <span class="tr-num">$224.80 vs $222.10 · +1.2%</span>
+      <div class="tr-h" style="margin-top:16px;">Strong needs all three</div>
+      <div class="score" style="margin-top:0;" aria-label="Strong needs all three">
+        <div>
+          <div class="lbl"><span style="color:var(--good); font-weight:700;">✓</span> Trend checks</div>
+          <div class="val">8 / 8</div>
+          <div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="sub">needs 7+ · the 4 above plus 4 more</div>
+        </div>
+        <div>
+          <div class="lbl"><span style="color:var(--good); font-weight:700;">✓</span> Momentum</div>
+          <div class="val">65.9</div>
+          <div class="mbar"><span class="rng"></span><span class="pt" style="left:65.9%"></span></div>
+          <div class="mbar-l"><span style="left:60%">50–70</span></div>
+          <div class="sub">needs 50–70</div>
+        </div>
+        <div>
+          <div class="lbl"><span style="color:var(--good); font-weight:700;">✓</span> vs S&amp;P 500</div>
+          <div class="val" style="color:var(--good);">+3%</div>
+          <div class="sub">needs to beat it · past year</div>
         </div>
       </div>
 
-      <div class="tr-section">
-        <div class="tr-h">Are buyers behind the move?</div>
-        <div class="tr-row">
-          <span class="tr-mark info">◇</span>
-          <span class="tr-what">Yes<small>It rose 2.2% on 1.8× normal volume and closed near the day's high. Heavy volume on up days is what buyer demand looks like.</small></span>
-          <span class="tr-num">1.8× normal volume</span>
+      <div class="ec">
+        <input class="state-radio" type="radio" name="ec" id="ec-good" checked>
+        <input class="state-radio" type="radio" name="ec" id="ec-str">
+        <input class="state-radio" type="radio" name="ec" id="ec-sell">
+
+        <div class="ec-head">
+          <div class="tr-h">Entry checks</div>
+          <span class="ec-tag">◇ info only · doesn't change the read</span>
+        </div>
+        <div class="ec-toggle">
+          <label for="ec-good">Good entry</label>
+          <label for="ec-str">Stretched, mixed</label>
+          <label for="ec-sell">Below, heavy selling</label>
+        </div>
+
+        <!-- ===== state 1: good entry ===== -->
+        <div class="ec-panel ec-good">
+          <div class="ec-q">
+            <div class="ec-qrow"><span class="ec-qtext">Is now a good moment to get in?</span><span class="ec-ans good">◇ Yes, close to its 21-day average</span></div>
+            <div class="strip">
+              <span class="strip-avg">21-day avg</span><div class="strip-track"><span class="z-below"></span><span class="z-close"></span><span class="z-ext"></span><span class="z-str"></span></div>
+              <span class="strip-dot" style="left:38.6%"></span>
+            </div>
+            <div class="strip-labels"><span style="left:15%">below</span><span style="left:40%">close</span><span style="left:60%">extended</span><span style="left:85%">stretched</span></div>
+            <div class="ec-cap">$224.80 vs $222.10 · +1.2% · 0.4 ATR above</div>
+            <details class="ec-why"><summary>why? ⓘ</summary><p>Buying near this line keeps your stop close and your risk small.</p></details>
+          </div>
+          <div class="ec-q">
+            <div class="ec-qrow"><span class="ec-qtext">Are buyers behind the move?</span><span class="ec-ans good">◇ Yes</span></div>
+            <div class="vol"><i style="height:36%"></i><i class="dn" style="height:41%"></i><i style="height:32%"></i><i style="height:50%"></i><i class="dn" style="height:45%"></i><i style="height:29%"></i><i style="height:39%"></i><i class="dn" style="height:34%"></i><i style="height:30%"></i><i style="height:43%"></i><i style="height:55%"></i><i class="dn" style="height:38%"></i><i style="height:33%"></i><i style="height:42%"></i><i class="dn" style="height:31%"></i><i style="height:40%"></i><i style="height:36%"></i><i class="dn" style="height:47%"></i><i style="height:44%"></i><i class="today" style="height:82%"></i><span class="vol-avg"></span></div>
+            <div class="votes"><span class="up"><b>▲</b>up 2.2%</span><span class="up"><b>▲</b>closed near the high</span><span class="up"><b>▲</b>OBV rising</span><span class="agree">1.8× normal volume · 3 of 3 agree</span></div>
+            <details class="ec-why"><summary>why? ⓘ</summary><p>Heavy volume on an up day that closes near its high is what buyer demand looks like.</p></details>
+          </div>
+        </div>
+
+        <!-- ===== state 2: stretched, mixed ===== -->
+        <div class="ec-panel ec-str">
+          <div class="ec-q">
+            <div class="ec-qrow"><span class="ec-qtext">Is now a good moment to get in?</span><span class="ec-ans warn">◇ Not yet, stretched above it</span></div>
+            <div class="strip">
+              <span class="strip-avg">21-day avg</span><div class="strip-track"><span class="z-below"></span><span class="z-close"></span><span class="z-ext"></span><span class="z-str"></span></div>
+              <span class="strip-dot" style="left:76.6%"></span>
+            </div>
+            <div class="strip-labels"><span style="left:15%">below</span><span style="left:40%">close</span><span style="left:60%">extended</span><span style="left:85%">stretched</span></div>
+            <div class="ec-cap">$224.80 vs $210.00 · +7.0% · 2.3 ATR above</div>
+            <details class="ec-why"><summary>why? ⓘ</summary><p>Buying this far above the line means a far-away stop and more risk for the same gain. Wait for a pullback.</p></details>
+          </div>
+          <div class="ec-q">
+            <div class="ec-qrow"><span class="ec-qtext">Are buyers behind the move?</span><span class="ec-ans mix">◇ Mixed</span></div>
+            <div class="vol"><i style="height:36%"></i><i class="dn" style="height:41%"></i><i style="height:32%"></i><i style="height:50%"></i><i class="dn" style="height:45%"></i><i style="height:29%"></i><i style="height:39%"></i><i class="dn" style="height:34%"></i><i style="height:30%"></i><i style="height:43%"></i><i style="height:55%"></i><i class="dn" style="height:38%"></i><i style="height:33%"></i><i style="height:42%"></i><i class="dn" style="height:31%"></i><i style="height:40%"></i><i style="height:36%"></i><i class="dn" style="height:47%"></i><i style="height:44%"></i><i class="today" style="height:73%"></i><span class="vol-avg"></span></div>
+            <div class="votes"><span class="up"><b>▲</b>up 1.9%</span><span class="dn"><b>▼</b>closed near the low</span><span class="up"><b>▲</b>OBV rising</span><span class="agree">1.6× normal volume · signals disagree</span></div>
+            <details class="ec-why"><summary>why? ⓘ</summary><p>It closed up on heavy volume but gave back most of the day's gain. When the signals point different ways, no side is clearly in control.</p></details>
+          </div>
+        </div>
+
+        <!-- ===== state 3: below, heavy selling ===== -->
+        <div class="ec-panel ec-sell">
+          <div class="ec-q">
+            <div class="ec-qrow"><span class="ec-qtext">Is now a good moment to get in?</span><span class="ec-ans warn">◇ Not yet, below it</span></div>
+            <div class="strip">
+              <span class="strip-avg">21-day avg</span><div class="strip-track"><span class="z-below"></span><span class="z-close"></span><span class="z-ext"></span><span class="z-str"></span></div>
+              <span class="strip-dot" style="left:15.4%"></span>
+            </div>
+            <div class="strip-labels"><span style="left:15%">below</span><span style="left:40%">close</span><span style="left:60%">extended</span><span style="left:85%">stretched</span></div>
+            <div class="ec-cap">$224.80 vs $229.40 · −2.0% · 0.7 ATR below</div>
+            <details class="ec-why"><summary>why? ⓘ</summary><p>Wait for it to get back above the line before buying.</p></details>
+          </div>
+          <div class="ec-q">
+            <div class="ec-qrow"><span class="ec-qtext">Are buyers behind the move?</span><span class="ec-ans bad">◇ No, heavy selling</span></div>
+            <div class="vol"><i style="height:36%"></i><i class="dn" style="height:41%"></i><i style="height:32%"></i><i style="height:50%"></i><i class="dn" style="height:45%"></i><i style="height:29%"></i><i style="height:39%"></i><i class="dn" style="height:34%"></i><i style="height:30%"></i><i style="height:43%"></i><i style="height:55%"></i><i class="dn" style="height:38%"></i><i style="height:33%"></i><i style="height:42%"></i><i class="dn" style="height:31%"></i><i style="height:40%"></i><i style="height:36%"></i><i class="dn" style="height:47%"></i><i style="height:44%"></i><i class="today dn" style="height:95%"></i><span class="vol-avg"></span></div>
+            <div class="votes"><span class="dn"><b>▼</b>down 3.1%</span><span class="dn"><b>▼</b>closed near the low</span><span class="dn"><b>▼</b>OBV falling</span><span class="agree">2.1× normal volume · 3 of 3 agree</span></div>
+            <details class="ec-why"><summary>why? ⓘ</summary><p>Heavy volume on a down day that closes near its low usually means big holders are selling.</p></details>
+          </div>
         </div>
       </div>
-
-      <div class="tr-engine">Full score behind the read: passes 8 of 8 trend checks (the 4 above plus 4 more) · momentum 65.9 on a 0–100 scale (rising, not overheated) · beat the S&amp;P 500 by 3% over the past year</div>
 
       <details class="formed">
         <summary>How this read was formed</summary>
@@ -916,7 +1067,7 @@
           <p><b>Why only 4 checks are shown:</b> the full score uses 8 checks from trader Mark Minervini's rulebook. The 4 shown are the ones backed by long-standing trading research and by what experienced traders say most often. The other 4 mostly repeat them. If a stock passes all 4 here but the read still isn't Strong, the full score line above shows why.</p>
           <p><b>"Taking a breather":</b> a separate measure (ADX) checks how hard the price is pushing in one direction. Below 20 means it's moving sideways right now. In a stock that's in an uptrend, that usually means it's resting before its next move, not that the trend is broken.</p>
           <p><b>Slow vs fast averages:</b> the trend checks use simple averages, which move slowly and don't flip on a few noisy days. The timing line uses a fast (exponential) average, which reacts to the latest prices. Slow for the trend, fast for timing. Stop-losses use neither; they're based on how much the stock normally moves in a day.</p>
-          <p><b>"Is now a good moment to get in?"</b> follows the oldest timing rule in trading: don't chase, buy close to where you'd be proven wrong (Livermore's pivotal points, O'Neil's "don't buy extended"). Buying far above that point means a far-away stop and more risk for the same gain. The answer is one of three: <i>Yes, close to its 21-day average</i>; <i>Not yet, stretched above it</i> (wait for a pullback); or <i>Not yet, below it</i> (wait for it to get back above). If the read isn't Strong or Decent, it shows <i>Not applicable: not in an uptrend</i>, because timing only matters once the trend is OK. The word "support" is kept for the real price levels in the Trade Setup card below. Distance is measured in how much the stock normally moves in a day. The 21-day average is common trader practice, and the cutoffs are rules of thumb, not tested.</p>
+          <p><b>"Is now a good moment to get in?"</b> follows the oldest timing rule in trading: don't chase, buy close to where you'd be proven wrong (Livermore's pivotal points, O'Neil's "don't buy extended"). Buying far above that point means a far-away stop and more risk for the same gain. The answer is one of three: <i>Yes, close to its 21-day average</i>; <i>Not yet, stretched above it</i> (wait for a pullback); or <i>Not yet, below it</i> (wait for it to get back above). If the read isn't Strong or Decent, it shows <i>Not applicable: not in an uptrend</i>, because timing only matters once the trend is OK. The word "support" is kept for the real price levels in the Trade Setup card below. Distance is measured in how much the stock normally moves in a day (ATR): within 1 ATR above the line is <i>close</i>, 1–2 ATR is <i>a bit extended</i> (still answered Yes, but shown on the strip), and more than 2 ATR is <i>stretched</i>, the edge of a standard Keltner Channel. The 21-day average is common trader practice, and these cutoffs are rules of thumb, not tested.</p>
           <p><b>"Are buyers behind the move?"</b> follows Wyckoff and O'Neil: up days on heavy volume and pullbacks on light volume mean buyers are in control; heavy volume on down days means big holders are selling. The answer is <i>Yes</i>, <i>Mixed</i> or <i>No, heavy selling</i>. Daily prices can't show who actually bought or sold, so this is a best guess from volume, the day's close and recent buying vs selling.</p>
           <p><b>What this read doesn't cover:</b> the overall market. That's the market card above. A Strong stock in a weak market is two true facts, not a contradiction.</p>
         </div>
@@ -925,205 +1076,401 @@
   </section>
 
 
-  <!-- ================= MEAN-REVERSION READ (NEW, Day 111) ================= -->
+  <!-- ================= MEAN-REVERSION READ (redesigned Day 123, v0.10) ================= -->
+  <style>
+    .mr{ position:relative; }
+    .mr-toggle{ display:inline-flex; gap:2px; padding:3px; background:var(--surface-2); border:1px solid var(--border); border-radius:22px; margin:2px 0 12px; }
+    .mr-toggle label{ padding:4px 11px; font-size:0.75rem; color:var(--text-muted); border-radius:18px; cursor:pointer; user-select:none; }
+    #mr-none:checked ~ .mr-toggle label[for="mr-none"],
+    #mr-sig:checked ~ .mr-toggle label[for="mr-sig"]{ background:var(--surface); color:var(--text); border:1px solid var(--border); }
+    .mr-panel{ display:none; }
+    #mr-none:checked ~ .mr-p-none,
+    #mr-sig:checked ~ .mr-p-sig{ display:block; }
+
+    .mr-answer{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:4px; }
+    .mr-answer .big{ font-size:1.5rem; font-weight:600; letter-spacing:-0.01em; }
+    .mr-answer .big.off{ color:var(--text-muted); }
+    .mr-answer .big.on{ color:var(--good); }
+    .mr-answer .why{ font-size:0.875rem; color:var(--text-muted); }
+
+    .mr-score{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:6px; }
+    .mr-score > div{ background:var(--surface-2); border:1px solid var(--border-soft); border-radius:10px; padding:10px 12px; }
+    .mr-score > div.miss{ border-color:var(--warn-border); background:var(--warn-soft); }
+    .mr-score .lbl{ font-size:0.6875rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-faint); }
+    .mr-score .ok{ color:var(--good); font-weight:700; }
+    .mr-score .no{ color:var(--warn); font-weight:700; }
+    .mr-score .val{ font-family:'Plex Mono',monospace; font-size:1rem; margin-top:4px; }
+    .mr-score .sub{ font-size:0.75rem; color:var(--text-muted); margin-top:4px; }
+    .rsi-bar{ position:relative; height:6px; background:var(--border); border-radius:3px; margin-top:9px; }
+    .rsi-bar .zone{ position:absolute; left:0; width:10%; top:0; bottom:0; background:var(--good-border); border-radius:3px 0 0 3px; }
+    .rsi-bar .pt{ position:absolute; top:-4px; width:4px; height:14px; margin-left:-2px; background:var(--text); border-radius:2px; }
+
+    .mr-plan{ margin-top:16px; border:1px solid var(--good-border); background:var(--good-soft); border-radius:12px; padding:12px 14px; }
+    .mr-plan-h{ font-size:0.75rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--good); margin-bottom:8px; }
+    .mr-steps{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+    .mr-steps div{ background:var(--surface); border:1px solid var(--border-soft); border-radius:8px; padding:8px 10px; }
+    .mr-steps b{ display:block; font-size:0.6875rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-faint); font-weight:600; }
+    .mr-steps span{ display:block; font-size:0.875rem; margin-top:3px; }
+    .mr-steps small{ display:block; font-family:'Plex Mono',monospace; font-size:0.75rem; color:var(--text-muted); margin-top:2px; }
+    .mr-plan-note{ font-size:0.8125rem; color:var(--text-muted); margin-top:8px; }
+
+    .mr-record{ display:flex; flex-wrap:wrap; gap:6px 18px; align-items:baseline; margin-top:14px; padding-top:12px; border-top:1px solid var(--border-soft); font-size:0.8125rem; color:var(--text-muted); }
+    .mr-record .n{ font-family:'Plex Mono',monospace; font-size:0.9375rem; color:var(--text); }
+    @media (max-width:560px){ .mr-score, .mr-steps{ grid-template-columns:1fr 1fr; } }
+  </style>
   <section>
     <div class="card">
       <div class="card-head">
         <div>
           <div class="card-title">Mean-Reversion Read</div>
-          <div class="card-sub">A second, independent lens — different question than Technical Read, doesn't gate it or get gated by it</div>
+          <div class="card-sub">A separate question: is this a short, sharp dip worth buying for a bounce?</div>
         </div>
-        <span class="tag tag-engine"><span class="tag-glyph">&#9881;</span>Engine &mdash; confirmed Day 111</span>
+        <span class="tag tag-engine"><span class="tag-glyph">&#9881;</span>Tested edge</span>
       </div>
 
-      <input class="state-radio" type="radio" name="mr" id="mr-none" checked>
-      <input class="state-radio" type="radio" name="mr" id="mr-signal">
+      <div class="mr">
+        <input class="state-radio" type="radio" name="mr" id="mr-none" checked>
+        <input class="state-radio" type="radio" name="mr" id="mr-sig">
+        <div class="mr-toggle">
+          <label for="mr-none">No signal</label>
+          <label for="mr-sig">Signal</label>
+        </div>
 
-      <div style="display:flex; align-items:center; justify-content:flex-end; margin-bottom:10px;">
-        <div class="state-toggle">
-          <label for="mr-none">No Signal</label>
-          <label for="mr-signal">Signal</label>
+        <!-- ===== No signal ===== -->
+        <div class="mr-panel mr-p-none">
+          <div class="mr-answer"><span class="big off">No signal</span><span class="why">It hasn't dropped hard enough. 3 of 4 rules pass.</span></div>
+          <div class="tr-h" style="margin-top:12px;">Buy the dip needs all four</div>
+          <div class="mr-score">
+            <div class="miss">
+              <div class="lbl"><span class="no">✗</span> 2-day dip</div>
+              <div class="val">RSI(2) 48.2</div>
+              <div class="rsi-bar"><span class="zone"></span><span class="pt" style="left:48.2%"></span></div>
+              <div class="sub">needs below 10</div>
+            </div>
+            <div>
+              <div class="lbl"><span class="ok">✓</span> Uptrend</div>
+              <div class="val">+14.5%</div>
+              <div class="sub">above its 200-day avg · needs above</div>
+            </div>
+            <div>
+              <div class="lbl"><span class="ok">✓</span> Price</div>
+              <div class="val">$224.80</div>
+              <div class="sub">needs above $10</div>
+            </div>
+            <div>
+              <div class="lbl"><span class="ok">✓</span> Trading volume</div>
+              <div class="val">$12.4B/day</div>
+              <div class="sub">needs above $25M</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== Signal ===== -->
+        <div class="mr-panel mr-p-sig">
+          <div class="mr-answer"><span class="big on">Buy the dip</span><span class="why">A sharp 2-day drop inside an uptrend. All 4 rules pass.</span></div>
+          <div class="tr-h" style="margin-top:12px;">Buy the dip needs all four</div>
+          <div class="mr-score">
+            <div>
+              <div class="lbl"><span class="ok">✓</span> 2-day dip</div>
+              <div class="val">RSI(2) 6.8</div>
+              <div class="rsi-bar"><span class="zone"></span><span class="pt" style="left:6.8%"></span></div>
+              <div class="sub">needs below 10</div>
+            </div>
+            <div>
+              <div class="lbl"><span class="ok">✓</span> Uptrend</div>
+              <div class="val">+9.1%</div>
+              <div class="sub">above its 200-day avg · needs above</div>
+            </div>
+            <div>
+              <div class="lbl"><span class="ok">✓</span> Price</div>
+              <div class="val">$224.80</div>
+              <div class="sub">needs above $10</div>
+            </div>
+            <div>
+              <div class="lbl"><span class="ok">✓</span> Trading volume</div>
+              <div class="val">$12.4B/day</div>
+              <div class="sub">needs above $25M</div>
+            </div>
+          </div>
+
+          <div class="mr-plan">
+            <div class="mr-plan-h">The plan, exactly as tested</div>
+            <div class="mr-steps">
+              <div><b>1 · Buy</b><span>Tomorrow's open</span><small>not today's close</small></div>
+              <div><b>2 · Stop</b><span>5% below your buy</span><small>≈ $213.56 if bought at $224.80</small></div>
+              <div><b>3 · Sell</b><span>First close with RSI(2) above 70</span><small>the bounce is done</small></div>
+              <div><b>4 · Or sell</b><span>After 10 trading days</span><small>if it never bounced</small></div>
+            </div>
+            <div class="mr-plan-note">No price target. The RSI(2) exit is the target. Changing any step means it's no longer the tested system.</div>
+          </div>
+        </div>
+
+        <div class="mr-record">
+          <span>Track record (forward test re-run at the next open):</span>
+          <span><span class="n">241</span> trades</span>
+          <span><span class="n">63.5%</span> wins</span>
+          <span><span class="n">1.50</span> profit factor</span>
         </div>
       </div>
-
-      <div class="panels">
-        <div class="panel-fav" style="display:block;" id="mr-panel-none">
-          <div class="read-chip">
-            <span class="label">Read</span>
-            <span class="read-value" style="color:var(--text-muted);">No Signal</span>
-            <span class="read-modifier">&middot; RSI(2) 48.2 &mdash; needs to drop below 10</span>
-          </div>
-          <div class="read-stats">
-            <span>RSI(2) 48.2</span><span>Above 200-SMA &#10003;</span><span>20d ADV $12.4B &#10003;</span>
-          </div>
-        </div>
-        <div class="panel-bad" style="display:none;" id="mr-panel-signal">
-          <div class="read-chip">
-            <span class="label">Read</span>
-            <span class="read-value" style="color:var(--good);">Signal &mdash; Buy the Dip</span>
-            <span class="read-modifier">&middot; short-term oversold inside a confirmed uptrend</span>
-          </div>
-          <div class="read-stats">
-            <span>RSI(2) 6.8</span><span>Above 200-SMA &#10003;</span><span>20d ADV $12.4B &#10003;</span>
-          </div>
-        </div>
-      </div>
-      <style>
-        #mr-signal:checked ~ .panels #mr-panel-none{ display:none; }
-        #mr-signal:checked ~ .panels #mr-panel-signal{ display:block; }
-      </style>
 
       <details class="formed">
         <summary>How this read was formed</summary>
         <div class="formed-body">
-          <p><b>Mean-Reversion Read</b> is a completely separate system from Technical Read above &mdash; it asks "is this a good short-term bounce," not "is this a good multi-week trend." Three gates, all required together: RSI(2) below 10 (a 2-day momentum oscillator reading an extreme short-term dip), price still above its 200-day SMA (the trend filter &mdash; this system never buys a dip in an actual downtrend), and a liquidity floor (price &gt;$10, 20-day avg dollar volume &gt;$25M).</p>
-          <p><b>Why this one gets the Engine tag, not Info:</b> unlike Fundamentals or R:R elsewhere on this page, this signal cleared its own pre-registered 100-trade confirmation bar (Day 111) and survived every cluster stress-test since. The forward test ended Sep 12 at your direction; its final result is <b>241 closed trades, 70.5% win rate, profit factor 2.00</b>, net of costs &mdash; the only one of STA's four tracks with a real edge.</p>
-          <p>It doesn't gate Technical Read, and Technical Read doesn't gate it &mdash; a stock can show "Strong" on one and "No Signal" on the other at the same time. Two true, independent reads.</p>
+          <p><b>What it is:</b> Larry Connors' RSI(2) system ("Short Term Trading Strategies That Work"), one of the canon rules in our research. RSI(2) is a 0–100 score of the last 2 days. Below 10 means a sharp, short drop. The system buys that drop only while the stock is still above its 200-day average, so it never buys a falling knife.</p>
+          <p><b>The four rules:</b> RSI(2) below 10, price above the 200-day average, price above $10, and average daily trading above $25M (so you can get in and out cleanly). All four must pass. The price and trading rules were added before testing, not after (Golden Rule 20).</p>
+          <p><b>Why it carries the Engine tag:</b> it is the only one of STA's four forward-tested systems that held up: 241 closed trades re-run at the next open, 63.5% wins, profit factor 1.50, net of costs. (First scored at the entry day's close, which showed PF 2.00, a price nobody could get.) It survived every stress test, including removing its biggest cluster of trades.</p>
+          <p><b>Independent of the Technical Read:</b> a stock can be Strong above and show No signal here, or the other way round. These are two different questions, and neither one gates the other.</p>
         </div>
       </details>
     </div>
   </section>
 
-  <!-- ================= TRADE SETUP ================= -->
+  <!-- ================= TRADE SETUP (redesigned Day 123, v0.12: pullback plan only) ================= -->
+  <style>
+    .ts{ position:relative; }
+    .ts-toggle{ display:inline-flex; gap:2px; padding:3px; background:var(--surface-2); border:1px solid var(--border); border-radius:22px; margin:2px 0 12px; }
+    .ts-toggle label{ padding:4px 11px; font-size:0.75rem; color:var(--text-muted); border-radius:18px; cursor:pointer; user-select:none; }
+    #ts-norm:checked ~ .ts-toggle label[for="ts-norm"],
+    #ts-ath:checked ~ .ts-toggle label[for="ts-ath"]{ background:var(--surface); color:var(--text); border:1px solid var(--border); }
+    .ts-panel{ display:none; }
+    #ts-norm:checked ~ .ts-p-norm,
+    #ts-ath:checked ~ .ts-p-ath{ display:block; }
+
+    .ts-plan{ padding:14px 0 16px; border-top:1px solid var(--border-soft); }
+    .ts-plan:first-child{ border-top:none; padding-top:4px; }
+    .ts-plan-h{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap; }
+    .ts-plan-h .name{ font-size:0.9375rem; font-weight:600; }
+    .ts-plan-h .name small{ font-weight:400; color:var(--text-muted); font-size:0.8125rem; margin-left:6px; }
+    .ts-ratio{ font-family:'Plex Mono',monospace; font-size:1.125rem; }
+    .ts-ratio small{ font-family:inherit; font-size:0.75rem; color:var(--text-muted); margin-left:4px; }
+
+    /* shared price scale $200–$245 → 0–100% */
+    .ts-bar{ position:relative; height:12px; margin:30px 0 26px; background:var(--surface-2); border-radius:6px; }
+    .ts-bar .risk{ position:absolute; top:0; bottom:0; background:var(--bad-border); border-radius:6px 0 0 6px; }
+    .ts-bar .rew{ position:absolute; top:0; bottom:0; background:var(--good-border); border-radius:0 6px 6px 0; }
+    .ts-bar .rew.proj{ background:repeating-linear-gradient(90deg, var(--good-border) 0 6px, transparent 6px 10px); border:1px dashed var(--good); }
+    .ts-bar .now{ position:absolute; top:-6px; bottom:-6px; width:2px; margin-left:-1px; background:var(--text-faint); }
+    .ts-bar .tk{ position:absolute; transform:translateX(-50%); font-family:'Plex Mono',monospace; font-size:0.6875rem; color:var(--text-muted); white-space:nowrap; }
+    .ts-bar .tk.up{ bottom:16px; }
+    .ts-bar .tk.dn{ top:16px; }
+    .ts-bar .tk b{ font-family:'Plex Sans',sans-serif; font-weight:600; color:var(--text-faint); text-transform:uppercase; font-size:0.625rem; letter-spacing:0.05em; margin-right:3px; }
+
+    .ts-facts{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .ts-facts div{ background:var(--surface-2); border:1px solid var(--border-soft); border-radius:8px; padding:8px 10px; }
+    .ts-facts b{ display:block; font-size:0.6875rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-faint); font-weight:600; }
+    .ts-facts span{ display:block; font-family:'Plex Mono',monospace; font-size:0.9375rem; margin-top:3px; }
+    .ts-facts small{ display:block; font-size:0.75rem; color:var(--text-muted); margin-top:2px; }
+    .ts-facts .r{ color:var(--bad); }
+    .ts-facts .g{ color:var(--good); }
+    .ts-say{ font-size:0.875rem; margin-top:10px; }
+    .ts-say .warn{ color:var(--warn); }
+    .ts-ref{ margin-top:4px; font-size:0.8125rem; color:var(--text-muted); background:var(--surface-2); border-radius:8px; padding:9px 12px; }
+    @media (max-width:560px){ .ts-facts{ grid-template-columns:1fr 1fr 1fr; gap:5px; } .ts-facts div{ padding:7px; } .ts-facts span{ font-size:0.8125rem; } }
+  </style>
   <section>
     <div class="card">
       <div class="card-head">
         <div>
           <div class="card-title">Trade Setup</div>
-          <div class="card-sub">Raw arithmetic stays automatic. Whether the number is good enough is your call.</div>
+          <div class="card-sub">The pullback plan: wait for a dip to support, then buy. Plain arithmetic, not a tested system.</div>
         </div>
         <div style="display:flex; gap:6px;">
           <span class="tag tag-engine"><span class="tag-glyph">⚙</span>Levels</span>
-          <span class="tag tag-info"><span class="tag-glyph">◇</span>R:R</span>
+          <span class="tag tag-info"><span class="tag-glyph">◇</span>Your call</span>
         </div>
       </div>
 
-      <div class="setup-grid">
-        <div class="entry-panel">
-          <h4>Pullback Entry</h4>
-          <div class="strategy-note">Stop = 2× ATR below entry</div>
-          <div class="price-line"><span class="k">Entry</span><span class="v num">$215.40</span></div>
-          <div class="price-line"><span class="k">Stop</span><span class="v num">$208.90</span></div>
-          <div class="price-line"><span class="k">Target</span><span class="v num">$231.20</span></div>
-          <div class="price-line rr"><span class="k">R:R</span><span class="v num strong">2.43</span></div>
+      <div class="ts">
+        <input class="state-radio" type="radio" name="ts" id="ts-norm" checked>
+        <input class="state-radio" type="radio" name="ts" id="ts-ath">
+        <div class="ts-toggle">
+          <label for="ts-norm">Resistance above</label>
+          <label for="ts-ath">At all-time high</label>
         </div>
 
-        <div class="entry-panel">
-          <h4>Momentum Entry</h4>
-          <div class="strategy-note">Stop = 1.5× ATR below support</div>
-          <div class="price-line"><span class="k">Entry</span><span class="v num">$225.10</span></div>
-          <div class="price-line"><span class="k">Stop</span><span class="v num">$205.40</span></div>
-          <div class="price-line"><span class="k">Target</span><span class="v num">$231.20</span></div>
-          <div class="price-line rr"><span class="k">R:R</span><span class="v num weak">0.31</span></div>
+        <!-- ===== state 1: real resistance above ===== -->
+        <div class="ts-panel ts-p-norm">
+          <div class="ts-plan">
+            <div class="ts-plan-h"><span class="name">Pullback plan<small>wait for a dip to support</small></span><span class="ts-ratio">1.2 : 1<small>reward : risk</small></span></div>
+            <div class="ts-bar">
+              <span class="risk" style="left:6.0%; width:28.2%"></span><span class="rew" style="left:34.2%; width:35.1%"></span><span class="now" style="left:55.1%"></span>
+              <span class="tk up" style="left:34.2%"><b>buy</b>$215.40</span><span class="tk up" style="left:55.1%"><b>now</b></span>
+              <span class="tk dn" style="left:6.0%">$202.72</span><span class="tk dn" style="left:69.3%">$231.20</span>
+            </div>
+            <div class="ts-facts">
+              <div><b>Buy</b><span>$215.40</span><small>support, 4.2% below now</small></div>
+              <div><b>Stop</b><span class="r">$202.72</span><small>−5.9% · 2 ATR below</small></div>
+              <div><b>Target</b><span class="g">$231.20</span><small>+7.3% · nearest resistance</small></div>
+            </div>
+            <div class="ts-say">Risk <b>$12.68</b> to make <b>$15.80</b> a share.</div>
+          </div>
+
         </div>
+
+        <!-- ===== state 2: at all-time high, projected target ===== -->
+        <div class="ts-panel ts-p-ath">
+          <div class="ts-plan">
+            <div class="ts-plan-h"><span class="name">Pullback plan<small>wait for a dip to support</small></span><span class="ts-ratio">2.1 : 1<small>reward : risk</small></span></div>
+            <div class="ts-bar">
+              <span class="risk" style="left:6.0%; width:28.2%"></span><span class="rew proj" style="left:34.2%; width:58.5%"></span><span class="now" style="left:55.1%"></span>
+              <span class="tk up" style="left:34.2%"><b>buy</b>$215.40</span><span class="tk up" style="left:55.1%"><b>now</b></span>
+              <span class="tk dn" style="left:6.0%">$202.72</span><span class="tk dn" style="left:92.7%">$241.70?</span>
+            </div>
+            <div class="ts-facts">
+              <div><b>Buy</b><span>$215.40</span><small>support, 4.2% below now</small></div>
+              <div><b>Stop</b><span class="r">$202.72</span><small>−5.9% · 2 ATR below</small></div>
+              <div><b>Target</b><span class="g">$241.70</span><small>projected, not a real level</small></div>
+            </div>
+            <div class="ts-say">Risk <b>$12.68</b> to make <b>$26.30</b> a share, <i>if</i> the projection is reached.</div>
+          </div>
+        </div>
+
+        <div class="ts-ref">Common rules of thumb, for reference: most traders want the reward to be at least <b>2×</b> the risk, and won't let a stop sit more than <b>7–8%</b> below their buy (O'Neil). This card doesn't judge; you do.</div>
       </div>
 
-      <div class="rr-note">
-        <p>• Momentum's R:R is 0.31 because the nearest resistance ($231.20) is only 2.7% above entry, while the ATR-based stop sits 8.8% below it. The constraint is target proximity, not stop placement.</p>
-        <p>• <i>(Shown only when the target is a projection.)</i> This stock is at or near its all-time high, so there's no real overhead resistance to aim at. The target in this ratio is a projected level (ATR/Fibonacci), not a price where sellers have actually shown up before. Read the number as one input, not a verdict.</p>
-      </div>
-
-      <div class="rr-footnote">
-        <b>Note on the R:R numbers on this page.</b> Several numbers here are labeled R:R, and they measure different things, so they won't match. The two entry panels both aim at the same target (the nearest resistance) but use different entries and stops: pullback enters at support with a stop 2×ATR below it; momentum enters at today's price with a stop 1.5×ATR below support. "R:R Context" in the setup banner is just distance-to-resistance divided by distance-to-support, in percent — no stop, no ATR. The Pattern Detection card measures from the pattern's own pivot, with a stop 2×ATR below the pivot and a target from the pattern's measured move (or, for a VCP, the nearest real resistance). All are shown; none gates anything.
-      </div>
+      <details class="formed">
+        <summary>How this setup was formed</summary>
+        <div class="formed-body">
+          <p><b>Levels:</b> support and resistance are the nearest real price levels where buyers or sellers showed up before (fixed Day 112 to pick the nearest, not the most extreme). The target is the nearest resistance above today's price.</p>
+          <p><b>Buy and stop:</b> buy at the nearest support, stop 2 ATR below it (ATR is how much the stock normally moves in a day). Buying a pullback near support is the canon low-risk entry (Minervini, Livermore's pivots), and stops below support with an ATR buffer follow the Turtles. Most traders agree with both.</p>
+          <p><b>At an all-time high</b> there's no resistance above, so the target is a projection from recent moves, shown dashed and with a "?" . It is not a price where sellers have actually appeared.</p>
+          <p><b>Why there is no "buy now" plan:</b> STA's momentum system (buy today, stop below support) failed every backtest and the forward test, so the card no longer shows it. Buying breakouts is still a canon idea; STA's version of it just never earned a place.</p><p><b>What this card is not:</b> a tested system. The pullback plan hasn't been tested by STA either; it is shown because it matches how the one tested edge works (the Mean-Reversion Read buys dips inside an uptrend) and the canon's low-risk entry.</p>
+        </div>
+      </details>
     </div>
   </section>
 
-  <!-- ================= SIZING INPUTS ================= -->
-  <section>
-    <div class="card">
-      <div class="card-head">
-        <div>
-          <div class="card-title">Sizing Inputs</div>
-          <div class="card-sub">The raw numbers, no recommendation.</div>
-        </div>
-        <span class="tag tag-info"><span class="tag-glyph">◇</span>Info</span>
-      </div>
+  <!-- ================= FUNDAMENTALS (redesigned Day 123, v0.13) ================= -->
+  <style>
+    .fd{ position:relative; }
+    .fd-toggle{ display:inline-flex; flex-wrap:wrap; gap:2px; padding:3px; background:var(--surface-2); border:1px solid var(--border); border-radius:22px; margin:2px 0 12px; }
+    .fd-toggle label{ padding:4px 11px; font-size:0.75rem; color:var(--text-muted); border-radius:18px; cursor:pointer; user-select:none; }
+    #fd-clean:checked ~ .fd-toggle label[for="fd-clean"],
+    #fd-flag:checked ~ .fd-toggle label[for="fd-flag"],
+    #fd-na:checked ~ .fd-toggle label[for="fd-na"],
+    #fd-etf:checked ~ .fd-toggle label[for="fd-etf"]{ background:var(--surface); color:var(--text); border:1px solid var(--border); }
+    .fd-panel{ display:none; }
+    #fd-clean:checked ~ .fd-p-clean,
+    #fd-flag:checked ~ .fd-p-flag,
+    #fd-na:checked ~ .fd-p-na,
+    #fd-etf:checked ~ .fd-p-etf{ display:block; }
 
-      <p class="sizing-intro">Position sizing is roughly 90% of a system's results (Van Tharp) — it's the last thing this page will decide for you.</p>
+    .fd-answer{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+    .fd-answer .big{ font-size:1.375rem; font-weight:600; color:var(--text); }
+    .fd-answer .big.flag{ color:var(--warn); }
+    .fd-answer .big.off{ color:var(--text-muted); }
+    .fd-answer .why{ font-size:0.875rem; color:var(--text-muted); }
 
-      <div class="sizing-stats">
-        <div class="stat-cell">
-          <div class="stat-label">ADX</div>
-          <div class="stat-value num">14.2</div>
-          <div class="stat-flag">no confirmed trend</div>
-        </div>
-        <div class="stat-cell">
-          <div class="stat-label">ATR</div>
-          <div class="stat-value num">$6.34</div>
-        </div>
-        <div class="stat-cell">
-          <div class="stat-label">RVOL</div>
-          <div class="stat-value num">0.87</div>
-          <div class="stat-flag">below 50‑day avg</div>
-        </div>
-        <div class="stat-cell">
-          <div class="stat-label">Stop dist. — pullback</div>
-          <div class="stat-value num">3.0%</div>
-        </div>
-        <div class="stat-cell">
-          <div class="stat-label">Stop dist. — momentum</div>
-          <div class="stat-value num">8.8%</div>
-        </div>
-        <div class="stat-cell">
-          <div class="stat-label">VIX</div>
-          <div class="stat-value num">16.4</div>
-        </div>
-      </div>
+    .fd-checks{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .fd-checks > div{ background:var(--surface-2); border:1px solid var(--border-soft); border-radius:10px; padding:10px 12px; }
+    .fd-checks > div.hit{ background:var(--warn-soft); border-color:var(--warn-border); }
+    .fd-checks > div.gone{ border-style:dashed; }
+    .fd-checks .lbl{ font-size:0.6875rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-faint); }
+    .fd-checks .ok{ color:var(--text-muted); font-weight:700; }
+    .fd-checks .fl{ color:var(--warn); font-weight:700; }
+    .fd-checks .val{ font-family:'Plex Mono',monospace; font-size:1rem; margin-top:4px; }
+    .fd-checks .val.muted{ color:var(--text-faint); }
+    .fd-checks .sub{ font-size:0.75rem; color:var(--text-muted); margin-top:4px; }
 
-      <p class="sizing-note">ADX below 20 means no confirmed trend. A wider stop means fewer shares for the same dollar risk. RVOL below 1.0 means today's volume is lighter than the 50-day average.</p>
-
-      <div class="cta-row">
-        <button class="btn">Size the pullback entry →</button>
-        <button class="btn">Size the momentum entry →</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= FUNDAMENTALS ================= -->
+    .fd-earn{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:12px; padding:10px 12px; border:1px solid var(--border-soft); border-radius:10px; }
+    .fd-earn.soon{ background:var(--warn-soft); border-color:var(--warn-border); }
+    .fd-earn .k{ font-size:0.6875rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-faint); }
+    .fd-earn .v{ font-family:'Plex Mono',monospace; font-size:0.9375rem; }
+    .fd-earn .note{ font-size:0.8125rem; color:var(--text-muted); flex-basis:100%; }
+    .fd-earn.soon .note{ color:var(--warn); }
+    .fd-plain{ font-size:0.875rem; color:var(--text-muted); padding:6px 0 2px; }
+    .fd-pe{ margin-top:12px; padding:10px 12px; border:1px solid var(--border-soft); border-radius:10px; }
+    .fd-pe-top{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap; }
+    .fd-pe .k{ font-size:0.6875rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-faint); }
+    .fd-pe .v{ font-family:'Plex Mono',monospace; font-size:0.9375rem; }
+    .fd-pe .band{ font-size:0.8125rem; color:var(--text-muted); }
+    .pe-strip{ position:relative; display:flex; height:8px; border-radius:4px; overflow:hidden; margin:12px 0 4px; }
+    .pe-strip span{ display:block; height:100%; background:var(--surface-2); border-right:2px solid var(--surface); }
+    .pe-wrap{ position:relative; }
+    .pe-dot{ position:absolute; top:-3px; width:14px; height:14px; margin-left:-7px; border-radius:50%; background:var(--text); border:3px solid var(--surface); box-shadow:0 0 0 1px var(--border); }
+    .pe-lbl{ position:relative; height:15px; font-size:0.6875rem; color:var(--text-faint); }
+    .pe-lbl span{ position:absolute; transform:translateX(-50%); white-space:nowrap; }
+    .fd-pe .note{ font-size:0.8125rem; color:var(--text-muted); margin-top:6px; }
+    .fd-data{ margin-top:12px; font-size:0.75rem; color:var(--text-faint); }
+    @media (max-width:560px){ .fd-checks{ gap:5px; } .fd-checks > div{ padding:8px; } .fd-checks .val{ font-size:0.875rem; } }
+  </style>
   <section>
     <div class="card">
       <div class="card-head">
         <div>
           <div class="card-title">Fundamentals</div>
-          <div class="card-sub">Context, not part of the read</div>
+          <div class="card-sub">Is the business behind the stock in trouble? Facts, not a score.</div>
         </div>
         <span class="tag tag-info"><span class="tag-glyph">◇</span>Info</span>
       </div>
 
-      <input class="state-radio" type="radio" name="fund" id="f-clean" checked>
-      <input class="state-radio" type="radio" name="fund" id="f-flag">
-      <input class="state-radio" type="radio" name="fund" id="f-unavail">
-      <input class="state-radio" type="radio" name="fund" id="f-etf">
+      <div class="fd">
+        <input class="state-radio" type="radio" name="fd" id="fd-clean" checked>
+        <input class="state-radio" type="radio" name="fd" id="fd-flag">
+        <input class="state-radio" type="radio" name="fd" id="fd-na">
+        <input class="state-radio" type="radio" name="fd" id="fd-etf">
+        <div class="fd-toggle">
+          <label for="fd-clean">No flags</label>
+          <label for="fd-flag">1 flag</label>
+          <label for="fd-na">Data missing</label>
+          <label for="fd-etf">ETF</label>
+        </div>
 
-      <div class="fund-toggle-wrap state-toggle">
-        <label for="f-clean">No flags</label>
-        <label for="f-flag">1 flag</label>
-        <label for="f-unavail">Unavailable</label>
-        <label for="f-etf">ETF</label>
+        <!-- ===== no flags ===== -->
+        <div class="fd-panel fd-p-clean">
+          <div class="fd-answer"><span class="big">No red flags</span><span class="why">All 3 checks ran. None tripped.</span></div>
+          <div class="fd-checks">
+            <div><div class="lbl"><span class="ok">✓</span> Sales</div><div class="val">+8.4%</div><div class="sub">a year · flag if falling 10%+</div></div>
+            <div><div class="lbl"><span class="ok">✓</span> Profitable</div><div class="val">ROE 31.2%</div><div class="sub">flag if losing money (below 0%)</div></div>
+            <div><div class="lbl"><span class="ok">✓</span> Debt</div><div class="val">D/E 0.41</div><div class="sub">flag if above 2.0</div></div>
+          </div>
+          <div class="fd-pe"><div class="fd-pe-top"><span><span class="k">P/E guide</span><br><span class="v">38.2</span></span><span class="band">priced for growth</span></div><div class="pe-wrap"><div class="pe-strip"><span style="width:30%"></span><span style="width:20%"></span><span style="width:50%; border-right:none"></span></div><span class="pe-dot" style="left:76.4%"></span></div><div class="pe-lbl"><span style="left:15%">under 15</span><span style="left:40%">15–25</span><span style="left:75%">25+</span></div><div class="note">Investors pay $38 for each $1 of yearly profit. Context only, never a flag. For swing trades P/E doesn't predict the move (O'Neil); a high P/E mainly means bigger jumps on earnings.</div></div>
+          <div class="fd-earn"><span><span class="k">Next earnings</span><br><span class="v">Nov 26 · in 15 days</span></span><span class="note">More than a week away. If you'll still hold on that date, the price can jump either way on the report.</span></div>
+        </div>
+
+        <!-- ===== one flag + earnings soon ===== -->
+        <div class="fd-panel fd-p-flag">
+          <div class="fd-answer"><span class="big flag">⚑ 1 red flag</span><span class="why">Sales are shrinking.</span></div>
+          <div class="fd-checks">
+            <div class="hit"><div class="lbl"><span class="fl">⚑</span> Sales</div><div class="val">−12.4%</div><div class="sub">a year · flag if falling 10%+</div></div>
+            <div><div class="lbl"><span class="ok">✓</span> Profitable</div><div class="val">ROE 18.0%</div><div class="sub">flag if losing money (below 0%)</div></div>
+            <div><div class="lbl"><span class="ok">✓</span> Debt</div><div class="val">D/E 0.85</div><div class="sub">flag if above 2.0</div></div>
+          </div>
+          <div class="fd-pe"><div class="fd-pe-top"><span><span class="k">P/E guide</span><br><span class="v">14.1</span></span><span class="band">cheap</span></div><div class="pe-wrap"><div class="pe-strip"><span style="width:30%"></span><span style="width:20%"></span><span style="width:50%; border-right:none"></span></div><span class="pe-dot" style="left:28.2%"></span></div><div class="pe-lbl"><span style="left:15%">under 15</span><span style="left:40%">15–25</span><span style="left:75%">25+</span></div><div class="note">Investors pay $14 for each $1 of yearly profit. Cheap can also mean the market expects shrinking sales, like here. Context only, never a flag. For swing trades P/E doesn't predict the move (O'Neil); a high P/E mainly means bigger jumps on earnings.</div></div>
+          <div class="fd-earn soon"><span><span class="k">Next earnings</span><br><span class="v">Nov 14 · in 3 days</span></span><span class="note">Within a week. The price can jump either way on the report, so decide before then whether to hold through it.</span></div>
+        </div>
+
+        <!-- ===== data missing ===== -->
+        <div class="fd-panel fd-p-na">
+          <div class="fd-answer"><span class="big off">Can't check</span><span class="why">The fundamentals data didn't come back. This is not the same as "no flags".</span></div>
+          <div class="fd-checks">
+            <div class="gone"><div class="lbl">Sales</div><div class="val muted">no data</div><div class="sub">not checked</div></div>
+            <div class="gone"><div class="lbl">Profitable</div><div class="val muted">no data</div><div class="sub">not checked</div></div>
+            <div class="gone"><div class="lbl">Debt</div><div class="val muted">no data</div><div class="sub">not checked</div></div>
+          </div>
+          <div class="fd-pe"><div class="fd-pe-top"><span><span class="k">P/E guide</span><br><span class="v">no data</span></span><span class="band">not checked</span></div><div class="note">P/E comes from the same fundamentals feed, so it is missing too.</div></div>
+          <div class="fd-earn"><span><span class="k">Next earnings</span><br><span class="v">Nov 26 · in 15 days</span></span><span class="note">Earnings dates come from a separate source, so they can still show.</span></div>
+        </div>
+
+        <!-- ===== ETF ===== -->
+        <div class="fd-panel fd-p-etf">
+          <div class="fd-answer"><span class="big off">Not applicable</span><span class="why">This is an ETF. It holds many companies, so there's no single business to check.</span></div>
+        </div>
+
+        <div class="fd-data">Data note: the live fundamentals feed disagrees with STA's backtest data about 40% of the time (sales growth most), so this card only flags clear facts and never scores. The three cutoffs haven't been backtested.</div>
       </div>
 
-      <div class="fund-panels">
-        <div class="fund-panel fund-clean">
-          <div class="fund-headline">No red flags found</div>
-          <div class="fund-detail">ROE 31.2% · Revenue growth +8.4% · Debt/Equity 0.41</div>
+      <details class="formed">
+        <summary>How these checks were chosen</summary>
+        <div class="formed-body">
+          <p><b>Sales falling 10% or more a year:</b> the canon buys growing businesses (O'Neil's "A": sales and earnings growth). A business whose sales are shrinking fast is a real risk over a multi-week hold, even with a clean chart.</p>
+          <p><b>Losing money (ROE below 0%):</b> a company losing money on its shareholders' equity. A plain fact that reads the same in every data source.</p>
+          <p><b>Debt/Equity above 2.0:</b> heavy borrowing. Banks, utilities and REITs carry high debt by design, so a flag on those is weaker.</p>
+          <p><b>Next earnings:</b> O'Neil and Minervini both avoid holding a fresh swing trade through an earnings report, because the price can gap far past any stop. Shown every time; highlighted when it falls within the next 7 days (the app's existing warning window).</p>
+          <p><b>P/E guide:</b> trailing P/E only (price ÷ the last 12 months of profit). The bands are the common rule of thumb: under 15 is Graham's "cheap", 15–25 is typical for the S&amp;P 500, above 25 means the market expects growth. O'Neil found the biggest winners often had high P/Es, so it is never a flag here. No P/E means the company is losing money.</p>
+          <p><b>Not here on purpose:</b> earnings growth (O'Neil's "C"), the canon's most important fundamental. STA's earnings field is a year-over-year growth rate, which swings wildly when last year's earnings were tiny, so it misleads as a red flag. Decided Day 119 to leave it out.</p>
         </div>
-        <div class="fund-panel fund-flag">
-          <div class="fund-headline">⚑ 1 red flag</div>
-          <div class="fund-detail">Revenue declining −12.4% YoY</div>
-        </div>
-        <div class="fund-panel fund-unavail">
-          Screen unavailable — fundamentals data didn't return for this ticker.
-        </div>
-        <div class="fund-panel fund-etf">
-          Not applicable — ETF.
-        </div>
-      </div>
-
-      <div class="fund-honesty">
-        <span class="info-dot">i</span>
-        <span>This screen flags facts, it doesn't score. The live fundamentals feed disagrees with the data this system was backtested on about 40% of the time (measured on 20 liquid tickers; revenue growth is the biggest driver) — which is why it informs rather than gates. Flag thresholds are chosen to sit outside that measured disagreement; they have not themselves been backtested.</span>
-      </div>
+      </details>
     </div>
   </section>
 
@@ -1139,27 +1486,12 @@
     </div>
   </section>
 
-  <!-- ================= HOLDING PERIOD ================= -->
-  <section>
-    <div class="card">
-      <div class="card-head" style="margin-bottom:10px;">
-        <div class="card-title">Holding Period · Standard Swing (15–30 days)</div>
-      </div>
-      <div class="hp-pills">
-        <span>Quick</span>
-        <span class="active">Standard</span>
-        <span>Position</span>
-      </div>
-      <p class="hp-caption">Sets how prominently the Fundamentals screen above is shown — longer holds surface it, shorter holds collapse it. It doesn't change any read.</p>
-    </div>
-  </section>
-
   <div class="scan-note">
-    Scan-tab verdict uses the backtested BUY/HOLD/AVOID tree, unchanged so it stays comparable with the backtest results. The Analyze page's read is a separate, display-only summary.
+    Day 123: BUY/HOLD/AVOID, the Holding Period selector and the Assessment Breakdown were removed from every screen (user decision). The engine still computes the verdict for the parity test and the trade journal; no screen shows it.
   </div>
 
   <div class="footer-meta">
-    Mockup implements decision-log items 1–14 (§2) against <code>docs/claude/design/ANALYZE_PAGE_REDESIGN_DECISIONS.md</code>, plus a new Mean-Reversion Read card (Day 111, not yet in the decision log — MR was never addressed by the original 17-item redesign). Not shown: the Assessment Breakdown, MTF Confluence, Price Structure, and Pattern Detection cards (§2 item 11, unchanged by this redesign). The MR scanner (<code>/api/mr/scan</code>) has been wired to the Scan tab since Day 111. No backend logic is affected. The build follows <code>ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md</code>; Steps 1–2 of 7 were done Day 121 with no visible change yet, so this mockup is still ahead of the live app.
+    Mockup implements decision-log items 1–14 (§2) against <code>docs/claude/design/ANALYZE_PAGE_REDESIGN_DECISIONS.md</code>, plus a new Mean-Reversion Read card (Day 111, not yet in the decision log — MR was never addressed by the original 17-item redesign). Not shown: MTF Confluence, Price Structure, and Pattern Detection cards (§2 item 11, unchanged by this redesign). The MR scanner (<code>/api/mr/scan</code>) has been wired to the Scan tab since Day 111. No backend logic is affected. The build follows <code>ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md</code>; Steps 1–6 are built in the live app (Days 121–123); Steps 7–8 (Full Analysis as the default view, tests and cleanup) remain.
   </div>
 
 </div>

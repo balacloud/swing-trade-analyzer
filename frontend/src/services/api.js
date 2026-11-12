@@ -45,6 +45,7 @@ export async function fetchStockData(ticker) {
       fiftyTwoWeekLow: data.fiftyTwoWeekLow,
       avgVolume: data.avgVolume,
       avgVolume10d: data.avgVolume10d,
+      quoteType: data.quoteType ?? null,  // Day 123: 'ETF' / 'EQUITY' (yfinance); null if the info provider lacks it
       priceHistory: data.priceHistory,
       dataPoints: data.dataPoints,
       oldestDate: data.oldestDate,
@@ -95,6 +96,7 @@ export async function fetchFundamentals(ticker) {
       marketCap: data.marketCap,
       beta: data.beta,
       dividendYield: data.dividendYield,
+      fieldSources: data._field_sources || null,  // Day 123: which provider gave each field (basis differs)
       timestamp: data.timestamp
     };
     
@@ -371,7 +373,7 @@ export async function fetchBreakout(ticker) {
  * - resistance: Array of resistance price levels  
  * - method: 'pivot', 'kmeans', or 'volume_profile'
  * - suggestedEntry: Nearest support (entry point)
- * - suggestedStop: Stop loss level (3% below entry)
+ * - suggestedStop: support − 2×ATR; null when ATR is unavailable (Day 123)
  * - suggestedTarget: Nearest resistance (profit target)
  * - riskReward: Risk/Reward ratio
  * - meta: Additional info (ATR, projection flags)
@@ -771,7 +773,10 @@ export async function fetchFearGreed() {
  * @param {number} days - Warning window in days (default 7)
  * @returns {object} - Earnings info with warning if applicable
  */
-export async function fetchEarnings(ticker, days = 7) {
+/** Day 123: the app's earnings warning window, shared with the Fundamentals card copy. */
+export const EARNINGS_WARNING_DAYS = 7;
+
+export async function fetchEarnings(ticker, days = EARNINGS_WARNING_DAYS) {
   try {
     const response = await fetch(`${API_BASE_URL}/earnings/${ticker.toUpperCase()}?days=${days}`);
 
@@ -1044,13 +1049,20 @@ export async function triggerPaperTradingRun() {
  * Returns RSI(2), 200 SMA, entry/stop/target, conditions.
  */
 export async function fetchMRSignal(ticker) {
+  // Day 123: never return a bare null — the MR card must be able to tell
+  // "couldn't check" (with the reason) from "no signal".
   try {
     const response = await fetch(`${API_BASE_URL}/mr/signal/${ticker.toUpperCase()}`);
-    if (!response.ok) throw new Error(`MR signal fetch failed: ${response.status}`);
-    return response.json();
+    const body = await response.json().catch(() => null);
+    if (!response.ok) {
+      const reason = body?.error || `server returned ${response.status}`;
+      console.error('Error fetching MR signal:', reason);
+      return { error: reason, reason, signal: false };
+    }
+    return body ?? { error: 'empty response', reason: 'empty response', signal: false };
   } catch (error) {
     console.error('Error fetching MR signal:', error);
-    return null;
+    return { error: error.message, reason: "couldn't reach the server", signal: false };
   }
 }
 

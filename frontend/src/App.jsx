@@ -43,21 +43,22 @@ import { calculateScore } from './utils/scoringEngine';
 import { calculateSimplifiedAnalysis } from './utils/simplifiedScoring';
 import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings } from './utils/positionSizing';
 import { runCategoricalAssessment, getActionablePatterns } from './utils/categoricalAssessment';
-import { calculateRiskReward, hasViabilityContradiction, getViabilityBadge } from './utils/riskRewardCalc';
+import PullbackPlan from './components/PullbackPlan'; // Day 123: redesign Step 3, Trade Setup pullback plan
+import RegimeRead from './components/RegimeRead'; // Day 123: redesign Step 4
+import TechnicalRead from './components/TechnicalRead'; // Day 123: redesign Step 4
 import { getLiquidityThreshold } from './utils/liquidityThresholds'; // Day 83
-import { getVolumeConfirmationRead, getVolumeDirectionRead, getObvHorizonRead, getEffortVsResultRead } from './utils/volumeThresholds'; // Day 111/112/116
 import { getAbsoluteMomentumRead } from './utils/absoluteMomentum'; // Day 117: dual momentum's second leg, informational only
 // DecisionMatrix removed Day 70 — simplicity premium (full+simple views sufficient)
 // BottomLineCard removed Day 82 (user feedback: verdict banner + What's Good/Risky
 // duplicated the Verdict Card + Categorical Assessment card elsewhere on this page —
-// three separate renderings of the same BUY/HOLD/AVOID verdict). HOLDING_PERIODS
-// config it owned moved into the component body since nothing else needs it.
+// three separate renderings of the same BUY/HOLD/AVOID verdict). Day 123: the
+// HOLDING_PERIODS config it owned was removed with the holding-period selector.
 import SectorRotationTab from './components/SectorRotationTab'; // Day 62: v4.24 Sector Rotation Phase 2
 import ContextTab from './components/ContextTab'; // Day 62: v4.24 Context Tab
 import ValueTab from './components/ValueTab'; // Day 75: Value investing lens
-import MRSignalCard from './components/MRSignalCard'; // Tier 3B: Mean-Reversion Signal
+import MRRead from './components/MRRead'; // Day 123: redesign Step 5 (replaces MRSignalCard)
 import PatternMiniCard from './components/PatternMiniCard'; // Day 83: shared VCP/Cup&Handle/Flat Base tile
-import AssessmentTile, { getAssessmentColor } from './components/AssessmentTile'; // Day 83: shared T/F/S/R tile
+import FundamentalsRead from './components/FundamentalsRead'; // Day 123: redesign Step 6
 import PriceStructureCard from './components/PriceStructureCard'; // Day 72: Price Structure narrative
 import AutomatedPaperTradingPanel from './components/AutomatedPaperTradingPanel'; // Day 87: automated engine ledger status + manual trigger
 import { generatePriceStructure } from './utils/priceStructureNarrative'; // Day 72
@@ -80,10 +81,8 @@ function App() {
   const [srData, setSrData] = useState(null);
   const [patternsData, setPatternsData] = useState(null); // Day 44: Pattern detection
   const [actionablePatternsData, setActionablePatternsData] = useState(null); // Day 47: Actionable patterns ≥60%
-  const [fearGreedData, setFearGreedData] = useState(null); // Day 44: v4.5 Fear & Greed
   const [earningsData, setEarningsData] = useState(null); // Day 49: v4.10 Earnings Calendar
   const [categoricalResult, setCategoricalResult] = useState(null); // Day 44: v4.5 Categorical Assessment
-  const [holdingPeriod, setHoldingPeriod] = useState('standard'); // Day 53: v4.13 Holding Period Selector
   const [rawAnalysisData, setRawAnalysisData] = useState(null); // Day 53: Stored for re-assessment on period change
   const [mrSignalData, setMrSignalData] = useState(null); // Tier 3B: Mean-reversion signal
   const [mrSignalLoading, setMrSignalLoading] = useState(false); // Tier 3B: MR loading state
@@ -132,14 +131,6 @@ function App() {
   // Scan table's Breakout column render logic below).
   const [breakoutBadgesRequested, setBreakoutBadgesRequested] = useState(new Set());
 
-  // Day 106: on-demand STA verdict (BUY/HOLD/AVOID) for Scan tab rows the breakout
-  // engine already flagged Retest Entry / Building Base — reuses the exact same
-  // determineVerdict() pipeline the Analyze page runs, per-ticker, only when the
-  // user clicks "Get Verdict" (never auto-fetched — each ticker costs ~11 backend
-  // calls, the same weight as a full Analyze click, so this stays opt-in per row
-  // rather than a batch loop, unlike the lighter breakout badge check).
-  // ticker -> { loading, verdict, reason, color, error }
-  const [scanVerdicts, setScanVerdicts] = useState({});
 
   // Validation state (Day 17)
   const [validationLoading, setValidationLoading] = useState(false);
@@ -148,7 +139,6 @@ function App() {
   const [validationTickers, setValidationTickers] = useState('AAPL, NVDA, MSFT');
 
   // Score breakdown expanded state (Day 23)
-  const [expandedScore, setExpandedScore] = useState(null); // 'technical', 'fundamental', 'sentiment', 'risk'
 
   // Simplified analysis state (Day 27)
   const [simplifiedResult, setSimplifiedResult] = useState(null);
@@ -169,7 +159,7 @@ function App() {
   const [refreshMessage, setRefreshMessage] = useState(null); // Feedback message
 
   // Day 70: Collapsible sections for progressive disclosure (simplicity premium)
-  // Keys: 'holdingPeriod', 'priceRS', 'patterns', 'categorical', 'indicators'
+  // Keys: 'priceRS', 'patterns' (Day 123: holdingPeriod/categorical/indicators sections removed)
   // Default: all collapsed (undefined = falsy = collapsed)
   const [expandedSections, setExpandedSections] = useState({});
   const toggleSection = (key) => setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }));
@@ -267,25 +257,15 @@ function App() {
     }
   }, [analysisResult, activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // v4.13: Re-run categorical assessment when holding period changes (no API re-fetch needed)
-  useEffect(() => {
-    if (!rawAnalysisData) return;
-    const { stock, spy, vix, fearGreed, trendTemplate, technicalBreakdown, fundamentals, ticker: rawTicker, adxData } = rawAnalysisData;
-    const categorical = runCategoricalAssessment(
-      stock, spy, vix, fearGreed, trendTemplate,
-      technicalBreakdown, fundamentals, rawTicker,
-      adxData, holdingPeriod
-    );
-    setCategoricalResult(categorical);
-  }, [holdingPeriod]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Day 123 (Step 6): holding-period re-assessment effect removed with the selector.
 
   // Session Refresh - Clear backend cache and reset frontend state (Day 29)
   const handleSessionRefresh = async () => {
     setRefreshing(true);
     setRefreshMessage(null);
     try {
-      // Clear backend cache and get result
-      const cacheResult = await clearBackendCache();
+      // Clear backend cache
+      await clearBackendCache();
 
       // Reset frontend state
       setAnalysisResult(null);
@@ -297,7 +277,6 @@ function App() {
       setError(null);
       setScanError(null);
       setValidationError(null);
-      setExpandedScore(null);
       setPositionResult(null);
       setCalcEntry('');
       setCalcStop('');
@@ -411,7 +390,6 @@ function App() {
     setAnalysisResult(null);
     setSrData(null);
     setPatternsData(null);
-    setFearGreedData(null);
     setCategoricalResult(null);
     setSimplifiedResult(null);
     setMrSignalData(null);
@@ -471,7 +449,7 @@ function App() {
         data.stock.fundamentals,  // Pass raw fundamentals, not breakdown
         targetTicker,
         adxData,  // v4.6.2: Pass ADX for entry preference
-        holdingPeriod  // v4.13: Pass holding period for signal weighting
+        'standard'  // Day 123: fixed; the holding-period selector was removed (verdict weighting only)
       );
 
       setAnalysisResult(result);
@@ -487,7 +465,8 @@ function App() {
       const actionablePatterns = getActionablePatterns(data.patterns, atr, data.sr);
       setActionablePatternsData(actionablePatterns);
 
-      setFearGreedData(data.fearGreed); // Day 44: v4.5 Fear & Greed
+      // Day 123: Fear & Greed is no longer displayed (Assessment Breakdown removed); it still
+      // reaches runCategoricalAssessment above via data.fearGreed.
       setEarningsData(data.earnings); // Day 49: v4.10 Earnings Calendar
       setCategoricalResult(categorical); // Day 44: v4.5 Categorical Assessment
 
@@ -533,15 +512,6 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Holding period config (Day 53, v4.13) — moved here Day 82 when BottomLineCard
-  // (its previous owner) was removed as redundant with the Verdict Card +
-  // Categorical Assessment card.
-  const HOLDING_PERIODS = {
-    quick: { label: '5-10 days', name: 'Quick Swing', techWeight: 0.7, fundWeight: 0.3 },
-    standard: { label: '15-30 days', name: 'Standard Swing', techWeight: 0.5, fundWeight: 0.5 },
-    position: { label: '1-3 months', name: 'Position Trade', techWeight: 0.3, fundWeight: 0.7 },
   };
 
   // Breakout badge display config (Day 81, Breakout Enhancement Plan Task 2.2)
@@ -648,48 +618,6 @@ function App() {
     return candidates;
   };
 
-  // Day 106: fetch STA's real verdict (BUY/HOLD/AVOID) for a single Scan-tab
-  // ticker, on demand. Deliberately calls the exact same pipeline analyzeStock()
-  // uses (fetchFullAnalysisData -> calculateScore -> runCategoricalAssessment)
-  // rather than a second, simplified implementation (Golden Rule 19/21/35 —
-  // don't let a second decision path quietly drift from the one the app already
-  // trusts). Writes into scanVerdicts only, never touches analysisResult/srData/
-  // activeTab/etc. — this must not disturb whatever the Analyze tab currently shows.
-  const fetchScanVerdict = async (tickerToCheck) => {
-    setScanVerdicts(prev => ({ ...prev, [tickerToCheck]: { loading: true } }));
-    try {
-      const data = await fetchFullAnalysisData(tickerToCheck);
-      const result = calculateScore(data.stock, data.spy, data.vix);
-      const trendTemplate = data.patterns?.trendTemplate || null;
-      const adxData = data.sr?.meta?.adx || null;
-      const categorical = runCategoricalAssessment(
-        data.stock,
-        data.spy,
-        data.vix,
-        data.fearGreed,
-        trendTemplate,
-        result.breakdown?.technical,
-        data.stock.fundamentals,
-        tickerToCheck,
-        adxData,
-        holdingPeriod
-      );
-      setScanVerdicts(prev => ({
-        ...prev,
-        [tickerToCheck]: {
-          loading: false,
-          verdict: categorical.verdict.verdict,
-          reason: categorical.verdict.reason,
-        },
-      }));
-    } catch (err) {
-      setScanVerdicts(prev => ({
-        ...prev,
-        [tickerToCheck]: { loading: false, error: err.message || 'Failed to fetch verdict' },
-      }));
-    }
-  };
-
   // Breakout badges: one batch call for the top 20 rows, fired after scan
   // results render — does not block the initial table paint (Task 2.2 design).
   // Day 83 fix (Task E3): scanId guards against a slower earlier scan's badge
@@ -722,7 +650,6 @@ function App() {
     setScanError(null);
     setScanResults(null);
     setBreakoutBadges({});
-    setScanVerdicts({});
 
     try {
       // N2/Day85: curated watchlists — batch SR fetch (all cached), no backend
@@ -849,13 +776,6 @@ function App() {
   };
 
   // Get RSI color
-  const getRsiColor = (rsi) => {
-    if (rsi >= 70) return 'text-red-400';
-    if (rsi <= 30) return 'text-green-400';
-    if (rsi >= 50) return 'text-green-300';
-    return 'text-yellow-400';
-  };
-
   // Get validation status color
   const getValidationStatusColor = (status) => {
     switch (status) {
@@ -873,251 +793,6 @@ function App() {
     if (score >= 75) return 'text-green-300';
     if (score >= 60) return 'text-yellow-400';
     return 'text-red-400';
-  };
-
-  // Get trade viability color and icon (Day 22)
-  const getViabilityStyle = (viable) => {
-    switch (viable) {
-      case 'YES': return { 
-        bg: 'bg-green-600', 
-        text: 'text-white', 
-        icon: '✅',
-        label: 'VIABLE'
-      };
-      case 'CAUTION': return { 
-        bg: 'bg-yellow-500', 
-        text: 'text-black', 
-        icon: '⚠️',
-        label: 'CAUTION'
-      };
-      case 'NO': return { 
-        bg: 'bg-red-600', 
-        text: 'text-white', 
-        icon: '🚫',
-        label: 'NOT VIABLE'
-      };
-      default: return { 
-        bg: 'bg-gray-600', 
-        text: 'text-white', 
-        icon: '❓',
-        label: 'UNKNOWN'
-      };
-    }
-  };
-
-  // Generate actionable recommendation based on categorical assessment + trade viability (Day 44)
-  // Day 46 Fix: Align recommendation message with entryPreference (Pullback vs Momentum)
-  const generateActionableRecommendation = (categoricalResult, srData, currentPrice) => {
-    if (!categoricalResult) return null;
-
-    const verdict = categoricalResult.verdict?.verdict;
-    const entryPreference = categoricalResult.verdict?.entryPreference;
-    const viability = srData?.meta?.tradeViability;
-    const nearestSupport = srData?.support?.length > 0 ? Math.max(...srData.support) : null;
-
-    // Entry preference parsing
-    const isPullbackPreferred = entryPreference?.includes('Pullback');
-
-    // Calculate support zone (5% range around nearest support)
-    const supportZoneLow = nearestSupport ? (nearestSupport * 0.97).toFixed(2) : null;
-    const supportZoneHigh = nearestSupport ? (nearestSupport * 1.02).toFixed(2) : null;
-
-    // Calculate % away from support (how far current price is above support)
-    const pctFromSupport = nearestSupport && currentPrice
-      ? (((currentPrice - nearestSupport) / nearestSupport) * 100).toFixed(1)
-      : null;
-
-    // Is pullback entry significantly below current price? (>10% = meaningful pullback)
-    const pullbackIsFarBelow = nearestSupport && currentPrice
-      ? ((currentPrice - nearestSupport) / currentPrice) > 0.10
-      : false;
-
-    // Recommendation logic based on verdict + viability + entryPreference combination
-    let recommendation = {
-      action: '',
-      details: '',
-      alertPrice: null,
-      bgColor: 'bg-gray-700',
-      borderColor: 'border-gray-600',
-      textColor: 'text-gray-300',
-      icon: '📋',
-      actionType: 'RESEARCH' // EXECUTE, WATCHLIST, WAIT, AVOID, RESEARCH
-    };
-
-    // BUY verdict scenarios
-    if (verdict === 'BUY') {
-      if (viability?.viable === 'YES') {
-        // Day 46: Check if pullback preferred with significant distance
-        if (isPullbackPreferred && pullbackIsFarBelow) {
-          recommendation = {
-            action: 'READY - PREFER PULLBACK',
-            details: `Strong stock but ${pctFromSupport}% above support. Wait for pullback to ~$${nearestSupport?.toFixed(2)} for better R:R.`,
-            alertPrice: nearestSupport,
-            bgColor: 'bg-gradient-to-r from-green-600 to-emerald-600',
-            borderColor: 'border-green-400',
-            textColor: 'text-white',
-            icon: '🎯',
-            actionType: 'EXECUTE'
-          };
-        } else {
-          recommendation = {
-            action: 'READY TO TRADE',
-            details: `Strong setup near support (${pctFromSupport}% away). Consider entry at current price with stop below $${nearestSupport?.toFixed(2) || 'support'}.`,
-            alertPrice: null,
-            bgColor: 'bg-gradient-to-r from-green-600 to-emerald-600',
-            borderColor: 'border-green-400',
-            textColor: 'text-white',
-            icon: '🎯',
-            actionType: 'EXECUTE'
-          };
-        }
-      } else if (viability?.viable === 'CAUTION') {
-        recommendation = {
-          action: 'ADD TO WATCHLIST',
-          details: supportZoneLow && supportZoneHigh
-            ? `Good stock, but ${pctFromSupport}% above support. Set alert for pullback to $${supportZoneLow}-${supportZoneHigh} zone.`
-            : `Good stock, but extended from support levels. Wait for a pullback before entry.`,
-          alertPrice: nearestSupport,
-          bgColor: 'bg-gradient-to-r from-blue-600 to-indigo-600',
-          borderColor: 'border-blue-400',
-          textColor: 'text-white',
-          icon: '👀',
-          actionType: 'WATCHLIST'
-        };
-      } else {
-        // viability NO
-        recommendation = {
-          action: 'WAIT FOR PULLBACK',
-          details: supportZoneLow && supportZoneHigh
-            ? `Quality stock but extended. Wait for pullback to $${supportZoneLow}-${supportZoneHigh} zone before entry.`
-            : `Quality stock but significantly extended. Wait for a meaningful pullback to establish new support levels.`,
-          alertPrice: nearestSupport,
-          bgColor: 'bg-gradient-to-r from-amber-600 to-orange-600',
-          borderColor: 'border-amber-400',
-          textColor: 'text-white',
-          icon: '⏳',
-          actionType: 'WAIT'
-        };
-      }
-    }
-    // HOLD verdict scenarios
-    else if (verdict === 'HOLD') {
-      if (viability?.viable === 'YES') {
-        // Day 46 Fix: Use support as alert price (entry), not resistance
-        // Show pullback preference if applicable
-        if (isPullbackPreferred && pullbackIsFarBelow) {
-          recommendation = {
-            action: 'WATCHLIST - WAIT FOR PULLBACK',
-            details: `Mixed signals. Wait for pullback to ~$${nearestSupport?.toFixed(2)} (${pctFromSupport}% below) for better entry.`,
-            alertPrice: nearestSupport,
-            bgColor: 'bg-gradient-to-r from-cyan-600 to-teal-600',
-            borderColor: 'border-cyan-400',
-            textColor: 'text-white',
-            icon: '📊',
-            actionType: 'WATCHLIST'
-          };
-        } else {
-          recommendation = {
-            action: 'WATCHLIST - MONITOR',
-            details: `Decent setup near support (${pctFromSupport}% away). Watch for improving technicals or sentiment.`,
-            alertPrice: nearestSupport, // Day 46: Changed from nearestResistance to nearestSupport
-            bgColor: 'bg-gradient-to-r from-cyan-600 to-teal-600',
-            borderColor: 'border-cyan-400',
-            textColor: 'text-white',
-            icon: '📊',
-            actionType: 'WATCHLIST'
-          };
-        }
-      } else {
-        recommendation = {
-          action: 'NOT NOW - PATIENCE',
-          details: `Mixed signals and not near support. Set alert at $${nearestSupport?.toFixed(2) || 'lower levels'} and wait for better entry.`,
-          alertPrice: nearestSupport,
-          bgColor: 'bg-gradient-to-r from-slate-600 to-gray-600',
-          borderColor: 'border-slate-400',
-          textColor: 'text-white',
-          icon: '⏸️',
-          actionType: 'WAIT'
-        };
-      }
-    }
-    // AVOID verdict scenarios
-    else {
-      recommendation = {
-        action: 'SKIP THIS ONE',
-        details: `Does not meet criteria. Look for stocks with stronger technicals/fundamentals in a favorable regime.`,
-        alertPrice: null,
-        bgColor: 'bg-gradient-to-r from-red-700 to-rose-700',
-        borderColor: 'border-red-500',
-        textColor: 'text-white',
-        icon: '🚫',
-        actionType: 'AVOID'
-      };
-    }
-
-    return recommendation;
-  };
-
-  // Generate plain English explanation for scores (Day 23)
-  const generateScoreExplanation = (analysisResult) => {
-    if (!analysisResult) return null;
-    
-    const tech = analysisResult.breakdown?.technical;
-    const techScore = analysisResult.scores?.technical || 0;
-    const fundScore = analysisResult.scores?.fundamental || 0;
-    const totalScore = analysisResult.totalScore || 0;
-    const currentPrice = analysisResult.currentPrice;
-    const indicators = analysisResult.indicators;
-    
-    const reasons = [];
-    
-    // Technical explanation
-    if (techScore < 20) {
-      if (tech?.details?.trendStructure?.score === 0) {
-        reasons.push(`Price ($${currentPrice?.toFixed(2)}) is below the 50 SMA ($${indicators?.sma50?.toFixed(2)}) - not in a Stage 2 uptrend`);
-      }
-      if (tech?.details?.shortTermTrend?.score === 0) {
-        reasons.push(`Short-term momentum is weak - price below 8 EMA ($${indicators?.ema8?.toFixed(2)})`);
-      }
-    } else if (techScore >= 30) {
-      reasons.push(`Strong technical setup with price above key moving averages`);
-    }
-    
-    // Fundamental explanation
-    if (fundScore >= 15) {
-      reasons.push(`Solid fundamentals with good growth metrics`);
-    } else if (fundScore < 10) {
-      reasons.push(`Weak fundamentals - review EPS/Revenue growth`);
-    }
-    
-    // Overall verdict context
-    if (totalScore >= 60) {
-      return { type: 'positive', reasons, summary: 'This stock meets most Minervini criteria for a swing trade.' };
-    } else if (totalScore >= 40) {
-      return { type: 'neutral', reasons, summary: 'Mixed signals - some criteria met, but not ideal setup.' };
-    } else {
-      return { type: 'negative', reasons, summary: 'Does not meet swing trade criteria. Wait for better setup.' };
-    }
-  };
-
-  // Get sub-score label and description (Day 23)
-  const getSubScoreInfo = (category, key, details) => {
-    const labels = {
-      technical: {
-        trendStructure: { label: 'Trend Structure', desc: 'Price > 50 SMA > 200 SMA', icon: '📈' },
-        shortTermTrend: { label: 'Short-term Trend', desc: 'Price > 8 EMA > 21 EMA', icon: '⚡' },
-        volume: { label: 'Volume', desc: '≥1.5x 50-day average', icon: '📊' },
-        relativeStrength: { label: 'Relative Strength', desc: 'Outperforming S&P 500', icon: '💪' }
-      },
-      fundamental: {
-        epsGrowth: { label: 'EPS Growth', desc: 'Target ≥25%', icon: '💰' },
-        revenueGrowth: { label: 'Revenue Growth', desc: 'Target ≥20%', icon: '📈' },
-        roe: { label: 'ROE', desc: 'Target ≥15%', icon: '🎯' },
-        debtToEquity: { label: 'Debt/Equity', desc: 'Target <0.5', icon: '⚖️' },
-        forwardPe: { label: 'Forward P/E', desc: 'Target <20', icon: '📉' }
-      }
-    };
-    return labels[category]?.[key] || { label: key, desc: '', icon: '•' };
   };
 
   return (
@@ -1385,38 +1060,8 @@ function App() {
             {/* Analysis Results */}
             {analysisResult && !loading && analysisView === 'full' && (
               <div className="space-y-6">
-                {/* v4.13: Holding Period Selector — Day 70: collapsed by default */}
-                <div className="bg-gray-800/50 rounded-lg">
-                  <button
-                    onClick={() => toggleSection('holdingPeriod')}
-                    className="flex items-center gap-2 w-full px-4 py-3 text-left hover:bg-gray-700/30 transition-colors rounded-lg"
-                  >
-                    <span className="text-sm text-gray-500">{expandedSections.holdingPeriod ? '▼' : '▶'}</span>
-                    <span className="text-sm text-gray-400 font-medium">Holding Period</span>
-                    <span className="ml-auto text-xs text-blue-400 font-medium">{HOLDING_PERIODS[holdingPeriod].label} — Tech {Math.round(HOLDING_PERIODS[holdingPeriod].techWeight * 100)}% / Fund {Math.round(HOLDING_PERIODS[holdingPeriod].fundWeight * 100)}%</span>
-                  </button>
-                  {expandedSections.holdingPeriod && (
-                    <div className="flex items-center gap-3 px-4 pb-3">
-                      <div className="flex gap-1">
-                        {Object.entries(HOLDING_PERIODS).map(([key, config]) => (
-                          <button
-                            key={key}
-                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                              holdingPeriod === key
-                                ? 'bg-blue-600 text-white shadow-lg'
-                                : 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-gray-200'
-                            }`}
-                            onClick={() => setHoldingPeriod(key)}
-                            title={`${config.name}: Tech ${Math.round(config.techWeight * 100)}% / Fund ${Math.round(config.fundWeight * 100)}%`}
-                          >
-                            {config.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
+                {/* Day 123 (redesign Step 6): Holding Period selector removed — its only effect was the
+                    BUY/HOLD/AVOID verdict's tech/fund weighting, and that verdict is no longer shown. */}
                 {/* Verdict Card - v4.5 Categorical Assessment (Neutral design) */}
                 <div className="rounded-lg p-6 bg-gray-800 border border-gray-700">
                   <div className="flex justify-between items-center">
@@ -1475,79 +1120,29 @@ function App() {
                         )}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className={`text-4xl font-bold px-4 py-2 rounded-lg ${
-                        categoricalResult?.verdict?.verdict === 'BUY'
-                          ? 'text-green-400 bg-green-900/30 border border-green-600'
-                          : categoricalResult?.verdict?.verdict === 'HOLD'
-                          ? 'text-yellow-400 bg-yellow-900/30 border border-yellow-600'
-                          : 'text-red-400 bg-red-900/30 border border-red-600'
-                      }`}>
-                        {categoricalResult?.verdict?.verdict || 'N/A'}
-                      </div>
-                      {categoricalResult && (
-                        <div className="text-xs text-gray-500 mt-2 space-x-2">
-                          <span className={getAssessmentColor(categoricalResult.technical?.assessment)}>
-                            T:{categoricalResult.technical?.assessment?.charAt(0)}
-                          </span>
-                          <span className={getAssessmentColor(categoricalResult.fundamental?.assessment)}>
-                            F:{categoricalResult.fundamental?.assessment?.charAt(0)}
-                          </span>
-                          <span className={getAssessmentColor(categoricalResult.sentiment?.assessment, 'sentiment')}>
-                            S:{categoricalResult.sentiment?.assessment?.charAt(0)}
-                          </span>
-                          <span className={getAssessmentColor(categoricalResult.riskMacro?.assessment, 'riskMacro')}>
-                            R:{categoricalResult.riskMacro?.assessment?.charAt(0)}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                    {/* Day 123 (redesign Step 4): the BUY/HOLD/AVOID badge and the T/F/S/R letter
+                        row were here. The Full view now leads with the Regime band and the
+                        Technical Read card below (Day 109 decisions; Day 119 plan Phase 3). The
+                        Simple view keeps its own TRADE/PASS checklist verdict. (Step 6 later removed the
+                        Assessment Breakdown and BUY/HOLD/AVOID everywhere.) */}
                   </div>
                 </div>
 
-                {/* Day 33: Data Source Status Banner - Prominent visibility for transparency
-                    Day 107 audit fix: excluded dataQuality 'N/A' (ETF tickers) — this banner's
-                    only two states are "unavailable" (red) and "fallback source" (yellow), so
-                    an ETF's dataQuality:'N/A' fell into the yellow branch and displayed the
-                    factually wrong "Using Backup Data Source — Primary providers unavailable"
-                    message even though no fallback was attempted; ETFs structurally don't have
-                    this data category. The correct ETF messaging already exists and renders
-                    separately via categoricalAssessment.js's "F:N/A" chip. */}
-                {analysisResult.breakdown?.fundamental?.dataQuality &&
-                 analysisResult.breakdown.fundamental.dataQuality !== 'rich' &&
-                 analysisResult.breakdown.fundamental.dataQuality !== 'N/A' && (
-                  <div className={`rounded-lg px-4 py-3 flex items-center gap-3 ${
-                    analysisResult.breakdown.fundamental.dataQuality === 'unavailable'
-                      ? 'bg-red-900/40 border border-red-700/50'
-                      : 'bg-yellow-900/40 border border-yellow-700/50'
-                  }`}>
-                    <span className="text-2xl">
-                      {analysisResult.breakdown.fundamental.dataQuality === 'unavailable' ? '⚠️' : '📡'}
-                    </span>
-                    <div className="flex-1">
-                      <div className={`font-medium ${
-                        analysisResult.breakdown.fundamental.dataQuality === 'unavailable'
-                          ? 'text-red-300' : 'text-yellow-300'
-                      }`}>
-                        {analysisResult.breakdown.fundamental.dataQuality === 'unavailable'
-                          ? 'Fundamentals Unavailable'
-                          : 'Using Backup Data Source'}
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        {analysisResult.breakdown.fundamental.dataQuality === 'unavailable'
-                          ? 'All data providers failed (Finnhub, AlphaVantage, yfinance). Fundamental score may be incomplete.'
-                          : 'Primary providers unavailable. Using fallback source (limited data, may be slightly delayed).'}
-                      </div>
-                    </div>
-                    <div className={`text-xs px-2 py-1 rounded ${
-                      analysisResult.breakdown.fundamental.dataQuality === 'unavailable'
-                        ? 'bg-red-800/50 text-red-300'
-                        : 'bg-yellow-800/50 text-yellow-300'
-                    }`}>
-                      {analysisResult.breakdown.fundamental.dataSource || 'yfinance'}
-                    </div>
-                  </div>
-                )}
+                {/* Day 123 (Step 6): the fundamentals-unavailable banner moved into the Fundamentals card's "Can't check" state. */}
+                {/* Day 123 (redesign Step 4): market backdrop, then the stock's own read. */}
+                <RegimeRead riskMacro={categoricalResult?.riskMacro} ticker={analysisResult.ticker} />
+                <TechnicalRead
+                  ticker={analysisResult.ticker}
+                  technical={categoricalResult?.technical}
+                  adxData={categoricalResult?.adxData || null}
+                  rsData={analysisResult.rsData}
+                  patternsData={patternsData}
+                  price={analysisResult.currentPrice}
+                  ema21={analysisResult.indicators?.ema21}
+                  priceHistory={rawAnalysisData?.stock?.priceHistory}
+                  srData={srData}
+                />
+                <MRRead mrData={mrSignalData} loading={mrSignalLoading} ticker={analysisResult.ticker} />
 
                 {/* Price & RS Info — Day 70: collapsed by default */}
                 <div className="bg-gray-800 rounded-lg">
@@ -1680,422 +1275,25 @@ function App() {
                 </div>
                 )}
 
-                {/* Trade Setup Card (S&R) - Day 22: Enhanced with Viability */}
-                {/* Day 49: Calculate R:R viability for badge specificity */}
-                {srData && (
+                {/* Trade Setup Card (S&R) - Day 22. Day 123 (redesign Step 3): pullback plan only;
+                    the viability badge, "Stock not recommended" warning and advice banner are
+                    gone (they counted the momentum plan the card no longer shows). Step 4: the
+                    indicator chips and the volume read moved to the Technical Read's Entry
+                    checks (4H RSI dropped: its tooltip described momentum entries). The card
+                    always renders; PullbackPlan says why when srData is missing. */}
+                {analysisResult && (
                   <div className="bg-gray-800 rounded-lg p-6">
-                    {/* Day 49: Pre-calculate R:R for viability badge */}
-                    {/* Day 61: Uses shared riskRewardCalc utility (DRY) */}
-                    {(() => {
-                      const rr = calculateRiskReward(srData, srData.currentPrice);
-                      const { anyViable } = rr;
-                      const badge = getViabilityBadge(rr);
-                      const viabilityLabel = badge.label;
-                      const viabilityBg = badge.bg;
-                      const viabilityIcon = badge.icon;
-
-                      // Day 50: Check for AVOID verdict + VIABLE conflict
-                      const verdictIsAvoid = categoricalResult?.verdict?.verdict === 'AVOID';
-                      const anyViableSetup = anyViable;
-
-                      return (
-                        <>
-                          {/* Header with Viability Badge - Day 49: Shows which strategy is viable */}
-                          <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold text-blue-400">🎯 Trade Setup</h3>
-                            <div className="flex items-center gap-2">
-                              <div className={`px-3 py-1 rounded-full text-sm font-bold ${viabilityBg} text-white`}>
-                                {viabilityIcon} {viabilityLabel}
-                              </div>
-                              {/* Day 50: Warning when AVOID verdict but setup is viable */}
-                              {verdictIsAvoid && anyViableSetup && (
-                                <span className="text-yellow-400 text-xs" title="Setup viable but stock fundamentals/technicals don't support trading">
-                                  ⚠️ Stock not recommended
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </>
-                      );
-                    })()}
-
-                    {/* Viability Advice Banner (Day 22) */}
-                    {/* Day 53 Bug #8: Backend viability (support distance) can contradict frontend R:R check */}
-                    {/* Day 61: Uses shared riskRewardCalc utility (DRY) */}
-                    {srData.meta?.tradeViability && (() => {
-                      const _rr = calculateRiskReward(srData, srData.currentPrice);
-                      const hasContradiction = hasViabilityContradiction(srData, _rr);
-                      const backendViable = srData.meta.tradeViability.viable;
-
-                      return (
-                      <div className={`mb-4 p-3 rounded-lg text-sm ${
-                        hasContradiction ? 'bg-yellow-900/30 border border-yellow-700 text-yellow-300' :
-                        backendViable === 'YES' ? 'bg-green-900/30 border border-green-700 text-green-300' :
-                        backendViable === 'CAUTION' ? 'bg-yellow-900/30 border border-yellow-700 text-yellow-300' :
-                        backendViable === 'NO' ? 'bg-red-900/30 border border-red-700 text-red-300' :
-                        'bg-gray-700/30 border border-gray-600 text-gray-300'
-                      }`}>
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <span className="font-semibold">
-                              {hasContradiction ? '⚠️ ' :
-                               backendViable === 'YES' ? '✅ ' :
-                               backendViable === 'CAUTION' ? '⚠️ ' :
-                               backendViable === 'NO' ? '🚫 ' : ''}
-                              {hasContradiction
-                                ? 'Structural stop is sound, but R:R insufficient at current price'
-                                : srData.meta.tradeViability.advice}
-                            </span>
-                            {/* Day 50: Hide position_size_advice when it conflicts with verdict/ADX */}
-                            {srData.meta.tradeViability.position_size_advice &&
-                             categoricalResult?.verdict?.verdict !== 'AVOID' &&
-                             (srData.meta?.adx?.adx || 0) >= 20 && (
-                              <div className="mt-1 text-xs opacity-80">
-                                Position Size: {srData.meta.tradeViability.position_size_advice}
-                              </div>
-                            )}
-                          </div>
-                          <div className="text-right text-xs space-y-1">
-                            {srData.meta.tradeViability.support_distance_pct !== null && (
-                              <div>Support: {srData.meta.tradeViability.support_distance_pct}% away</div>
-                            )}
-                            {srData.meta.tradeViability.risk_reward_context != null && (
-                              <div>R:R Context: {srData.meta.tradeViability.risk_reward_context}</div>
-                            )}
-                            {/* Day 39: ADX + RSI indicators - Day 40: Added tooltips */}
-                            <div className="flex justify-end gap-2 mt-1">
-                              {srData.meta?.adx && (
-                                <span
-                                  title={`ADX measures trend strength.\n≥25 = Strong trend (Pullback strategy preferred)\n<25 = Weak/ranging (Momentum strategy suggested)\nCurrent: ${srData.meta.adx.trend_strength}`}
-                                  className={`px-1.5 py-0.5 rounded text-[10px] font-medium cursor-help ${
-                                  srData.meta.adx.trend_strength === 'very_strong' ? 'bg-green-600 text-white' :
-                                  srData.meta.adx.trend_strength === 'strong' ? 'bg-green-700 text-green-100' :
-                                  srData.meta.adx.trend_strength === 'weak' ? 'bg-yellow-700 text-yellow-100' :
-                                  'bg-red-700 text-red-100'
-                                }`}>
-                                  ADX {srData.meta.adx.adx}
-                                </span>
-                              )}
-                              {srData.meta?.rsi_4h && (
-                                <span
-                                  title={`4-Hour RSI momentum indicator.\n<40 = Oversold (good entry zone)\n40-60 = Neutral\n>60 = Overbought (avoid new entries)\nUsed to confirm momentum entries.`}
-                                  className={`px-1.5 py-0.5 rounded text-[10px] font-medium cursor-help ${
-                                  srData.meta.rsi_4h.momentum === 'overbought' ? 'bg-red-600 text-white' :
-                                  srData.meta.rsi_4h.momentum === 'strong' ? 'bg-green-600 text-white' :
-                                  srData.meta.rsi_4h.momentum === 'neutral' ? 'bg-blue-600 text-white' :
-                                  srData.meta.rsi_4h.momentum === 'weak' ? 'bg-yellow-600 text-white' :
-                                  'bg-purple-600 text-white'
-                                }`}>
-                                  4H RSI {srData.meta.rsi_4h.rsi_4h}
-                                </span>
-                              )}
-                              {/* Day 49 (v4.9): OBV indicator */}
-                              {srData.meta?.obv && (
-                                <span
-                                  title={`On-Balance Volume (OBV):\n${srData.meta.obv.signal}\n\nOBV Trend: ${srData.meta.obv.trend}\nChange: ${srData.meta.obv.obv_change_pct}%\nDivergence: ${srData.meta.obv.divergence}`}
-                                  className={`px-1.5 py-0.5 rounded text-[10px] font-medium cursor-help ${
-                                  srData.meta.obv.divergence === 'bullish' ? 'bg-green-600 text-white' :
-                                  srData.meta.obv.divergence === 'bearish' ? 'bg-red-600 text-white' :
-                                  srData.meta.obv.trend === 'rising' ? 'bg-green-700 text-green-100' :
-                                  srData.meta.obv.trend === 'falling' ? 'bg-red-700 text-red-100' :
-                                  'bg-gray-600 text-gray-100'
-                                }`}>
-                                  OBV {srData.meta.obv.trend === 'rising' ? '↑' : srData.meta.obv.trend === 'falling' ? '↓' : '→'}
-                                </span>
-                              )}
-                              {/* Day 49 (v4.9): RVOL (Relative Volume) display */}
-                              {srData.meta?.rvol != null && (
-                                <span
-                                  title={`Relative Volume (RVOL):\nCurrent volume vs 50-day average.\n≥1.5x = High interest (breakout confirmation)\n1.0-1.5x = Normal activity\n<1.0x = Low interest\n\nCurrent: ${srData.meta.rvol_display}`}
-                                  className={`px-1.5 py-0.5 rounded text-[10px] font-medium cursor-help ${
-                                  srData.meta.rvol >= 2.0 ? 'bg-green-600 text-white' :
-                                  srData.meta.rvol >= 1.5 ? 'bg-green-700 text-green-100' :
-                                  srData.meta.rvol >= 1.0 ? 'bg-blue-700 text-blue-100' :
-                                  'bg-gray-600 text-gray-100'
-                                }`}>
-                                  Vol {srData.meta.rvol_display}
-                                </span>
-                              )}
-                              {/* Day 49: Distribution Warning - High RVOL + OBV Falling = big money selling.
-                                  Day 116: rvol read from the last COMPLETE bar when today's is still
-                                  forming — meta.rvol has no partial-bar guard and mid-session reads
-                                  roughly half its true value, which made this badge structurally unable
-                                  to fire before the last third of the session. Proven not to change
-                                  which tickers show 'falling' (the only other input) — see
-                                  docs/claude/design/VOLUME_EFFORT_VS_RESULT_PLAN_DAY116.md Section 3.3. */}
-                              {(() => {
-                                const barComplete = srData.meta?.candle?.barComplete !== false;
-                                const distRvol = barComplete ? srData.meta?.rvol : (srData.meta?.prevBar?.rvol ?? srData.meta?.rvol);
-                                return distRvol >= 1.5 && srData.meta?.obv?.trend === 'falling' && (
-                                  <span
-                                    title={`⚠️ Distribution Signal:\nHigh volume (≥1.5x avg) + Falling OBV\n\nPossible Meaning:\n• Large players may be selling into strength\n• Volume expansion but money leaving the stock\n• Be cautious with new long positions\n\nThis doesn't mean the stock will fall, but suggests caution.${!barComplete ? `\n\n(Volume from the last completed session, ${srData.meta?.prevBar?.date || 'prior day'} — today's bar is still forming.)` : ''}`}
-                                    className="px-1.5 py-0.5 rounded text-[10px] font-medium cursor-help bg-orange-600 text-white animate-pulse">
-                                    ⚠️ DIST
-                                  </span>
-                                );
-                              })()}
-                            </div>
-                          </div>
-                        </div>
+                    <div className="flex justify-between items-start gap-3 mb-1">
+                      <h3 className="text-lg font-semibold text-blue-400">🎯 Trade Setup</h3>
+                      <div className="flex gap-1.5 shrink-0">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-700 text-gray-300">⚙ LEVELS</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-900/40 text-amber-300">◇ YOUR CALL</span>
                       </div>
-                      );
-                    })()}
-
-                    {/* Day 111: Volume confirmation read — informational only, gates nothing.
-                        Independent of tradeViability (unlike the Vol chip above it, which
-                        disappears when tradeViability is absent from srData.meta).
-                        Day 116: reads the last COMPLETE bar (meta.prevBar) instead of today's
-                        still-forming one whenever meta.candle.barComplete is false — meta.rvol
-                        has no partial-bar guard and mid-session reads roughly half its true
-                        value (measured: median 0.45x vs 0.92x true, 2026-09-15). Same guard
-                        mirrored at the DIST badge above and priceStructureNarrative.js. See
-                        docs/claude/design/VOLUME_EFFORT_VS_RESULT_PLAN_DAY116.md Section 5. */}
-                    {(srData.meta?.rvol != null || srData.meta?.prevBar?.rvol != null) && (() => {
-                      const barComplete = srData.meta?.candle?.barComplete !== false;
-                      const prevBar = srData.meta?.prevBar;
-                      const effRvol = barComplete ? srData.meta?.rvol : (prevBar?.rvol ?? srData.meta?.rvol);
-                      const effChangePct = barComplete ? srData.change : (prevBar?.changePct ?? srData.change);
-                      const effCloseLocation = barComplete ? srData.meta?.candle?.closeLocation : (prevBar?.closeLocation ?? srData.meta?.candle?.closeLocation);
-
-                      const vol = getVolumeConfirmationRead(effRvol);
-                      if (!vol) return null;
-                      // Day 112: does the volume lean buying or selling? Still a
-                      // lean, never a verdict — daily bars can't show real order
-                      // flow. Guarded independently of `vol` so a missing candle/
-                      // OBV field just omits this line, never blanks the one above.
-                      const dir = getVolumeDirectionRead({
-                        changePct: effChangePct,
-                        closeLocation: effCloseLocation,
-                        obvTrend: srData.meta?.obv?.trend,
-                      });
-                      // Day 116: Thing 1's 20-session effort-vs-result read (calculate_obv's
-                      // own `signal`) was already computed and already live, but reachable
-                      // only by hovering the OBV chip above. Promoted to visible text here,
-                      // labelled by horizon so "20-day OBV falling" can't misread as
-                      // contradicting a same-day "no clear lean" line just above it — both
-                      // can be true at once, different windows.
-                      const obvRead = getObvHorizonRead(srData.meta?.obv);
-                      // Day 116: same-day effort vs. result — today's volume crossed against
-                      // today's price progress (normalized by ATR). The one genuinely new
-                      // read; everything else on this card already existed in some form.
-                      const atrPct = srData.meta?.atr && srData.currentPrice
-                        ? (srData.meta.atr / srData.currentPrice) * 100
-                        : null;
-                      const evr = getEffortVsResultRead({
-                        rvol: effRvol,
-                        changePct: effChangePct,
-                        atrPct,
-                        closeLocation: effCloseLocation,
-                        barComplete,
-                        asOf: prevBar?.date,
-                      });
-                      const staleNote = !barComplete
-                        ? ` Today's bar is still forming — the lines above use the last completed session (${prevBar?.date || 'prior day'}) instead.`
-                        : '';
-                      // Day 116: the headline must not say "Today" while showing
-                      // yesterday's number — that's the exact mislabeling this fix
-                      // exists to remove. Swap the label itself, not just add a
-                      // footnote, whenever effRvol/effChangePct came from prevBar.
-                      const dayLabel = barComplete ? 'Today' : `Last session (${prevBar?.date || 'prior day'})`;
-                      return (
-                        <div
-                          className="mb-4 p-3 rounded-lg text-sm bg-gray-700/30 border border-gray-600 text-gray-300"
-                          title={`Relative volume vs. the 50-day average, from /api/sr. Direction is inferred from three daily-bar signals — day change, where price closed inside the day's range, and OBV trend. Daily bars cannot show actual buy or sell orders; that needs order-flow data this app doesn't have. This is a lean, not a verdict. The 20-day line is On-Balance Volume: 20 days of price change compared against 20 days of net volume, the classic 'effort vs. result' check — its direction is reliable, its magnitude is not calibrated across tickers. The effort-vs-result line compares one bar's volume to that bar's own price move in units of ATR; its thresholds are first-principles, not backtested. None of this affects the BUY/HOLD/AVOID verdict, the Simple Checklist, or any entry gate.${staleNote}`}
-                        >
-                          <span className="font-semibold">{dayLabel}: {vol.text}</span>
-                          {dir && <div className="mt-1">Lean: {dir.text}</div>}
-                          {evr && <div className="mt-1">Effort vs. result: {evr.text}</div>}
-                          {obvRead && <div className="mt-1">Last 20 days: {obvRead.text}</div>}
-                          <div className="mt-1 text-xs text-gray-500">
-                            Informational only — this does not change the verdict.
-                            {!barComplete && ` (Showing ${prevBar?.date || 'the last completed session'} — today's bar is still forming.)`}
-                          </div>
-                        </div>
-                      );
-                    })()}
-
-                    {/* Day 39: Dual Entry Strategy Cards - Side by Side (ALL stocks) */}
-                    {/* Day 49: Fixed R:R filter + ADX-based suggestion logic + nearest support fix */}
-                    {srData.support?.length > 0 && (
-                      <div className="mb-4">
-                        {(() => {
-                          // Day 49: Fix - use nearest support (highest value below current price)
-                          // Support array is not sorted, so find max to get nearest
-                          const sortedSupports = [...srData.support].sort((a, b) => b - a);
-                          const nearestSupport = sortedSupports[0];
-                          // N1: Averaging entry — S2 if exists, else 3% below S1
-                          const avgSupport = sortedSupports[1] ?? nearestSupport * 0.97;
-                          const currentPrice = srData.currentPrice;
-                          const adx = srData.meta?.adx;
-                          const rsi4h = srData.meta?.rsi_4h;
-                          const atr = srData.meta?.atr || 0;
-                          const adxValue = adx?.adx || 0;
-
-                          // Day 49: Corrected ADX-based strategy preference
-                          // ADX >= 25: Strong trend - prefer pullback entries
-                          // ADX 20-25: Weak trend - either strategy viable
-                          // ADX < 20: No trend - wait, don't suggest entries
-                          const strongTrend = adxValue >= 25;
-                          const weakTrend = adxValue >= 20 && adxValue < 25;
-                          const noTrend = adxValue < 20;
-
-                          // Day 83 fix (Task A2): use the shared riskRewardCalc utility instead
-                          // of re-implementing this math inline. The inline version had no floor
-                          // on pullbackStop, so a cheap/high-ATR ticker could display a negative
-                          // stop price here while the viability badge above (which already used
-                          // calculateRiskReward()) showed the correctly-floored value — the two
-                          // could silently disagree. Reusing the same function means they can't.
-                          const rr = calculateRiskReward(srData, currentPrice);
-
-                          // Pullback Strategy calculations
-                          const pullbackEntry = nearestSupport;
-                          const pullbackStop = rr.pullbackStop;
-                          const pullbackTarget = rr.target;
-                          const pullbackRRValue = rr.pullbackRR;
-                          const pullbackRR = pullbackRRValue > 0 ? pullbackRRValue.toFixed(2) : 'N/A';
-
-                          // Momentum Strategy calculations
-                          const momentumEntry = currentPrice;
-                          const momentumStop = rr.momentumStop;
-                          const momentumTarget = pullbackTarget;
-                          const momentumRRValue = rr.momentumRR;
-                          const momentumRR = momentumRRValue > 0 ? momentumRRValue.toFixed(2) : 'N/A';
-
-                          const rsiConfirmed = rsi4h && rsi4h.entry_signal;
-
-                          // Day 49: R:R filter - don't suggest entries with R:R < 1.0
-                          const pullbackViable = rr.pullbackViable;
-                          const momentumViable = rr.momentumViable;
-
-                          // Day 50: Show warning but ALWAYS show entry cards (grayed out when not viable)
-                          const showNoTrendWarning = noTrend && !pullbackViable && !momentumViable;
-
-                          return (
-                            <>
-                              {/* Day 50: Warning banner shown when no trend and both R:R < 1 */}
-                              {showNoTrendWarning && (
-                                <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-4 text-center mb-3">
-                                  <span className="text-yellow-400 font-medium">⚠️ Wait for Better Setup</span>
-                                  <div className="text-gray-400 text-sm mt-1">
-                                    ADX {adxValue.toFixed(1)} indicates no trend. R:R unfavorable at current levels.
-                                  </div>
-                                </div>
-                              )}
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                              {/* Strategy A: Pullback */}
-                              <div className={`rounded-lg p-4 ${
-                                !pullbackViable ? 'bg-red-900/20 border border-red-800/50 opacity-60' :
-                                strongTrend ? 'bg-green-900/30 border-2 border-green-600' :
-                                'bg-gray-800/50 border border-gray-700'
-                              }`}>
-                                <div className="flex items-center justify-between mb-3">
-                                  <span className="font-semibold text-gray-200 cursor-help" title="Wait for price to pull back to support level before entering. Lower risk, better R:R, but may miss fast moves.">Entry Strategy: Pullback</span>
-                                  {!pullbackViable && <span className="text-red-400 text-xs font-medium" title="Risk/Reward below 1.0 - trade not favorable">⛔ R:R &lt; 1</span>}
-                                  {pullbackViable && strongTrend && <span className="text-green-400 text-xs font-medium cursor-help" title="ADX ≥25 indicates strong trend. Pullback entries work best in trending markets.">★ PREFERRED</span>}
-                                </div>
-                                <div className="space-y-2 text-sm">
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-400">Entry (Primary)</span>
-                                    <span className="text-gray-200 font-mono">{formatCurrency(pullbackEntry)}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-400">Entry (Avg)</span>
-                                    <span className="text-blue-300 font-mono">{formatCurrency(avgSupport)}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-400">Stop</span>
-                                    <span className="text-red-400 font-mono">{formatCurrency(pullbackStop)}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-400">Target</span>
-                                    <span className="text-green-400 font-mono">{formatCurrency(pullbackTarget)}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-400 cursor-help" title="Risk-to-Reward ratio. >2:1 is good, >3:1 is excellent. Shows potential reward per $1 risked.">R:R</span>
-                                    <span className={`font-mono ${parseFloat(pullbackRR) >= 2 ? 'text-green-400' : parseFloat(pullbackRR) >= 1 ? 'text-yellow-400' : 'text-red-400'}`}>{pullbackRR}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-400 cursor-help" title="Position size recommendation based on trend strength. Full = ADX 25+, Reduced = ADX 20-25, Wait = ADX <20">Position</span>
-                                    <span className={`${strongTrend ? 'text-green-400' : weakTrend ? 'text-yellow-400' : 'text-gray-400'}`}>
-                                      {strongTrend ? 'full' : weakTrend ? 'reduced' : 'wait'}
-                                    </span>
-                                  </div>
-                                  <div className="pt-2 border-t border-gray-700">
-                                    <span className="text-gray-400 text-xs">Reason</span>
-                                    <div className="text-gray-300 text-xs mt-1">
-                                      {adxValue >= 30
-                                        ? `ADX ${adxValue.toFixed(1)} very strong trend; momentum entry viable`
-                                        : strongTrend
-                                        ? `ADX ${adxValue.toFixed(1)} strong trend; pullback preferred for better R:R`
-                                        : weakTrend
-                                        ? `ADX ${adxValue.toFixed(1)} moderate trend; reduce position size`
-                                        : `ADX ${adxValue.toFixed(1)} no trend; wait for trend to develop`
-                                      }
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Strategy B: Momentum */}
-                              <div className={`rounded-lg p-4 ${
-                                !momentumViable ? 'bg-red-900/20 border border-red-800/50 opacity-60' :
-                                weakTrend && momentumViable && rsiConfirmed ? 'bg-blue-900/30 border-2 border-blue-600' :
-                                'bg-gray-800/50 border border-gray-700'
-                              }`}>
-                                <div className="flex items-center justify-between mb-3">
-                                  <span className="font-semibold text-gray-200 cursor-help" title="Enter at current price on breakout/momentum. Higher risk (wider stop), but captures immediate moves. Use half position.">Entry Strategy: Momentum</span>
-                                  {!momentumViable && <span className="text-red-400 text-xs font-medium" title="Risk/Reward below 1.0 - trade not favorable">⛔ R:R &lt; 1</span>}
-                                  {momentumViable && weakTrend && rsiConfirmed && <span className="text-blue-400 text-xs font-medium cursor-help" title="ADX 20-25 with RSI confirmation. Momentum entry viable with proper risk management.">★ VIABLE</span>}
-                                  {momentumViable && noTrend && <span className="text-yellow-400 text-xs font-medium cursor-help" title="ADX <20 no trend. Consider waiting for better setup.">⚠️ CAUTION</span>}
-                                </div>
-                                <div className="space-y-2 text-sm">
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-400">Entry (Primary)</span>
-                                    <span className="text-gray-200 font-mono">{formatCurrency(momentumEntry)}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-400">Entry (Avg)</span>
-                                    <span className="text-blue-300 font-mono">{formatCurrency(nearestSupport)}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-400">Stop</span>
-                                    <span className="text-red-400 font-mono">{formatCurrency(momentumStop)}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-400">Target</span>
-                                    <span className="text-green-400 font-mono">{formatCurrency(momentumTarget)}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-400 cursor-help" title="Risk-to-Reward ratio. >2:1 is good, >3:1 is excellent. Momentum entries typically have lower R:R due to wider stops.">R:R</span>
-                                    <span className={`font-mono ${parseFloat(momentumRR) >= 2 ? 'text-green-400' : parseFloat(momentumRR) >= 1 ? 'text-yellow-400' : 'text-red-400'}`}>{momentumRR}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-400 cursor-help" title="Position size recommendation. 'Half' = reduced position due to higher risk from entering at current price with wider stop.">Position</span>
-                                    <span className="text-yellow-400">half</span>
-                                  </div>
-                                  <div className="pt-2 border-t border-gray-700 space-y-1">
-                                    <div className="flex justify-between">
-                                      <span className="text-gray-400 text-xs cursor-help" title="4-hour timeframe RSI. Used to confirm momentum entries. <40 is oversold (good), >60 is overbought (avoid).">4H RSI</span>
-                                      <span className={`text-xs font-mono ${rsi4h ? (rsi4h.entry_signal ? 'text-green-400' : 'text-yellow-400') : 'text-gray-500'}`}>
-                                        {rsi4h ? rsi4h.rsi_4h : 'N/A'}
-                                      </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-gray-400 text-xs cursor-help" title="Entry confirmed when 4H RSI shows oversold (<40) or rising from lows. 'not_confirmed' means wait for better entry.">Confirmation</span>
-                                      <span className={`text-xs ${rsiConfirmed ? 'text-green-400' : 'text-red-400'}`}>
-                                        {rsiConfirmed ? 'confirmed' : 'not_confirmed'}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            </>
-                          );
-                        })()}
-                      </div>
-                    )}
-
+                    </div>
+                    <p className="text-sm text-gray-400 mb-4">The pullback plan: wait for a dip to support, then buy. Plain arithmetic, not a tested system.</p>
+                    <PullbackPlan srData={srData} ticker={analysisResult.ticker} />
+                    {/* Day 123: levels need srData; when it failed, PullbackPlan above already says so. */}
+                    {srData && (<>
                     {/* Day 40: Removed legacy Trade Levels Grid - now using dual strategy cards above */}
                     {/* Day 26: Show actual S&R levels - Day 33: Enhanced with MTF confluence */}
                     <div className="mt-4 pt-3 border-t border-gray-700">
@@ -2205,8 +1403,19 @@ function App() {
                         {srData.meta?.mtf?.enabled && <span> • MTF: Weekly</span>}
                       </div>
                     </div>
+                    </>)}
                   </div>
                 )}
+
+                {/* Day 123 (redesign Step 6): Fundamentals card, after the Trade Setup (mockup order). */}
+                <FundamentalsRead
+                  ticker={analysisResult.ticker}
+                  fundamental={categoricalResult?.fundamental}
+                  rawFundamentals={rawAnalysisData?.stock?.fundamentals}
+                  earnings={earningsData}
+                  quoteType={rawAnalysisData?.stock?.quoteType}
+                  name={analysisResult.name}
+                />
 
                 {/* Price Structure Card — Day 72: Tier 2, between Trade Setup and Pattern Detection */}
                 <PriceStructureCard
@@ -2506,263 +1715,10 @@ function App() {
                   </div>
                 )}
 
-                {/* Tier 3B: Mean-Reversion Signal Card (separate from momentum analysis) */}
-                <MRSignalCard mrData={mrSignalData} loading={mrSignalLoading} />
-
-                {/* Categorical Assessment — Day 70: collapsed by default */}
-                {categoricalResult && (
-                <div className="bg-gray-800 rounded-lg">
-                  <button
-                    onClick={() => toggleSection('categorical')}
-                    className="flex items-center gap-2 w-full px-6 py-4 text-left hover:bg-gray-700/30 transition-colors rounded-lg"
-                  >
-                    <span className="text-sm text-gray-500">{expandedSections.categorical ? '▼' : '▶'}</span>
-                    <span className="text-lg font-semibold text-blue-400">Assessment Breakdown</span>
-                    <span className="ml-auto flex gap-2 text-xs">
-                      <span className={getAssessmentColor(categoricalResult.technical.assessment)}>T:{categoricalResult.technical.assessment}</span>
-                      <span className={getAssessmentColor(categoricalResult.fundamental.assessment)}>F:{categoricalResult.fundamental.assessment}</span>
-                      <span className="text-gray-500">S:{categoricalResult.sentiment.assessment}</span>
-                      <span className={getAssessmentColor(categoricalResult.riskMacro.assessment, 'riskMacro')}>R:{categoricalResult.riskMacro.assessment}</span>
-                    </span>
-                  </button>
-                  {expandedSections.categorical && (
-                  <div className="px-6 pb-6">
-                  <h3 className="text-sm font-medium mb-4 text-gray-400">Click any card to expand details</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <AssessmentTile
-                      label="Technical"
-                      assessment={categoricalResult.technical.assessment}
-                      expanded={expandedScore === 'technical'}
-                      onClick={() => setExpandedScore(expandedScore === 'technical' ? null : 'technical')}
-                    />
-                    <AssessmentTile
-                      label="Fundamental"
-                      assessment={categoricalResult.fundamental.assessment}
-                      expanded={expandedScore === 'fundamental'}
-                      onClick={() => setExpandedScore(expandedScore === 'fundamental' ? null : 'fundamental')}
-                    />
-                    {/* Day 70: informational only (not in verdict) — Sentiment's own color
-                        variant deliberately treats 'Neutral' as gray, not yellow, to keep
-                        it visually de-emphasized versus the categories that actually drive
-                        the verdict. */}
-                    <AssessmentTile
-                      label="Sentiment"
-                      infoLabel="(info)"
-                      variant="sentiment"
-                      opacityMuted
-                      assessment={categoricalResult.sentiment.assessment}
-                      expanded={expandedScore === 'sentiment'}
-                      onClick={() => setExpandedScore(expandedScore === 'sentiment' ? null : 'sentiment')}
-                      extra={fearGreedData && (
-                        <div className="text-xs text-gray-500 mt-1">F&G: {fearGreedData.value}</div>
-                      )}
-                    />
-                    <AssessmentTile
-                      label="Risk/Macro"
-                      variant="riskMacro"
-                      assessment={categoricalResult.riskMacro.assessment}
-                      expanded={expandedScore === 'risk'}
-                      onClick={() => setExpandedScore(expandedScore === 'risk' ? null : 'risk')}
-                    />
-                  </div>
-
-                  {/* Expanded Details Panel */}
-                  {expandedScore && (
-                    <div className="mt-4 bg-gray-700/30 rounded-lg p-4 border border-gray-600">
-                      {expandedScore === 'technical' && categoricalResult.technical && (
-                        <div className="space-y-3">
-                          <div className="text-sm font-semibold text-blue-300 mb-3">📈 Technical Assessment: {categoricalResult.technical.assessment}</div>
-                          <ul className="list-disc list-inside space-y-1 text-gray-400 text-sm">
-                            {categoricalResult.technical.reasons.map((reason, idx) => (
-                              <li key={idx}>{reason}</li>
-                            ))}
-                          </ul>
-                          {categoricalResult.technical.data && (
-                            <div className="grid grid-cols-2 gap-2 text-xs text-gray-500 mt-3 pt-2 border-t border-gray-600">
-                              <div>Trend Template: {categoricalResult.technical.data.trendTemplateScore}</div>
-                              <div>RSI: {categoricalResult.technical.data.rsi?.toFixed(1)}</div>
-                              <div>RS vs SPY: {categoricalResult.technical.data.rs52Week != null ? `${categoricalResult.technical.data.rs52Week.toFixed(2)}x` : 'N/A (unavailable)'}</div>
-                            </div>
-                          )}
-                          <div className="text-xs text-gray-500 mt-2">Data: Multi-Source OHLCV + Pattern Detection</div>
-                        </div>
-                      )}
-                      {expandedScore === 'fundamental' && categoricalResult.fundamental && (
-                        <div className="space-y-3">
-                          <div className="text-sm font-semibold text-blue-300 mb-3">💼 Fundamental Assessment: {categoricalResult.fundamental.assessment}</div>
-                          <ul className="list-disc list-inside space-y-1 text-gray-400 text-sm">
-                            {categoricalResult.fundamental.reasons.map((reason, idx) => (
-                              <li key={idx}>{reason}</li>
-                            ))}
-                          </ul>
-                          <div className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-600">
-                            Data: {categoricalResult.fundamental.data?.dataSource || 'Multi-Source'}
-                          </div>
-                        </div>
-                      )}
-                      {expandedScore === 'sentiment' && categoricalResult.sentiment && (
-                        <div className="space-y-3">
-                          <div className="text-sm font-semibold text-blue-300 mb-3">📰 Sentiment Assessment: {categoricalResult.sentiment.assessment}</div>
-                          <ul className="list-disc list-inside space-y-1 text-gray-400 text-sm">
-                            {categoricalResult.sentiment.reasons.map((reason, idx) => (
-                              <li key={idx}>{reason}</li>
-                            ))}
-                          </ul>
-                          {fearGreedData && (
-                            <div className="mt-3 pt-2 border-t border-gray-600">
-                              <div className="flex items-center gap-2">
-                                <span className="text-gray-400 text-sm">Fear & Greed Index:</span>
-                                <span className={`text-lg font-bold ${
-                                  /* Day 107 audit fix: was 60/35 (pre-Bug-0G) — realigned to
-                                     assessSentiment()'s current 55/40 bands (categoricalAssessment.js) */
-                                  fearGreedData.value >= 55 && fearGreedData.value <= 80 ? 'text-green-400' :
-                                  fearGreedData.value >= 40 && fearGreedData.value < 55 ? 'text-gray-300' : 'text-red-400'
-                                }`}>{fearGreedData.value}</span>
-                                <span className="text-gray-500 text-sm">({fearGreedData.rating})</span>
-                              </div>
-                              <div className="w-full bg-gray-600 rounded-full h-3 mt-2">
-                                <div
-                                  className={`h-3 rounded-full ${
-                                    fearGreedData.value < 20 ? 'bg-red-500' :
-                                    fearGreedData.value < 40 ? 'bg-orange-500' :
-                                    fearGreedData.value < 55 ? 'bg-gray-400' :
-                                    fearGreedData.value <= 80 ? 'bg-green-500' : 'bg-red-500'
-                                  }`}
-                                  style={{ width: `${fearGreedData.value}%` }}
-                                ></div>
-                              </div>
-                              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                                <span>Extreme Fear</span>
-                                <span>Neutral</span>
-                                <span>Extreme Greed</span>
-                              </div>
-                            </div>
-                          )}
-                          <div className="text-xs text-gray-500 mt-2">Data: {fearGreedData?.source || 'CNN Fear & Greed Index'}</div>
-                        </div>
-                      )}
-                      {expandedScore === 'risk' && categoricalResult.riskMacro && (
-                        <div className="space-y-3">
-                          <div className="text-sm font-semibold text-blue-300 mb-3">⚡ Risk/Macro Assessment: {categoricalResult.riskMacro.assessment}</div>
-                          <ul className="list-disc list-inside space-y-1 text-gray-400 text-sm">
-                            {categoricalResult.riskMacro.reasons.map((reason, idx) => (
-                              <li key={idx}>{reason}</li>
-                            ))}
-                          </ul>
-                          <div className="grid grid-cols-2 gap-4 text-sm mt-3 pt-2 border-t border-gray-600">
-                            <div>
-                              <span className="text-gray-400">VIX:</span>
-                              <span className={`ml-2 ${
-                                categoricalResult.riskMacro.data?.vix < 20 ? 'text-green-400' :
-                                categoricalResult.riskMacro.data?.vix <= 30 ? 'text-yellow-400' : 'text-red-400'
-                              }`}>
-                                {categoricalResult.riskMacro.data?.vix?.toFixed(1) || 'N/A'}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-gray-400">SPY Regime:</span>
-                              <span className={`ml-2 ${categoricalResult.riskMacro.data?.spyAbove200EMA ? 'text-green-400' : 'text-red-400'}`}>
-                                {categoricalResult.riskMacro.data?.spyAbove200EMA ? 'Bull' : 'Bear'}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="text-xs text-gray-500 mt-2">Data: Multi-Source (VIX, SPY)</div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Categorical Verdict Summary */}
-                  <div className={`mt-4 p-4 rounded-lg text-sm ${
-                    categoricalResult.verdict.verdict === 'BUY' ? 'bg-green-900/20 border border-green-800' :
-                    categoricalResult.verdict.verdict === 'AVOID' ? 'bg-red-900/20 border border-red-800' :
-                    'bg-yellow-900/20 border border-yellow-800'
-                  }`}>
-                    <div className="font-semibold mb-2 text-gray-200">
-                      💡 Why This Verdict?
-                    </div>
-                    <p className="text-gray-400 mb-2">{categoricalResult.verdict.reason}</p>
-                    <div className="text-xs text-gray-500">
-                      Criteria: Need 2+ Strong categories (T+F) with Favorable/Neutral risk for BUY
-                    </div>
-                  </div>
-                  </div>
-                  )}
-                </div>
-                )}
-
-                {/* Technical Indicators — Day 70: hidden until requested (Tier 3) */}
-                {!expandedSections.indicators ? (
-                  <div className="text-center">
-                    <button
-                      onClick={() => toggleSection('indicators')}
-                      className="text-xs text-gray-600 hover:text-gray-400 transition-colors py-2"
-                    >
-                      Show Raw Indicators (RSI, EMA, SMA, ATR)
-                    </button>
-                  </div>
-                ) : (
-                  <div className="bg-gray-800 rounded-lg p-6">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold text-blue-400">Technical Indicators</h3>
-                      <button
-                        onClick={() => toggleSection('indicators')}
-                        className="text-xs text-gray-500 hover:text-gray-300"
-                      >
-                        Hide
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-400">RSI (14): </span>
-                        <span className={getRsiColor(analysisResult.indicators?.rsi)}>
-                          {analysisResult.indicators?.rsi?.toFixed(1) || 'N/A'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">8 EMA: </span>
-                        <span className="text-green-400">{formatCurrency(analysisResult.indicators?.ema8)}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">21 EMA: </span>
-                        <span className="text-green-400">{formatCurrency(analysisResult.indicators?.ema21)}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">50 SMA: </span>
-                        <span className="text-green-400">{formatCurrency(analysisResult.indicators?.sma50)}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">200 SMA: </span>
-                        <span className="text-green-400">{formatCurrency(analysisResult.indicators?.sma200)}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">ATR: </span>
-                        <span className="text-yellow-400">
-                          {analysisResult.indicators?.atr ? formatCurrency(analysisResult.indicators.atr) : 'N/A'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Quality Gates */}
-                {analysisResult.qualityGates && analysisResult.qualityGates.gates?.length > 0 && (
-                  <div className="bg-gray-800 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-4 text-red-400">⚠️ Quality Gate Warnings</h3>
-                    <div className="space-y-2">
-                      {/* Day 83: non-critical entries (e.g. "RS Unavailable" on missing data,
-                          not a failing gate) render distinctly from critical AVOID-triggering
-                          gates — same red box for both would overstate severity. */}
-                      {analysisResult.qualityGates.gates.map((gate, idx) => (
-                        <div key={idx} className={`rounded p-3 text-sm ${gate.critical === false ? 'bg-gray-700/40' : 'bg-red-900/30'}`}>
-                          <span className={`font-semibold ${gate.critical === false ? 'text-gray-400' : 'text-red-400'}`}>{gate.name}:</span>{' '}
-                          <span className="text-gray-300">{gate.value}</span>
-                          <span className="text-gray-500"> (threshold: {gate.threshold})</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {/* Day 123 (redesign Step 6): Assessment Breakdown, Raw Indicators and Quality Gate Warnings
+                    removed. Their content lives in the Technical Read (trend, RS), market band (risk),
+                    Fundamentals card and Price & RS card (liquidity); the BUY/HOLD/AVOID verdict is no
+                    longer shown anywhere (user decision). */}
               </div>
             )}
 
@@ -2886,7 +1842,10 @@ function App() {
                       </div>
                       <div className="text-center">
                         <div className="text-gray-400 text-sm">Stop</div>
-                        <div className="text-xl font-bold text-red-400">{formatCurrency(srData.suggestedStop)}</div>
+                        {/* Day 123: backend leaves suggestedStop empty when ATR is missing (was a fake 3%). */}
+                        {srData.suggestedStop != null
+                          ? <div className="text-xl font-bold text-red-400">{formatCurrency(srData.suggestedStop)}</div>
+                          : <div className="text-sm text-gray-400 mt-1">unavailable (no ATR)</div>}
                       </div>
                       <div className="text-center">
                         <div className="text-gray-400 text-sm">Target</div>
@@ -2901,6 +1860,10 @@ function App() {
                     </div>
                   )}
 
+                  {/* Day 123: say why the sizing button is missing instead of hiding it silently */}
+                  {simplifiedResult.verdict === 'TRADE' && srData?.suggestedEntry && srData.suggestedStop == null && (
+                    <div className="mt-4 text-sm text-gray-400">Position sizing needs a stop, and the stop is unavailable (ATR missing).</div>
+                  )}
                   {/* Calculate Position Button - Day 28 Integration */}
                   {simplifiedResult.verdict === 'TRADE' && srData?.suggestedEntry && srData?.suggestedStop && (
                     <button
@@ -2925,30 +1888,15 @@ function App() {
                   </p>
                 </div>
 
-                {/* Compare with Full Assessment */}
-                <div className="bg-gray-800 rounded-lg p-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <span className="text-gray-400 text-sm">Full Assessment (for comparison):</span>
-                      <span className={`ml-2 font-bold ${
-                        categoricalResult?.verdict?.verdict === 'BUY' ? 'text-green-400' :
-                        categoricalResult?.verdict?.verdict === 'HOLD' ? 'text-yellow-400' : 'text-red-400'
-                      }`}>
-                        {categoricalResult?.verdict?.verdict || 'N/A'}
-                      </span>
-                      {categoricalResult && (
-                        <span className="ml-2 text-xs text-gray-500">
-                          (T:{categoricalResult.technical?.assessment?.charAt(0)} F:{categoricalResult.fundamental?.assessment?.charAt(0)} S:{categoricalResult.sentiment?.assessment?.charAt(0)} R:{categoricalResult.riskMacro?.assessment?.charAt(0)})
-                        </span>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => setAnalysisView('full')}
-                      className="text-blue-400 hover:text-blue-300 text-sm"
-                    >
-                      View Full Analysis →
-                    </button>
-                  </div>
+                {/* Day 123 (Step 6): the "Full Assessment (for comparison)" BUY/HOLD/AVOID strip is removed
+                    (verdict no longer shown anywhere); the link to the full view stays. */}
+                <div className="bg-gray-800 rounded-lg p-4 flex justify-end">
+                  <button
+                    onClick={() => setAnalysisView('full')}
+                    className="text-blue-400 hover:text-blue-300 text-sm"
+                  >
+                    View Full Analysis →
+                  </button>
                 </div>
               </div>
             )}
@@ -3074,9 +2022,10 @@ function App() {
                           <span className="text-sm text-gray-300">${signal.current_price}</span>
                         </div>
                         <div className="flex items-center gap-4 text-sm text-gray-400">
-                          <span>Stop ${signal.stop}</span>
-                          <span>Target ${signal.target}</span>
+                          {/* Day 123: the tested plan, not the old ATR stop / +2 ATR target (never tested) */}
+                          <span>{signal.rules ? `Tested plan: buy the open after the signal · stop ${Math.round(signal.rules.stop_pct * 100)}% below fill` : 'plan unavailable'}</span>
                           <span className="text-gray-500">{signal.exit_rule}</span>
+                          {signal.asOf && <span className="text-gray-500">as of {signal.asOf} close</span>}
                         </div>
                       </div>
                     ))}
@@ -3173,7 +2122,6 @@ function App() {
                         <th className="text-right py-3 px-2">Volume</th>
                         <th className="text-right py-3 px-2">Market Cap</th>
                         <th className="text-center py-3 px-2">Breakout</th>
-                        <th className="text-center py-3 px-2">STA Verdict</th>
                         <th className="text-center py-3 px-2">Action</th>
                       </tr>
                     </thead>
@@ -3251,56 +2199,6 @@ function App() {
                                   title={b.humanAction || cfg.label}
                                 >
                                   {cfg.label}
-                                </span>
-                              );
-                            })()}
-                          </td>
-                          <td className="py-3 px-2 text-center">
-                            {/* Day 106: STA's real BUY/HOLD/AVOID verdict (determineVerdict(),
-                                the same engine the Analyze page uses), on demand, only for rows
-                                the breakout engine already flagged Retest Entry / Building Base.
-                                Deliberately NOT derived from breakout status itself — that state
-                                describes chart structure, not a decision (see the hard rule on
-                                the Breakout column above). Gated to these two states because a
-                                full verdict costs ~11 backend calls per ticker, the same as a
-                                full Analyze click — not something to batch across every row. */}
-                            {(() => {
-                              const bStatus = breakoutBadges[stock.ticker]?.status;
-                              const qualifies = bStatus === 'RETEST_ENTRY' || bStatus === 'BUILDING_BASE';
-                              if (!qualifies) return null;
-
-                              const v = scanVerdicts[stock.ticker];
-                              if (v == null) {
-                                return (
-                                  <button
-                                    onClick={() => fetchScanVerdict(stock.ticker)}
-                                    className="text-xs px-2 py-0.5 rounded border border-gray-600 text-gray-300 hover:bg-gray-700"
-                                    title="Runs STA's full verdict engine for this ticker (same as clicking Analyze)"
-                                  >
-                                    Get Verdict
-                                  </button>
-                                );
-                              }
-                              if (v.loading) {
-                                return <span className="text-gray-600 text-xs">…</span>;
-                              }
-                              if (v.error != null) {
-                                return (
-                                  <span className="text-amber-600/80 text-xs" title={v.error}>
-                                    Unavailable
-                                  </span>
-                                );
-                              }
-                              const verdictColor =
-                                v.verdict === 'BUY' ? 'text-green-400 bg-green-900/30 border-green-600'
-                                : v.verdict === 'HOLD' ? 'text-yellow-400 bg-yellow-900/30 border-yellow-600'
-                                : 'text-red-400 bg-red-900/30 border-red-600';
-                              return (
-                                <span
-                                  className={`text-xs font-semibold px-2 py-0.5 rounded border ${verdictColor}`}
-                                  title={v.reason || v.verdict}
-                                >
-                                  {v.verdict}
                                 </span>
                               );
                             })()}
@@ -4513,7 +3411,7 @@ function App() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>v4.59 - Multi-Source Data Intelligence</p>
+          <p>v4.60 - Multi-Source Data Intelligence</p>
           <p className="mt-1">TwelveData • Finnhub • AlphaVantage • yfinance • Stooq</p>
         </div>
       </div>

@@ -333,13 +333,13 @@
     <header>
       <p class="eyebrow">STA · Analyze Page Redesign · Decision Map</p>
       <h1>Sixteen decisions, nine old rules, one page.</h1>
-      <p class="dek">Every component of the Analyze page, mapped against the trading canon that's survived a century of markets — and marked by what STA has actually locked in versus what's still open. <b>Updated 2026-11-05 (Day 121):</b> implementation has started (Steps 1–2 of 7 done, no visible change yet), negative-EPS is closed as declined, the Day 118 MTF and pattern-target fixes are recorded, and MR shows its final numbers. Updated 2026-09-15 before that: the S&amp;R fix (item 08) was marked shipped, the forward-testing gate is removed (the program was discontinued 2026-09-12 — STA is now an on-demand analysis/recommendation tool), and MR Read's numbers are refreshed. On top of the Day 112 changes (Volume Confirmation shipped, mockup Regime synced) and the Day 111 changes before that.</p>
+      <p class="dek">Every component of the Analyze page, mapped against the trading canon that's survived a century of markets — and marked by what STA has actually locked in versus what's still open. <b>Updated 2026-11-12 (Day 123):</b> Steps 3–6 built — Regime, Technical, Mean-Reversion and Fundamentals cards plus a hardened Trade Setup; the Holding Period selector, Assessment Breakdown and BUY/HOLD/AVOID removed from every screen at the user's direction; MR's forward-test PF corrected to 1.50 at the next open. <b>Earlier, 2026-11-05 (Day 121):</b> implementation has started (Steps 1–2 of 7 done, no visible change yet), negative-EPS is closed as declined, the Day 118 MTF and pattern-target fixes are recorded, and MR shows its final numbers. Updated 2026-09-15 before that: the S&amp;R fix (item 08) was marked shipped, the forward-testing gate is removed (the program was discontinued 2026-09-12 — STA is now an on-demand analysis/recommendation tool), and MR Read's numbers are refreshed. On top of the Day 112 changes (Volume Confirmation shipped, mockup Regime synced) and the Day 111 changes before that.</p>
       <div class="status-row">
         <span class="status-pill"><span class="dot" style="background:var(--locked)"></span>14 of 15 original items <b>Locked</b></span>
         <span class="status-pill"><span class="dot" style="background:var(--accent)"></span>1 item <b>Locked · Revised Day 110</b></span>
         <span class="status-pill"><span class="dot" style="background:var(--new)"></span>1 item <b>added Day 111</b>, outside the original process</span>
         <span class="status-pill"><span class="dot" style="background:var(--open)"></span>3 threads <b>still open</b></span>
-        <span class="status-pill">Implementation: <b>in progress</b> — Steps 1–2 of 7 done Day 121 (plan text fixed, helper functions added); Step 3, the Trade Setup card, is next</span>
+        <span class="status-pill">Implementation: <b>in progress</b> — Steps 1–6 done (Days 121–123); next: Step 7 (Full Analysis as the default view), then Step 8 (tests, cleanup)</span>
       </div>
     </header>
 
@@ -624,7 +624,7 @@
                 <span class="chip principle">n/a</span>
               </div>
             </div>
-            <p class="item-note">Deletes a 3rd BUY/HOLD/AVOID strip that would have competed with the new "Technical Read" language, one click away.</p>
+            <p class="item-note">Deletes a 3rd BUY/HOLD/AVOID strip that would have competed with the new "Technical Read" language, one click away. <b>Done Day 123</b>, and went further: BUY/HOLD/AVOID is now off every screen (Analyze, Simple view, Scan tab).</p>
           </div>
 
           <div class="item-card">
@@ -632,12 +632,12 @@
               <span class="item-num">13</span>
               <span class="item-name">Holding Period selector</span>
               <div class="chips">
-                <span class="chip info">Info, repurposed</span>
+                <span class="chip info">Removed Day 123</span>
                 <span class="chip locked">Locked</span>
                 <span class="chip principle">cross-cutting</span>
               </div>
             </div>
-            <p class="item-note">No single principle owns "how long you hold" — it now only controls how prominently the Fundamentals red-flag card is shown, never gates anything.</p>
+            <p class="item-note">No single principle owns "how long you hold". <b>Day 123: removed.</b> Its only consumer was the BUY/HOLD/AVOID verdict's tech/fundamentals weighting, and no card uses it. Removed together with the Assessment Breakdown and the verdict itself (user decision); the engine still runs at a fixed 'standard' horizon so the verdict parity test is unchanged.</p>
           </div>
 
           <div class="item-card">
@@ -669,7 +669,7 @@
                 <span class="chip principle">③ Mean Reversion</span>
               </div>
             </div>
-            <p class="item-note">Never part of the original 13-item Q&amp;A process — MR's own signal card has existed on the Analyze page since Day 70, but this whole redesign conversation never once addressed it. Added to the mockup Day 111, tagged <b>Engine</b> rather than Info: unlike Fundamentals or R:R, this signal was confirmed against its own pre-registered bar (Day 111) and stress-tested for cluster inflation (held at PF 2.24 with the worst 3-day cluster removed) — the only track in the project's history to genuinely clear that bar. <b>Update (Day 113):</b> the whole paper-trading/forward-testing program was discontinued at the user's own direction ("I want to use Claude and STA as analysis engine and recommendation, I will take care of stuff myself") — MR closes it out as its final result: <b>241 closed trades, 70.5% win rate, profit factor 2.00</b> (all positions now closed; the 2.46 shown here in September was before the last trades closed). No further trades will accumulate. Doesn't gate Technical Read; Technical Read doesn't gate it — two independent, parallel reads. The scanner behind it (<span class="mono">/api/mr/scan</span>) is live-wired to the Scan tab.</p>
+            <p class="item-note">Never part of the original 13-item Q&amp;A process — MR's own signal card has existed on the Analyze page since Day 70, but this whole redesign conversation never once addressed it. Added to the mockup Day 111, tagged <b>Engine</b> rather than Info: unlike Fundamentals or R:R, this signal was confirmed against its own pre-registered bar (Day 111) and stress-tested for cluster inflation (held at PF 2.24 with the worst 3-day cluster removed) — the only track in the project's history to genuinely clear that bar. <b>Update (Day 113):</b> the whole paper-trading/forward-testing program was discontinued at the user's own direction ("I want to use Claude and STA as analysis engine and recommendation, I will take care of stuff myself") — MR closes it out as its final result: <b>241 closed trades, 70.5% win rate, profit factor 2.00 when scored at the entry-day close; <b>re-run at the next open (the price you can actually get): 63.5% wins, profit factor 1.50</b> (Day 123 correction)</b> (all positions now closed; the 2.46 shown here in September was before the last trades closed). No further trades will accumulate. Doesn't gate Technical Read; Technical Read doesn't gate it — two independent, parallel reads. The scanner behind it (<span class="mono">/api/mr/scan</span>) is live-wired to the Scan tab.</p>
           </div>
 
         </div>
