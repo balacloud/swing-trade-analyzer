@@ -2,12 +2,20 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 123 (2026-11-12)
+> **Last Updated:** Day 124 (2026-11-12)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.63 (Backend v2.52, Frontend v4.60, Backtest v4.21, API Service v2.11)
+## Current Version: v4.64 (Backend v2.53, Frontend v4.61, Backtest v4.21, API Service v2.11)
+*Day 124: **Analyze Page Redesign complete** (Priority #17, Steps 7–8). The market band became a
+facts-only "Market backdrop" card, first on the page (S&P 500 and Nasdaq-100 long/short-term
+trend, biggest 1-day drop in 10 sessions, VIX; no Favorable/Unfavorable label, user decision).
+Full Analysis is the default; Simple says "No Trade". One VIX wording on every screen; Forward
+Test shows MR's next-open figures. Step 8: page checker rewritten (8 checks, unit-tested, 40/40
+live, exit 1 on failure), one VIX sizing ladder, unused `qualityGates` removed, docs. Header
+price now dated ("Nov 11 close"). Golden Rule 62 (explain in simple English). Engine untouched,
+parity 86,400.*
 *Day 123: Analyze Page Redesign Steps 3–6 built (Priority #17). New cards: Regime Read, Technical
 Read, Mean-Reversion Read (tested rules only, clock-aware entry line), Trade Setup hardened (no
 fake ATR/stop fallbacks), Fundamentals (3 red flags, P/E guide, next earnings). Removed at the

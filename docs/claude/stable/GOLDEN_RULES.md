@@ -2,7 +2,7 @@
 
 > **Purpose:** Core rules and cumulative lessons learned — stable reference
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 123 (2026-11-12)
+> **Last Updated:** Day 124 (2026-11-12)
 > **Session protocols:** See `CLAUDE_CONTEXT.md` for startup/close checklists
 > **Decision-making lens:** See `docs/claude/stable/PERSONA.md` for the trading-judgment persona (Golden Rule 34)
 

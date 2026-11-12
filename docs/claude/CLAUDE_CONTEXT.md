@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 123 — 2026-11-12
+> **Last Updated:** Day 124 — 2026-11-12
 
 ---
 
@@ -11,15 +11,32 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 123 |
-| Version | v4.63 (Backend v2.52, Frontend v4.60) |
-| Latest Status | PROJECT_STATUS_DAY123_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY123.md |
-| Latest API | API_CONTRACTS_DAY123.md |
-| Focus | **Analyze Page Redesign Steps 1–6 built** (Regime, Technical, Mean-Reversion, Trade Setup, Fundamentals cards; Holding Period, Assessment Breakdown and BUY/HOLD/AVOID removed). MR is **PF 1.50 at the next open** (2.00 was close-basis, Golden Rule 60). Next: Step 7 (Full Analysis default view), then Step 8 (UI scripts, cleanup). Each step: plan → Fable review → build → user sign-off. |
+| Current Day | 124 |
+| Version | v4.64 (Backend v2.53, Frontend v4.61) |
+| Latest Status | PROJECT_STATUS_DAY124_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY124.md |
+| Latest API | API_CONTRACTS_DAY124.md |
+| Focus | **Analyze Page Redesign complete (Day 124).** Market backdrop (facts only) first, Full Analysis default, page checker 40/40. MR is **PF 1.50 at the next open** (2.00 was close-priced). Next: the two logged engine bugs (RSI `\|\| 50`, missing SPY → Unfavorable) and `/api/stock`'s forming bar, each plan → Fable review → build. |
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 124 Summary (Analyze Page Redesign complete — Steps 7–8, v4.64, Golden Rule 62)
+- **Step 7 (user decision: no market verdict):** the Regime band became the facts-only
+  **Market backdrop** card, first on the page: S&P 500 and Nasdaq-100 vs 200-day and 50-day,
+  biggest 1-day drop in 10 sessions (with "largest since"), VIX. New `index_trend.py`,
+  `/api/market/index/<ticker>`, SPY `trend`. Full Analysis default; Simple says "No Trade";
+  ETFs say "Exchange-traded fund (ETF)".
+- **Same day:** one VIX display band (`vix_bands.py`) on Analyze and Context; Forward Test shows
+  MR next-open figures (`openBasis`); backdrop → Context link.
+- **Step 8:** `ui-verify-checklist.js` rewritten (8 checks, pure module, 69 unit checks, exit 1
+  on failure, 40/40 live on AAPL/NVDA/SMH/JPM/RIVN; deliberate breaks caught). Fable caught a
+  vacuous blank-card check, fixed with `data-card-head`. One VIX sizing ladder ("VIX not
+  loaded" shown); `qualityGates` removed; docs + HOW_STOCK_PICKING_WORKS republished.
+- **AVGO question** (+24% in a week vs STA "Weak"): bounce vs trend, not a contradiction (still
+  below a flat 200-day). It exposed a real gap: the header price had no date. Now "Nov 11 close"
+  / "intraday, not a close". PERSONA log entry.
+- **Golden Rule 62:** explain to the user in very simple English. `PROJECT_INSTRUCTIONS.md` deleted.
 
 ### Day 123 Summary (Analyze Page Redesign Steps 3–6 built, MR PF corrected — v4.63, Golden Rules 60–61)
 - **Process (user standard):** every step had a written plan reviewed by Fable before code, then
@@ -55,26 +72,6 @@
   (`.claude/hooks/verdict_parity.sh`).
 - **Volume data check:** TwelveData = yfinance to the share; IBKR is 46–65% of that (filtered
   trades), closes identical. STA's volume is the full count; never mix IBKR volume in.
-
-### Day 120 Summary (Leveraged ETF Board + Beginner Trading Starter Playbook, standalone Artifacts — no version bump, new Golden Rule 58)
-- **Leveraged ETF Board** (`LEVERAGED_ETF_BOARD.html`, https://claude.ai/artifact/HdErxTqUhq8KYs6McSU5V7):
-  live IBKR page (read-only `mcp`, `get_price_history` only) running the user's adopted Reddit
-  and canon rules on the 8 funds in their IBKR watchlist "AI_Leveraged". The JS formulas were
-  checked bit-identical to STA's Python. v1 picked the US SOXL/GDXU by symbol search, but the user
-  holds the Canadian BetaPro funds, which gave **Golden Rule 58** (take conids from the user's
-  watchlist). The user set the scope: a count-only display (they own the rule count); Claude
-  watches splits and explains stops and sizing, and doesn't nag about fundamentals, holding
-  period or backtests. Logged in PERSONA.
-- **Beginner Trading Starter Playbook** (`STARTER_PLAYBOOK.html`, https://claude.ai/artifact/CfnNDEEs8jS112MuTU4HPp):
-  an 8-tab, light-theme page for the user's beginner friend, shared anyone-with-the-link. Tabs:
-  trader type, US–Canada macro table plus market-reaction guide, Reddit rules, 100-year canon,
-  top-10 coding rules, General, live data and gamification, and building it with Claude Code
-  (FastAPI, React, Lightweight Charts). Data provenance is disclosed on the page. The tab bar now
-  wraps, because the 8th tab had been hidden off-screen.
-- **Final MR number corrected:** the live ledger shows 241 closed, 70.54% win rate, **PF 2.00**.
-  The "PF ~2.5" in older docs is stale. STA Status Board republished. *(Superseded Day 123:
-  PF 2.00 was close-basis; at the next open it is PF 1.50.)*
-- No STA application code touched. Version unchanged (v4.62).
 
 ## SCENARIO DETECTION
 
@@ -157,17 +154,14 @@ it) is discontinued as of Day 113 — STA is a pure analysis/recommendation tool
 places and manages every trade themselves. Every item below is available to work whenever —
 pick deliberately based on what the user actually wants next, not backlog order.
 
-**The one bounded, real piece of work, in progress:**
-0. **Analyze Page Redesign (Priority #17).** Steps 1–6 done (Days 121–123). **Next: Step 7:**
-   Full Analysis as the default view (`analysisView` 'simple' → 'full'), Simple-view copy (PASS
-   wording), and the hardcoded "half" position label (`App.jsx:2074`). **Then Step 8:** rewrite
-   `ui-verify-checklist.js` / `ui-cohesiveness-test.js`, remove `scoringEngine`'s unrendered
-   `qualityGates`, swap the two inline VIX ladders for `getVixPositionMultiplier`, docs. Every
-   step: plan → Fable review → build → review passes → user sign-off
-   (`feedback_plan_review_engineering_standard`). Parity must stay 86,400/86,400.
+**Next up (each: plan → Fable review → build → sign-off):**
+0. ~~**Analyze Page Redesign (Priority #17).**~~ **DONE Day 124** (Steps 1–8). Run
+   `cd frontend && node scripts/ui-verify-checklist.js` after any Analyze-page change.
 0b. **Two engine bugs (Medium, Day 123):** `assessTechnical` RSI `|| 50` counts as a pass;
    `assessRiskMacro` treats missing SPY as below its 200-day. Each is a parity-tested JS +
    Python change (Golden Rule 59) that changes verdicts, so plan first.
+0c. **`/api/stock` doesn't drop today's unfinished bar (Medium, Day 124).** Check first that a
+   mid-day cache miss really returns a partial bar; then apply `market_time.drop_forming_bar`.
 
 **High severity, no plan written yet:**
 1. **Per-ticker provenance can't distinguish "never checked" from "just failed."** Day 108
@@ -196,8 +190,7 @@ pick deliberately based on what the user actually wants next, not backlog order.
 10. Value Tab investor-name relabeling — same fix as item 4, could ship together.
 
 **Bigger open questions, no urgency:**
-11. ~~Does the Analyze Page Redesign become a real implementation project?~~ **Building; Steps
-    1–6 done Day 123** (priority 0 above).
+11. ~~Does the Analyze Page Redesign become a real implementation project?~~ **Done Day 124.**
 12. Decide how the Analyze-page R:R should be *framed* now that `_pivot_sr` returns real
     nearest levels (it will honestly show sub-1.2:1 where real resistance is close, not a
     fabricated 3:1) — copy/framing, not logic, since R:R is already informational.
@@ -210,14 +203,13 @@ pick deliberately based on what the user actually wants next, not backlog order.
     constraint), per `VALUE_TAB_SPEC.md`.
 16. SRPS screener's R:R stays structurally disconnected from real resistance (fixed
     `entry + 2.5x risk`) — not urgent, it's explicitly informational with its own disclaimer.
-17. Simple Checklist's "PASS" badge reads as good news even at low pass counts (e.g. 2/9) —
-    a copy fix is already specified in the redesign's §7.5, not applied standalone.
+17. ~~Simple Checklist's "PASS" badge~~ — **fixed Day 124** ("⏸️ No Trade").
 18. `mean_reversion.py`'s ADX docstring doesn't match its code (Day 92) — likely just a doc fix.
 19. `/api/sectors/rotation` still uses a direct `yf.download()` instead of the multi-provider
     orchestrator its two newer siblings use (Day 108) — the `fetchSectorRotation()` half of
     this was fixed Day 108 (Golden Rule 47); the backend half remains.
 
-**Full detail on every open item:** `docs/claude/versioned/KNOWN_ISSUES_DAY119.md`.
+**Full detail on every open item:** `docs/claude/versioned/KNOWN_ISSUES_DAY124.md`.
 
 ---
 
@@ -328,6 +320,7 @@ sqlite3 backend/validation_results/paper_trading_ledger.db "SELECT MAX(run_date)
 | 112 | **Momentum Path B RETIRED** (150 closed, no live edge, ex-cluster PF 0.72) — stops generating signals, open positions wind down, row kept as history. **S&R `_pivot_sr` nearest-level fix (Golden Rule 53)** — the pivot method kept the most *extreme* levels, not the *nearest*; fixed behind `SRConfig.pivot_nearest_selection`; + BUG-A (★ confluence-badge key-format mismatch, ~10% of levels) + BUG-B (Price Structure showed deepest supports not nearest) + touch scoring restored on the pivot path. Verified live on META (R1 $612.43 / 0.3% above vs pre-fix ~$745). **Config C backtest re-baselined PF 0.97 → 0.53** on corrected levels — the old number was partly a bug artifact (R:R inflated by a far reward target); pre-registered "trades rise" prediction was wrong, logged (Golden Rule 56). PF 1.40 formally retired. Fix ships anyway — Config C is not a live track. Closes the "corrected-S&R momentum forward-test variant" question: NO. **Pattern targets** — Cup & Handle / Flat Base now measured-move (cup depth / base height), null when geometry missing; VCP flagged flat +15% pending Phase 4. New Golden Rule 55 (scoped Opus-plan-then-Sonnet-implement). New `--momentum-only` backtest flag; additive `meta.pivotSelection` API field. 4 stale artifacts repaired + 1 new (Forward-Test Track Board). Version constants were drifted (BE v2.47/FE v4.54) — corrected to v2.49/v4.56. v4.60→v4.61. |
 | 113-118 | Consolidated close (no formal `/sta-end` had run since Day 112). **Day 113:** paper-trading program DISCONTINUED entirely at the user's explicit direction — pure analysis/recommendation tool from here on, no IBKR execution, MR (broad) stands as the final confirmed result. **Day 116:** OBV `trend` sign bug fixed + a real, previously-unlogged partial-bar RVOL bug found and fixed same session (new `barComplete`/`prevBar` API fields) + a new same-day effort-vs-result volume read. **Day 117:** Antonacci's absolute-momentum leg surfaced as an informational read on both Analyze-page views, sourced from the real Day 107 backtest constant — new Golden Rule 57 after the Opus plan caught a near-miss that would have silently added a 10th criterion to the 9-criterion checklist. **Day 118:** completed the S&R fix chain — MTF Confluence's dead `strength` field is now a real graduated score with synthetic-level exclusion; VCP's flat +15% target replaced with real nearest-resistance/measured-contraction-depth. Every read this stretch verified as gating nothing. v4.61→v4.62 (BE v2.49→v2.51, FE v4.56→v4.59). |
 | 119 | Planning-only, no version bump. User challenged the shape of the post-Day-118 backlog (diminishing-returns audit items, no live gates left); agreed and re-scoped the Analyze Page Redesign (Priority #17) as the one bounded piece of real work remaining. Opus-planned re-verification of the Day 109 decision doc's own §7/§8 execution plan against six sessions of intervening code (Golden Rule 55): 17 decisions and phase structure hold; freeze-safety audit's conclusions survive but for new reasons (parity/backtest-comparability, not forward-test — the freeze itself ended Day 113); 9 corrections found, most importantly two blocks of prescribed on-card copy that described bugs already fixed (Day 112/118) and would have shipped as fabrications. New plan: `ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md`, go/no-go GO, not yet built. Zero application code touched. |
+| 124 | **Analyze Page Redesign complete** (Steps 7–8): facts-only Market backdrop first, Full Analysis default, No Trade wording, one VIX band, MR next-open on Forward Test, page checker rewritten (40/40), header price dated. Golden Rule 62. v4.64. |
 
 ---
 

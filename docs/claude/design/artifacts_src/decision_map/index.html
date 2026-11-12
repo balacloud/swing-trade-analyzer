@@ -333,13 +333,13 @@
     <header>
       <p class="eyebrow">STA · Analyze Page Redesign · Decision Map</p>
       <h1>Sixteen decisions, nine old rules, one page.</h1>
-      <p class="dek">Every component of the Analyze page, mapped against the trading canon that's survived a century of markets — and marked by what STA has actually locked in versus what's still open. <b>Updated 2026-11-12 (Day 123):</b> Steps 3–6 built — Regime, Technical, Mean-Reversion and Fundamentals cards plus a hardened Trade Setup; the Holding Period selector, Assessment Breakdown and BUY/HOLD/AVOID removed from every screen at the user's direction; MR's forward-test PF corrected to 1.50 at the next open. <b>Earlier, 2026-11-05 (Day 121):</b> implementation has started (Steps 1–2 of 7 done, no visible change yet), negative-EPS is closed as declined, the Day 118 MTF and pattern-target fixes are recorded, and MR shows its final numbers. Updated 2026-09-15 before that: the S&amp;R fix (item 08) was marked shipped, the forward-testing gate is removed (the program was discontinued 2026-09-12 — STA is now an on-demand analysis/recommendation tool), and MR Read's numbers are refreshed. On top of the Day 112 changes (Volume Confirmation shipped, mockup Regime synced) and the Day 111 changes before that.</p>
+      <p class="dek">Every component of the Analyze page, mapped against the trading canon that's survived a century of markets — and marked by what STA has actually locked in versus what's still open. <b>Updated 2026-11-12 (Day 124): the build is complete.</b> Step 7 replaced the Favorable/Neutral/Unfavorable market label with a facts-only Market backdrop card (S&amp;P 500 and Nasdaq-100 trend, biggest recent drop, VIX), first on the page, and made Full Analysis the default; Step 8 rewrote the page checker, merged the VIX sizing copies and removed the unused quality-gate code. <b>Earlier the same day (Day 123):</b> Steps 3–6 built — Regime, Technical, Mean-Reversion and Fundamentals cards plus a hardened Trade Setup; the Holding Period selector, Assessment Breakdown and BUY/HOLD/AVOID removed from every screen at the user's direction; MR's forward-test PF corrected to 1.50 at the next open. <b>Earlier, 2026-11-05 (Day 121):</b> implementation has started (Steps 1–2 of 7 done, no visible change yet), negative-EPS is closed as declined, the Day 118 MTF and pattern-target fixes are recorded, and MR shows its final numbers. Updated 2026-09-15 before that: the S&amp;R fix (item 08) was marked shipped, the forward-testing gate is removed (the program was discontinued 2026-09-12 — STA is now an on-demand analysis/recommendation tool), and MR Read's numbers are refreshed. On top of the Day 112 changes (Volume Confirmation shipped, mockup Regime synced) and the Day 111 changes before that.</p>
       <div class="status-row">
         <span class="status-pill"><span class="dot" style="background:var(--locked)"></span>14 of 15 original items <b>Locked</b></span>
         <span class="status-pill"><span class="dot" style="background:var(--accent)"></span>1 item <b>Locked · Revised Day 110</b></span>
         <span class="status-pill"><span class="dot" style="background:var(--new)"></span>1 item <b>added Day 111</b>, outside the original process</span>
         <span class="status-pill"><span class="dot" style="background:var(--open)"></span>3 threads <b>still open</b></span>
-        <span class="status-pill">Implementation: <b>in progress</b> — Steps 1–6 done (Days 121–123); next: Step 7 (Full Analysis as the default view), then Step 8 (tests, cleanup)</span>
+        <span class="status-pill">Implementation: <b>complete</b> — Steps 1–8 done (Days 121–124)</span>
       </div>
     </header>
 
@@ -472,7 +472,7 @@
                 <span class="chip principle">① Trend · ⑦ Volatility</span>
               </div>
             </div>
-            <p class="item-note">Was a hard gate (Day 109); reversed under direct pushback (Day 110). Even Moreira &amp; Muir's own mechanism <em>scales exposure</em> — it doesn't block a trade outright. <b>Update (Day 111):</b> the decision doc's own copy (§6) is now fixed to the post-reversal wording. <b>Update (Day 112):</b> the published mockup file — the last piece out of sync — has been synced to match.</p>
+            <p class="item-note">Was a hard gate (Day 109); reversed under direct pushback (Day 110). Even Moreira &amp; Muir's own mechanism <em>scales exposure</em> — it doesn't block a trade outright. <b>Update (Day 111):</b> the decision doc's own copy (§6) is now fixed to the post-reversal wording. <b>Update (Day 112):</b> the published mockup file — the last piece out of sync — has been synced to match. <b>Update (Day 124, user decision):</b> the page no longer shows a Favorable/Neutral/Unfavorable label at all. The band became a facts-only <b>Market backdrop</b> card, first on the page: S&amp;P 500 and Nasdaq-100 vs their 200-day and 50-day averages, the biggest 1-day drop in the last 10 sessions, and VIX. The engine's regime input is unchanged (still saved with logged trades).</p>
           </div>
 
         </div>
@@ -572,7 +572,7 @@
                 <span class="chip principle">⑦ Volatility</span>
               </div>
             </div>
-            <p class="item-note">The literal VIX-banded sizing variant the research names. Stays mechanical only inside the tool a human deliberately opens — not on the page shown unprompted.</p>
+            <p class="item-note">The literal VIX-banded sizing variant the research names. Stays mechanical only inside the tool a human deliberately opens — not on the page shown unprompted. <b>Done Day 124:</b> the calculator's two copied ladders now call one shared helper, and a missing VIX is shown ("VIX not loaded") instead of silently sizing at 1.0×.</p>
           </div>
 
         </div>
@@ -649,7 +649,7 @@
                 <span class="chip principle">n/a</span>
               </div>
             </div>
-            <p class="item-note">Default flips to Full — the redesign's philosophy now lives on the page a user actually sees first, not one click deeper.</p>
+            <p class="item-note">Default flips to Full — the redesign's philosophy now lives on the page a user actually sees first, not one click deeper. <b>Done Day 124</b>, with the Simple badge reading "⏸️ No Trade" instead of "PASS".</p>
           </div>
 
         </div>
@@ -734,7 +734,7 @@
         <div class="agenda-item">
           <div class="agenda-body">
             <b><span class="mono">scoringEngine.js</span>'s orphaned Forward-P/E score</b><span class="ref">→ item 05, new</span>
-            <p>Delete the two dead functions that would render it, or decide to reconnect them deliberately — don't leave it as a silent landmine. <b>Scheduled:</b> both are among the 5 dead functions Step 4 of the build deletes.</p>
+            <p>Delete the two dead functions that would render it, or decide to reconnect them deliberately — don't leave it as a silent landmine. <b>Scheduled:</b> both are among the 5 dead functions Step 4 of the build deletes. <b>Update (Day 124):</b> the render functions went in Step 4; Step 8 also removed the unrendered <span class="mono">qualityGates</span>. The fundamentals score itself is still computed inside <span class="mono">calculateScore</span> but nothing displays it.</p>
           </div>
         </div>
 

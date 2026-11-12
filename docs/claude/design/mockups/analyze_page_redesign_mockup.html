@@ -773,8 +773,8 @@
 <div class="page">
 
   <div class="meta-strip">
-    <span><b>MOCKUP</b> — Analyze Page Redesign<span class="meta-dot"></span>Day 109 decision log + Day 111 MR addition + Day 112 Volume read + Day 112 Regime copy synced to the Day 110 reversal + Day 121 R:R notes, Scan-tab line and MR numbers synced to current code + Day 122 Technical Read: 4 trend checks + plain-English timing and volume answers + Day 123 Steps 3–6 as built (MR open-basis PF 1.50, Holding Period and verdict removed) · no live data · for design review</span>
-    <span>v0.15</span>
+    <span><b>MOCKUP</b> — Analyze Page Redesign<span class="meta-dot"></span>Day 109 decision log + Day 111 MR addition + Day 112 Volume read + Day 112 Regime copy synced to the Day 110 reversal + Day 121 R:R notes, Scan-tab line and MR numbers synced to current code + Day 122 Technical Read: 4 trend checks + plain-English timing and volume answers + Day 123 Steps 3–6 as built (MR open-basis PF 1.50, Holding Period and verdict removed) · no live data · for design review + Day 124 Step 7: Market backdrop card (facts only, first), Full Analysis default, No Trade wording</span>
+    <span>v0.16</span>
   </div>
 
   <header class="app-header">
@@ -795,38 +795,45 @@
     <span class="legend-item"><span class="tag tag-info"><span class="tag-glyph">◇</span>Info</span> for your judgment, never gates anything</span>
   </div>
 
-  <!-- ================= REGIME ================= -->
+  <!-- ================= MARKET BACKDROP (Day 124, Step 7: facts only, no verdict) ================= -->
   <section>
     <div class="regime-block">
-      <input class="state-radio" type="radio" name="regime" id="r-fav" checked>
-      <input class="state-radio" type="radio" name="regime" id="r-neu">
-      <input class="state-radio" type="radio" name="regime" id="r-bad">
-
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
-        <span class="tag tag-info"><span class="tag-glyph">◇</span>Info — portfolio-wide context, expanded by default · never gates this page (Day 110 reversal)</span>
-        <div class="state-toggle">
-          <label for="r-fav">Favorable</label>
-          <label for="r-neu">Neutral</label>
-          <label for="r-bad">Unfavorable</label>
-        </div>
+        <span style="font-weight:600;">Market backdrop</span>
+        <span class="tag tag-info"><span class="tag-glyph">◇</span>Info · never gates this page</span>
       </div>
-
-      <div class="panels">
-        <div class="regime-banner panel-fav">
-          <span class="regime-dot"></span>
-          <span class="regime-text"><b>Regime: Favorable</b> — <span class="stat">VIX 16.4</span>, SPY above its 200-day SMA. The overall market backdrop is calm and healthy — generally a good environment for new trades.</span>
-        </div>
-        <div class="regime-banner panel-neu">
-          <span class="regime-dot"></span>
-          <span class="regime-text"><b>Regime: Neutral</b> — <span class="stat">VIX 24.1</span> (elevated), SPY above its 200-day SMA. The market's a bit jumpy right now — a good setup is still a good setup, just maybe size it smaller.</span>
-        </div>
-        <div class="regime-banner panel-bad">
-          <span class="regime-dot"></span>
-          <span class="regime-text"><b>Regime: Unfavorable</b> — SPY below its 200-day SMA.
-            The broader market is in a downtrend — even a great-looking stock is swimming against the tide. Worth weighing before you commit capital.
-          </span>
-        </div>
+      <p class="regime-text" style="color:var(--text-muted); margin:0 0 8px;">Facts only, no Favorable/Unfavorable label: you make the call (Day 124). Figures below are illustrative.</p>
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.875rem;">
+          <thead>
+            <tr style="color:var(--text-muted); text-align:left;">
+              <th style="padding:4px 8px 4px 0; font-weight:500;"></th>
+              <th style="padding:4px 8px; font-weight:500;">Long-term (200-day)</th>
+              <th style="padding:4px 8px; font-weight:500;">Short-term (50-day)</th>
+              <th style="padding:4px 8px; font-weight:500;">Biggest 1-day drop, last 10 sessions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:4px 8px 4px 0; font-weight:600;">S&amp;P 500</td>
+              <td style="padding:4px 8px; color:var(--good);">↑ above <span class="num">+3.9%</span></td>
+              <td style="padding:4px 8px; color:var(--bad);">↓ below <span class="num">−1.3%</span></td>
+              <td style="padding:4px 8px;"><span class="num" style="color:var(--bad);">−4.4%</span> on Nov 5 <span style="color:var(--text-muted);">(largest since Apr 4, 2025)</span></td>
+            </tr>
+            <tr>
+              <td style="padding:4px 8px 4px 0; font-weight:600;">Nasdaq-100 (QQQ)</td>
+              <td style="padding:4px 8px; color:var(--good);">↑ above <span class="num">+5.0%</span></td>
+              <td style="padding:4px 8px; color:var(--bad);">↓ below <span class="num">−2.0%</span></td>
+              <td style="padding:4px 8px;"><span class="num" style="color:var(--bad);">−6.5%</span> on Nov 5 <span style="color:var(--text-muted);">(largest in data back to Nov 8, 2024)</span></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
+      <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:8px; font-size:0.8125rem;">
+        <span>VIX <span class="num">18.2</span> · normal range <span style="color:var(--text-muted);">(latest quote)</span></span>
+        <span style="color:var(--text-muted);">Index figures as of Nov 11 close</span>
+      </div>
+      <p style="margin:6px 0 0; font-size:0.8125rem; color:var(--accent, #5AC8D8);">More market context (breadth, sectors, economy) →</p>
     </div>
   </section>
 

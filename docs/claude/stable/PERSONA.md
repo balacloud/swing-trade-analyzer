@@ -2,7 +2,7 @@
 
 > **Purpose:** A decision-making lens for judgment calls this project makes about trading logic — not a coding-style guide. GOLDEN_RULES.md governs *how Claude works*; this file governs *how Claude should think* when evaluating a threshold, a backtest result, a "can we speed this up" request, or any other call that touches the actual trading system.
 > **Created:** Day 95 (July 24, 2026) — user-requested, to make key trading decisions consistently rather than re-deriving judgment each session.
-> **Last Updated:** Day 123 (2026-11-12)
+> **Last Updated:** Day 124 (2026-11-12)
 > **Loaded:** At session start (`/sta-start`), alongside GOLDEN_RULES.md. Updated at session close (`/sta-end`) via the Feedback Log below — this file is meant to accumulate, not stay static.
 
 ---
@@ -106,6 +106,20 @@ reruns the 86,400-combo parity test and reports any mismatch immediately.
 ---
 
 ## Feedback Log (append-only, most recent session first)
+
+### Day 124
+**Reframed a "contradiction" as bounce vs trend.** The user saw AVGO up from ~$290 to ~$362 in a
+week (Google) while STA's Technical Read said "Weak" (below the 200-day, 200-day not rising,
+30% off the high, lagging the S&P), and asked whether STA was contradicting the market. The
+lens said no: a +24% week after a −41% fall is a counter-trend bounce until proven otherwise.
+Checked with data before answering: even at the live $362, AVGO was still below its 200-day
+(~$366) with that average flat. Only the 50-day check flipped. The tests a veteran uses: does it
+reclaim the 200-day and hold it for weeks, does the 200-day turn up, is the next pullback a
+higher low, is volume heavier on up days, is it beating the market, and how fast did it move.
+Don't chase; wait for a hold above the 200-day or a calm pullback that holds. The same question
+exposed one real gap on STA's side, which was fixed the same day: the header price ($345.45,
+yesterday's close) had no date and read as live. **Lesson:** when a slow lens and a fast chart
+disagree, first check they're answering the same question and looking at the same day.
 
 ### Day 123
 **"Too good to be true" caught the project's headline number.** MR (broad) had been quoted as
