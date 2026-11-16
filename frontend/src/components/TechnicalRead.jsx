@@ -122,6 +122,8 @@ function TimingRuler({ timing }) {
       </div>
       <div className="relative h-3 rounded-full overflow-hidden bg-gray-700/50">
         <span className="absolute inset-y-0 bg-sky-800/70" style={{ left: `${Math.min(x, e)}%`, width: `${Math.abs(x - e)}%` }} />
+        {/* Day 126: where the live price sits on the same scale (display only) */}
+        {timing.live != null && <span className="absolute inset-y-0 w-0.5 bg-amber-400" style={{ left: `${at(timing.live)}%` }} />}
       </div>
       <div className="relative mt-0" style={{ height: 6 + (rows - 1) * ROW_GAP + 34 }}>
         {ticks.map((k) => (
@@ -136,6 +138,17 @@ function TimingRuler({ timing }) {
           </div>
         ))}
       </div>
+      {timing.live != null && (
+        /* its own row and test id: the close bubble and the average labels stay untouched */
+        <div className="relative h-9" data-testid="live-tick" data-price={timing.live.toFixed(2)}>
+          <span className="absolute top-0 -translate-x-1/2 border-x-[5px] border-x-transparent border-b-[6px] border-b-amber-400" style={{ left: `${at(timing.live)}%` }} />
+          <div className="absolute top-2 -translate-x-1/2 text-center leading-tight whitespace-nowrap"
+            style={{ left: `min(max(${at(timing.live)}%, 46px), calc(100% - 46px))` }}>
+            <div className="text-[11px] sm:text-xs font-mono text-amber-300 font-semibold">{money(timing.live)}</div>
+            <div className="text-[11px] text-gray-500">now</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -215,13 +228,13 @@ function VolumeDetail({ srData }) {
   );
 }
 
-export default function TechnicalRead({ ticker, technical, adxData, rsData, patternsData, price, ema21, sma50, sma200, priceHistory, srData }) {
+export default function TechnicalRead({ ticker, technical, adxData, rsData, patternsData, price, ema21, sma50, sma200, priceHistory, srData, livePrice = null }) {
   const read = useMemo(() => deriveTechnicalRead(technical, adxData), [technical, adxData]);
   const strong = useMemo(() => deriveStrongCriteria(technical, rsData), [technical, rsData]);
   const trendChecks = useMemo(() => deriveTrendChecks(patternsData, priceHistory?.length ?? null), [patternsData, priceHistory]);
   const timing = useMemo(
-    () => deriveEntryTiming({ price, ema21, sma50, sma200, atr: srData?.meta?.atr }),
-    [price, ema21, sma50, sma200, srData]
+    () => deriveEntryTiming({ price, ema21, sma50, sma200, atr: srData?.meta?.atr, livePrice }),
+    [price, ema21, sma50, sma200, srData, livePrice]
   );
   const volume = useMemo(() => deriveEntryVolume({ priceHistory, srData }), [priceHistory, srData]);
 
@@ -294,6 +307,11 @@ export default function TechnicalRead({ ticker, technical, adxData, rsData, patt
                 That is {Math.abs(timing.atrUnits).toFixed(1)} of a normal day's move{timing.side === 'at' ? '' : ` ${timing.side} it`}. A normal day's move here is {money(timing.atr)}.
               </div>
               <TimingRuler timing={timing} />
+              {timing.live != null && (
+                <div className="text-xs text-gray-500" data-testid="timing-live-note">
+                  The numbers above use the last close. The amber mark is the live price ({money(timing.live)}).
+                </div>
+              )}
               <Why>
                 The 21-day average is the line the stock has hovered around for about a month. A "day's move" is the stock's ATR
                 ({money(timing.atr)} here), how far it normally travels in a day, and it is the same number your stop on the Trade Setup

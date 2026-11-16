@@ -197,6 +197,9 @@ PROVIDER_LIMITS = {
     'finnhub':       {'rate_per_minute': 60, 'daily_limit': 0},
     'fmp':           {'rate_per_minute': 10, 'daily_limit': 250},
     'yfinance':      {'rate_per_minute': 30, 'daily_limit': 0},
+    # Day 126: live quotes get their own budget and breaker so failed minute-bar
+    # fetches can never block daily OHLCV.
+    'yfinance_live': {'rate_per_minute': 30, 'daily_limit': 0},
     'stooq':         {'rate_per_minute': 5,  'daily_limit': 0},
     'alphavantage':  {'rate_per_minute': 5,  'daily_limit': 25},
     # Day 83: observed 120/min on Tradier's market-data endpoints; 100 is a

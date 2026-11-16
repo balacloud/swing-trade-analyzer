@@ -11,6 +11,7 @@
  *   A3 backdrop equals the API payload  (A8 Simple view badge: removed Day 126 with the checklist)
  *   A10 Buy and level rows equal /api/sr    A11 Data Sources tab equals /api/provenance, /api/stock, /api/health
  *   A12 Entry ruler: dot price = page price, tick spacing = the Trade Setup ATR, no verdict words
+ *   A13 Live price line + ruler marker equal /api/quote (Day 126)
  *   A4 classification (ETF, no Unknown) A9 cards fit at 390px
  * (A7 "data source shown" dropped: the app header shows it on every tab, so it
  * could never fail.) Unit tests for the checks: scripts/test_analyze_checks.mjs.
@@ -81,6 +82,7 @@ function captureKey(url, ticker) {
   if (p === '/api/market/vix') return 'vix';
   if (p === `/api/stock/${ticker}`) return 'stock';
   if (p === `/api/earnings/${ticker}`) return 'earnings'; // query string (?days=N) ignored
+  if (p === `/api/quote/${ticker}`) return 'quote'; // Day 126: A13 compares the live price line to it
   if (p === `/api/sr/${ticker}`) return 'sr'; // Day 126: A10 compares the plan and level rows to this payload
   if (p === `/api/provenance/${ticker}`) return 'provenance'; // Day 126: A11 compares the Data Sources tab to it
   if (p === '/api/health') return 'health';                   // Day 126: A11 compares the source chain to providers.chains
@@ -132,6 +134,14 @@ async function extractDom(page) {
           ticks: [...document.querySelectorAll('[data-testid="timing-tick"]')].map(t => parseFloat(t.dataset.price)),
         };
       })(),
+      live: {
+        priceText: text(q('live-price')),
+        changeText: text(q('live-change')),
+        statusText: text(q('live-status')),
+        closeText: text(q('price-as-of')),
+        tickCount: document.querySelectorAll('[data-testid="live-tick"]').length,
+        tickPrice: (q('live-tick') || { dataset: {} }).dataset.price || null,
+      },
       planBuy: text(q('plan-buy-value')),
       levelRows: { support: text(q('key-level-support')), resistance: text(q('key-level-resistance')) },
       backdrop: { rows, vix: text(backdropCard && backdropCard.querySelector('[data-testid="backdrop-vix"]')) },
@@ -189,7 +199,7 @@ async function verifyTicker(page, ticker, index, total, helpers) {
   console.log(`\n${label}: analyzing...`);
   const api = { spy: { status: null, body: null }, qqq: { status: null, body: null }, vix: { status: null, body: null },
     stock: { status: null, body: null }, earnings: { status: null, body: null }, sr: { status: null, body: null },
-    provenance: { status: null, body: null }, health: { status: null, body: null } };
+    provenance: { status: null, body: null }, health: { status: null, body: null }, quote: { status: null, body: null } };
   let recording = false;
   const pending = [];
   const onResponse = (res) => {

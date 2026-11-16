@@ -35,3 +35,32 @@ def drop_forming_bar(df, now=None):
     if is_forming_bar(str(df.index[-1])[:10], now=now):
         return df.iloc[:-1], True
     return df, False
+
+
+# --- Day 126: session of a quote, from the quote's OWN trade time ----------
+# No exchange calendar exists in STA, so none is invented. A trade that is not
+# from today (New York date) or is outside the usual extended hours means the
+# market is "closed" - weekends and holidays fall out of this without a table.
+# Known limit (documented): on an early-close day the session reads "regular"
+# until the last trade is older than the staleness limit in live_quote.py.
+PRE_OPEN = (4, 0)
+REG_OPEN = (9, 30)
+REG_CLOSE = (16, 0)
+POST_CLOSE = (20, 0)
+
+
+def session_for(trade_time, now=None):
+    """'pre' | 'regular' | 'post' | 'closed' for a tz-aware trade time.
+    Toronto listings trade on the same clock, so one rule serves both."""
+    now_et = (now or datetime.now(MARKET_TZ)).astimezone(MARKET_TZ)
+    t = trade_time.astimezone(MARKET_TZ)
+    if t.date() != now_et.date() or now_et.weekday() >= 5:
+        return 'closed'
+    hm = (t.hour, t.minute)
+    if PRE_OPEN <= hm < REG_OPEN:
+        return 'pre'
+    if REG_OPEN <= hm < REG_CLOSE:
+        return 'regular'
+    if REG_CLOSE <= hm < POST_CLOSE:
+        return 'post'
+    return 'closed'

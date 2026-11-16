@@ -57,5 +57,21 @@ const vol2 = deriveEntryVolume({ priceHistory: hist, todayEt: '2026-11-16',
   srData: { change: 0.0, meta: { rvol: 1.0, candle: { barComplete: true, closeLocation: 0.5 }, obv: { trend: 'flat' } } } });
 ok(vol2.tally.up === 0 && vol2.tally.down === 0 && vol2.tally.flat === 3, 'volume tally: all flat');
 
+// Day 126: the live price is display only. It widens the ruler and gets a marker; it never changes the numbers.
+const lv = deriveEntryTiming({ price: 523.88, ema21: 528.10, sma50: 510, sma200: 450, atr: 14.07, livePrice: 520.10 });
+ok(lv.live === 520.10, 'live price is carried');
+ok(near(lv.atrUnits, t3.atrUnits) && near(lv.pctFromEma, t3.pctFromEma) && lv.side === t3.side, 'live price does not change atrUnits / pctFromEma / side');
+ok(lv.marks.length === 3, 'live price does not add an average mark');
+const lvLow = deriveEntryTiming({ price: 523.88, ema21: 528.10, sma50: 510, sma200: 450, atr: 14.07, livePrice: 380 });
+ok(lvLow.lo < 380 && lvLow.hi > 528.10, 'live price below the lowest average still sits on the ruler');
+const lvHigh = deriveEntryTiming({ price: 523.88, ema21: 528.10, sma50: 510, sma200: 450, atr: 14.07, livePrice: 640 });
+ok(lvHigh.hi > 640, 'live price above every average still sits on the ruler');
+ok(t3.live === null, 'no live price: live is null');
+for (const bad of [NaN, Infinity, -5, 0, undefined, '520']) {
+  const r = deriveEntryTiming({ price: 523.88, ema21: 528.10, atr: 14.07, livePrice: bad });
+  ok(r.live === null && r.lo === deriveEntryTiming({ price: 523.88, ema21: 528.10, atr: 14.07 }).lo, `bad live price ${String(bad)} is ignored and does not move the scale`);
+}
+ok(deriveEntryTiming({ price: 100, ema21: 100, atr: 2, livePrice: 100 }).hi > 100, 'live price equal to everything still gets room');
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

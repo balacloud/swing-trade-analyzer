@@ -268,6 +268,36 @@ class YFinanceProvider(
             breaker.record_failure()
             raise ProviderUnavailableError(self.name, str(e), ticker) from e
 
+    def get_live_raw(self, ticker: str) -> dict:
+        """Day 126: last 1-minute bar (pre/post included) for the display-only
+        live quote. Uses its OWN breaker + rate budget ('yfinance_live') so a
+        run of failed minute fetches cannot block daily OHLCV."""
+        live = 'yfinance_live'
+        breaker = get_breaker(live)
+        if not breaker.allow_request():
+            raise ProviderUnavailableError(live, "Circuit breaker OPEN", ticker)
+        if not check_rate_limit(live):
+            from .exceptions import RateLimitError
+            raise RateLimitError(live, "Rate limit exceeded", ticker)
+        try:
+            df = yf.Ticker(ticker).history(period='1d', interval='1m', prepost=True)
+            if df is None or df.empty:
+                # Ticker-specific, not a health signal
+                raise DataNotFoundError(live, "No 1-minute bars", ticker)
+            df = df.dropna(subset=['Close'])
+            if df.empty:
+                raise DataNotFoundError(live, "No 1-minute close", ticker)
+            ts = df.index[-1]
+            if getattr(ts, 'tzinfo', None) is None:
+                ts = ts.tz_localize(_NY_TZ)
+            breaker.record_success()
+            return {'price': float(df['Close'].iloc[-1]), 'trade_time': ts.to_pydatetime(), 'source': 'yfinance'}
+        except DataNotFoundError:
+            raise
+        except Exception as e:
+            breaker.record_failure()
+            raise ProviderUnavailableError(live, str(e), ticker) from e
+
     def get_stock_info(self, ticker: str) -> StockInfoResult:
         """Fetch stock metadata (name, sector, 52wk, avg volume)"""
         self._check_availability()

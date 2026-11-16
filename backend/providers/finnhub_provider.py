@@ -122,6 +122,31 @@ class FinnhubProvider(FundamentalsProvider, QuoteProvider):
             breaker.record_failure()
             raise ProviderUnavailableError(self.name, str(e), ticker) from e
 
+    def get_live_raw(self, ticker: str) -> dict:
+        """Day 126: current price `c` + trade time `t` (epoch seconds) for the
+        display-only live quote. US tickers only."""
+        self._check_availability()
+        breaker = get_breaker(self.name)
+        try:
+            resp = requests.get(f"{BASE_URL}/quote", params={'symbol': ticker.replace('^', ''), 'token': self.api_key}, timeout=10)
+            self._handle_http_errors(resp, ticker)
+            data = resp.json() or {}
+            price = data.get('c')
+            if price is None or price == 0:
+                raise DataNotFoundError(self.name, "No price in quote", ticker)
+            sec = data.get('t')
+            trade_time = None
+            if isinstance(sec, (int, float)) and sec > 0:
+                from datetime import datetime as _dt, timezone as _tz
+                trade_time = _dt.fromtimestamp(sec, tz=_tz.utc)
+            breaker.record_success()
+            return {'price': float(price), 'trade_time': trade_time, 'source': self.name}
+        except (DataNotFoundError, RateLimitError, AuthenticationError, ProviderUnavailableError):
+            raise
+        except Exception as e:
+            breaker.record_failure()
+            raise ProviderUnavailableError(self.name, str(e), ticker) from e
+
     def _handle_http_errors(self, resp, ticker: str):
         """Handle HTTP-level errors consistently"""
         breaker = get_breaker(self.name)

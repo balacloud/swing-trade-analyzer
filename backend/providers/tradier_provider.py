@@ -162,6 +162,38 @@ class TradierProvider(OHLCVProvider, QuoteProvider):
             breaker.record_failure()
             raise ProviderUnavailableError(self.name, str(e), ticker) from e
 
+    def get_live_raw(self, ticker: str) -> dict:
+        """Day 126: last price + the time of that trade (display-only live quote).
+        Returns {'price', 'trade_time' (tz-aware UTC datetime or None), 'source'}.
+        Same error contract as get_quote."""
+        self._check_availability()
+        breaker = get_breaker(self.name)
+        try:
+            resp = requests.get(f"{BASE_URL}/markets/quotes", params={'symbols': ticker.replace('^', '')},
+                                headers=self._headers(), timeout=10)
+            self._handle_http_errors(resp, ticker)
+            quotes = (resp.json() or {}).get('quotes') or {}
+            quote = quotes.get('quote')
+            if isinstance(quote, list):
+                quote = quote[0] if quote else None
+            if not quote or quotes.get('unmatched_symbols'):
+                raise DataNotFoundError(self.name, "Symbol unmatched", ticker)
+            price = quote.get('last')
+            if price is None:
+                raise DataNotFoundError(self.name, "No last price in quote", ticker)
+            ms = quote.get('trade_date')
+            trade_time = None
+            if isinstance(ms, (int, float)) and ms > 0:
+                from datetime import timezone
+                trade_time = datetime.fromtimestamp(ms / 1000.0, tz=timezone.utc)
+            breaker.record_success()
+            return {'price': float(price), 'trade_time': trade_time, 'source': self.name}
+        except (DataNotFoundError, RateLimitError, AuthenticationError, ProviderUnavailableError):
+            raise
+        except Exception as e:
+            breaker.record_failure()
+            raise ProviderUnavailableError(self.name, str(e), ticker) from e
+
     def _parse_ohlcv(self, day_rows: list, ticker: str) -> pd.DataFrame:
         """Parse Tradier's history.day rows into a DataFrame with lowercase columns."""
         rows = []

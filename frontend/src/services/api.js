@@ -1060,3 +1060,22 @@ export async function fetchValueData(ticker) {
     return null;
   }
 }
+
+
+/**
+ * Day 126: display-only live price (GET /api/quote/<ticker>). Always resolves
+ * with the backend's answer ({available:false, reason} on failure); a network
+ * error resolves to the same shape so the page can say "unavailable".
+ * An aborted call rejects with AbortError so the caller can ignore it.
+ */
+export async function fetchLiveQuote(ticker, signal) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/quote/${encodeURIComponent(ticker.toUpperCase())}`, { signal });
+    if (!response.ok) return { available: false, reason: `server error ${response.status}`, ticker: ticker.toUpperCase() };
+    return await response.json();
+  } catch (error) {
+    if (error && error.name === 'AbortError') throw error;
+    console.warn(`[STA] live quote ${ticker}: ${error.message}`);
+    return { available: false, reason: 'cannot reach the server', ticker: ticker.toUpperCase() };
+  }
+}

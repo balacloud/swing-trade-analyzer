@@ -1041,6 +1041,25 @@ def get_data_provenance(ticker):
     return jsonify(provenance)
 
 
+@app.route('/api/quote/<ticker>', methods=['GET'])
+def get_live_quote_route(ticker):
+    """Day 126: display-only live price (Tradier -> Yahoo 1-min -> Finnhub; Canadian: Yahoo).
+    Always HTTP 200; failure is {'available': False, 'reason': ...}, never a guessed price."""
+    import re
+    import live_quote
+    ticker = (ticker or '').upper()
+    if not re.fullmatch(r'[A-Z0-9.\-^]{1,12}', ticker):
+        return jsonify({'available': False, 'reason': 'invalid ticker'})
+    if not DATA_PROVIDER_AVAILABLE:
+        return jsonify({'available': False, 'reason': 'data providers not loaded', 'ticker': ticker})
+    try:
+        return jsonify(live_quote.get_live_quote(
+            ticker, get_data_provider(), cache=cache_manager if SQLITE_CACHE_AVAILABLE else None))
+    except Exception as e:  # noqa: BLE001 - logged; the page shows "unavailable"
+        print(f"⚠️ live quote {ticker}: route failed - {e}")
+        return jsonify({'available': False, 'reason': 'live price source unavailable', 'ticker': ticker})
+
+
 @app.route('/api/stock/<ticker>', methods=['GET'])
 def get_stock_data(ticker):
     """

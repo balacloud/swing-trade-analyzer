@@ -38,6 +38,8 @@ const API = {
     indicators: [{ name: 'SMA 50 / 200' }, { name: 'RSI 14' }], indicators_error: null,
     quality: { state: 'ok', level: 'PASS', checks: { freshness: { level: 'PASS' }, integrity: { level: 'PASS' }, history: { level: 'PASS' }, jumps: { level: 'PASS' } } } } },
   health: { status: 200, body: { providers: { chains: { ohlcv: ['twelvedata', 'yfinance', 'tradier'] } } } },
+  quote: { status: 200, body: { available: true, ticker: 'AAPL', session: 'regular', price: 520.10, change: -3.78, change_pct: -0.72,
+    last_trade_at: '2026-11-16T14:51:00-05:00', age_minutes: 1.0, last_close: { price: 523.88, date: '2026-11-13' }, source: 'tradier' } },
   earnings: { status: 200, body: { has_upcoming: false, earnings_date: '2027-01-29', days_until: 78 } },
   sr: { status: 200, body: {
     support: [262.10, 250.00], resistance: [281.00], suggestedEntry: 262.10, suggestedTarget: 281.00,
@@ -78,6 +80,7 @@ const DOM = {
   },
   ticker: 'AAPL',
   timing: { present: true, unavailable: null, price: '$523.88', ticks: [450.00, 510.00, 528.10] },
+  live: { priceText: 'Now $520.10', changeText: ' (\u22120.74%)', statusText: ' \u00b7 Live \u00b7 last trade 2:51pm ET', closeText: 'Last close $523.88 \u00b7 Nov 13', tickCount: 1, tickPrice: '520.10' },
   ds: { present: true, error: false, symbol: 'AAPL', exchange: 'NasdaqGS', currency: 'USD', cls: 'Stock', dataFrom: 'Twelve Data', verdict: 'PASS',
     qualityRows: [], allPass: true,
     indicatorRows: [['SMA 50 / 200', 'this stock\'s daily closes', 'Average of the last 50 closes'], ['RSI 14', 'this stock\'s daily closes', 'Wilder']], indicatorsUnavailable: false, splitNotes: [],
@@ -297,6 +300,28 @@ mustPass('A9', 'page-level overflow alone is reported, not failed', d => { d.pag
   const checks = runChecks(d, API, helpers);
   expect(checks.every(c => !c.pass), 'error banner -> every check fails (no vacuous pass)');
 }
+
+// ---------- A13 live price line ----------
+mustFail('A13', 'live price differs from the quote', d => { d.live.priceText = 'Now $519.00'; });
+mustFail('A13', 'no live price although the quote has one', d => { d.live.priceText = null; });
+mustFail('A13', 'no trade time shown', d => { d.live.statusText = ' \u00b7 Live'; });
+mustFail('A13', 'close line is not the quote\'s last close', d => { d.live.closeText = 'Last close $519.00 \u00b7 Nov 13'; });
+mustFail('A13', 'change shown red while the price is above the close', null, a => { a.quote.body.price = 530; });
+mustFail('A13', 'no live-tick marker although the ruler is drawn', d => { d.live.tickCount = 0; d.live.tickPrice = null; });
+mustFail('A13', 'two live-tick markers', d => { d.live.tickCount = 2; });
+mustFail('A13', 'ruler live marker at another price', d => { d.live.tickPrice = '519.00'; });
+mustFail('A13', 'quote response was not captured', null, a => { a.quote = { status: null, body: null }; });
+mustFail('A13', 'quote returned 500', null, a => { a.quote.status = 500; });
+const closedQuote = a => { a.quote.body = { available: true, ticker: 'AAPL', session: 'closed', price: null, change: null, change_pct: null, last_close: { price: 523.88, date: '2026-11-13' } }; };
+mustPass('A13', 'market closed: no live price, no marker, said in words', d => { d.live = { priceText: null, changeText: null, statusText: ' \u00b7 Market closed, last close shown', closeText: '$523.88 \u00b7 Nov 13 close', tickCount: 0, tickPrice: null }; }, closedQuote);
+mustFail('A13', 'market closed but a live marker is still drawn', d => { d.live = { priceText: null, changeText: null, statusText: ' \u00b7 Market closed, last close shown', closeText: '', tickCount: 1, tickPrice: '520.10' }; }, closedQuote);
+mustFail('A13', 'market closed but a live price is still shown', d => { d.live.statusText = ' \u00b7 Market closed, last close shown'; }, closedQuote);
+mustFail('A13', 'market closed and nothing says so', d => { d.live = { priceText: null, changeText: null, statusText: null, closeText: '', tickCount: 0, tickPrice: null }; }, closedQuote);
+const downQuote = a => { a.quote.body = { available: false, reason: 'no recent trades', ticker: 'AAPL' }; };
+mustPass('A13', 'source down: said in words, no marker', d => { d.live = { priceText: null, changeText: null, statusText: ' \u00b7 Live price unavailable (no recent trades)', closeText: '$523.88 \u00b7 Nov 13 close', tickCount: 0, tickPrice: null }; }, downQuote);
+mustFail('A13', 'source down but the page still shows a live price', null, downQuote);
+mustFail('A13', 'source down and the ruler still has a marker', d => { d.live.priceText = null; d.live.statusText = 'Live price unavailable (no recent trades)'; }, downQuote);
+mustPass('A13', 'ruler not drawn (no ATR): no marker expected', d => { d.timing = { present: false, unavailable: "Can't tell: ATR unavailable.", price: null, ticks: [] }; d.live.tickCount = 0; d.live.tickPrice = null; }, a => { delete a.sr.body.meta.atr; });
 
 // ---------- never throws ----------
 {

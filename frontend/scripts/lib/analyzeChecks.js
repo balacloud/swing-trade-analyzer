@@ -15,8 +15,8 @@
 // Day 126: A8 (Simple view badge) removed with the Simple Checklist; its absence is now part of A2.
 // Day 126: A10 added with the simple S&R switch (7 -> 8 checks).
 // Day 126: A11 added with the Data Sources tab v2 (8 -> 9 checks).
-// Day 126: A12 added with the entry-timing ruler (9 -> 10 checks).
-const CHECK_IDS = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A9', 'A10', 'A11', 'A12'];
+// Day 126: A12 added with the entry-timing ruler (9 -> 10 checks); A13 with the live price line (10 -> 11).
+const CHECK_IDS = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A9', 'A10', 'A11', 'A12', 'A13'];
 const NAMES = {
   A1: 'Card order (backdrop first)',
   A2: 'Removed elements absent',
@@ -28,6 +28,7 @@ const NAMES = {
   A10: 'Buy and level rows match /api/sr',
   A11: 'Data Sources tab matches the backend',
   A12: 'Entry ruler matches the data',
+  A13: 'Live price line matches /api/quote',
 };
 const ORDER = ['card-market-backdrop', 'card-stock-header', 'card-technical-read', 'card-mr-read', 'card-trade-setup', 'card-fundamentals', 'card-breakout'];
 // A6 measures each card's BODY: the text below its title row and subtitle, which carry
@@ -311,11 +312,46 @@ function checkA12(dom, api) {
   return result('A12', problems.length === 0, 'dot = page price, marks = 21/50/200-day averages, no verdict wording', problems.join('; ') || `dot ${norm(t.price)}, marks ${k.map(x => x.toFixed(2)).join(' / ')}`);
 }
 
+// A13 (Day 126): the live price line shows what /api/quote sent, with its trade time; the "Last close" line is the quote's own;
+// the amber ruler marker (live-tick) exists only with a usable live price; every other state is said out loud, never a stale close posing as live.
+const money2 = (v) => `$${v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+function checkA13(dom, api) {
+  const L = dom.live;
+  if (!L) return result('A13', false, 'live price reader', 'page reader did not return live');
+  const q = api.quote;
+  const problems = [];
+  const body = ok(q) ? q.body : null;
+  if (!body) {
+    problems.push('/api/quote response not captured');
+    return result('A13', false, 'live price line equals /api/quote', problems.join('; '));
+  }
+  const usable = body.available === true && body.session !== 'closed' && Number.isFinite(body.price) && body.price > 0;
+  const ticksWanted = usable && dom.timing && dom.timing.present ? 1 : 0;
+  if (L.tickCount !== ticksWanted) problems.push(`${L.tickCount} live-tick marker(s), expected ${ticksWanted}`);
+  if (usable) {
+    if (norm(L.priceText) !== `Now ${money2(body.price)}`) problems.push(`live price "${norm(L.priceText)}" != "Now ${money2(body.price)}"`);
+    if (!/last trade \d{1,2}:\d{2}(am|pm) ET/.test(norm(L.statusText))) problems.push(`no trade time in "${norm(L.statusText)}"`);
+    if (ticksWanted && L.tickPrice !== body.price.toFixed(2)) problems.push(`ruler live marker ${L.tickPrice} != ${body.price.toFixed(2)}`);
+    const lc = body.last_close;
+    if (lc && Number.isFinite(lc.price)) {
+      if (!norm(L.closeText).startsWith(`Last close ${money2(lc.price)}`)) problems.push(`close line "${norm(L.closeText)}" != quote last close ${money2(lc.price)}`);
+      const up = body.price - lc.price >= 0;
+      if (L.changeText && up !== !/^\(\u2212/.test(norm(L.changeText))) problems.push(`change "${norm(L.changeText)}" has the wrong sign`);
+    }
+  } else {
+    if (L.priceText) problems.push(`"${norm(L.priceText)}" shown although the quote has no usable live price`);
+    const want = body.available === true ? /closed/ : /unavailable/;
+    if (!want.test(norm(L.statusText))) problems.push(`state not said out loud (wanted ${want}, got "${norm(L.statusText)}")`);
+  }
+  return result('A13', problems.length === 0, 'live line, close line and ruler marker equal /api/quote; other states shown in words',
+    problems.join('; ') || (usable ? `${money2(body.price)} · ${norm(L.statusText)}` : `${body.available === true ? 'market closed' : 'unavailable (' + body.reason + ')'} shown in words`));
+}
+
 function runChecks(dom, api, helpers) {
   const d = dom || {};
   const a = api || {};
   if (d.error) return CHECK_IDS.map(id => result(id, false, 'analysis loads', `error banner: ${norm(d.error).slice(0, 120)}`));
-  const fns = { A1: checkA1, A2: checkA2, A3: checkA3, A4: checkA4, A5: checkA5, A6: checkA6, A9: checkA9, A10: checkA10, A11: checkA11, A12: checkA12 };
+  const fns = { A1: checkA1, A2: checkA2, A3: checkA3, A4: checkA4, A5: checkA5, A6: checkA6, A9: checkA9, A10: checkA10, A11: checkA11, A12: checkA12, A13: checkA13 };
   return CHECK_IDS.map(id => {
     try { return fns[id](d, a, helpers || {}); }
     catch (err) { return result(id, false, 'check runs', `check threw: ${err.message}`); }

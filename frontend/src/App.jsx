@@ -43,6 +43,8 @@ import { calculateScore } from './utils/scoringEngine';
 import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings, getVixPositionMultiplier } from './utils/positionSizing';
 import { runCategoricalAssessment } from './utils/categoricalAssessment';
 import { describePriceAsOf } from './utils/priceAsOf'; // Day 124: header price date label
+import { signedPct } from './utils/liveQuote'; // Day 126: live price line
+import useLiveQuote from './hooks/useLiveQuote'; // Day 126: display-only live price
 import DataSourcesTab from './components/DataSourcesTab'; // Day 126: Data Sources tab v2 (quality, identity, real chains)
 import PullbackPlan from './components/PullbackPlan'; // Day 123: redesign Step 3, Trade Setup pullback plan
 import RegimeRead from './components/RegimeRead'; // Day 123: redesign Step 4
@@ -86,6 +88,7 @@ function App() {
   const [error, setError] = useState(null);
   const [backendStatus, setBackendStatus] = useState({ healthy: false });
   const [analysisResult, setAnalysisResult] = useState(null);
+  const live = useLiveQuote(analysisResult?.ticker); // Day 126: display-only live price for the Analyze header + ruler
   const [srData, setSrData] = useState(null);
   const [patternsData, setPatternsData] = useState(null); // Day 44: Pattern detection
   const [earningsData, setEarningsData] = useState(null); // Day 49: v4.10 Earnings Calendar
@@ -979,16 +982,39 @@ function App() {
                           );
                         })()}
                       </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <p className="text-gray-500 text-sm">
-                          {formatCurrency(analysisResult.currentPrice)}
-                          {/* Day 124: say which day this price is from (it's the last bar, not a live quote) */}
-                          {(() => {
-                            const asOf = describePriceAsOf(rawAnalysisData?.stock?.newestDate);
-                            return asOf
-                              ? <span data-testid="price-as-of" className="text-gray-500"> · {asOf}</span>
-                              : <span data-testid="price-as-of" className="text-gray-600 italic"> · date not reported</span>;
-                          })()}
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
+                        <p className="text-gray-500 text-sm w-full sm:w-auto">
+                          {/* Day 126: live price (display only) with its own trade time; the close line below comes from the same quote answer */}
+                          {live.price != null && (
+                            <>
+                              <span data-testid="live-price" className="text-gray-100 font-semibold">Now {formatCurrency(live.price)}</span>
+                              {live.changePct != null && (
+                                <span data-testid="live-change" className={live.changePct >= 0 ? 'text-green-400' : 'text-red-400'}> ({signedPct(live.changePct)})</span>
+                              )}
+                              <span data-testid="live-status" className="text-gray-400 block sm:inline">
+                                <span className="hidden sm:inline">{' · '}</span>{live.state === 'live' ? 'Live · ' : live.state === 'pre' ? 'Pre-market · ' : live.state === 'post' ? 'After hours · ' : ''}
+                                last trade {live.tradeTime}{live.ageText ? ` (${live.ageText})` : ''}
+                              </span>
+                              <span className="hidden sm:inline">{' · '}</span>
+                            </>
+                          )}
+                          {live.price != null && live.lastClose ? (
+                            <span data-testid="price-as-of" className="text-gray-500 block sm:inline">Last close {formatCurrency(live.lastClose.price)}{live.lastClose.dateLabel ? ` · ${live.lastClose.dateLabel}` : ''}</span>
+                          ) : (
+                            <>
+                              {formatCurrency(analysisResult.currentPrice)}
+                              {/* Day 124: say which day this price is from (it's the last bar, not a live quote) */}
+                              {(() => {
+                                const asOf = describePriceAsOf(rawAnalysisData?.stock?.newestDate);
+                                return asOf
+                                  ? <span data-testid="price-as-of" className="text-gray-500"> · {asOf}</span>
+                                  : <span data-testid="price-as-of" className="text-gray-600 italic"> · date not reported</span>;
+                              })()}
+                            </>
+                          )}
+                          {live.price == null && (live.state === 'closed' || live.state === 'unavailable') && (
+                            <span data-testid="live-status" className="text-gray-500 italic"> · {live.statusText}</span>
+                          )}
                         </p>
                         {/* Day 49: v4.10 Earnings Warning Badge */}
                         {earningsData?.hasUpcoming && (
@@ -1045,6 +1071,7 @@ function App() {
                   rsData={analysisResult.rsData}
                   patternsData={patternsData}
                   price={analysisResult.currentPrice}
+                  livePrice={live.price}
                   ema21={analysisResult.indicators?.ema21}
                   sma50={analysisResult.indicators?.sma50}
                   sma200={analysisResult.indicators?.sma200}

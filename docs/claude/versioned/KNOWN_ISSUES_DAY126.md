@@ -6,6 +6,13 @@
 
 ## Changes from Day 125
 
+- **Added (Day 126): live price in the Analyze header and ruler.** NVDA showed Friday's close ($162.85) while IBKR showed
+  $156.10 (-4.14%): a one-day gap, not a delay. New display-only `GET /api/quote/<ticker>` (`backend/live_quote.py`):
+  US = Tradier -> Yahoo 1-minute -> Finnhub; Canadian = Yahoo 1-minute only; own `yfinance_live` breaker and rate budget;
+  45 s cache; a regular-session trade older than 20 min is "no recent trades". Change is measured from the last COMPLETED
+  daily bar (forming bar dropped). Header shows `Now $X (-Y%) · last trade 2:51pm ET` and `Last close $X · date`; an amber
+  `live-tick` marker on the ruler; page check A13. Indicators, verdicts and stops are untouched. Plan:
+  `docs/claude/design/LIVE_QUOTE_PLAN_DAY126.md`. Real-data run: NVDA 155.99 vs IBKR 156.10, SOXL.NE and GDXU.TO current.
 - **Resolved:** SOXL.NE (BetaPro 3x semiconductor, 3-for-1 split on 2026-05-25) had unadjusted history at Yahoo and
   EODHD, so ATR, RSI, S&R and the 52-week high were wrong. Fixed by the split mechanism (table, classifier, adjuster,
   detector). Live: 05-22 close 47.28, 52-week high 74.21, ATR about 2.01.
@@ -52,6 +59,13 @@
 - **New (Low / Info):** the items below under "Day 126 — Technical Read and volume card".
 
 ## Open Issues
+
+### Low: live quote limits (Day 126)
+No exchange calendar exists, so the session comes from the trade's own time. On an early-close day the session reads
+"regular" until the last trade is older than 20 minutes. Pre/post-market trades have no age limit (thin by nature). The
+Scan tab, leaderboards and the Technical Read card's own numbers still use closes. The header "Last close" line comes from
+the quote answer, so while `/api/stock` still includes the forming bar (Medium issue above) the card inputs and that line
+can differ until that is fixed. Recommended as the very next separate plan.
 
 ### Low: `backtest/sector_quadrant_history.py` is out of step with the live RRG (Day 126)
 It replays 126-day windows through `compute_rs_ratio_and_quadrant`; the new weekly formula needs about 16+ weeks, so
