@@ -1,4 +1,9 @@
 """
+WARNING (Day 126): the live sector rotation is now the weekly RRG in backend/rrg.py. This replay still
+feeds 126-day windows to compute_rs_ratio_and_quadrant (momentum_lookback is ignored), so every replay day
+uses the thin-history branch and does NOT match production or the old SRPS Gate-1 numbers. Research only.
+
+
 Sector Quadrant History — Gate 0 prerequisite #1 (SRPS design doc v1.2, Section 3)
 
 Gate 0 (SRPS: Sector Rotation Pullback System) needs to count how many

@@ -32,6 +32,15 @@
   `rsMomentum` stays centred on 0 so every existing consumer works. Sectors tab gained the RRG chart with trails.
   Today's corner changes: sectors XLE, XLF, XLB, XLY, XLC, XLRE, XLU moved; 7 of 21 sub-industry clusters moved.
   Size signal went Neutral -> Risk-Off (IWM minus QQQ is -2.87; gap threshold is now 1.0 on the new scale).
+- **Changed (Sectors tab trimmed to facts):** the takeaway sentence, "Scan Top Sector" button, corner-count chips, macro
+  line, Risk-On/Risk-Off label and the "most trade-ready / avoid" hints are gone. The 11 sector cards became one compact
+  table (corner, ratio, momentum, 1 wk, 1 mo, Scan link); the cap-size strip shows numbers and its corner. The two
+  pullback screeners are hidden (`SHOW_PULLBACK_SCREENERS = false`, same idea as the hidden Forward Test tab); their
+  endpoints still work. Sub-Industry Watch gained its own RRG chart + table; the 6 clusters that use a broad-sector ETF
+  (Optical, Enterprise Tech, Financials, Communication Services, Energy, High-beta mega) are computed but flagged
+  `coveredBySector` and listed in one line instead of repeating a sector row. Cached rotation responses carry
+  `rrgVersion` (2); older cached rows are ignored. Independent Opus review of the change: 5 findings, 3 fixed
+  (cache version, pullback screener keeps all 21 clusters, size strip corner now comes from the backend), 2 logged below.
 - **Added (process):** a Stop hook blocks the end of a turn when code changed and no three-pass review stamp exists
   (`.claude/hooks/three_pass_check.sh`, `/three-pass`, Golden Rule 64).
 - **New (Low / Info):** the items below under "Day 126 — Technical Read and volume card".
@@ -40,8 +49,16 @@
 
 ### Low: `backtest/sector_quadrant_history.py` is out of step with the live RRG (Day 126)
 It replays 126-day windows through `compute_rs_ratio_and_quadrant`; the new weekly formula needs about 16+ weeks, so
-the replay and the sector/sub-industry pullback screeners' "history" gates are no longer the same formula the app
-shows. Research tooling only; not fixed (user does not rely on backtests).
+the replay and SRPS Gate-1 numbers no longer match the live formula (the script now carries a warning in its docstring).
+The pullback screeners' quadrant gate also uses the new RRG corners, not the rule that was backtested. Research tooling
+only; not fixed (user does not rely on backtests).
+
+### Low: dead verdict text and loose bounds left in the rotation backend (Day 126)
+`/api/sectors/rotation` still computes `size_signal`, `size_signal_detail` and `macro_alignment` (verdict-style text) that no
+screen shows; `macro_alignment` still calls the cycles and econ endpoints on every fresh fetch. `test_sector_rotation.py`
+still checks `size_signal`, and its ratio sanity bounds (40-300; sub-industry 30-350) no longer catch a units bug on the
+new ~94-106 scale. The cache key ignores `?period=`, so one odd-period call could cache for the day (pre-existing).
+yfinance 2y returns ~502 rows, under the cache's 504-row minimum, so 2y OHLCV never hits cache (pre-existing).
 
 ### Info: sector corners are sensitive to the RRG window choice (Day 126)
 With the 10 / 26 / 4 week windows several sectors sit near the lines; a different window moves them. Guidance only,

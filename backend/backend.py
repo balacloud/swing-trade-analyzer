@@ -107,6 +107,7 @@ except ImportError as _e:
     SIMPLE_SR_AVAILABLE = False
     print(f"⚠️  Simple S&R engine not available: {_e}")
 from sub_industry_clusters import SUB_INDUSTRY_CLUSTERS, NO_PROXY_CLUSTERS  # Day 100+ Sub-Industry Watch
+RRG_CACHE_VERSION = 2  # bump when the RRG response shape/scale changes; older cached rows are ignored
 from rrg import compute_rrg  # Day 126: RRG-style sector rotation (weekly, JdK approximation)
 from srps_constants import (  # SRPS pullback screener (Day 102) — see srps_constants.py docstring
     RS_LOOKBACK_DAYS as SRPS_RS_LOOKBACK_DAYS, RS_FLOOR as SRPS_RS_FLOOR,
@@ -2614,7 +2615,7 @@ def get_sector_rotation():
         # Check cache first (expires at next market close)
         if SQLITE_CACHE_AVAILABLE:
             cached = cache_manager.get_cached_market('SECTOR_ROTATION')
-            if cached:
+            if cached and cached.get('rrgVersion') == RRG_CACHE_VERSION:
                 print("📦 Sector rotation cache HIT")
                 cached['cached'] = True
                 return jsonify(cached)
@@ -2707,12 +2708,13 @@ def get_sector_rotation():
                 spy_al = spy_close.loc[common_idx]
                 etf_al = etf_close.loc[common_idx]
                 # Same shared RRG formula as the sectors above (one formula, one place)
-                rs_ratio, rs_momentum, _quad = compute_rs_ratio_and_quadrant(etf_al, spy_al)
+                rs_ratio, rs_momentum, size_quad = compute_rs_ratio_and_quadrant(etf_al, spy_al)
                 size_rotation.append({
                     'etf': etf,
                     'name': SIZE_ETF_NAMES[etf],
                     'rsRatio': rs_ratio,
                     'rsMomentum': rs_momentum,
+                    'quadrant': size_quad,
                 })
             except Exception as e:
                 print(f"⚠️ Error processing size ETF {etf}: {e}")
@@ -2780,6 +2782,7 @@ def get_sector_rotation():
 
         response = {
             'sectors': sectors,
+            'rrgVersion': RRG_CACHE_VERSION,
             'sectorCount': len(sectors),
             'mapping': GICS_TO_ETF,
             'size_rotation': size_rotation,
@@ -2810,7 +2813,7 @@ def get_sub_industry_rotation():
     Sub-industry theme cluster RS-ratio/momentum/quadrant — one level below the
     11 broad GICS sectors above (Day 100+, "Sub-Industry Watch"). Same RS-ratio
     formula as get_sector_rotation() (compute_rs_ratio_and_quadrant() — DRY,
-    not a second implementation), applied to 21 curated proxy ETFs (SUB_INDUSTRY_CLUSTERS
+    not a second implementation), applied to the curated proxy ETFs (SUB_INDUSTRY_CLUSTERS
     in sub_industry_clusters.py) that fill a real gap: STA's broad-sector read is
     too coarse to show a genuinely sector-specific move (e.g. a semis-only
     selloff shows up there only as a soft "XLK: Weakening").
@@ -2825,7 +2828,7 @@ def get_sub_industry_rotation():
     try:
         if SQLITE_CACHE_AVAILABLE:
             cached = cache_manager.get_cached_market('SUB_INDUSTRY_ROTATION')
-            if cached:
+            if cached and cached.get('rrgVersion') == RRG_CACHE_VERSION:
                 print("📦 Sub-industry rotation cache HIT")
                 cached['cached'] = True
                 return jsonify(cached)
@@ -2858,8 +2861,16 @@ def get_sub_industry_rotation():
             return jsonify({'error': 'Insufficient SPY data'}), 500
 
         clusters = []
+        # Clusters whose proxy is one of the 11 broad sector ETFs (e.g. two clusters both
+        # use XLK) are still computed, because the sub-industry pullback screener reads
+        # them, but flagged `coveredBySector` so the Sectors tab does not repeat a sector
+        # row (Day 126).
+        covered_by_sectors = []
         for cluster_name, info in SUB_INDUSTRY_CLUSTERS.items():
             proxy = info['proxy']
+            covered = proxy in SECTOR_ETF_MAP
+            if covered:
+                covered_by_sectors.append({'cluster': cluster_name, 'etf': proxy})
             try:
                 proxy_df = dp.get_ohlcv(proxy, period=period)
                 proxy_close = proxy_df['close'].dropna()
@@ -2887,6 +2898,7 @@ def get_sub_industry_rotation():
                     'rsRatio': rs_ratio,
                     'rsMomentum': rs_momentum,
                     'quadrant': quadrant,
+                    'coveredBySector': covered,
                     'tail': rrg['tail'],
                     'shortHistory': rrg['thin'],
                     'usableDays': usable_days,
@@ -2901,6 +2913,7 @@ def get_sub_industry_rotation():
                     'rsRatio': None,
                     'rsMomentum': None,
                     'quadrant': None,
+                    'coveredBySector': covered,
                     'tail': None,
                     'shortHistory': None,
                     'usableDays': None,
@@ -2915,7 +2928,9 @@ def get_sub_industry_rotation():
 
         response = {
             'clusters': clusters,
+            'rrgVersion': RRG_CACHE_VERSION,
             'clusterCount': len(clusters),
+            'coveredBySectors': covered_by_sectors,
             'noProxyClusters': no_proxy_clusters,
             'timestamp': datetime.now().isoformat(),
             'period': period,

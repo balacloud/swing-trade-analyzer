@@ -1,188 +1,49 @@
-// SectorRotationTab.jsx — Day 62, v4.24
-// Sector Rotation Phase 2: Dedicated tab with 11 sector cards, quadrant colors, Scan for Rank 1
+// SectorRotationTab.jsx — Day 62, v4.24; trimmed to facts Day 126
+// RRG chart + one compact table per level (11 sectors, then sub-industry proxies). No verdict wording:
+// the corner names and numbers are shown, the user decides.
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { ALIGNMENT_STYLES, ALIGNMENT_ICONS } from '../utils/alignmentStyles';
 import RrgChart from './RrgChart';
 import { fetchSubIndustryRotation, fetchSrpsPullbackScreen, fetchSubIndustryPullbackScreen } from '../services/api';
 
-// Quadrant display config. sectionHint is the beginner-facing "what do I do
-// with this" translation shown once per group, not per card.
+// Quadrant display: colour + icon only (Day 126: the "most trade-ready / avoid" hints were verdicts).
 const QUADRANT_CONFIG = {
-  Leading:   { color: 'text-green-400',  border: 'border-green-500',  bg: 'bg-green-500/10',  badge: 'bg-green-600/80 text-green-100',  icon: '🟢', sectionHint: 'Strong and gaining momentum — the most trade-ready group' },
-  Improving: { color: 'text-blue-400',   border: 'border-blue-500',   bg: 'bg-blue-500/10',   badge: 'bg-blue-600/80 text-blue-100',    icon: '🔵', sectionHint: 'Still lagging SPY, but turning up — early, not yet confirmed' },
-  Weakening: { color: 'text-yellow-400', border: 'border-yellow-500', bg: 'bg-yellow-500/10', badge: 'bg-yellow-600/80 text-yellow-100', icon: '🟡', sectionHint: 'Ahead of SPY but losing steam — existing positions, not new ones' },
-  Lagging:   { color: 'text-red-400',    border: 'border-red-500',    bg: 'bg-red-500/10',    badge: 'bg-red-600/80 text-red-100',      icon: '🔴', sectionHint: 'Behind SPY and still falling — avoid for now' },
+  Leading:   { color: 'text-green-400',  icon: '🟢' },
+  Improving: { color: 'text-blue-400',   icon: '🔵' },
+  Weakening: { color: 'text-yellow-400', icon: '🟡' },
+  Lagging:   { color: 'text-red-400',    icon: '🔴' },
 };
 const QUADRANT_ORDER = ['Leading', 'Improving', 'Weakening', 'Lagging'];
-
-// The single most-favorable sector to point a beginner at — NOT the highest
-// RS Ratio (that's just magnitude of past outperformance, see Golden Rule-
-// style finding: a #1-by-magnitude sector can be actively Weakening). Picks
-// the top Leading sector by RS Ratio; falls back to top Improving if nothing
-// is Leading; null if the market has no sector in either favorable quadrant.
-function pickBestSector(sectorsByRsRatioDesc) {
-  const leading = sectorsByRsRatioDesc.filter(s => s.quadrant === 'Leading');
-  if (leading.length > 0) return { sector: leading[0], tier: 'Leading' };
-  const improving = sectorsByRsRatioDesc.filter(s => s.quadrant === 'Improving');
-  if (improving.length > 0) return { sector: improving[0], tier: 'Improving' };
-  return { sector: null, tier: null };
-}
-
-// One-sentence, plain-English takeaway — the "so what" a beginner needs
-// before the grid, not after it.
-function buildTakeaway(sortedSectors, summary) {
-  const leadingNames = sortedSectors.filter(s => s.quadrant === 'Leading').map(s => s.name);
-  const improvingNames = sortedSectors.filter(s => s.quadrant === 'Improving').map(s => s.name);
-
-  if (leadingNames.length > 0) {
-    const shown = leadingNames.slice(0, 3).join(', ');
-    return `${summary.Leading} sector${summary.Leading > 1 ? 's' : ''} leading right now — strongest setups in ${shown}.`;
-  }
-  if (improvingNames.length > 0) {
-    const shown = improvingNames.slice(0, 3).join(', ');
-    return `No sector is leading yet — ${summary.Improving} improving (early-stage): ${shown}. Worth watching, not yet confirmed.`;
-  }
-  return 'No sector currently shows both strength and momentum — market breadth is weak, stay cautious.';
-}
-
-// RS Ratio bar — 100-centred RRG scale (weekly, z-score style; values mostly 95-105)
-// RS Momentum bar — 0-centred (the standard chart's 100 line); values mostly -3 to +3
-function RsBar({ value, label, isMomentum = false }) {
-  let pct, barColor, arrow, textColor;
-
-  if (isMomentum) {
-    // Momentum: 0 = neutral, range [-3, +3]
-    const clamped = Math.max(-3, Math.min(3, value ?? 0));
-    pct = ((clamped + 3) / 6) * 100; // 50% = 0 (neutral)
-    barColor  = value >= 0 ? 'bg-green-500' : 'bg-red-500';
-    arrow     = value > 0  ? '↑' : value < 0 ? '↓' : '→';
-    textColor = value >= 0 ? 'text-green-400' : 'text-red-400';
-  } else {
-    // RS Ratio: 100 = at its own 26-week average vs SPY, range [94, 106]
-    const clamped = Math.max(94, Math.min(106, value ?? 100));
-    pct = ((clamped - 94) / 12) * 100; // 50% = 100
-    barColor  = value >= 100 ? 'bg-green-500' : 'bg-red-500';
-    arrow     = value > 100  ? '↑' : value < 100 ? '↓' : '→';
-    textColor = value >= 100 ? 'text-green-400' : 'text-red-400';
-  }
-
-  return (
-    <div className="mt-1">
-      <div className="flex items-center justify-between mb-0.5">
-        <span className="text-gray-500 text-xs">{label}</span>
-        <span className={`text-xs font-mono ${textColor}`}>
-          {value != null ? value.toFixed(2) : 'N/A'} {arrow}
-        </span>
-      </div>
-      <div className="w-full bg-gray-700 rounded-full h-1.5">
-        <div
-          className={`h-1.5 rounded-full ${barColor}`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
-// Size rotation signal config
-const SIZE_SIGNAL_CONFIG = {
-  'Risk-On':  { color: 'text-green-400',  bg: 'bg-green-500/10',  border: 'border-green-600/40', icon: '🟢', label: 'RISK-ON'  },
-  'Risk-Off': { color: 'text-red-400',    bg: 'bg-red-500/10',    border: 'border-red-600/40',   icon: '🔴', label: 'RISK-OFF' },
-  'Neutral':  { color: 'text-gray-400',   bg: 'bg-gray-700/40',   border: 'border-gray-600/40',  icon: '⚪', label: 'NEUTRAL'  },
-};
 
 // Size ETF display order: large → mid → small
 const SIZE_ORDER = ['QQQ', 'MDY', 'IWM'];
 
-// Per-tile interpretation: color + momentum → quadrant label + hint
-// barColor intentionally matches `color` (quadrant, not raw RS Ratio sign) —
-// a prior version colored the bar/number by RS Ratio alone while this label
-// used the quadrant color, so a Weakening tile (RS>=100) could show a green
-// bar right next to yellow "Weakening" text, and an Improving tile (RS<100)
-// could show a red bar next to blue "Improving" text.
-function tileInterpretation(rsRatio, rsMomentum) {
-  const out = rsRatio >= 100;
-  const up  = rsMomentum > 0;
-  if (out && up)   return { label: 'Leading · gaining',      color: 'text-green-400',  barColor: 'bg-green-500',  hint: 'Above its recent average vs SPY and gaining' };
-  if (out && !up)  return { label: 'Weakening · fading',     color: 'text-yellow-400', barColor: 'bg-yellow-500', hint: 'Above its recent average vs SPY but fading' };
-  if (!out && up)  return { label: 'Improving · recovering', color: 'text-blue-400',   barColor: 'bg-blue-500',   hint: 'Below its recent average vs SPY but gaining' };
-  return             { label: 'Lagging · falling',      color: 'text-red-400',    barColor: 'bg-red-500',    hint: 'Below its recent average vs SPY and falling' };
-}
+const num = (v, d = 2) => (typeof v === 'number' && Number.isFinite(v) ? v.toFixed(d) : '—');
+const signed = (v, d = 2) => (typeof v === 'number' && Number.isFinite(v) ? `${v > 0 ? '+' : ''}${v.toFixed(d)}` : '—');
+const arrow = (v) => (typeof v === 'number' && v > 0 ? '↑' : typeof v === 'number' && v < 0 ? '↓' : '→');
 
-// Momentum-aware sub-note for the headline — considers all 3 tiers (large/mid/small),
-// not just QQQ/IWM. A prior version ignored MDY entirely, so it could claim
-// "fading across all cap sizes" while MDY's own tile showed rising momentum.
-function momentumNote(sizeRotation) {
-  const qqq = sizeRotation.find(s => s.etf === 'QQQ');
-  const mdy = sizeRotation.find(s => s.etf === 'MDY');
-  const iwm = sizeRotation.find(s => s.etf === 'IWM');
-  if (!qqq || !mdy || !iwm) return null;
-
-  const qqqUp = qqq.rsMomentum > 0;
-  const mdyUp = mdy.rsMomentum > 0;
-  const iwmUp = iwm.rsMomentum > 0;
-  const upCount = [qqqUp, mdyUp, iwmUp].filter(Boolean).length;
-
-  if (upCount === 3) return '✅ Broad risk appetite — all sizes gaining vs SPY';
-  if (upCount === 0) return '⚠️ Risk appetite fading across all cap sizes';
-
-  const up = [];
-  const down = [];
-  if (qqqUp) up.push('large'); else down.push('large');
-  if (mdyUp) up.push('mid');   else down.push('mid');
-  if (iwmUp) up.push('small'); else down.push('small');
-  const upWord = up.length > 1 ? 'caps' : 'cap';
-  const downWord = down.length > 1 ? 'caps' : 'cap';
-  return `⚠️ Mixed: ${up.join('/')} ${upWord} gaining, ${down.join('/')} ${downWord} fading`;
-}
-
-function SizeRotationStrip({ sizeRotation, sizeSignal, sizeSignalDetail }) {
+// Cap-size strip: three funds against SPY, numbers and corner only.
+function SizeRotationStrip({ sizeRotation }) {
   if (!sizeRotation || sizeRotation.length === 0) return null;
-
-  const sc      = SIZE_SIGNAL_CONFIG[sizeSignal] || SIZE_SIGNAL_CONFIG['Neutral'];
   const ordered = SIZE_ORDER.map(etf => sizeRotation.find(s => s.etf === etf)).filter(Boolean);
-  const note    = momentumNote(sizeRotation);
 
   return (
-    <div className={`rounded-lg border ${sc.border} ${sc.bg} p-4 mb-6`}>
-      {/* Header row */}
-      <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
-        <div>
-          <span className="text-gray-300 text-sm font-semibold">📐 Cap Size Rotation</span>
-          <span className="text-gray-500 text-xs ml-2">Large → Mid → Small vs SPY</span>
-        </div>
-        <span className={`text-sm font-bold ${sc.color}`}>
-          {sc.icon} {sc.label} · <span className="font-normal text-xs text-gray-400">{sizeSignalDetail}</span>
-        </span>
+    <div className="rounded-lg border border-gray-700 bg-gray-800/50 p-4 mb-6">
+      <div className="mb-2">
+        <span className="text-gray-300 text-sm font-semibold">📐 Cap Size</span>
+        <span className="text-gray-500 text-xs ml-2">Large, mid and small caps against SPY</span>
       </div>
-      <div className="text-gray-500 text-xs mb-2">Is money moving into risk (small caps) or safety (large caps)?</div>
-
-      {/* Momentum context note */}
-      {note && (
-        <div className="text-xs text-gray-400 mb-3 pl-0.5">{note}</div>
-      )}
-
-      {/* Three ETF tiles */}
       <div className="grid grid-cols-3 gap-3">
         {ordered.map(s => {
-          const interp  = tileInterpretation(s.rsRatio, s.rsMomentum);
-          const arrow   = s.rsMomentum > 0 ? '↑' : s.rsMomentum < 0 ? '↓' : '→';
-          const clamped  = Math.max(85, Math.min(130, s.rsRatio));
-          const pct      = ((clamped - 85) / 45) * 100;
-
+          const q = s.quadrant;
+          const qc = QUADRANT_CONFIG[q] || QUADRANT_CONFIG.Lagging;
           return (
             <div key={s.etf} className="bg-gray-800/60 rounded-lg p-3 text-center">
-              <div className="text-gray-500 text-xs font-mono mb-0.5">{s.etf}</div>
+              <div className="text-gray-500 text-xs font-mono">{s.etf}</div>
               <div className="text-gray-300 text-xs mb-1 truncate">{s.name}</div>
-              <div className={`text-sm font-mono font-semibold ${interp.color}`}>
-                {s.rsRatio.toFixed(1)} {arrow}
-              </div>
-              <div className="w-full bg-gray-700 rounded-full h-1 mt-1.5 mb-1.5">
-                <div className={`h-1 rounded-full ${interp.barColor}`} style={{ width: `${pct}%` }} />
-              </div>
-              <div className={`text-xs font-medium ${interp.color}`}>{interp.label}</div>
-              <div className="text-gray-600 text-xs mt-0.5">{interp.hint}</div>
+              <div className="text-sm font-mono font-semibold text-white">{num(s.rsRatio)}</div>
+              <div className="text-xs font-mono text-gray-400">mom {signed(s.rsMomentum)} {arrow(s.rsMomentum)}</div>
+              <div className={`text-xs font-medium mt-1 ${qc.color}`}>{qc.icon} {q}</div>
             </div>
           );
         })}
@@ -191,92 +52,65 @@ function SizeRotationStrip({ sizeRotation, sizeSignal, sizeSignalDetail }) {
   );
 }
 
-// Individual sector card
-function SectorCard({ sector, onScanForSector }) {
-  const qc = QUADRANT_CONFIG[sector.quadrant] || QUADRANT_CONFIG.Lagging;
+// One compact table for both levels. rows: {key, name, etf, quadrant, rsRatio, rsMomentum,
+// weekChange?, monthChange?, note?, onScan?}. Sorted corner by corner, strongest ratio first.
+function RotationTable({ rows, showChanges = false }) {
+  const sorted = useMemo(() => [...rows].sort((a, b) => {
+    const d = QUADRANT_ORDER.indexOf(a.quadrant) - QUADRANT_ORDER.indexOf(b.quadrant);
+    return d !== 0 ? d : (b.rsRatio ?? 0) - (a.rsRatio ?? 0);
+  }), [rows]);
 
   return (
-    <div className={`rounded-lg border-l-4 ${qc.border} ${qc.bg} p-4 bg-gray-800`}>
-      {/* Header row: quadrant badge only. A numbered "rank" badge used to sit
-          here too, but any "#N" reads as "the winner" in English regardless
-          of what qualifier is stuck in front of it — a #1 badge next to a
-          "Weakening" label is a contradiction no amount of relabeling fixes.
-          The RS Ratio value itself (magnitude info) is still shown below,
-          just not framed as a competitive ranking. */}
-      <div className="flex items-center justify-end mb-2">
-        <span className={`text-xs font-medium px-2 py-0.5 rounded ${qc.badge}`}>
-          {qc.icon} {sector.quadrant}
-        </span>
-      </div>
-
-      {/* Sector name + ETF */}
-      <div className="flex items-baseline justify-between mb-2">
-        <span className="text-white font-semibold text-sm">{sector.name}</span>
-        <span className="text-gray-400 text-xs font-mono">{sector.etf}</span>
-      </div>
-
-      {/* RS bars */}
-      <RsBar value={sector.rsRatio} label="RS Ratio" />
-      <RsBar value={sector.rsMomentum} label="RS Momentum" isMomentum />
-      {sector.thinHistory && (
-        <p className="text-yellow-500/80 text-xs mt-2">Short history — shorter windows than standard.</p>
-      )}
-
-      {/* Scan button — Leading (strong) or Improving (momentum turning up = best trade setup) */}
-      {(sector.quadrant === 'Leading' || sector.quadrant === 'Improving') && (
-        <button
-          onClick={() => onScanForSector(sector)}
-          className="mt-3 w-full text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 border border-blue-700/50 rounded px-2 py-1 transition-colors"
-        >
-          Scan stocks in this sector →
-        </button>
-      )}
+    <div className="bg-gray-800 border border-gray-700 rounded-lg mb-6 overflow-x-auto" data-testid="rotation-table">
+      <table className="w-full text-xs sm:text-sm">
+        <thead>
+          <tr className="text-gray-500 text-xs border-b border-gray-700">
+            <th className="text-left font-medium p-2 sm:p-3">Name</th>
+            <th className="text-left font-medium p-2 sm:p-3">Corner</th>
+            <th className="text-right font-medium p-2 sm:p-3">RS Ratio</th>
+            <th className="text-right font-medium p-2 sm:p-3">Momentum</th>
+            {showChanges && <th className="hidden sm:table-cell text-right font-medium p-3">1 wk</th>}
+            {showChanges && <th className="hidden sm:table-cell text-right font-medium p-3">1 mo</th>}
+            <th className="hidden sm:table-cell p-3" />
+          </tr>
+        </thead>
+        <tbody>
+          {sorted.map(r => {
+            const qc = QUADRANT_CONFIG[r.quadrant] || QUADRANT_CONFIG.Lagging;
+            return (
+              <tr key={r.key} className="border-b border-gray-700/50 last:border-0">
+                <td className="p-2 sm:p-3">
+                  <span className="text-white">{r.name}</span>
+                  <span className="text-gray-500 text-xs font-mono ml-2">{r.etf}</span>
+                  {r.note && <div className="text-yellow-500/80 text-xs">{r.note}</div>}
+                  {r.onScan && (
+                    <button onClick={r.onScan} className="sm:hidden block text-xs text-blue-400">Scan →</button>
+                  )}
+                </td>
+                <td className={`p-2 sm:p-3 whitespace-nowrap ${qc.color}`}><span className="hidden sm:inline">{qc.icon} </span>{r.quadrant}</td>
+                <td className="p-2 sm:p-3 text-right font-mono text-white">{num(r.rsRatio)}</td>
+                <td className="p-2 sm:p-3 text-right font-mono text-gray-300">{signed(r.rsMomentum)} {arrow(r.rsMomentum)}</td>
+                {showChanges && <td className="hidden sm:table-cell p-3 text-right font-mono text-gray-400">{signed(r.weekChange, 1)}%</td>}
+                {showChanges && <td className="hidden sm:table-cell p-3 text-right font-mono text-gray-400">{signed(r.monthChange, 1)}%</td>}
+                <td className="hidden sm:table-cell p-3 text-right">
+                  {r.onScan && (
+                    <button onClick={r.onScan} className="text-xs text-blue-400 hover:text-blue-300 whitespace-nowrap">
+                      Scan →
+                    </button>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
 
-// Sub-industry cluster card — same quadrant styling as SectorCard, one level
-// below the 11 broad GICS sectors (Day 100+, "Sub-Industry Watch"). No "Scan
-// stocks" CTA in this first pass — that action maps a sector ETF to a GICS
-// scan filter STA already has; a sub-industry cluster's tickers are a curated
-// theme list, not a scan-able GICS category, so it's a different feature not
-// scoped here.
-function SubIndustryCard({ cluster }) {
-  if (cluster.error) {
-    return (
-      <div className="rounded-lg border-l-4 border-gray-600 bg-gray-800/60 p-4">
-        <div className="flex items-baseline justify-between mb-1">
-          <span className="text-white font-semibold text-sm">{cluster.cluster}</span>
-          <span className="text-gray-400 text-xs font-mono">{cluster.proxy}</span>
-        </div>
-        <p className="text-gray-500 text-xs">Unavailable — {cluster.error}</p>
-      </div>
-    );
-  }
-
-  const qc = QUADRANT_CONFIG[cluster.quadrant] || QUADRANT_CONFIG.Lagging;
-
-  return (
-    <div className={`rounded-lg border-l-4 ${qc.border} ${qc.bg} p-4 bg-gray-800`}>
-      <div className="flex items-center justify-end mb-2">
-        <span className={`text-xs font-medium px-2 py-0.5 rounded ${qc.badge}`}>
-          {qc.icon} {cluster.quadrant}
-        </span>
-      </div>
-      <div className="flex items-baseline justify-between mb-2">
-        <span className="text-white font-semibold text-sm">{cluster.cluster}</span>
-        <span className="text-gray-400 text-xs font-mono">{cluster.proxy}</span>
-      </div>
-      <RsBar value={cluster.rsRatio} label="RS Ratio" />
-      <RsBar value={cluster.rsMomentum} label="RS Momentum" isMomentum />
-      {cluster.shortHistory && (
-        <p className="text-yellow-500/80 text-xs mt-2">
-          Short history ({cluster.weeks ?? '?'} weeks) — the read uses shorter windows than the standard 26 / 10 weeks.
-        </p>
-      )}
-    </div>
-  );
-}
+// Pullback screeners are hidden (Day 126, same pattern as the hidden Forward Test tab):
+// they sit on the older sector gates and recommend names. Components stay for a later decision.
+const SHOW_PULLBACK_SCREENERS = false;
 
 // Collapsible Tier-2 section, lazy-loaded on first expand (own ~22-ticker
 // fetch, slower than the eager-loaded 11 broad sectors above — most sessions
@@ -330,18 +164,16 @@ function SubIndustryWatchSection({ refreshTrigger }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshTrigger]);
 
-  const grouped = useMemo(() => {
-    if (!data?.clusters) return {};
-    const out = { Leading: [], Improving: [], Weakening: [], Lagging: [] };
-    data.clusters.forEach(c => {
-      if (c.error) return; // errored clusters render in their own strip below, not grouped
-      if (out[c.quadrant]) out[c.quadrant].push(c);
-    });
-    return out;
-  }, [data]);
+  // Resolved clusters as rows (errored ones render in their own strip below).
+  // The chart labels each dot with its proxy ETF ticker.
+  const resolvedRows = useMemo(() => (data?.clusters || []).filter(c => !c.error && !c.coveredBySector).map(c => ({
+    key: c.cluster, name: c.cluster, etf: c.proxy, quadrant: c.quadrant,
+    rsRatio: c.rsRatio, rsMomentum: c.rsMomentum, tail: c.tail,
+    note: c.shortHistory ? `Short history (${c.weeks ?? '?'} weeks): shorter windows than standard` : null,
+  })), [data]);
 
   const erroredClusters = useMemo(
-    () => (data?.clusters || []).filter(c => c.error),
+    () => (data?.clusters || []).filter(c => c.error && !c.coveredBySector),
     [data]
   );
 
@@ -354,7 +186,7 @@ function SubIndustryWatchSection({ refreshTrigger }) {
         <div>
           <span className="text-white font-semibold text-sm">🔬 Sub-Industry Watch</span>
           <span className="text-gray-500 text-xs ml-2">
-            Semis / memory / nuclear / materials / gold / biotech / financials & more — one level below the 11 broad sectors above
+            Each theme is measured by one proxy ETF — one level below the 11 broad sectors above
           </span>
         </div>
         <span className="text-gray-400 text-sm">{expanded ? '▲' : '▼'}</span>
@@ -365,7 +197,7 @@ function SubIndustryWatchSection({ refreshTrigger }) {
           {loading && (
             <div className="text-center py-10">
               <div className="text-3xl mb-2">📡</div>
-              <p className="text-gray-400 text-sm">Loading sub-industry data — 21 proxy ETFs vs SPY…</p>
+              <p className="text-gray-400 text-sm">Loading sub-industry data — proxy ETFs vs SPY…</p>
             </div>
           )}
 
@@ -384,33 +216,27 @@ function SubIndustryWatchSection({ refreshTrigger }) {
 
           {!loading && !error && data && (
             <>
-              {QUADRANT_ORDER.map(q => {
-                const list = grouped[q] || [];
-                if (list.length === 0) return null;
-                const qc = QUADRANT_CONFIG[q];
-                return (
-                  <div key={q} className="mb-5">
-                    <div className="flex items-baseline gap-2 mb-3">
-                      <span className={`text-sm font-semibold ${qc.color}`}>{qc.icon} {q}</span>
-                      <span className="text-gray-500 text-xs">({list.length})</span>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                      {list.map(cluster => (
-                        <SubIndustryCard key={cluster.cluster} cluster={cluster} />
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
+              <RrgChart sectors={resolvedRows} />
+              <RotationTable rows={resolvedRows} />
 
               {erroredClusters.length > 0 && (
                 <div className="mb-5">
                   <div className="text-gray-500 text-xs mb-2">Unavailable this run ({erroredClusters.length}):</div>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                     {erroredClusters.map(cluster => (
-                      <SubIndustryCard key={cluster.cluster} cluster={cluster} />
+                      <div key={cluster.cluster} className="rounded-lg border-l-4 border-gray-600 bg-gray-800/60 p-3">
+                        <span className="text-white text-sm">{cluster.cluster}</span>
+                        <span className="text-gray-400 text-xs font-mono ml-2">{cluster.proxy}</span>
+                        <p className="text-gray-500 text-xs">Unavailable — {cluster.error}</p>
+                      </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {data.coveredBySectors && data.coveredBySectors.length > 0 && (
+                <div className="text-gray-600 text-xs mb-2">
+                  Same fund as a sector row above (not repeated): {data.coveredBySectors.map(c => `${c.cluster} (${c.etf})`).join('; ')}
                 </div>
               )}
 
@@ -706,39 +532,21 @@ function SubIndustryPullbackScreenSection({ refreshTrigger }) {
 }
 
 export default function SectorRotationTab({ sectorRotation, sectorRotationError, onRetry, onScanForSector, refreshTrigger, onRefresh, refreshing }) {
-  // Destructure size rotation fields (may be absent on old cached response)
   const sizeRotation = sectorRotation?.size_rotation;
-  const sizeSignal = sectorRotation?.size_signal || 'Neutral';
-  const sizeSignalDetail = sectorRotation?.size_signal_detail || '';
-  const macroAlignment = sectorRotation?.macro_alignment || null;
-  const macroAlignmentStatus = sectorRotation?.macro_alignment_status || null;
 
-  // Sort sectors by RS Ratio magnitude (rank). This ordering still drives the
-  // "RS Rank" badge and picking the strongest sector within a quadrant, but no
-  // longer drives which sector is called out as "best" or which position a
-  // card renders in — see pickBestSector() and the quadrant-grouped grid below.
   const sortedSectors = useMemo(() => {
     if (!sectorRotation?.sectors) return [];
     return [...sectorRotation.sectors].sort((a, b) => a.rank - b.rank);
   }, [sectorRotation]);
 
-  // Quadrant summary counts
-  const summary = useMemo(() => {
-    const counts = { Leading: 0, Improving: 0, Weakening: 0, Lagging: 0 };
-    sortedSectors.forEach(s => { if (counts[s.quadrant] != null) counts[s.quadrant]++; });
-    return counts;
-  }, [sortedSectors]);
-
-  // Best actionable sector — Leading first, Improving as fallback. Replaces
-  // the old "highest RS Ratio regardless of quadrant" pick, which could (and
-  // did) surface a Weakening sector as the top CTA.
-  const { sector: bestSector, tier: bestTier } = useMemo(
-    () => pickBestSector(sortedSectors),
-    [sortedSectors]
-  );
-
-  // One-line plain-English summary shown above the grid.
-  const takeaway = useMemo(() => buildTakeaway(sortedSectors, summary), [sortedSectors, summary]);
+  // Sector rows for the table; "Scan stocks" hands the whole sector object to the Scan tab
+  const sectorRows = useMemo(() => sortedSectors.map(sec => ({
+    key: sec.etf, name: sec.name, etf: sec.etf, quadrant: sec.quadrant,
+    rsRatio: sec.rsRatio, rsMomentum: sec.rsMomentum,
+    weekChange: sec.weekChange, monthChange: sec.monthChange,
+    note: sec.thinHistory ? 'Short history: shorter windows than standard' : null,
+    onScan: () => onScanForSector(sec),
+  })), [sortedSectors, onScanForSector]);
 
   // Timestamp display
   const lastUpdated = useMemo(() => {
@@ -790,7 +598,7 @@ export default function SectorRotationTab({ sectorRotation, sectorRotationError,
           <div>
             <h2 className="text-xl font-bold text-white">📊 Sector Rotation Monitor</h2>
             <p className="text-gray-400 text-sm mt-0.5">
-              Relative Strength vs SPY · RRG Quadrant Analysis · 11 SPDR ETFs
+              Relative strength vs SPY · RRG corners · 11 SPDR sector ETFs
               {lastUpdated && (
                 <span className="ml-2 text-gray-500">· Last refreshed {lastUpdated}</span>
               )}
@@ -798,7 +606,7 @@ export default function SectorRotationTab({ sectorRotation, sectorRotationError,
                 <button
                   onClick={onRefresh}
                   disabled={refreshing}
-                  title="Force a fresh sector pull — bypasses today's cache, also refreshes Sub-Industry Watch and the Pullback Screener below"
+                  title="Force a fresh sector pull — bypasses today's cache, also refreshes Sub-Industry Watch"
                   className="ml-2 text-gray-500 hover:text-gray-300 disabled:opacity-50 disabled:cursor-wait"
                 >
                   {refreshing ? '🔄 Refreshing…' : '🔄 Refresh'}
@@ -807,46 +615,6 @@ export default function SectorRotationTab({ sectorRotation, sectorRotationError,
             </p>
           </div>
 
-          {/* Primary CTA — the actually-favorable sector (Leading, or Improving as
-              fallback), not just whichever sector has the highest RS Ratio number */}
-          <button
-            onClick={() => bestSector && onScanForSector(bestSector)}
-            disabled={!bestSector}
-            className={`px-5 py-2.5 rounded-lg font-semibold text-sm transition-colors ${
-              bestTier === 'Leading'
-                ? 'bg-green-600 hover:bg-green-500 text-white'
-                : 'bg-blue-600 hover:bg-blue-500 text-white'
-            } disabled:opacity-40 disabled:cursor-not-allowed`}
-          >
-            {bestSector
-              ? `🔍 Scan Top Sector: ${bestSector.name} (${bestTier})`
-              : '🔍 No leading sector right now'}
-          </button>
-        </div>
-
-        {/* Plain-English takeaway — the "so what," stated before the grid */}
-        <p className="text-gray-300 text-sm mt-3">{takeaway}</p>
-
-        {/* Macro alignment — connects this tab to the Context tab's macro
-            regime read, so "does the macro backdrop support this rotation?"
-            is answered here instead of requiring a manual cross-check
-            against a separate tab. Absent on old cached responses (backend
-            added the field later) — render nothing rather than a stale/empty
-            line, same defensive pattern as size_rotation below. */}
-        {macroAlignment && (
-          <p className={`text-sm mt-2 ${ALIGNMENT_STYLES[macroAlignmentStatus] || ALIGNMENT_STYLES.neutral}`}>
-            {ALIGNMENT_ICONS[macroAlignmentStatus] || 'ℹ️'} {macroAlignment}
-          </p>
-        )}
-
-        {/* Quadrant summary chips */}
-        <div className="flex gap-3 mt-4 flex-wrap">
-          {Object.entries(QUADRANT_CONFIG).map(([q, qc]) => (
-            <div key={q} className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${qc.badge}`}>
-              <span>{qc.icon}</span>
-              <span>{q}: {summary[q]}</span>
-            </div>
-          ))}
         </div>
       </div>
 
@@ -854,62 +622,25 @@ export default function SectorRotationTab({ sectorRotation, sectorRotationError,
       <RrgChart sectors={sortedSectors} />
 
       {/* Size Rotation Strip */}
-      <SizeRotationStrip
-        sizeRotation={sizeRotation}
-        sizeSignal={sizeSignal}
-        sizeSignalDetail={sizeSignalDetail}
-      />
+      <SizeRotationStrip sizeRotation={sizeRotation} />
 
-      {/* Explanation row */}
-      <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 mb-6 text-xs text-gray-400">
-        <span className="font-semibold text-gray-300">How to read this:</span>
-        &nbsp;
-        <span className="text-green-400 font-medium">Leading</span> = RS Ratio above 100 and Momentum above 0 (strong and gaining) ·&nbsp;
-        <span className="text-blue-400 font-medium">Improving</span> = ratio below 100 but gaining ·&nbsp;
-        <span className="text-yellow-400 font-medium">Weakening</span> = ratio above 100 but fading ·&nbsp;
-        <span className="text-red-400 font-medium">Lagging</span> = ratio below 100 and falling.
-        &nbsp;RS Ratio 100 means the sector is at its own 26-week average against SPY. Cards are grouped by corner, strongest group first.
-      </div>
+      {/* How to read — one line */}
+      <p className="text-xs text-gray-500 mb-3">
+        RS Ratio above 100 = stronger than its own 26-week average against SPY. Momentum above 0 = the ratio is rising.
+        Corners: Leading (both above), Weakening (ratio above, momentum below), Lagging (both below), Improving (ratio below, momentum above).
+      </p>
 
-      {/* Sector cards grouped by quadrant — Leading first (most tradeable),
-          Lagging last. Replaces the old flat RS-Ratio-rank order, which put
-          the highest-magnitude sector first regardless of whether it was
-          actually favorable. */}
-      {QUADRANT_ORDER.map(q => {
-        const list = sortedSectors.filter(s => s.quadrant === q);
-        if (list.length === 0) return null;
-        const qc = QUADRANT_CONFIG[q];
-        return (
-          <div key={q} className="mb-6">
-            <div className="flex items-baseline gap-2 mb-3">
-              <span className={`text-sm font-semibold ${qc.color}`}>{qc.icon} {q}</span>
-              <span className="text-gray-500 text-xs">({list.length}) — {qc.sectionHint}</span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {list.map(sector => (
-                <SectorCard
-                  key={sector.etf}
-                  sector={sector}
-                  onScanForSector={onScanForSector}
-                />
-              ))}
-            </div>
-          </div>
-        );
-      })}
+      <RotationTable rows={sectorRows} showChanges />
 
       {/* Sub-Industry Watch — Tier 2, collapsed by default, lazy-loaded */}
       <SubIndustryWatchSection refreshTrigger={refreshTrigger} />
 
-      {/* SRPS Pullback Screener — discretionary screen, not a forward-test track (Day 102) */}
-      <SrpsPullbackScreenSection refreshTrigger={refreshTrigger} />
-
-      {/* Same screener, sub-industry universe — user-requested extension */}
-      <SubIndustryPullbackScreenSection refreshTrigger={refreshTrigger} />
+      {SHOW_PULLBACK_SCREENERS && <SrpsPullbackScreenSection refreshTrigger={refreshTrigger} />}
+      {SHOW_PULLBACK_SCREENERS && <SubIndustryPullbackScreenSection refreshTrigger={refreshTrigger} />}
 
       {/* Footer note */}
       <div className="mt-6 text-center text-xs text-gray-600">
-        Data from yfinance · weekly closes vs SPY · RS Ratio above 100 = stronger than its 26-week average, Momentum above 0 = gaining · Cached per trading day
+        Data from yfinance · weekly closes vs SPY · cached per trading day
       </div>
     </div>
   );

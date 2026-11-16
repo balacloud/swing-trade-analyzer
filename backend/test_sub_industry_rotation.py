@@ -89,11 +89,17 @@ def run(base_url):
     # 1. All 21 clusters present
     clusters = data.get("clusters", [])
     names_seen = {c.get("cluster") for c in clusters}
+    # Clusters sharing a sector ETF are computed but flagged; the Sectors tab hides them (Day 126)
+    sector_etfs = {"XLK", "XLF", "XLV", "XLI", "XLY", "XLP", "XLE", "XLB", "XLU", "XLRE", "XLC"}
+    flagged = {c.get("cluster") for c in clusters if c.get("coveredBySector")}
+    covered_names = {c.get("cluster") for c in data.get("coveredBySectors", [])}
+    if flagged != covered_names:
+        failures.append(f"coveredBySector flags {flagged} != coveredBySectors list {covered_names}")
     if names_seen != EXPECTED_CLUSTERS:
         failures.append(f"cluster set mismatch -- missing {EXPECTED_CLUSTERS - names_seen}, "
                          f"unexpected {names_seen - EXPECTED_CLUSTERS}")
     else:
-        print_pass(f"All 21 sub-industry clusters present ({len(clusters)} rows)")
+        print_pass(f"All 21 sub-industry clusters present ({len(clusters)} rows, {len(flagged)} flagged as sector-covered)")
 
     if data.get("clusterCount") != len(clusters):
         failures.append(f"clusterCount ({data.get('clusterCount')}) != len(clusters) ({len(clusters)})")
