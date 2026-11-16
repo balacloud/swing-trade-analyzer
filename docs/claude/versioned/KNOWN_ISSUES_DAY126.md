@@ -17,6 +17,12 @@
   calculation is unchanged and parity-tested (86,400); only what the card shows changed.
 - **Changed:** the entry ruler now marks the real 21, 50 and 200-day averages instead of +1 / +2 "normal day"
   steps, and always fits the price on the ruler.
+- **Changed (display only):** the Mean-Reversion Read card on Analyze was rebuilt as four plain questions, each with a
+  bar (2-day RSI, trend vs 200-day average, price, trading volume). Wording uses "2-day RSI", labelled bar ends and a
+  one-line reason per rule. Rows come from `frontend/src/utils/mrReadRows.js` (23 tests). Pass / fail still comes
+  from the backend `conditions`; `mean_reversion.py` is untouched, so backtest numbers do not move.
+- **Resolved (display):** SOXL.NE showed "$0/day" and a failed volume rule. Its provider reports zero volume on every
+  bar, so it is now shown as "no volume data" (not checked), not as a fail. The backend still computes 0 there.
 - **Added (process):** a Stop hook blocks the end of a turn when code changed and no three-pass review stamp exists
   (`.claude/hooks/three_pass_check.sh`, `/three-pass`, Golden Rule 64).
 - **New (Low / Info):** the items below under "Day 126 — Technical Read and volume card".

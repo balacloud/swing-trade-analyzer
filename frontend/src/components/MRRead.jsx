@@ -5,21 +5,19 @@
  * Replaces MRSignalCard.jsx, which showed an ATR stop and an entry+2ATR
  * target that were never the tested rule, and rendered nothing on loading,
  * error or no signal. Every rule number comes from the API's `rules`
- * (mean_reversion.MR_RULES); ✓/✗ come only from the backend's `conditions`
- * (None = input missing, shown as "no data", never as a fail). Day 125: the
+ * (mean_reversion.MR_RULES); ✓/✗ come from the backend's `conditions`
+ * (None = input missing, shown as "no data", never as a fail). Day 126: one row
+ * + gauge per rule (utils/mrReadRows.js); a feed with zero volume on every bar
+ * is shown as "no volume data", not a $0 fail. Day 125: the
  * track record box was removed at the user's direction (less to read); it
  * lives on the Forward Test tab. The API still returns `trackRecord`.
  */
 import React from 'react';
 import useMissingInputWarning from '../hooks/useMissingInputWarning';
 import { mrEntryTiming } from '../utils/mrEntryTiming';
+import { buildMRRows, money, bigMoney } from '../utils/mrReadRows';
 
 const isNum = (v) => typeof v === 'number' && Number.isFinite(v);
-const money = (v) => (isNum(v) ? `$${v.toFixed(2)}` : '—');
-const bigMoney = (v) => (!isNum(v) ? '—'
-  : v >= 1e9 ? `$${+(v / 1e9).toFixed(1)}B`
-  : v >= 1e6 ? `$${+(v / 1e6).toFixed(1)}M`
-  : `$${Math.round(v).toLocaleString()}`);
 
 const Mark = ({ state }) => (
   <span className={`font-bold ${state === true ? 'text-green-400' : state === false ? 'text-red-400' : 'text-gray-500'}`}>
@@ -27,13 +25,22 @@ const Mark = ({ state }) => (
   </span>
 );
 
-// Plain-English reason for the first failing rule, in rule order.
-const FAIL_TEXT = {
-  rsi2_oversold: "It hasn't dropped hard enough over the last 2 days.",
-  above_200sma: "It's below its 200-day average, so a dip here isn't the tested setup (it could be a falling knife).",
-  price_filter: 'The price is below the $10 floor the system uses.',
-  volume_filter: "It doesn't trade enough dollars a day to get in and out cleanly.",
-};
+// A short bar: the line is where the rule is met, the dot is where the stock is.
+function Gauge({ g, state }) {
+  const passLeft = g.passSide === 'left';
+  const dot = state === true ? 'bg-green-400' : state === false ? 'bg-red-400' : 'bg-gray-400';
+  return (
+    <div className="relative h-2 rounded-full bg-gray-700 mt-2" aria-hidden="true">
+      <div
+        className="absolute inset-y-0 rounded-full bg-green-500/25"
+        style={passLeft ? { left: 0, width: `${g.thresholdPos * 100}%` } : { left: `${g.thresholdPos * 100}%`, right: 0 }}
+      />
+      <div className="absolute -top-1 -bottom-1 w-0.5 bg-gray-300" style={{ left: `${g.thresholdPos * 100}%` }} />
+      <div className={`absolute top-1/2 w-3 h-3 rounded-full ring-2 ring-gray-800 ${dot}`}
+        style={{ left: `${g.pos * 100}%`, transform: 'translate(-50%, -50%)' }} />
+    </div>
+  );
+}
 
 function Shell({ children }) {
   return (
@@ -73,19 +80,8 @@ export default function MRRead({ mrData, loading, ticker }) {
     );
   }
 
-  const { signal, rsi2, current_price: price, pct_above_sma200: pctAbove, avg_dollar_volume: dollarVol,
-    conditions = {}, rules, asOf, barDropped } = mrData;
-  const order = ['rsi2_oversold', 'above_200sma', 'price_filter', 'volume_filter'];
-  const passing = order.filter((k) => conditions[k] === true).length;
-  const unchecked = order.filter((k) => conditions[k] == null).length;
-  const firstFail = order.find((k) => conditions[k] === false);
-
-  const tiles = [
-    { key: 'rsi2_oversold', label: '2-day dip', value: isNum(rsi2) ? `RSI(2) ${rsi2.toFixed(1)}` : 'no data', needs: `needs below ${rules.rsi2_entry}` },
-    { key: 'above_200sma', label: 'Uptrend', value: isNum(pctAbove) ? `${pctAbove >= 0 ? '+' : '−'}${Math.abs(pctAbove).toFixed(1)}% vs 200-day avg` : 'no data', needs: 'needs above it' },
-    { key: 'price_filter', label: 'Price', value: money(price), needs: `needs above $${rules.price_min}` },
-    { key: 'volume_filter', label: 'Trading volume', value: isNum(dollarVol) ? `${bigMoney(dollarVol)}/day` : 'no data', needs: `needs above ${bigMoney(rules.dollar_volume_min)}` },
-  ];
+  const { signal, current_price: price, rules, asOf, barDropped } = mrData;
+  const { rows, blockers, unchecked } = buildMRRows(mrData);
   const stopEstimate = isNum(price) ? price * (1 - rules.stop_pct) : null;
   const entry = mrEntryTiming(asOf);
 
@@ -94,19 +90,32 @@ export default function MRRead({ mrData, loading, ticker }) {
       <div className={`text-xl font-bold ${signal ? 'text-green-400' : 'text-gray-200'}`}>{signal ? 'Buy the dip' : 'No signal'}</div>
       <p className="text-sm text-gray-300 mt-1">
         {signal ? 'A sharp 2-day drop inside an uptrend. All 4 rules pass.'
-          : firstFail ? FAIL_TEXT[firstFail]
+          : blockers.length ? <>Blocked by: {blockers.join('; ')}.</>
           : "Some inputs didn't load, so the rules couldn't all be checked."}
-        {!signal && <>{' '}<span className="text-gray-400">{passing} of 4 rules pass{unchecked ? `, ${unchecked} not checked` : ''}.</span></>}
+        {!signal && unchecked.length > 0 && <span className="text-gray-400"> Couldn't check: {unchecked.join(', ').toLowerCase()}.</span>}
       </p>
 
       <div className="mt-4">
-        <div className="text-sm font-semibold text-gray-200 mb-2">Buy the dip needs all four</div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-          {tiles.map((t) => (
-            <div key={t.key} className={`rounded-lg p-2.5 ${conditions[t.key] == null ? 'border border-dashed border-gray-600' : 'bg-gray-700/40 border border-gray-700'}`}>
-              <div className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold"><Mark state={conditions[t.key]} /> {t.label}</div>
-              <div className="font-mono text-gray-100 mt-0.5">{t.value}</div>
-              <div className="text-xs text-gray-400 mt-0.5">{conditions[t.key] == null ? 'not checked' : t.needs}</div>
+        <div className="text-sm font-semibold text-gray-200 mb-2">Buying the dip needs all four to pass</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {rows.map((r) => (
+            <div key={r.key} data-testid={`mr-row-${r.key}`}
+              className={`rounded-lg p-3 ${r.state == null ? 'border border-dashed border-gray-600' : 'bg-gray-700/40 border border-gray-700'}`}>
+              <div className="flex items-baseline justify-between gap-2">
+                <div className="text-xs text-gray-400">{r.question}</div>
+                <Mark state={r.state} />
+              </div>
+              <div className="font-semibold text-gray-100 mt-1">{r.value}</div>
+              <div className="text-xs text-gray-400">{r.needs}</div>
+              {r.gauge && <Gauge g={r.gauge} state={r.state} />}
+              {r.gauge && r.ends && (
+                <div className="flex justify-between text-[10px] text-gray-500 mt-1">
+                  <span>{r.ends[0]}</span>
+                  {r.gauge.offScale && <span>(past the edge of the bar)</span>}
+                  <span>{r.ends[1]}</span>
+                </div>
+              )}
+              {r.hint && <div className="text-[10px] text-gray-500 mt-1">{r.hint}</div>}
             </div>
           ))}
         </div>
@@ -125,7 +134,7 @@ export default function MRRead({ mrData, loading, ticker }) {
               <b className="text-gray-100">2 · Stop</b> {Math.round(rules.stop_pct * 100)}% below your fill. If it opens below the stop, you're out at the open.
               {stopEstimate != null && <span className="text-gray-400"> About {money(stopEstimate)} if you fill near the {asOf ? `${asOf} ` : ''}close of {money(price)}.</span>}
             </li>
-            <li><b className="text-gray-100">3 · Sell</b> at the first close with RSI(2) above {rules.rsi2_exit} (the bounce is done).</li>
+            <li><b className="text-gray-100">3 · Sell</b> at the first close with the 2-day RSI above {rules.rsi2_exit} (the bounce is done).</li>
             <li><b className="text-gray-100">4 · Or sell</b> after {rules.max_hold_days} trading days if it never bounced.</li>
           </ol>
           <div className="text-xs text-gray-400 mt-2">
@@ -141,7 +150,7 @@ export default function MRRead({ mrData, loading, ticker }) {
           <p><b className="text-gray-300">What it is:</b> Larry Connors' RSI(2) system ("Short Term Trading Strategies That Work").
             RSI(2) scores the last 2 days from 0 to 100; below {rules.rsi2_entry} means a sharp, short drop. It buys that drop only while the
             stock is above its 200-day average, so it doesn't buy a falling knife.</p>
-          <p><b className="text-gray-300">The four rules:</b> RSI(2) below {rules.rsi2_entry}, close above the 200-day average, price above
+          <p><b className="text-gray-300">The four rules:</b> the 2-day RSI below {rules.rsi2_entry}, close above the 200-day average, price above
             ${rules.price_min}, and average daily trading above {bigMoney(rules.dollar_volume_min)} (so you can get in and out cleanly). All four must pass.</p>
           <p><b className="text-gray-300">Track record:</b> on the Forward Test tab, re-run at the next open (what you can actually do).
             It covers many stocks, not this one.</p>
