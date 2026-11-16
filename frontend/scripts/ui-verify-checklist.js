@@ -11,7 +11,7 @@
  *   A3 backdrop equals the API payload  (A8 Simple view badge: removed Day 126 with the checklist)
  *   A10 Buy and level rows equal /api/sr    A11 Data Sources tab equals /api/provenance, /api/stock, /api/health
  *   A12 Entry ruler: dot price = page price, tick spacing = the Trade Setup ATR, no verdict words
- *   A13 Live price line + ruler marker equal /api/quote (Day 126)
+ *   A13 Live price line + ruler close note equal /api/quote; A12 ruler measures from the live price (Day 126)
  *   A4 classification (ETF, no Unknown) A9 cards fit at 390px
  * (A7 "data source shown" dropped: the app header shows it on every tab, so it
  * could never fail.) Unit tests for the checks: scripts/test_analyze_checks.mjs.
@@ -131,6 +131,8 @@ async function extractDom(page) {
           present: !!r,
           unavailable: text(q('timing-unavailable')),
           price: text(q('timing-price')),
+          sentence: text(q('timing-sentence')),
+          basis: text(q('timing-basis')),
           ticks: [...document.querySelectorAll('[data-testid="timing-tick"]')].map(t => parseFloat(t.dataset.price)),
         };
       })(),
@@ -140,7 +142,7 @@ async function extractDom(page) {
         statusText: text(q('live-status')),
         closeText: text(q('price-as-of')),
         tickCount: document.querySelectorAll('[data-testid="live-tick"]').length,
-        tickPrice: (q('live-tick') || { dataset: {} }).dataset.price || null,
+        timingNote: text(q('timing-close-note')),
       },
       planBuy: text(q('plan-buy-value')),
       levelRows: { support: text(q('key-level-support')), resistance: text(q('key-level-resistance')) },

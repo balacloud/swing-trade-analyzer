@@ -19,8 +19,8 @@ const pct = (v) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(1)}%`;
 // Day 123: each non-ok state says why, in plain words (no silent hide).
 const EMPTY_MESSAGES = {
   no_data: "Couldn't load support and resistance levels for this ticker, so there's no pullback plan. The rest of the page is unaffected.",
-  no_support: "No support level below today's price, so there's no pullback plan to show.",
-  no_price: "Today's price didn't load, so the plan can't be placed against it.",
+  no_support: "No support level below the last close, so there's no pullback plan to show.",
+  no_price: "The last close didn't load, so the plan can't be placed against it.",
 };
 
 // Day 126: onSizePlan(entry, stop) opens the position-size calculator with this card's own
@@ -108,7 +108,7 @@ export default function PullbackPlan({ srData, ticker, onSizePlan }) {
           <span className="font-sans font-semibold text-[10px] text-gray-500 mr-1">BUY</span>{money(entry)}
         </span>
         {!nowNearEntry && (
-          <span className="absolute bottom-4 -translate-x-1/2 text-[10px] font-semibold text-gray-500" style={{ left: `${pNow}%` }}>NOW</span>
+          <span className="absolute bottom-4 -translate-x-1/2 text-[10px] font-semibold text-gray-500" style={{ left: `${pNow}%` }}>CLOSE</span>
         )}
         <span className="absolute top-4 -translate-x-1/2 whitespace-nowrap text-[11px] font-mono text-gray-400" style={{ left: `${pStop}%` }}>{money(stop)}</span>
         {pTarget != null && (
@@ -122,7 +122,7 @@ export default function PullbackPlan({ srData, ticker, onSizePlan }) {
         <div className="rounded-lg bg-gray-700/40 border border-gray-700 p-2.5">
           <div className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Buy</div>
           <div data-testid="plan-buy-value" className="font-mono text-gray-100 mt-0.5">{money(entry)}</div>
-          <div className="text-xs text-gray-400 mt-0.5">{insideSupport ? 'top of the support zone; price is inside it now' : `support, ${Math.abs(entryVsNow).toFixed(1)}% ${entryVsNow <= 0 ? 'below' : 'above'} now`}</div>
+          <div className="text-xs text-gray-400 mt-0.5">{insideSupport ? 'top of the support zone; price is inside it at the last close' : `support, ${Math.abs(entryVsNow).toFixed(1)}% ${entryVsNow <= 0 ? 'below' : 'above'} the last close`}</div>
         </div>
         <div className="rounded-lg bg-gray-700/40 border border-gray-700 p-2.5">
           <div className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Stop</div>
@@ -166,7 +166,7 @@ export default function PullbackPlan({ srData, ticker, onSizePlan }) {
       <details className="mt-3 text-xs text-gray-400">
         <summary className="cursor-pointer text-blue-400">How this setup was formed</summary>
         <div className="mt-2 space-y-2">
-          <p><b className="text-gray-300">Levels:</b> support and resistance are zones where price turned before (swing highs and lows over the last year). The buy is the top of the nearest support zone and the target is the bottom of the nearest resistance zone above today's price.</p>
+          <p><b className="text-gray-300">Levels:</b> support and resistance are zones where price turned before (swing highs and lows over the last year). The buy is the top of the nearest support zone and the target is the bottom of the nearest resistance zone above the last close.</p>
           <p><b className="text-gray-300">Buy and stop:</b> buy at the nearest support, stop 2 ATR below it (ATR is how much the stock normally moves in a day). Buying a pullback near support is the canon low-risk entry (Minervini, Livermore's pivots); stops below support with an ATR buffer follow the Turtles.</p>
           <p><b className="text-gray-300">Zones on the bar:</b> the faint green band is the nearest support zone and the red band the nearest resistance zone, drawn on the same price scale. A zone outside the bar's range isn't drawn; its row below still lists it.</p>
           <p><b className="text-gray-300">At a high with no resistance above</b> there is no target. STA doesn't invent one.</p>

@@ -41,6 +41,7 @@ const MIN_BODY_TEXT = 20;
 const MIN_COLLAPSED_TEXT = 20;
 const norm = (s) => String(s ?? '').replace(/\s+/g, ' ').trim();
 const ok = (r) => r && r.status === 200 && r.body != null;
+const money2 = (v) => `$${v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 function result(id, pass, expected, actual) {
   return { id, name: NAMES[id], pass: !!pass, expected, actual };
@@ -303,8 +304,14 @@ function checkA12(dom, api) {
     return result('A12', problems.length === 0, 'ruler, or an honest reason it cannot be drawn', problems.join('; ') || `not drawn: ${norm(t.unavailable)}`);
   }
   if (!ok(api.stock)) return result('A12', false, 'stock payload', 'stock response not captured');
-  const price = api.stock.body.currentPrice;
-  if (Number.isFinite(price) && norm(t.price) !== `$${price.toFixed(2)}`) problems.push(`dot price ${norm(t.price)} != page price $${price.toFixed(2)}`);
+  // Day 126: with a usable live quote the ruler measures from it; otherwise from the /api/stock price
+  const qb = ok(api.quote) ? api.quote.body : null;
+  const liveUsable = !!qb && qb.available === true && qb.session !== 'closed' && Number.isFinite(qb.price) && qb.price > 0;
+  const price = liveUsable ? qb.price : api.stock.body.currentPrice;
+  if (Number.isFinite(price) && norm(t.price) !== money2(price)) problems.push(`dot price ${norm(t.price)} != ${liveUsable ? 'live' : 'page'} price ${money2(price)}`);
+  if (t.sentence && !norm(t.sentence).startsWith(norm(t.price))) problems.push(`sentence "${norm(t.sentence).slice(0, 40)}" does not start with the dot price ${norm(t.price)}`);
+  if (!liveUsable && t.basis && !/\(last close\)/.test(norm(t.basis))) problems.push(`no live price but the basis label says "${norm(t.basis)}"`);
+  if (liveUsable && t.basis && /\(last close\)/.test(norm(t.basis))) problems.push('live price but the basis label says last close');
   const k = t.ticks || [];
   if (k.length < 1 || k.length > 3 || k.some(x => !Number.isFinite(x) || !(x > 0))) problems.push(`expected 1 to 3 ruler marks that are positive prices, found ${k.length}`);
   else if (k.some((x, i) => i > 0 && x < k[i - 1])) problems.push('ruler marks are not in price order');
@@ -313,8 +320,7 @@ function checkA12(dom, api) {
 }
 
 // A13 (Day 126): the live price line shows what /api/quote sent, with its trade time; the "Last close" line is the quote's own;
-// the amber ruler marker (live-tick) exists only with a usable live price; every other state is said out loud, never a stale close posing as live.
-const money2 = (v) => `$${v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+// the ruler "Last close" note exists only with a usable live price (no amber marker any more); every other state is said out loud, never a stale close posing as live.
 function checkA13(dom, api) {
   const L = dom.live;
   if (!L) return result('A13', false, 'live price reader', 'page reader did not return live');
@@ -326,12 +332,14 @@ function checkA13(dom, api) {
     return result('A13', false, 'live price line equals /api/quote', problems.join('; '));
   }
   const usable = body.available === true && body.session !== 'closed' && Number.isFinite(body.price) && body.price > 0;
-  const ticksWanted = usable && dom.timing && dom.timing.present ? 1 : 0;
-  if (L.tickCount !== ticksWanted) problems.push(`${L.tickCount} live-tick marker(s), expected ${ticksWanted}`);
+  // Day 126: the amber live-tick marker is gone (the ruler bubble IS the live price); a "Last close" note shows with a usable live price
+  if (L.tickCount !== 0) problems.push(`${L.tickCount} live-tick marker(s), expected none`);
+  const noteWanted = usable && dom.timing && dom.timing.present && body.last_close && Number.isFinite(body.last_close.price);
+  if (noteWanted && !norm(L.timingNote).startsWith(`Last close ${money2(body.last_close.price)}`)) problems.push(`ruler close note "${norm(L.timingNote)}" != quote last close ${money2(body.last_close.price)}`);
+  if (!noteWanted && L.timingNote) problems.push(`ruler close note "${norm(L.timingNote)}" shown without a usable live price`);
   if (usable) {
     if (norm(L.priceText) !== `Now ${money2(body.price)}`) problems.push(`live price "${norm(L.priceText)}" != "Now ${money2(body.price)}"`);
     if (!/last trade \d{1,2}:\d{2}(am|pm) ET/.test(norm(L.statusText))) problems.push(`no trade time in "${norm(L.statusText)}"`);
-    if (ticksWanted && L.tickPrice !== body.price.toFixed(2)) problems.push(`ruler live marker ${L.tickPrice} != ${body.price.toFixed(2)}`);
     const lc = body.last_close;
     if (lc && Number.isFinite(lc.price)) {
       if (!norm(L.closeText).startsWith(`Last close ${money2(lc.price)}`)) problems.push(`close line "${norm(L.closeText)}" != quote last close ${money2(lc.price)}`);

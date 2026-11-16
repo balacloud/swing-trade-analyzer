@@ -18,6 +18,7 @@ import {
 import {
   getVolumeConfirmationRead, getVolumeDirectionRead, getObvHorizonRead, getEffortVsResultRead,
 } from '../utils/volumeThresholds';
+import { basisLabel } from '../utils/liveQuote';
 import useMissingInputWarning from '../hooks/useMissingInputWarning';
 
 const money = (v) => (Number.isFinite(v) ? `$${v.toFixed(2)}` : '—');
@@ -122,8 +123,6 @@ function TimingRuler({ timing }) {
       </div>
       <div className="relative h-3 rounded-full overflow-hidden bg-gray-700/50">
         <span className="absolute inset-y-0 bg-sky-800/70" style={{ left: `${Math.min(x, e)}%`, width: `${Math.abs(x - e)}%` }} />
-        {/* Day 126: where the live price sits on the same scale (display only) */}
-        {timing.live != null && <span className="absolute inset-y-0 w-0.5 bg-amber-400" style={{ left: `${at(timing.live)}%` }} />}
       </div>
       <div className="relative mt-0" style={{ height: 6 + (rows - 1) * ROW_GAP + 34 }}>
         {ticks.map((k) => (
@@ -138,17 +137,6 @@ function TimingRuler({ timing }) {
           </div>
         ))}
       </div>
-      {timing.live != null && (
-        /* its own row and test id: the close bubble and the average labels stay untouched */
-        <div className="relative h-9" data-testid="live-tick" data-price={timing.live.toFixed(2)}>
-          <span className="absolute top-0 -translate-x-1/2 border-x-[5px] border-x-transparent border-b-[6px] border-b-amber-400" style={{ left: `${at(timing.live)}%` }} />
-          <div className="absolute top-2 -translate-x-1/2 text-center leading-tight whitespace-nowrap"
-            style={{ left: `min(max(${at(timing.live)}%, 46px), calc(100% - 46px))` }}>
-            <div className="text-[11px] sm:text-xs font-mono text-amber-300 font-semibold">{money(timing.live)}</div>
-            <div className="text-[11px] text-gray-500">now</div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -228,7 +216,8 @@ function VolumeDetail({ srData }) {
   );
 }
 
-export default function TechnicalRead({ ticker, technical, adxData, rsData, patternsData, price, ema21, sma50, sma200, priceHistory, srData, livePrice = null }) {
+export default function TechnicalRead({ ticker, technical, adxData, rsData, patternsData, price, ema21, sma50, sma200, priceHistory, srData, live = null }) {
+  const livePrice = live && Number.isFinite(live.price) ? live.price : null;
   const read = useMemo(() => deriveTechnicalRead(technical, adxData), [technical, adxData]);
   const strong = useMemo(() => deriveStrongCriteria(technical, rsData), [technical, rsData]);
   const trendChecks = useMemo(() => deriveTrendChecks(patternsData, priceHistory?.length ?? null), [patternsData, priceHistory]);
@@ -273,7 +262,7 @@ export default function TechnicalRead({ ticker, technical, adxData, rsData, patt
 
       {trendChecks.state === 'ok' && (
         <div className="mt-4">
-          <div className="text-sm font-semibold text-gray-200 mb-1">Is it in an uptrend? <span className="font-normal text-gray-500">· simple averages</span></div>
+          <div className="text-sm font-semibold text-gray-200 mb-1">Is it in an uptrend? <span className="font-normal text-gray-500">· simple averages{livePrice != null && live?.lastClose ? ` · counted at the last close (${money(live.lastClose.price)}${live.lastClose.dateLabel ? `, ${live.lastClose.dateLabel}` : ''})` : ''}</span></div>
           <div className="divide-y divide-gray-700/60">
             {trendChecks.checks.map((c) => (
               <div key={c.key} className="py-1.5 flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-3 text-sm">
@@ -299,17 +288,18 @@ export default function TechnicalRead({ ticker, technical, adxData, rsData, patt
           {timing.state === 'ok' ? (
             <>
               <div className="font-semibold text-gray-100" data-testid="timing-sentence">
+                {money(timing.price)} <span className="font-normal text-gray-400" data-testid="timing-basis">({timing.basis === 'live' ? basisLabel(live) : 'last close'})</span>
                 {timing.side === 'at'
-                  ? <>{money(timing.price)} is right at its 21-day average ({money(timing.ema21)})</>
-                  : <>{money(timing.price)} is {Math.abs(timing.pctFromEma).toFixed(1)}% {timing.side} its 21-day average ({money(timing.ema21)})</>}
+                  ? <> is right at its 21-day average ({money(timing.ema21)})</>
+                  : <> is {Math.abs(timing.pctFromEma).toFixed(1)}% {timing.side} its 21-day average ({money(timing.ema21)})</>}
               </div>
               <div className="text-xs text-gray-400" data-testid="timing-sub">
                 That is {Math.abs(timing.atrUnits).toFixed(1)} of a normal day's move{timing.side === 'at' ? '' : ` ${timing.side} it`}. A normal day's move here is {money(timing.atr)}.
               </div>
               <TimingRuler timing={timing} />
-              {timing.live != null && (
-                <div className="text-xs text-gray-500" data-testid="timing-live-note">
-                  The numbers above use the last close. The amber mark is the live price ({money(timing.live)}).
+              {timing.basis === 'live' && live?.lastClose && (
+                <div className="text-xs text-gray-500" data-testid="timing-close-note">
+                  Last close {money(live.lastClose.price)}{live.lastClose.dateLabel ? ` · ${live.lastClose.dateLabel}` : ''}
                 </div>
               )}
               <Why>

@@ -96,3 +96,12 @@ export function nextPollDelayMs(state) {
 export function signedPct(v) {
   return isNum(v) ? `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(2)}%` : '';
 }
+
+/** Words for which price a number is measured from: one source for the header and the entry block. */
+export function basisLabel(live) {
+  if (!live || !isNum(live.price)) return 'last close';
+  if (live.state === 'live') return 'now';
+  if (live.state === 'pre') return 'pre-market';
+  if (live.state === 'post') return 'after hours';
+  return live.tradeTime ? `last trade ${live.tradeTime}` : 'last close';
+}

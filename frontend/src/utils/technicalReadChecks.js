@@ -94,11 +94,15 @@ export function deriveTrendChecks(patternsData, historyBars = null) {
  * @param {?number} args.sma50 - analysisResult.indicators.sma50 (optional)
  * @param {?number} args.sma200 - analysisResult.indicators.sma200 (optional)
  * @param {?number} args.atr - srData.meta.atr (Wilder ATR(14) on completed bars)
- * @param {?number} args.livePrice - Day 126, display only: today's live price; only widens the ruler and places a marker, never changes atrUnits / pctFromEma / side
+ * @param {?number} args.livePrice - Day 126, display only: today's live price; when valid it IS the compared price (basis 'live'), otherwise the bar price is used (basis 'close')
  */
 const RULER_MARKS = [['ema21', '21-day avg'], ['sma50', '50-day avg'], ['sma200', '200-day avg']];
 
 export function deriveEntryTiming({ price, ema21, sma50, sma200, atr, livePrice = null }) {
+  // price: the last bar from /api/stock; livePrice (optional) replaces it when valid
+  // Day 126: a usable live price is the compared price (display only; the averages and ATR are untouched)
+  const live = isNum(livePrice) && livePrice > 0 ? livePrice : null;
+  if (live !== null) price = live;
   if (!isNum(price)) return { state: 'unavailable', reason: 'price missing' };
   if (!isNum(ema21) || ema21 <= 0) return { state: 'unavailable', reason: '21-day average not computed (needs 200 days of history)' };
   if (!isNum(atr) || atr <= 0) return { state: 'unavailable', reason: 'ATR unavailable' };
@@ -111,9 +115,7 @@ export function deriveEntryTiming({ price, ema21, sma50, sma200, atr, livePrice 
     .map(([key, caption]) => ({ key, price: vals[key], caption }))
     .sort((a, b) => a.price - b.price);
   // the ruler always contains the price and every mark, with a little room at both ends
-  // Day 126: the live price (display only) is a scale input too, so its marker can never fall off the bar
-  const live = isNum(livePrice) && livePrice > 0 ? livePrice : null;
-  const all = [price, ...marks.map((m) => m.price), ...(live !== null ? [live] : [])];
+  const all = [price, ...marks.map((m) => m.price)];
   const min = Math.min(...all), max = Math.max(...all);
   const pad = (max - min) * 0.12 || max * 0.01;
   const side = Math.abs(pctFromEma) < 0.05 ? 'at' : pctFromEma > 0 ? 'above' : 'below';
@@ -126,7 +128,7 @@ export function deriveEntryTiming({ price, ema21, sma50, sma200, atr, livePrice 
     pctFromEma,
     side,
     marks,
-    live,
+    basis: live !== null ? 'live' : 'close',
     lo: min - pad,
     hi: max + pad,
   };

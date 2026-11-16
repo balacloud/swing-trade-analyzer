@@ -1071,7 +1071,7 @@ function App() {
                   rsData={analysisResult.rsData}
                   patternsData={patternsData}
                   price={analysisResult.currentPrice}
-                  livePrice={live.price}
+                  live={live}
                   ema21={analysisResult.indicators?.ema21}
                   sma50={analysisResult.indicators?.sma50}
                   sma200={analysisResult.indicators?.sma200}

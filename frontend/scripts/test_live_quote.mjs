@@ -1,7 +1,7 @@
 // Live quote label/state logic (Day 126). Run: cd frontend && node scripts/test_live_quote.mjs
 import { register } from 'node:module';
 register('./lib/js-ext-loader.mjs', import.meta.url);
-const { describeLiveQuote, acceptQuote, formatTradeTime, formatCloseDate, nextPollDelayMs, signedPct } =
+const { basisLabel, describeLiveQuote, acceptQuote, formatTradeTime, formatCloseDate, nextPollDelayMs, signedPct } =
   await import('../src/utils/liveQuote.js');
 
 let pass = 0, fail = 0;
@@ -69,6 +69,14 @@ ok(formatCloseDate('13/11/2026') === null && formatCloseDate(null) === null, 'ba
 ok(nextPollDelayMs('live') === 60000 && nextPollDelayMs('post') === 60000 && nextPollDelayMs('pre') === 60000, 'open sessions poll every minute');
 ok(nextPollDelayMs('closed') === 300000 && nextPollDelayMs('unavailable') === 300000 && nextPollDelayMs('none') === 300000, 'closed / failing re-check every 5 minutes');
 ok(signedPct(-4.18) === '−4.18%' && signedPct(1.2) === '+1.20%' && signedPct(0) === '+0.00%' && signedPct(NaN) === '', 'signed percent');
+
+// words for which price a number is measured from
+ok(basisLabel(describeLiveQuote({ ...base, age_minutes: 1 }, NOW)) === 'now', 'Live reads "now"');
+ok(basisLabel(describeLiveQuote({ ...base, age_minutes: 9 }, NOW)) === 'last trade 2:51pm ET', 'an older trade reads "last trade 2:51pm ET", never "now"');
+ok(basisLabel(describeLiveQuote({ ...base, session: 'pre' }, NOW)) === 'pre-market', 'pre-market is named');
+ok(basisLabel(describeLiveQuote({ ...base, session: 'post' }, NOW)) === 'after hours', 'after hours is named');
+ok(basisLabel(describeLiveQuote({ ...base, session: 'closed', price: null }, NOW)) === 'last close', 'closed reads "last close"');
+ok(basisLabel(null) === 'last close' && basisLabel(undefined) === 'last close' && basisLabel({}) === 'last close', 'no live data reads "last close"');
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

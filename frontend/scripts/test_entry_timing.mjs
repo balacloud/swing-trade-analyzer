@@ -57,21 +57,29 @@ const vol2 = deriveEntryVolume({ priceHistory: hist, todayEt: '2026-11-16',
   srData: { change: 0.0, meta: { rvol: 1.0, candle: { barComplete: true, closeLocation: 0.5 }, obv: { trend: 'flat' } } } });
 ok(vol2.tally.up === 0 && vol2.tally.down === 0 && vol2.tally.flat === 3, 'volume tally: all flat');
 
-// Day 126: the live price is display only. It widens the ruler and gets a marker; it never changes the numbers.
-const lv = deriveEntryTiming({ price: 523.88, ema21: 528.10, sma50: 510, sma200: 450, atr: 14.07, livePrice: 520.10 });
-ok(lv.live === 520.10, 'live price is carried');
-ok(near(lv.atrUnits, t3.atrUnits) && near(lv.pctFromEma, t3.pctFromEma) && lv.side === t3.side, 'live price does not change atrUnits / pctFromEma / side');
-ok(lv.marks.length === 3, 'live price does not add an average mark');
-const lvLow = deriveEntryTiming({ price: 523.88, ema21: 528.10, sma50: 510, sma200: 450, atr: 14.07, livePrice: 380 });
-ok(lvLow.lo < 380 && lvLow.hi > 528.10, 'live price below the lowest average still sits on the ruler');
-const lvHigh = deriveEntryTiming({ price: 523.88, ema21: 528.10, sma50: 510, sma200: 450, atr: 14.07, livePrice: 640 });
-ok(lvHigh.hi > 640, 'live price above every average still sits on the ruler');
-ok(t3.live === null, 'no live price: live is null');
-for (const bad of [NaN, Infinity, -5, 0, undefined, '520']) {
-  const r = deriveEntryTiming({ price: 523.88, ema21: 528.10, atr: 14.07, livePrice: bad });
-  ok(r.live === null && r.lo === deriveEntryTiming({ price: 523.88, ema21: 528.10, atr: 14.07 }).lo, `bad live price ${String(bad)} is ignored and does not move the scale`);
+// Day 126: with a usable live price the block measures from it; averages and ATR are untouched.
+const base3 = { ema21: 528.10, sma50: 510, sma200: 450, atr: 14.07 };
+const lv = deriveEntryTiming({ price: 523.88, ...base3, livePrice: 520.10 });
+ok(lv.basis === 'live' && lv.price === 520.10, 'live price becomes the compared price, basis = live');
+ok(near(lv.atrUnits, (520.10 - 528.10) / 14.07) && near(lv.pctFromEma, ((520.10 - 528.10) / 528.10) * 100), 'distance and ATR units are measured from the live price');
+ok(lv.ema21 === 528.10 && lv.atr === 14.07 && lv.marks.length === 3, 'averages and ATR are the same inputs, no extra mark');
+ok(!('live' in lv) && !('lastClose' in lv), 'no second marker field and no lastClose field (the note comes from the quote)');
+ok(t3.basis === 'close' && t3.price === 523.88, 'no live price: basis = close, price = the bar price');
+const lvLow = deriveEntryTiming({ price: 523.88, ...base3, livePrice: 380 });
+ok(lvLow.lo < 380 && lvLow.hi > 528.10 && lvLow.side === 'below', 'live far below every average sits on the ruler');
+const lvHigh = deriveEntryTiming({ price: 523.88, ...base3, livePrice: 640 });
+ok(lvHigh.hi > 640 && lvHigh.side === 'above', 'live above every average sits on the ruler');
+ok(deriveEntryTiming({ price: 523.88, ...base3, livePrice: 540 }).side === 'above' && deriveEntryTiming({ price: 540, ...base3, livePrice: 520 }).side === 'below', 'live price decides the side, not the bar price');
+ok(deriveEntryTiming({ price: 523.88, ...base3, livePrice: 528.10 }).side === 'at', 'live exactly on the 21-day average = at');
+ok(deriveEntryTiming({ price: 523.88, ...base3, livePrice: 523.88 }).pctFromEma === t3.pctFromEma, 'live equal to the bar price gives the same numbers');
+for (const bad of [NaN, Infinity, -5, 0, undefined, null, '520']) {
+  const r = deriveEntryTiming({ price: 523.88, ...base3, livePrice: bad });
+  ok(r.basis === 'close' && r.price === 523.88 && r.lo === t3.lo && r.hi === t3.hi, `bad live price ${String(bad)} falls back to the bar price`);
 }
-ok(deriveEntryTiming({ price: 100, ema21: 100, atr: 2, livePrice: 100 }).hi > 100, 'live price equal to everything still gets room');
+ok(deriveEntryTiming({ price: null, ...base3, livePrice: 520 }).state === 'ok', 'bar price missing but live present still works');
+ok(deriveEntryTiming({ price: null, ...base3, livePrice: null }).state === 'unavailable', 'both missing: unavailable');
+ok(deriveEntryTiming({ price: 100, ema21: 100, atr: 2, livePrice: 100 }).hi > 100, 'live equal to everything still gets room');
+ok(deriveEntryTiming({ price: 523.88, ema21: null, atr: 14.07, livePrice: 520 }).state === 'unavailable', 'missing 21-day average stays unavailable even with a live price');
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

@@ -6,6 +6,14 @@
 
 ## Changes from Day 125
 
+- **Changed (Day 126): the Entry-checks block measures from the live price.** The sentence, the white bubble and the
+  "normal day's move" distance use the live price when one exists, labelled `(now)` / `(pre-market)` / `(after hours)` /
+  `(last trade 2:51pm ET)`; without one they use the last bar, labelled `(last close)`. A grey `Last close $X · date`
+  note (from the quote's completed bar) sits under the ruler; the amber marker was removed. The "Is it in an uptrend?"
+  rows stay on the close and say so. Pullback plan wording changed from "now / today's price" to "last close" (wording
+  only, Trade Setup numbers unchanged). Averages and ATR are still the engine's inputs. A12/A13 updated. Plan:
+  `docs/claude/design/LIVE_ENTRY_TIMING_PLAN_DAY126.md`. Caveat: while the `/api/stock` forming-bar issue is open, a
+  mid-day cache miss can let today's partial bar into the averages and ATR.
 - **Added (Day 126): live price in the Analyze header and ruler.** NVDA showed Friday's close ($162.85) while IBKR showed
   $156.10 (-4.14%): a one-day gap, not a delay. New display-only `GET /api/quote/<ticker>` (`backend/live_quote.py`):
   US = Tradier -> Yahoo 1-minute -> Finnhub; Canadian = Yahoo 1-minute only; own `yfinance_live` breaker and rate budget;
