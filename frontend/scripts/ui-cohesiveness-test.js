@@ -172,19 +172,7 @@ async function analyzeTicker(page, ticker, outputDir, index, total) {
       const cards = [...document.querySelectorAll('[data-testid^="card-"]')].map(el => el.dataset.testid.replace('card-', ''));
       return { tickerName: h2 ? h2.textContent.trim() : null, classification: header && header.querySelector('p') ? header.querySelector('p').innerText.replace(/\s+/g, ' ').trim().slice(0, 80) : null, cards };
     });
-    // Simple view badge: toggle, read, toggle back so the PDF is the Full view.
-    pageData.simpleBadge = await page.evaluate(async () => {
-      const click = (lbl) => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === lbl); if (b) b.click(); return !!b; };
-      if (!click('✅ Simple Checklist (9 criteria)')) return null;
-      await new Promise(r => setTimeout(r, 400));
-      const el = document.querySelector('[data-testid="card-simple-verdict"]');
-      const text = el ? el.innerText.replace(/\s+/g, ' ').trim() : null;
-      click('Full Analysis');
-      await new Promise(r => setTimeout(r, 400));
-      return text;
-    });
-
-    console.log(`${label}: ${pageData.tickerName || ticker} | ${pageData.classification || ''} | Simple: ${pageData.simpleBadge || 'N/A'} | cards: ${pageData.cards.join(', ')}`);
+    console.log(`${label}: ${pageData.tickerName || ticker} | ${pageData.classification || ''} | cards: ${pageData.cards.join(', ')}`);
 
     // Scroll to bottom to ensure all lazy content loads
     await page.evaluate(async () => {
@@ -221,7 +209,6 @@ async function analyzeTicker(page, ticker, outputDir, index, total) {
       status: 'success',
       name: pageData.tickerName,
       classification: pageData.classification,
-      simpleBadge: pageData.simpleBadge,
       cards: pageData.cards,
       pdf: pdfFilename
     };
@@ -250,13 +237,13 @@ function generateReport(results, outputDir, config) {
     ``,
     `## Results Summary`,
     ``,
-    `| # | Ticker | Name | Classification | Simple view | Cards | Status | PDF |`,
+    `| # | Ticker | Name | Classification | Cards | Status | PDF |`,
     `|---|--------|------|----------------|-------------|-------|--------|-----|`,
   ];
 
   results.forEach((r, i) => {
     lines.push(
-      `| ${i + 1} | ${r.ticker} | ${r.name || ''} | ${r.classification || ''} | ${r.simpleBadge || 'N/A'} | ${(r.cards || []).length} | ${r.status}${r.error ? `: ${r.error}` : ''} | ${r.pdf || 'none'} |`
+      `| ${i + 1} | ${r.ticker} | ${r.name || ''} | ${r.classification || ''} | ${(r.cards || []).length} | ${r.status}${r.error ? `: ${r.error}` : ''} | ${r.pdf || 'none'} |`
     );
   });
 
@@ -265,7 +252,7 @@ function generateReport(results, outputDir, config) {
   lines.push('');
   lines.push('For each PDF, verify:');
   lines.push('- [ ] Market backdrop is the first card and shows facts only (no Favorable/Unfavorable label)');
-  lines.push('- [ ] No BUY/HOLD/AVOID verdict anywhere; the Simple view says TRADE or No Trade');
+  lines.push('- [ ] No BUY/HOLD/AVOID verdict and no Simple Checklist anywhere (removed Day 123 / Day 126)');
   lines.push('- [ ] Each card says what its read is based on (rules, data source, dates)');
   lines.push('- [ ] Anything that could not load says so plainly; no blank or made-up values');
   lines.push('- [ ] An ETF says "Exchange-traded fund (ETF)", never "Unknown"');

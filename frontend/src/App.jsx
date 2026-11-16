@@ -38,12 +38,12 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, runValidation, clearBackendCache, clearMarketCache, fetchDataProvenance, getCacheStatus, fetchSectorRotation, fetchMRSignal, fetchMRScan, fetchBreakoutBatch, fetchBreakout, fetchSupportResistance } from './services/api';
+import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchScanResults, clearBackendCache, clearMarketCache, fetchDataProvenance, fetchProviderCoverage, getCacheStatus, fetchSectorRotation, fetchMRSignal, fetchMRScan, fetchBreakoutBatch, fetchBreakout, fetchSupportResistance } from './services/api';
 import { calculateScore } from './utils/scoringEngine';
-import { calculateSimplifiedAnalysis } from './utils/simplifiedScoring';
 import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings, getVixPositionMultiplier } from './utils/positionSizing';
 import { runCategoricalAssessment } from './utils/categoricalAssessment';
 import { describePriceAsOf } from './utils/priceAsOf'; // Day 124: header price date label
+import DataSourcesTab from './components/DataSourcesTab'; // Day 126: Data Sources tab v2 (quality, identity, real chains)
 import PullbackPlan from './components/PullbackPlan'; // Day 123: redesign Step 3, Trade Setup pullback plan
 import RegimeRead from './components/RegimeRead'; // Day 123: redesign Step 4
 import TechnicalRead from './components/TechnicalRead'; // Day 123: redesign Step 4
@@ -78,7 +78,7 @@ const describeClassification = (sector, industry, quoteType) => {
 
 function App() {
   // Tab state
-  const [activeTab, setActiveTab] = useState('analyze'); // 'analyze', 'scan', or 'validate'
+  const [activeTab, setActiveTab] = useState('analyze'); // 'analyze', 'scan', 'sectors', 'context', 'value', 'datasources', 'settings' ('forward' is hidden since Day 126)
   
   // Analysis state
   const [ticker, setTicker] = useState('');
@@ -138,17 +138,10 @@ function App() {
   const [breakoutBadgesRequested, setBreakoutBadgesRequested] = useState(new Set());
 
 
-  // Validation state (Day 17)
-  const [validationLoading, setValidationLoading] = useState(false);
-  const [validationError, setValidationError] = useState(null);
-  const [validationResults, setValidationResults] = useState(null);
-  const [validationTickers, setValidationTickers] = useState('AAPL, NVDA, MSFT');
 
   // Score breakdown expanded state (Day 23)
 
   // Simplified analysis state (Day 27)
-  const [simplifiedResult, setSimplifiedResult] = useState(null);
-  const [analysisView, setAnalysisView] = useState('full'); // 'full' or 'simple' — default full since Day 124 (redesign Step 7; was simple from Day 75)
 
   // Settings state (Day 28)
   const [settings, setSettings] = useState(getDefaultSettings);
@@ -175,6 +168,8 @@ function App() {
   const [provenanceLoading, setProvenanceLoading] = useState(false);
   const [cacheStatus, setCacheStatus] = useState(null);
   const [providerHealth, setProviderHealth] = useState(null);
+  const [providerCoverage, setProviderCoverage] = useState(null);       // Day 126: tested coverage table or {error}
+  const [tradingviewAvailable, setTradingviewAvailable] = useState(null);
 
   // Sector Rotation state (Day 58 - v4.19)
   const [sectorRotation, setSectorRotation] = useState(null);
@@ -277,12 +272,9 @@ function App() {
       setAnalysisResult(null);
       setSrData(null);
       setPatternsData(null);
-      setSimplifiedResult(null);
       setScanResults(null);
-      setValidationResults(null);
       setError(null);
       setScanError(null);
-      setValidationError(null);
       setPositionResult(null);
       setCalcEntry('');
       setCalcStop('');
@@ -359,8 +351,14 @@ function App() {
   };
 
   // Auto-fill position calculator from analysis and navigate to Settings (Day 28 integration)
+  // Day 126: called from the Trade Setup card's "Size this plan →" link (PullbackPlan), which
+  // passes its own Buy and Stop rounded to cents, so the shares match the inputs shown.
+  // Before Day 126 the only caller was the removed Simple Checklist's TRADE panel.
   const autoFillPositionCalculator = (tickerSymbol, entry, stop) => {
-    if (!entry || !stop) return;
+    if (!entry || !stop) {
+      console.warn('[PositionSize] autofill skipped: missing entry or stop', { tickerSymbol, entry, stop });
+      return;
+    }
 
     // Set calculator values
     setCalcTicker(tickerSymbol);
@@ -397,7 +395,6 @@ function App() {
     setSrData(null);
     setPatternsData(null);
     setCategoricalResult(null);
-    setSimplifiedResult(null);
     setMrSignalData(null);
     setBreakoutData(null);
     setActiveTab('analyze');
@@ -437,9 +434,6 @@ function App() {
       const data = await fetchFullAnalysisData(targetTicker);
       const result = calculateScore(data.stock, data.spy, data.vix);
 
-      // Day 27: Also calculate simplified binary analysis
-      const simplified = calculateSimplifiedAnalysis(data.stock, data.spy, data.sr);
-
       // Day 44: v4.5 Categorical Assessment System
       // Day 47: v4.6.2 - Added ADX data for entry preference logic
       const trendTemplate = data.patterns?.trendTemplate || null;
@@ -466,7 +460,6 @@ function App() {
       setEarningsData(data.earnings); // Day 49: v4.10 Earnings Calendar
       setCategoricalResult(categorical); // Day 44: v4.5 Categorical Assessment
 
-      setSimplifiedResult(simplified);
       setTicker(targetTicker);
 
       // Day 58: Update sector rotation from analysis data (reliable — cached per trading day)
@@ -717,32 +710,6 @@ function App() {
     }
   };
 
-  // Run validation (Day 17)
-  const handleRunValidation = async () => {
-    const tickers = validationTickers
-      .split(',')
-      .map(t => t.trim().toUpperCase())
-      .filter(t => t.length > 0);
-
-    if (tickers.length === 0) {
-      setValidationError('Please enter at least one ticker');
-      return;
-    }
-
-    setValidationLoading(true);
-    setValidationError(null);
-    setValidationResults(null);
-
-    try {
-      const results = await runValidation(tickers);
-      setValidationResults(results);
-    } catch (err) {
-      setValidationError(err.message || 'Failed to run validation');
-    } finally {
-      setValidationLoading(false);
-    }
-  };
-
   // Format currency
   const formatCurrency = (value) => {
     if (value === null || value === undefined) return 'N/A';
@@ -765,25 +732,6 @@ function App() {
   };
 
   // Get RSI color
-  // Get validation status color
-  const getValidationStatusColor = (status) => {
-    switch (status) {
-      case 'pass': return 'text-green-400 bg-green-900/30';
-      case 'fail': return 'text-red-400 bg-red-900/30';
-      case 'warning': return 'text-yellow-400 bg-yellow-900/30';
-      case 'skip': return 'text-gray-400 bg-gray-700/30';
-      default: return 'text-gray-400';
-    }
-  };
-
-  // Get quality score color
-  const getQualityColor = (score) => {
-    if (score >= 90) return 'text-green-400';
-    if (score >= 75) return 'text-green-300';
-    if (score >= 60) return 'text-yellow-400';
-    return 'text-red-400';
-  };
-
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6">
       <div className="max-w-6xl mx-auto">
@@ -807,7 +755,6 @@ function App() {
                 )}
                 {backendStatus.tradingviewAvailable && ' • TradingView ✓'}
                 {backendStatus.srEngineAvailable && ' • S&R ✓'}
-                {backendStatus.validationAvailable && ' • Validation ✓'}
               </span>
             </div>
             <button
@@ -902,22 +849,13 @@ function App() {
               💎 Value
             </button>
             <button
-              onClick={() => setActiveTab('validate')}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === 'validate'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              ✅ Validate Data
-            </button>
-            <button
               onClick={() => {
                 setActiveTab('datasources');
                 // Fetch cache status when tab is selected
                 getCacheStatus().then(setCacheStatus);
                 // Fetch live provider health
-                checkBackendHealth().then(h => setProviderHealth(h?.providers || null));
+                checkBackendHealth().then(h => { setProviderHealth(h?.providers || null); setTradingviewAvailable(h?.tradingviewAvailable ?? null); });
+                fetchProviderCoverage().then(setProviderCoverage);
                 // Fetch provenance for current ticker if analyzed
                 if (analysisResult?.ticker) {
                   setProvenanceLoading(true);
@@ -934,16 +872,7 @@ function App() {
             >
               📡 Data Sources
             </button>
-            <button
-              onClick={() => setActiveTab('forward')}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === 'forward'
-                  ? 'bg-green-600 text-white'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              📈 Forward Test
-            </button>
+            {/* Day 126: Forward Test tab hidden from the tab bar at the user's request (paper trading discontinued Day 113). The tab code below is kept but unreachable. */}
             <button
               onClick={() => setActiveTab('settings')}
               className={`px-6 py-2 rounded-lg font-medium transition-colors ${
@@ -995,34 +924,6 @@ function App() {
               </div>
             </div>
 
-            {/* Day 27: View Toggle - Full vs Simple */}
-            {analysisResult && !loading && (
-              <div className="flex justify-center mb-6">
-                <div className="bg-gray-800 rounded-lg p-1 inline-flex">
-                  <button
-                    onClick={() => setAnalysisView('full')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      analysisView === 'full'
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    Full Analysis
-                  </button>
-                  <button
-                    onClick={() => setAnalysisView('simple')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      analysisView === 'simple'
-                        ? 'bg-green-600 text-white'
-                        : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    ✅ Simple Checklist (9 criteria)
-                  </button>
-                </div>
-              </div>
-            )}
-
             {/* Error Display - Day 50: Added retry button */}
             {error && (
               <div data-testid="analysis-error" className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-6 text-red-200">
@@ -1047,7 +948,7 @@ function App() {
             )}
 
             {/* Analysis Results */}
-            {analysisResult && !loading && analysisView === 'full' && (
+            {analysisResult && !loading && (
               <div className="space-y-6">
                 {/* Day 123 (redesign Step 6): Holding Period selector removed — its only effect was the
                     BUY/HOLD/AVOID verdict's tech/fund weighting, and that verdict is no longer shown. */}
@@ -1145,6 +1046,8 @@ function App() {
                   patternsData={patternsData}
                   price={analysisResult.currentPrice}
                   ema21={analysisResult.indicators?.ema21}
+                  sma50={analysisResult.indicators?.sma50}
+                  sma200={analysisResult.indicators?.sma200}
                   priceHistory={rawAnalysisData?.stock?.priceHistory}
                   srData={srData}
                 />
@@ -1189,9 +1092,10 @@ function App() {
                       </div>
                       {/* Day 53: Average Daily Dollar Volume - critical for swing trade liquidity */}
                       {/* Day 83 fix (Task A4): cap-aware coloring, sourced from the same shared
-                          threshold Quality Gates and the Simple Checklist use — was a flat
+                          threshold Quality Gates and the Simple Checklist used — was a flat
                           $10M/$50M split regardless of market cap, a 3rd, different liquidity
-                          standard from the other two views. */}
+                          standard from the other two views. Day 126: both of those views are
+                          gone; this card is the only liquidity display on the Analyze page. */}
                       {(() => {
                         const avgVol = rawAnalysisData?.stock?.avgVolume || 0;
                         const dollarVol = avgVol * (analysisResult.currentPrice || 0);
@@ -1270,7 +1174,7 @@ function App() {
                         return (
                           <div
                             className="mt-2 pt-2 border-t border-gray-700 text-xs text-gray-400"
-                            title="Dual momentum's second leg (Antonacci, 2014). Relative strength above asks whether the stock beat the market; this asks whether it beat cash. The 5% figure is a static risk-free proxy carried from this project's own Day 107 backtest, not a live T-bill yield. Informational only — it does not affect any score, the verdict, or the Simple Checklist."
+                            title="Dual momentum's second leg (Antonacci, 2014). Relative strength above asks whether the stock beat the market; this asks whether it beat cash. The 5% figure is a static risk-free proxy carried from this project's own Day 107 backtest, not a live T-bill yield. Informational only — it does not affect any score or the verdict."
                           >
                             <span className="text-gray-500">Absolute momentum (info only): </span>{abs.text}
                           </div>
@@ -1297,7 +1201,11 @@ function App() {
                       </div>
                     </div>
                     <p data-card-head className="text-sm text-gray-400 mb-4">The pullback plan: wait for a dip to support, then buy. Plain arithmetic, not a tested system.</p>
-                    <PullbackPlan srData={srData} ticker={analysisResult.ticker} />
+                    <PullbackPlan
+                      srData={srData}
+                      ticker={analysisResult.ticker}
+                      onSizePlan={(entry, stop) => autoFillPositionCalculator(analysisResult.ticker, entry, stop)}
+                    />
                     {/* Day 123: levels need srData; when it failed, PullbackPlan above already says so. */}
                     {/* Day 125: nearest floor/ceiling + one-line price state (KeyLevels) replace the
                         S/R lists, MTF badge, Weekly Levels dropdown and the Price Structure card. */}
@@ -1375,189 +1283,6 @@ function App() {
               </div>
             )}
 
-            {/* ==================== SIMPLIFIED VIEW (Day 27) ==================== */}
-            {analysisResult && !loading && analysisView === 'simple' && simplifiedResult && (
-              <div className="space-y-6">
-                {/* Simplified Verdict Card */}
-                <div className={`rounded-lg p-6 ${
-                  simplifiedResult.verdict === 'TRADE' ? 'bg-green-600' : 'bg-gray-700'
-                }`}>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h2 className="text-2xl font-bold">{analysisResult.ticker} - {analysisResult.name}</h2>
-                      <p className="text-white/80">
-                        {describeClassification(analysisResult.sector, analysisResult.industry, rawAnalysisData?.stock?.quoteType)}
-                        {(() => {
-                          const sc = getSectorContext(analysisResult.sector);
-                          if (!sc) return null;
-                          const qColors = { Leading: 'bg-green-700', Weakening: 'bg-yellow-700', Lagging: 'bg-red-700', Improving: 'bg-blue-700' };
-                          return (
-                            <span className={`ml-2 px-1.5 py-0.5 rounded text-xs font-medium text-white ${qColors[sc.quadrant] || 'bg-gray-600'}`}
-                              title={`${sc.name} (${sc.etf}) — RS: ${sc.rsRatio} | Mom: ${sc.rsMomentum > 0 ? '+' : ''}${sc.rsMomentum} | Rank: ${sc.rank}/11`}>
-                              {sc.etf} {sc.quadrant.toUpperCase()}
-                            </span>
-                          );
-                        })()}
-                        {breakoutData && (() => {
-                          // Day 125 (Fable code review #4): a failed check or unknown status is shown, not hidden.
-                          if (breakoutData.error) {
-                            return <span className="ml-2 px-1.5 py-0.5 rounded text-xs border border-gray-500 text-white/70" title={breakoutData.error}>Breakout: unavailable</span>;
-                          }
-                          const cfg = BREAKOUT_BADGE_CONFIG[breakoutData.status];
-                          if (!cfg) return <span className="ml-2 text-xs text-white/70">{breakoutData.status}</span>;
-                          return (
-                            <span
-                              className={`ml-2 px-1.5 py-0.5 rounded text-xs font-medium border ${cfg.color}`}
-                              title={breakoutData.humanAction || cfg.label}
-                            >
-                              {cfg.label}
-                            </span>
-                          );
-                        })()}
-                      </p>
-                    </div>
-                    <div data-testid="card-simple-verdict" className="text-right">
-                      <div className="text-4xl font-bold">
-                        {simplifiedResult.verdict === 'TRADE' ? '✅ TRADE' : '⏸️ No Trade'}
-                      </div>
-                      <div className="text-xl">{simplifiedResult.passCount}/{simplifiedResult.totalCriteria} criteria met</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 9 Binary Criteria Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {Object.entries(simplifiedResult.criteria).map(([key, criterion]) => (
-                    <div
-                      key={key}
-                      className={`rounded-lg p-5 border-2 ${
-                        criterion.pass
-                          ? 'bg-green-900/30 border-green-600'
-                          : 'bg-red-900/20 border-red-700/50'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                          <span className="text-3xl">
-                            {criterion.pass ? '✅' : '❌'}
-                          </span>
-                          <div>
-                            <h4 className="font-bold text-lg">
-                              {criterion.label}
-                            </h4>
-                            <span className={`text-sm ${criterion.pass ? 'text-green-400' : 'text-red-400'}`}>
-                              {criterion.pass ? 'PASS' : 'FAIL'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-300 mt-2">
-                        {criterion.reason}
-                      </p>
-                      {/* Day 117: absolute momentum — dual momentum's second leg,
-                          shown only on the Momentum card, using the SAME 1-year
-                          return the RS gate above just evaluated
-                          (simplifiedScoring.js). Informational only: it is not a
-                          tenth criterion, it never changes `pass`, `passCount`,
-                          `totalCriteria`, `verdict` or `summary`, and no other
-                          criterion renders it (explicit `key === 'momentum'`
-                          rather than a generic field, so the shared card shape
-                          stays a pass/fail shape).
-                          docs/claude/design/ABSOLUTE_MOMENTUM_READ_PLAN_DAY117.md */}
-                      {key === 'momentum' && (() => {
-                        const abs = getAbsoluteMomentumRead(criterion.stockReturnPct);
-                        if (!abs) return null;
-                        return (
-                          <p
-                            className="text-xs text-gray-400 mt-2 pt-2 border-t border-gray-600/50"
-                            title="Dual momentum's second leg (Antonacci, 2014). The criterion above asks whether the stock beat SPY; this asks whether it beat cash. Note that whenever SPY's own trailing year is above the cash bar, passing the criterion above already implies clearing this one — this line only tells you something new in a flat or falling market. The 5% figure is a static risk-free proxy from this project's own Day 107 backtest, not a live T-bill yield. Informational only — it is not one of the 9 criteria and does not affect the pass/fail count or the verdict."
-                          >
-                            <span className="text-gray-500">Absolute momentum (info only, not one of the 9): </span>{abs.text}
-                          </p>
-                        );
-                      })()}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Decision Summary */}
-                <div className={`rounded-lg p-6 ${
-                  simplifiedResult.verdict === 'TRADE'
-                    ? 'bg-green-900/30 border border-green-600'
-                    : 'bg-gray-800 border border-gray-600'
-                }`}>
-                  <h3 className="text-lg font-semibold mb-3">
-                    {simplifiedResult.verdict === 'TRADE' ? '🎯 Trade Decision' : '⏸️ No Trade'}
-                  </h3>
-                  <p className="text-gray-300 mb-4">{simplifiedResult.summary}</p>
-
-                  {simplifiedResult.verdict === 'TRADE' && srData && (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-700">
-                      <div className="text-center">
-                        <div className="text-gray-400 text-sm">Entry</div>
-                        <div className="text-xl font-bold text-green-400">{formatCurrency(srData.suggestedEntry)}</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-gray-400 text-sm">Stop</div>
-                        {/* Day 123: backend leaves suggestedStop empty when ATR is missing (was a fake 3%). */}
-                        {srData.suggestedStop != null
-                          ? <div className="text-xl font-bold text-red-400">{formatCurrency(srData.suggestedStop)}</div>
-                          : <div className="text-sm text-gray-400 mt-1">unavailable (no ATR)</div>}
-                      </div>
-                      <div className="text-center">
-                        <div className="text-gray-400 text-sm">Target</div>
-                        <div className="text-xl font-bold text-blue-400">{formatCurrency(srData.suggestedTarget)}</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-gray-400 text-sm">R:R</div>
-                        <div className="text-xl font-bold text-yellow-400">
-                          {srData.riskReward != null ? `${srData.riskReward.toFixed(2)}:1` : 'N/A'}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Day 123: say why the sizing button is missing instead of hiding it silently */}
-                  {simplifiedResult.verdict === 'TRADE' && srData?.suggestedEntry && srData.suggestedStop == null && (
-                    <div className="mt-4 text-sm text-gray-400">Position sizing needs a stop, and the stop is unavailable (ATR missing).</div>
-                  )}
-                  {/* Calculate Position Button - Day 28 Integration */}
-                  {simplifiedResult.verdict === 'TRADE' && srData?.suggestedEntry && srData?.suggestedStop && (
-                    <button
-                      onClick={() => autoFillPositionCalculator(
-                        analysisResult?.ticker || ticker,
-                        srData.suggestedEntry,
-                        srData.suggestedStop
-                      )}
-                      className="w-full mt-4 bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
-                    >
-                      📊 Calculate Position Size →
-                    </button>
-                  )}
-                </div>
-
-                {/* Methodology Note */}
-                <div className="bg-gray-800/50 rounded-lg p-4 text-xs text-gray-500">
-                  <p><strong>Simplified Binary System</strong> - Day 27, enhanced Day 60 with Minervini SEPA + backtest-validated filters</p>
-                  <p className="mt-1">Based on: AQR Momentum Research • Turtle Trading Principles • Minervini SEPA Criteria • Holistic 3-Layer Backtest</p>
-                  <p className="mt-2 text-gray-400">
-                    <strong>Rule:</strong> ALL 9 criteria must be YES to take a trade. Any NO = no trade. No exceptions.
-                  </p>
-                </div>
-
-                {/* Day 123 (Step 6): the "Full Assessment (for comparison)" BUY/HOLD/AVOID strip is removed
-                    (verdict no longer shown anywhere); the link to the full view stays. */}
-                <div className="bg-gray-800 rounded-lg p-4 flex justify-end">
-                  <button
-                    onClick={() => setAnalysisView('full')}
-                    className="text-blue-400 hover:text-blue-300 text-sm"
-                  >
-                    View Full Analysis →
-                  </button>
-                </div>
-              </div>
-            )}
-
             {/* Empty State */}
             {!analysisResult && !loading && !error && (
               <div className="bg-gray-800 rounded-lg p-12 text-center">
@@ -1567,7 +1292,7 @@ function App() {
                   Enter a ticker symbol or click a quick pick to analyze a stock.
                 </p>
                 <p className="text-gray-600 text-sm">
-                  9-criterion Simple Checklist • Multi-Engine Trend, Reversion & Value Analysis
+                  Multi-Engine Trend, Reversion & Value Analysis
                 </p>
               </div>
             )}
@@ -1952,185 +1677,6 @@ function App() {
         )}
 
         {/* ==================== VALIDATE TAB ==================== */}
-        {activeTab === 'validate' && (
-          <>
-            {/* Validation Input */}
-            <div className="bg-gray-800 rounded-lg p-6 mb-6">
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    value={validationTickers}
-                    onChange={(e) => setValidationTickers(e.target.value.toUpperCase())}
-                    placeholder="AAPL, NVDA, MSFT"
-                    className="w-full bg-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <button
-                  onClick={handleRunValidation}
-                  disabled={validationLoading}
-                  className="bg-purple-600 hover:bg-purple-700 px-8 py-3 rounded-lg font-semibold disabled:opacity-50 whitespace-nowrap"
-                >
-                  {validationLoading ? '⏳ Validating...' : '✅ Run Validation'}
-                </button>
-              </div>
-
-              <div className="mt-3 text-xs text-gray-500">
-                ⚠️ Note: Validation uses web scraping which takes ~10-15 seconds per ticker.
-              </div>
-            </div>
-
-            {/* Validation Error */}
-            {validationError && (
-              <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-6 text-red-200">
-                {validationError}
-              </div>
-            )}
-
-            {/* Loading State */}
-            {validationLoading && (
-              <div className="bg-gray-800 rounded-lg p-12 text-center">
-                <div className="text-4xl mb-4">⏳</div>
-                <p className="text-gray-400">Running validation... This may take 10-30 seconds.</p>
-                <p className="text-gray-500 text-sm mt-2">Fetching data from StockAnalysis and Finviz...</p>
-              </div>
-            )}
-
-            {/* Validation Results */}
-            {validationResults && !validationLoading && (
-              <div className="space-y-6">
-                {/* Summary Card */}
-                <div className="bg-gray-800 rounded-lg p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-blue-400">📊 Validation Summary</h3>
-                      <p className="text-xs text-gray-500">Run ID: {validationResults.runId}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className={`text-3xl font-bold ${getQualityColor(validationResults.summary.qualityScore)}`}>
-                        {validationResults.summary.qualityScore}%
-                      </div>
-                      <div className="text-sm text-gray-400">Quality Score</div>
-                    </div>
-                  </div>
-
-                  {/* Metrics Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-blue-400">{validationResults.summary.totalChecks}</div>
-                      <div className="text-xs text-gray-400">Total Checks</div>
-                    </div>
-                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-green-400">{validationResults.summary.coverageRate}%</div>
-                      <div className="text-xs text-gray-400">Coverage Rate</div>
-                    </div>
-                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-green-400">{validationResults.summary.accuracyRate}%</div>
-                      <div className="text-xs text-gray-400">Accuracy Rate</div>
-                    </div>
-                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
-                      <div className="flex justify-center gap-2 text-lg font-bold">
-                        <span className="text-green-400">{validationResults.summary.passed}✓</span>
-                        <span className="text-red-400">{validationResults.summary.failed}✗</span>
-                        <span className="text-yellow-400">{validationResults.summary.warnings}⚠</span>
-                      </div>
-                      <div className="text-xs text-gray-400">Pass / Fail / Warn</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Per-Ticker Results */}
-                {validationResults.tickerResults.map((tickerResult) => (
-                  <div key={tickerResult.ticker} className="bg-gray-800 rounded-lg p-6">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold">
-                        <span className="text-blue-400">{tickerResult.ticker}</span>
-                        <span className={`ml-3 px-2 py-1 rounded text-xs ${
-                          tickerResult.overallStatus === 'pass' ? 'bg-green-900/50 text-green-400' :
-                          tickerResult.overallStatus === 'fail' ? 'bg-red-900/50 text-red-400' :
-                          'bg-yellow-900/50 text-yellow-400'
-                        }`}>
-                          {tickerResult.overallStatus.toUpperCase()}
-                        </span>
-                      </h3>
-                      <div className="text-sm text-gray-400">
-                        {tickerResult.passCount}✓ {tickerResult.failCount}✗ {tickerResult.warningCount}⚠ {tickerResult.skipCount}⊘
-                      </div>
-                    </div>
-
-                    {/* Results Table */}
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="text-gray-400 border-b border-gray-700 text-xs">
-                            <th className="text-left py-2 px-2">Metric</th>
-                            <th className="text-right py-2 px-2">Our Value</th>
-                            <th className="text-right py-2 px-2">External</th>
-                            <th className="text-left py-2 px-2">Source</th>
-                            <th className="text-right py-2 px-2">Variance</th>
-                            <th className="text-center py-2 px-2">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {tickerResult.results.map((result, idx) => (
-                            <tr key={idx} className="border-b border-gray-700/30 hover:bg-gray-700/20">
-                              <td className="py-2 px-2 text-gray-300">{result.metric}</td>
-                              <td className="py-2 px-2 text-right font-mono">
-                                {result.ourValue !== null ? 
-                                  (typeof result.ourValue === 'number' ? result.ourValue.toFixed(2) : result.ourValue) 
-                                  : <span className="text-gray-500">null</span>}
-                              </td>
-                              <td className="py-2 px-2 text-right font-mono">
-                                {result.externalValue !== null ? 
-                                  (typeof result.externalValue === 'number' ? result.externalValue.toFixed(2) : result.externalValue) 
-                                  : <span className="text-gray-500">null</span>}
-                              </td>
-                              <td className="py-2 px-2 text-gray-400 text-xs">{result.externalSource}</td>
-                              <td className="py-2 px-2 text-right">
-                                {result.variancePct !== null ? 
-                                  <span className={result.variancePct > result.tolerancePct ? 'text-red-400' : 'text-gray-400'}>
-                                    {result.variancePct.toFixed(1)}%
-                                  </span> 
-                                  : '-'}
-                              </td>
-                              <td className="py-2 px-2 text-center">
-                                <span className={`px-2 py-0.5 rounded text-xs ${getValidationStatusColor(result.status)}`}>
-                                  {result.status.toUpperCase()}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                ))}
-
-                {/* Info Note */}
-                <div className="bg-gray-800/50 rounded-lg p-4 text-xs text-gray-500">
-                  <p><strong>Quality Score</strong> = Coverage × Accuracy. This is the TRUE system health metric.</p>
-                  <p className="mt-1"><strong>Coverage</strong> = % of checks with external data available.</p>
-                  <p className="mt-1"><strong>Accuracy</strong> = % of validated checks that passed.</p>
-                </div>
-              </div>
-            )}
-
-            {/* Empty State */}
-            {!validationResults && !validationLoading && !validationError && (
-              <div className="bg-gray-800 rounded-lg p-12 text-center">
-                <div className="text-6xl mb-4">✅</div>
-                <h3 className="text-xl font-bold text-gray-300 mb-2">Data Validation</h3>
-                <p className="text-gray-500 mb-4">
-                  Enter tickers and click "Run Validation" to verify data accuracy against external sources.
-                </p>
-                <p className="text-gray-600 text-sm">
-                  Sources: StockAnalysis (prices, P/E, EPS) • Finviz (ROE, D/E, Revenue Growth)
-                </p>
-              </div>
-            )}
-          </>
-        )}
-
         {/* ==================== FORWARD TESTING TAB (Day 47: v4.7) ==================== */}
         {activeTab === 'forward' && (
           <>
@@ -2775,308 +2321,26 @@ function App() {
 
         {/* ==================== DATA SOURCES TAB (Day 38) ==================== */}
         {activeTab === 'datasources' && (
-          <>
-            {/* Header with Current Ticker */}
-            <div className="bg-gray-800 rounded-lg p-6 mb-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-cyan-400">Data Sources & Provenance</h3>
-                  <p className="text-sm text-gray-400 mt-1">
-                    Transparency into where your data comes from
-                  </p>
-                </div>
-                {analysisResult?.stock?.ticker && (
-                  <div className="bg-cyan-900/50 px-4 py-2 rounded-lg">
-                    <span className="text-gray-400 text-sm">Current Ticker: </span>
-                    <span className="text-cyan-400 font-bold">{analysisResult.stock.ticker}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Cache Status Overview */}
-            <div className="bg-gray-800 rounded-lg p-6 mb-6">
-              <h4 className="text-md font-semibold text-cyan-400 mb-4">📦 Cache Status</h4>
-              {cacheStatus ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-gray-700/50 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-cyan-400">{cacheStatus.ohlcv?.count || 0}</div>
-                    <div className="text-xs text-gray-400">OHLCV Entries</div>
-                  </div>
-                  <div className="bg-gray-700/50 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-cyan-400">{cacheStatus.fundamentals?.count || 0}</div>
-                    <div className="text-xs text-gray-400">Fundamentals Entries</div>
-                  </div>
-                  <div className="bg-gray-700/50 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-cyan-400">{cacheStatus.database_size_kb || 0} KB</div>
-                    <div className="text-xs text-gray-400">Database Size</div>
-                  </div>
-                  <div className="bg-gray-700/50 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-green-400">
-                      {cacheStatus.ohlcv?.hit_rate_24h || 0}%
-                    </div>
-                    <div className="text-xs text-gray-400">Hit Rate (24h)</div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-gray-500 text-center py-4">Loading cache status...</div>
-              )}
-            </div>
-
-            {/* Per-Ticker Provenance */}
-            {provenanceLoading ? (
-              <div className="bg-gray-800 rounded-lg p-6 mb-6 text-center">
-                <div className="text-cyan-400">Loading provenance data...</div>
-              </div>
-            ) : provenanceData ? (
-              <div className="bg-gray-800 rounded-lg p-6 mb-6">
-                <h4 className="text-md font-semibold text-cyan-400 mb-4">
-                  🎯 Provenance for {provenanceData.ticker}
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  {/* OHLCV Source */}
-                  <div className="bg-gray-700/50 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-gray-300 font-medium">Price Data (OHLCV)</span>
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                        provenanceData.ohlcv.status === 'cached'       ? 'bg-green-900/50 text-green-400' :
-                        provenanceData.ohlcv.status === 'just_fetched' ? 'bg-cyan-900/50 text-cyan-300'  :
-                                                                          'bg-gray-700 text-gray-400'
-                      }`}>
-                        {provenanceData.ohlcv.status === 'just_fetched' ? 'JUST FETCHED' : provenanceData.ohlcv.status.toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-400 space-y-1">
-                      <div>Source: <span className="text-gray-300">{provenanceData.ohlcv.source}</span></div>
-                      {provenanceData.ohlcv.rows != null && (
-                        <div>Data points: <span className="text-gray-300">{provenanceData.ohlcv.rows}</span></div>
-                      )}
-                      {provenanceData.ohlcv.age_hours != null && provenanceData.ohlcv.age_hours >= 0 && (
-                        <div>Age: <span className="text-gray-300">{provenanceData.ohlcv.age_hours}h</span></div>
-                      )}
-                      {provenanceData.ohlcv.expires_in && provenanceData.ohlcv.expires_in !== 'EXPIRED' && (
-                        <div>Expires in: <span className="text-yellow-400">{provenanceData.ohlcv.expires_in.split('.')[0]}</span></div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Fundamentals Source */}
-                  <div className="bg-gray-700/50 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-gray-300 font-medium">Fundamentals</span>
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                        provenanceData.fundamentals.status === 'cached'       ? 'bg-green-900/50 text-green-400' :
-                        provenanceData.fundamentals.status === 'just_fetched' ? 'bg-cyan-900/50 text-cyan-300'  :
-                                                                                 'bg-gray-700 text-gray-400'
-                      }`}>
-                        {provenanceData.fundamentals.status === 'just_fetched' ? 'JUST FETCHED' : provenanceData.fundamentals.status.toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-400 space-y-1">
-                      <div>Source: <span className="text-gray-300">{provenanceData.fundamentals.source}</span></div>
-                      {provenanceData.fundamentals.age_days != null && provenanceData.fundamentals.age_days > 0 && (
-                        <div>Age: <span className="text-gray-300">{provenanceData.fundamentals.age_days} days</span></div>
-                      )}
-                      {provenanceData.fundamentals.expires_in && provenanceData.fundamentals.expires_in !== 'EXPIRED' && (
-                        <div>Expires in: <span className="text-yellow-400">{provenanceData.fundamentals.expires_in.split(',')[0]}</span></div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-gray-800 rounded-lg p-6 mb-6 text-center">
-                <div className="text-6xl mb-4">📊</div>
-                <p className="text-gray-400">Analyze a stock first to see its data provenance</p>
-                <p className="text-gray-500 text-sm mt-2">Go to "Analyze Stock" tab and analyze a ticker</p>
-              </div>
-            )}
-
-            {/* Local Calculations Reference */}
-            <div className="bg-gray-800 rounded-lg p-6 mb-6">
-              <h4 className="text-md font-semibold text-cyan-400 mb-4">🔢 Local Calculations</h4>
-              <p className="text-sm text-gray-400 mb-4">
-                These indicators are calculated locally using industry-standard formulas from OHLCV price data.
-              </p>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-gray-400 border-b border-gray-700 text-xs">
-                      <th className="text-left py-2 px-2">Indicator</th>
-                      <th className="text-left py-2 px-2">Source</th>
-                      <th className="text-left py-2 px-2">Formula</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(provenanceData?.indicators || [
-                      {name: 'SMA 50', source: 'local', formula: 'Sum(Close, 50) / 50'},
-                      {name: 'SMA 200', source: 'local', formula: 'Sum(Close, 200) / 200'},
-                      {name: 'EMA 8', source: 'local', formula: 'Price * k + EMA_prev * (1-k), k=2/(8+1)'},
-                      {name: 'EMA 21', source: 'local', formula: 'Price * k + EMA_prev * (1-k), k=2/(21+1)'},
-                      {name: 'ATR 14', source: 'local', formula: 'EMA(TrueRange, 14) where TR=max(H-L, |H-Cp|, |L-Cp|)'},
-                      {name: 'RSI 14', source: 'local', formula: '100 - 100/(1 + AvgGain/AvgLoss) [Wilder smoothing]'},
-                      {name: 'Avg Volume 20', source: 'local', formula: 'Sum(Volume, 20) / 20'},
-                      {name: 'Avg Volume 50', source: 'local', formula: 'Sum(Volume, 50) / 50'},
-                      {name: 'RS 52W', source: 'local', formula: 'Stock 52W Return / SPY 52W Return'},
-                      {name: 'PEG Ratio', source: 'local', formula: 'PE / (EPS Growth * 100)'}
-                    ]).map((ind, idx) => (
-                      <tr key={idx} className="border-b border-gray-700/30 hover:bg-gray-700/20">
-                        <td className="py-2 px-2 text-gray-300">{ind.name}</td>
-                        <td className="py-2 px-2">
-                          <span className="px-2 py-0.5 rounded text-xs bg-blue-900/50 text-blue-400">
-                            {ind.source}
-                          </span>
-                        </td>
-                        <td className="py-2 px-2 text-gray-400 font-mono text-xs">{ind.formula}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Data Sources Map */}
-            <div className="bg-gray-800 rounded-lg p-6 mb-6">
-              <h4 className="text-md font-semibold text-cyan-400 mb-1">🗺️ Data Source Map</h4>
-              <p className="text-xs text-gray-500 mb-4">Live circuit breaker health — refreshed each time you open this tab.</p>
-
-              {/* Cascade chains */}
-              <div className="space-y-3 mb-5">
-                {[
-                  {
-                    label: 'Price Data (OHLCV)',
-                    activeKey: 'ohlcv',
-                    chain: [
-                      { name: 'TwelveData', role: 'primary', fields: 'daily bars' },
-                      { name: 'yfinance',   role: 'fallback', fields: 'fallback' },
-                      { name: 'Stooq',      role: 'fallback', fields: 'last resort' },
-                    ],
-                  },
-                  {
-                    label: 'Fundamentals',
-                    activeKey: 'fundamentals',
-                    chain: [
-                      { name: 'Finnhub',       role: 'primary', fields: 'ROE, PE, margins, D/E, beta' },
-                      { name: 'AlphaVantage',  role: 'growth',  fields: 'revenueGrowth, epsGrowth (YoY)' },
-                      { name: 'yfinance',      role: 'fallback', fields: 'all remaining gaps' },
-                    ],
-                  },
-                  {
-                    label: 'Market Data (SPY / VIX)',
-                    activeKey: null, // handled per-provider below
-                    chain: [
-                      { name: 'TwelveData', role: 'primary', fields: 'SPY OHLCV', providerActiveKey: 'ohlcv' },
-                      { name: 'yfinance',   role: 'primary', fields: 'VIX quote',  providerActiveKey: 'quote' },
-                      { name: 'Finnhub',    role: 'fallback', fields: 'quote fallback' },
-                    ],
-                  },
-                  {
-                    label: 'Market Scanning',
-                    activeKey: null,
-                    chain: [
-                      { name: 'TradingView Screener', role: 'primary', fields: 'Reddit/momentum/growth scans' },
-                    ],
-                  },
-                ].map((row, i) => {
-                  const activeSource = row.activeKey
-                    ? providerHealth?.active_sources?.[row.activeKey]
-                    : null;
-                  return (
-                    <div key={i} className="bg-gray-700/40 rounded-lg p-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs font-semibold text-gray-300">{row.label}</span>
-                        {activeSource === 'cache' ? (
-                          <span className="text-xs text-gray-500">— <span className="text-gray-400">served from cache</span></span>
-                        ) : activeSource ? (
-                          <span className="text-xs text-gray-500">
-                            — live from <span className="text-cyan-400 font-medium">{activeSource}</span>
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {row.chain.map((p, j) => {
-                          const ph = providerHealth?.providers?.[p.name.toLowerCase().replace(/\s+/g, '')];
-                          const health = ph?.health || (p.name === 'TradingView Screener' ? 'ok' : null);
-                          const dailyLeft = ph?.daily_remaining;
-                          // Per-provider activeKey override (e.g. Market Data row)
-                          const resolvedActiveSource = p.providerActiveKey
-                            ? providerHealth?.active_sources?.[p.providerActiveKey]
-                            : activeSource;
-                          const isActive = !!(resolvedActiveSource &&
-                            resolvedActiveSource.toLowerCase() === p.name.toLowerCase().replace(/\s+/g, ''));
-
-                          const borderColor =
-                            isActive              ? 'border-cyan-500 ring-1 ring-cyan-500/40' :
-                            health === 'ok'       ? 'border-green-600/40' :
-                            health === 'degraded' ? 'border-yellow-600/50' :
-                            health === 'open'     ? 'border-red-600/50' :
-                                                    'border-gray-600/50';
-                          const bgColor =
-                            isActive              ? 'bg-cyan-900/20' :
-                            health === 'ok'       ? 'bg-green-900/10' :
-                            health === 'degraded' ? 'bg-yellow-900/20' :
-                            health === 'open'     ? 'bg-red-900/20' :
-                                                    'bg-gray-700/30';
-                          const dot =
-                            health === 'ok'       ? 'bg-green-400' :
-                            health === 'degraded' ? 'bg-yellow-400' :
-                            health === 'open'     ? 'bg-red-400' :
-                                                    'bg-gray-500';
-                          const roleLabel =
-                            p.role === 'primary'  ? 'text-cyan-500' :
-                            p.role === 'growth'   ? 'text-purple-400' :
-                                                    'text-gray-500';
-                          return (
-                            <div key={j} className={`border rounded-md px-3 py-2 flex-1 min-w-[140px] ${borderColor} ${bgColor}`}>
-                              <div className="flex items-center gap-1.5 mb-0.5">
-                                {health && <span className={`w-1.5 h-1.5 rounded-full inline-block flex-shrink-0 ${dot}`} />}
-                                <span className={`text-xs font-medium ${isActive ? 'text-cyan-300' : 'text-gray-200'}`}>
-                                  {p.name}
-                                </span>
-                                {isActive ? (
-                                  <span className="ml-auto text-xs font-bold text-cyan-400 bg-cyan-900/50 px-1.5 py-0.5 rounded">
-                                    ACTIVE
-                                  </span>
-                                ) : (
-                                  <span className={`text-xs ml-auto ${roleLabel}`}>{p.role}</span>
-                                )}
-                              </div>
-                              <div className="text-gray-500 text-xs">{p.fields}</div>
-                              {dailyLeft !== undefined && dailyLeft !== -1 && (
-                                <div className={`text-xs mt-0.5 ${dailyLeft < 5 ? 'text-yellow-400' : 'text-gray-500'}`}>
-                                  {dailyLeft} calls left today
-                                </div>
-                              )}
-                              {health === 'open' && !isActive && (
-                                <div className="text-red-400 text-xs mt-0.5">circuit open — skipped</div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* FMP deprecation notice */}
-              <div className="bg-yellow-900/20 border border-yellow-700/40 rounded-lg p-3 text-xs text-yellow-300">
-                ⚠️ <strong>FMP (Financial Modeling Prep)</strong> v3 API deprecated Aug 31 2025 for non-legacy accounts. Replaced by AlphaVantage for growth metrics. FMP is kept in the stack for a future paid-plan upgrade.
-              </div>
-            </div>
-
-            {/* Info Note */}
-            <div className="bg-gray-800/50 rounded-lg p-4 text-xs text-gray-500">
-              <p><strong>Cache TTL:</strong> OHLCV expires at next market close (4pm ET + 30min buffer). Fundamentals expire after 7 days.</p>
-              <p className="mt-1"><strong>Local Calculations:</strong> All technical indicators use industry-standard formulas (Wilder 1978 for RSI/ATR).</p>
-            </div>
-          </>
+          <DataSourcesTab
+            ticker={analysisResult?.ticker || null}
+            stock={rawAnalysisData?.stock || null}
+            provenance={provenanceData}
+            loading={provenanceLoading}
+            providerHealth={providerHealth}
+            tradingviewAvailable={tradingviewAvailable}
+            coverage={providerCoverage}
+            cacheStatus={cacheStatus}
+            onRetry={() => {
+              if (!analysisResult?.ticker) return;
+              setProvenanceLoading(true);
+              fetchDataProvenance(analysisResult.ticker).then(setProvenanceData).finally(() => setProvenanceLoading(false));
+            }}
+          />
         )}
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>v4.62 - Multi-Source Data Intelligence</p>
-          <p className="mt-1">TwelveData • Finnhub • AlphaVantage • yfinance • Stooq</p>
+          <p>v4.63 - Multi-Source Data Intelligence</p>
         </div>
       </div>
     </div>

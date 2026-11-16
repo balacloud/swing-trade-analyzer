@@ -4,10 +4,12 @@
 //   cd frontend && node scripts/test_analyze_checks.mjs
 import { createRequire } from 'module';
 import { describeMarketBackdrop, fmtPct, fmtDate } from '../src/utils/marketBackdrop.js';
+import { formatZoneRange } from '../src/utils/keyLevels.js';
+import { providerLabel } from '../src/utils/dataSourcesView.js';
 
 const require = createRequire(import.meta.url);
 const { runChecks, CHECK_IDS } = require('./lib/analyzeChecks.js');
-const helpers = { describeMarketBackdrop, fmtPct, fmtDate };
+const helpers = { describeMarketBackdrop, fmtPct, fmtDate, formatZoneRange, providerLabel };
 
 let failures = 0;
 let passes = 0;
@@ -31,15 +33,27 @@ const API = {
   spy: { status: 200, body: { trend: trendSpy, aboveSma200: true } },
   qqq: { status: 200, body: { ticker: 'QQQ', trend: trendQqq } },
   vix: { status: 200, body: { current: 18.24, regime: 'normal' } },
-  stock: { status: 200, body: { ticker: 'AAPL', quoteType: 'EQUITY' } },
+  stock: { status: 200, body: { ticker: 'AAPL', currentPrice: 523.88, quoteType: 'EQUITY', exchange: 'NasdaqGS', currency: 'USD', instrumentClass: 'Stock' } },
+  provenance: { status: 200, body: { ticker: 'AAPL', ohlcv: { source: 'twelvedata', status: 'cached' },
+    indicators: [{ name: 'SMA 50 / 200' }, { name: 'RSI 14' }], indicators_error: null,
+    quality: { state: 'ok', level: 'PASS', checks: { freshness: { level: 'PASS' }, integrity: { level: 'PASS' }, history: { level: 'PASS' }, jumps: { level: 'PASS' } } } } },
+  health: { status: 200, body: { providers: { chains: { ohlcv: ['twelvedata', 'yfinance', 'tradier'] } } } },
   earnings: { status: 200, body: { has_upcoming: false, earnings_date: '2027-01-29', days_until: 78 } },
+  sr: { status: 200, body: {
+    support: [262.10, 250.00], resistance: [281.00], suggestedEntry: 262.10, suggestedTarget: 281.00,
+    meta: { atr: 14.07, zones: [
+      { low: 260.5, high: 262.10, swings: 3, side: 'support', insideZone: false, nearest: true },
+      { low: 249.0, high: 250.00, swings: 1, side: 'support', insideZone: false, nearest: false },
+      { low: 281.00, high: 283.40, swings: 2, side: 'resistance', insideZone: false, nearest: true },
+    ] },
+  } },
 };
 const DOM = {
   error: null,
   cards: [
     { id: 'card-market-backdrop', text: 'Market backdrop ◇ INFO · NEVER GATES THIS PAGE S&P 500 ↑ above +3.9% ...', bodyText: 'S&P 500 ↑ above +3.9% ↓ below -1.3% -4.4% on Nov 5' },
     { id: 'card-stock-header', text: 'AAPL - Apple Inc. Technology • Consumer Electronics $271.00', bodyText: 'AAPL - Apple Inc. Technology • Consumer Electronics $271.00' },
-    { id: 'card-technical-read', text: '📈 Technical Read ⚙ ENGINE About this stock only. Weak. Below its 200-day average ...', bodyText: 'Weak. Below its 200-day average ...' },
+    { id: 'card-technical-read', text: '📈 Technical Read ⚙ ENGINE About this stock only. Trend, momentum and strength against the market · common rules of thumb. Below its 200-day average ...', bodyText: 'Trend, momentum and strength against the market. Below its 200-day average ...' },
     { id: 'card-mr-read', text: '🔄 Mean-Reversion Read ⚙ FORWARD-TESTED A separate question ... No signal today: RSI(2) is 54', bodyText: 'No signal today: RSI(2) is 54, the rule needs below 10' },
     { id: 'card-trade-setup', text: '🎯 Trade Setup ⚙ LEVELS The pullback plan ... Buy $262.10  Stop $250.40', bodyText: 'Buy $262.10  Stop $250.40  Target $281.00  1.6 : 1' },
     { id: 'card-fundamentals', text: '🏢 Fundamentals ◇ INFO Is the business behind the stock in trouble? No red flags.', bodyText: 'No red flags. Next earnings 2027-01-29 · in 78 days' },
@@ -50,6 +64,11 @@ const DOM = {
   shortTexts: [{ text: '$271.00', card: 'card-stock-header' }, { text: 'INFO', card: 'card-market-backdrop' }, { text: 'BUY', card: 'card-trade-setup' }],
   fullText: 'Market backdrop ... Technical Read ... Fundamentals ...',
   earningsBadge: false,
+  planBuy: '$262.10',
+  levelRows: {
+    support: 'Support $260.50 – $262.10 · 3.3% below · turned here 3×',
+    resistance: 'Resistance $281.00 – $283.40 · 3.7% above · turned here 2×',
+  },
   backdrop: {
     rows: [
       { label: 'S&P 500', long: '↑ above +3.9%', short: '↓ below -1.3%', drop: '-4.4% on Nov 5 (largest since Apr 4, 2025)', unavailable: null },
@@ -57,7 +76,13 @@ const DOM = {
     ],
     vix: 'VIX 18.2 · normal range (latest quote)',
   },
-  simpleBadge: '⏸️ No Trade 7/9 criteria met',
+  ticker: 'AAPL',
+  timing: { present: true, unavailable: null, price: '$523.88', ticks: [450.00, 510.00, 528.10] },
+  ds: { present: true, error: false, symbol: 'AAPL', exchange: 'NasdaqGS', currency: 'USD', cls: 'Stock', dataFrom: 'Twelve Data', verdict: 'PASS',
+    qualityRows: [], allPass: true,
+    indicatorRows: [['SMA 50 / 200', 'this stock\'s daily closes', 'Average of the last 50 closes'], ['RSI 14', 'this stock\'s daily closes', 'Wilder']], indicatorsUnavailable: false, splitNotes: [],
+    chainRows: [{ group: 'price', provider: 'twelvedata' }, { group: 'price', provider: 'yfinance' }, { group: 'price', provider: 'tradier' },
+      { group: 'fundamentals', provider: 'finnhub' }, { group: 'fundamentals', provider: 'yfinance' }] },
   narrow: [
     { id: 'card-market-backdrop', scrollWidth: 358, clientWidth: 358 },
     { id: 'card-technical-read', scrollWidth: 358, clientWidth: 358 },
@@ -105,6 +130,8 @@ mustFail('A2', 'old BUY/HOLD/AVOID badge', d => { d.shortTexts.push({ text: 'HOL
 mustFail('A2', '"BUY" as a badge outside the Trade Setup price label', d => { d.shortTexts.push({ text: 'BUY', card: 'card-stock-header' }); });
 mustFail('A2', '"AVOID" inside the Trade Setup card', d => { d.shortTexts.push({ text: 'AVOID', card: 'card-trade-setup' }); });
 mustFail('A2', 'old T:/F:/S:/R: chips', d => { d.shortTexts.push({ text: 'T:S', card: 'card-stock-header' }, { text: 'R:F', card: 'card-stock-header' }); });
+mustFail('A2', 'Simple Checklist toggle back (Day 126)', d => { d.fullText += ' ✅ Simple Checklist (9 criteria)'; });
+mustFail('A2', '"N/9 criteria met" badge back (Day 126)', d => { d.fullText += ' ⏸️ No Trade 7/9 criteria met'; });
 mustFail('A2', 'Holding Period selector', d => { d.fullText += ' Holding Period: 2-6 weeks'; });
 mustFail('A2', 'Favorable market label', d => { d.cards[0].text += ' Market: Favorable'; });
 mustFail('A2', 'Position Size banner', d => { d.fullText += ' Position Size: full (1% risk)'; });
@@ -189,13 +216,75 @@ mustFail('A6', 'collapsed card with only its title', d => {
   const c = d.cards.find(x => x.id === 'card-example-collapsible'); c.text = '▶Example Card'; c.bodyText = ''; c.collapsed = true;
 });
 
-// ---------- A8 Simple badge ----------
-mustFail('A8', 'old "PASS" badge', d => { d.simpleBadge = '⏸️ PASS 7/9 criteria met'; });
-mustFail('A8', 'TRADE with 8/9', d => { d.simpleBadge = '✅ TRADE 8/9 criteria met'; });
-mustFail('A8', 'No Trade with 9/9', d => { d.simpleBadge = '⏸️ No Trade 9/9 criteria met'; });
-mustPass('A8', 'TRADE with 9/9', d => { d.simpleBadge = '✅ TRADE 9/9 criteria met'; });
-mustPass('A8', 'no whitespace between badge and count', d => { d.simpleBadge = '⏸️ No Trade0/9 criteria met'; });
-mustFail('A8', 'badge not found', d => { d.simpleBadge = null; });
+
+// ---------- A10 Buy and level rows match /api/sr (Day 126) ----------
+mustFail('A10', 'Buy tile differs from max(support)', d => { d.planBuy = '$250.00'; });
+mustFail('A10', 'support row shows the wrong zone', d => { d.levelRows.support = 'Support $249.00 – $250.00 · 8.0% below · turned here 1×'; });
+mustFail('A10', 'resistance row missing', d => { d.levelRows.resistance = null; });
+mustFail('A10', 'api suggestedEntry disagrees with max(support)', null, a => { a.sr.body.suggestedEntry = 250.00; });
+mustFail('A10', 'zone high no longer equals suggestedEntry', null, a => { a.sr.body.meta.zones[0].high = 262.50; });
+mustFail('A10', '/api/sr response not captured', null, a => { a.sr = { status: null, body: null }; });
+mustFail('A10', 'payload in the old format (no meta.zones)', null, a => { delete a.sr.body.meta.zones; });
+mustFail('A10', 'a side with no zone must say "None within"', null, a => { a.sr.body.meta.zones = a.sr.body.meta.zones.filter(z => z.side !== 'resistance'); a.sr.body.resistance = []; a.sr.body.suggestedTarget = null; });
+mustPass('A10', 'a side with no zone says "None within 30% above"', d => { d.levelRows.resistance = 'Resistance None within 30% above. The stock is at its 52-week high.'; },
+  a => { a.sr.body.meta.zones = a.sr.body.meta.zones.filter(z => z.side !== 'resistance'); a.sr.body.resistance = []; a.sr.body.suggestedTarget = null; });
+mustPass('A10', 'one-price zone shows one price', d => { d.levelRows.support = 'Support $262.10 · 3.3% below · turned here 1×'; },
+  a => { a.sr.body.meta.zones[0].low = 262.10; });
+mustPass('A10', '/api/sr failed and the page shows no Buy or rows', d => { d.planBuy = null; d.levelRows = { support: null, resistance: null }; }, a => { a.sr = { status: 500, body: null }; });
+mustFail('A10', '/api/sr failed but the page still shows a Buy', null, a => { a.sr = { status: 500, body: null }; });
+mustPass('A10', 'ATR missing: no Buy tile, Trade Setup text still shows the Buy', d => { d.planBuy = null; d.cards.find(c => c.id === 'card-trade-setup').text = 'Trade Setup Buy near support at $262.10, target $281.00.'; });
+
+// ---------- A11 Data Sources tab matches the backend (Day 126) ----------
+mustFail('A11', 'tab did not render', d => { d.ds = { present: false, note: 'Data Sources tab button not found' }; });
+mustFail('A11', 'wrong exchange shown', d => { d.ds.exchange = 'Toronto'; });
+mustFail('A11', 'wrong currency shown', d => { d.ds.currency = 'CAD'; });
+mustFail('A11', 'wrong class shown', d => { d.ds.cls = 'ETF'; });
+mustFail('A11', 'data-from does not match the provenance source', d => { d.ds.dataFrom = 'Yahoo (yfinance)'; });
+mustFail('A11', 'verdict differs from the backend level', d => { d.ds.verdict = 'WARN'; });
+const FAILING = a => { a.provenance.body.quality = { state: 'ok', level: 'FAIL', checks: { integrity: { level: 'FAIL', note: '100% flat' }, jumps: { level: 'WARN', note: 'x' }, freshness: { level: 'PASS' }, history: { level: 'PASS' } } }; };
+mustFail('A11', 'backend FAIL hidden by a PASS verdict and no rows (the original bug)', null, FAILING);
+mustFail('A11', 'backend FAIL shown as FAIL but the failing row is missing', d => { d.ds.verdict = 'FAIL'; d.ds.allPass = false; d.ds.qualityRows = [{ level: 'WARN', text: 'jumps' }]; }, FAILING);
+mustPass('A11', 'backend FAIL shown with its rows', d => { d.ds.verdict = 'FAIL'; d.ds.allPass = false; d.ds.qualityRows = [{ level: 'FAIL', text: 'integrity' }, { level: 'WARN', text: 'jumps' }]; }, FAILING);
+mustFail('A11', 'all checks pass but the tab does not say so', d => { d.ds.allPass = false; });
+mustFail('A11', 'SOXL.NE must show FAIL even if the backend and tab both said PASS', d => { d.ticker = 'SOXL.NE'; });
+mustPass('A11', 'SOXL.NE shows FAIL', d => { d.ticker = 'SOXL.NE'; d.ds.verdict = 'FAIL'; d.ds.allPass = false; d.ds.qualityRows = [{ level: 'FAIL', text: 'integrity' }]; d.ds.splitNotes = ['Split-adjusted by STA: 3-for-1 on 2026-05-25. x']; },
+  a => { a.provenance.body.quality = { state: 'ok', level: 'FAIL', checks: { integrity: { level: 'FAIL' } }, facts: { splits: [{ text: '3-for-1 on 2026-05-25', status: 'unadjusted' }] } }; });
+mustFail('A11', 'SOXL.NE without the split-adjusted line', d => { d.ticker = 'SOXL.NE'; d.ds.verdict = 'FAIL'; d.ds.allPass = false; d.ds.qualityRows = [{ level: 'FAIL', text: 'integrity' }]; },
+  a => { a.provenance.body.quality = { state: 'ok', level: 'FAIL', checks: { integrity: { level: 'FAIL' } } }; });
+mustFail('A11', 'indicator table has fewer rows than the backend sent', d => { d.ds.indicatorRows.pop(); });
+mustFail('A11', 'indicator row name differs from the backend', d => { d.ds.indicatorRows[1][0] = 'RSI 21'; });
+mustFail('A11', 'indicator row with an empty From', d => { d.ds.indicatorRows[0][1] = ''; });
+mustFail('A11', 'backend sent no indicators and the tab says nothing', null, a => { a.provenance.body.indicators = null; });
+mustPass('A11', 'backend sent no indicators and the tab says so', d => { d.ds.indicatorRows = []; d.ds.indicatorsUnavailable = true; }, a => { a.provenance.body.indicators = null; });
+mustFail('A11', 'backend adjusted a split but the tab shows no split line', null, a => { a.provenance.body.quality.facts = { splits: [{ text: '3-for-1 on 2026-05-25', status: 'unadjusted' }] }; });
+mustPass('A11', 'backend adjusted a split and the tab shows the line', d => { d.ds.splitNotes = ['Split-adjusted by STA: 3-for-1 on 2026-05-25.']; }, a => { a.provenance.body.quality.facts = { splits: [{ text: '3-for-1 on 2026-05-25', status: 'unadjusted' }] }; });
+mustFail('A11', 'tab shows a split line the backend did not adjust', d => { d.ds.splitNotes = ['Split-adjusted by STA: 3-for-1 on 2026-05-25.']; });
+mustPass('A11', 'a split the provider already adjusted needs no line', null, a => { a.provenance.body.quality.facts = { splits: [{ text: '3-for-1', status: 'already_adjusted' }] }; });
+mustPass('A12', 'ruler matches the page price and shows the averages');
+mustFail('A12', 'dot shows a different price than the page', d => { d.timing.price = '$523.00'; });
+mustFail('A12', 'ruler marks out of price order', d => { d.timing.ticks = [528.10, 510.00, 450.00]; });
+mustFail('A12', 'no ruler marks at all', d => { d.timing.ticks = []; });
+mustFail('A12', 'ruler marks contain NaN', d => { d.timing.ticks = [450.00, NaN, 528.10]; });
+mustFail('A12', 'ruler drawn but /api/sr has no ATR', null, a => { delete a.sr.body.meta.atr; });
+mustFail('A12', 'neither ruler nor a reason is shown', d => { d.timing = { present: false, unavailable: null, price: null, ticks: [] }; });
+mustFail('A12', 'cannot be drawn although an ATR exists', d => { d.timing = { present: false, unavailable: "Can't tell: ATR unavailable.", price: null, ticks: [] }; });
+mustPass('A12', 'not drawn, honest reason: needs 200 days of history', d => { d.timing = { present: false, unavailable: "Can't tell: 21-day average not computed (needs 200 days of history).", price: null, ticks: [] }; });
+mustFail('A12', 'the Weak headline sentence is still on the Technical Read card', d => { d.cards.find(c => c.id === 'card-technical-read').text += " This doesn't look like a market leader right now"; });
+mustFail('A12', 'the old volume verdict is still on the card', d => { d.cards.find(c => c.id === 'card-technical-read').text += ' No, sellers lead'; });
+mustFail('A12', 'the facts block title is missing', d => { const c = d.cards.find(x => x.id === 'card-technical-read'); c.text = c.text.replace('Trend, momentum and strength against the market', ''); });
+mustFail('A12', 'old verdict wording still on the Technical Read card', d => { d.cards.find(c => c.id === 'card-technical-read').text += ' Not yet, below it'; });
+mustFail('A11', 'Stooq listed in a chain', d => { d.ds.chainRows.push({ group: 'price', provider: 'stooq' }); });
+mustFail('A11', 'Tradier missing from the price chain', d => { d.ds.chainRows = d.ds.chainRows.filter(r => r.provider !== 'tradier'); });
+mustFail('A11', 'health chains not captured', null, a => { a.health = { status: null, body: null }; });
+mustFail('A11', '/api/stock not captured', null, a => { a.stock = { status: null, body: null }; });
+mustFail('A11', 'provenance failed but the tab shows no error and Retry', null, a => { a.provenance = { status: 500, body: null }; });
+mustPass('A11', 'provenance failed and the tab shows an error', d => { d.ds.error = true; }, a => { a.provenance = { status: 500, body: null }; });
+mustFail('A11', 'provenance answered but the tab shows an error', d => { d.ds.error = true; });
+mustPass('A11', 'quality state not_cached and no verdict shown', d => { d.ds.verdict = null; d.ds.allPass = false; }, a => { a.provenance.body.quality = { state: 'not_cached' }; });
+mustFail('A11', 'nothing cached but a verdict is shown', null, a => { a.provenance.body.quality = { state: 'not_cached' }; });
+mustPass('A11', 'quality state error shows an error', d => { d.ds.error = true; d.ds.verdict = null; }, a => { a.provenance.body.quality = { state: 'error', reason: 'x' }; });
+mustFail('A11', 'unknown exchange must say unknown, not blank', d => { d.ds.exchange = ''; }, a => { a.stock.body.exchange = null; });
+mustPass('A11', 'unknown exchange shown as unknown', d => { d.ds.exchange = 'unknown'; }, a => { a.stock.body.exchange = null; });
 
 // ---------- A9 390px ----------
 mustFail('A9', 'card wider than its box', d => { d.narrow[1].scrollWidth = 420; });

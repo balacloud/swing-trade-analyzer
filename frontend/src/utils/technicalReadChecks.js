@@ -2,7 +2,7 @@
  * Technical Read card — display-only reads (Analyze Page Redesign Step 4, Day 123)
  *
  * Plan: docs/claude/design/ANALYZE_REDESIGN_STEP4_PLAN_DAY123.md (Fable-reviewed).
- * Nothing here feeds determineVerdict(), the Simple Checklist or any gate.
+ * Nothing here feeds determineVerdict() or any gate.
  * Every function is pure, never throws, and returns { state, reason } when an
  * input is missing, so the card can say why instead of showing a made-up value.
  */
@@ -83,60 +83,48 @@ export function deriveTrendChecks(patternsData, historyBars = null) {
 }
 
 /**
- * Entry-timing bands, in ATRs above the 21-day EMA. Rules of thumb, untested
- * by STA (decisions doc, Day 122-123). 2 ATR is the Keltner Channel default
- * band width; 1 ATR is the common "near the line" cutoff.
- */
-export const ENTRY_TIMING_CLOSE_ATR = 1;
-export const ENTRY_TIMING_STRETCHED_ATR = 2;
-
-const TIMING_ANSWERS = {
-  below: 'Not yet, below it',
-  close: 'Yes, close to its 21-day average',
-  extended: 'Yes, a little extended above it',
-  stretched: 'Not yet, stretched above it',
-};
-
-const TIMING_WHY = {
-  below: 'Wait for it to get back above the line before buying.',
-  close: 'Buying near this line keeps your stop close and your risk small.',
-  extended: "A bit above the line: still a reasonable entry, but the stop sits further away.",
-  stretched: 'Buying this far above the line means a far-away stop and more risk for the same gain. Wait for a pullback.',
-};
-
-/**
- * "Is now a good moment to get in?" — price vs the 21-day EMA, in ATRs.
+ * Where is price against its 21-day average? (Day 126 redesign: a RULER, not a verdict.)
+ * The user decides; this only measures. Distance is also expressed in "a normal day's move" (ATR, the same Wilder ATR the Trade Setup
+ * stop uses), and the ruler's tick marks are real prices: the 21, 50 and 200-day averages (a missing one is left out). The marks are a
+ * measuring stick, not signals, and are not tested by STA. No gating on the Technical Read: it shows for every stock.
  *
  * @param {object} args
- * @param {string} args.read - deriveTechnicalRead().read
  * @param {?number} args.price - analysisResult.currentPrice (same frame as ema21)
  * @param {?number} args.ema21 - analysisResult.indicators.ema21 (scoringEngine; null under 200 bars)
- * @param {?number} args.atr - srData.meta.atr (the ATR the Trade Setup stop uses; includes today's partial bar)
+ * @param {?number} args.sma50 - analysisResult.indicators.sma50 (optional)
+ * @param {?number} args.sma200 - analysisResult.indicators.sma200 (optional)
+ * @param {?number} args.atr - srData.meta.atr (Wilder ATR(14) on completed bars)
  */
-export function deriveEntryTiming({ read, price, ema21, atr }) {
-  if (read !== 'Strong' && read !== 'Developing') {
-    return { state: 'not_shown', answer: `Not shown: the read is ${read}` };
-  }
+const RULER_MARKS = [['ema21', '21-day avg'], ['sma50', '50-day avg'], ['sma200', '200-day avg']];
+
+export function deriveEntryTiming({ price, ema21, sma50, sma200, atr }) {
   if (!isNum(price)) return { state: 'unavailable', reason: 'price missing' };
-  if (!isNum(ema21)) return { state: 'unavailable', reason: '21-day average not computed (needs 200 days of history)' };
+  if (!isNum(ema21) || ema21 <= 0) return { state: 'unavailable', reason: '21-day average not computed (needs 200 days of history)' };
   if (!isNum(atr) || atr <= 0) return { state: 'unavailable', reason: 'ATR unavailable' };
 
   const atrUnits = (price - ema21) / atr;
-  const zone = atrUnits < 0 ? 'below'
-    : atrUnits <= ENTRY_TIMING_CLOSE_ATR ? 'close'
-    : atrUnits <= ENTRY_TIMING_STRETCHED_ATR ? 'extended'
-    : 'stretched';
-
+  const pctFromEma = pctDiff(price, ema21);
+  const vals = { ema21, sma50, sma200 };
+  // real averages only, left to right by price; one that is missing is left out, never invented
+  const marks = RULER_MARKS.filter(([k]) => isNum(vals[k]) && vals[k] > 0)
+    .map(([key, caption]) => ({ key, price: vals[key], caption }))
+    .sort((a, b) => a.price - b.price);
+  // the ruler always contains the price and every mark, with a little room at both ends
+  const all = [price, ...marks.map((m) => m.price)];
+  const min = Math.min(...all), max = Math.max(...all);
+  const pad = (max - min) * 0.12 || max * 0.01;
+  const side = Math.abs(pctFromEma) < 0.05 ? 'at' : pctFromEma > 0 ? 'above' : 'below';
   return {
     state: 'ok',
-    zone,
-    good: zone === 'close' || zone === 'extended',
-    answer: TIMING_ANSWERS[zone],
-    why: TIMING_WHY[zone],
     price,
     ema21,
+    atr,
     atrUnits,
-    pctFromEma: pctDiff(price, ema21),
+    pctFromEma,
+    side,
+    marks,
+    lo: min - pad,
+    hi: max + pad,
   };
 }
 
@@ -237,6 +225,12 @@ export function deriveEntryVolume({ priceHistory, srData, todayEt = todayInNewYo
     signals: dir.signals,
     agreeing,
     voted: dir.signals.length,
+    // plain count of the three signals (what the card shows instead of a one-word answer)
+    tally: {
+      up: dir.signals.filter((x) => x.vote > 0).length,
+      down: dir.signals.filter((x) => x.vote < 0).length,
+      flat: dir.signals.filter((x) => x.vote === 0).length,
+    },
     rvol: isNum(rvol) ? rvol : null,
     // Which session the votes describe, when it isn't today: the last complete
     // bar while today's is forming, or a past session before the open/weekends.

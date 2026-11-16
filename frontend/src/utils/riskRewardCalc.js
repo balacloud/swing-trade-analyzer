@@ -5,8 +5,8 @@
  * Used by: components/PullbackPlan.jsx (Trade Setup card)
  *
  * Pullback plan: buy at the nearest support, stop 2×ATR below it, target the
- * nearest resistance (backend `suggestedTarget`, which is a projection when
- * `meta.resistanceProjected` is true).
+ * nearest resistance (backend `suggestedTarget`). Day 126: the simple S&R engine never
+ * projects a level, so a missing resistance means no target, not an invented one.
  * Day 83: removed a stale "max stop cap: 7% from entry" claim — that cap
  * belongs to the backtest's own position-sizing layer (trade_simulator.py),
  * not this function, which is purely ATR-based with a $0.01 floor.
@@ -30,7 +30,7 @@
  *   'ok'         — full plan
  *
  * @param {object|null} srData - Support/Resistance data from backend
- * @returns {object} { state, entry?, stop?, target?, atr?, risk?, reward?, rr?, targetProjected? }
+ * @returns {object} { state, entry?, stop?, target?, atr?, risk?, reward?, rr? }
  *   target/reward/rr are null when the backend found no resistance target.
  */
 export function calculateRiskReward(srData) {
@@ -41,11 +41,10 @@ export function calculateRiskReward(srData) {
 
   const entry = Math.max(...supports);
   const target = Number.isFinite(srData.suggestedTarget) ? srData.suggestedTarget : null;
-  const targetProjected = srData.meta?.resistanceProjected === true;
   const atr = srData.meta?.atr;
 
   if (!Number.isFinite(atr) || atr <= 0) {
-    return { state: 'no_atr', entry, stop: null, target, atr: null, risk: null, reward: null, rr: null, targetProjected };
+    return { state: 'no_atr', entry, stop: null, target, atr: null, risk: null, reward: null, rr: null };
   }
 
   // Floor at $0.01 — stop price can never be negative or zero
@@ -54,5 +53,5 @@ export function calculateRiskReward(srData) {
   const reward = target != null ? target - entry : null;
   const rr = reward != null && risk > 0 ? reward / risk : null;
 
-  return { state: 'ok', entry, stop, target, atr, risk, reward, rr, targetProjected };
+  return { state: 'ok', entry, stop, target, atr, risk, reward, rr };
 }

@@ -175,6 +175,8 @@ YFINANCE_STOCK_INFO = {
     'avgVolume':        ('averageVolume', _to_int),
     'avgVolume10d':     ('averageVolume10days', _to_int),
     'quoteType':        ('quoteType', None),            # Day 123: 'EQUITY' / 'ETF' / ...
+    'exchange':         ('fullExchangeName', None),     # Day 126: 'Toronto', 'Cboe CA', 'NYSEArca' (Data Sources tab identity)
+    'currency':         ('currency', None),             # Day 126: 'USD' / 'CAD'
 }
 
 

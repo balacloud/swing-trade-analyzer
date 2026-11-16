@@ -2,13 +2,13 @@
 
 > **Purpose:** Core rules and cumulative lessons learned — stable reference
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 125 (2026-11-12)
+> **Last Updated:** Day 126 (2026-11-16)
 > **Session protocols:** See `CLAUDE_CONTEXT.md` for startup/close checklists
 > **Decision-making lens:** See `docs/claude/stable/PERSONA.md` for the trading-judgment persona (Golden Rule 34)
 
 ---
 
-## CORE RULES (63 Golden Rules)
+## CORE RULES (64 Golden Rules)
 
 1. **START of session:** Read PROJECT_STATUS_DAY[N].md first
 2. **BEFORE modifying any file:** READ it first using Read tool
@@ -109,6 +109,7 @@
 61. **NORMALIZE UNITS PER PROVIDER AT THE FIELD MAP, AND TEST THEM WITH VALUES ON BOTH SIDES OF 1.** The same field arrives in different units from different providers. yfinance reports debt/equity in percent (AAPL ≈154) where Finnhub and FMP give a ratio (1.54), and the orchestrator filled D/E from yfinance whenever Finnhub lacked it, so a healthy company could be flagged as heavily indebted. ROE/ROA converters multiplied by 100 only when `abs(v) < 1`, so a real ROE of 150% (1.5 as a decimal) displayed as "1.5%". Both also skewed `assessFundamental()`. A magnitude guess (`< 1` means decimal) fails exactly at the extremes that matter most. **How to apply:** convert unconditionally, per provider, in `providers/field_maps.py` (one place). Bump the cache schema version so cached wrong-unit values are discarded. Add a unit test with real-world values above and below 1 (`backtest/test_data_units.py`). When a card shows a provider number, show which provider supplied it. (Day 123, Fundamentals card)
 62. **TALK TO THE USER IN VERY SIMPLE ENGLISH, EVERY TIME.** Short sentences, everyday words. Say what you are doing and why in plain terms first; put file names, code and jargon after, only if needed. Explain any technical word in a few plain words the first time it appears. Progress updates are one or two simple lines ("I'm checking that the market numbers on screen match the data"), not a list of functions. **How to apply:** before sending, ask "would a non-programmer follow this?" If not, rewrite it simpler. (Day 124, user: "always use simple terms to explain, put this in golden rules going forward")
 63. **ONE LABEL, ONE NUMBER: A WORD OR PRICE ON THE PAGE MEANS ONE THING EVERYWHERE.** Fable caught this twice in one day. "Ceiling" meant Trade Setup's nearest resistance in one card and the breakout's 60-day high in another, two different prices for the same stock (RIVN $14.31 vs $17.16). And the first S&R plan would have shown two different Buy prices, because Trade Setup reads `max(support)` while the Simple Checklist reads `suggestedEntry`. A reader who sees the same word twice assumes it is the same number. **How to apply:** before adding a label or a price to a card, grep the page for the same word and for every other place that computes the same quantity. If two numbers differ, give them different names ("Resistance" vs "60-day high"), or make both read one source. Check badges, tooltips, skills and help text too, not only the card body. (Day 125, Analyze cleanup)
+64. **A PROCESS RULE THAT MUST ALWAYS HAPPEN NEEDS A HOOK, NOT A MEMORY NOTE.** Golden Rule 41 (three review passes) was written down and saved in memory, yet on Day 126 it was skipped on every small follow-up edit (ruler marks, volume wording) until the user asked "three passes?". The passes then found two real bugs ("1 volume signals", labels overlapping on a phone). A written rule only works when the assistant remembers it. **How to apply:** when a step must run every time, make the harness enforce it. A project Stop hook (`.claude/hooks/three_pass_check.sh`) blocks the end of a turn when code under `frontend/src`, `frontend/scripts` or `backend` changed since the last review stamp, and `/three-pass` runs the passes and stamps (`/three-pass skip` for text-only changes). Never stamp with a failing test or a skipped pass. (Day 126)
 
 ---
 

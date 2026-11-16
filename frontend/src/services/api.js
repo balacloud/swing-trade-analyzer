@@ -46,6 +46,11 @@ export async function fetchStockData(ticker) {
       avgVolume: data.avgVolume,
       avgVolume10d: data.avgVolume10d,
       quoteType: data.quoteType ?? null,  // Day 123: 'ETF' / 'EQUITY' (yfinance); null if the info provider lacks it
+      // Day 126 (Data Sources tab): identity. This object is rebuilt field by field (Golden Rule 30), so each one is listed.
+      exchange: data.exchange ?? null,               // Yahoo's own name: 'Toronto', 'Cboe CA', 'NYSEArca'
+      currency: data.currency ?? null,               // 'USD' / 'CAD'
+      instrumentClass: data.instrumentClass ?? null, // 'Stock' | 'ETF' | 'Leveraged ETF' | 'CDR' | 'Unknown' (inferred)
+      classBasis: data.classBasis ?? null,           // why: "ETF with '3X' in the name"
       priceHistory: data.priceHistory,
       dataPoints: data.dataPoints,
       oldestDate: data.oldestDate,
@@ -203,7 +208,6 @@ export async function checkBackendHealth() {
       providers: data.providers || null,
       tradingviewAvailable: data.tradingview_available,
       srEngineAvailable: data.sr_engine_available,
-      validationAvailable: data.validation_available,
       cacheSize: data.cache_size,
       timestamp: data.timestamp
     };
@@ -382,14 +386,18 @@ export async function fetchBreakout(ticker) {
  * Fetch Support & Resistance levels for a ticker
  * 
  * Returns:
- * - support: Array of support price levels
- * - resistance: Array of resistance price levels  
- * - method: 'pivot', 'kmeans', or 'volume_profile'
+ * Day 126: served by the simple S&R engine (backend/simple_sr.py). BREAKING for the old fields:
+ * levelScores, mtf, resistanceProjected, supportProjected, pivotSelection and tradeViability are
+ * no longer sent (they remain on ?engine=legacy only).
+ * - support: nearest-first zone edges below price (each zone's HIGH, the Buy price)
+ * - resistance: nearest-first zone edges above price (each zone's LOW, the Target)
+ * - method: 'simple'
  * - suggestedEntry: Nearest support (entry point)
  * - suggestedStop: support − 2×ATR; null when ATR is unavailable (Day 123)
  * - suggestedTarget: Nearest resistance (profit target)
  * - riskReward: Risk/Reward ratio
- * - meta: Additional info (ATR, projection flags)
+ * - meta: ATR, zones [{low, high, mid, swings, side, insideZone, nearest, lastSwingDate}], nearHigh52w,
+ *   high52w, confirmedThrough, proximityFilter, engine; plus ADX/RSI/volume/candle fields
  */
 export async function fetchSupportResistance(ticker) {
   try {
@@ -500,93 +508,6 @@ export async function fetchFullAnalysisData(ticker) {
 // VALIDATION ENGINE ENDPOINTS (Day 17)
 // ============================================
 
-/**
- * Run validation for specified tickers
- * Compares our data against external sources (StockAnalysis, Finviz)
- * 
- * @param {string[]} tickers - Array of ticker symbols to validate
- * @returns {object} - Validation report with metrics and results
- */
-export async function runValidation(tickers) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/validation/run`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ tickers })
-    });
-    
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to run validation');
-    }
-    
-    const data = await response.json();
-    
-    return {
-      runId: data.run_id,
-      timestamp: data.timestamp,
-      tickers: data.tickers,
-      overallPassRate: data.overall_pass_rate,
-      summary: {
-        totalChecks: data.summary.total_checks,
-        validated: data.summary.validated,
-        skipped: data.summary.skipped,
-        passed: data.summary.passed,
-        failed: data.summary.failed,
-        warnings: data.summary.warnings,
-        coverageRate: data.summary.coverage_rate,
-        accuracyRate: data.summary.accuracy_rate,
-        qualityScore: data.summary.quality_score
-      },
-      tickerResults: data.ticker_results.map(tr => ({
-        ticker: tr.ticker,
-        overallStatus: tr.overall_status,
-        passCount: tr.pass_count,
-        failCount: tr.fail_count,
-        warningCount: tr.warning_count,
-        skipCount: tr.skip_count,
-        results: tr.results.map(r => ({
-          metric: r.metric,
-          ourValue: r.our_value,
-          externalValue: r.external_value,
-          externalSource: r.external_source,
-          variancePct: r.variance_pct,
-          tolerancePct: r.tolerance_pct,
-          status: r.status,
-          notes: r.notes
-        }))
-      }))
-    };
-    
-  } catch (error) {
-    console.error('Error running validation:', error);
-    throw error;
-  }
-}
-
-/**
- * Fetch validation history (list of past runs)
- * @returns {object[]} - Array of past validation runs
- */
-export async function fetchValidationHistory() {
-  try {
-    const response = await fetch(`${API_BASE_URL}/validation/history`);
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to fetch validation history');
-    }
-
-    return await response.json();
-
-  } catch (error) {
-    console.error('Error fetching validation history:', error);
-    return [];
-  }
-}
-
 // ============================================
 // CACHE MANAGEMENT (Day 29)
 // ============================================
@@ -675,19 +596,41 @@ export async function getCacheStatus() {
  * @returns {object} - Provenance info with sources, cache status, and formulas
  */
 export async function fetchDataProvenance(ticker) {
+  // Day 126: returns {error} on failure instead of null, so the Data Sources tab can say what went wrong and offer Retry
+  // (a null used to render as a blank section). Callers must treat a result with `.error` as a failure.
   try {
     const response = await fetch(`${API_BASE_URL}/provenance/${ticker.toUpperCase()}`);
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || `Failed to fetch provenance for ${ticker}`);
+      let reason = `HTTP ${response.status}`;
+      try { reason = (await response.json()).error || reason; } catch (e) { /* body was not JSON */ }
+      return { error: `Failed to fetch provenance for ${ticker}: ${reason}` };
     }
 
     return await response.json();
 
   } catch (error) {
     console.error('Error fetching data provenance:', error);
-    return null;
+    return { error: `Could not reach the backend: ${error.message}` };
+  }
+}
+
+/**
+ * Which provider serves which market, as TESTED (backend/reference/provider_coverage.json, dated).
+ * Returns the file's JSON, or {error} so the tab can say the table is unavailable.
+ */
+export async function fetchProviderCoverage() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/data-sources/coverage`);
+    if (!response.ok) {
+      let reason = `HTTP ${response.status}`;
+      try { reason = (await response.json()).error || reason; } catch (e) { /* not JSON */ }
+      return { error: reason };
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching provider coverage:', error);
+    return { error: error.message };
   }
 }
 

@@ -1,77 +1,92 @@
 /**
- * Nearest floor and ceiling for the Trade Setup card (Day 125, Analyze cleanup).
- * Plan: docs/claude/design/ANALYZE_CLEANUP_PLAN_DAY125.md §3.2 + §7.
+ * Nearest support and resistance for the Trade Setup card (Day 125 cleanup,
+ * rebuilt Day 126 on the simple S&R engine).
+ * Plans: docs/claude/design/SIMPLE_SR_PLAN_DAY125.md, SIMPLE_SR_SWITCH_PLAN_DAY126.md §2.
  *
- * Display only — the S&R engine (support_resistance.py) is unchanged.
- * Widely agreed (not proven) rules this follows: levels are zones, not lines;
- * a level price came back to more than once matters more; keep only a few.
- *
- * - Zone = level ± 0.5%, the engine's own touch band (touch_threshold), so the
- *   zone and the "near it on N days" count describe the same band.
- * - daysNear = srData.meta.levelScores[level.toFixed(2)]: the number of daily
- *   bars (about the last year) whose high or low came within 0.5% of the level.
- *   It is NOT a count of turns. Missing key -> null (never shown as 0).
- * - Projected levels (ATR/Fibonacci, used when no real level exists) are never
- *   shown as a real floor/ceiling.
+ * Display only. Reads /api/sr `meta.zones` (backend/simple_sr.py): swing highs/lows
+ * grouped into zones, nearest zone below/at price and nearest above. Each zone has
+ * { low, high, mid, swings, side, insideZone, nearest }.
+ * - `swings` = how many times price turned there ("turned here N×"). One turn is a
+ *   real level too; the user judges whether it is enough, nothing here ranks it.
+ * - Distance is to the zone edge nearest price (support: its high, resistance: its low),
+ *   the same edge the Buy and Target use (Golden Rule 63: one label, one number).
+ * - No projected/ATR/Fibonacci levels exist on this engine. Missing zones are never
+ *   replaced with a made-up level.
+ * Common trader rules, not tested.
  */
 
-export const ZONE_PCT = 0.5;
-
 const isNum = (x) => typeof x === 'number' && Number.isFinite(x);
+
+/** "$94.00 – $95.10", or one price when the zone is a single price. Shared with the page checker (A10). */
+export function formatZoneRange(low, high) {
+  const m = (x) => `$${x.toFixed(2)}`;
+  return low.toFixed(2) === high.toFixed(2) ? m(low) : `${m(low)} – ${m(high)}`;
+}
 
 function sideLimitPct(meta, key, fallback) {
   const v = meta?.proximityFilter?.[key];
   return isNum(v) ? Math.round(v * 100) : fallback;
 }
 
-function describeSide(levels, { currentPrice, projected, limitPct, meta, isCeiling }) {
-  const real = (levels || []).filter((l) => isNum(l) && (isCeiling ? l > currentPrice : l < currentPrice));
-  if (projected) {
-    const p = real.length ? (isCeiling ? Math.min(...real) : Math.max(...real)) : null;
-    return { kind: 'projected', limitPct, projectedPrice: p };
-  }
-  if (!real.length) return { kind: 'none', limitPct };
-  const price = isCeiling ? Math.min(...real) : Math.max(...real);
-  const key = price.toFixed(2);
-  const scores = meta?.levelScores;
-  const daysNear = scores && isNum(scores[key]) ? scores[key] : null;
-  const mtf = meta?.mtf?.confluence_map?.[key];
+function describeSide(zones, side, { currentPrice, limitPct }) {
+  const z = zones.find((q) => q && q.nearest === true && q.side === side && isNum(q.low) && isNum(q.high));
+  if (!z) return { kind: 'none', limitPct };
+  const isCeiling = side === 'resistance';
+  const edge = isCeiling ? z.low : z.high;
+  const inside = z.insideZone === true && !isCeiling;
   return {
-    kind: 'level',
+    kind: inside ? 'inside' : 'level',
     limitPct,
-    price,
-    low: price * (1 - ZONE_PCT / 100),
-    high: price * (1 + ZONE_PCT / 100),
-    pctAway: Math.abs((price - currentPrice) / currentPrice) * 100,
-    daysNear,
-    weekly: mtf?.confluent === true,
-    weeklyStrength: mtf?.confluent === true ? (mtf.strength_label || null) : null,
+    low: z.low,
+    high: z.high,
+    edge,
+    swings: isNum(z.swings) ? z.swings : null,
+    pctAway: inside ? 0 : Math.abs((edge - currentPrice) / currentPrice) * 100,
   };
 }
 
 /**
  * @param {object} srData - /api/sr/<ticker> payload
- * @returns {null | {ceiling, floor, realResistance: number[], realSupport: number[]}}
+ * @returns {null | {unavailable: true} | {ceiling, floor, realResistance: number[], realSupport: number[], insideSupport: boolean, nearHigh52w: boolean}}
+ *   null: no srData or no price (the card above already says why).
+ *   {unavailable}: srData arrived without `meta.zones` (an old-format response); the card says so.
  */
 export function describeKeyLevels(srData) {
   const currentPrice = srData?.currentPrice;
   if (!srData || !isNum(currentPrice) || currentPrice <= 0) return null;
   const meta = srData.meta || {};
-  const ceiling = describeSide(srData.resistance, {
-    currentPrice, projected: meta.resistanceProjected === true,
-    limitPct: sideLimitPct(meta, 'resistancePct', 30), meta, isCeiling: true,
-  });
-  const floor = describeSide(srData.support, {
-    currentPrice, projected: meta.supportProjected === true,
-    limitPct: sideLimitPct(meta, 'supportPct', 20), meta, isCeiling: false,
-  });
-  // Real (non-projected) levels, for the one-line price state.
-  const realResistance = meta.resistanceProjected === true ? [] : (srData.resistance || []).filter(isNum);
-  const realSupport = meta.supportProjected === true ? [] : (srData.support || []).filter(isNum);
-  return { ceiling, floor, realResistance, realSupport };
+  if (!Array.isArray(meta.zones)) return { unavailable: true };
+  const ceiling = describeSide(meta.zones, 'resistance', { currentPrice, limitPct: sideLimitPct(meta, 'resistancePct', 30) });
+  const floor = describeSide(meta.zones, 'support', { currentPrice, limitPct: sideLimitPct(meta, 'supportPct', 20) });
+  return {
+    ceiling,
+    floor,
+    realResistance: (srData.resistance || []).filter(isNum),
+    realSupport: (srData.support || []).filter(isNum),
+    insideSupport: floor.kind === 'inside',
+    nearHigh52w: meta.nearHigh52w === true,
+  };
 }
 
-/** "Near" = within 2× ATR (the stock's normal daily noise), as in the old Price Structure card. */
+/**
+ * Where a zone sits on a price bar, as percentages of the bar's width.
+ * The bar's price scale runs from scaleLo to scaleHi (the same scale the Stop/Buy/Target/Now
+ * ticks use). A zone partly outside is clipped; entirely outside, or bad input -> null
+ * (the zone is simply not shaded; its row still lists it).
+ * @returns {null | {left: number, width: number}}
+ */
+export function zoneSpan(zone, scaleLo, scaleHi) {
+  if (!zone || !isNum(zone.low) || !isNum(zone.high) || !isNum(scaleLo) || !isNum(scaleHi) || scaleHi <= scaleLo) return null;
+  const p = (v) => ((v - scaleLo) / (scaleHi - scaleLo)) * 100;
+  const left = Math.max(0, p(Math.min(zone.low, zone.high)));
+  const right = Math.min(100, p(Math.max(zone.low, zone.high)));
+  if (right <= 0 || left >= 100 || right < left) return null;
+  // A one-price zone would be invisible; give it a 0.6% sliver so it can still be seen.
+  const width = Math.max(right - left, 0.6);
+  return { left, width };
+}
+
+/** "Near" = inside the zone, or within 2× ATR (the stock's normal daily noise) of its edge. */
 function isNearLevel(currentPrice, level, atr) {
   if (!isNum(level) || !isNum(atr) || atr <= 0) return false;
   return Math.abs(currentPrice - level) <= 2.0 * atr;
@@ -79,12 +94,13 @@ function isNearLevel(currentPrice, level, atr) {
 
 /**
  * One-line price state (moved from the removed Price Structure card, Day 125).
- * Same 12 rules as before, with two fixes:
+ * Same 12 rules as before, with these fixes:
  *  - R1/S1 are the NEAREST levels (min above / max below). The old code took
- *    support[0], the deepest support, because the API sends support ascending
- *    (Day 112 BUG-B, fixed then only in the card's level list — Fable #4).
- *  - Missing trend data returns null (no line) instead of counting as 0 and
- *    reading "Downtrend".
+ *    support[0], the deepest support (Day 112 BUG-B, Fable #4).
+ *  - Missing trend data returns null (no line) instead of counting as 0 and reading "Downtrend".
+ *  - Day 126: `limits.insideSupport` = price is inside the nearest support zone, so S1 is
+ *    the price itself (distance 0, "near"). The zone edge (its high) is above price and
+ *    would otherwise be filtered out as "not below".
  * Pass only real levels (describeKeyLevels().realResistance/realSupport).
  *
  * @returns {null | {state: string, color: string, rule: number}}
@@ -98,7 +114,7 @@ export function deriveStructureState(currentPrice, resistance, support, trendCri
   const above = (resistance || []).filter((l) => isNum(l) && l > currentPrice);
   const below = (support || []).filter((l) => isNum(l) && l < currentPrice);
   const R1 = above.length ? Math.min(...above) : null;
-  const S1 = below.length ? Math.max(...below) : null;
+  const S1 = limits.insideSupport === true ? currentPrice : (below.length ? Math.max(...below) : null);
   const tt = trendCriteria;
   const adxVal = isNum(adx?.adx) ? adx.adx : null;
 

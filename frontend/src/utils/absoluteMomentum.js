@@ -5,7 +5,8 @@
  * rule. A stock can be the strongest name in a falling market and still lose
  * money, so the second leg asks whether the stock's OWN trailing return beat
  * a risk-free/cash return in absolute terms. STA has gated on the first leg
- * since Day 27 (simplifiedScoring.js Criterion 2, RS >= 1.0) and has never
+ * from Day 27 to Day 126 (the Simple Checklist's Criterion 2, RS >= 1.0; the
+ * checklist was removed Day 126) and has never
  * had the second leg anywhere, gated or informational. This adds it as a
  * sentence a human reads. It is NOT a gate, and that is a closed decision:
  *
@@ -51,23 +52,21 @@ export const ABSOLUTE_MOMENTUM_CASH_PCT = 5.0;
  *
  * Never returns a color, a className, or a pass/fail boolean — informational
  * only, and must not be used to gate, suppress, rank, or score anything. No
- * code path from here reaches the verdict, any score, or the Simple
- * Checklist's pass/fail outcome or passCount. `state` is a descriptive string
+ * code path from here reaches the verdict or any score. `state` is a descriptive string
  * for copy selection and test assertions only, never a verdict.
  *
- * Deliberately says NOTHING about relative strength. Its two call sites sit
- * under different RS contexts (the Simple Checklist's RS >= 1.0 gate; the
- * Full Analysis RS card, which has no such gate), so any sentence claiming
- * the two legs "agree" would be false on one of them.
+ * Deliberately says NOTHING about relative strength. (Until Day 126 it had a
+ * second call site under the Simple Checklist's RS >= 1.0 gate, where a
+ * sentence claiming the two legs "agree" would have been false. The
+ * checklist is gone; the rule still holds because the RS card has no gate.)
  *
- * Computes nothing: callers pass a 1-year return their own view already
- * has. This function exists so the two views can't word it differently, not
- * so a third calculation can exist (Golden Rule 19/21).
+ * Computes nothing: the caller passes a 1-year return its view already has,
+ * so a second calculation can't exist (Golden Rule 19/21).
  *
  * @param {?number} returnPct - trailing ~1-year return in PERCENT (-3.64 for
- *                              -3.64%), NOT a ratio. Simple Checklist passes
- *                              criteria.momentum.stockReturnPct; Full
- *                              Analysis passes rsData.stock52wReturn.
+ *                              -3.64%), NOT a ratio. Full Analysis passes
+ *                              rsData.stock52wReturn (the only caller since
+ *                              Day 126).
  * @returns {?{state:'above_cash'|'below_cash'|'negative', text:string}}
  *          null when the return is unavailable — render nothing, not a claim
  *          about missing data. Same convention as volumeThresholds.js.

@@ -96,8 +96,15 @@ function getExtremeValueContext(fundamentals) {
  * Calculate all technical indicators from price data
  * Day 26: Fixed ATR calculation - now receives highs/lows/closes properly
  */
-function getIndicators(prices, volumes, highs, lows) {
-  if (!prices || prices.length < 200) {
+// Day 126: exported ONLY so scripts/indicator_grid.mjs can test the real function (no behavior change).
+export function getIndicators(prices, volumes, highs, lows) {
+  // Day 126: was `< 200 -> null`, but the caller only guards `< 50`, so any fund with 50-199
+  // days of history (new leveraged ETFs: DRAL, SPCL, COPZ) crashed the whole Analyze page with
+  // "Cannot read properties of null (reading 'sma50')". Now: compute what the data supports.
+  // calculateSMA() already returns null when there are fewer than `period` prices, so sma200
+  // is simply null below 200 days (never a made-up value) and the scorer's own
+  // `indicators.sma50 && indicators.sma200` guard leaves trend structure unscored.
+  if (!prices || prices.length < 50) {
     return null;
   }
 

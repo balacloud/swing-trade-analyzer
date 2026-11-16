@@ -1,0 +1,59 @@
+{
+ "tested": "2026-11-14",
+ "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+ "markets": [
+  "US",
+  "Toronto",
+  "Cboe Canada"
+ ],
+ "providers": {
+  "twelvedata": {
+   "US": "works",
+   "Toronto": "no",
+   "Cboe Canada": "no",
+   "note": "Free plan has no Canadian symbols (Grow plan needed). Rate limited: 8 a minute, about 800 a day."
+  },
+  "yfinance": {
+   "US": "works",
+   "Toronto": "works",
+   "Cboe Canada": "partial",
+   "note": "Only source for Canada. Toronto (.TO) is accurate, including the CDRs. Cboe Canada (.NE): SOXL.NE is close-only with an unadjusted 3:1 split; other .NE names are thin: use .TO."
+  },
+  "tradier": {
+   "US": "works",
+   "Toronto": "no",
+   "Cboe Canada": "no",
+   "note": "Fast and clean for US names, but a 1:3 reverse split is applied wrongly (QPUX before 2026-03-20 is 3x too high). Not dividend-adjusted. Needs BRK/B for Berkshire."
+  },
+  "eodhd": {
+   "US": "not tested",
+   "Toronto": "works",
+   "Cboe Canada": "works",
+   "note": "Not in the chain. Free key: 20 calls a day, 1 year of history. SOXL.NEO is still close-only."
+  },
+  "alphavantage": {
+   "US": "not tested",
+   "Toronto": "works",
+   "Cboe Canada": "not tested",
+   "note": "Fundamentals growth in the chain. Toronto prices work as .TRT. 25 calls a day, 1 a second."
+  },
+  "finnhub": {
+   "US": "not tested",
+   "Toronto": "not tested",
+   "Cboe Canada": "not tested",
+   "note": "Fundamentals core fields. Not tested for prices or Canada."
+  },
+  "fmp": {
+   "US": "not tested",
+   "Toronto": "paid only",
+   "Cboe Canada": "paid only",
+   "note": "Canadian symbols return HTTP 402 on the free key."
+  },
+  "stooq": {
+   "US": "disabled",
+   "Toronto": "disabled",
+   "Cboe Canada": "disabled",
+   "note": "Removed from the chain Day 82 (bot-blocked)."
+  }
+ }
+}

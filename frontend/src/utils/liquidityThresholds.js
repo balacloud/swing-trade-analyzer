@@ -5,7 +5,7 @@
  * flat $10M was misleading for small/mid caps — a $10M/day small-cap is
  * plenty liquid for swing size, a $10M/day large-cap is thin).
  *
- * Day 83: extracted from simplifiedScoring.js into a shared module — Quality
+ * Day 83: extracted from simplifiedScoring.js (Simple Checklist, removed Day 126) into a shared module — Quality
  * Gates (scoringEngine.js) and the Analyze page's Price Card (App.jsx) each
  * had their own separate, and inconsistent, liquidity standard (a flat $10M
  * gate and a flat $10M/$50M color split respectively). This is now the one

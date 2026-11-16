@@ -51,3 +51,6 @@ backend/validation_results/ledger_backups/
 # new shared rate-limiter/circuit-breaker state (provider_state.db) are both
 # regenerable local runtime data, not version-controlled artifacts.
 backend/data/
+
+# three-pass review stamp (local, per checkout)
+.claude/.three_pass_done

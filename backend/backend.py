@@ -23,6 +23,7 @@ Day 51: v4.14 Multi-Source Data Intelligence (TwelveData + Finnhub + FMP + yfina
 """
 
 import os
+import json
 import requests
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -30,6 +31,19 @@ import yfinance as yf
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 import traceback
+def _indicator_block():
+    """Day 126: the indicator table comes from indicator_catalog. A catalog failure must not 500 /api/provenance: send
+    indicators=None plus the reason (the tab shows it)."""
+    try:
+        import indicator_catalog
+        return {'indicators': indicator_catalog.build_indicator_rows(), 'indicators_error': None}
+    except Exception as exc:
+        print(f"   ⚠️ indicator catalog failed: {exc}")
+        return {'indicators': None, 'indicators_error': f'{type(exc).__name__}: {exc}'}
+
+
+import split_adjust  # Day 126: known-splits table + adjuster (orchestrator delivers adjusted frames; fallbacks call fix_frame)
+import data_quality  # Day 126: shared price-history checks and fund-type rule (Data Sources tab, audit scripts)
 import pandas as pd
 import numpy as np
 import sys
@@ -67,7 +81,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 # /api/sectors/pullback-screen endpoint (SRPS discretionary screener).
 # Day 105: bumped to 2.46 for the new /api/sectors/sub-industry-pullback-screen
 # endpoint + the shared _srps_true_rs()/_srps_evaluate_candidate() refactor.
-BACKEND_VERSION = '2.54'
+BACKEND_VERSION = '2.55'
 
 # Day 116: market-hours test for "is /api/sr's last bar still forming?" Mirrors
 # paper_trading/live_signals.py's _prepare_ohlcv() guard (Day 99, Golden Rule 33 —
@@ -82,6 +96,16 @@ from index_trend import index_trend_facts  # Day 124: Market backdrop card
 from vix_bands import vix_band  # Day 124: one on-screen VIX band definition
 
 from constants import SUPPORT_PROXIMITY_PCT, RESISTANCE_PROXIMITY_PCT  # shared with support_resistance.py
+from constants import SR_ENGINE  # Day 126: 'legacy' | 'simple' for /api/sr
+from sr_plan import trade_plan, legacy_actionable  # Day 126: one buy/stop/target calc for both engines
+# Day 126: simple S&R engine, imported on its own (no sklearn), so a missing
+# scikit-learn only blocks the legacy engine (SIMPLE_SR_PLAN_DAY125.md §8 #8).
+try:
+    from simple_sr import compute_simple_sr, SimpleSRError
+    SIMPLE_SR_AVAILABLE = True
+except ImportError as _e:
+    SIMPLE_SR_AVAILABLE = False
+    print(f"⚠️  Simple S&R engine not available: {_e}")
 from sub_industry_clusters import SUB_INDUSTRY_CLUSTERS, NO_PROXY_CLUSTERS  # Day 100+ Sub-Industry Watch
 from srps_constants import (  # SRPS pullback screener (Day 102) — see srps_constants.py docstring
     RS_LOOKBACK_DAYS as SRPS_RS_LOOKBACK_DAYS, RS_FLOOR as SRPS_RS_FLOOR,
@@ -264,6 +288,11 @@ def safe_bool(value, default=False):
         return bool(value)
     except (TypeError, ValueError):
         return default
+
+
+def _instrument_class(info):
+    """Stock / ETF / Leveraged ETF / CDR, inferred from Yahoo quote type and name (data_quality.classify_instrument)."""
+    return data_quality.classify_instrument(safe_get(info, 'quoteType'), safe_get(info, 'name') or safe_get(info, 'shortName'))
 
 
 def safe_get(data, key, default=None):
@@ -891,6 +920,19 @@ def _freshness_status(age_minutes, thresholds=(60, 240)):
         return 'stale'
 
 
+@app.route('/api/data-sources/coverage', methods=['GET'])
+def get_provider_coverage():
+    """Day 126: which provider serves which market, as TESTED (backend/reference/provider_coverage.json, curated from the
+    audit reports, dated). Read-only; the Data Sources tab shows the date so a stale table is visible."""
+    try:
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'reference', 'provider_coverage.json')
+        with open(path) as f:
+            return jsonify(json.load(f))
+    except Exception as e:
+        print(f"⚠️ provider coverage unreadable: {e}")
+        return jsonify({'error': f'coverage file unreadable: {type(e).__name__}'}), 500
+
+
 @app.route('/api/provenance/<ticker>', methods=['GET'])
 def get_data_provenance(ticker):
     """
@@ -924,7 +966,45 @@ def get_data_provenance(ticker):
     ohlcv_age_h  = ohlcv_cache.get('age_hours') if ohlcv_cache else None
     fund_age_d   = fund_cache.get('age_days')   if fund_cache  else None
 
-    # Build provenance response
+    # ---- Day 126 (Data Sources tab v2): quality, fundamentals has_data, this-session source, audit line.
+    # All read from the cache WITHOUT side effects and without provider calls (free quotas).
+    quality = {'state': 'not_cached'}
+    if SQLITE_CACHE_AVAILABLE:
+        try:
+            _df, _meta = cache_manager.read_ohlcv_entry(ticker)
+            if _df is not None:
+                _facts = data_quality.check_history(_df, ticker=ticker)
+                _q = data_quality.quality_level(_facts, tolerant=True)
+                quality = {
+                    'state': 'ok' if _facts.get('state') == 'ok' else 'error',
+                    'reason': _facts.get('reason'),
+                    'level': _q['level'], 'checks': _q['checks'], 'facts': _facts,
+                    # What was checked: the cache keeps ONE row per ticker whatever the period (a 1y caller overwrites a 2y
+                    # frame), and Analyze uses only the last 260 bars, so say exactly what this is.
+                    'period': _meta['period'], 'rows': _meta['rows'], 'source': _meta['source'],
+                    'cached_at': _meta['cached_at'], 'expired': _meta['expired'],
+                }
+        except Exception as e:
+            print(f"⚠️ provenance quality failed for {ticker}: {e}")
+            quality = {'state': 'error', 'reason': f'{type(e).__name__}: {str(e)[:120]}'}
+
+    fund_has_data = None
+    if SQLITE_CACHE_AVAILABLE:
+        try:
+            _fd, _fm = cache_manager.read_fundamentals_entry(ticker)
+            if _fd is not None:
+                fund_has_data = not _is_fundamentals_empty(_fd)   # an all-null stub is NOT fundamentals
+        except Exception as e:
+            print(f"⚠️ provenance fundamentals read failed for {ticker}: {e}")
+
+    this_session = None
+    try:
+        # 'cache' on a cache hit, 'stale_cache' on a fallback, the provider name on a live fetch, None after a restart.
+        this_session = get_data_provider()._last_source.get(f'{ticker}_ohlcv') if DATA_PROVIDER_AVAILABLE else None
+    except Exception:
+        pass
+
+    # Build provenance response. FROZEN keys (the audit script and the tab read them): ohlcv.source / rows / status.
     provenance = {
         'ticker': ticker,
         'timestamp': datetime.now().isoformat(),
@@ -936,7 +1016,8 @@ def get_data_provenance(ticker):
             'expires_in': ohlcv_cache.get('expires_in') if ohlcv_cache else None,
             'rows': ohlcv_cache.get('rows') if ohlcv_cache else None,
             'age_hours': ohlcv_age_h,
-            'status': _cache_status(age_hours=ohlcv_age_h, cache_entry=ohlcv_cache)
+            'status': _cache_status(age_hours=ohlcv_age_h, cache_entry=ohlcv_cache),
+            'this_session': this_session,
         },
         'fundamentals': {
             'source': fund_cache.get('source', 'unknown') if fund_cache else 'unknown',
@@ -945,34 +1026,14 @@ def get_data_provenance(ticker):
             'expires_at': fund_cache.get('expires_at') if fund_cache else None,
             'expires_in': fund_cache.get('expires_in') if fund_cache else None,
             'age_days': fund_age_d,
-            'status': _cache_status(age_days=fund_age_d, cache_entry=fund_cache)
+            'status': _cache_status(age_days=fund_age_d, cache_entry=fund_cache),
+            'has_data': fund_has_data,
         },
-        'indicators': [
-            {'name': 'SMA 50', 'source': 'local', 'formula': 'Sum(Close, 50) / 50'},
-            {'name': 'SMA 200', 'source': 'local', 'formula': 'Sum(Close, 200) / 200'},
-            {'name': 'EMA 8', 'source': 'local', 'formula': 'Price * k + EMA_prev * (1-k), k=2/(8+1)'},
-            {'name': 'EMA 21', 'source': 'local', 'formula': 'Price * k + EMA_prev * (1-k), k=2/(21+1)'},
-            {'name': 'ATR 14', 'source': 'local', 'formula': 'EMA(TrueRange, 14) where TR=max(H-L, |H-Cp|, |L-Cp|)'},
-            {'name': 'RSI 14', 'source': 'local', 'formula': '100 - 100/(1 + AvgGain/AvgLoss) [Wilder smoothing]'},
-            {'name': 'Avg Volume 20', 'source': 'local', 'formula': 'Sum(Volume, 20) / 20'},
-            {'name': 'Avg Volume 50', 'source': 'local', 'formula': 'Sum(Volume, 50) / 50'},
-            {'name': 'RS 52W', 'source': 'local', 'formula': 'Stock 52W Return / SPY 52W Return'},
-            {'name': 'RS Price Ratio', 'source': 'local', 'formula': 'Stock Price / SPY Price'},
-            {'name': 'PEG Ratio', 'source': 'local', 'formula': 'PE / (EPS Growth * 100)'}
-        ],
-        'data_sources': {
-            'prices': {'name': 'Yahoo Finance (yfinance)', 'status': 'available'},
-            'fundamentals_primary': {
-                'name': 'Defeat Beta API',
-                'status': 'available' if DEFEATBETA_AVAILABLE else 'unavailable'
-            },
-            'fundamentals_fallback': {'name': 'Yahoo Finance (yfinance)', 'status': 'available'},
-            'market_data': {'name': 'Yahoo Finance (SPY, VIX)', 'status': 'available'},
-            'scanning': {
-                'name': 'TradingView Screener',
-                'status': 'available' if TRADINGVIEW_AVAILABLE else 'unavailable'
-            }
-        }
+        'quality': quality,
+        'audit': data_quality.read_audit_summary(ticker),
+        **_indicator_block(),
+        # Day 126: the old hard-coded `data_sources` block (said prices come from Yahoo, fundamentals from "Defeat Beta API")
+        # was removed: nothing read it, it was wrong, and the real chains are in /api/health providers.chains.
     }
 
     return jsonify(provenance)
@@ -997,6 +1058,7 @@ def get_stock_data(ticker):
                 print(f"⚠️ DataProvider OHLCV failed for {ticker}: {e}")
 
         # Fallback to legacy path if DataProvider unavailable
+        _legacy_path = hist is None
         if hist is None:
             cached_hist = get_cached_ohlcv(ticker)
             if cached_hist is not None and not cached_hist.empty:
@@ -1008,7 +1070,9 @@ def get_stock_data(ticker):
                 if hist.empty:
                     return jsonify({'error': f'No data found for {ticker}'}), 404
                 hist.columns = [c.lower() for c in hist.columns]
-                set_cached_ohlcv(ticker, hist)
+                set_cached_ohlcv(ticker, hist)      # the cache stays RAW (Day 126)
+        if _legacy_path:
+            hist = split_adjust.fix_frame(hist, ticker)  # Day 126: the emergency path gets the same split fix, after caching the raw frame
 
         # Get last 260 days (covers full 52 weeks of trading)
         hist_data = hist.tail(260)
@@ -1029,6 +1093,18 @@ def get_stock_data(ticker):
         if not info:
             stock = yf.Ticker(ticker)
             info = stock.info or {}
+
+        # Day 126: Yahoo's 52-week high/low come from its own (unadjusted) history. When the table has a split inside this window,
+        # compute them from the adjusted frame instead, so SOXL.NE's "% from 52-week high" is not measured against pre-split prices.
+        _w52_high = safe_float(safe_get(info, 'fiftyTwoWeekHigh'))
+        _w52_low = safe_float(safe_get(info, 'fiftyTwoWeekLow'))
+        try:
+            if split_adjust.has_split_in_window(hist_data, ticker):
+                _h, _l = split_adjust.adjusted_52w(hist_data)
+                if _h is not None and _l is not None:
+                    _w52_high, _w52_low = _h, _l
+        except Exception as _e:
+            print(f"⚠️ 52-week split fix failed for {ticker}: {_e}")
 
         # Prepare price history (using lowercase column names)
         # Day 61: Filter out rows with NaN values to prevent propagation
@@ -1090,11 +1166,16 @@ def get_stock_data(ticker):
             'currentPrice': current_price,
             'price52wAgo': price_52w_ago,
             'price13wAgo': price_13w_ago,
-            'fiftyTwoWeekHigh': safe_float(safe_get(info, 'fiftyTwoWeekHigh')),
-            'fiftyTwoWeekLow': safe_float(safe_get(info, 'fiftyTwoWeekLow')),
+            'fiftyTwoWeekHigh': _w52_high,
+            'fiftyTwoWeekLow': _w52_low,
             'avgVolume': safe_int(safe_get(info, 'averageVolume') or safe_get(info, 'avgVolume')),
             'avgVolume10d': safe_int(safe_get(info, 'averageVolume10days') or safe_get(info, 'avgVolume10d')),
             'quoteType': safe_get(info, 'quoteType'),  # Day 123: ETF detection for the Fundamentals card
+            # Day 126 (Data Sources tab): identity. Provider path has canonical 'exchange'; the raw .info path has 'fullExchangeName'.
+            'exchange': safe_get(info, 'fullExchangeName') or safe_get(info, 'exchange'),
+            'currency': safe_get(info, 'currency'),
+            'instrumentClass': _instrument_class(info)['class'],
+            'classBasis': _instrument_class(info)['basis'],
             'priceHistory': price_history,
             'dataPoints': len(price_history),
             'oldestDate': price_history[0]['date'] if price_history else None,
@@ -1170,6 +1251,7 @@ def _index_history(ticker):
 
     if hist is None:
         hist = yf.Ticker(ticker).history(period='2y')
+        hist = split_adjust.fix_frame(hist, ticker)  # Day 126: direct-Yahoo fallback gets the same split fix
 
     if hist is None or hist.empty:
         return None
@@ -1639,13 +1721,29 @@ def get_support_resistance(ticker):
     - suggestedEntry: Nearest actionable support (potential entry)
     - suggestedStop: Below nearest support (stop loss)
     - suggestedTarget: Nearest actionable resistance (profit target)
+
+    Day 126: two engines, picked by constants.SR_ENGINE, or per request with
+    ?engine=simple|legacy (to preview the new one before switching).
+      legacy — the description above (support_resistance.py).
+      simple — simple_sr.py: swing highs/lows grouped into zones, nearest only,
+               no projected levels. support/resistance hold the zone EDGE
+               nearest price (support = zone high, resistance = zone low),
+               nearest first; meta.zones has the full zones; meta.engine says
+               which ran. levelScores / mtf / *Projected / pivotSelection /
+               tradeViability are not sent on the simple engine.
+    Both use sr_plan.trade_plan() for entry/stop/target/R:R.
     """
-    if not SR_ENGINE_AVAILABLE:
+    engine = (request.args.get('engine') or SR_ENGINE).lower()
+    if engine not in ('legacy', 'simple'):
+        return jsonify({'error': f"Unknown engine '{engine}'", 'message': "Use 'legacy' or 'simple'"}), 400
+    if engine == 'legacy' and not SR_ENGINE_AVAILABLE:
         return jsonify({
             'error': 'S&R Engine not available',
             'message': 'Place support_resistance.py in backend folder and install scikit-learn'
         }), 503
-    
+    if engine == 'simple' and not SIMPLE_SR_AVAILABLE:
+        return jsonify({'error': 'Simple S&R engine not available'}), 503
+
     try:
         ticker = ticker.upper()
         print(f"🎯 Computing S&R levels for {ticker}...")
@@ -1662,6 +1760,7 @@ def get_support_resistance(ticker):
         if hist is None:
             stock = yf.Ticker(ticker)
             hist = stock.history(period='2y')
+            hist = split_adjust.fix_frame(hist, ticker)  # Day 126: direct-Yahoo fallback gets the same split fix
 
         if hist is None or hist.empty:
             return jsonify({'error': f'No data found for {ticker}'}), 404
@@ -1672,7 +1771,9 @@ def get_support_resistance(ticker):
         # Get last 260 days (enough for S&R calculation)
         hist_data = hist.tail(260)
 
-        if len(hist_data) < 150:
+        # Day 126: the simple engine has its own minimum (60 completed bars,
+        # checked inside simple_sr), so the legacy 150-bar rule applies to legacy only.
+        if engine == 'legacy' and len(hist_data) < 150:
             return jsonify({
                 'error': f'Insufficient data for {ticker}',
                 'message': f'Need at least 150 bars, got {len(hist_data)}'
@@ -1691,8 +1792,35 @@ def get_support_resistance(ticker):
             'volume': hist_data['volume'].values
         }, index=hist_data.index)
 
+        # Get current price (live: the last bar may still be forming)
+        current_price = float(df['close'].iloc[-1])
+
         # Compute S&R levels
-        sr_levels = compute_sr_levels(df)
+        if engine == 'simple':
+            # Full 2-year frame, not the 260-bar tail: 104 weekly bars need it
+            # (Fable #3). Forming bar dropped inside; live price picks the side.
+            try:
+                simple = compute_simple_sr(hist[['high', 'low', 'close']], current_price=current_price)
+            except SimpleSRError as e:
+                print(f"   ⚠️ Simple S&R {ticker}: {e}")
+                return jsonify({'error': f'Insufficient data for {ticker}', 'message': str(e)}), 400
+            sr_levels = None
+            sr_method = 'simple'
+            atr_value = simple['atr']
+            actionable_support = simple['support']
+            actionable_resistance = simple['resistance']
+            all_support_levels = simple['allSupport']
+            all_resistance_levels = simple['allResistance']
+        else:
+            sr_levels = compute_sr_levels(df)
+            simple = None
+            sr_method = sr_levels.method
+            atr_value = sr_levels.meta.get('atr')
+            actionable_support, actionable_resistance = legacy_actionable(
+                sr_levels.support, sr_levels.resistance, current_price,
+                SUPPORT_PROXIMITY_PCT, RESISTANCE_PROXIMITY_PCT)
+            all_support_levels = [round(s, 2) for s in sr_levels.support]
+            all_resistance_levels = [round(r, 2) for r in sr_levels.resistance]
 
         # Day 87: Price Structure Phase 2 - HH/HL/LH/LL market structure
         market_structure = None
@@ -1701,9 +1829,6 @@ def get_support_resistance(ticker):
                 market_structure = detect_market_structure(df)
             except Exception as e:
                 print(f"⚠️ market structure detection failed for {ticker}: {e}")
-        
-        # Get current price
-        current_price = float(df['close'].iloc[-1])
 
         # Day 85: expose today's raw volume + day change % — already available
         # from the OHLCV frame fetched above, no extra provider call needed.
@@ -1817,49 +1942,22 @@ def get_support_resistance(ticker):
         # were being suggested as entry points
         # ============================================
         # SUPPORT_PROXIMITY_PCT / RESISTANCE_PROXIMITY_PCT imported from constants.py
+        # Day 126: the filter itself moved to sr_plan.legacy_actionable() (legacy
+        # engine, above); the simple engine applies the same window to zone edges.
         support_floor = current_price * (1 - SUPPORT_PROXIMITY_PCT)
         resistance_ceiling = current_price * (1 + RESISTANCE_PROXIMITY_PCT)
-        
-        # Filter support levels to actionable range
-        actionable_support = [s for s in sr_levels.support if s >= support_floor and s < current_price]
-        
-        # Filter resistance levels to actionable range  
-        actionable_resistance = [r for r in sr_levels.resistance if r > current_price and r <= resistance_ceiling]
-        
-        # Calculate suggested trade levels using ACTIONABLE levels only
-        suggested_entry = None
-        suggested_stop = None
-        suggested_target = None
-        
-        # Entry: Nearest ACTIONABLE support below current price
-        if actionable_support:
-            suggested_entry = round(max(actionable_support), 2)  # Nearest support
-            # Stop: 2×ATR below entry (matches riskRewardCalc.js pullback stop formula)
-            # Day 123: no ATR -> no stop (was a silent 3% fallback, a made-up
-            # level the Simple view displayed and sized positions from).
-            atr_value = sr_levels.meta.get('atr') or 0
-            if atr_value > 0:
-                # Floor at $0.01 — stop can never be negative (e.g. low-price stock with high ATR)
-                suggested_stop = max(0.01, round(suggested_entry - (2 * atr_value), 2))
-            else:
-                print(f"   ⚠️ S&R {ticker}: ATR unavailable, suggestedStop left empty")
-        
-        # Target: Nearest ACTIONABLE resistance above current price
-        if actionable_resistance:
-            suggested_target = round(min(actionable_resistance), 2)  # Nearest resistance
-        
-        # Calculate risk/reward if we have all levels
-        risk_reward = None
-        if suggested_entry and suggested_stop and suggested_target:
-            risk = suggested_entry - suggested_stop
-            reward = suggested_target - suggested_entry
-            if risk > 0:
-                risk_reward = round(reward / risk, 2)
-        
-        # Round all levels to 2 decimal places
-        # Return ALL levels for display, but mark which are actionable
-        all_support_levels = [round(s, 2) for s in sr_levels.support]
-        all_resistance_levels = [round(r, 2) for r in sr_levels.resistance]
+
+        # Entry = nearest support, stop = entry − 2×ATR (matches riskRewardCalc.js;
+        # Day 123: no ATR -> no stop, never a made-up 3%), target = nearest
+        # resistance, R:R. One function for both engines and the comparison script.
+        plan = trade_plan(actionable_support, actionable_resistance, atr_value)
+        suggested_entry = plan['entry']
+        suggested_stop = plan['stop']
+        suggested_target = plan['target']
+        risk_reward = plan['riskReward']
+        if suggested_entry is not None and suggested_stop is None:
+            print(f"   ⚠️ S&R {ticker}: ATR unavailable, suggestedStop left empty")
+
         actionable_support_levels = [round(s, 2) for s in actionable_support]
         actionable_resistance_levels = [round(r, 2) for r in actionable_resistance]
         
@@ -1868,7 +1966,7 @@ def get_support_resistance(ticker):
             'currentPrice': round(current_price, 2),
             'volume': latest_volume,
             'change': day_change_pct,
-            'method': sr_levels.method,
+            'method': sr_method,
             'support': actionable_support_levels,        # Only actionable levels
             'resistance': actionable_resistance_levels,  # Only actionable levels
             'allSupport': all_support_levels,            # All historical levels (for reference)
@@ -1880,29 +1978,19 @@ def get_support_resistance(ticker):
             'dataPoints': len(df),
             'timestamp': datetime.now().isoformat(),
             'meta': {
-                'methodUsed': sr_levels.method,
-                # Day 112: which pivot selection produced these levels ("nearest"
-                # post-GR53-fix, "extreme" on the rollback flag). null for the
-                # agglomerative/kmeans/volume-profile paths.
-                'pivotSelection': sr_levels.meta.get('selection'),
+                'engine': engine,  # Day 126: 'legacy' | 'simple'
+                'methodUsed': sr_method,
                 'supportCount': len(actionable_support_levels),
                 'resistanceCount': len(actionable_resistance_levels),
                 'allSupportCount': len(all_support_levels),
                 'allResistanceCount': len(all_resistance_levels),
-                'atr': sr_levels.meta.get('atr'),
-                'resistanceProjected': sr_levels.meta.get('resistance_projected', False),
-                'supportProjected': sr_levels.meta.get('support_projected', False),
-                'tradeViability': sr_levels.meta.get('trade_viability'),
+                'atr': atr_value,
                 'proximityFilter': {
                     'supportFloor': round(support_floor, 2),
                     'resistanceCeiling': round(resistance_ceiling, 2),
                     'supportPct': SUPPORT_PROXIMITY_PCT,
                     'resistancePct': RESISTANCE_PROXIMITY_PCT
                 },
-                # Day 33: Add MTF confluence data
-                'mtf': sr_levels.meta.get('mtf'),
-                # Day 72: Expose touch counts per level (for Price Structure card)
-                'levelScores': sr_levels.meta.get('level_scores', {}),
                 # Day 87: Price Structure Phase 2 - HH/HL/LH/LL structure
                 'marketStructure': market_structure,
                 # Day 39: Add trend strength and momentum indicators
@@ -1918,7 +2006,32 @@ def get_support_resistance(ticker):
             }
         }
         
-        print(f"✅ S&R for {ticker}: {sr_levels.method} method")
+        if engine == 'legacy':
+            response['meta'].update({
+                # Day 112: which pivot selection produced these levels ("nearest"
+                # post-GR53-fix, "extreme" on the rollback flag). null for the
+                # agglomerative/kmeans/volume-profile paths.
+                'pivotSelection': sr_levels.meta.get('selection'),
+                'resistanceProjected': sr_levels.meta.get('resistance_projected', False),
+                'supportProjected': sr_levels.meta.get('support_projected', False),
+                'tradeViability': sr_levels.meta.get('trade_viability'),
+                # Day 33: Add MTF confluence data
+                'mtf': sr_levels.meta.get('mtf'),
+                # Day 72: Expose touch counts per level (for Price Structure card)
+                'levelScores': sr_levels.meta.get('level_scores', {}),
+            })
+        else:
+            # Day 126: simple engine. Zones in the window, nearest first; the two
+            # used for the plan carry nearest: true. No projected levels exist.
+            response['meta'].update({
+                'zones': simple['zones'],
+                'high52w': simple['high52w'],
+                'nearHigh52w': simple['nearHigh52w'],
+                'confirmedThrough': simple['confirmedThrough'],
+                'droppedFormingBar': simple['droppedFormingBar'],
+            })
+
+        print(f"✅ S&R for {ticker}: {sr_method} method")
         print(f"   All Support: {all_support_levels} | Actionable: {actionable_support_levels}")
         print(f"   All Resistance: {all_resistance_levels} | Actionable: {actionable_resistance_levels}")
         print(f"   Entry: {suggested_entry}, Stop: {suggested_stop}, Target: {suggested_target}")
@@ -1926,7 +2039,7 @@ def get_support_resistance(ticker):
             print(f"   ⚠️ No actionable support within {SUPPORT_PROXIMITY_PCT*100}% of current price")
         if not actionable_resistance_levels:
             print(f"   ⚠️ No actionable resistance within {RESISTANCE_PROXIMITY_PCT*100}% of current price")
-        if sr_levels.meta.get('resistance_projected'):
+        if sr_levels is not None and sr_levels.meta.get('resistance_projected'):
             print(f"   ⚠️ Resistance levels are PROJECTED (ATR-based)")
         
         return jsonify(response)
@@ -1985,6 +2098,7 @@ def get_patterns(ticker):
         if hist is None:
             stock = yf.Ticker(ticker)
             hist = stock.history(period='2y')
+            hist = split_adjust.fix_frame(hist, ticker)  # Day 126: direct-Yahoo fallback gets the same split fix
 
         if hist is None or hist.empty:
             return jsonify({'error': f'No data found for {ticker}'}), 404
@@ -3689,6 +3803,7 @@ def get_mr_signal(ticker):
             # Flatten MultiIndex if present (yfinance quirk)
             if isinstance(hist.columns, pd.MultiIndex):
                 hist.columns = hist.columns.get_level_values(0)
+            hist = split_adjust.fix_frame(hist, ticker)  # Day 126: direct-Yahoo fallback gets the same split fix (after flattening)
             source = 'yfinance fallback'
             print(f"⚠️ MR signal {ticker}: using yfinance fallback")
 
@@ -3759,6 +3874,7 @@ def scan_mr_signals():
                 if hist is not None and not hist.empty:
                     if isinstance(hist.columns, pd.MultiIndex):
                         hist.columns = hist.columns.get_level_values(0)
+                    hist = split_adjust.fix_frame(hist, ticker)  # Day 126: direct-Yahoo fallback gets the same split fix (after flattening)
                     return drop_forming_bar(hist)[0]  # Day 123: completed days only
             except Exception as e:
                 print(f"⚠️ yfinance fallback failed for {ticker} (MR scan): {e}")

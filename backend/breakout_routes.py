@@ -52,6 +52,8 @@ def _fetch_ohlcv(
     if hist is None or hist.empty:
         stock = yf_module.Ticker(ticker)
         hist = stock.history(period=period)
+        import split_adjust  # Day 126: direct-Yahoo fallback gets the same split fix
+        hist = split_adjust.fix_frame(hist, ticker)
         source = "yfinance"
 
     return hist, source or "unknown"

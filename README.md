@@ -69,13 +69,13 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 
 > **Status note:** the Day 87-92 feature freeze (paper-trading accumulation as the sole priority) is **lifted as of Day 113** — the automated paper-trading program was discontinued entirely at the user's explicit direction ("I want to use Claude and STA as analysis engine and recommendation, I will take care of stuff myself"). STA is now a pure analysis/recommendation tool; the user places and manages all real trades themselves. See [Roadmap](#roadmap) for current priorities.
 
-### ✅ Implemented (v4.65)
+### ✅ Implemented (v4.66)
 
 1. **Single Stock Analysis**
    - Enter any ticker symbol
    - Full Analysis (default view): Market backdrop first (S&P 500 and Nasdaq-100 long/short-term trend, biggest recent drop, VIX), then Technical Read, Mean-Reversion Read, Trade Setup, Fundamentals
-   - Simple Checklist view: 9 pass/fail criteria, "✅ TRADE" only at 9/9, otherwise "⏸️ No Trade"
-   - No BUY / HOLD / AVOID verdict and no Holding Period selector (both removed Day 123)
+   - Trade Setup's "Size this plan →" fills the Position Sizing Calculator with its Buy and Stop
+   - No BUY / HOLD / AVOID verdict and no Holding Period selector (both removed Day 123); no Simple Checklist (removed Day 126)
 
 2. **Position Sizing Calculator** (Day 28-29)
    - Van Tharp R-multiple principles
@@ -85,7 +85,8 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
    - Manual override for custom entry/stop prices
    - Max position limit to prevent over-allocation
 
-3. **Advanced S&R Detection** (Day 31-34)
+3. **Advanced S&R Detection** (Day 31-34; **replaced on the Analyze page by the simple engine, Day 126**)
+   - Today `/api/sr` uses `simple_sr.py`: swing highs/lows grouped into zones, nearest support and resistance only, "turned here N×", no invented levels. Common trader rules, not backtested. The old engine below stays behind `?engine=legacy` and for the backtest.
    - **Agglomerative Clustering** - Adaptive cluster count (replaced KMeans)
    - **ZigZag Pivot Detection** - 5% minimum price change threshold
    - **Touch-based Scoring** - Levels ranked by historical touches
@@ -102,7 +103,7 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
    - Structural stop loss (below support) for both strategies
 
 5. **Trade Setup Generation**
-   - Support & Resistance detection (Pivot → Agglomerative → Volume Profile)
+   - Support & Resistance zones from swing highs/lows (simple engine, Day 126; the old Pivot → Agglomerative → Volume Profile engine is behind `?engine=legacy`)
    - Suggested Entry, Stop Loss, Target
    - Risk/Reward ratio calculation
    - Pullback re-entry zones for extended stocks
@@ -153,8 +154,8 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
     - Standalone value lens (Buffett/Graham/Lynch/Damodaran) — ROIC, ROE, Graham Number, P/E, PEG/PEGY, FCF yield
     - Zero impact on the swing verdict or categorical assessment
 
-9. **9-Criteria Simple Checklist** (Day 27, enhanced Day 60)
-    - Binary pass/fail system — ALL 9 must pass for TRADE verdict
+9. ~~**9-Criteria Simple Checklist**~~ (Day 27, enhanced Day 60; **removed Day 126**, user: less decision fatigue — STA describes, you decide. Its facts are on the Full Analysis cards)
+    - Was a binary pass/fail system — ALL 9 had to pass for a TRADE verdict
     - **Criteria:** Trend (P>50>200 SMA), Momentum (RS>1.0), Setup (stop within 7%), Risk/Reward (R:R>=2:1), 52-Wk Range (top 25%), Volume ($10M+ daily), ADX (>=20), Market Regime (SPY>200 SMA), 200 SMA Trend (rising)
     - Based on Minervini SEPA criteria + holistic backtest validation
 
@@ -220,11 +221,13 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
     - Survives backend restarts
     - Cache status endpoint for monitoring
 
-21. **Data Sources Tab** (Day 38)
-    - Full transparency on data provenance
-    - Shows which provider supplied each data field
-    - Cache hit/miss status
-    - Calculation formulas displayed
+21. **Data Sources Tab** (Day 38, **rebuilt Day 126**)
+    - Answers "is this ticker's data right?", not only "where is it from?"
+    - **Identity:** exchange, currency, fund type (Stock / ETF / Leveraged ETF / CDR, labelled as inferred from the quote type and name)
+    - **Data quality:** a PASS/WARN/FAIL verdict from the cached price history (flat zero-volume bars, one-day moves over 40% that may be unadjusted splits, malformed bars, short or stale history). It lists only WARN/FAIL rows. Opening the tab makes no provider calls.
+    - **Source chain:** the real ordered chains from the backend, with health, calls left, which markets each source covers (as tested, dated) and known issues. One line shows the last audit result when it did not pass.
+    - Cache numbers and indicator formulas sit behind a disclosure.
+    - Built because SOXL.NE's history was 311/311 flat zero-volume bars with an unadjusted split and the old tab said "JUST FETCHED". Plan: `docs/claude/design/DATA_SOURCES_TAB_V2_PLAN_DAY126.md`; audits: `docs/test/DataSources_20261114/`.
 
 22. **Service Management Scripts** (Day 37)
     - `./start.sh` - Start backend and/or frontend
@@ -277,10 +280,10 @@ A **data-driven swing trade recommendation engine** that analyzes stocks and pro
 ├─────────────────────────────────────────────────────────────────┤
 │                      SERVICES & UTILS                           │
 │  ┌──────────────┐  ┌───────────────┐  ┌───────────────────┐     │
-│  │   api.js     │  │ categorical   │  │ simplified        │     │
-│  │              │  │ Assessment.js │  │ Scoring.js        │     │
-│  │ 10 parallel  │  │ Verdict logic │  │ 9-criteria        │     │
-│  │ API calls    │  │ (4 categories)│  │ binary checklist  │     │
+│  │   api.js     │  │ categorical   │  │ riskReward        │     │
+│  │              │  │ Assessment.js │  │ Calc.js           │     │
+│  │ 10 parallel  │  │ Verdict logic │  │ pullback plan     │     │
+│  │ API calls    │  │ (4 categories)│  │ buy/stop/target   │     │
 │  └──────────────┘  └───────────────┘  └───────────────────┘     │
 └─────────────────────────────────────────────────────────────────┘
                               │
@@ -698,7 +701,7 @@ npm start
    - Market backdrop, Technical Read, Mean-Reversion Read, Trade Setup (pullback plan: Entry/Stop/Target from real support/resistance), Fundamentals
    - No verdict is shown; the facts are laid out and you decide (Day 123–124)
    - Pattern detection and volume analysis
-5. Switch to **✅ Simple Checklist** for the 9 pass/fail criteria (TRADE only at 9/9, otherwise No Trade)
+5. Click **Size this plan →** on Trade Setup to size the trade in the Position Sizing Calculator
 
 ### Scan for Opportunities
 
@@ -729,18 +732,18 @@ npm start
 
 ### Validate Data Accuracy
 
-1. Click "Validate Data" tab
-2. Enter tickers (comma-separated)
-3. Click "Run Validation"
-4. Review Quality Score, Coverage, Accuracy
+The old "Validate Data" tab (web-scraping comparison, 10-15 s per ticker) was **removed Day 126**. Use the **Data Sources** tab below: it checks the cached bars, flags unadjusted stock splits, and shows which provider served the data. (The backend `/api/validation/*` routes are unused and logged in Known Issues.)
+
+**Forward Test tab:** hidden from the tab bar Day 126 (paper trading was discontinued Day 113); its code is kept but unreachable.
 
 ### View Data Sources
 
-1. Click "Data Sources" tab
-2. Enter a ticker to see:
-   - Where each data point comes from
-   - Cache hit/miss status
-   - Calculation formulas used
+1. Analyze a ticker, then click the "Data Sources" tab
+2. You see:
+   - The instrument's exchange, currency and fund type
+   - A data-quality verdict and only the checks that warn or fail
+   - Where the prices came from, and the real source chain with health and tested coverage
+   - Cache numbers and indicator formulas (collapsed)
 
 ### Forward Test (Paper Trading)
 
@@ -827,7 +830,7 @@ Returns fundamental data with multi-source fallback (Finnhub → AlphaVantage �
 
 ### GET /api/sr/\<ticker\>
 
-Returns Support & Resistance levels with trade setup and MTF confluence.
+Returns Support & Resistance levels with a trade setup. **Day 126: the default is the simple engine** (zones in `meta.zones`, `method: "simple"`, no `mtf`/`levelScores`/projected fields); the example below is the legacy shape, still returned by `?engine=legacy`. See `docs/claude/versioned/API_CONTRACTS_DAY126.md`.
 
 ```json
 {
@@ -1420,7 +1423,7 @@ TOLERANCES = {
 4. **Field-level gaps** - Some fundamental fields may come from fallback providers
 5. **Alpha Vantage free tier** - 25 calls/day; news sentiment cache (4h TTL) is mandatory
 
-### S&R Engine
+### S&R Engine (legacy, `?engine=legacy`; the Analyze page uses `simple_sr.py` since Day 126)
 
 1. **100% detection rate** - Agglomerative clustering finds levels for all stocks
 2. **Multi-timeframe confluence** - ~27% of levels confirmed by weekly data
@@ -1516,6 +1519,7 @@ TOLERANCES = {
 - **v4.62: Paper-Trading Discontinued; Volume/Momentum/MTF/VCP Informational Reads (consolidated, Days 113-118)** ✅ **Day 113: the entire automated paper-trading program was discontinued** at the user's explicit direction — STA is now a pure analysis/recommendation tool, the user places and manages all real trades themselves; no IBKR execution path, no new signals on any track, existing positions wound down naturally. **Day 116:** fixed a real OBV trend-classification bug (biased toward "rising" for negative cumulative OBV) and a separate, previously-unlogged bug where relative volume was computed from the still-forming intraday bar (silently understating volume conviction most of every trading day) — both fixed, plus a new same-day "effort vs. result" volume read. **Day 117:** Antonacci's dual-momentum "absolute momentum" check — previously invisible anywhere in the app — is now a visible, informational read on both the Simple Checklist and Full Analysis view, sourced from the project's own real backtest constant rather than an invented number; new Golden Rule 57 after catching that the obvious implementation would have silently added a 10th criterion to the 9-criterion checklist. **Day 118: completed the S&R fix chain (Golden Rule 53)** — MTF Confluence's confidence score, previously a hardcoded 1.0/0.6 flag nobody actually read, is now a real graduated Strong/Moderate/Weak score that no longer counts synthetic ATH/ATL levels against itself; the VCP pattern's price target, previously a flat and disclosed-as-fake +15%, is now the real nearest resistance level (or a measured contraction depth when none exists). Every change this stretch is purely informational — nothing here gates, ranks, or scores a trade decision.
 - **v4.63: Analyze Page Redesign Steps 3–6 (Day 123)** ✅ The Full Analysis page is being rebuilt card by card, each answering one question in plain English with the real data behind it: **Regime Read** (market backdrop, information only), **Technical Read** (4 key trend checks plus timing and volume answers), **Mean-Reversion Read** (the tested RSI(2) dip-buying rules only; tells you whether the tested next-open entry has already passed), a hardened **Trade Setup** (no invented stops when data is missing), and **Fundamentals** (three red-flag checks, a P/E guide that is never a flag, the next earnings date, and which provider supplied each number). Removed at the user's direction: the Holding Period selector, the Assessment Breakdown and the BUY/HOLD/AVOID verdict on every screen. **Mean reversion's headline number was corrected:** the forward test's PF 2.00 had been priced at the entry day's close; re-run at the next open (what a person can actually do) it is **PF 1.50, 63.5% wins, +0.70% per trade** across 241 trades (the curated HUB-65 list: PF 1.07, about break-even). Also fixed real data-unit bugs: yfinance debt/equity arrived in percent, returns on equity of 100%+ displayed as "1.5%", and the earnings countdown was off by one day.
 - **v4.65: Analyze cleanup — less to read (Day 125)** ✅ Trade Setup now ends with the nearest **Resistance** and **Support** zones ("near it on N days", ★ when the weekly chart agrees), and never shows an invented level as real. The Breakout card uses widely agreed trader rules, **not backtested**: a close above the 60-day high, volume 1.5× normal on the breakout day, and no more than 5% above. It uses completed days only and has 7 states. Removed: the Price Structure and Pattern Detection cards, the P/E guide, the MTF badge and weekly dropdown, and the mean-reversion track-record box (still on the Forward Test tab). Next: a simple support/resistance engine (daily and weekly swing highs/lows) to replace the ~1,600-line one, switched only after you review old vs new on ~30 stocks.
+- **v4.66: Data trust and facts-only cards (Day 126)** ✅ The Data Sources tab's indicator table now matches the code (tested). A stock-split mechanism fixes history the data providers leave unadjusted (SOXL.NE 3-for-1) from a hand-checked table, and the tab flags any uncovered split-sized jump. The Technical Read and volume cards list plain facts instead of Strong/Weak or Yes/Mixed/No labels, and the price ruler marks the 21, 50 and 200-day averages at their real prices. The Validate Data tab was removed and Forward Test hidden. The simple support/resistance engine is live.
 - **v4.64: Analyze Page Redesign complete (Day 124)** ✅ The market band is now a facts-only **Market backdrop** card at the top of the page: S&P 500 and Nasdaq-100 long-term (200-day) and short-term (50-day) trend, the biggest one-day drop in the last 10 sessions, and VIX. No Favorable/Unfavorable label; you decide. Full Analysis is the default view; the Simple view says "No Trade" instead of "PASS"; ETFs say "Exchange-traded fund (ETF)". One VIX wording on every screen. The Forward Test tab shows mean reversion's next-open figures (PF 1.50). The header price says which day it is from ("Nov 11 close"). A rewritten page checker (8 checks, unit-tested) verifies the page against the data it received.
 
 ### Philosophy (Day 27 + Day 44 Update)
@@ -1555,6 +1559,8 @@ A full-system audit (Day 78) found the backtested edge was likely overstated —
 
 **Day 125: Analyze cleanup.** Card by card, the user asked whether each one helps or just adds words. Kept and simplified: Trade Setup (now ends with the nearest Resistance/Support), Fundamentals (without the P/E guide; one P/E scale is wrong across sectors) and Breakout (rebuilt on common trader rules, labelled "not tested"). Removed: Price Structure, Pattern Detection, the MR track-record box and the MTF extras. An in-app chart was considered and decided against, since the user reads charts in TradingView. A simpler support/resistance engine is planned and reviewed, and a Reddit check agreed with it. v4.64→v4.65.
 
+**Day 126: data trust and facts-only cards.** The user's rule: "I make the decision, you help with data." The Technical Read and volume cards stopped giving verdict words and show the numbers, with the common rules of thumb labelled as untested. SOXL.NE's split exposed that providers can leave history unadjusted, so a verified split table plus one adjuster now sits at the single exit of the data layer, and an audit of the indicator table found it described formulas the code did not use (fixed and tested). A hook now forces the three review passes on every code change. v4.65→v4.66.
+
 **Day 124: Analyze Page Redesign complete.** Step 7 replaced the market verdict with a facts-only Market backdrop card (S&P 500 and Nasdaq-100 trend, biggest recent drop, VIX), made Full Analysis the default and changed "PASS" to "No Trade". Step 8 rewrote the page checker (8 checks, each proven to fail when its change is reverted; 40/40 on five stocks), merged the copied VIX sizing tables and removed unused code. A user question about AVGO (+24% in a week while STA said "Weak") was a bounce-vs-trend question, not a contradiction, and it showed the header price needed its date. v4.63→v4.64.
 
 **Day 123: Analyze Page Redesign Steps 3–6 built; mean reversion's headline number corrected.** Four new cards (Regime, Technical, Mean-Reversion, Fundamentals) plus a hardened Trade Setup, each with distinct loading, couldn't-load and data states and no invented fallback numbers. While wiring the Mean-Reversion card's "buy at the next open" plan, a review found the forward test had scored every trade at the entry day's close. Re-run at the next open with the prediction written down first, broad mean reversion is PF 1.50 (not 2.00) and the curated HUB-65 list is PF 1.07. Still positive, but half the per-trade edge. The user removed the Holding Period selector, Assessment Breakdown and BUY/HOLD/AVOID from every screen; the engine and its 86,400-combination parity test are untouched. v4.62→v4.63.
@@ -1576,7 +1582,7 @@ A full-system audit (Day 78) found the backtested edge was likely overstated —
 9. *(parked)* `/ibkr-scan` skill. ~~Price Structure Phase 3 (visual chart)~~ closed Day 125: the card was removed and an in-app chart was decided against.
 10. **Dual/absolute momentum filter** — ~~parked, low priority~~ **surfaced as information, Day 117.** Antonacci's dual-momentum research (found Day 107) says a stock should also beat a risk-free/cash return in absolute terms, not just beat the market relatively. The *gate* decision stays closed exactly as Day 111 left it — Config G backtested clean but only excluded 1 of 75 trades, correct but pointless — but the read itself is now shown to the user: both the Simple Checklist's Momentum card and the Full Analysis RS card show the stock's own trailing 1-year return against a 5% cash proxy, informational only, never gating. Zero backend changes; reuses a number both views already computed. See `docs/claude/design/ABSOLUTE_MOMENTUM_READ_PLAN_DAY117.md`.
 11. *(DONE — Days 121–124; Steps 7–8 finished Day 124)* **Analyze Page Redesign** — decision record at `docs/claude/design/ANALYZE_PAGE_REDESIGN_DECISIONS.md`. Built: Market backdrop, Technical, Mean-Reversion and Fundamentals cards, hardened Trade Setup; Full Analysis is the default; Holding Period, Assessment Breakdown and BUY/HOLD/AVOID removed. Day 125 cleanup trimmed it further (see v4.65).
-14. **NEXT: Simple support/resistance engine (Day 125 plan)** — daily and weekly swing highs/lows, zones no wider than a normal day's move, nearest support/resistance only, no invented levels. Not backtested (a convention, like the breakout rules). The Simple Checklist reads these levels, so the switch waits for an old-vs-new review on ~30 stocks.
+14. ~~Simple support/resistance engine (Day 125 plan)~~ **DONE (Day 126, live)** — daily and weekly swing highs/lows, zones no wider than a normal day's move, nearest support/resistance only, no invented levels. Not backtested (a convention, like the breakout rules). Built Day 126 behind a switch (old engine still live); the old-vs-new review on 30 stocks is done and the user decides the switch. (The Simple Checklist that graded these levels was removed Day 126.)
 12. *(parked)* **Day 108 full-audit findings needing a decision or bigger scope** — VIX-based position sizing was never wired into the live automated engine (verified this doesn't affect any current live-track statistic, so not urgent); a couple of UI wording questions on the Value tab. Full detail in the project's internal audit log.
 13. ~~*(parked, Day 111)*~~ **MTF Confluence's arbitrary confidence multiplier, and Pattern Detection's flat-percentage price target** — **DONE (Day 118).** Both graded below industry standard in a Day 111 technical audit (3/10 and 1.5/10); Cup & Handle/Flat Base fixed Day 112. MTF Confluence's `strength` is now a real graduated score (Strong/Moderate/Weak) that excludes synthetic ATH/ATL-projected levels from the confluence set; VCP's target is now real nearest-resistance (falling back to measured contraction depth) instead of a flat +15%. See `docs/claude/design/MTF_VCP_FIX_PLAN_DAY115.md`.
 
@@ -1680,7 +1686,6 @@ swing-trade-analyzer/
 │   │   │   └── ConflictCheck.jsx          # Conflict/alignment banner
 │   │   └── utils/
 │   │       ├── categoricalAssessment.js  # v4.5 Categorical System
-│   │       ├── simplifiedScoring.js      # 9-criteria binary checklist
 │   │       ├── keyLevels.js              # Nearest floor/ceiling + one-line price state (Day 125)
 │   │       ├── alignmentStyles.js        # Shared status→color/icon map (Day 93)
 │   │       ├── liquidityThresholds.js    # Unified liquidity threshold constants
@@ -1772,4 +1777,4 @@ MIT License - See LICENSE file for details.
 
 ---
 
-*Last Updated: November 12, 2026 (Day 123)*
+*Last Updated: November 16, 2026 (Day 126)*

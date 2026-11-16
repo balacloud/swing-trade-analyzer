@@ -10,6 +10,7 @@
  */
 import React from 'react';
 import { calculateRiskReward } from '../utils/riskRewardCalc';
+import { zoneSpan } from '../utils/keyLevels';
 import useMissingInputWarning from '../hooks/useMissingInputWarning';
 
 const money = (v) => (v == null || !Number.isFinite(v) ? '—' : `$${v.toFixed(2)}`);
@@ -22,7 +23,10 @@ const EMPTY_MESSAGES = {
   no_price: "Today's price didn't load, so the plan can't be placed against it.",
 };
 
-export default function PullbackPlan({ srData, ticker }) {
+// Day 126: onSizePlan(entry, stop) opens the position-size calculator with this card's own
+// Buy and Stop (rounded to cents, Golden Rule 63). Moved here from the removed Simple Checklist,
+// where it only showed on a 9/9 TRADE. Shown whenever the plan has a buy and a stop; no verdict.
+export default function PullbackPlan({ srData, ticker, onSizePlan }) {
   const plan = calculateRiskReward(srData);
   const now = srData?.currentPrice;
   const state = plan.state === 'no_data' || plan.state === 'no_support' ? plan.state
@@ -47,13 +51,13 @@ export default function PullbackPlan({ srData, ticker }) {
     return (
       <div className="mb-4 p-3 rounded-lg text-sm bg-gray-700/30 border border-gray-600 text-gray-300">
         <div>Buy near support at <b className="text-gray-100">{money(plan.entry)}</b>
-          {plan.target != null && <>, target <b className="text-gray-100">{money(plan.target)}</b>{plan.targetProjected ? ' (projected)' : ''}</>}.</div>
-        <div className="mt-1 text-gray-400">ATR (the stock's normal daily move) didn't load, so the stop can't be placed and there's no reward:risk.</div>
+          {plan.target != null && <>, target <b className="text-gray-100">{money(plan.target)}</b></>}.</div>
+        <div className="mt-1 text-gray-400">ATR (the stock's normal daily move) didn't load, so the stop can't be placed, there's no reward:risk, and the trade can't be sized.</div>
       </div>
     );
   }
 
-  const { entry, stop, target, risk, reward, rr, targetProjected } = plan;
+  const { entry, stop, target, risk, reward, rr } = plan;
   const entryVsNow = ((entry - now) / now) * 100;
   const stopPct = ((stop - entry) / entry) * 100;
   const targetPct = target != null ? ((target - entry) / entry) * 100 : null;
@@ -67,6 +71,13 @@ export default function PullbackPlan({ srData, ticker }) {
   const pEntry = pos(entry);
   const pTarget = target != null ? pos(target) : null;
   const pNow = pos(now);
+  // Day 126: the nearest support / resistance zones, shaded on the same price scale (no new numbers).
+  const zones = Array.isArray(srData?.meta?.zones) ? srData.meta.zones : [];
+  const scaleLo = lo - pad, scaleHi = hi + pad;
+  const supportBand = zoneSpan(zones.find((z) => z.nearest && z.side === 'support'), scaleLo, scaleHi);
+  const resistanceBand = zoneSpan(zones.find((z) => z.nearest && z.side === 'resistance'), scaleLo, scaleHi);
+  const atHigh = target == null && srData?.meta?.nearHigh52w === true;
+  const insideSupport = zones.some((z) => z.nearest && z.side === 'support' && z.insideZone === true);
   const nowNearEntry = Math.abs(pNow - pEntry) < 12;
 
   return (
@@ -83,10 +94,12 @@ export default function PullbackPlan({ srData, ticker }) {
 
       {/* risk (red) = stop → buy, reward (green) = buy → target, "now" tick */}
       <div className="relative h-3 mt-8 mb-7 rounded-full bg-gray-700/50">
+        {supportBand && <span aria-hidden="true" className="absolute -top-1 -bottom-1 rounded-sm bg-green-400/25 border-x border-green-400/50" style={{ left: `${supportBand.left}%`, width: `${supportBand.width}%` }} />}
+        {resistanceBand && <span aria-hidden="true" className="absolute -top-1 -bottom-1 rounded-sm bg-red-400/25 border-x border-red-400/50" style={{ left: `${resistanceBand.left}%`, width: `${resistanceBand.width}%` }} />}
         <span className="absolute inset-y-0 rounded-l-full bg-red-500/40" style={{ left: `${pStop}%`, width: `${pEntry - pStop}%` }} />
         {pTarget != null && (
           <span
-            className={`absolute inset-y-0 rounded-r-full ${targetProjected ? 'border border-dashed border-green-400 bg-green-500/15' : 'bg-green-500/40'}`}
+            className="absolute inset-y-0 rounded-r-full bg-green-500/40"
             style={{ left: `${pEntry}%`, width: `${pTarget - pEntry}%` }}
           />
         )}
@@ -100,7 +113,7 @@ export default function PullbackPlan({ srData, ticker }) {
         <span className="absolute top-4 -translate-x-1/2 whitespace-nowrap text-[11px] font-mono text-gray-400" style={{ left: `${pStop}%` }}>{money(stop)}</span>
         {pTarget != null && (
           <span className="absolute top-4 -translate-x-1/2 whitespace-nowrap text-[11px] font-mono text-gray-400" style={{ left: `${pTarget}%` }}>
-            {money(target)}{targetProjected ? '?' : ''}
+            {money(target)}
           </span>
         )}
       </div>
@@ -108,8 +121,8 @@ export default function PullbackPlan({ srData, ticker }) {
       <div className="grid grid-cols-3 gap-2">
         <div className="rounded-lg bg-gray-700/40 border border-gray-700 p-2.5">
           <div className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Buy</div>
-          <div className="font-mono text-gray-100 mt-0.5">{money(entry)}</div>
-          <div className="text-xs text-gray-400 mt-0.5">support, {Math.abs(entryVsNow).toFixed(1)}% {entryVsNow <= 0 ? 'below' : 'above'} now</div>
+          <div data-testid="plan-buy-value" className="font-mono text-gray-100 mt-0.5">{money(entry)}</div>
+          <div className="text-xs text-gray-400 mt-0.5">{insideSupport ? 'top of the support zone; price is inside it now' : `support, ${Math.abs(entryVsNow).toFixed(1)}% ${entryVsNow <= 0 ? 'below' : 'above'} now`}</div>
         </div>
         <div className="rounded-lg bg-gray-700/40 border border-gray-700 p-2.5">
           <div className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Stop</div>
@@ -121,19 +134,27 @@ export default function PullbackPlan({ srData, ticker }) {
           <div className="font-mono text-green-400 mt-0.5">{money(target)}</div>
           <div className="text-xs text-gray-400 mt-0.5">
             {target == null
-              ? 'no resistance level found'
-              : targetProjected
-                ? 'projected, not a real level'
-                : `${pct(targetPct)} from the buy · nearest resistance`}
+              ? (atHigh ? 'no resistance above, the stock is at its 52-week high' : `no resistance within ${Math.round((srData?.meta?.proximityFilter?.resistancePct ?? 0.3) * 100)}% above`)
+              : `${pct(targetPct)} from the buy · nearest resistance`}
           </div>
         </div>
       </div>
 
       <div className="text-sm text-gray-300 mt-3">
         {reward != null ? (
-          <>Risk <b className="text-gray-100">{money(risk)}</b> to make <b className="text-gray-100">{money(reward)}</b> a share{targetProjected ? <>, <i>if</i> the projection is reached</> : ''}.</>
+          <>Risk <b className="text-gray-100">{money(risk)}</b> to make <b className="text-gray-100">{money(reward)}</b> a share.</>
         ) : (
-          <>Risk <b className="text-gray-100">{money(risk)}</b> a share. No resistance target was found, so there's no reward:risk to show.</>
+          <>Risk <b className="text-gray-100">{money(risk)}</b> a share. {atHigh ? 'The stock is at its 52-week high with no resistance above, so no target is shown and there is no reward:risk.' : 'No resistance target was found, so there is no reward:risk to show.'}</>
+        )}
+        {onSizePlan && (
+          <button
+            type="button"
+            data-testid="size-this-plan"
+            onClick={() => onSizePlan(Number(entry.toFixed(2)), Number(stop.toFixed(2)))}
+            className="ml-2 text-blue-400 hover:text-blue-300 focus:outline-none focus-visible:underline"
+          >
+            Size this plan →
+          </button>
         )}
       </div>
 
@@ -145,9 +166,10 @@ export default function PullbackPlan({ srData, ticker }) {
       <details className="mt-3 text-xs text-gray-400">
         <summary className="cursor-pointer text-blue-400">How this setup was formed</summary>
         <div className="mt-2 space-y-2">
-          <p><b className="text-gray-300">Levels:</b> support and resistance are the nearest real price levels where buyers or sellers showed up before. The target is the nearest resistance above today's price.</p>
+          <p><b className="text-gray-300">Levels:</b> support and resistance are zones where price turned before (swing highs and lows over the last year). The buy is the top of the nearest support zone and the target is the bottom of the nearest resistance zone above today's price.</p>
           <p><b className="text-gray-300">Buy and stop:</b> buy at the nearest support, stop 2 ATR below it (ATR is how much the stock normally moves in a day). Buying a pullback near support is the canon low-risk entry (Minervini, Livermore's pivots); stops below support with an ATR buffer follow the Turtles.</p>
-          <p><b className="text-gray-300">At an all-time high</b> there's no resistance above, so the target is a projection from recent moves, drawn dashed with a "?". It is not a price where sellers have actually appeared.</p>
+          <p><b className="text-gray-300">Zones on the bar:</b> the faint green band is the nearest support zone and the red band the nearest resistance zone, drawn on the same price scale. A zone outside the bar's range isn't drawn; its row below still lists it.</p>
+          <p><b className="text-gray-300">At a high with no resistance above</b> there is no target. STA doesn't invent one.</p>
           <p><b className="text-gray-300">Why there is no "buy now" plan:</b> STA's momentum system failed every backtest and the forward test, so the card doesn't show it. The pullback plan hasn't been tested by STA either; it's shown because it matches how the one tested edge works (the Mean-Reversion signal buys dips inside an uptrend).</p>
         </div>
       </details>

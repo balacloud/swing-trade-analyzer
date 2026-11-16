@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 125 — 2026-11-12
+> **Last Updated:** Day 126 — 2026-11-16
 
 ---
 
@@ -11,15 +11,28 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 125 |
-| Version | v4.65 (Backend v2.54, Frontend v4.62) |
-| Latest Status | PROJECT_STATUS_DAY125_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY125.md |
-| Latest API | API_CONTRACTS_DAY125.md |
-| Focus | **Analyze cleanup done (Day 125):** nearest Resistance/Support only, breakout on simple trader rules (not tested), Price Structure / Pattern Detection / P/E guide / MR track record removed. **Next: build the simple S&R engine** (`SIMPLE_SR_PLAN_DAY125.md`, Fable GO), with an old-vs-new table on ~30 stocks before the user decides the switch. No in-app chart (decided). |
+| Current Day | 126 |
+| Version | v4.66 (Backend v2.55, Frontend v4.63) |
+| Latest Status | PROJECT_STATUS_DAY126_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY126.md |
+| Latest API | API_CONTRACTS_DAY126.md |
+| Focus | **Data trust and facts-only cards done (Day 126):** indicator table made true, stock-split mechanism (SOXL.NE), Validate tab deleted / Forward Test hidden, Technical Read and volume card show plain facts, ruler marks the real 21/50/200-day averages, three-pass review enforced by a hook. **Next: the user's further questions;** optional follow-ups listed in `KNOWN_ISSUES_DAY126.md` and ROADMAP #19. |
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 126 Summary (Data trust and facts-only cards — v4.66, Golden Rule 64)
+- **User rule: "I make the decision as a human, you just help with data."** Verdict words left the Technical Read
+  and volume cards; they list facts (trend checks, RSI, vs S&P 500, ADX, "N volume signals: a up, b down"),
+  with rules of thumb labelled "not tested by STA". The engine verdict is unchanged (parity 86,400).
+- **Indicator audit:** the Data Sources indicator table was wrong; rebuilt from `indicator_catalog.py`, 36 tests,
+  no live number changed (816-value golden snapshot).
+- **Stock-split mechanism:** SOXL.NE split 3-for-1 on 2026-05-25 and the providers left old prices unadjusted.
+  Hand-verified table + one classifier + one adjuster at the single data exit; the tab FAILs uncovered
+  split-sized jumps; sweep of 74 histories found no other. Real-path bug found live (tz-aware timestamps).
+- **Tabs:** Validate Data deleted, Forward Test hidden. **Ruler:** real 21/50/200-day averages.
+- **Process:** passes were skipped on small edits until asked, so Golden Rule 64 + a Stop hook and `/three-pass`
+  now enforce them. Simple S&R engine (Priority #18) is live.
 
 ### Day 125 Summary (Analyze cleanup — v4.65, Golden Rule 63)
 - **Card by card, "does it help or just add words?" (user).** Trade Setup ends with the nearest
@@ -52,33 +65,6 @@
   below a flat 200-day). It exposed a real gap: the header price had no date. Now "Nov 11 close"
   / "intraday, not a close". PERSONA log entry.
 - **Golden Rule 62:** explain to the user in very simple English. `PROJECT_INSTRUCTIONS.md` deleted.
-
-### Day 123 Summary (Analyze Page Redesign Steps 3–6 built, MR PF corrected — v4.63, Golden Rules 60–61)
-- **Process (user standard):** every step had a written plan reviewed by Fable before code, then
-  a Fable code review and live checks. The rules: no silent failures, logged warnings, distinct
-  loading / error / data states, and no invented fallback numbers.
-- **Built:** Trade Setup hardened (explicit `no_data / no_support / no_atr` states, no 3% stop
-  or ×1.10 target). New cards: Regime Read, Technical Read, Mean-Reversion Read (tested rules
-  from `MR_RULES`, clock-aware "buy at the open" line), Fundamentals (3 red flags, P/E guide,
-  next earnings, per-field sources). Shared `market_time.py` forming-bar rule.
-- **Removed (user-decided):** Holding Period selector, Assessment Breakdown, Raw Indicators,
-  Quality Gates, and BUY/HOLD/AVOID on every screen (including the Scan tab's verdict column).
-  The engine and its parity test are untouched.
-- **MR PF corrected:** the forward test priced trades at the entry-day close. At the next open,
-  broad is **PF 1.50 / 63.5% / +0.70%** (241 trades) and HUB-65 is **PF 1.07** (pre-registered
-  1.5–1.7). Golden Rule 60.
-- **Data-unit bugs:** yfinance D/E in percent, ROE ≥100% shown as 1.5%, earnings days off by
-  one. Golden Rule 61.
-- Two engine bugs logged, not fixed: RSI `|| 50` passes, missing SPY → Unfavorable.
-
-## SCENARIO DETECTION
-
-| User Says | Scenario | Action |
-|-----------|----------|--------|
-| "Resume session" / "Continue" / "Start Day X" | SESSION_START | Read files, confirm context |
-| "Session ending" / "Close session" / "Wrap up" | SESSION_CLOSE | Create status files, commit + push |
-| Context was summarized / "Pick up where we left" | SESSION_RESUME | Read summary + status files |
-| Nothing specific | SESSION_START | Default to startup checklist |
 
 ---
 
@@ -153,12 +139,12 @@ places and manages every trade themselves. Every item below is available to work
 pick deliberately based on what the user actually wants next, not backlog order.
 
 **Next up (each: plan → Fable review → build → sign-off):**
-0. **Simple S&R engine (Priority #18) — start here.** Plan: `SIMPLE_SR_PLAN_DAY125.md` §2,
-   with §8 (Fable fixes) and §9 (Reddit) overriding. Tests first (`test_simple_sr.py`, rewrite
-   `test_key_levels.mjs`), build `simple_sr.py` behind `SR_ENGINE`, then the ~30-stock table plus a
-   one-time SVG review page. **The user decides the switch**, then a Fable code review. Run
-   `cd frontend && node scripts/ui-verify-checklist.js` after any Analyze-page change (use
-   `headless: 'shell'` if it times out).
+0. **The user's further questions come first.** Day 126 ended with "after that I have series of questions"
+   still open. After each code change run `/three-pass` (Golden Rule 64; a Stop hook enforces it), and
+   `cd frontend && node scripts/ui-verify-checklist.js AAPL SOXL.NE NVDA RIVN` after any Analyze-page change.
+0a. **Day 126 follow-ups, all optional (ROADMAP #19):** weekly watchlist-wide split scan, Tradier 40% jump
+   guard, delete the dead `/api/validation/*` routes, retire the engine verdict labels no card shows any more.
+   The simple S&R engine (Priority #18) is DONE and live.
 0b. **Two engine bugs (Medium, Day 123):** `assessTechnical` RSI `|| 50` counts as a pass;
    `assessRiskMacro` treats missing SPY as below its 200-day. Each is a parity-tested JS +
    Python change (Golden Rule 59) that changes verdicts, so plan first.

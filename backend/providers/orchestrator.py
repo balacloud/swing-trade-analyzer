@@ -111,6 +111,25 @@ class DataProvider:
     # OHLCV (Daily Price Data)
     # =========================================================================
 
+    def _deliver(self, ticker: str, df):
+        """Day 126: the ONE place price frames get split-adjusted before the app sees them (known_splits.json, see split_adjust.py).
+        Returns a COPY (callers rename columns in place) and never touches the cache, which stays raw so the audit sees the provider's
+        real data. Any failure is logged and the unchanged frame is returned: a split-fix problem must not break an analysis."""
+        if df is None:
+            return df
+        try:
+            import split_adjust
+            out, events = split_adjust.adjust_for_splits(df, ticker)
+            for e in events:
+                if e.get('applied'):
+                    print(f"   🔧 {ticker}: split-adjusted {e['text']} (bar {e['bar_date']})")
+                elif e.get('status') in ('wrong_way', 'ambiguous', 'table_error', 'error'):
+                    print(f"   ⚠️ {ticker}: split table row NOT applied ({e.get('status')}): {e.get('note')}")
+            return out
+        except Exception as exc:
+            print(f"   ⚠️ {ticker}: split adjustment failed, serving unadjusted prices: {exc}")
+            return df
+
     def get_ohlcv(self, ticker: str, period: str = '2y') -> pd.DataFrame:
         """
         Get OHLCV data with cache-first strategy and provider fallback.
@@ -127,7 +146,7 @@ class DataProvider:
             cached = cache_manager.get_cached_ohlcv(ticker, period)
             if cached is not None and not cached.empty:
                 self._last_source[f'{ticker}_ohlcv'] = 'cache'
-                return cached
+                return self._deliver(ticker, cached)
 
         # 2. Try provider chain
         errors = []
@@ -145,7 +164,7 @@ class DataProvider:
 
                 self._last_source[f'{ticker}_ohlcv'] = result.source
                 print(f"✅ OHLCV for {ticker}: {result.source} ({result.rows} bars)")
-                return df
+                return self._deliver(ticker, df)
 
             except ProviderError as e:
                 errors.append(f"{e.provider}: {str(e)}")
@@ -158,7 +177,7 @@ class DataProvider:
             if stale is not None:
                 self._last_source[f'{ticker}_ohlcv'] = 'stale_cache'
                 print(f"📦 OHLCV for {ticker}: serving STALE cache (all providers failed)")
-                return stale
+                return self._deliver(ticker, stale)
 
         # 4. All failed
         error_summary = '; '.join(errors)
@@ -183,7 +202,7 @@ class DataProvider:
                 df = result.df
                 df.columns = [c.lower() for c in df.columns]
                 self._last_source[f'{ticker}_intraday'] = result.source
-                return df
+                return self._deliver(ticker, df)
             except ProviderError as e:
                 print(f"⚠️ Intraday {e.provider} failed for {ticker}: {e}")
                 continue
@@ -395,26 +414,15 @@ class DataProvider:
     # =========================================================================
 
     def _get_stale_ohlcv(self, ticker: str) -> Optional[pd.DataFrame]:
-        """Get OHLCV from cache even if expired (stale fallback)"""
+        """Get OHLCV from cache even if expired (stale fallback). Day 126: uses the shared side-effect-free
+        reader (was a second copy of the cache deserializer)."""
         if not CACHE_AVAILABLE:
             return None
         try:
-            conn = cache_manager.get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT data FROM ohlcv_cache WHERE ticker = ?", (ticker.upper(),))
-            row = cursor.fetchone()
-            conn.close()
-
-            if row:
-                import json
-                data_dict = json.loads(row['data'])
-                df = pd.DataFrame.from_dict(data_dict, orient='index')
-                df.index = pd.to_datetime(df.index)
-                df = df.sort_index()
-                df.columns = [c.lower() for c in df.columns]
-                return df
-        except Exception:
-            pass
+            df, _meta = cache_manager.read_ohlcv_entry(ticker)
+            return df
+        except Exception as e:
+            print(f"⚠️ stale OHLCV read failed for {ticker}: {e}")
         return None
 
     def _get_stale_fundamentals(self, ticker: str) -> Optional[Dict[str, Any]]:
@@ -540,9 +548,21 @@ class DataProvider:
             if len(parts) == 2:
                 active_sources[parts[1]] = source  # overwrite → last used wins
 
+        # Day 126 (Data Sources tab): the REAL ordered chain per data type, so the UI never hard-codes it (it used to
+        # list Stooq, which is dead, and omit Tradier).
+        chains = {
+            'ohlcv': [p.name for p in self._ohlcv_chain],
+            'intraday': [p.name for p in self._intraday_chain],
+            'fundamentals': [p.name for p in self._fundamentals_chain],
+            'quote': [p.name for p in self._quote_chain],
+            'stock_info': [p.name for p in self._stock_info_chain],
+            'earnings': [p.name for p in self._earnings_chain],
+        }
         return {
             'providers': providers,
-            'active_sources': active_sources,   # e.g. {ohlcv: 'twelvedata', fundamentals: 'finnhub', ...}
+            'chains': chains,
+            'disabled': [n for n, v in providers.items() if v.get('role') == 'disabled'],
+            'active_sources': active_sources,   # e.g. {ohlcv: 'twelvedata', ...}; last call for ANY ticker, no longer read by the tab
             'circuit_breakers': all_breaker_status(),
             'rate_limiters': all_limiter_status(),
             'last_sources': dict(self._last_source),

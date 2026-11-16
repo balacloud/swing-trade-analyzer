@@ -30,7 +30,7 @@ into two sub-components each — 13 real components mapped onto 10 slots:
 
 | # | Group (as the source doc names it) | Component(s) covered |
 |---|---|---|
-| 1 | S&R / Pattern / Market-Structure Engine | Backend: `support_resistance.py`, `pattern_detection.py`, market-structure classifier |
+| 1 | S&R / Pattern / Market-Structure Engine | Backend: `support_resistance.py`, `pattern_detection.py`, market-structure classifier. *Day 126: the Analyze page now uses `simple_sr.py` (not yet audited by a full pass: built test-first, 42 checks + live checks + 3 review passes); `support_resistance.py` remains for the backtest.* |
 | 2 | Core Verdict Engine | `categoricalAssessment.js` / `categorical_engine.py` (JS↔Python parity contract) |
 | 3 | FWD-Testing Frozen-Rules | `backend/paper_trading/*` — entry/exit gates, all 4 live tracks |
 | 4a/4b | Analyze Tab | UI layer — behavioral (4a) + coherence (4b) |
@@ -59,9 +59,12 @@ does runtime behavior match what the code claims (live-verified, not just read).
 | **Sectors Tab** | Day 107 | L1 + L3 (explicitly upgraded — "a real bug on every prior audit pass since Day 93") | 1 Medium fixed at true root (Golden Rule 30's fix finally migrated — new Golden Rule 47), rest live-verified clean | `FULL_AUDIT_FINDINGS_DAY107.md` Group 6a; `GOLDEN_RULES.md` Rules 30, 47; Days 93/94/101/103/105 build/fix history |
 | **Context Tab** | Day 107 | L1 (git-history root-cause trace) + targeted L2 fixes | 2 High (1 fixed — wasted API credit/double-fetch; 1 logged — bypasses `api.js`), 1 Medium-High logged (PMI date-alignment gap), 2 more fixed | `FULL_AUDIT_FINDINGS_DAY107.md` Group 6b; Golden Rule 26 (Day 91); Day 92-93 fixes |
 | **Value Tab** | Day 107 | Claim Audit + L1/L2 | 1 High fixed (live-reproduced FCF-Yield badge bug), 2 Medium logged (attribution-wording decisions pending) | `FULL_AUDIT_FINDINGS_DAY107.md` Group 7; `design/VALUE_TAB_SPEC.md` (Day 75) |
+| **Data Sources tab v2 + data-source audit** | Day 126 | L3: Opus plan review (11 must-fixes adopted), 24-ticker audit against IBKR on every source, three review passes on the build (found stale-ticker pairing, forming-bar note, an audit-line selection bug) | Fails found and now visible: SOXL.NE (flat close-only bars, unadjusted split), Tradier reverse split x3 (QPUX). Not covered: fundamentals accuracy, intraday feed, a holiday calendar | `DATA_SOURCES_TAB_V2_PLAN_DAY126.md`, `DATA_SOURCE_TESTING_PLAN_DAY126.md` |
 | **Validate + Data Sources Tabs** | Day 107 | L3 — settled via a real natural experiment (a live circuit-breaker trip during the audit) | 1 Medium fixed (`/api/health` hardcoded status), 1 High logged (per-ticker provenance gap — see gap note below) | `FULL_AUDIT_FINDINGS_DAY107.md` Group 8; Day 91 origin |
 | **Providers Package** | Day 107 (scoped re-verification, not fresh) | L1 (file-by-file re-check of 2 named Golden Rules across all 7 provider files) | 0 new bugs; 2 Low doc-only fixes; Golden Rules 22 & 36 confirmed fully intact | `FULL_AUDIT_FINDINGS_DAY107.md` Group 9; real depth from Day 83 + Day 95-96 (Golden Rules 22, 33, 36) |
 | **Forward Test Tab + Settings Tab** | Day 107 | L1 + targeted L3 | 1 Medium fixed (dual "Expectancy" labels), 1 Medium logged (risk-slider vs. documented ceiling), `variant` disambiguation reconfirmed | `FULL_AUDIT_FINDINGS_DAY107.md` Group 10; Golden Rule 38 (Day 98) |
+| **Indicator formulas (Data Sources table)** | Day 126 | L3 — textbook references vs production Python and real JS, mutation-tested; golden before/after snapshot bit-identical (816 values); 36 new tests | 0 live numbers changed; table rewritten (6 of 11 rows were wrong); 10 Low items logged | `INDICATOR_FORMULA_AUDIT_PLAN_DAY126.md`, `docs/test/Indicators_20261114/REPORT.md`, Opus review: 7 MUST adopted |
+| **Split mechanism (known-splits table, adjuster, detector)** | Day 126 | L3 — real SOXL.NE/QPUX/SOXX/GDXU.TO/AMD.TO/MU.TO frames, IBKR month-end levels match after adjusting, 81 tests mutation-tested, golden indicator snapshot identical, live app checked | 1 real defect fixed in my own first build (timezone-aware Yahoo index), 2 loud-failure gaps closed (missing close, unsorted frame) | `SPLIT_MECHANISM_PLAN_DAY126.md`, `docs/test/Splits_20261115/REPORT.md`; Opus review: 6 MUST adopted |
 
 ---
 

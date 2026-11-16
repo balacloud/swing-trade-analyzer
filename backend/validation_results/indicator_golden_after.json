@@ -1,0 +1,1112 @@
+{
+ "frames": {
+  "AMD.TO": {
+   "bars": 503,
+   "last": "2026-11-13"
+  },
+  "ATD.TO": {
+   "bars": 503,
+   "last": "2026-11-13"
+  },
+  "AVGO.TO": {
+   "bars": 225,
+   "last": "2026-11-13"
+  },
+  "BRK-B": {
+   "bars": 501,
+   "last": "2026-11-13"
+  },
+  "CAT": {
+   "bars": 501,
+   "last": "2026-11-13"
+  },
+  "CNR.TO": {
+   "bars": 503,
+   "last": "2026-11-13"
+  },
+  "CSU.TO": {
+   "bars": 503,
+   "last": "2026-11-13"
+  },
+  "DRAL": {
+   "bars": 100,
+   "last": "2026-11-13"
+  },
+  "GDX": {
+   "bars": 501,
+   "last": "2026-11-13"
+  },
+  "GDXU.TO": {
+   "bars": 503,
+   "last": "2026-11-13"
+  },
+  "HXQ.TO": {
+   "bars": 503,
+   "last": "2026-11-13"
+  },
+  "JPM": {
+   "bars": 501,
+   "last": "2026-11-13"
+  },
+  "MU.TO": {
+   "bars": 273,
+   "last": "2026-11-13"
+  },
+  "QPUX": {
+   "bars": 321,
+   "last": "2026-11-13"
+  },
+  "RY.TO": {
+   "bars": 503,
+   "last": "2026-11-13"
+  },
+  "SMH": {
+   "bars": 501,
+   "last": "2026-11-13"
+  },
+  "SNDK.TO": {
+   "bars": 131,
+   "last": "2026-11-13"
+  },
+  "SOXL.NE": {
+   "bars": 311,
+   "last": "2026-11-13"
+  },
+  "SOXX": {
+   "bars": 501,
+   "last": "2026-11-13"
+  },
+  "SPCL": {
+   "bars": 154,
+   "last": "2026-11-13"
+  },
+  "UBOT": {
+   "bars": 501,
+   "last": "2026-11-13"
+  },
+  "VFV.TO": {
+   "bars": 503,
+   "last": "2026-11-13"
+  },
+  "XCHP.TO": {
+   "bars": 503,
+   "last": "2026-11-13"
+  },
+  "XEQT.TO": {
+   "bars": 503,
+   "last": "2026-11-13"
+  }
+ },
+ "js": {
+  "AMD.TO": {
+   "atr14": 1.2085714285714286,
+   "avgVolume50": 2277190,
+   "ema21": 13.582228704963626,
+   "ema8": 13.526350291279046,
+   "getIndicators": {
+    "atr": 1.2085714285714286,
+    "avgVolume50": 2277190,
+    "ema21": 13.582228704963626,
+    "ema8": 13.526350291279046,
+    "rsi": 50.42,
+    "sma200": 10.93235,
+    "sma50": 14.2206
+   },
+   "rsi14": 50.42,
+   "sma200": 10.93235,
+   "sma50": 14.2206
+  },
+  "ATD.TO": {
+   "atr14": 1.7621428571428541,
+   "avgVolume50": 1317366,
+   "ema21": 82.20680287337821,
+   "ema8": 82.65045405367414,
+   "getIndicators": {
+    "atr": 1.7621428571428541,
+    "avgVolume50": 1317366,
+    "ema21": 82.20680287337821,
+    "ema8": 82.65045405367414,
+    "rsi": 53.57,
+    "sma200": 82.25225000000005,
+    "sma50": 80.66519999999997
+   },
+   "rsi14": 53.57,
+   "sma200": 82.25225000000005,
+   "sma50": 80.66519999999997
+  },
+  "AVGO.TO": {
+   "atr14": 0.7499999999999999,
+   "avgVolume50": 1205214,
+   "ema21": 12.721112396818906,
+   "ema8": 12.771014519779305,
+   "getIndicators": {
+    "atr": 0.7499999999999999,
+    "avgVolume50": 1205214,
+    "ema21": 12.721112396818906,
+    "ema8": 12.771014519779305,
+    "rsi": 52.98,
+    "sma200": 14.0164,
+    "sma50": 13.1194
+   },
+   "rsi14": 52.98,
+   "sma200": 14.0164,
+   "sma50": 13.1194
+  },
+  "BRK-B": {
+   "atr14": 11.352142857142846,
+   "avgVolume50": 4782466,
+   "ema21": 560.8411567814155,
+   "ema8": 580.2344682689463,
+   "getIndicators": {
+    "atr": 11.352142857142846,
+    "avgVolume50": 4782466,
+    "ema21": 560.8411567814155,
+    "ema8": 580.2344682689463,
+    "rsi": 80.91,
+    "sma200": 500.4340000000001,
+    "sma50": 529.6578000000002
+   },
+   "rsi14": 80.91,
+   "sma200": 500.4340000000001,
+   "sma50": 529.6578000000002
+  },
+  "CAT": {
+   "atr14": 31.68,
+   "avgVolume50": 3030168,
+   "ema21": 645.4774025481432,
+   "ema8": 602.0433957719915,
+   "getIndicators": {
+    "atr": 31.68,
+    "avgVolume50": 3030168,
+    "ema21": 645.4774025481432,
+    "ema8": 602.0433957719915,
+    "rsi": 35.65,
+    "sma200": 804.3677000000005,
+    "sma50": 739.4521999999998
+   },
+   "rsi14": 35.65,
+   "sma200": 804.3677000000005,
+   "sma50": 739.4521999999998
+  },
+  "CNR.TO": {
+   "atr14": 3.9171428571428613,
+   "avgVolume50": 1252480,
+   "ema21": 176.57490682952658,
+   "ema8": 179.6519655462688,
+   "getIndicators": {
+    "atr": 3.9171428571428613,
+    "avgVolume50": 1252480,
+    "ema21": 176.57490682952658,
+    "ema8": 179.6519655462688,
+    "rsi": 62.19,
+    "sma200": 161.2261000000001,
+    "sma50": 171.78260000000003
+   },
+   "rsi14": 62.19,
+   "sma200": 161.2261000000001,
+   "sma50": 171.78260000000003
+  },
+  "CSU.TO": {
+   "atr14": 115.00142857142858,
+   "avgVolume50": 61348,
+   "ema21": 3366.571963092947,
+   "ema8": 3458.8224956022955,
+   "getIndicators": {
+    "atr": 115.00142857142858,
+    "avgVolume50": 61348,
+    "ema21": 3366.571963092947,
+    "ema8": 3458.8224956022955,
+    "rsi": 64.51,
+    "sma200": 2804.3737,
+    "sma50": 3112.203000000001
+   },
+   "rsi14": 64.51,
+   "sma200": 2804.3737,
+   "sma50": 3112.203000000001
+  },
+  "DRAL": {
+   "atr14": 0.887142857142857,
+   "avgVolume50": 231972,
+   "ema21": 6.410697750087397,
+   "ema8": 5.28446371415843,
+   "getIndicators": {
+    "atr": 0.887142857142857,
+    "avgVolume50": 231972,
+    "ema21": 6.410697750087397,
+    "ema8": 5.28446371415843,
+    "rsi": 37.86,
+    "sma200": null,
+    "sma50": 9.011400000000002
+   },
+   "rsi14": 37.86,
+   "sma200": null,
+   "sma50": 9.011400000000002
+  },
+  "GDX": {
+   "atr14": 3.7792857142857152,
+   "avgVolume50": 20974276,
+   "ema21": 84.51359068317716,
+   "ema8": 83.98687423667263,
+   "getIndicators": {
+    "atr": 3.7792857142857152,
+    "avgVolume50": 20974276,
+    "ema21": 84.51359068317716,
+    "ema8": 83.98687423667263,
+    "rsi": 44.47,
+    "sma200": 89.581,
+    "sma50": 88.26299999999999
+   },
+   "rsi14": 44.47,
+   "sma200": 89.581,
+   "sma50": 88.26299999999999
+  },
+  "GDXU.TO": {
+   "atr14": 2.538571428571428,
+   "avgVolume50": 224016,
+   "ema21": 28.503333818230622,
+   "ema8": 27.72065296746269,
+   "getIndicators": {
+    "atr": 2.538571428571428,
+    "avgVolume50": 224016,
+    "ema21": 28.503333818230622,
+    "ema8": 27.72065296746269,
+    "rsi": 43.03,
+    "sma200": 36.11135,
+    "sma50": 31.9956
+   },
+   "rsi14": 43.03,
+   "sma200": 36.11135,
+   "sma50": 31.9956
+  },
+  "HXQ.TO": {
+   "atr14": 2.942142857142854,
+   "avgVolume50": 32422,
+   "ema21": 116.08803695209869,
+   "ema8": 114.4891273831566,
+   "getIndicators": {
+    "atr": 2.942142857142854,
+    "avgVolume50": 32422,
+    "ema21": 116.08803695209869,
+    "ema8": 114.4891273831566,
+    "rsi": 45.59,
+    "sma200": 112.12420000000002,
+    "sma50": 119.43020000000004
+   },
+   "rsi14": 45.59,
+   "sma200": 112.12420000000002,
+   "sma50": 119.43020000000004
+  },
+  "JPM": {
+   "atr14": 7.780714285714282,
+   "avgVolume50": 7502370,
+   "ema21": 340.1292487915497,
+   "ema8": 342.4276449821988,
+   "getIndicators": {
+    "atr": 7.780714285714282,
+    "avgVolume50": 7502370,
+    "ema21": 340.1292487915497,
+    "ema8": 342.4276449821988,
+    "rsi": 56.33,
+    "sma200": 322.43510000000015,
+    "sma50": 339.704
+   },
+   "rsi14": 56.33,
+   "sma200": 322.43510000000015,
+   "sma50": 339.704
+  },
+  "MU.TO": {
+   "atr14": 2.7621428571428566,
+   "avgVolume50": 1844258,
+   "ema21": 36.53553615252914,
+   "ema8": 34.12683985142705,
+   "getIndicators": {
+    "atr": 2.7621428571428566,
+    "avgVolume50": 1844258,
+    "ema21": 36.53553615252914,
+    "ema8": 34.12683985142705,
+    "rsi": 42.25,
+    "sma200": 33.68055,
+    "sma50": 41.294200000000004
+   },
+   "rsi14": 42.25,
+   "sma200": 33.68055,
+   "sma50": 41.294200000000004
+  },
+  "QPUX": {
+   "atr14": 0.8692857142857144,
+   "avgVolume50": 293392,
+   "ema21": 6.3842826930582754,
+   "ema8": 5.268619114227469,
+   "getIndicators": {
+    "atr": 0.8692857142857144,
+    "avgVolume50": 293392,
+    "ema21": 6.3842826930582754,
+    "ema8": 5.268619114227469,
+    "rsi": 32.89,
+    "sma200": 20.657249999999998,
+    "sma50": 9.495800000000001
+   },
+   "rsi14": 32.89,
+   "sma200": 20.657249999999998,
+   "sma50": 9.495800000000001
+  },
+  "RY.TO": {
+   "atr14": 4.733571428571431,
+   "avgVolume50": 3227706,
+   "ema21": 285.40727730202775,
+   "ema8": 287.9326910761793,
+   "getIndicators": {
+    "atr": 4.733571428571431,
+    "avgVolume50": 3227706,
+    "ema21": 285.40727730202775,
+    "ema8": 287.9326910761793,
+    "rsi": 55.75,
+    "sma200": 262.6967499999999,
+    "sma50": 282.34999999999997
+   },
+   "rsi14": 55.75,
+   "sma200": 262.6967499999999,
+   "sma50": 282.34999999999997
+  },
+  "SMH": {
+   "atr14": 27.235000000000003,
+   "avgVolume50": 9131910,
+   "ema21": 518.0114861252694,
+   "ema8": 495.49628937771,
+   "getIndicators": {
+    "atr": 27.235000000000003,
+    "avgVolume50": 9131910,
+    "ema21": 518.0114861252694,
+    "ema8": 495.49628937771,
+    "rsi": 40.08,
+    "sma200": 523.8860500000002,
+    "sma50": 559.804
+   },
+   "rsi14": 40.08,
+   "sma200": 523.8860500000002,
+   "sma50": 559.804
+  },
+  "SNDK.TO": {
+   "atr14": 2.7221428571428574,
+   "avgVolume50": 1232178,
+   "ema21": 27.00454092307295,
+   "ema8": 22.94920388949481,
+   "getIndicators": {
+    "atr": 2.7221428571428574,
+    "avgVolume50": 1232178,
+    "ema21": 27.00454092307295,
+    "ema8": 22.94920388949481,
+    "rsi": 33.72,
+    "sma200": null,
+    "sma50": 34.9994
+   },
+   "rsi14": 33.72,
+   "sma200": null,
+   "sma50": 34.9994
+  },
+  "SOXL.NE": {
+   "atr14": 2.241428571428572,
+   "avgVolume50": 0,
+   "ema21": 19.62299143713505,
+   "ema8": 15.741854774707601,
+   "getIndicators": {
+    "atr": 2.241428571428572,
+    "avgVolume50": 0,
+    "ema21": 19.62299143713505,
+    "ema8": 15.741854774707601,
+    "rsi": 37.62,
+    "sma200": 48.13125000000003,
+    "sma50": 27.362599999999997
+   },
+   "rsi14": 37.62,
+   "sma200": 48.13125000000003,
+   "sma50": 27.362599999999997
+  },
+  "SOXX": {
+   "atr14": 9.638571428571428,
+   "avgVolume50": 29392974,
+   "ema21": 157.36804926712503,
+   "ema8": 150.60273579835942,
+   "getIndicators": {
+    "atr": 9.638571428571428,
+    "avgVolume50": 29392974,
+    "ema21": 157.36804926712503,
+    "ema8": 150.60273579835942,
+    "rsi": 42.14,
+    "sma200": 160.26564999999994,
+    "sma50": 171.88300000000004
+   },
+   "rsi14": 42.14,
+   "sma200": 160.26564999999994,
+   "sma50": 171.88300000000004
+  },
+  "SPCL": {
+   "atr14": 1.7314285714285715,
+   "avgVolume50": 39186,
+   "ema21": 13.76022518830734,
+   "ema8": 12.52138413715244,
+   "getIndicators": {
+    "atr": 1.7314285714285715,
+    "avgVolume50": 39186,
+    "ema21": 13.76022518830734,
+    "ema8": 12.52138413715244,
+    "rsi": 42.06,
+    "sma200": null,
+    "sma50": 17.882800000000003
+   },
+   "rsi14": 42.06,
+   "sma200": null,
+   "sma50": 17.882800000000003
+  },
+  "UBOT": {
+   "atr14": 0.9157142857142853,
+   "avgVolume50": 15580,
+   "ema21": 18.28697833286766,
+   "ema8": 17.281814471041756,
+   "getIndicators": {
+    "atr": 0.9157142857142853,
+    "avgVolume50": 15580,
+    "ema21": 18.28697833286766,
+    "ema8": 17.281814471041756,
+    "rsi": 37.35,
+    "sma200": 23.967749999999995,
+    "sma50": 20.269199999999998
+   },
+   "rsi14": 37.35,
+   "sma200": 23.967749999999995,
+   "sma50": 20.269199999999998
+  },
+  "VFV.TO": {
+   "atr14": 3.1478571428571422,
+   "avgVolume50": 308826,
+   "ema21": 190.38047524291994,
+   "ema8": 190.1720669309195,
+   "getIndicators": {
+    "atr": 3.1478571428571422,
+    "avgVolume50": 308826,
+    "ema21": 190.38047524291994,
+    "ema8": 190.1720669309195,
+    "rsi": 51.81,
+    "sma200": 180.4788,
+    "sma50": 191.31639999999996
+   },
+   "rsi14": 51.81,
+   "sma200": 180.4788,
+   "sma50": 191.31639999999996
+  },
+  "XCHP.TO": {
+   "atr14": 7.089285714285716,
+   "avgVolume50": 49562,
+   "ema21": 115.75833330750565,
+   "ema8": 111.2131884420632,
+   "getIndicators": {
+    "atr": 7.089285714285716,
+    "avgVolume50": 49562,
+    "ema21": 115.75833330750565,
+    "ema8": 111.2131884420632,
+    "rsi": 43.74,
+    "sma200": 116.3535,
+    "sma50": 125.8524
+   },
+   "rsi14": 43.74,
+   "sma200": 116.3535,
+   "sma50": 125.8524
+  },
+  "XEQT.TO": {
+   "atr14": 0.6114285714285711,
+   "avgVolume50": 869694,
+   "ema21": 45.260874810997905,
+   "ema8": 45.3093716702832,
+   "getIndicators": {
+    "atr": 0.6114285714285711,
+    "avgVolume50": 869694,
+    "ema21": 45.260874810997905,
+    "ema8": 45.3093716702832,
+    "rsi": 52.43,
+    "sma200": 43.52464999999998,
+    "sma50": 45.42940000000002
+   },
+   "rsi14": 52.43,
+   "sma200": 43.52464999999998,
+   "sma50": 45.42940000000002
+  }
+ },
+ "python": {
+  "AMD.TO": {
+   "adx_backend": {
+    "adx": 20.2,
+    "di_minus": 29.2,
+    "di_plus": 28.0,
+    "trend_strength": "weak"
+   },
+   "adx_mean_reversion": 20.205807433859512,
+   "atr_legacy_260": 1.0590733567510173,
+   "atr_pattern_detection": 1.2085715021405907,
+   "atr_simple_sr_live": 1.0590733562938661,
+   "atr_trade_simulator_51": 1.0699300591602325,
+   "obv_backend": {
+    "divergence": "bullish",
+    "obv": 128644000.0,
+    "obv_change_pct": 15.9,
+    "obv_prev": 111027400.0,
+    "signal": "Bullish divergence - accumulation detected",
+    "trend": "rising"
+   },
+   "rsi14_backend": 50.42,
+   "rsi2_mean_reversion": 37.99116426859948,
+   "rvol_backend": 2.1072901251103335
+  },
+  "ATD.TO": {
+   "adx_backend": {
+    "adx": 16.8,
+    "di_minus": 23.5,
+    "di_plus": 27.2,
+    "trend_strength": "choppy"
+   },
+   "adx_mean_reversion": 16.78409533372902,
+   "atr_legacy_260": 1.7093710689892887,
+   "atr_pattern_detection": 1.7621427263532365,
+   "atr_simple_sr_live": 1.7093710695138806,
+   "atr_trade_simulator_51": 1.7114227049520154,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": -52865600.0,
+    "obv_change_pct": 2.9,
+    "obv_prev": -54468500.0,
+    "signal": "Neutral - OBV confirms price trend",
+    "trend": "rising"
+   },
+   "rsi14_backend": 53.57,
+   "rsi2_mean_reversion": 70.97310509907368,
+   "rvol_backend": 0.8086590970163189
+  },
+  "AVGO.TO": {
+   "adx_backend": {
+    "adx": 23.2,
+    "di_minus": 28.3,
+    "di_plus": 27.3,
+    "trend_strength": "weak"
+   },
+   "adx_mean_reversion": 23.169975634286175,
+   "atr_legacy_260": 0.6633338127001388,
+   "atr_pattern_detection": 0.7499999318804057,
+   "atr_simple_sr_live": 0.6633338127001388,
+   "atr_trade_simulator_51": 0.6675375635746723,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": -315600.0,
+    "obv_change_pct": 96.6,
+    "obv_prev": -9324500.0,
+    "signal": "Neutral - OBV confirms price trend",
+    "trend": "rising"
+   },
+   "rsi14_backend": 52.99,
+   "rsi2_mean_reversion": 47.626397910620646,
+   "rvol_backend": 1.2645886954515961
+  },
+  "BRK-B": {
+   "adx_backend": {
+    "adx": 53.8,
+    "di_minus": 8.7,
+    "di_plus": 40.0,
+    "trend_strength": "very_strong"
+   },
+   "adx_mean_reversion": 53.82361172886871,
+   "atr_legacy_260": 9.694844076803879,
+   "atr_pattern_detection": 11.352142333984375,
+   "atr_simple_sr_live": 9.694844067803116,
+   "atr_trade_simulator_51": 9.772206955589082,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": 79391800.0,
+    "obv_change_pct": 92.1,
+    "obv_prev": 41331500.0,
+    "signal": "Strong confirmation - volume supports uptrend",
+    "trend": "rising"
+   },
+   "rsi14_backend": 80.91,
+   "rsi2_mean_reversion": 97.75328343485852,
+   "rvol_backend": 0.9964315480758253
+  },
+  "CAT": {
+   "adx_backend": {
+    "adx": 38.9,
+    "di_minus": 35.6,
+    "di_plus": 18.5,
+    "trend_strength": "strong"
+   },
+   "adx_mean_reversion": 38.860486072958054,
+   "atr_legacy_260": 29.07814245703185,
+   "atr_pattern_detection": 31.679997035435267,
+   "atr_simple_sr_live": 29.078142448580515,
+   "atr_trade_simulator_51": 29.089783708260267,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": 53995900.0,
+    "obv_change_pct": -23.7,
+    "obv_prev": 70732000.0,
+    "signal": "Neutral - OBV confirms price trend",
+    "trend": "falling"
+   },
+   "rsi14_backend": 35.65,
+   "rsi2_mean_reversion": 53.08059117757516,
+   "rvol_backend": 0.7552716549049425
+  },
+  "CNR.TO": {
+   "adx_backend": {
+    "adx": 22.9,
+    "di_minus": 12.8,
+    "di_plus": 27.8,
+    "trend_strength": "weak"
+   },
+   "adx_mean_reversion": 22.854130016667064,
+   "atr_legacy_260": 3.471686572846371,
+   "atr_pattern_detection": 3.917142595563614,
+   "atr_simple_sr_live": 3.4716865746915624,
+   "atr_trade_simulator_51": 3.4804678768224924,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": 29684400.0,
+    "obv_change_pct": 17.4,
+    "obv_prev": 25295600.0,
+    "signal": "Strong confirmation - volume supports uptrend",
+    "trend": "rising"
+   },
+   "rsi14_backend": 62.19,
+   "rsi2_mean_reversion": 55.94673354687229,
+   "rvol_backend": 0.9710334695963209
+  },
+  "CSU.TO": {
+   "adx_backend": {
+    "adx": 36.1,
+    "di_minus": 16.3,
+    "di_plus": 23.5,
+    "trend_strength": "strong"
+   },
+   "adx_mean_reversion": 36.05754118060699,
+   "atr_legacy_260": 119.38349166063537,
+   "atr_pattern_detection": 115.00141252790179,
+   "atr_simple_sr_live": 119.38349159165075,
+   "atr_trade_simulator_51": 119.36436589473453,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": -175000.0,
+    "obv_change_pct": 57.0,
+    "obv_prev": -406700.0,
+    "signal": "Strong confirmation - volume supports uptrend",
+    "trend": "rising"
+   },
+   "rsi14_backend": 64.51,
+   "rsi2_mean_reversion": 72.74414624407683,
+   "rvol_backend": 1.038338658146965
+  },
+  "DRAL": {
+   "adx_backend": {
+    "adx": 33.2,
+    "di_minus": 39.9,
+    "di_plus": 20.0,
+    "trend_strength": "strong"
+   },
+   "adx_mean_reversion": 33.171129529136095,
+   "atr_legacy_260": 0.8464349141270461,
+   "atr_pattern_detection": 0.8871429647718158,
+   "atr_simple_sr_live": 0.8464349141270461,
+   "atr_trade_simulator_51": 0.8386970804457992,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": -2570700.0,
+    "obv_change_pct": -238.3,
+    "obv_prev": -759900.0,
+    "signal": "Neutral - OBV confirms price trend",
+    "trend": "falling"
+   },
+   "rsi14_backend": 37.89,
+   "rsi2_mean_reversion": 33.72034094980279,
+   "rvol_backend": 0.4112565309606332
+  },
+  "GDX": {
+   "adx_backend": {
+    "adx": 17.5,
+    "di_minus": 36.0,
+    "di_plus": 26.5,
+    "trend_strength": "choppy"
+   },
+   "adx_mean_reversion": 17.48397258493417,
+   "atr_legacy_260": 3.515946290579753,
+   "atr_pattern_detection": 3.7792859758649553,
+   "atr_simple_sr_live": 3.5159462913060366,
+   "atr_trade_simulator_51": 3.5102810013264505,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": 746893500.0,
+    "obv_change_pct": -0.9,
+    "obv_prev": 753960500.0,
+    "signal": "Neutral - OBV confirms price trend",
+    "trend": "flat"
+   },
+   "rsi14_backend": 44.47,
+   "rsi2_mean_reversion": 11.708376348073415,
+   "rvol_backend": 0.5759388309756198
+  },
+  "GDXU.TO": {
+   "adx_backend": {
+    "adx": 17.9,
+    "di_minus": 34.4,
+    "di_plus": 25.4,
+    "trend_strength": "choppy"
+   },
+   "adx_mean_reversion": 17.863158291779072,
+   "atr_legacy_260": 2.4365004600316387,
+   "atr_pattern_detection": 2.538571221487863,
+   "atr_simple_sr_live": 2.4365004611160375,
+   "atr_trade_simulator_51": 2.4295700744641997,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": 29417300.0,
+    "obv_change_pct": -0.3,
+    "obv_prev": 29508400.0,
+    "signal": "Neutral - OBV confirms price trend",
+    "trend": "flat"
+   },
+   "rsi14_backend": 43.03,
+   "rsi2_mean_reversion": 11.780946973588613,
+   "rvol_backend": 0.8419041497035926
+  },
+  "HXQ.TO": {
+   "adx_backend": {
+    "adx": 31.1,
+    "di_minus": 36.3,
+    "di_plus": 24.0,
+    "trend_strength": "strong"
+   },
+   "adx_mean_reversion": 31.053669442960903,
+   "atr_legacy_260": 2.62907198603991,
+   "atr_pattern_detection": 2.9421424865722594,
+   "atr_simple_sr_live": 2.629071984310108,
+   "atr_trade_simulator_51": 2.6545429422607825,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": -475300.0,
+    "obv_change_pct": -203.3,
+    "obv_prev": -156700.0,
+    "signal": "Neutral - OBV confirms price trend",
+    "trend": "falling"
+   },
+   "rsi14_backend": 45.59,
+   "rsi2_mean_reversion": 39.13604894819507,
+   "rvol_backend": 0.9160446610326322
+  },
+  "JPM": {
+   "adx_backend": {
+    "adx": 17.6,
+    "di_minus": 14.9,
+    "di_plus": 26.5,
+    "trend_strength": "choppy"
+   },
+   "adx_mean_reversion": 17.64587477257362,
+   "atr_legacy_260": 7.107206741478947,
+   "atr_pattern_detection": 7.780713762555804,
+   "atr_simple_sr_live": 7.107206740612614,
+   "atr_trade_simulator_51": 7.138761040600723,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": 392029200.0,
+    "obv_change_pct": 3.0,
+    "obv_prev": 380759700.0,
+    "signal": "Neutral - OBV confirms price trend",
+    "trend": "flat"
+   },
+   "rsi14_backend": 56.33,
+   "rsi2_mean_reversion": 87.33581856897503,
+   "rvol_backend": 0.5596631464457231
+  },
+  "MU.TO": {
+   "adx_backend": {
+    "adx": 34.5,
+    "di_minus": 33.6,
+    "di_plus": 18.5,
+    "trend_strength": "strong"
+   },
+   "adx_mean_reversion": 34.49543027512886,
+   "atr_legacy_260": 2.543535077019922,
+   "atr_pattern_detection": 2.7621424538748607,
+   "atr_simple_sr_live": 2.5435350760185247,
+   "atr_trade_simulator_51": 2.54436582485609,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": 7377600.0,
+    "obv_change_pct": -51.9,
+    "obv_prev": 15323400.0,
+    "signal": "Neutral - OBV confirms price trend",
+    "trend": "falling"
+   },
+   "rsi14_backend": 42.25,
+   "rsi2_mean_reversion": 45.72000031800692,
+   "rvol_backend": 1.2255335207980662
+  },
+  "QPUX": {
+   "adx_backend": {
+    "adx": 35.2,
+    "di_minus": 39.1,
+    "di_plus": 15.1,
+    "trend_strength": "strong"
+   },
+   "adx_mean_reversion": 35.194652906494404,
+   "atr_legacy_260": 0.9150852209590704,
+   "atr_pattern_detection": 0.8686428410666329,
+   "atr_simple_sr_live": 0.9150852720989121,
+   "atr_trade_simulator_51": 0.8889608257016816,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": -6760061.0,
+    "obv_change_pct": -52.4,
+    "obv_prev": -4436061.0,
+    "signal": "Neutral - OBV confirms price trend",
+    "trend": "falling"
+   },
+   "rsi14_backend": 32.89,
+   "rsi2_mean_reversion": 8.209102738509301,
+   "rvol_backend": 1.9254103724709604
+  },
+  "RY.TO": {
+   "adx_backend": {
+    "adx": 14.7,
+    "di_minus": 20.9,
+    "di_plus": 25.6,
+    "trend_strength": "choppy"
+   },
+   "adx_mean_reversion": 14.709297368388052,
+   "atr_legacy_260": 4.4383163656995865,
+   "atr_pattern_detection": 4.733568464006696,
+   "atr_simple_sr_live": 4.438316364445988,
+   "atr_trade_simulator_51": 4.4279496514237815,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": 281808100.0,
+    "obv_change_pct": 7.8,
+    "obv_prev": 261357900.0,
+    "signal": "Neutral - OBV confirms price trend",
+    "trend": "flat"
+   },
+   "rsi14_backend": 55.75,
+   "rsi2_mean_reversion": 37.020581314494585,
+   "rvol_backend": 0.8416194039977619
+  },
+  "SMH": {
+   "adx_backend": {
+    "adx": 33.7,
+    "di_minus": 36.7,
+    "di_plus": 17.6,
+    "trend_strength": "strong"
+   },
+   "adx_mean_reversion": 33.657820683442665,
+   "atr_legacy_260": 24.216427023325075,
+   "atr_pattern_detection": 27.23500061035156,
+   "atr_simple_sr_live": 24.21642701150511,
+   "atr_trade_simulator_51": 24.37589905349416,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": 191228900.0,
+    "obv_change_pct": -15.2,
+    "obv_prev": 225461500.0,
+    "signal": "Neutral - OBV confirms price trend",
+    "trend": "falling"
+   },
+   "rsi14_backend": 40.08,
+   "rsi2_mean_reversion": 29.095498088045503,
+   "rvol_backend": 1.355959487117153
+  },
+  "SNDK.TO": {
+   "adx_backend": {
+    "adx": 37.6,
+    "di_minus": 35.9,
+    "di_plus": 13.9,
+    "trend_strength": "strong"
+   },
+   "adx_mean_reversion": 37.5865880279852,
+   "atr_legacy_260": 2.5753673129611796,
+   "atr_pattern_detection": 2.722142900739397,
+   "atr_simple_sr_live": 2.5753673129611796,
+   "atr_trade_simulator_51": 2.559292917221336,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": -9982700.0,
+    "obv_change_pct": -108.1,
+    "obv_prev": -4797000.0,
+    "signal": "Neutral - OBV confirms price trend",
+    "trend": "falling"
+   },
+   "rsi14_backend": 33.72,
+   "rsi2_mean_reversion": 29.42550451679942,
+   "rvol_backend": 1.680601341689269
+  },
+  "SOXL.NE": {
+   "adx_backend": {
+    "adx": 26.3,
+    "di_minus": 62.4,
+    "di_plus": 37.6,
+    "trend_strength": "strong"
+   },
+   "adx_mean_reversion": 26.26731291259821,
+   "atr_legacy_260": 2.0162292568068514,
+   "atr_pattern_detection": 2.2404713630676274,
+   "atr_simple_sr_live": 2.0162292549806717,
+   "atr_trade_simulator_51": 2.0104184242187304,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": 0.0,
+    "obv_change_pct": 0.0,
+    "obv_prev": 0.0,
+    "signal": "Neutral - OBV confirms price trend",
+    "trend": "flat"
+   },
+   "rsi14_backend": 37.62,
+   "rsi2_mean_reversion": 29.2122428482391,
+   "rvol_backend": null
+  },
+  "SOXX": {
+   "adx_backend": {
+    "adx": 31.7,
+    "di_minus": 35.1,
+    "di_plus": 20.0,
+    "trend_strength": "strong"
+   },
+   "adx_mean_reversion": 31.692556777651127,
+   "atr_legacy_260": 8.535775516406055,
+   "atr_pattern_detection": 9.638811383928571,
+   "atr_simple_sr_live": 8.53577551236374,
+   "atr_trade_simulator_51": 8.589609019829384,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": 576264100.0,
+    "obv_change_pct": -17.4,
+    "obv_prev": 697265400.0,
+    "signal": "Neutral - OBV confirms price trend",
+    "trend": "falling"
+   },
+   "rsi14_backend": 42.14,
+   "rsi2_mean_reversion": 32.40044560772702,
+   "rvol_backend": 1.6260246411268218
+  },
+  "SPCL": {
+   "adx_backend": {
+    "adx": 31.5,
+    "di_minus": 37.2,
+    "di_plus": 21.5,
+    "trend_strength": "strong"
+   },
+   "adx_mean_reversion": 31.489147107046126,
+   "atr_legacy_260": 1.78134194008406,
+   "atr_pattern_detection": 1.7314286913190566,
+   "atr_simple_sr_live": 1.78134194008406,
+   "atr_trade_simulator_51": 1.7640345657074492,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": -604400.0,
+    "obv_change_pct": -5.6,
+    "obv_prev": -572400.0,
+    "signal": "Neutral - OBV confirms price trend",
+    "trend": "falling"
+   },
+   "rsi14_backend": 42.06,
+   "rsi2_mean_reversion": 25.42386747423228,
+   "rvol_backend": 0.56908079416118
+  },
+  "UBOT": {
+   "adx_backend": {
+    "adx": 36.9,
+    "di_minus": 45.6,
+    "di_plus": 20.3,
+    "trend_strength": "strong"
+   },
+   "adx_mean_reversion": 36.85432191043908,
+   "atr_legacy_260": 0.8263654167438447,
+   "atr_pattern_detection": 0.9157144001552039,
+   "atr_simple_sr_live": 0.8263654160821018,
+   "atr_trade_simulator_51": 0.8285827526536477,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": -87900.0,
+    "obv_change_pct": -263.2,
+    "obv_prev": -24200.0,
+    "signal": "Neutral - OBV confirms price trend",
+    "trend": "falling"
+   },
+   "rsi14_backend": 37.35,
+   "rsi2_mean_reversion": 24.319378116338427,
+   "rvol_backend": 0.7702182284980744
+  },
+  "VFV.TO": {
+   "adx_backend": {
+    "adx": 19.4,
+    "di_minus": 30.7,
+    "di_plus": 27.3,
+    "trend_strength": "choppy"
+   },
+   "adx_mean_reversion": 19.42447040520963,
+   "atr_legacy_260": 2.78368872104495,
+   "atr_pattern_detection": 3.1478565761021122,
+   "atr_simple_sr_live": 2.7836887198077944,
+   "atr_trade_simulator_51": 2.812603187838479,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": -7037300.0,
+    "obv_change_pct": -17.5,
+    "obv_prev": -5989500.0,
+    "signal": "Neutral - OBV confirms price trend",
+    "trend": "flat"
+   },
+   "rsi14_backend": 51.81,
+   "rsi2_mean_reversion": 52.963062358686166,
+   "rvol_backend": 0.7907365312506072
+  },
+  "XCHP.TO": {
+   "adx_backend": {
+    "adx": 32.7,
+    "di_minus": 35.5,
+    "di_plus": 21.1,
+    "trend_strength": "strong"
+   },
+   "adx_mean_reversion": 32.71516786106038,
+   "atr_legacy_260": 6.313891407227886,
+   "atr_pattern_detection": 7.0892862592424715,
+   "atr_simple_sr_live": 6.313891403148508,
+   "atr_trade_simulator_51": 6.360372880468054,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": -573100.0,
+    "obv_change_pct": -101.9,
+    "obv_prev": -283800.0,
+    "signal": "Neutral - OBV confirms price trend",
+    "trend": "falling"
+   },
+   "rsi14_backend": 43.74,
+   "rsi2_mean_reversion": 35.503295442385564,
+   "rvol_backend": 1.4547435535289133
+  },
+  "XEQT.TO": {
+   "adx_backend": {
+    "adx": 15.0,
+    "di_minus": 31.7,
+    "di_plus": 29.3,
+    "trend_strength": "choppy"
+   },
+   "adx_mean_reversion": 15.01658340211331,
+   "atr_legacy_260": 0.5531636202034772,
+   "atr_pattern_detection": 0.6117853437151227,
+   "atr_simple_sr_live": 0.5531636198385843,
+   "atr_trade_simulator_51": 0.5580741188191973,
+   "obv_backend": {
+    "divergence": "none",
+    "obv": -13025800.0,
+    "obv_change_pct": -44.9,
+    "obv_prev": -8990200.0,
+    "signal": "Neutral - OBV confirms price trend",
+    "trend": "falling"
+   },
+   "rsi14_backend": 52.42,
+   "rsi2_mean_reversion": 49.36409666274835,
+   "rvol_backend": 1.1525893015244442
+  }
+ }
+}

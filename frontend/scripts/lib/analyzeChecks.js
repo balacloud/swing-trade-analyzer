@@ -12,7 +12,11 @@
  * Never throws; a missing input fails its check, it never passes by default.
  */
 
-const CHECK_IDS = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A8', 'A9'];
+// Day 126: A8 (Simple view badge) removed with the Simple Checklist; its absence is now part of A2.
+// Day 126: A10 added with the simple S&R switch (7 -> 8 checks).
+// Day 126: A11 added with the Data Sources tab v2 (8 -> 9 checks).
+// Day 126: A12 added with the entry-timing ruler (9 -> 10 checks).
+const CHECK_IDS = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A9', 'A10', 'A11', 'A12'];
 const NAMES = {
   A1: 'Card order (backdrop first)',
   A2: 'Removed elements absent',
@@ -20,8 +24,10 @@ const NAMES = {
   A4: 'Classification line',
   A5: 'Earnings badge and wording',
   A6: 'No blank cards',
-  A8: 'Simple view badge',
   A9: 'Cards fit at 390px',
+  A10: 'Buy and level rows match /api/sr',
+  A11: 'Data Sources tab matches the backend',
+  A12: 'Entry ruler matches the data',
 };
 const ORDER = ['card-market-backdrop', 'card-stock-header', 'card-technical-read', 'card-mr-read', 'card-trade-setup', 'card-fundamentals', 'card-breakout'];
 // A6 measures each card's BODY: the text below its title row and subtitle, which carry
@@ -85,6 +91,9 @@ function checkA2(dom) {
   if (full.includes('Position Size:')) found.push('"Position Size:" banner');
   if (/\bVIABLE\b/.test(full)) found.push('VIABLE badge');
   if (full.includes('Stock not recommended')) found.push('"Stock not recommended"');
+  // Day 126: the Simple Checklist (toggle, TRADE/No Trade badge, "N/9 criteria met") is gone.
+  if (full.includes('Simple Checklist')) found.push('"Simple Checklist"');
+  if (/\bcriteria met\b/.test(full)) found.push('"criteria met"');
   const backdrop = (dom.cards || []).find(c => c.id === 'card-market-backdrop');
   if (backdrop && /\b(Favorable|Unfavorable|Neutral)\b/.test(backdrop.text)) found.push('Favorable/Neutral/Unfavorable label');
   const haveInput = Array.isArray(dom.shortTexts) && typeof dom.fullText === 'string' && !!backdrop;
@@ -161,18 +170,6 @@ function checkA6(dom) {
     cards.length === 0 ? 'no cards found' : blank.length ? `blank: ${blank.join(', ')}` : `${cards.length} cards have content`);
 }
 
-function checkA8(dom) {
-  const t = norm(dom.simpleBadge);
-  if (!t) return result('A8', false, '"✅ TRADE" or "⏸️ No Trade" with N/9', 'Simple badge not found');
-  const m = t.match(/^(✅ TRADE|⏸️ No Trade)\s*(\d+)\/(\d+) criteria met$/u);
-  let pass = !!m && !t.includes('PASS');
-  if (m) {
-    const all = Number(m[2]) === Number(m[3]);
-    pass = pass && (m[1] === '✅ TRADE') === all;
-  }
-  return result('A8', pass, '"✅ TRADE" only at N/N, else "⏸️ No Trade"', t);
-}
-
 function checkA9(dom) {
   const narrow = dom.narrow || [];
   const over = narrow.filter(c => c.scrollWidth > c.clientWidth + 1).map(c => `${c.id} ${c.scrollWidth}>${c.clientWidth}`);
@@ -181,11 +178,144 @@ function checkA9(dom) {
     narrow.length === 0 ? 'nothing measured' : over.length ? over.join(', ') : `${narrow.length} cards fit${note}`);
 }
 
+// A10 (Day 126): the Trade Setup's Buy and its Support/Resistance rows must say what /api/sr says
+// (SIMPLE_SR_SWITCH_PLAN_DAY126.md §5). Expected text is built from the payload with the card's own
+// formatter (formatZoneRange, passed in), so a change to either side that makes them disagree fails.
+function checkA10(dom, api, h) {
+  const sr = api.sr;
+  if (!sr || sr.status == null) return result('A10', false, '/api/sr payload', '/api/sr response not captured');
+  const fmt = h && h.formatZoneRange;
+  if (typeof fmt !== 'function') return result('A10', false, 'formatZoneRange helper', 'helper not provided');
+  const rows = dom.levelRows || {};
+  if (sr.status !== 200 || !sr.body) {
+    const shown = dom.planBuy || rows.support || rows.resistance;
+    return result('A10', !shown, 'no Buy price and no level rows when /api/sr failed',
+      shown ? 'page shows a Buy or level rows although /api/sr failed' : `none shown (status ${sr.status})`);
+  }
+  const b = sr.body;
+  const zones = b.meta && b.meta.zones;
+  if (!Array.isArray(zones)) return result('A10', false, '/api/sr meta.zones', 'payload has no meta.zones (old engine format?)');
+  const problems = [];
+  const sup = Array.isArray(b.support) ? b.support.filter(Number.isFinite) : [];
+  const entry = sup.length ? Math.max(...sup) : null;
+  if ((entry === null ? null : entry) !== (b.suggestedEntry == null ? null : b.suggestedEntry)) problems.push(`suggestedEntry ${b.suggestedEntry} != max(support) ${entry}`);
+  if (entry !== null) {
+    const want = `$${entry.toFixed(2)}`;
+    const ts = (dom.cards || []).find(c => c.id === 'card-trade-setup');
+    if (dom.planBuy != null) { if (norm(dom.planBuy) !== want) problems.push(`Buy tile ${norm(dom.planBuy)} != ${want}`); }
+    else if (!ts || !norm(ts.text).includes(want)) problems.push(`Trade Setup does not show Buy ${want}`);
+  } else if (dom.planBuy != null) problems.push('Buy shown but /api/sr has no support');
+  for (const side of ['support', 'resistance']) {
+    const z = zones.find(q => q && q.nearest === true && q.side === side);
+    const text = norm(rows[side]);
+    if (!text) { problems.push(`${side} row not found`); continue; }
+    if (z) {
+      const want = fmt(z.low, z.high);
+      if (!text.includes(want)) problems.push(`${side} row "${text}" lacks ${want}`);
+      const edge = side === 'support' ? z.high : z.low;
+      const api_edge = side === 'support' ? b.suggestedEntry : b.suggestedTarget;
+      if (api_edge !== edge) problems.push(`${side} zone edge ${edge} != ${side === 'support' ? 'suggestedEntry' : 'suggestedTarget'} ${api_edge}`);
+    } else if (!text.includes('None within')) problems.push(`${side} row should say "None within…" (no zone): "${text}"`);
+  }
+  return result('A10', problems.length === 0, 'Buy and Support/Resistance rows equal the /api/sr nearest zones', problems.join('; ') || 'ok');
+}
+
+// A11 (Day 126): the Data Sources tab must say what the backend says, and must never hide a failing data-quality verdict.
+// Expected values come from /api/stock (identity), /api/provenance (source, quality) and /api/health (chains). Known
+// tickers also carry a hard expectation, so a backend regression cannot hide behind a tab that faithfully repeats it:
+// SOXL.NE's cached history is close-only with an unadjusted split and must show FAIL (the bug this tab was rebuilt for).
+const KNOWN_VERDICT = { 'SOXL.NE': 'FAIL' };
+// Day 126: tickers in backend/reference/known_splits.json that providers leave unadjusted: the tab must show STA's split line for them.
+const KNOWN_SPLIT_TEXT = { 'SOXL.NE': '3-for-1 on 2026-05-25' };
+
+function checkA11(dom, api, h) {
+  const ds = dom.ds;
+  if (!ds || ds.present !== true) return result('A11', false, 'Data Sources tab renders', (ds && ds.note) || 'tab did not render');
+  const provOk = ok(api.provenance);
+  const problems = [];
+  if (!provOk) {
+    if (!ds.error) problems.push(`/api/provenance failed (status ${api.provenance && api.provenance.status}) but the tab shows no error and Retry`);
+    return result('A11', problems.length === 0, 'an error with Retry when /api/provenance fails', problems.join('; ') || 'error shown');
+  }
+  const qState = api.provenance.body.quality && api.provenance.body.quality.state;
+  if (ds.error && qState !== 'error') problems.push('tab shows an error although /api/provenance answered');
+  const s = ok(api.stock) ? api.stock.body : null;
+  const label = (h && h.providerLabel) || ((x) => x);
+  if (s) {
+    const want = { exchange: s.exchange || 'unknown', currency: s.currency || 'unknown', cls: s.instrumentClass || 'Unknown' };
+    for (const k of ['exchange', 'currency', 'cls']) if (norm(ds[k]) !== want[k]) problems.push(`${k} "${norm(ds[k])}" != "${want[k]}" (/api/stock)`);
+  } else problems.push('/api/stock not captured, identity cannot be checked');
+  const src = api.provenance.body.ohlcv && api.provenance.body.ohlcv.source;
+  const wantFrom = src && src !== 'unknown' ? label(src) : 'unknown';
+  if (norm(ds.dataFrom) !== wantFrom) problems.push(`data from "${norm(ds.dataFrom)}" != "${wantFrom}" (provenance source)`);
+  const q = api.provenance.body.quality;
+  if (q && q.state === 'ok') {
+    const bad = Object.values(q.checks || {}).filter(c => c.level === 'WARN' || c.level === 'FAIL');
+    if (ds.verdict !== q.level) problems.push(`verdict ${ds.verdict} != backend level ${q.level}`);
+    if ((ds.qualityRows || []).length !== bad.length) problems.push(`${(ds.qualityRows || []).length} quality rows shown, backend has ${bad.length} WARN/FAIL checks`);
+    if (q.level === 'FAIL' && !(ds.qualityRows || []).some(r => r.level === 'FAIL')) problems.push('backend level FAIL but no FAIL row is shown');
+    if (!bad.length && !ds.allPass) problems.push('all checks pass but the tab does not say so');
+  } else if (q && q.state === 'error') {
+    if (!ds.error) problems.push('quality state error but the tab shows no error');
+  } else if (q && q.state === 'not_cached') {
+    if (ds.verdict) problems.push('nothing cached but a verdict is shown');
+  } else problems.push('no quality block in /api/provenance');
+  if (KNOWN_VERDICT[dom.ticker] && ds.verdict !== KNOWN_VERDICT[dom.ticker]) problems.push(`${dom.ticker} must show ${KNOWN_VERDICT[dom.ticker]}, tab shows ${ds.verdict}`);
+  const adjusted = ((q && q.facts && q.facts.splits) || []).filter(x => x.status === 'unadjusted');
+  if ((ds.splitNotes || []).length !== adjusted.length) problems.push(`${(ds.splitNotes || []).length} split notes shown, backend adjusted ${adjusted.length} split(s)`);
+  if (KNOWN_SPLIT_TEXT[dom.ticker] && !(ds.splitNotes || []).some(n => n.includes(KNOWN_SPLIT_TEXT[dom.ticker]))) problems.push(`${dom.ticker} must show the split-adjusted line "${KNOWN_SPLIT_TEXT[dom.ticker]}"`);
+  const chains = ok(api.health) && api.health.body.providers && api.health.body.providers.chains;
+  if (chains && Array.isArray(chains.ohlcv)) {
+    const got = (ds.chainRows || []).filter(r => r.group === 'price').map(r => r.provider);
+    if (got.join() !== chains.ohlcv.join()) problems.push(`price chain "${got.join('>')}" != backend "${chains.ohlcv.join('>')}"`);
+  } else problems.push('/api/health chains not captured');
+  // Day 126: the "how indicators are calculated" table must be the catalog the backend sent: same names, a "From" and a "How" on every row.
+  const want = api.provenance.body.indicators;
+  if (Array.isArray(want)) {
+    const rows = ds.indicatorRows || [];
+    if (rows.length !== want.length) problems.push(`indicator table has ${rows.length} rows, backend sent ${want.length}`);
+    else want.forEach((w, i) => { if (norm(rows[i][0]) !== w.name) problems.push(`indicator row ${i + 1} "${norm(rows[i][0])}" != "${w.name}"`); });
+    if (rows.some(r => !r[1] || !r[2])) problems.push('an indicator row has an empty From or How');
+  } else if (!ds.indicatorsUnavailable) problems.push('backend sent no indicators and the tab does not say so');
+  if ((ds.chainRows || []).some(r => r.provider === 'stooq')) problems.push('Stooq (disabled) is listed in a chain');
+  return result('A11', problems.length === 0, 'tab identity, source, quality verdict and chain equal the backend', problems.join('; ') || `verdict ${ds.verdict || 'none'}, identity and chain match`);
+}
+
+// A12 (Day 126): the "Price vs its 21-day average" ruler shows REAL numbers: the dot carries the page price, the tick marks are the 21, 50 and
+// 200-day averages, and the old verdict wording is gone.
+function checkA12(dom, api) {
+  const t = dom.timing;
+  if (!t) return result('A12', false, 'entry ruler reader', 'page reader did not return timing');
+  const atr = api.sr && api.sr.body && api.sr.body.meta && api.sr.body.meta.atr;
+  const goodAtr = Number.isFinite(atr) && atr > 0;
+  const tr = (dom.cards || []).find(c => c.id === 'card-technical-read');
+  const problems = [];
+  if (tr && /Not yet, |Yes, close to|Yes, a little extended|Is now a good moment/.test(tr.text)) problems.push('old verdict wording is still on the card');
+  // Day 126: the Strong/Developing/Weak headline and its sentence were turned into a plain facts block
+  if (tr && /Strong needs all three|How this read was formed|market leader right now|healthy uptrend and beating the market|boxes are checked/.test(tr.text)) problems.push('the old verdict headline or its wording is still on the Technical Read card');
+  // Day 126: the volume one-word answer (Yes / Mixed / No, sellers lead) became a plain count of the three signals
+  if (tr && /No, sellers lead|No clear lean|No, heavy selling|signals disagree|Are buyers behind the move/.test(tr.text)) problems.push('the old volume verdict wording is still on the Technical Read card');
+  if (tr && !/Trend, momentum and strength against the market/.test(tr.text)) problems.push('the facts block title is missing from the Technical Read card');
+  if (!t.present) {
+    if (!t.unavailable) problems.push('neither the ruler nor a "Can\'t tell" reason is shown');
+    else if (goodAtr && !/200 days/.test(t.unavailable)) problems.push(`"${norm(t.unavailable)}" shown although /api/sr has an ATR`);
+    return result('A12', problems.length === 0, 'ruler, or an honest reason it cannot be drawn', problems.join('; ') || `not drawn: ${norm(t.unavailable)}`);
+  }
+  if (!ok(api.stock)) return result('A12', false, 'stock payload', 'stock response not captured');
+  const price = api.stock.body.currentPrice;
+  if (Number.isFinite(price) && norm(t.price) !== `$${price.toFixed(2)}`) problems.push(`dot price ${norm(t.price)} != page price $${price.toFixed(2)}`);
+  const k = t.ticks || [];
+  if (k.length < 1 || k.length > 3 || k.some(x => !Number.isFinite(x) || !(x > 0))) problems.push(`expected 1 to 3 ruler marks that are positive prices, found ${k.length}`);
+  else if (k.some((x, i) => i > 0 && x < k[i - 1])) problems.push('ruler marks are not in price order');
+  if (!goodAtr) problems.push('ruler drawn although /api/sr has no ATR');
+  return result('A12', problems.length === 0, 'dot = page price, marks = 21/50/200-day averages, no verdict wording', problems.join('; ') || `dot ${norm(t.price)}, marks ${k.map(x => x.toFixed(2)).join(' / ')}`);
+}
+
 function runChecks(dom, api, helpers) {
   const d = dom || {};
   const a = api || {};
   if (d.error) return CHECK_IDS.map(id => result(id, false, 'analysis loads', `error banner: ${norm(d.error).slice(0, 120)}`));
-  const fns = { A1: checkA1, A2: checkA2, A3: checkA3, A4: checkA4, A5: checkA5, A6: checkA6, A8: checkA8, A9: checkA9 };
+  const fns = { A1: checkA1, A2: checkA2, A3: checkA3, A4: checkA4, A5: checkA5, A6: checkA6, A9: checkA9, A10: checkA10, A11: checkA11, A12: checkA12 };
   return CHECK_IDS.map(id => {
     try { return fns[id](d, a, helpers || {}); }
     catch (err) { return result(id, false, 'check runs', `check threw: ${err.message}`); }

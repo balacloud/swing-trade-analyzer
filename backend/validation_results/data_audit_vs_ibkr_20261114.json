@@ -1,0 +1,934 @@
+[
+ {
+  "symbol": "JPM",
+  "class": "US stock",
+  "conid": 1520593,
+  "ibkr": "JPMORGAN CHASE & CO",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x2.09"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x2.09"
+    }
+   },
+   "tradier": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume tradier/IBKR x2.09"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "CAT",
+  "class": "US stock",
+  "conid": 5437,
+  "ibkr": "CATERPILLAR INC",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.68"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.68"
+    }
+   },
+   "tradier": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume tradier/IBKR x1.68"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "BRK-B",
+  "class": "US stock",
+  "conid": 72063691,
+  "ibkr": "BERKSHIRE HATHAWAY INC-CL B",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.80"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.80"
+    }
+   },
+   "tradier": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume tradier/IBKR x1.80"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "SMH",
+  "class": "US ETF",
+  "conid": 229725622,
+  "ibkr": "VANECK SEMICONDUCTOR ETF",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.45"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.45"
+    }
+   },
+   "tradier": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume tradier/IBKR x1.45"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "SOXX",
+  "class": "US ETF",
+  "conid": 12658194,
+  "ibkr": "ISHARES SEMICONDUCTOR ETF",
+  "ibkr_splits": [
+   {
+    "date": "2026-11-05",
+    "value": 3.0
+   }
+  ],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-11-05 x3"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.40"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-11-05 x3"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.40"
+    }
+   },
+   "tradier": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-11-05 x3"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume tradier/IBKR x1.40"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "GDX",
+  "class": "US ETF",
+  "conid": 229726316,
+  "ibkr": "VANECK GOLD MINERS ETF",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.68"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.68"
+    }
+   },
+   "tradier": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume tradier/IBKR x1.68"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "DRAL",
+  "class": "US leveraged",
+  "conid": 895506712,
+  "ibkr": "DEF DLY TGT 2X LG DRAM ETF",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.15"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.15"
+    }
+   },
+   "tradier": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume tradier/IBKR x1.16"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "SPCL",
+  "class": "US leveraged",
+  "conid": 871422657,
+  "ibkr": "DEFIANC DAILY 2X SPC ETF-USD",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.62"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.62"
+    }
+   },
+   "tradier": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.02% over the 4 settled days; last day 0.04% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume tradier/IBKR x1.64"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "UBOT",
+  "class": "US leveraged",
+  "conid": 416854785,
+  "ibkr": "DD RA INT & AUTO IB 2X ETF-U",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.21"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.21"
+    }
+   },
+   "tradier": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume tradier/IBKR x1.21"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "QPUX",
+  "class": "US leveraged",
+  "conid": 866508540,
+  "ibkr": "DFINC 2X D LNG PURE QUNT ETF",
+  "ibkr_splits": [
+   {
+    "date": "2026-03-23",
+    "value": 0.333333
+   }
+  ],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.03% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-03-23 x0.333333"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.18"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.03% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-03-23 x0.333333"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.18"
+    }
+   },
+   "tradier": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.03% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "FAIL",
+     "note": "2025-11: tradier 178.83 vs IBKR 59.61 (x3.00) | IBKR splits in range: 2026-03-23 x0.333333"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume tradier/IBKR x1.19"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "RY.TO",
+  "class": "CA stock",
+  "conid": 4458964,
+  "ibkr": "ROYAL BANK OF CANADA (CAD)",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x3.01"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "CNR.TO",
+  "class": "CA stock",
+  "conid": 4458894,
+  "ibkr": "CANADIAN NATL RAILWAY CO (CAD)",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.83"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "ATD.TO",
+  "class": "CA stock",
+  "conid": 583257700,
+  "ibkr": "ALIMENTATION COUCHE-TARD INC (CAD)",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.27"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "CSU.TO",
+  "class": "CA stock",
+  "conid": 39194759,
+  "ibkr": "CONSTELLATION SOFTWARE INC (CAD)",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.38"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "SOXL.NE",
+  "class": "CA leveraged",
+  "conid": 805995437,
+  "ibkr": "BETAPRO 3X SC DAILY LEV BA (CAD)",
+  "ibkr_splits": [
+   {
+    "date": "2026-05-25",
+    "value": 3.0
+   }
+  ],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "WARN",
+     "note": "max close diff 0.34% over the 4 settled days; last day 4.22% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "raw yfinance: 2025-11: yfinance 31.81 vs IBKR 10.54 (x3.02); after STA split adjustment (3-for-1 on 2026-05-25): month-end levels match IBKR | IBKR splits in range: 2026-05-25 x3"
+    },
+    "C7": {
+     "level": "FAIL",
+     "note": "source volume is zero"
+    }
+   },
+   "eodhd": {
+    "C3": {
+     "level": "WARN",
+     "note": "max close diff 0.34% over the 4 settled days; last day 4.40% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "raw eodhd: 2025-11: eodhd 31.81 vs IBKR 10.54 (x3.02); after STA split adjustment (3-for-1 on 2026-05-25): month-end levels match IBKR | IBKR splits in range: 2026-05-25 x3"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume eodhd/IBKR x0.95"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "XEQT.TO",
+  "class": "CA ETF",
+  "conid": 378605923,
+  "ibkr": "ISHARES CORE EQUITY ETF PORT (CAD)",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.88"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "VFV.TO",
+  "class": "CA ETF",
+  "conid": 116763367,
+  "ibkr": "VANGUARD S&P 500 INDEX ETF (CAD)",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.86"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "HXQ.TO",
+  "class": "CA ETF",
+  "conid": 700079680,
+  "ibkr": "GLOBAL X NASDAQ-100 INDEX (CAD)",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "WARN",
+     "note": "volume yfinance/IBKR x0.78"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "XCHP.TO",
+  "class": "CA ETF",
+  "conid": 653041476,
+  "ibkr": "ISHARES SEMICONDUCTOR ETF (CAD)",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.83"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "GDXU.TO",
+  "class": "CA leveraged",
+  "conid": 393460407,
+  "ibkr": "BETAPRO CANADIAN GOLD MINERS (CAD)",
+  "ibkr_splits": [
+   {
+    "date": "2026-05-25",
+    "value": 3.0
+   }
+  ],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-05-25 x3"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.86"
+    }
+   },
+   "eodhd": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-05-25 x3"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume eodhd/IBKR x0.86"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "AMD.TO",
+  "class": "CDR",
+  "conid": 530091921,
+  "ibkr": "ADVANCED MICRO DEVICES CDR (CAD)",
+  "ibkr_splits": [
+   {
+    "date": "2026-10-16",
+    "value": 7.0
+   }
+  ],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-10-16 x7"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.94"
+    }
+   },
+   "eodhd": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-10-16 x7"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume eodhd/IBKR x0.94"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "AVGO.TO",
+  "class": "CDR",
+  "conid": 655603356,
+  "ibkr": "BROADCOM INC-CDR (CAD)",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "2025-11: no data"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.92"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "MU.TO",
+  "class": "CDR",
+  "conid": 729376050,
+  "ibkr": "MICRON TECHNOLOGY CDR (CAD)",
+  "ibkr_splits": [
+   {
+    "date": "2026-03-10",
+    "value": 5.0
+   }
+  ],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-03-10 x5"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.93"
+    }
+   },
+   "eodhd": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-03-10 x5"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume eodhd/IBKR x0.93"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "SNDK.TO",
+  "class": "CDR",
+  "conid": 881153038,
+  "ibkr": "SANDISK CORP CDR (CAD)",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.94"
+    }
+   },
+   "eodhd": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume eodhd/IBKR x0.94"
+    }
+   }
+  }
+ }
+]

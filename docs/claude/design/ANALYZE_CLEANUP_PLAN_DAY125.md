@@ -48,6 +48,8 @@ volume).
 - `fundamentalsRead.js` `SOURCE_FIELDS`: drop `pe` so "fields reported" counts don't mention P/E.
 
 ### 3.2 Support/resistance in Trade Setup (D2, D3)
+> **Superseded Day 126** by `SIMPLE_SR_SWITCH_PLAN_DAY126.md`: the engine was replaced ("display only, engine unchanged" below no longer holds), the ★ weekly was dropped, and rows read `meta.zones`.
+
 Replace the S1..Sn / R1..Rn lists (`App.jsx` ~1325–1432) with a new small component
 `KeyLevels.jsx` and a pure helper `utils/keyLevels.js`:
 

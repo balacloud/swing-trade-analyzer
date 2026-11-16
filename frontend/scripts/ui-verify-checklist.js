@@ -8,7 +8,9 @@
  * runs the pure checks in scripts/lib/analyzeChecks.js:
  *   A1 card order (backdrop first)      A5 earnings badge + wording
  *   A2 removed elements absent          A6 no blank cards
- *   A3 backdrop equals the API payload  A8 Simple view badge (TRADE / No Trade, N/9)
+ *   A3 backdrop equals the API payload  (A8 Simple view badge: removed Day 126 with the checklist)
+ *   A10 Buy and level rows equal /api/sr    A11 Data Sources tab equals /api/provenance, /api/stock, /api/health
+ *   A12 Entry ruler: dot price = page price, tick spacing = the Trade Setup ATR, no verdict words
  *   A4 classification (ETF, no Unknown) A9 cards fit at 390px
  * (A7 "data source shown" dropped: the app header shows it on every tab, so it
  * could never fail.) Unit tests for the checks: scripts/test_analyze_checks.mjs.
@@ -79,6 +81,9 @@ function captureKey(url, ticker) {
   if (p === '/api/market/vix') return 'vix';
   if (p === `/api/stock/${ticker}`) return 'stock';
   if (p === `/api/earnings/${ticker}`) return 'earnings'; // query string (?days=N) ignored
+  if (p === `/api/sr/${ticker}`) return 'sr'; // Day 126: A10 compares the plan and level rows to this payload
+  if (p === `/api/provenance/${ticker}`) return 'provenance'; // Day 126: A11 compares the Data Sources tab to it
+  if (p === '/api/health') return 'health';                   // Day 126: A11 compares the source chain to providers.chains
   return null;
 }
 
@@ -88,7 +93,6 @@ async function extractDom(page) {
     const text = (el) => (el ? el.textContent : null);
     const err = q('analysis-error');
     const cards = [...document.querySelectorAll('[data-testid^="card-"]')]
-      .filter(el => el.dataset.testid !== 'card-simple-verdict')
       .map(el => {
         // Body = card text minus its title row/subtitle (marked data-card-head in the app).
         const marked = el.querySelector('[data-card-head]') !== null || el.dataset.testid === 'card-stock-header';
@@ -119,31 +123,52 @@ async function extractDom(page) {
       shortTexts,
       fullText: document.body.textContent,
       earningsBadge: !!q('earnings-badge'),
+      timing: (() => {
+        const r = q('timing-ruler');
+        return {
+          present: !!r,
+          unavailable: text(q('timing-unavailable')),
+          price: text(q('timing-price')),
+          ticks: [...document.querySelectorAll('[data-testid="timing-tick"]')].map(t => parseFloat(t.dataset.price)),
+        };
+      })(),
+      planBuy: text(q('plan-buy-value')),
+      levelRows: { support: text(q('key-level-support')), resistance: text(q('key-level-resistance')) },
       backdrop: { rows, vix: text(backdropCard && backdropCard.querySelector('[data-testid="backdrop-vix"]')) },
     };
   });
 }
 
-async function clickButtonExact(page, label) {
-  return page.evaluate((lbl) => {
-    const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === lbl);
+// Day 126 (A11): open the Data Sources tab and read what it shows.
+async function readDataSources(page) {
+  const opened = await page.evaluate(() => {
+    const b = [...document.querySelectorAll('button')].find(x => x.textContent.includes('Data Sources'));
     if (b) { b.click(); return true; }
     return false;
-  }, label);
-}
-
-async function readSimpleBadge(page) {
-  if (!(await clickButtonExact(page, '✅ Simple Checklist (9 criteria)'))) return { badge: null, note: 'Simple toggle not found' };
+  });
+  if (!opened) return { present: false, note: 'Data Sources tab button not found' };
   try {
-    await page.waitForSelector('[data-testid="card-simple-verdict"]', { timeout: 5000 });
-  } catch {
-    await clickButtonExact(page, 'Full Analysis');
-    return { badge: null, note: 'Simple badge did not render' };
-  }
-  const badge = await page.$eval('[data-testid="card-simple-verdict"]', el => el.textContent);
-  await clickButtonExact(page, 'Full Analysis');
-  await page.waitForSelector('[data-testid="card-technical-read"]', { timeout: 5000 });
-  return { badge, note: null };
+    await page.waitForSelector('[data-testid="data-sources-tab"]', { timeout: 8000 });
+    await page.waitForNetworkIdle({ idleTime: 800, timeout: SETTLE_TIMEOUT });
+  } catch { /* read whatever rendered */ }
+  await new Promise(r => setTimeout(r, 500));
+  return page.evaluate(() => {
+    const q = (s) => document.querySelector(`[data-testid="${s}"]`);
+    const t = (el) => (el ? el.textContent.trim() : null);
+    const v = q('ds-quality-verdict');
+    return {
+      present: !!q('data-sources-tab'),
+      error: !!q('ds-error'),
+      symbol: t(q('ds-symbol')), exchange: t(q('ds-exchange')), currency: t(q('ds-currency')), cls: t(q('ds-class')), dataFrom: t(q('ds-datafrom')),
+      verdict: v ? v.dataset.level : null,
+      qualityRows: [...document.querySelectorAll('[data-testid="ds-quality-row"]')].map(r => ({ level: r.dataset.level, text: r.textContent.trim() })),
+      allPass: !!q('ds-quality-allpass'),
+      splitNotes: [...document.querySelectorAll('[data-testid="ds-split-note"]')].map(e => e.textContent.trim()),
+      indicatorRows: [...document.querySelectorAll('[data-testid="ds-indicators"] tbody tr')].map(r => [...r.children].map(td => td.textContent.trim())),
+      indicatorsUnavailable: !!q('ds-indicators-unavailable'),
+      chainRows: [...document.querySelectorAll('[data-testid="ds-chain-row"]')].map(r => ({ group: r.dataset.group, provider: r.dataset.provider })),
+    };
+  });
 }
 
 async function measureNarrow(page) {
@@ -151,7 +176,6 @@ async function measureNarrow(page) {
   await new Promise(r => setTimeout(r, 600));
   const m = await page.evaluate(() => ({
     narrow: [...document.querySelectorAll('[data-testid^="card-"]')]
-      .filter(el => el.dataset.testid !== 'card-simple-verdict')
       .map(el => ({ id: el.dataset.testid, scrollWidth: el.scrollWidth, clientWidth: el.clientWidth })),
     pageOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
   }));
@@ -164,7 +188,8 @@ async function verifyTicker(page, ticker, index, total, helpers) {
   const label = `[${index}/${total}] ${ticker}`;
   console.log(`\n${label}: analyzing...`);
   const api = { spy: { status: null, body: null }, qqq: { status: null, body: null }, vix: { status: null, body: null },
-    stock: { status: null, body: null }, earnings: { status: null, body: null } };
+    stock: { status: null, body: null }, earnings: { status: null, body: null }, sr: { status: null, body: null },
+    provenance: { status: null, body: null }, health: { status: null, body: null } };
   let recording = false;
   const pending = [];
   const onResponse = (res) => {
@@ -196,11 +221,11 @@ async function verifyTicker(page, ticker, index, total, helpers) {
     await Promise.all(pending);
 
     const dom = await extractDom(page);
+    dom.ticker = ticker;
     if (!dom.error) {
-      const simple = await readSimpleBadge(page);
-      dom.simpleBadge = simple.badge;
-      if (simple.note) console.warn(`  ${ticker}: ${simple.note}`);
       Object.assign(dom, await measureNarrow(page));
+      dom.ds = await readDataSources(page);   // after the narrow measure: it leaves the Analyze tab
+      await Promise.all(pending);
     }
     recording = false;
 
@@ -264,13 +289,15 @@ async function main() {
 
   // Same formatters/describer the card uses (GR59); ESM, so dynamic import.
   const mb = await import(path.resolve(__dirname, '../src/utils/marketBackdrop.js'));
-  const helpers = { describeMarketBackdrop: mb.describeMarketBackdrop, fmtPct: mb.fmtPct, fmtDate: mb.fmtDate };
+  const kl = await import(path.resolve(__dirname, '../src/utils/keyLevels.js'));
+  const dsv = await import(path.resolve(__dirname, '../src/utils/dataSourcesView.js'));
+  const helpers = { describeMarketBackdrop: mb.describeMarketBackdrop, fmtPct: mb.fmtPct, fmtDate: mb.fmtDate, formatZoneRange: kl.formatZoneRange, providerLabel: dsv.providerLabel };
 
   let outputDir = path.resolve(__dirname, '../../docs/test', `UI_Verify_${stamp()}`);
   for (let n = 2; fs.existsSync(outputDir); n++) outputDir = outputDir.replace(/(_\d+)?$/, `_${n}`);
   fs.mkdirSync(outputDir, { recursive: true });
 
-  const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] });
+  const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
   const results = [];
   try {
     const page = await browser.newPage();

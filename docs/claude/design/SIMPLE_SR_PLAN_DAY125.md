@@ -51,6 +51,8 @@ disk for `backtest_holistic.py` and the discontinued `paper_trading/live_signals
 (Golden Rule 54: they keep importing `compute_sr_levels`, unchanged).
 
 ## 3. Callers (Golden Rule 59 — what changes when the numbers change)
+> **Day 126:** the Simple Checklist below was removed (`REMOVE_SIMPLE_CHECKLIST_PLAN_DAY126.md`). The switch now changes Trade Setup only (KeyLevels, PullbackPlan); nothing grades the levels.
+
 - **Simple Checklist** (`simplifiedScoring.js`): criterion 3 (entry near support, cap-aware max
   stop %) and criterion 4 (R:R from `riskReward`) read `/api/sr`. **The TRADE / No Trade verdict can
   flip.** Not part of the 86,400 verdict-parity grid (that is the categorical engine), so parity
@@ -130,3 +132,36 @@ Also from the threads: a touch alone is not a trade signal ("observe what actual
 areas"). That fits STA's stance that levels are a description, never a buy. The 50-day SMA is common
 context, and the Technical Read already shows it. Evidence is light (one summary, no thread links),
 but it is consistent with the books and with the plan.
+
+## 10. Build notes (Day 126) — Part A built, switch NOT flipped
+
+**Built:** `backend/simple_sr.py` (engine), `backend/sr_plan.py` (one `trade_plan()` +
+`legacy_actionable()` for the route and the table, §8 #5), `backend/backtest/test_simple_sr.py`
+(44 checks; four deliberate breaks of the engine all caught), `backend/backtest/compare_sr_engines.py`.
+`/api/sr` has the switch: `constants.SR_ENGINE = 'legacy'` (unchanged default) and a per-request
+`?engine=simple|legacy` preview. The legacy response was diffed before/after on AAPL/NVDA/RIVN/JPM:
+identical (SMH differed only because its cached prices were re-downloaded from another provider
+mid-check; two post-change calls agree). Parity 86,400/86,400.
+
+**Deviations from §8:** chain test asserts ≥2 zones, not ≥3. With gap 0.4 ATR and the 1 ATR width
+cap, 6 swings make exactly 2 zones (0/0.4/0.8 | 1.2/1.6/2.0); the cap is what's tested. The
+"weak" label is gone (§9). **Frontend rewrite (§8 #2, #6, #15) deferred** until the user decides the
+switch: the old engine stays live, so `KeyLevels`/`PullbackPlan` still read the old fields.
+
+**Comparison, 30 stocks (`SIMPLE_SR_COMPARISON_DAY126.md`; review page
+https://claude.ai/artifact/UN9WP4ahzrc1T72JSjuNKn):** check #3 old 18 / new 19 (AMZN); check #4
+(R:R ≥ 2) old 6 / new **0**; made-up projected levels old 3 / new 0; nearest-zone width median
+0.86% of price.
+
+**Finding 1 — R:R ≥ 2 is structurally out of reach on the new engine.** Stop = buy − 2 ATR, so
+R:R 2 needs the target ≥ 4 ATR above the buy; the nearest resistance sits a median 1.1 ATR
+above (max 3.2). The old engine's 6 passes came from projected targets (AAPL, KO, LLY) or a
+support deeper than the nearest (SMH, COST, XOM). The Simple Checklist needs 9/9 for TRADE, so
+after the switch it would almost never say TRADE. Same shape as the Day 95 R:R-cap finding.
+**Finding 2 — ★ weekly carries almost no information:** 89% of nearest zones get it, and still
+89% with zero tolerance (weekly swing must be inside the zone). Nearest daily swings are nearly
+always 5-week extremes too.
+**Side finding:** the OHLCV cache treats every 501-row 2-year history as a miss ("need 504+"),
+so many tickers re-download on every request and trip rate limits. Also: the first table run's
+yfinance market-cap lookup returned None for all 30 without raising; fixed to one TradingView
+query with every miss printed.

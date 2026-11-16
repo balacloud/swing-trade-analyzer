@@ -1,6 +1,9 @@
 """
 Backtest Simplified Binary System
 =================================
+HISTORICAL (Day 126): the live Simple Checklist this mirrored (frontend
+simplifiedScoring.js) was removed. Kept as a record; no live copy left to match.
+
 Day 27: Testing the research-backed minimalist approach
 
 Hypothesis: Stocks meeting ALL 4 binary criteria achieve better results

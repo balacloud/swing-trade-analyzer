@@ -1,0 +1,341 @@
+{
+ "tickers": {
+  "JPM": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "PASS",
+    "line": ""
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  },
+  "CAT": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "WARN",
+    "line": "C4: tradier: flat zero-volume 0%; bad OHLC rows 1; zero-volume in last 5: 0"
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  },
+  "BRK-B": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "WARN",
+    "line": "C8: tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain ma\u2026"
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  },
+  "SMH": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "PASS",
+    "line": ""
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  },
+  "SOXX": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "PASS",
+    "line": ""
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  },
+  "GDX": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "WARN",
+    "line": "C4: tradier: flat zero-volume 0%; bad OHLC rows 1; zero-volume in last 5: 0"
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  },
+  "QPUX": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "FAIL",
+    "line": "C5: tradier: 2026-03-20 -69%: ONLY here; twelvedata,yfinance are continuous -> tradier has a split error"
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "FAIL",
+    "line": "tradier C5: 2025-11: tradier 178.83 vs IBKR 59.61 (x3.00)"
+   }
+  },
+  "DRAL": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "WARN",
+    "line": "C6: twelvedata: 100 bars from 2026-06-25"
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  },
+  "SPCL": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "WARN",
+    "line": "C5: twelvedata: 2026-06-12 +57%: also in yfinance,tradier (real move, or unadjusted everywhere: needs IBKR)"
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  },
+  "UBOT": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "WARN",
+    "line": "C4: tradier: flat zero-volume 0%; bad OHLC rows 1; zero-volume in last 5: 0"
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  },
+  "RY.TO": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "PASS",
+    "line": ""
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  },
+  "CNR.TO": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "PASS",
+    "line": ""
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  },
+  "ATD.TO": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "PASS",
+    "line": ""
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  },
+  "CSU.TO": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "PASS",
+    "line": ""
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  },
+  "XEQT.TO": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "PASS",
+    "line": ""
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  },
+  "VFV.TO": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "PASS",
+    "line": ""
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  },
+  "HXQ.TO": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "PASS",
+    "line": ""
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "WARN",
+    "line": "yfinance C7: volume yfinance/IBKR x0.78"
+   }
+  },
+  "XCHP.TO": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "PASS",
+    "line": ""
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  },
+  "GDXU.TO": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "PASS",
+    "line": ""
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  },
+  "SOXL.NE": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "FAIL",
+    "line": "C4: yfinance: flat zero-volume 100%; bad OHLC rows 0; zero-volume in last 5: 5"
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "FAIL",
+    "line": "yfinance C7: source volume is zero"
+   }
+  },
+  "AMD.TO": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "PASS",
+    "line": ""
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  },
+  "AVGO.TO": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "WARN",
+    "line": "C6: yfinance: 225 bars from 2025-12-22"
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  },
+  "MU.TO": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "PASS",
+    "line": ""
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  },
+  "SNDK.TO": {
+   "truth_free": {
+    "date": "2026-11-14",
+    "report": "docs/test/DataSources_20261114/REPORT.md",
+    "level": "WARN",
+    "line": "C6: yfinance: 131 bars from 2026-05-08"
+   },
+   "vs_ibkr": {
+    "date": "2026-11-15",
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "level": "PASS",
+    "line": ""
+   }
+  }
+ },
+ "updated": "2026-11-15T07:43"
+}

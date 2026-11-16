@@ -204,7 +204,7 @@ export function getObvHorizonRead(obv) {
  * Non-gating, per this file's standing contract: no color, no className, no
  * boolean, no score. `state` is a descriptive string for copy selection and
  * test assertions only, never a pass/fail. No code path from here reaches
- * the verdict, the score, or the Simple Checklist.
+ * the verdict or the score.
  *
  * @param {object}   args
  * @param {?number}  args.rvol          - relative volume for the bar described

@@ -175,6 +175,67 @@ def _period_to_min_rows(period: str) -> int:
     return 252  # conservative default for an unrecognized period string
 
 
+def deserialize_ohlcv(data_json: str) -> pd.DataFrame:
+    """The ONE place a cached OHLCV JSON blob becomes a DataFrame (Day 126, Golden Rule 59: it was
+    copied in get_cached_ohlcv and in the orchestrator's stale-cache fallback)."""
+    data_dict = json.loads(data_json)
+    df = pd.DataFrame.from_dict(data_dict, orient='index')
+    df.index = pd.to_datetime(df.index)
+    df = df.sort_index()
+    df.columns = [c.lower() for c in df.columns]   # lowercase OHLCV columns
+    return df
+
+
+def read_ohlcv_entry(ticker: str):
+    """Read what is cached for `ticker`, with NO side effects (Day 126, Data Sources tab).
+
+    Unlike get_cached_ohlcv() this applies no expiry gate and no minimum-rows gate (so a 100-bar new fund or a
+    311-bar fund is still visible), writes no cache_stats events (so the tab does not skew hit_rate_24h) and
+    never deletes. Returns (DataFrame, meta) or (None, None) when nothing is cached.
+    meta: {period, rows, source, cached_at, expires_at, expired}. Raises on a database error; callers log it.
+    """
+    ticker = ticker.upper()
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT data, period, rows, source, cached_at, expires_at
+            FROM ohlcv_cache WHERE ticker = ?
+        """, (ticker,))
+        row = cursor.fetchone()
+        if not row:
+            return None, None
+        expired = datetime.now(ET) >= datetime.fromisoformat(row['expires_at'])
+        meta = {'period': row['period'], 'rows': row['rows'], 'source': row['source'],
+                'cached_at': row['cached_at'], 'expires_at': row['expires_at'], 'expired': expired}
+        return deserialize_ohlcv(row['data']), meta
+    finally:
+        conn.close()
+
+
+def read_fundamentals_entry(ticker: str):
+    """Read cached fundamentals with NO side effects (no schema-mismatch delete, no events).
+    Returns (dict, meta) or (None, None). meta: {source, cached_at, expires_at, expired, schema_version, schema_ok}."""
+    ticker = ticker.upper()
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT data, source, cached_at, expires_at, schema_version
+            FROM fundamentals_cache WHERE ticker = ?
+        """, (ticker,))
+        row = cursor.fetchone()
+        if not row:
+            return None, None
+        version = row['schema_version'] if 'schema_version' in row.keys() else 1
+        meta = {'source': row['source'], 'cached_at': row['cached_at'], 'expires_at': row['expires_at'],
+                'expired': datetime.now(ET) >= datetime.fromisoformat(row['expires_at']),
+                'schema_version': version, 'schema_ok': version == FUNDAMENTALS_SCHEMA_VERSION}
+        return json.loads(row['data']), meta
+    finally:
+        conn.close()
+
+
 def get_cached_ohlcv(ticker: str, period: str = '2y') -> Optional[pd.DataFrame]:
     """
     Get OHLCV data from cache if not expired AND it covers at least as much
@@ -212,14 +273,8 @@ def get_cached_ohlcv(ticker: str, period: str = '2y') -> Optional[pd.DataFrame]:
                   f"for period={period} — treating as miss, not serving a shorter history")
             return None
 
-        # Cache hit - deserialize
-        data_dict = json.loads(row['data'])
-        df = pd.DataFrame.from_dict(data_dict, orient='index')
-        df.index = pd.to_datetime(df.index)
-        df = df.sort_index()
-
-        # Ensure correct column names (lowercase)
-        df.columns = [c.lower() for c in df.columns]
+        # Cache hit - deserialize (shared deserializer, Day 126)
+        df = deserialize_ohlcv(row['data'])
 
         age_hours = (now - datetime.fromisoformat(row['cached_at']).replace(tzinfo=ET)).total_seconds() / 3600
         print(f"📦 OHLCV cache HIT for {ticker} ({row['rows']} rows, {age_hours:.1f}h old)")

@@ -1,0 +1,2647 @@
+{
+ "generated": "2026-11-14 06:34",
+ "tolerance": 0.12,
+ "rows": [
+  {
+   "ibkr_symbol": "CAT",
+   "description": "CATERPILLAR INC",
+   "lists": [
+    "Quality_US_Canada"
+   ],
+   "ibkr_price": 596.12,
+   "status": "MATCHED",
+   "sta_symbol": "CAT",
+   "listing": "US",
+   "exchange": "NYQ",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 600.2000122070312,
+   "price_diff_pct": 0.7,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "CAT",
+     "listing": "US",
+     "close": 600.2000122070312,
+     "err": 0.006844280022531013
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "BRK B",
+   "description": "BERKSHIRE HATHAWAY INC-CL B",
+   "lists": [
+    "Quality_US_Canada"
+   ],
+   "ibkr_price": 592.3,
+   "status": "MATCHED",
+   "sta_symbol": "BRK-B",
+   "listing": "US",
+   "exchange": "NYQ",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 592.9400024414062,
+   "price_diff_pct": 0.1,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "BRK-B",
+     "listing": "US",
+     "close": 592.9400024414062,
+     "err": 0.0010805376353306695
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "GOOGL",
+   "description": "ALPHABET INC-CL A",
+   "lists": [
+    "Quality_US_Canada"
+   ],
+   "ibkr_price": 294.05,
+   "status": "MATCHED",
+   "sta_symbol": "GOOGL",
+   "listing": "US",
+   "exchange": "NMS",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 295.7699890136719,
+   "price_diff_pct": 0.6,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "GOOGL",
+     "listing": "US",
+     "close": 295.7699890136719,
+     "err": 0.005849307987321417
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "JPM",
+   "description": "JPMORGAN CHASE & CO",
+   "lists": [
+    "Quality_US_Canada"
+   ],
+   "ibkr_price": 344.79,
+   "status": "MATCHED",
+   "sta_symbol": "JPM",
+   "listing": "US",
+   "exchange": "NYQ",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 346.19000244140625,
+   "price_diff_pct": 0.4,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "JPM",
+     "listing": "US",
+     "close": 346.19000244140625,
+     "err": 0.0040604496690919145
+    },
+    {
+     "yahoo": "JPM.TO",
+     "listing": "TSX",
+     "close": 43.88999938964844,
+     "err": 0.872705126628822
+    },
+    {
+     "yahoo": "JPM.NE",
+     "listing": "Cboe Canada",
+     "close": 43.709999084472656,
+     "err": 0.8732271844181309
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "JNJ",
+   "description": "JOHNSON & JOHNSON",
+   "lists": [
+    "Quality_US_Canada"
+   ],
+   "ibkr_price": 286.67,
+   "status": "MATCHED",
+   "sta_symbol": "JNJ",
+   "listing": "US",
+   "exchange": "NYQ",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 285.75,
+   "price_diff_pct": 0.3,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "JNJ",
+     "listing": "US",
+     "close": 285.75,
+     "err": 0.003209265008546458
+    },
+    {
+     "yahoo": "JNJ.TO",
+     "listing": "TSX",
+     "close": 36.36000061035156,
+     "err": 0.8731642634026875
+    },
+    {
+     "yahoo": "JNJ.NE",
+     "listing": "Cboe Canada",
+     "close": 36.43000030517578,
+     "err": 0.8729200812600698
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "RY",
+   "description": "ROYAL BANK OF CANADA",
+   "lists": [
+    "Quality_US_Canada"
+   ],
+   "ibkr_price": 288.37,
+   "status": "MATCHED",
+   "sta_symbol": "RY.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 288.3699951171875,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "RY.NE"
+   ],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "RY",
+     "listing": "US",
+     "close": 202.30999755859375,
+     "err": 0.298436045501981
+    },
+    {
+     "yahoo": "RY.TO",
+     "listing": "TSX",
+     "close": 288.3699951171875,
+     "err": 1.6932456547991137e-08
+    },
+    {
+     "yahoo": "RY.NE",
+     "listing": "Cboe Canada",
+     "close": 288.44000244140625,
+     "err": 0.00024275216356151041
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "CNR",
+   "description": "CANADIAN NATL RAILWAY CO",
+   "lists": [
+    "Quality_US_Canada"
+   ],
+   "ibkr_price": 181.29,
+   "status": "MATCHED",
+   "sta_symbol": "CNR.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 181.2899932861328,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "CNR.NE"
+   ],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "CNR",
+     "listing": "US",
+     "close": 86.20999908447266,
+     "err": 0.5244635717112215
+    },
+    {
+     "yahoo": "CNR.TO",
+     "listing": "TSX",
+     "close": 181.2899932861328,
+     "err": 3.703385287323613e-08
+    },
+    {
+     "yahoo": "CNR.NE",
+     "listing": "Cboe Canada",
+     "close": 181.38999938964844,
+     "err": 0.000551599038272732
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "ATD",
+   "description": "ALIMENTATION COUCHE-TARD INC",
+   "lists": [
+    "Quality_US_Canada"
+   ],
+   "ibkr_price": 82.85,
+   "status": "MATCHED",
+   "sta_symbol": "ATD.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 82.8499984741211,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "ATD.NE"
+   ],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "ATD.TO",
+     "listing": "TSX",
+     "close": 82.8499984741211,
+     "err": 1.841736751995171e-08
+    },
+    {
+     "yahoo": "ATD.NE",
+     "listing": "Cboe Canada",
+     "close": 82.94000244140625,
+     "err": 0.0010863300109384966
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "CNQ",
+   "description": "CANADIAN NATURAL RESOURCES",
+   "lists": [
+    "Quality_US_Canada"
+   ],
+   "ibkr_price": 70.91,
+   "status": "MATCHED",
+   "sta_symbol": "CNQ.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 70.91000366210938,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "CNQ.NE"
+   ],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "CNQ",
+     "listing": "US",
+     "close": 49.75,
+     "err": 0.2984064306867861
+    },
+    {
+     "yahoo": "CNQ.TO",
+     "listing": "TSX",
+     "close": 70.91000366210938,
+     "err": 5.1644470255851616e-08
+    },
+    {
+     "yahoo": "CNQ.NE",
+     "listing": "Cboe Canada",
+     "close": 70.94999694824219,
+     "err": 0.0005640522950527416
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "CSU",
+   "description": "CONSTELLATION SOFTWARE INC",
+   "lists": [
+    "Quality_US_Canada"
+   ],
+   "ibkr_price": 3492.29,
+   "status": "MATCHED",
+   "sta_symbol": "CSU.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 3492.2900390625,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "CSU.NE"
+   ],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "CSU.TO",
+     "listing": "TSX",
+     "close": 3492.2900390625,
+     "err": 1.118535397637288e-08
+    },
+    {
+     "yahoo": "CSU.NE",
+     "listing": "Cboe Canada",
+     "close": 3493.449951171875,
+     "err": 0.00033214629136613105
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "HXQ",
+   "description": "GLOBAL X NASDAQ-100 INDE-CAD",
+   "lists": [
+    "Long_Term_Quality_ETFs"
+   ],
+   "ibkr_price": 114.73,
+   "status": "MATCHED",
+   "sta_symbol": "HXQ.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 114.7300033569336,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "HXQ.NE"
+   ],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "HXQ.TO",
+     "listing": "TSX",
+     "close": 114.7300033569336,
+     "err": 2.92594228845644e-08
+    },
+    {
+     "yahoo": "HXQ.NE",
+     "listing": "Cboe Canada",
+     "close": 114.86000061035156,
+     "err": 0.0011331004127217437
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "VFV",
+   "description": "VANGUARD S&P 500 INDEX ETF",
+   "lists": [
+    "Long_Term_Quality_ETFs"
+   ],
+   "ibkr_price": 191.4,
+   "status": "MATCHED",
+   "sta_symbol": "VFV.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 191.39999389648438,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "VFV.NE"
+   ],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "VFV.TO",
+     "listing": "TSX",
+     "close": 191.39999389648438,
+     "err": 3.1888796381274176e-08
+    },
+    {
+     "yahoo": "VFV.NE",
+     "listing": "Cboe Canada",
+     "close": 191.30999755859375,
+     "err": 0.00047023219125530424
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "XEQT",
+   "description": "ISHARES CORE EQUITY ETF PORT",
+   "lists": [
+    "Long_Term_Quality_ETFs"
+   ],
+   "ibkr_price": 45.52,
+   "status": "MATCHED",
+   "sta_symbol": "XEQT.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 45.52000045776367,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "XEQT.NE"
+   ],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "XEQT.TO",
+     "listing": "TSX",
+     "close": 45.52000045776367,
+     "err": 1.005631955486308e-08
+    },
+    {
+     "yahoo": "XEQT.NE",
+     "listing": "Cboe Canada",
+     "close": 45.52000045776367,
+     "err": 1.005631955486308e-08
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "XCHP",
+   "description": "ISHARES SEMICONDUCTOR ETF",
+   "lists": [
+    "Long_Term_Quality_ETFs"
+   ],
+   "ibkr_price": 111.07,
+   "status": "MATCHED",
+   "sta_symbol": "XCHP.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 111.06999969482422,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "XCHP.NE"
+   ],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "XCHP.TO",
+     "listing": "TSX",
+     "close": 111.06999969482422,
+     "err": 2.747598593089151e-09
+    },
+    {
+     "yahoo": "XCHP.NE",
+     "listing": "Cboe Canada",
+     "close": 110.98999786376953,
+     "err": 0.0007202857317949451
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "FINN",
+   "description": "FIDELITY GL INNOVATORS ETF",
+   "lists": [
+    "Long_Term_Quality_ETFs"
+   ],
+   "ibkr_price": 32.71,
+   "status": "MATCHED",
+   "sta_symbol": "FINN.NE",
+   "listing": "Cboe Canada",
+   "exchange": "NEO",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 32.70000076293945,
+   "price_diff_pct": 0.0,
+   "other_venues": [],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "FINN",
+     "listing": "US",
+     "close": 18900.0,
+     "err": 576.8049526138795
+    },
+    {
+     "yahoo": "FINN.NE",
+     "listing": "Cboe Canada",
+     "close": 32.70000076293945,
+     "err": 0.00030569358179599604
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "WDC",
+   "description": "WESTERN DIGITAL CORP",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 17.88,
+   "status": "MATCHED",
+   "sta_symbol": "WDC.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 17.889999389648438,
+   "price_diff_pct": 0.1,
+   "other_venues": [
+    "WDC.NE"
+   ],
+   "class": "CDR (Canadian receipt of a US stock)",
+   "candidates": [
+    {
+     "yahoo": "WDC",
+     "listing": "US",
+     "close": 295.6499938964844,
+     "err": 15.535234557968927
+    },
+    {
+     "yahoo": "WDC.TO",
+     "listing": "TSX",
+     "close": 17.889999389648438,
+     "err": 0.0005592499803377393
+    },
+    {
+     "yahoo": "WDC.NE",
+     "listing": "Cboe Canada",
+     "close": 17.899999618530273,
+     "err": 0.0011185468976664392
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "GEV",
+   "description": "GE VERNOVA INC",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 790.01,
+   "status": "MATCHED",
+   "sta_symbol": "GEV",
+   "listing": "US",
+   "exchange": "NYQ",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 803.1300048828125,
+   "price_diff_pct": 1.7,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "GEV",
+     "listing": "US",
+     "close": 803.1300048828125,
+     "err": 0.016607390897346308
+    },
+    {
+     "yahoo": "GEV.TO",
+     "listing": "TSX",
+     "close": 53.66999816894531,
+     "err": 0.9320641534044565
+    },
+    {
+     "yahoo": "GEV.NE",
+     "listing": "Cboe Canada",
+     "close": 53.68000030517578,
+     "err": 0.9320514926327821
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "TSM",
+   "description": "TAIWAN SEMICONDUCTOR-SP ADR",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 394.5,
+   "status": "MATCHED",
+   "sta_symbol": "TSM",
+   "listing": "US",
+   "exchange": "NYQ",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 398.7300109863281,
+   "price_diff_pct": 1.1,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "TSM",
+     "listing": "US",
+     "close": 398.7300109863281,
+     "err": 0.0107224613088166
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "ETN",
+   "description": "EATON CORP PLC",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 350.0,
+   "status": "MATCHED",
+   "sta_symbol": "ETN",
+   "listing": "US",
+   "exchange": "NYQ",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 352.9700012207031,
+   "price_diff_pct": 0.8,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "ETN",
+     "listing": "US",
+     "close": 352.9700012207031,
+     "err": 0.008485717773437429
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "VRT",
+   "description": "VERTIV HOLDINGS CO-A",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 197.44,
+   "status": "MATCHED",
+   "sta_symbol": "VRT",
+   "listing": "US",
+   "exchange": "NYQ",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 202.07000732421875,
+   "price_diff_pct": 2.3,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "VRT",
+     "listing": "US",
+     "close": 202.07000732421875,
+     "err": 0.02345019917047586
+    },
+    {
+     "yahoo": "VRT.TO",
+     "listing": "TSX",
+     "close": 14.9399995803833,
+     "err": 0.9243314445888204
+    },
+    {
+     "yahoo": "VRT.NE",
+     "listing": "Cboe Canada",
+     "close": 14.930000305175781,
+     "err": 0.924382089216087
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "CCO",
+   "description": "CAMECO CORP",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 100.8,
+   "status": "MATCHED",
+   "sta_symbol": "CCO.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 100.80000305175781,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "CCO.NE"
+   ],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "CCO.TO",
+     "listing": "TSX",
+     "close": 100.80000305175781,
+     "err": 3.0275375095811796e-08
+    },
+    {
+     "yahoo": "CCO.NE",
+     "listing": "Cboe Canada",
+     "close": 100.87999725341797,
+     "err": 0.000793623545813249
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "ASML",
+   "description": "ASML HOLDING NV",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 44.3,
+   "status": "MATCHED",
+   "sta_symbol": "ASML.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 44.29999923706055,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "ASML.NE"
+   ],
+   "class": "CDR (Canadian receipt of a US stock)",
+   "candidates": [
+    {
+     "yahoo": "ASML",
+     "listing": "US",
+     "close": 1495.1600341796875,
+     "err": 32.7507908392706
+    },
+    {
+     "yahoo": "ASML.TO",
+     "listing": "TSX",
+     "close": 44.29999923706055,
+     "err": 1.7222109516268347e-08
+    },
+    {
+     "yahoo": "ASML.NE",
+     "listing": "Cboe Canada",
+     "close": 40.900001525878906,
+     "err": 0.07674940122169505
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "ANET",
+   "description": "ARISTA NETWORKS INC",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 35.25,
+   "status": "MATCHED",
+   "sta_symbol": "ANET.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 35.25,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "ANET.NE"
+   ],
+   "class": "CDR (Canadian receipt of a US stock)",
+   "candidates": [
+    {
+     "yahoo": "ANET",
+     "listing": "US",
+     "close": 197.2899932861328,
+     "err": 4.596879242159796
+    },
+    {
+     "yahoo": "ANET.TO",
+     "listing": "TSX",
+     "close": 35.25,
+     "err": 0.0
+    },
+    {
+     "yahoo": "ANET.NE",
+     "listing": "Cboe Canada",
+     "close": 35.29999923706055,
+     "err": 0.001418418072639538
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "CEG",
+   "description": "CONSTELLATION ENERGY",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 278.2,
+   "status": "MATCHED",
+   "sta_symbol": "CEG",
+   "listing": "US",
+   "exchange": "NMS",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 280.20001220703125,
+   "price_diff_pct": 0.7,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "CEG",
+     "listing": "US",
+     "close": 280.20001220703125,
+     "err": 0.007189116488250491
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "ALAB",
+   "description": "ASTERA LABS INC",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 216.35,
+   "status": "MATCHED",
+   "sta_symbol": "ALAB",
+   "listing": "US",
+   "exchange": "NMS",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 221.8300018310547,
+   "price_diff_pct": 2.5,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "ALAB",
+     "listing": "US",
+     "close": 221.8300018310547,
+     "err": 0.02532933594201392
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "NVDA",
+   "description": "NVIDIA CORP",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 161.01,
+   "status": "MATCHED",
+   "sta_symbol": "NVDA",
+   "listing": "US",
+   "exchange": "NMS",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 162.85000610351562,
+   "price_diff_pct": 1.1,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "NVDA",
+     "listing": "US",
+     "close": 162.85000610351562,
+     "err": 0.011427899531182062
+    },
+    {
+     "yahoo": "NVDA.TO",
+     "listing": "TSX",
+     "close": 36.150001525878906,
+     "err": 0.7754797743874361
+    },
+    {
+     "yahoo": "NVDA.NE",
+     "listing": "Cboe Canada",
+     "close": 36.13999938964844,
+     "err": 0.7755418955987303
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "AVGO",
+   "description": "BROADCOM INC",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 340.12,
+   "status": "MATCHED",
+   "sta_symbol": "AVGO",
+   "listing": "US",
+   "exchange": "NMS",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 347.010009765625,
+   "price_diff_pct": 2.0,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "AVGO",
+     "listing": "US",
+     "close": 347.010009765625,
+     "err": 0.020257584868943246
+    },
+    {
+     "yahoo": "AVGO.TO",
+     "listing": "TSX",
+     "close": 13.140000343322754,
+     "err": 0.9613665754929944
+    },
+    {
+     "yahoo": "AVGO.NE",
+     "listing": "Cboe Canada",
+     "close": 13.149999618530273,
+     "err": 0.9613371762362394
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "KEYS",
+   "description": "KEYSIGHT TECHNOLOGIES IN",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 291.19,
+   "status": "MATCHED",
+   "sta_symbol": "KEYS",
+   "listing": "US",
+   "exchange": "NYQ",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 297.67999267578125,
+   "price_diff_pct": 2.2,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "KEYS",
+     "listing": "US",
+     "close": 297.67999267578125,
+     "err": 0.02228782813895136
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "MU",
+   "description": "MICRON TECHNOLOGY INC",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 33.99,
+   "status": "MATCHED",
+   "sta_symbol": "MU.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 33.9900016784668,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "MU.NE"
+   ],
+   "class": "CDR (Canadian receipt of a US stock)",
+   "candidates": [
+    {
+     "yahoo": "MU",
+     "listing": "US",
+     "close": 778.3099975585938,
+     "err": 21.898205282688842
+    },
+    {
+     "yahoo": "MU.TO",
+     "listing": "TSX",
+     "close": 33.9900016784668,
+     "err": 4.938119424480192e-08
+    },
+    {
+     "yahoo": "MU.NE",
+     "listing": "Cboe Canada",
+     "close": 33.97999954223633,
+     "err": 0.0002942176452978007
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "GIB.A",
+   "description": "CGI INC",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 116.83,
+   "status": "MATCHED",
+   "sta_symbol": "GIB-A.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 116.83000183105469,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "GIB-A.NE"
+   ],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "GIB-A.TO",
+     "listing": "TSX",
+     "close": 116.83000183105469,
+     "err": 1.567281260328457e-08
+    },
+    {
+     "yahoo": "GIB-A.NE",
+     "listing": "Cboe Canada",
+     "close": 116.77999877929688,
+     "err": 0.00042798271593869064
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "MRVL",
+   "description": "MARVELL TECHNOLOGY INC",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 152.59,
+   "status": "MATCHED",
+   "sta_symbol": "MRVL",
+   "listing": "US",
+   "exchange": "NMS",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 156.75999450683594,
+   "price_diff_pct": 2.7,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "MRVL",
+     "listing": "US",
+     "close": 156.75999450683594,
+     "err": 0.027328098216370167
+    },
+    {
+     "yahoo": "MRVL.V",
+     "listing": "TSX Venture",
+     "close": 0.12999999523162842,
+     "err": 0.9991480438086924
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "ONTO",
+   "description": "ONTO INNOVATION INC",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 197.03,
+   "status": "MATCHED",
+   "sta_symbol": "ONTO",
+   "listing": "US",
+   "exchange": "NYQ",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 203.6199951171875,
+   "price_diff_pct": 3.3,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "ONTO",
+     "listing": "US",
+     "close": 203.6199951171875,
+     "err": 0.03344665846412975
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "CAMT",
+   "description": "CAMTEK LIMITED",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 101.5,
+   "status": "MATCHED",
+   "sta_symbol": "CAMT",
+   "listing": "US",
+   "exchange": "NGM",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 101.7300033569336,
+   "price_diff_pct": 0.2,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "CAMT",
+     "listing": "US",
+     "close": 101.7300033569336,
+     "err": 0.0022660429254541814
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "AMD",
+   "description": "ADVANCED MICRO DEVICES",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 521.2,
+   "status": "MATCHED",
+   "sta_symbol": "AMD",
+   "listing": "US",
+   "exchange": "NMS",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 534.0599975585938,
+   "price_diff_pct": 2.5,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "AMD",
+     "listing": "US",
+     "close": 534.0599975585938,
+     "err": 0.02467382493974224
+    },
+    {
+     "yahoo": "AMD.TO",
+     "listing": "TSX",
+     "close": 13.760000228881836,
+     "err": 0.9735993855930893
+    },
+    {
+     "yahoo": "AMD.NE",
+     "listing": "Cboe Canada",
+     "close": 13.770000457763672,
+     "err": 0.9735801986612362
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "ORCL",
+   "description": "ORACLE CORP",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 123.35,
+   "status": "MATCHED",
+   "sta_symbol": "ORCL",
+   "listing": "US",
+   "exchange": "NYQ",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 125.3499984741211,
+   "price_diff_pct": 1.6,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "ORCL",
+     "listing": "US",
+     "close": 125.3499984741211,
+     "err": 0.016214012761419427
+    },
+    {
+     "yahoo": "ORCL.NE",
+     "listing": "Cboe Canada",
+     "close": 0.02500000037252903,
+     "err": 0.9997973246828331
+    },
+    {
+     "yahoo": "ORCL.V",
+     "listing": "TSX Venture",
+     "close": 0.029999999329447746,
+     "err": 0.99975678962846
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "FCX",
+   "description": "FREEPORT-MCMORAN INC",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 59.27,
+   "status": "MATCHED",
+   "sta_symbol": "FCX",
+   "listing": "US",
+   "exchange": "NYQ",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 59.2400016784668,
+   "price_diff_pct": 0.1,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "FCX",
+     "listing": "US",
+     "close": 59.2400016784668,
+     "err": 0.0005061299398212427
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "QCOM",
+   "description": "QUALCOMM INC",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 170.9,
+   "status": "MATCHED",
+   "sta_symbol": "QCOM",
+   "listing": "US",
+   "exchange": "NMS",
+   "currency": "USD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 172.47000122070312,
+   "price_diff_pct": 0.9,
+   "other_venues": [],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "QCOM",
+     "listing": "US",
+     "close": 172.47000122070312,
+     "err": 0.009186666007624966
+    },
+    {
+     "yahoo": "QCOM.TO",
+     "listing": "TSX",
+     "close": 22.219999313354492,
+     "err": 0.869982449892601
+    },
+    {
+     "yahoo": "QCOM.NE",
+     "listing": "Cboe Canada",
+     "close": 22.229999542236328,
+     "err": 0.8699239348025961
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "SNDK",
+   "description": "SANDISK CORP/DE",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 21.41,
+   "status": "MATCHED",
+   "sta_symbol": "SNDK.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 21.40999984741211,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "SNDK.NE"
+   ],
+   "class": "CDR (Canadian receipt of a US stock)",
+   "candidates": [
+    {
+     "yahoo": "SNDK",
+     "listing": "US",
+     "close": 885.010009765625,
+     "err": 40.336291908716724
+    },
+    {
+     "yahoo": "SNDK.TO",
+     "listing": "TSX",
+     "close": 21.40999984741211,
+     "err": 7.126944923108169e-09
+    },
+    {
+     "yahoo": "SNDK.NE",
+     "listing": "Cboe Canada",
+     "close": 21.329999923706055,
+     "err": 0.0037365752589418877
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "GEV",
+   "description": "GE VERNOVA INC-CDR",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 53.67,
+   "status": "MATCHED",
+   "sta_symbol": "GEV.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 53.66999816894531,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "GEV.NE"
+   ],
+   "class": "CDR (Canadian receipt of a US stock)",
+   "candidates": [
+    {
+     "yahoo": "GEV",
+     "listing": "US",
+     "close": 803.1300048828125,
+     "err": 13.964225915461384
+    },
+    {
+     "yahoo": "GEV.TO",
+     "listing": "TSX",
+     "close": 53.66999816894531,
+     "err": 3.411691240629011e-08
+    },
+    {
+     "yahoo": "GEV.NE",
+     "listing": "Cboe Canada",
+     "close": 53.68000030517578,
+     "err": 0.00018632951696995192
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "AVGO",
+   "description": "BROADCOM INC-CDR",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 13.14,
+   "status": "MATCHED",
+   "sta_symbol": "AVGO.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 13.140000343322754,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "AVGO.NE"
+   ],
+   "class": "CDR (Canadian receipt of a US stock)",
+   "candidates": [
+    {
+     "yahoo": "AVGO",
+     "listing": "US",
+     "close": 347.010009765625,
+     "err": 25.408676542285008
+    },
+    {
+     "yahoo": "AVGO.TO",
+     "listing": "TSX",
+     "close": 13.140000343322754,
+     "err": 2.6128063490560294e-08
+    },
+    {
+     "yahoo": "AVGO.NE",
+     "listing": "Cboe Canada",
+     "close": 13.149999618530273,
+     "err": 0.0007610059764286969
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "AMD",
+   "description": "ADVANCED MICRO DEVICES CDR",
+   "lists": [
+    "AI Supply Chain"
+   ],
+   "ibkr_price": 13.76,
+   "status": "MATCHED",
+   "sta_symbol": "AMD.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 13.760000228881836,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "AMD.NE"
+   ],
+   "class": "CDR (Canadian receipt of a US stock)",
+   "candidates": [
+    {
+     "yahoo": "AMD",
+     "listing": "US",
+     "close": 534.0599975585938,
+     "err": 37.81249982257222
+    },
+    {
+     "yahoo": "AMD.TO",
+     "listing": "TSX",
+     "close": 13.760000228881836,
+     "err": 1.663385429395703e-08
+    },
+    {
+     "yahoo": "AMD.NE",
+     "listing": "Cboe Canada",
+     "close": 13.770000457763672,
+     "err": 0.0007267774537551563
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "HURA",
+   "description": "GLOBAL X URANIUM INDEX ETF",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 39.02,
+   "status": "MATCHED",
+   "sta_symbol": "HURA.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 39.02000045776367,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "HURA.NE"
+   ],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "HURA",
+     "listing": "US",
+     "close": 1.3899999856948853,
+     "err": 0.9643772428063843
+    },
+    {
+     "yahoo": "HURA.TO",
+     "listing": "TSX",
+     "close": 39.02000045776367,
+     "err": 1.1731513760437906e-08
+    },
+    {
+     "yahoo": "HURA.NE",
+     "listing": "Cboe Canada",
+     "close": 41.310001373291016,
+     "err": 0.05868788757793464
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "XGD",
+   "description": "ISHARES S&P/TSX GLOBAL GOLD",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 52.4,
+   "status": "MATCHED",
+   "sta_symbol": "XGD.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 52.400001525878906,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "XGD.NE"
+   ],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "XGD.TO",
+     "listing": "TSX",
+     "close": 52.400001525878906,
+     "err": 2.9119826550072503e-08
+    },
+    {
+     "yahoo": "XGD.NE",
+     "listing": "Cboe Canada",
+     "close": 52.400001525878906,
+     "err": 2.9119826550072503e-08
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "MTRX",
+   "description": "GLOBAL X AI INFRAS INDX",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 30.59,
+   "status": "MATCHED",
+   "sta_symbol": "MTRX.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 30.59000015258789,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "MTRX.NE"
+   ],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "MTRX",
+     "listing": "US",
+     "close": 9.1899995803833,
+     "err": 0.6995750382352631
+    },
+    {
+     "yahoo": "MTRX.TO",
+     "listing": "TSX",
+     "close": 30.59000015258789,
+     "err": 4.988162549679487e-09
+    },
+    {
+     "yahoo": "MTRX.NE",
+     "listing": "Cboe Canada",
+     "close": 28.239999771118164,
+     "err": 0.07682249849237777
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "ORBX",
+   "description": "GLOBAL X SPCE TECH INDEX ETF",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 15.32,
+   "status": "MATCHED",
+   "sta_symbol": "ORBX.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 15.319999694824219,
+   "price_diff_pct": 0.0,
+   "other_venues": [],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "ORBX",
+     "listing": "US",
+     "close": 37.06999969482422,
+     "err": 1.419712773813591
+    },
+    {
+     "yahoo": "ORBX.TO",
+     "listing": "TSX",
+     "close": 15.319999694824219,
+     "err": 1.9920090132963253e-08
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "RBOT",
+   "description": "GLB X ROBOTICS &AI INDEX ETF",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 28.59,
+   "status": "MATCHED",
+   "sta_symbol": "RBOT.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 28.59000015258789,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "RBOT.NE"
+   ],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "RBOT",
+     "listing": "US",
+     "close": 0.003000000026077032,
+     "err": 0.9998950682047543
+    },
+    {
+     "yahoo": "RBOT.TO",
+     "listing": "TSX",
+     "close": 28.59000015258789,
+     "err": 5.337106978586803e-09
+    },
+    {
+     "yahoo": "RBOT.NE",
+     "listing": "Cboe Canada",
+     "close": 28.860000610351562,
+     "err": 0.00944388283845976
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "XDRV",
+   "description": "ISHARES GL ELECTRIC & AU VEH",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 40.87,
+   "status": "MATCHED",
+   "sta_symbol": "XDRV.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 41.459999084472656,
+   "price_diff_pct": 1.4,
+   "other_venues": [],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "XDRV.TO",
+     "listing": "TSX",
+     "close": 41.459999084472656,
+     "err": 0.014435994237158356
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "CARS",
+   "description": "EVOLVE AUTOMOBILE INNOVATION",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 21.04,
+   "status": "MATCHED",
+   "sta_symbol": "CARS.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 21.040000915527344,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "CARS.NE"
+   ],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "CARS",
+     "listing": "US",
+     "close": 12.710000038146973,
+     "err": 0.3959125457154481
+    },
+    {
+     "yahoo": "CARS.TO",
+     "listing": "TSX",
+     "close": 21.040000915527344,
+     "err": 4.351365712196298e-08
+    },
+    {
+     "yahoo": "CARS.NE",
+     "listing": "Cboe Canada",
+     "close": 21.030000686645508,
+     "err": 0.0004752525358598936
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "COPP",
+   "description": "GLOBAL X COPPER PRODUCER IND",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 49.57,
+   "status": "MATCHED",
+   "sta_symbol": "COPP.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 49.52000045776367,
+   "price_diff_pct": 0.1,
+   "other_venues": [
+    "COPP.NE"
+   ],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "COPP",
+     "listing": "US",
+     "close": 34.81999969482422,
+     "err": 0.2975590136206533
+    },
+    {
+     "yahoo": "COPP.TO",
+     "listing": "TSX",
+     "close": 49.52000045776367,
+     "err": 0.0010086653668817114
+    },
+    {
+     "yahoo": "COPP.NE",
+     "listing": "Cboe Canada",
+     "close": 49.54999923706055,
+     "err": 0.0004034852317823523
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "UFO",
+   "description": "PROCURE SPACE ETF",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 40.0,
+   "status": "MATCHED",
+   "sta_symbol": "UFO",
+   "listing": "US",
+   "exchange": "NGM",
+   "currency": "USD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 40.689998626708984,
+   "price_diff_pct": 1.7,
+   "other_venues": [],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "UFO",
+     "listing": "US",
+     "close": 40.689998626708984,
+     "err": 0.01724996566772452
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "QTUM",
+   "description": "DEFIANCE QUANTUM ETF",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 128.74,
+   "status": "MATCHED",
+   "sta_symbol": "QTUM",
+   "listing": "US",
+   "exchange": "NGM",
+   "currency": "USD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 130.10000610351562,
+   "price_diff_pct": 1.1,
+   "other_venues": [],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "QTUM",
+     "listing": "US",
+     "close": 130.10000610351562,
+     "err": 0.01056397470495285
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "BOTZ",
+   "description": "GLOBAL X ROBOTICS & ARTIFICI",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 31.03,
+   "status": "MATCHED",
+   "sta_symbol": "BOTZ",
+   "listing": "US",
+   "exchange": "NGM",
+   "currency": "USD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 31.229999542236328,
+   "price_diff_pct": 0.6,
+   "other_venues": [],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "BOTZ",
+     "listing": "US",
+     "close": 31.229999542236328,
+     "err": 0.006445360690825908
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "DRIV",
+   "description": "GLOBAL X AUTONOMOUS&ELEC-ETF",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 28.4,
+   "status": "MATCHED",
+   "sta_symbol": "DRIV",
+   "listing": "US",
+   "exchange": "NGM",
+   "currency": "USD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 28.447999954223633,
+   "price_diff_pct": 0.2,
+   "other_venues": [],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "DRIV",
+     "listing": "US",
+     "close": 28.447999954223633,
+     "err": 0.001690139233226473
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "GDX",
+   "description": "VANECK GOLD MINERS ETF",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 81.52,
+   "status": "MATCHED",
+   "sta_symbol": "GDX",
+   "listing": "US",
+   "exchange": "PCX",
+   "currency": "USD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 81.63999938964844,
+   "price_diff_pct": 0.1,
+   "other_venues": [],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "GDX",
+     "listing": "US",
+     "close": 81.63999938964844,
+     "err": 0.0014720239161978288
+    },
+    {
+     "yahoo": "GDX.V",
+     "listing": "TSX Venture",
+     "close": 0.05999999865889549,
+     "err": 0.9992639843147829
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "DRAM",
+   "description": "ROUNDHILL MEMORY ETF",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 41.66,
+   "status": "MATCHED",
+   "sta_symbol": "DRAM",
+   "listing": "US",
+   "exchange": "BTS",
+   "currency": "USD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 42.400001525878906,
+   "price_diff_pct": 1.8,
+   "other_venues": [],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "DRAM",
+     "listing": "US",
+     "close": 42.400001525878906,
+     "err": 0.017762878681682803
+    },
+    {
+     "yahoo": "DRAM.TO",
+     "listing": "TSX",
+     "close": 14.430000305175781,
+     "err": 0.6536245726073984
+    },
+    {
+     "yahoo": "DRAM.NE",
+     "listing": "Cboe Canada",
+     "close": 14.949999809265137,
+     "err": 0.6411425873916193
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "XETM",
+   "description": "ISH ENRGY TRANSITION MAT ETF",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 65.54,
+   "status": "MATCHED",
+   "sta_symbol": "XETM.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 65.54000091552734,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "XETM.NE"
+   ],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "XETM.TO",
+     "listing": "TSX",
+     "close": 65.54000091552734,
+     "err": 1.3968985967949266e-08
+    },
+    {
+     "yahoo": "XETM.NE",
+     "listing": "Cboe Canada",
+     "close": 65.48999786376953,
+     "err": 0.000762925484139032
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "SETM",
+   "description": "SPROTT CRITICAL MATERIAL ETF",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 23.7,
+   "status": "MATCHED",
+   "sta_symbol": "SETM",
+   "listing": "US",
+   "exchange": "NGM",
+   "currency": "USD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 23.700000762939453,
+   "price_diff_pct": 0.0,
+   "other_venues": [],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "SETM",
+     "listing": "US",
+     "close": 23.700000762939453,
+     "err": 3.21915381018556e-08
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "SMH",
+   "description": "VANECK SEMICONDUCTOR ETF",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 481.53,
+   "status": "MATCHED",
+   "sta_symbol": "SMH",
+   "listing": "US",
+   "exchange": "NGM",
+   "currency": "USD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 486.75,
+   "price_diff_pct": 1.1,
+   "other_venues": [],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "SMH",
+     "listing": "US",
+     "close": 486.75,
+     "err": 0.010840446078125954
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "GRID",
+   "description": "FIRST TRST NASD CL EDG SGIIF",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 159.82,
+   "status": "MATCHED",
+   "sta_symbol": "GRID",
+   "listing": "US",
+   "exchange": "NGM",
+   "currency": "USD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 160.2899932861328,
+   "price_diff_pct": 0.3,
+   "other_venues": [],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "GRID",
+     "listing": "US",
+     "close": 160.2899932861328,
+     "err": 0.0029407664005307588
+    },
+    {
+     "yahoo": "GRID.TO",
+     "listing": "TSX",
+     "close": 4.480000019073486,
+     "err": 0.9719684644032444
+    },
+    {
+     "yahoo": "GRID.NE",
+     "listing": "Cboe Canada",
+     "close": 4.559999942779541,
+     "err": 0.9714679017470933
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "URA",
+   "description": "GLOBAL X URANIUM ETF",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 31.74,
+   "status": "MATCHED",
+   "sta_symbol": "URA",
+   "listing": "US",
+   "exchange": "PCX",
+   "currency": "USD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 31.84000015258789,
+   "price_diff_pct": 0.3,
+   "other_venues": [],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "URA",
+     "listing": "US",
+     "close": 31.84000015258789,
+     "err": 0.003150603421168574
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "AIPO",
+   "description": "DEFIANCE AI & POWER INFR ETF",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 23.35,
+   "status": "MATCHED",
+   "sta_symbol": "AIPO",
+   "listing": "US",
+   "exchange": "NGM",
+   "currency": "USD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 23.65999984741211,
+   "price_diff_pct": 1.3,
+   "other_venues": [],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "AIPO",
+     "listing": "US",
+     "close": 23.65999984741211,
+     "err": 0.01327622472857004
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "COPX",
+   "description": "GLOBAL X COPPER MINERS ETF",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 69.26,
+   "status": "MATCHED",
+   "sta_symbol": "COPX",
+   "listing": "US",
+   "exchange": "PCX",
+   "currency": "USD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 69.2300033569336,
+   "price_diff_pct": 0.0,
+   "other_venues": [],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "COPX",
+     "listing": "US",
+     "close": 69.2300033569336,
+     "err": 0.0004331019790125845
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "SOXX",
+   "description": "ISHARES SEMICONDUCTOR ETF",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 146.66,
+   "status": "MATCHED",
+   "sta_symbol": "SOXX",
+   "listing": "US",
+   "exchange": "NGM",
+   "currency": "USD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 149.3000030517578,
+   "price_diff_pct": 1.8,
+   "other_venues": [],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "SOXX",
+     "listing": "US",
+     "close": 149.3000030517578,
+     "err": 0.018000839027395354
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "SGRD",
+   "description": "FRST TRST NSD CLN EDG SG ETF",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 18.47,
+   "status": "MATCHED",
+   "sta_symbol": "SGRD.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 18.59000015258789,
+   "price_diff_pct": 0.6,
+   "other_venues": [
+    "SGRD.NE"
+   ],
+   "class": "ETF",
+   "candidates": [
+    {
+     "yahoo": "SGRD.TO",
+     "listing": "TSX",
+     "close": 18.59000015258789,
+     "err": 0.00649703045955019
+    },
+    {
+     "yahoo": "SGRD.NE",
+     "listing": "Cboe Canada",
+     "close": 18.649999618530273,
+     "err": 0.009745512643761556
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "SOXL",
+   "description": "DIREX DAIL SEMI BU 3X ET-USD",
+   "lists": [
+    "AI Supply Chain ETF"
+   ],
+   "ibkr_price": 55.68,
+   "status": "MATCHED",
+   "sta_symbol": "SOXL",
+   "listing": "US",
+   "exchange": "PCX",
+   "currency": "USD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 58.31999969482422,
+   "price_diff_pct": 4.7,
+   "other_venues": [],
+   "class": "Leveraged ETF",
+   "candidates": [
+    {
+     "yahoo": "SOXL",
+     "listing": "US",
+     "close": 58.31999969482422,
+     "err": 0.04741378762256132
+    },
+    {
+     "yahoo": "SOXL.NE",
+     "listing": "Cboe Canada",
+     "close": 14.69480037689209,
+     "err": 0.7360847633460472
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "SOXL",
+   "description": "BETAPRO 3X SC DAILY LEV BA",
+   "lists": [
+    "AI Supply Chain ETF",
+    "AI_Leveraged"
+   ],
+   "ibkr_price": 14.72,
+   "status": "MATCHED",
+   "sta_symbol": "SOXL.NE",
+   "listing": "Cboe Canada",
+   "exchange": "NEO",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 14.69480037689209,
+   "price_diff_pct": 0.2,
+   "other_venues": [],
+   "class": "Leveraged ETF",
+   "candidates": [
+    {
+     "yahoo": "SOXL",
+     "listing": "US",
+     "close": 58.31999969482422,
+     "err": 2.96195650100708
+    },
+    {
+     "yahoo": "SOXL.NE",
+     "listing": "Cboe Canada",
+     "close": 14.69480037689209,
+     "err": 0.0017119309176569786
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "MDA",
+   "description": "MDA SPACE LTD",
+   "lists": [
+    "Canadian list (8)"
+   ],
+   "ibkr_price": 41.25,
+   "status": "MATCHED",
+   "sta_symbol": "MDA.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 41.25,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "MDA.NE"
+   ],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "MDA",
+     "listing": "US",
+     "close": 28.889999389648438,
+     "err": 0.29963637843276514
+    },
+    {
+     "yahoo": "MDA.TO",
+     "listing": "TSX",
+     "close": 41.25,
+     "err": 0.0
+    },
+    {
+     "yahoo": "MDA.NE",
+     "listing": "Cboe Canada",
+     "close": 41.22999954223633,
+     "err": 0.00048485958214961045
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "NTR",
+   "description": "NUTRIEN LTD",
+   "lists": [
+    "Canadian list (8)"
+   ],
+   "ibkr_price": 101.62,
+   "status": "MATCHED",
+   "sta_symbol": "NTR.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 101.62000274658203,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "NTR.NE"
+   ],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "NTR",
+     "listing": "US",
+     "close": 71.23999786376953,
+     "err": 0.2989569192701287
+    },
+    {
+     "yahoo": "NTR.TO",
+     "listing": "TSX",
+     "close": 101.62000274658203,
+     "err": 2.702796719766809e-08
+    },
+    {
+     "yahoo": "NTR.NE",
+     "listing": "Cboe Canada",
+     "close": 101.73999786376953,
+     "err": 0.0011808488857460997
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "ASTL",
+   "description": "ALGOMA STEEL GROUP INC",
+   "lists": [
+    "Canadian list (8)"
+   ],
+   "ibkr_price": 7.79,
+   "status": "MATCHED",
+   "sta_symbol": "ASTL.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 7.789999961853027,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "ASTL.NE"
+   ],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "ASTL",
+     "listing": "US",
+     "close": 5.449999809265137,
+     "err": 0.3003851335988271
+    },
+    {
+     "yahoo": "ASTL.TO",
+     "listing": "TSX",
+     "close": 7.789999961853027,
+     "err": 4.896915650753897e-09
+    },
+    {
+     "yahoo": "ASTL.NE",
+     "listing": "Cboe Canada",
+     "close": 7.795000076293945,
+     "err": 0.0006418583175795689
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "BDT",
+   "description": "BIRD CONSTRUCTION INC",
+   "lists": [
+    "Canadian list (8)"
+   ],
+   "ibkr_price": 76.69,
+   "status": "MATCHED",
+   "sta_symbol": "BDT.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 76.69000244140625,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "BDT.NE"
+   ],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "BDT.TO",
+     "listing": "TSX",
+     "close": 76.69000244140625,
+     "err": 3.18347406214059e-08
+    },
+    {
+     "yahoo": "BDT.NE",
+     "listing": "Cboe Canada",
+     "close": 76.52999877929688,
+     "err": 0.0020863374716797445
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "PNG",
+   "description": "KRAKEN ROBOTICS INC",
+   "lists": [
+    "Canadian list (8)"
+   ],
+   "ibkr_price": 3.4,
+   "status": "MATCHED",
+   "sta_symbol": "PNG.V",
+   "listing": "TSX Venture",
+   "exchange": "VAN",
+   "currency": "CAD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 3.4000000953674316,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "PNG.NE"
+   ],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "PNG.NE",
+     "listing": "Cboe Canada",
+     "close": 3.4100000858306885,
+     "err": 0.0029412017149084146
+    },
+    {
+     "yahoo": "PNG.V",
+     "listing": "TSX Venture",
+     "close": 3.4000000953674316,
+     "err": 2.8049244704675402e-08
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "CGY",
+   "description": "CALIAN GROUP LTD",
+   "lists": [
+    "Canadian list (8)"
+   ],
+   "ibkr_price": 85.55,
+   "status": "MATCHED",
+   "sta_symbol": "CGY.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "EQUITY",
+   "yahoo_close": 85.55000305175781,
+   "price_diff_pct": 0.0,
+   "other_venues": [
+    "CGY.NE"
+   ],
+   "class": "Stock",
+   "candidates": [
+    {
+     "yahoo": "CGY.TO",
+     "listing": "TSX",
+     "close": 85.55000305175781,
+     "err": 3.567221296130185e-08
+    },
+    {
+     "yahoo": "CGY.NE",
+     "listing": "Cboe Canada",
+     "close": 85.87999725341797,
+     "err": 0.0038573612322381212
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "QPUX",
+   "description": "DFINC 2X D LNG PURE QUNT ETF",
+   "lists": [
+    "AI_Leveraged"
+   ],
+   "ibkr_price": 4.23,
+   "status": "MATCHED",
+   "sta_symbol": "QPUX",
+   "listing": "US",
+   "exchange": "NGM",
+   "currency": "USD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 4.28000020980835,
+   "price_diff_pct": 1.2,
+   "other_venues": [],
+   "class": "Leveraged ETF",
+   "candidates": [
+    {
+     "yahoo": "QPUX",
+     "listing": "US",
+     "close": 4.28000020980835,
+     "err": 0.011820380569349753
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "DRAL",
+   "description": "DEF DLY TGT 2X LG DRAM ETF",
+   "lists": [
+    "AI_Leveraged"
+   ],
+   "ibkr_price": 4.77,
+   "status": "MATCHED",
+   "sta_symbol": "DRAL",
+   "listing": "US",
+   "exchange": "BTS",
+   "currency": "USD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 4.909999847412109,
+   "price_diff_pct": 2.9,
+   "other_venues": [],
+   "class": "Leveraged ETF",
+   "candidates": [
+    {
+     "yahoo": "DRAL",
+     "listing": "US",
+     "close": 4.909999847412109,
+     "err": 0.029350072832727392
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "SPCL",
+   "description": "DEFIANC DAILY 2X SPC ETF-USD",
+   "lists": [
+    "AI_Leveraged"
+   ],
+   "ibkr_price": 11.93,
+   "status": "MATCHED",
+   "sta_symbol": "SPCL",
+   "listing": "US",
+   "exchange": "BTS",
+   "currency": "USD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 12.149999618530273,
+   "price_diff_pct": 1.8,
+   "other_venues": [],
+   "class": "Leveraged ETF",
+   "candidates": [
+    {
+     "yahoo": "SPCL",
+     "listing": "US",
+     "close": 12.149999618530273,
+     "err": 0.018440873305135996
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "URAA",
+   "description": "DIR DA URA IND BU 2X ETF-USD",
+   "lists": [
+    "AI_Leveraged"
+   ],
+   "ibkr_price": 12.25,
+   "status": "MATCHED",
+   "sta_symbol": "URAA",
+   "listing": "US",
+   "exchange": "PCX",
+   "currency": "USD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 12.699999809265137,
+   "price_diff_pct": 3.7,
+   "other_venues": [],
+   "class": "Leveraged ETF",
+   "candidates": [
+    {
+     "yahoo": "URAA",
+     "listing": "US",
+     "close": 12.699999809265137,
+     "err": 0.036734678307358104
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "UBOT",
+   "description": "DD RA INT & AUTO IB 2X ETF-U",
+   "lists": [
+    "AI_Leveraged"
+   ],
+   "ibkr_price": 16.6,
+   "status": "MATCHED",
+   "sta_symbol": "UBOT",
+   "listing": "US",
+   "exchange": "PCX",
+   "currency": "USD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 16.68000030517578,
+   "price_diff_pct": 0.5,
+   "other_venues": [],
+   "class": "Leveraged ETF",
+   "candidates": [
+    {
+     "yahoo": "UBOT",
+     "listing": "US",
+     "close": 16.68000030517578,
+     "err": 0.004819295492516806
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "COPZ",
+   "description": "DEFIANCE DAILY TARGET 2X LON",
+   "lists": [
+    "AI_Leveraged"
+   ],
+   "ibkr_price": 9.77,
+   "status": "MATCHED",
+   "sta_symbol": "COPZ",
+   "listing": "US",
+   "exchange": "PCX",
+   "currency": "USD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 9.75,
+   "price_diff_pct": 0.2,
+   "other_venues": [],
+   "class": "Leveraged ETF",
+   "candidates": [
+    {
+     "yahoo": "COPZ",
+     "listing": "US",
+     "close": 9.75,
+     "err": 0.0020470829068577334
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "GDXU",
+   "description": "BETAPRO CANADIAN GOLD MINERS",
+   "lists": [
+    "AI_Leveraged"
+   ],
+   "ibkr_price": 26.36,
+   "status": "MATCHED",
+   "sta_symbol": "GDXU.TO",
+   "listing": "TSX",
+   "exchange": "TOR",
+   "currency": "CAD",
+   "yahoo_quoteType": "ETF",
+   "yahoo_close": 26.049999237060547,
+   "price_diff_pct": 1.2,
+   "other_venues": [
+    "GDXU.NE"
+   ],
+   "class": "Leveraged ETF",
+   "candidates": [
+    {
+     "yahoo": "GDXU",
+     "listing": "US",
+     "close": 71.30999755859375,
+     "err": 1.7052351122380025
+    },
+    {
+     "yahoo": "GDXU.TO",
+     "listing": "TSX",
+     "close": 26.049999237060547,
+     "err": 0.011760271735184125
+    },
+    {
+     "yahoo": "GDXU.NE",
+     "listing": "Cboe Canada",
+     "close": 26.020000457763672,
+     "err": 0.012898313438403974
+    }
+   ]
+  },
+  {
+   "ibkr_symbol": "AVGC",
+   "description": "(no description or price in the paste)",
+   "lists": [
+    "AI_Leveraged"
+   ],
+   "ibkr_price": null,
+   "status": "NO PRICE IN PASTE",
+   "sta_symbol": null,
+   "listing": null,
+   "exchange": null,
+   "currency": null,
+   "yahoo_quoteType": null,
+   "yahoo_close": null,
+   "price_diff_pct": null,
+   "other_venues": [],
+   "class": "Leveraged ETF",
+   "candidates": [
+    {
+     "yahoo": "AVGC",
+     "listing": "US",
+     "close": 18.979999542236328,
+     "err": null
+    }
+   ]
+  }
+ ]
+}

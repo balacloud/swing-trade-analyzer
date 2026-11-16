@@ -812,7 +812,7 @@ export function runCategoricalAssessment(
 /**
  * ADX "no confirmed trend" line. Mirrors the literal 20 already used in
  * determineVerdict() (the `adxValue < 20` HOLD branch) and
- * simplifiedScoring.js — not a new threshold. Kept as its own constant here
+ * the Simple Checklist's ADX criterion (removed Day 126) — not a new threshold. Kept as its own constant here
  * so that line inside determineVerdict() (parity-tested) doesn't have to be
  * edited to share it.
  */

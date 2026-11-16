@@ -130,14 +130,21 @@ cd ../backend
 venv/bin/python backtest/test_verdict_parity.py   # JS vs Python verdict engine, 86,400 combinations
 venv/bin/python backtest/test_index_trend.py      # index trend facts
 venv/bin/python backtest/test_vix_bands.py        # VIX bands
+venv/bin/python backtest/test_data_quality.py     # Data Sources checks + side-effect-free cache readers (Day 126)
+# Data-source audits (Day 126): truth-free checks on 24 tickers, then the comparison with IBKR bars
+venv/bin/python backtest/audit_data_sources.py --offline --date 20261114 --now 2026-11-14T12:00:00-05:00   # replay, no network
+venv/bin/python backtest/audit_vs_ibkr.py        # needs backend/validation_results/ibkr_truth_<date>.json
 ```
 
 Browser checks (backend and frontend both running):
 
 ```bash
 cd frontend
-node scripts/ui-verify-checklist.js          # 8 automated checks on AAPL, NVDA, SMH, JPM, RIVN; exit 1 on any failure
+node scripts/ui-verify-checklist.js          # 9 automated checks on AAPL, NVDA, SMH, JPM, RIVN (A8 removed, A10 and A11 added Day 126); exit 1 on any failure
+node scripts/ui-verify-checklist.js SOXL.NE QPUX DRAL AMD.TO RY.TO   # A11 opens the Data Sources tab; SOXL.NE must show FAIL
 node scripts/ui-verify-checklist.js TSLA     # any tickers you like
+node scripts/test_data_sources_view.mjs      # Data Sources text helpers
+node scripts/test_etf_rule_agreement.mjs     # tab fund type vs the Analyze page's ETF rule
 node scripts/ui-cohesiveness-test.js AAPL    # saves a PDF of the page for a manual look
 ```
 

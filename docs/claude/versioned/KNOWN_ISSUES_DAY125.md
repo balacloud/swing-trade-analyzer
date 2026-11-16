@@ -86,7 +86,7 @@ User decision ("it's a rabbit hole"). Both cards say "Common trader rules, not t
 climber re-qualifies as a breakout about every 10 days (stated on the card). Not a bug; recorded so
 nobody reads them as a proven edge. MR (broad) remains the only tested edge.
 
-### Info: the S&R engine is due for replacement (Day 125)
+### ~~Info: the S&R engine is due for replacement (Day 125)~~ — DONE Day 126 (simple engine live; the Simple Checklist that read the levels was removed)
 `support_resistance.py` (~1,600 lines, 3 fallback methods, projections) is planned to be replaced
 on the Analyze page by `simple_sr.py` (`SIMPLE_SR_PLAN_DAY125.md`). The Simple Checklist's criteria
 3/4 read these levels, so TRADE / No Trade can flip. The switch waits for the ~30-stock comparison
@@ -180,3 +180,30 @@ parked, DECLINED Day 113**, do not resume; no scheduled/proactive breakout alert
 SimFin key rotation unconfirmed; Defeat Beta import present; Master Framework / Nirmal / HUB-65
 watchlist Name/Market Cap N/A by choice; a genuinely missed paper-trading job run 2026-07-14
 (not recoverable, moot); FMP's `get_provider_status()` hardcodes unlimited quota (inert).
+
+### Day 126 — indicator audit findings (logged, NOT fixed; no live number changed)
+Source: `design/INDICATOR_FORMULA_AUDIT_PLAN_DAY126.md`, `docs/test/Indicators_20261114/REPORT.md`. Tests: `backtest/test_indicators.py` (inventory test fails on any new indicator file not in `indicator_catalog.py`).
+- **(Low) Paper-trading stops use a different ATR than the Analyze stop.** `trade_simulator.calculate_atr_at` (pandas `ewm`, 51-bar window) vs `simple_sr.wilder_atr` (full history): median 0.63%, max 2.85% apart on 24 tickers. Golden Rule 60 applies to paper results; no change (program discontinued Day 113).
+- **(Low) One verdict rule, three RSI sources.** Analyze uses JS `calculateRSI`; paper trading takes RSI/ADX from TradingView; backtests use pandas `ewm`. JS vs backend differ by at most 0.03 at the last bar, up to 1.5-3.8 on 20-30 bar histories. A flat history gives 100 (JS) vs 50 (Python).
+- **(Low) Backend `calculate_rsi` / `calculate_rsi_4h` have no consumer**; the 4H one spends an intraday call (Twelve Data first) on every `/api/sr`. Candidate removal.
+- **(Low) ADX copies differ on tie bars** (up move = down move > 0): `backend.py` counts neither, `mean_reversion.py` and the backtests count -DM; worst gap 1.2 points (AMD.TO). Pinned by a test; consolidation needs its own plan.
+- **(Low) Avg volume 50 / RVOL include today's unfinished bar** (ATR is the only indicator that leaves it out). RVOL reads low mid-session.
+- **(Low) RS "52 weeks" is 251 bars back**; under 252 bars it silently uses the oldest bar. Python `calculate_rs_52w` (`shift(252)`, used by paper trading) is one bar different from the JS copy.
+- **(Low) `/api/value` hard-codes `'source': 'finnhub'` for PEG** (`backend.py` ~4057) even when Alpha Vantage, Yahoo or the local fallback supplied it.
+- **(Low) `|| 50` in `categoricalAssessment.js:92,766`** also turns a real RSI of 0 into 50 (sits next to the Day 123 item).
+- **(Low) Dead code, one cleanup item:** `pattern_detection.calculate_atr`, JS `calculateATR`, `analyzeTrendStructure`, `calculateTradeSetup`. The Leveraged ETF Board's ATR comment cites the dead `pattern_detection` function, so re-point it first. Frontend `calculateATR` is a simple mean: 10% median / 17% max away from the live ATR.
+- **(Low) Four ATR implementations and several ETF-rule copies remain** (Golden Rule 59 map is in the catalog `copies`); reference JSON files under `backend/reference/` are refreshed by hand.
+
+### Day 126 — split mechanism (built; items below are what it does NOT cover)
+Plan `design/SPLIT_MECHANISM_PLAN_DAY126.md` (v2), tests `backtest/test_split_adjust.py` (81), sweep `backtest/audit_splits.py` (74 cached histories: only SOXL.NE had an unadjusted split).
+- **(Medium) The table is hand-kept.** A split is adjusted only after someone verifies it and adds a row. Unknown splits are caught by the Data Sources tab (FAIL) only for tickers the user opens; a weekly watchlist-wide scan would remove that dependence (not built).
+- **(Low) 3:2 / 4:3 splits are invisible to the detector** (the 40% threshold cannot see them); only the table can handle them.
+- **(Low) Bulk Yahoo downloads are not split-adjusted by STA** (sector rotation `backend.py` `yf.download`, `scan_queries.py` RS ranking, `market_phase_engine.py`): US symbols that Yahoo adjusts. Backtests and the TradingView scan are out of scope.
+- **(Low) Paper-trading ledger rows that cross a split are wrong** (MNST -50.8% "stop_hit_gap", SOXX); the program is discontinued, so not repaired.
+- **(Low) SOXL.NE stays FAIL on the tab** (100% flat bars, zero volume: close-only data, ATR is an approximation). Seven `.NE` CDR symbols (ANET, ASML, AVGO, GEV, MU, SNDK, WDC) have no usable cached history (the CDRs trade on `.TO`).
+- **(Low) Tradier applied QPUX's 1-for-3 reverse split the wrong way, one bar early**; it is not in the price chain for SOXL.NE, and the classifier would flag it `wrong_way`. A Tradier jump guard is still not built.
+
+### Day 126 — tabs removed / hidden
+- **(Info) Validate Data tab deleted** (frontend only: tab, state, handler, `runValidation`, `fetchValidationHistory`). The backend `/api/validation/run|results|history` routes, the `validation/` package and `validation_available` in `/api/health` are now dead code, left for a separate cleanup.
+- **(Info) Forward Test tab hidden** (button removed from the tab bar; its code stays, unreachable). `/api/paper-trading/*` routes and the daily job are unchanged.
+
