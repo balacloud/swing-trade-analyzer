@@ -107,6 +107,7 @@ except ImportError as _e:
     SIMPLE_SR_AVAILABLE = False
     print(f"⚠️  Simple S&R engine not available: {_e}")
 from sub_industry_clusters import SUB_INDUSTRY_CLUSTERS, NO_PROXY_CLUSTERS  # Day 100+ Sub-Industry Watch
+from rrg import compute_rrg  # Day 126: RRG-style sector rotation (weekly, JdK approximation)
 from srps_constants import (  # SRPS pullback screener (Day 102) — see srps_constants.py docstring
     RS_LOOKBACK_DAYS as SRPS_RS_LOOKBACK_DAYS, RS_FLOOR as SRPS_RS_FLOOR,
     EMA_PULLBACK_LOW as SRPS_EMA_PULLBACK_LOW, EMA_PULLBACK_HIGH as SRPS_EMA_PULLBACK_HIGH,
@@ -2582,46 +2583,20 @@ for etf, info in SECTOR_ETF_MAP.items():
         GICS_TO_ETF[gics_name] = etf
 
 
-def compute_rs_ratio_and_quadrant(target_aligned, spy_aligned, momentum_lookback=10):
-    """RS-Ratio/Momentum/Quadrant for one ETF (broad sector or sub-industry proxy)
-    vs SPY, both already date-aligned. Shared by get_sector_rotation() (11 broad
-    GICS sectors) and get_sub_industry_rotation() (Day 100+ sub-industry clusters)
-    so there's exactly one RS-ratio formula in the app, not two that could drift
-    apart (Golden Rule 21).
+def compute_rs_ratio_and_quadrant(target_aligned, spy_aligned, momentum_lookback=None):
+    """RS-Ratio / RS-Momentum / Quadrant for one ETF vs SPY, RRG style.
 
-    NOTE: This is a swing-trading variant of RRG, NOT standard de Kempenaer RRG.
-    Standard RRG uses 12-26 week EMA as 100-center; we use static midpoint.
-    RS-Momentum is 0-centered (delta), not 100-centered as in standard RRG.
-    Quadrants: (RS≥100, Mom≥0)=Leading — functionally equivalent to standard.
-    See: docs/research/UNIVERSAL_PRINCIPLES_IMPLEMENTATION_PLAN.md Bug 0E-F
+    Thin wrapper over rrg.compute_rrg() (the ONE formula: weekly closes, JdK-style
+    approximation, see rrg.py). Shared by get_sector_rotation(), the size strip and
+    get_sub_industry_rotation() (Golden Rules 21 / 59).
 
-    Returns (rs_ratio, rs_momentum, quadrant) — quadrant is one of
-    Leading/Weakening/Lagging/Improving.
+    Returns (rs_ratio, rs_momentum, quadrant): ratio centred on 100, momentum
+    centred on 0 (STA's convention; a cut at 0 equals the standard cut at 100).
+    `momentum_lookback` is kept only so old callers don't break; it is ignored.
+    Raises ValueError when there is too little history.
     """
-    rs_line = (target_aligned / spy_aligned)
-    midpoint = len(rs_line) // 2
-    rs_normalized = (rs_line / rs_line.iloc[midpoint]) * 100
-
-    # Current RS Ratio (latest value, centered at 100)
-    rs_ratio = round(float(rs_normalized.iloc[-1]), 2)
-
-    # RS Momentum: N-day delta of normalized RS (centered at 0, not 100)
-    if len(rs_normalized) >= momentum_lookback:
-        rs_momentum = round(float(rs_normalized.iloc[-1] - rs_normalized.iloc[-momentum_lookback]), 2)
-    else:
-        rs_momentum = 0.0
-
-    # Determine RRG Quadrant (RS≥100 horizontal, Momentum≥0 vertical)
-    if rs_ratio >= 100 and rs_momentum >= 0:
-        quadrant = 'Leading'
-    elif rs_ratio >= 100 and rs_momentum < 0:
-        quadrant = 'Weakening'
-    elif rs_ratio < 100 and rs_momentum < 0:
-        quadrant = 'Lagging'
-    else:  # rs_ratio < 100 and rs_momentum >= 0
-        quadrant = 'Improving'
-
-    return rs_ratio, rs_momentum, quadrant
+    r = compute_rrg(target_aligned, spy_aligned)
+    return r['rs_ratio'], r['rs_momentum'], r['quadrant']
 
 
 @app.route('/api/sectors/rotation', methods=['GET'])
@@ -2644,7 +2619,7 @@ def get_sector_rotation():
                 cached['cached'] = True
                 return jsonify(cached)
 
-        period = request.args.get('period', '6mo')
+        period = request.args.get('period', '2y')  # weekly RRG needs ~36+ weeks of warm-up
 
         print("🔄 Fetching fresh sector rotation data (11 ETFs)...")
 
@@ -2682,7 +2657,8 @@ def get_sector_rotation():
                 spy_aligned = spy_close.loc[common_idx]
                 etf_aligned = etf_close.loc[common_idx]
 
-                rs_ratio, rs_momentum, quadrant = compute_rs_ratio_and_quadrant(etf_aligned, spy_aligned)
+                rrg = compute_rrg(etf_aligned, spy_aligned)
+                rs_ratio, rs_momentum, quadrant = rrg['rs_ratio'], rrg['rs_momentum'], rrg['quadrant']
 
                 # Price changes for context
                 current_price = round(float(etf_aligned.iloc[-1]), 2)
@@ -2700,6 +2676,8 @@ def get_sector_rotation():
                     'rsRatio': rs_ratio,
                     'rsMomentum': rs_momentum,
                     'quadrant': quadrant,
+                    'tail': rrg['tail'],
+                    'thinHistory': rrg['thin'],
                     'weekChange': week_change,
                     'monthChange': month_change,
                 })
@@ -2728,13 +2706,8 @@ def get_sector_rotation():
                     continue
                 spy_al = spy_close.loc[common_idx]
                 etf_al = etf_close.loc[common_idx]
-                # Same swing-trading RRG variant as sector rotation above (Bug 0E-F)
-                # Static midpoint normalization (100-centered ratio, 0-centered momentum)
-                rs_line = (etf_al / spy_al)
-                midpoint = len(rs_line) // 2
-                rs_norm = (rs_line / rs_line.iloc[midpoint]) * 100
-                rs_ratio = round(float(rs_norm.iloc[-1]), 2)
-                rs_momentum = round(float(rs_norm.iloc[-1] - rs_norm.iloc[-10]), 2) if len(rs_norm) >= 10 else 0.0
+                # Same shared RRG formula as the sectors above (one formula, one place)
+                rs_ratio, rs_momentum, _quad = compute_rs_ratio_and_quadrant(etf_al, spy_al)
                 size_rotation.append({
                     'etf': etf,
                     'name': SIZE_ETF_NAMES[etf],
@@ -2747,16 +2720,17 @@ def get_sector_rotation():
         # Size rotation signal: compare IWM vs QQQ RS Ratio (large vs small only —
         # MDY/mid-cap is not part of this specific comparison, see momentumNote()
         # in SectorRotationTab.jsx for the 3-way momentum read)
+        SIZE_SIGNAL_GAP = 1.0  # RS-Ratio points (RRG scale: ratios mostly sit 97-103)
         size_signal = 'Neutral'
         size_signal_detail = 'Large vs. small caps — no clear tilt'
         iwm = next((s for s in size_rotation if s['etf'] == 'IWM'), None)
         qqq = next((s for s in size_rotation if s['etf'] == 'QQQ'), None)
         if iwm and qqq:
             diff = iwm['rsRatio'] - qqq['rsRatio']
-            if diff >= 2:
+            if diff >= SIZE_SIGNAL_GAP:
                 size_signal = 'Risk-On'
                 size_signal_detail = 'Small caps outperforming — risk appetite elevated'
-            elif diff <= -2:
+            elif diff <= -SIZE_SIGNAL_GAP:
                 size_signal = 'Risk-Off'
                 size_signal_detail = 'Large caps favored — defensive posture'
 
@@ -2859,7 +2833,7 @@ def get_sub_industry_rotation():
         if not DATA_PROVIDER_AVAILABLE:
             return jsonify({'error': 'Data provider unavailable'}), 503
 
-        period = request.args.get('period', '6mo')
+        period = request.args.get('period', '2y')  # weekly RRG needs ~36+ weeks of warm-up
         print(f"🔄 Fetching fresh sub-industry rotation data ({len(SUB_INDUSTRY_CLUSTERS)} clusters)...")
 
         dp = get_data_provider()
@@ -2883,10 +2857,6 @@ def get_sub_industry_rotation():
         if len(spy_close) < 20:
             return jsonify({'error': 'Insufficient SPY data'}), 500
 
-        # Full ~6mo trading-day count, used only to flag a thinner-than-usual
-        # read (e.g. DRAM, launched Apr 2026) — never to reject it outright.
-        FULL_WINDOW_TRADING_DAYS = 115
-
         clusters = []
         for cluster_name, info in SUB_INDUSTRY_CLUSTERS.items():
             proxy = info['proxy']
@@ -2906,7 +2876,8 @@ def get_sub_industry_rotation():
                 spy_aligned = spy_close.loc[common_idx]
                 proxy_aligned = proxy_close.loc[common_idx]
 
-                rs_ratio, rs_momentum, quadrant = compute_rs_ratio_and_quadrant(proxy_aligned, spy_aligned)
+                rrg = compute_rrg(proxy_aligned, spy_aligned)
+                rs_ratio, rs_momentum, quadrant = rrg['rs_ratio'], rrg['rs_momentum'], rrg['quadrant']
                 usable_days = len(common_idx)
 
                 clusters.append({
@@ -2916,8 +2887,10 @@ def get_sub_industry_rotation():
                     'rsRatio': rs_ratio,
                     'rsMomentum': rs_momentum,
                     'quadrant': quadrant,
-                    'shortHistory': usable_days < FULL_WINDOW_TRADING_DAYS,
+                    'tail': rrg['tail'],
+                    'shortHistory': rrg['thin'],
                     'usableDays': usable_days,
+                    'weeks': rrg['weeks'],
                     'error': None,
                 })
             except Exception as e:
@@ -2928,6 +2901,7 @@ def get_sub_industry_rotation():
                     'rsRatio': None,
                     'rsMomentum': None,
                     'quadrant': None,
+                    'tail': None,
                     'shortHistory': None,
                     'usableDays': None,
                     'error': str(e),

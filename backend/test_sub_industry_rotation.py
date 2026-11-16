@@ -61,7 +61,7 @@ EXPECTED_CLUSTERS = {
 }
 VALID_QUADRANTS = {"Leading", "Weakening", "Lagging", "Improving"}
 RS_RATIO_SANE_MIN, RS_RATIO_SANE_MAX = 30.0, 350.0
-FULL_WINDOW_TRADING_DAYS = 115  # must match backend.py's own constant
+FULL_WINDOW_WEEKS = 30  # rrg.LONG_WINDOW (26) + rrg.MOM_WEEKS (4): fewer weekly bars = thin read
 
 
 def expected_quadrant(rs_ratio, rs_momentum):
@@ -146,18 +146,18 @@ def run(base_url):
     # 4. shortHistory / usableDays consistency
     short_history_issues = []
     for c in ok_clusters:
-        usable_days, short_history = c.get("usableDays"), c.get("shortHistory")
+        usable_days, short_history = c.get("weeks"), c.get("shortHistory")
         if usable_days is None or short_history is None:
-            short_history_issues.append(f"{c.get('cluster')}: usableDays/shortHistory is None on a resolved cluster")
+            short_history_issues.append(f"{c.get('cluster')}: weeks/shortHistory is None on a resolved cluster")
             continue
-        expected_short = usable_days < FULL_WINDOW_TRADING_DAYS
+        expected_short = usable_days < FULL_WINDOW_WEEKS
         if expected_short != short_history:
-            short_history_issues.append(f"{c.get('cluster')}: usableDays={usable_days} -> "
+            short_history_issues.append(f"{c.get('cluster')}: weeks={usable_days} -> "
                                          f"expected shortHistory={expected_short}, got {short_history}")
     if short_history_issues:
         failures.extend(short_history_issues)
     elif ok_clusters:
-        print_pass("shortHistory flag matches usableDays vs the full-window threshold for every resolved cluster")
+        print_pass("shortHistory flag matches weekly-bar count vs the full-window threshold for every resolved cluster")
 
     # 5. noProxyClusters present
     no_proxy = data.get("noProxyClusters", [])

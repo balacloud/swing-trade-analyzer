@@ -3,6 +3,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { ALIGNMENT_STYLES, ALIGNMENT_ICONS } from '../utils/alignmentStyles';
+import RrgChart from './RrgChart';
 import { fetchSubIndustryRotation, fetchSrpsPullbackScreen, fetchSubIndustryPullbackScreen } from '../services/api';
 
 // Quadrant display config. sectionHint is the beginner-facing "what do I do
@@ -45,24 +46,22 @@ function buildTakeaway(sortedSectors, summary) {
   return 'No sector currently shows both strength and momentum — market breadth is weak, stay cautious.';
 }
 
-// RS Ratio bar — 100-centered (backend returns RRG-style values, e.g. 95.88, 125.57)
-// RS Momentum bar — 0-centered (delta values, e.g. -5.36, +4.95)
+// RS Ratio bar — 100-centred RRG scale (weekly, z-score style; values mostly 95-105)
+// RS Momentum bar — 0-centred (the standard chart's 100 line); values mostly -3 to +3
 function RsBar({ value, label, isMomentum = false }) {
   let pct, barColor, arrow, textColor;
 
   if (isMomentum) {
-    // Momentum: 0 = neutral, range [-12, +12]
-    const clamped = Math.max(-12, Math.min(12, value ?? 0));
-    pct = ((clamped + 12) / 24) * 100; // 50% = 0 (neutral)
+    // Momentum: 0 = neutral, range [-3, +3]
+    const clamped = Math.max(-3, Math.min(3, value ?? 0));
+    pct = ((clamped + 3) / 6) * 100; // 50% = 0 (neutral)
     barColor  = value >= 0 ? 'bg-green-500' : 'bg-red-500';
     arrow     = value > 0  ? '↑' : value < 0 ? '↓' : '→';
     textColor = value >= 0 ? 'text-green-400' : 'text-red-400';
   } else {
-    // RS Ratio: 100 = flat vs SPY at the lookback's static midpoint anchor
-    // (not real-time RRG normalization — see backend.py's own comment on
-    // this endpoint), range [85, 130]
-    const clamped = Math.max(85, Math.min(130, value ?? 100));
-    pct = ((clamped - 85) / 45) * 100; // 33% = 100 (parity)
+    // RS Ratio: 100 = at its own 26-week average vs SPY, range [94, 106]
+    const clamped = Math.max(94, Math.min(106, value ?? 100));
+    pct = ((clamped - 94) / 12) * 100; // 50% = 100
     barColor  = value >= 100 ? 'bg-green-500' : 'bg-red-500';
     arrow     = value > 100  ? '↑' : value < 100 ? '↓' : '→';
     textColor = value >= 100 ? 'text-green-400' : 'text-red-400';
@@ -73,7 +72,7 @@ function RsBar({ value, label, isMomentum = false }) {
       <div className="flex items-center justify-between mb-0.5">
         <span className="text-gray-500 text-xs">{label}</span>
         <span className={`text-xs font-mono ${textColor}`}>
-          {value != null ? value.toFixed(3) : 'N/A'} {arrow}
+          {value != null ? value.toFixed(2) : 'N/A'} {arrow}
         </span>
       </div>
       <div className="w-full bg-gray-700 rounded-full h-1.5">
@@ -105,10 +104,10 @@ const SIZE_ORDER = ['QQQ', 'MDY', 'IWM'];
 function tileInterpretation(rsRatio, rsMomentum) {
   const out = rsRatio >= 100;
   const up  = rsMomentum > 0;
-  if (out && up)   return { label: 'Leading · gaining',      color: 'text-green-400',  barColor: 'bg-green-500',  hint: 'Outperforming SPY & strengthening' };
-  if (out && !up)  return { label: 'Weakening · fading',     color: 'text-yellow-400', barColor: 'bg-yellow-500', hint: 'Outperforming SPY but losing steam' };
-  if (!out && up)  return { label: 'Improving · recovering', color: 'text-blue-400',   barColor: 'bg-blue-500',   hint: 'Lagging SPY but gaining momentum' };
-  return             { label: 'Lagging · falling',      color: 'text-red-400',    barColor: 'bg-red-500',    hint: 'Underperforming SPY & weakening' };
+  if (out && up)   return { label: 'Leading · gaining',      color: 'text-green-400',  barColor: 'bg-green-500',  hint: 'Above its recent average vs SPY and gaining' };
+  if (out && !up)  return { label: 'Weakening · fading',     color: 'text-yellow-400', barColor: 'bg-yellow-500', hint: 'Above its recent average vs SPY but fading' };
+  if (!out && up)  return { label: 'Improving · recovering', color: 'text-blue-400',   barColor: 'bg-blue-500',   hint: 'Below its recent average vs SPY but gaining' };
+  return             { label: 'Lagging · falling',      color: 'text-red-400',    barColor: 'bg-red-500',    hint: 'Below its recent average vs SPY and falling' };
 }
 
 // Momentum-aware sub-note for the headline — considers all 3 tiers (large/mid/small),
@@ -219,6 +218,9 @@ function SectorCard({ sector, onScanForSector }) {
       {/* RS bars */}
       <RsBar value={sector.rsRatio} label="RS Ratio" />
       <RsBar value={sector.rsMomentum} label="RS Momentum" isMomentum />
+      {sector.thinHistory && (
+        <p className="text-yellow-500/80 text-xs mt-2">Short history — shorter windows than standard.</p>
+      )}
 
       {/* Scan button — Leading (strong) or Improving (momentum turning up = best trade setup) */}
       {(sector.quadrant === 'Leading' || sector.quadrant === 'Improving') && (
@@ -269,7 +271,7 @@ function SubIndustryCard({ cluster }) {
       <RsBar value={cluster.rsMomentum} label="RS Momentum" isMomentum />
       {cluster.shortHistory && (
         <p className="text-yellow-500/80 text-xs mt-2">
-          Short history ({cluster.usableDays}d) — read is thinner than the full ~6mo window.
+          Short history ({cluster.weeks ?? '?'} weeks) — the read uses shorter windows than the standard 26 / 10 weeks.
         </p>
       )}
     </div>
@@ -848,6 +850,9 @@ export default function SectorRotationTab({ sectorRotation, sectorRotationError,
         </div>
       </div>
 
+      {/* Standard RRG chart with 5-week trails (Day 126) */}
+      <RrgChart sectors={sortedSectors} />
+
       {/* Size Rotation Strip */}
       <SizeRotationStrip
         sizeRotation={sizeRotation}
@@ -859,11 +864,11 @@ export default function SectorRotationTab({ sectorRotation, sectorRotationError,
       <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 mb-6 text-xs text-gray-400">
         <span className="font-semibold text-gray-300">How to read this:</span>
         &nbsp;
-        <span className="text-green-400 font-medium">Leading</span> = RS Ratio &gt; 100 AND Momentum &gt; 0 (strong & gaining) ·&nbsp;
-        <span className="text-blue-400 font-medium">Improving</span> = RS below 100 but gaining momentum ·&nbsp;
-        <span className="text-yellow-400 font-medium">Weakening</span> = RS above 100 but fading ·&nbsp;
-        <span className="text-red-400 font-medium">Lagging</span> = RS below 100 and falling.
-        &nbsp;Sectors below are grouped by quadrant (most tradeable first) — the "RS Ratio" number on each card is how far above/below SPY it's run over the lookback; it's a separate, secondary stat, not a ranking, so a high value doesn't override the quadrant call.
+        <span className="text-green-400 font-medium">Leading</span> = RS Ratio above 100 and Momentum above 0 (strong and gaining) ·&nbsp;
+        <span className="text-blue-400 font-medium">Improving</span> = ratio below 100 but gaining ·&nbsp;
+        <span className="text-yellow-400 font-medium">Weakening</span> = ratio above 100 but fading ·&nbsp;
+        <span className="text-red-400 font-medium">Lagging</span> = ratio below 100 and falling.
+        &nbsp;RS Ratio 100 means the sector is at its own 26-week average against SPY. Cards are grouped by corner, strongest group first.
       </div>
 
       {/* Sector cards grouped by quadrant — Leading first (most tradeable),
@@ -904,7 +909,7 @@ export default function SectorRotationTab({ sectorRotation, sectorRotationError,
 
       {/* Footer note */}
       <div className="mt-6 text-center text-xs text-gray-600">
-        Data from yfinance · RS Ratio: 100 = flat vs SPY over the lookback, &gt;100 = outperformed since then · Momentum: positive = gaining, negative = fading · Cached per trading day
+        Data from yfinance · weekly closes vs SPY · RS Ratio above 100 = stronger than its 26-week average, Momentum above 0 = gaining · Cached per trading day
       </div>
     </div>
   );

@@ -161,12 +161,12 @@ def run(base_url):
     else:
         print_pass(f"size_signal is valid ({data.get('size_signal')!r})")
 
-    # size_signal internal consistency: mirrors backend.py's own IWM-vs-QQQ diff>=2/<=-2 rule
+    # size_signal internal consistency: mirrors backend.py's own IWM-vs-QQQ diff>=1/<=-1 rule (SIZE_SIGNAL_GAP, RRG scale)
     iwm = next((s for s in size_rotation if s.get("etf") == "IWM"), None)
     qqq = next((s for s in size_rotation if s.get("etf") == "QQQ"), None)
     if iwm and qqq:
         diff = iwm["rsRatio"] - qqq["rsRatio"]
-        expected_signal = "Risk-On" if diff >= 2 else "Risk-Off" if diff <= -2 else "Neutral"
+        expected_signal = "Risk-On" if diff >= 1.0 else "Risk-Off" if diff <= -1.0 else "Neutral"
         if expected_signal != data.get("size_signal"):
             failures.append(f"size_signal inconsistent: IWM-QQQ diff={diff:.2f} "
                              f"-> expected {expected_signal!r}, got {data.get('size_signal')!r}")

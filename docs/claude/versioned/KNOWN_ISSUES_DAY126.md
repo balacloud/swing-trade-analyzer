@@ -23,11 +23,31 @@
   from the backend `conditions`; `mean_reversion.py` is untouched, so backtest numbers do not move.
 - **Resolved (display):** SOXL.NE showed "$0/day" and a failed volume rule. Its provider reports zero volume on every
   bar, so it is now shown as "no volume data" (not checked), not as a fail. The backend still computes 0 there.
+- **Changed (user-directed, no backtest check):** sector rotation now follows the standard RRG design (Bloomberg /
+  StockCharts style) instead of STA's old "middle of a 6-month window = 100" variant. One shared function in
+  `backend/rrg.py` (weekly closes; RS-Ratio = 10-week average of fund/SPY over its 26-week average; RS-Momentum = the
+  ratio vs 4 weeks ago; corners cut at 100/100). It is the public approximation, not the proprietary JdK formula.
+  Used by the 11 sectors, the QQQ/MDY/IWM size strip (its inline copy of the old formula is gone) and the 21
+  sub-industry clusters. Data fetch went from 6mo to 2y. New fields: `tail` (5-week trail), `thinHistory`, `weeks`.
+  `rsMomentum` stays centred on 0 so every existing consumer works. Sectors tab gained the RRG chart with trails.
+  Today's corner changes: sectors XLE, XLF, XLB, XLY, XLC, XLRE, XLU moved; 7 of 21 sub-industry clusters moved.
+  Size signal went Neutral -> Risk-Off (IWM minus QQQ is -2.87; gap threshold is now 1.0 on the new scale).
 - **Added (process):** a Stop hook blocks the end of a turn when code changed and no three-pass review stamp exists
   (`.claude/hooks/three_pass_check.sh`, `/three-pass`, Golden Rule 64).
 - **New (Low / Info):** the items below under "Day 126 — Technical Read and volume card".
 
 ## Open Issues
+
+### Low: `backtest/sector_quadrant_history.py` is out of step with the live RRG (Day 126)
+It replays 126-day windows through `compute_rs_ratio_and_quadrant`; the new weekly formula needs about 16+ weeks, so
+the replay and the sector/sub-industry pullback screeners' "history" gates are no longer the same formula the app
+shows. Research tooling only; not fixed (user does not rely on backtests).
+
+### Info: sector corners are sensitive to the RRG window choice (Day 126)
+With the 10 / 26 / 4 week windows several sectors sit near the lines; a different window moves them. Guidance only,
+like the rest of the page. `indicator_catalog.py` still lists `compute_rs_ratio_and_quadrant` under the RS 52W row
+as a "live copy"; the formula behind it is now `rrg.py`.
+
 
 ### High: Per-ticker provenance can't distinguish "never checked" from "just failed" (carried from Day 108)
 **Fix:** Not actioned — needs a new failure-tracking mechanism, its own session. Oldest open
