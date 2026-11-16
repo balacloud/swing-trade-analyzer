@@ -3,7 +3,7 @@
 // the corner names and numbers are shown, the user decides.
 
 import React, { useEffect, useMemo, useState } from 'react';
-import RrgChart from './RrgChart';
+import SectorLeaderboard from './SectorLeaderboard';
 import { fetchSubIndustryRotation, fetchSrpsPullbackScreen, fetchSubIndustryPullbackScreen } from '../services/api';
 
 // Quadrant display: colour + icon only (Day 126: the "most trade-ready / avoid" hints were verdicts).
@@ -13,7 +13,6 @@ const QUADRANT_CONFIG = {
   Weakening: { color: 'text-yellow-400', icon: '🟡' },
   Lagging:   { color: 'text-red-400',    icon: '🔴' },
 };
-const QUADRANT_ORDER = ['Leading', 'Improving', 'Weakening', 'Lagging'];
 
 // Size ETF display order: large → mid → small
 const SIZE_ORDER = ['QQQ', 'MDY', 'IWM'];
@@ -48,62 +47,6 @@ function SizeRotationStrip({ sizeRotation }) {
           );
         })}
       </div>
-    </div>
-  );
-}
-
-// One compact table for both levels. rows: {key, name, etf, quadrant, rsRatio, rsMomentum,
-// weekChange?, monthChange?, note?, onScan?}. Sorted corner by corner, strongest ratio first.
-function RotationTable({ rows, showChanges = false }) {
-  const sorted = useMemo(() => [...rows].sort((a, b) => {
-    const d = QUADRANT_ORDER.indexOf(a.quadrant) - QUADRANT_ORDER.indexOf(b.quadrant);
-    return d !== 0 ? d : (b.rsRatio ?? 0) - (a.rsRatio ?? 0);
-  }), [rows]);
-
-  return (
-    <div className="bg-gray-800 border border-gray-700 rounded-lg mb-6 overflow-x-auto" data-testid="rotation-table">
-      <table className="w-full text-xs sm:text-sm">
-        <thead>
-          <tr className="text-gray-500 text-xs border-b border-gray-700">
-            <th className="text-left font-medium p-2 sm:p-3">Name</th>
-            <th className="text-left font-medium p-2 sm:p-3">Corner</th>
-            <th className="text-right font-medium p-2 sm:p-3">RS Ratio</th>
-            <th className="text-right font-medium p-2 sm:p-3">Momentum</th>
-            {showChanges && <th className="hidden sm:table-cell text-right font-medium p-3">1 wk</th>}
-            {showChanges && <th className="hidden sm:table-cell text-right font-medium p-3">1 mo</th>}
-            <th className="hidden sm:table-cell p-3" />
-          </tr>
-        </thead>
-        <tbody>
-          {sorted.map(r => {
-            const qc = QUADRANT_CONFIG[r.quadrant] || QUADRANT_CONFIG.Lagging;
-            return (
-              <tr key={r.key} className="border-b border-gray-700/50 last:border-0">
-                <td className="p-2 sm:p-3">
-                  <span className="text-white">{r.name}</span>
-                  <span className="text-gray-500 text-xs font-mono ml-2">{r.etf}</span>
-                  {r.note && <div className="text-yellow-500/80 text-xs">{r.note}</div>}
-                  {r.onScan && (
-                    <button onClick={r.onScan} className="sm:hidden block text-xs text-blue-400">Scan →</button>
-                  )}
-                </td>
-                <td className={`p-2 sm:p-3 whitespace-nowrap ${qc.color}`}><span className="hidden sm:inline">{qc.icon} </span>{r.quadrant}</td>
-                <td className="p-2 sm:p-3 text-right font-mono text-white">{num(r.rsRatio)}</td>
-                <td className="p-2 sm:p-3 text-right font-mono text-gray-300">{signed(r.rsMomentum)} {arrow(r.rsMomentum)}</td>
-                {showChanges && <td className="hidden sm:table-cell p-3 text-right font-mono text-gray-400">{signed(r.weekChange, 1)}%</td>}
-                {showChanges && <td className="hidden sm:table-cell p-3 text-right font-mono text-gray-400">{signed(r.monthChange, 1)}%</td>}
-                <td className="hidden sm:table-cell p-3 text-right">
-                  {r.onScan && (
-                    <button onClick={r.onScan} className="text-xs text-blue-400 hover:text-blue-300 whitespace-nowrap">
-                      Scan →
-                    </button>
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
     </div>
   );
 }
@@ -216,8 +159,7 @@ function SubIndustryWatchSection({ refreshTrigger }) {
 
           {!loading && !error && data && (
             <>
-              <RrgChart sectors={resolvedRows} />
-              <RotationTable rows={resolvedRows} />
+              <SectorLeaderboard items={resolvedRows} />
 
               {erroredClusters.length > 0 && (
                 <div className="mb-5">
@@ -542,7 +484,7 @@ export default function SectorRotationTab({ sectorRotation, sectorRotationError,
   // Sector rows for the table; "Scan stocks" hands the whole sector object to the Scan tab
   const sectorRows = useMemo(() => sortedSectors.map(sec => ({
     key: sec.etf, name: sec.name, etf: sec.etf, quadrant: sec.quadrant,
-    rsRatio: sec.rsRatio, rsMomentum: sec.rsMomentum,
+    rsRatio: sec.rsRatio, rsMomentum: sec.rsMomentum, tail: sec.tail,
     weekChange: sec.weekChange, monthChange: sec.monthChange,
     note: sec.thinHistory ? 'Short history: shorter windows than standard' : null,
     onScan: () => onScanForSector(sec),
@@ -618,19 +560,10 @@ export default function SectorRotationTab({ sectorRotation, sectorRotationError,
         </div>
       </div>
 
-      {/* Standard RRG chart with 5-week trails (Day 126) */}
-      <RrgChart sectors={sortedSectors} />
-
       {/* Size Rotation Strip */}
       <SizeRotationStrip sizeRotation={sizeRotation} />
 
-      {/* How to read — one line */}
-      <p className="text-xs text-gray-500 mb-3">
-        RS Ratio above 100 = stronger than its own 26-week average against SPY. Momentum above 0 = the ratio is rising.
-        Corners: Leading (both above), Weakening (ratio above, momentum below), Lagging (both below), Improving (ratio below, momentum above).
-      </p>
-
-      <RotationTable rows={sectorRows} showChanges />
+      <SectorLeaderboard items={sectorRows} showChanges />
 
       {/* Sub-Industry Watch — Tier 2, collapsed by default, lazy-loaded */}
       <SubIndustryWatchSection refreshTrigger={refreshTrigger} />

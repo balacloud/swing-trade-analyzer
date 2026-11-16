@@ -107,7 +107,7 @@ except ImportError as _e:
     SIMPLE_SR_AVAILABLE = False
     print(f"⚠️  Simple S&R engine not available: {_e}")
 from sub_industry_clusters import SUB_INDUSTRY_CLUSTERS, NO_PROXY_CLUSTERS  # Day 100+ Sub-Industry Watch
-RRG_CACHE_VERSION = 2  # bump when the RRG response shape/scale changes; older cached rows are ignored
+RRG_CACHE_VERSION = 3  # bump when the RRG response shape/scale changes; older cached rows are ignored
 from rrg import compute_rrg  # Day 126: RRG-style sector rotation (weekly, JdK approximation)
 from srps_constants import (  # SRPS pullback screener (Day 102) — see srps_constants.py docstring
     RS_LOOKBACK_DAYS as SRPS_RS_LOOKBACK_DAYS, RS_FLOOR as SRPS_RS_FLOOR,

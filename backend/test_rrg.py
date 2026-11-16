@@ -21,6 +21,8 @@ r = compute_rrg(up, spy)
 check('steady outperformer: ratio above 100', r['rs_ratio'] > 100, r)
 check('steady outperformer: not thin', r['thin'] is False)
 check('tail has 5 points', len(r['tail']) == 5)
+check('every tail point carries its corner', all(p['quadrant'] == quadrant_for(p['rs_ratio'], p['rs_momentum']) for p in r['tail']))
+check('last tail point matches the headline', r['tail'][-1]['quadrant'] == r['quadrant'])
 check('quadrant matches numbers', r['quadrant'] == quadrant_for(r['rs_ratio'], r['rs_momentum']))
 
 # 2. fund falling steadily -> ratio below 100

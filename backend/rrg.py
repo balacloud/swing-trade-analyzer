@@ -86,8 +86,11 @@ def compute_rrg(target_close, spy_close):
     if not (math.isfinite(rs_ratio) and math.isfinite(rs_mom)):
         raise ValueError('non-finite RS values')
 
-    tail = [{'rs_ratio': round(float(r), 2), 'rs_momentum': round(float(m) - 100.0, 2)}
-            for r, m in zip(both['r'].iloc[-TAIL_WEEKS:], both['m'].iloc[-TAIL_WEEKS:])]
+    tail = []
+    for r, m in zip(both['r'].iloc[-TAIL_WEEKS:], both['m'].iloc[-TAIL_WEEKS:]):
+        t_ratio, t_mom = round(float(r), 2), round(float(m) - 100.0, 2)
+        # each trail point carries its own corner so the UI never re-implements the rule
+        tail.append({'rs_ratio': t_ratio, 'rs_momentum': t_mom, 'quadrant': quadrant_for(t_ratio, t_mom)})
     rs_ratio, rs_mom = round(rs_ratio, 2), round(rs_mom, 2)
     return {
         'rs_ratio': rs_ratio,

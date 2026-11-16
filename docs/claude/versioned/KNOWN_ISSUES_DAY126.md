@@ -41,6 +41,12 @@
   `coveredBySector` and listed in one line instead of repeating a sector row. Cached rotation responses carry
   `rrgVersion` (2); older cached rows are ignored. Independent Opus review of the change: 5 findings, 3 fixed
   (cache version, pullback screener keeps all 21 clusters, size strip corner now comes from the backend), 2 logged below.
+- **Changed (Sectors tab layout, user-chosen from a mock-up):** the compact table became a ranked leaderboard
+  (`SectorLeaderboard.jsx`, row model in `utils/leaderboardRows.js`, 23 tests): per row a strength bar centred on 100, a
+  momentum arrow, a 5-week line, the corner pill, and "Moved: A -> B this week" when the corner changed a week ago. Tap a
+  row for the 5 weekly values, 1 wk / 1 mo change and the Scan link. The RRG chart sits behind "Show chart". Same layout
+  for Sub-Industry Watch. Each trail point from the backend now carries its own `quadrant` (so the UI never repeats the
+  corner rule); `rrgVersion` is 3, so older cached rows are ignored.
 - **Added (process):** a Stop hook blocks the end of a turn when code changed and no three-pass review stamp exists
   (`.claude/hooks/three_pass_check.sh`, `/three-pass`, Golden Rule 64).
 - **New (Low / Info):** the items below under "Day 126 — Technical Read and volume card".
