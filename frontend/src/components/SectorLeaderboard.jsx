@@ -26,7 +26,9 @@ function Spark({ points, color }) {
 function Row({ r, showChanges }) {
   const [open, setOpen] = useState(false);
   const color = RRG_COLORS[r.quadrant] || '#9ca3af';
-  const up = r.rsMomentum >= 0;
+  const mom = r.rsMomentum; // exactly 0 is flat, not rising
+  const arrowChar = mom > 0 ? '▲' : mom < 0 ? '▼' : '→';
+  const arrowClass = mom > 0 ? 'text-green-400' : mom < 0 ? 'text-red-400' : 'text-gray-400';
   const barStyle = r.bar.side === 'right'
     ? { left: '50%', width: `${r.bar.pct}%`, background: color }
     : { right: '50%', width: `${r.bar.pct}%`, background: color };
@@ -54,7 +56,7 @@ function Row({ r, showChanges }) {
 
         <div className="flex items-center justify-between md:block">
           <div className="flex items-center gap-1.5 text-sm font-semibold font-mono">
-            <span className={up ? 'text-green-400' : 'text-red-400'}>{up ? '▲' : '▼'}</span>
+            <span className={arrowClass}>{arrowChar}</span>
             <span className="text-white">{signed(r.rsMomentum)}</span>
           </div>
           <div className="md:hidden"><Spark points={r.spark} color={color} /></div>
