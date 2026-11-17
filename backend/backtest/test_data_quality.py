@@ -160,7 +160,11 @@ if os.path.exists(db):
         check('reader: returns a cached frame under 504 rows (the old reader hides it)', df is not None and len(df) < 504)
         check('reader: meta has period, rows, source, cached_at, expired', all(k in meta for k in ('period', 'rows', 'source', 'cached_at', 'expired')))
         check('reader: writes no cache_stats event', stats_count() == before)
-        check('reader: the old gated reader really does hide that frame', cache_manager.get_cached_ohlcv(short[0], '2y') is None)
+        # Day 126: the gate now serves a young fund fetched for 2y (stored period covers the request) and any entry with >= 95% of 504 rows,
+        # so the "hidden" case is an entry stored for a SHORTER period with too few rows
+        hid = sqlite3.connect(db).execute("select ticker from ohlcv_cache where rows < 478 and period != '2y' limit 1").fetchone()
+        if hid:
+            check('reader: the gated reader still hides a short entry stored for a shorter period', cache_manager.get_cached_ohlcv(hid[0], '2y') is None)
         cols = list(df.columns)
         check('reader: lowercase OHLCV columns', cols[:5] == ['open', 'high', 'low', 'close', 'volume'])
     check('reader: unknown ticker -> (None, None)', cache_manager.read_ohlcv_entry('ZZZZZZ9') == (None, None))

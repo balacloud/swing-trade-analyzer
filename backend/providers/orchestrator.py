@@ -39,6 +39,7 @@ be reached after TwelveData and yfinance have both already failed.
 
 import os
 import sys
+import threading
 import traceback
 import pandas as pd
 from datetime import datetime
@@ -98,6 +99,8 @@ class DataProvider:
 
         # Track last provider used per data type for provenance
         self._last_source: Dict[str, str] = {}
+        self._ohlcv_locks: Dict[str, threading.Lock] = {}      # Day 126: one in-flight OHLCV fetch per ticker
+        self._ohlcv_locks_guard = threading.Lock()
 
         print("🔌 DataProvider initialized with multi-source fallback chains:")
         print(f"   OHLCV:        {' → '.join(p.name for p in self._ohlcv_chain)}")
@@ -139,6 +142,15 @@ class DataProvider:
         """
         ticker = ticker.upper()
 
+        # Day 126 (price-basis plan): the Analyze page asks for stock, S&R, patterns, MR and breakout for ONE ticker at the same moment. On a cold
+        # cache each of those used to run the provider chain itself (5 Twelve Data calls, rate limit, fallbacks, and a different price basis per card).
+        # One lock per ticker: the first caller fetches, the others wait and then find the cache filled.
+        with self._ohlcv_locks_guard:
+            lock = self._ohlcv_locks.setdefault(ticker, threading.Lock())
+        with lock:
+            return self._get_ohlcv_locked(ticker, period)
+
+    def _get_ohlcv_locked(self, ticker: str, period: str) -> pd.DataFrame:
         # 1. Check fresh cache — Day 82 fix: pass `period` through so a
         # shorter-period cache entry (e.g. period='1y' from the MR scan)
         # isn't silently served to a longer request (e.g. period='2y').

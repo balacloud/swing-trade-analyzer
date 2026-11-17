@@ -149,6 +149,10 @@ def calculate_fundamentals_expiry() -> datetime:
 # OHLCV CACHE OPERATIONS
 # =============================================================================
 
+OHLCV_ROW_TOLERANCE = 0.95          # Day 126: Yahoo's 2y is 500-503 rows, not 504
+TRADIER_OHLCV_TTL_MIN = 45           # Day 126: Tradier history is not dividend-adjusted; keep it short so the next load retries an adjusted source
+
+
 def _period_to_min_rows(period: str) -> int:
     """
     Approximate minimum trading-day row count for a yfinance-style period
@@ -248,7 +252,7 @@ def get_cached_ohlcv(ticker: str, period: str = '2y') -> Optional[pd.DataFrame]:
 
     try:
         cursor.execute("""
-            SELECT data, expires_at, cached_at, rows
+            SELECT data, expires_at, cached_at, rows, period, source
             FROM ohlcv_cache
             WHERE ticker = ?
         """, (ticker,))
@@ -267,9 +271,15 @@ def get_cached_ohlcv(ticker: str, period: str = '2y') -> Optional[pd.DataFrame]:
             return None
 
         min_rows = _period_to_min_rows(period)
-        if row['rows'] is not None and row['rows'] < min_rows:
+        # Day 126 (price-basis plan): a stored entry is good enough when it was fetched for a period at least as long as the one asked for
+        # (a young fund fetched with period=2y has only 100-450 real rows and must still be a hit), or when it simply has about the number of
+        # rows the period implies (Yahoo returns 500-503 for 2y, not 504). Day-82 protection is unchanged: a 1y entry is still a miss for 2y.
+        stored_rank = _period_to_min_rows(row['period']) if row['period'] else 0
+        covers = stored_rank >= min_rows
+        enough_rows = row['rows'] is not None and row['rows'] >= int(min_rows * OHLCV_ROW_TOLERANCE)
+        if not (covers or enough_rows):
             _log_cache_event(conn, 'miss', 'ohlcv', ticker)
-            print(f"⏰ OHLCV cache for {ticker} has {row['rows']} rows, need {min_rows}+ "
+            print(f"⏰ OHLCV cache for {ticker} has {row['rows']} rows (period {row['period']}), need {int(min_rows * OHLCV_ROW_TOLERANCE)}+ "
                   f"for period={period} — treating as miss, not serving a shorter history")
             return None
 
@@ -299,6 +309,19 @@ def set_cached_ohlcv(ticker: str, df: pd.DataFrame, period: str = '2y', source: 
         data_json = df_copy.to_dict(orient='index')
 
         expires_at = calculate_ohlcv_expiry()
+        if source == 'tradier':
+            expires_at = min(expires_at, datetime.now(ET) + timedelta(minutes=TRADIER_OHLCV_TTL_MIN))
+
+        # Day 126: a shorter fetch (e.g. the MR route's 1y) must not overwrite a FRESH longer entry (a 2y frame)
+        cursor.execute("SELECT period, expires_at FROM ohlcv_cache WHERE ticker = ?", (ticker,))
+        _old = cursor.fetchone()
+        if _old and _old['period'] and _period_to_min_rows(_old['period']) > _period_to_min_rows(period):
+            try:
+                if datetime.now(ET) < datetime.fromisoformat(_old['expires_at']):
+                    print(f"💾 OHLCV for {ticker}: keeping the fresh {_old['period']} entry, not replacing it with a {period} fetch")
+                    return
+            except ValueError:
+                pass
 
         cursor.execute("""
             INSERT OR REPLACE INTO ohlcv_cache (ticker, data, period, rows, source, cached_at, expires_at)

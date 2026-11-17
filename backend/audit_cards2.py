@@ -17,7 +17,7 @@ VIX_WORDS = {'low_volatility': 'low', 'normal': 'normal range', 'elevated': 'ele
 
 # ----------------------------------------------------------------- independent index history (second source, S4) cached per run
 def ref_index(sym, start, out):
-    path = os.path.join(out, f'ref_{sym}.json')
+    path = os.path.join(out, f'ref_adj_{sym}.json')   # Day 126: adjusted basis, like the app (older ref_*.json were unadjusted)
     def completed(rows):
         # the same rule as the app: today's bar is unfinished until 16:30 ET (market_time.is_forming_bar)
         return rows[:-1] if rows and market_time.is_forming_bar(rows[-1][0]) else rows
@@ -28,7 +28,7 @@ def ref_index(sym, start, out):
             pass
     try:
         import yfinance as yf
-        df = yf.Ticker(sym).history(start=start, auto_adjust=False)
+        df = yf.Ticker(sym).history(start=start, auto_adjust=True)
         if df is None or len(df) < 250:
             return None
         rows = [(str(i)[:10], float(c)) for i, c in zip(df.index, df['Close'])]

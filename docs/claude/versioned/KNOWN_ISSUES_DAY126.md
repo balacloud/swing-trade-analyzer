@@ -6,6 +6,16 @@
 
 ## Changes from Day 125
 
+- **Fixed (Day 126): one price basis and one fetch per ticker (found by the 117-ticker universe run).** Two cards on one page could read different price histories (CAT: `/api/stock` 52-week high
+  1073.46 vs `/api/patterns` 1068.93; DUK, SO, PG, CVX, COP, JNJ, LIN, GE, AAPU...). Causes, measured: (1) Twelve Data daily prices were requested without `adjust`, so they were split-adjusted only while
+  Yahoo's are also dividend-adjusted (DUK: median 3.49% apart, up to 7.23%; with `adjust=all` 0.03%); (2) the OHLCV cache expected 504 rows for 2y but Yahoo returns 500-503, so every cached history
+  was a miss and each route refetched; (3) the five Analyze requests for one ticker ran the provider chain concurrently on a cold cache (rate limit, fallbacks, a different basis per card). Plan
+  `docs/claude/design/PRICE_BASIS_CONSISTENCY_PLAN_DAY126.md` (Opus review: GO WITH CHANGES, must-fix items applied). Changes: Twelve Data daily request carries `adjust=all`; the cache serves an entry when its
+  stored period covers the request or it has >= 95% of the expected rows (a young fund fetched for 2y is now a hit; a 1y entry is still a miss for 2y); a shorter fetch never overwrites a fresh longer entry;
+  Tradier-sourced entries (not dividend-adjusted) live 45 minutes; one lock per ticker so concurrent callers share one fetch. OHLCV and market caches were purged once. Tests `backend/test_price_basis.py` (18);
+  `test_data_quality.py` updated. Live cold-cache check: five parallel routes per ticker, one fetch, all agree to the cent. The audit's SPY/QQQ reference now uses the adjusted basis.
+  **Still open from the review (Low):** Twelve Data intraday (4H RSI) stays split-only while the Yahoo intraday fallback is adjusted; backtests and scripts reading the same cache will shift slightly (do not silently
+  re-baseline MR PF 1.50); `get_next_market_close` uses 16:00 where the OHLCV rule uses 16:30; the Session Refresh button does not reset the MR scan, breakout badges, provenance or cache status panels.
 - **Added + fixed (Day 126): Statement Audit phase 3a (Market backdrop, Fundamentals, Mean-Reversion Read).** Plan `docs/claude/design/STATEMENT_AUDIT_PHASE3_PLAN_DAY126.md` (Opus review applied; Data Sources
   tab split off as phase 3b). New `backend/audit_cards2.py` + `test_audit_cards2.py` (30 checks, incl. proofs that the audit's RSI(2) and index-trend references equal the app's own `mean_reversion` and
   `index_trend` code). Backdrop: S&P 200/50-day and the 10-session drop recomputed from the app's own bars, QQQ and "largest since" from an independent Yahoo history (dropping the unfinished bar like the app).

@@ -99,6 +99,11 @@ class TwelveDataProvider(OHLCVProvider, IntradayProvider):
                 'apikey': self.api_key,
                 'format': 'JSON',
             }
+            if interval == '1day':
+                # Day 126 (price-basis plan): adjust for splits AND dividends, like Yahoo's default. Without this Twelve Data's daily
+                # closes were a median 3.5% (up to 7%) away from Yahoo's for a dividend payer (DUK), and two cards on one page could read
+                # different bases depending on which provider answered.
+                params['adjust'] = 'all'
 
             resp = requests.get(url, params=params, timeout=15)
 
