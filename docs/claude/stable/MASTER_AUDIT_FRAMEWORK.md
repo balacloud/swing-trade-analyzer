@@ -2,8 +2,8 @@
 
 > **Purpose:** Single canonical audit framework for ALL audits in STA — internal, external, design, behavioral, coherence
 > **Location:** `docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 111
-> **History:** Evolved from Day 50 (exhaustive testing lesson), Day 57 (first coherence audit), Day 61 (4-layer audit), Day 64 (deep coherence audit), Day 68 (external LLM audit framework), Day 71 (behavioral audit), Day 72 (this consolidation)
+> **Last Updated:** Day 126 (Statement Audit added)
+> **History:** Evolved from Day 50 (exhaustive testing lesson), Day 57 (first coherence audit), Day 61 (4-layer audit), Day 64 (deep coherence audit), Day 68 (external LLM audit framework), Day 71 (behavioral audit), Day 72 (this consolidation), Day 126 (Statement Audit: the page matched the API but the words did not match the number)
 > **Companion doc:** `docs/claude/stable/AUDIT_COVERAGE_LEDGER.md` (Day 111) — tracks which component was last reviewed, at what depth (using this file's Layer 1/2/3 scale), and with what findings. Check it before scoping a new audit, so "new finding" and "re-verified known issue" stay distinguishable.
 
 ---
@@ -20,7 +20,7 @@ Three truths we learned the hard way:
 
 ## Audit Types
 
-STA uses 5 distinct audit types. Each has a different trigger, scope, and method. **Use the right type for the situation.**
+STA uses 6 distinct audit types. Each has a different trigger, scope, and method. **Use the right type for the situation.**
 
 | Type | When to Use | Scope | Method | Time |
 |------|------------|-------|--------|------|
@@ -28,6 +28,7 @@ STA uses 5 distinct audit types. Each has a different trigger, scope, and method
 | **Coherence Audit** | After code changes, before release | Module-level (code vs docs vs behavior) | Layer 1 + Layer 2 deep read | 1-2 hours |
 | **Behavioral Audit** | After major feature implementation | Runtime behavior across multiple tickers | Live API calls + data flow tracing | 1-2 hours |
 | **Design Audit** | Before building a new feature | Design spec vs existing architecture vs correctness | Layer 1 + Layer 2 against spec | 30-60 min |
+| **Statement Audit** | After any change to a card's numbers or wording; before trusting a card | Every number AND its words on rendered pages | Independent recompute + words-vs-window check (checks S1-S5, Part 7) | 20-40 min, scripted |
 | **External LLM Audit** | Validating domain-specific claims against research | Trading methodology, thresholds, academic claims | Multi-LLM consensus | Async (hours) |
 
 ---
@@ -319,6 +320,38 @@ These past audits established the patterns this framework codifies:
 | 69 | External LLM + Synthesis | 4-LLM synthesis, 45 questions, led to Universal Principles evolution | Multi-LLM consensus protocol |
 | 71 | Behavioral | `stockData.marketCap` phantom path — every large-cap treated as small-cap | "Trace data from source to consumer" |
 | 72 | Design | Price Structure spec: 10 findings, architecture flipped from backend to frontend | "Audit specs before building" |
+| 126 | Statement | "+1.5% from a month ago" was 30 trading days (~6 weeks); first run on 7 tickers found zero-volume data printed as "50.00x", a dividend-adjusted "1-year high" that disagrees with the Price Data card, and ADX counting an unfinished bar | "The page matching the API does not make it true" |
+
+---
+
+## Part 7: Statement Audit Protocol (Day 126)
+
+**Why it exists.** The Technical Read said "+1.5% from a month ago" for the 200-day average. The number was real (30 trading days) but a month is about
+21 trading days (+0.5%). It sat on the page from Day 123 to Day 126 because every automated check proved "page = API", never "API = truth" or
+"words = number". This is the Claim Audit (Part 1) and the Behavioral Audit (Part 3) applied, automated, to the rendered text. It replaces neither.
+
+**What a statement is.** Any text that claims a fact: a number, percent, date, window word ("a month", "past year", "50-day", "last close"),
+a comparison (above/below, rising), a count (3 / 8). Not advice, not design copy.
+
+**Checks** (called S1-S5 so they are not confused with the ledger's Layer 1/2/3 depth scale):
+| Check | Question | How |
+|---|---|---|
+| **S1 Source** | Which field/function produces it? | Named in the registry (file:line). No phantom paths (Day 71). |
+| **S2 Recompute** | Is the number right? | Rebuilt from raw bars in a reference that imports NO app indicator code (`backend/audit_ref.py`). Tolerance names its cause (display `toFixed`, 2-decimal bars). |
+| **S3 Words = number** | Do the words describe what was measured? | Window dictionary (`window_ok` in `audit_statements.py`): N-day = N bars; "N bars back" = `iloc[-(N+1)]`; a month = 20-23 bars; a year = 250-253. **S3-static** reads the real source (UI phrase vs code constant) on every run, so a constant fails for every ticker. |
+| **S4 Outside reference** | Does a second source agree? | Closes vs IBKR/other providers belong to the data-source audit (C3/C9). Without one the row is UNVERIFIED, never PASS. |
+| **S5 Cross-card** | Same claim, same value everywhere? | e.g. "1-year high" on Technical Read vs Price Data. |
+
+**Exhaustive.** Every number token on the card text is claimed by a statement or listed UNVERIFIED (`U1`); a new number cannot slip past silently.
+
+**Verdicts → framework labels + severity.** PASS · WRONG (number wrong = CRITICAL) · MISLEADING (number right, words wrong = HIGH; borderline display rounding = LOW) · UNVERIFIED (INFO: unclaimed number, rule not mirrored, branch not reached, no outside reference).
+
+**Run it.** `node frontend/scripts/dump_page_statements.js OUT TICKERS...` (captures what the page received and showed; needs both servers), then
+`cd backend && venv/bin/python audit_statements.py OUT` writes `OUT/REPORT.md`. Self-tests: `venv/bin/python test_audit_statements.py`.
+Ticker set: the Part 3 minimum plus a young-history ticker. First run: `docs/test/Statement_Audit_20261117/REPORT.md`.
+
+**Limits (say them out loud).** The reference uses the same `/api/stock` bars, so it proves the maths and the words, not the data source (S4).
+Cards not yet registered are listed NOT YET COVERED in the report and the ledger. Live runs only reach the branches those tickers hit: the first run covers the Technical Read.
 
 ---
 
@@ -331,6 +364,7 @@ These past audits established the patterns this framework codifies:
 "Is this threshold correct?"       → Claim Audit (Part 1)
 "Does research support this?"      → External LLM Audit (Part 5)
 "The system feels wrong but IDK why" → Coherence Audit (Part 2, Layer 2)
+"I changed a card's numbers or wording" → Statement Audit (Part 7)
 ```
 
 ---
@@ -345,6 +379,7 @@ These past audits established the patterns this framework codifies:
 | "I trust my own design spec" | Day 72: 10 findings in spec I just wrote | Audit specs before building |
 | "One LLM says it's verified" | LLMs fabricate citations | 2-3 LLM consensus required |
 | "We'll audit later" | Bugs compound. Day 71 phantom path lasted 2+ days | Audit at the boundary (before/after each phase) |
+| "The page matches the API, so it is true" | Day 126: right number, wrong words, for 3 days | Statement Audit: recompute + check the words |
 | "The fix is obvious, skip investigation" | Golden Rule: debug workflow → hypothesis → diagnostic → THEN fix | STOP and diagnose first |
 
 ---

@@ -6,6 +6,11 @@
 
 ## Changes from Day 125
 
+- **Added (Day 126): the Statement Audit** (MASTER_AUDIT_FRAMEWORK Part 7). Triggered by "+1.5% from a month ago" (really 30 trading days, fixed: "over 30
+  trading days"). Recomputes every number on the Technical Read from raw bars and checks the words against the window the code uses; every number token on the card is
+  claimed or listed. First run, 7 tickers: `docs/test/Statement_Audit_20261117/REPORT.md` (254 PASS, 5 WRONG, 8 MISLEADING, 15 UNVERIFIED). Findings are logged below.
+  Plan `docs/claude/design/STATEMENT_AUDIT_PLAN_DAY126.md` (Opus review v2). Files: `backend/audit_ref.py`, `audit_statements.py`, `test_audit_statements.py` (22 checks),
+  `frontend/scripts/dump_page_statements.js`. The pattern_detection.py docstring "at least 1 month" now says 30 trading days.
 - **Fixed (Day 126): `/api/stock`, `/api/market/spy` and `/api/patterns` now leave out today's unfinished bar (completed bars only).**
   Measured first: mid-session the partial bar made ATR read 0-1.5% low (worst 3.4%), EMA21 off by under 0.5%, SMA50/200 ~0. The Opus review
   found the plan's first version would have mixed bases (SPY and `/api/patterns` did not drop it), so all three routes got the same
@@ -114,6 +119,26 @@ as a "live copy"; the formula behind it is now `rrg.py`.
 ### High: Per-ticker provenance can't distinguish "never checked" from "just failed" (carried from Day 108)
 **Fix:** Not actioned — needs a new failure-tracking mechanism, its own session. Oldest open
 item from the Day 108 full-system audit.
+
+### High: zero-volume funds print meaningless volume numbers ("50.00x") (Day 126, Statement Audit)
+SOXL.NE's provider history has volume 0 on every bar. The Technical Read still shows "50.00x normal volume", a volume signal tally, "OBV falling" and an
+effort-vs-result line. Cause: `TechnicalRead.jsx:226` `prevBar?.rvol ?? meta.rvol` falls back to TODAY's partial-bar RVOL when the prior bar's RVOL is missing
+(avg volume 0), and labels it "Last session (2026-11-16)"; with a zero-volume history any partial-bar volume reads as about 50x. The user's real fund, so it matters.
+**Fix (needs its own plan):** treat a window with no volume as "volume not available for this fund" on the card, remove the `?? meta.rvol` fallback, and make
+the backend say so (no RVOL/OBV for all-zero volume).
+
+### Medium: price history is dividend-adjusted, so a "1-year high" is not a price that ever traded (Day 126, Statement Audit)
+F: Technical Read says "$17.38 high", the Price Data card says $17.78. Raw Yahoo high is 17.78; the adjusted history (auto-adjust) gives 17.38. Same family for the
+averages of dividend payers: they are on adjusted closes and will not match a charting platform. Decision needed: raw bars for levels/highs and adjusted only
+for returns, or label the figures "dividend-adjusted". Not fixed.
+
+### Low: ADX on the card includes today's unfinished bar (Day 126, Statement Audit; measured)
+The math is correct Wilder ADX, but `/api/sr` computes it with the forming bar (kept on purpose). Mid-session it reads 0.5 to 1.1 points off the completed-bar value
+(F 19.5 vs 18.4, SMCI 28.6 vs 27.5, SMH 34.9 vs 34.1, SOXL.NE 27.1 vs 26.6, RIVN 25.4 vs 25.9), while the trend rows below it use the last close.
+
+### Low: display rounding at the 0.25 / 0.75 close-location thresholds (Day 126, Statement Audit)
+`meta.candle.closeLocation` is rounded to 2 decimals before the "near the day's low" comparison. AAPL: true 0.2526 reads as 0.25 and is called "near the day's low"
+(and the 3-down tally). Return 4 decimals or compare the raw value.
 
 ### Low: after the forming-bar fix, three small leftovers (Day 126)
 - **52-week high/low** come from Yahoo's info and can include today's intraday high/low, while `currentPrice` is now the last completed

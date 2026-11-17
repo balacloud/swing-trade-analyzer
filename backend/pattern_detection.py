@@ -236,7 +236,7 @@ def check_trend_template(df: pd.DataFrame) -> Dict:
     3. Current price above 200-day SMA
     4. 50-day SMA above 150-day SMA
     5. 150-day SMA above 200-day SMA
-    6. 200-day SMA trending up for at least 1 month
+    6. 200-day SMA trending up over the last 30 trading days (about 6 weeks)
     7. Current price at least 30% above 52-week low
     8. Current price within 25% of 52-week high
 
