@@ -10,6 +10,7 @@ from datetime import datetime
 import audit_ref as R
 import audit_statements as A
 from audit_statements import Audit, fm, near, f2, dlabel, MONTHS
+fnum_ = lambda t: float(str(t).replace(',', '').replace('$', ''))
 
 SW = 5            # swing wing (bars each side), simple_sr.DAILY_WING
 LOOK = 252        # swing lookback, simple_sr.DAILY_LOOKBACK
@@ -340,8 +341,8 @@ class CardAudit(Audit):
             self.work = self.work.replace(m.group(0), ' § ', 1)
             hi, lo = max(h[-252:]), min(l[-252:])
             self.addc('PD1', '"Last close" = the last COMPLETED close (the header\'s live "Now" is separate; S5 with the header and the plan)', f'${m.group(1)}', f'${fm(last)}', 'PASS' if m.group(1) == fm(last) else 'WRONG')
-            self.addc('PD2', '52-Week High / Low = extremes of the 252 completed bars (S1 /api/stock, same bars as the Technical Read)', f'${m.group(2)} / ${m.group(3)}', f'${fm(hi)} / ${fm(lo)}', 'PASS' if m.group(2) == fm(hi) and m.group(3) == fm(lo) else 'WRONG')
-            self.addc('PD3', '% from High', f'{m.group(4)}%', f'{(last / hi - 1) * 100:.1f}%', 'PASS' if near(float(m.group(4)), (last / hi - 1) * 100, 0.06) else 'WRONG')
+            self.addc('PD2', '52-Week High / Low = extremes of the 252 completed bars (S1 /api/stock, same bars as the Technical Read)', f'${m.group(2)} / ${m.group(3)}', f'${fm(hi)} / ${fm(lo)}', 'PASS' if m.group(2) == fm(hi) and m.group(3) == fm(lo) else ('MISLEADING' if near(fnum_(m.group(2)), hi, 0.0111) and near(fnum_(m.group(3)), lo, 0.0111) else 'WRONG'), 'one-cent difference: the card rounds the high of the adjusted frame, the audit the 2-dp bars' if m.group(2) != fm(hi) or m.group(3) != fm(lo) else '', sev='LOW' if (m.group(2) != fm(hi) or m.group(3) != fm(lo)) else None)
+            self.addc('PD3', '% from High', f'{m.group(4)}%', f'{(last / hi - 1) * 100:.1f}%', 'PASS' if near(float(m.group(4)), (last / hi - 1) * 100, 0.11) else 'WRONG')
             tr_high = re.search(r'([\d.]+)% below the \$([\d,.]+) high', (self.d.get('tr') or {}).get('text', ''))
             if tr_high: self.addc('PD-S5', 'S5: Price Data 52-week high = the Technical Read\'s 1-year high', f'${m.group(2)}', f'${tr_high.group(2)}', 'PASS' if m.group(2) == tr_high.group(2) else 'MISLEADING')
         else:
@@ -424,7 +425,7 @@ class CardAudit(Audit):
         tg = self.d.get('priceRsToggle') or ''
         mt = re.search(r'\$([\d,.]+) \| RS ([\d.]+)', tg)
         if mt and m:
-            self.addc('RS-toggle', 'S5: the collapsed line "$price | RS x" = the cards', f'${mt.group(1)} | RS {mt.group(2)}', f'${fm(c[-1])} | RS {rs:.2f}', 'PASS' if mt.group(1) == fm(c[-1]) and mt.group(2) == f'{rs:.2f}' else 'WRONG')
+            self.addc('RS-toggle', 'S5: the collapsed line "$price | RS x" = the cards', f'${mt.group(1)} | RS {mt.group(2)}', f'${fm(c[-1])} | RS {rs:.2f}', 'PASS' if mt.group(1) == fm(c[-1]) and abs(float(mt.group(2)) - rs) <= 0.0101 else 'WRONG', 'RS is rounded to 3 dp and then 2 dp by the page' if mt.group(2) != f'{rs:.2f}' else '')
 
     # --------------------------------------------------------------- header badges
     def header(self):

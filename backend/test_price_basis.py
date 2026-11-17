@@ -96,5 +96,22 @@ with mock.patch('requests.get', fake_get):
 ok(seen and seen[0].get('adjust') == 'all', 'the daily Twelve Data request carries adjust=all')
 ok(len(seen) > 1 and 'adjust' not in seen[1], 'the intraday request does not (not part of this change)')
 
+# ---- stale fallback must not hand a short entry to a longer request (universe run: 51 of 117 stock responses were 1y frames)
+from providers.exceptions import ProviderError
+class FailProv:
+    name = 'twelvedata'
+    def get_ohlcv(self, t, period): raise ProviderError('twelvedata', 'rate limited', t)
+cm.set_cached_ohlcv('STALE1', frame(251), '1y', 'yfinance')
+dp2 = orch.DataProvider.__new__(orch.DataProvider)
+dp2._ohlcv_locks = {}; dp2._ohlcv_locks_guard = threading.Lock(); dp2._last_source = {}; dp2._ohlcv_chain = [FailProv()]; dp2._deliver = lambda t, df: df
+try:
+    dp2.get_ohlcv('STALE1', '2y'); served = True
+except ProviderError:
+    served = False
+ok(not served, 'all providers fail for a 2y request: a short 1y cache entry is NOT served as the stale fallback (an explicit error instead)')
+ok(len(dp2.get_ohlcv('STALE1', '1y')) == 251, 'the same short entry still serves a 1y request')
+cm.set_cached_ohlcv('STALE2', frame(501), '2y', 'yfinance')
+ok(len(dp2.get_ohlcv('STALE2', '2y')) == 501, 'a full 2y entry is served normally')
+
 print(f'\n{passed} passed, {failed} failed')
 sys.exit(1 if failed else 0)

@@ -93,5 +93,12 @@ try:
 finally:
     backend.detect_patterns = real_detect
 
+# ---- price52wAgo with a leading NaN row (a 1-year Yahoo frame starts empty): must come from the first real close, not None
+nanf = frame('2026-11-16', n=252)
+nanf.iloc[0, nanf.columns.get_loc('close')] = np.nan
+r = get('/api/stock/FAKE', nanf, at(2026, 11, 17, 9, 15)); j = r.get_json()
+ok(r.status_code == 200 and j['price52wAgo'] is not None and j['price13wAgo'] is not None, 'a leading NaN row does not blank price52wAgo / price13wAgo (RS card N/A bug)')
+ok(j['price52wAgo'] == round(float(nanf['close'].dropna().iloc[0]), 2) or j['price52wAgo'] == round(float(nanf['close'].dropna().iloc[-252]), 2), 'price52wAgo is the first real close of the window')
+
 print(f"\n{passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)

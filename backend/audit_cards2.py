@@ -167,8 +167,15 @@ class CardAudit2(CardAudit):
         if not self.use('card-fundamentals'):
             if self.stock: self.addc('FU0', 'Fundamentals card present', 'card not found', 'card text', 'WRONG')
             return
-        f = (self.d['payloads'].get('fundamentals') or {}).get('body') or {}
+        fp = self.d['payloads'].get('fundamentals') or {}
+        f = fp.get('body') or {}
         qt = self.stock.get('quoteType')
+        if (fp.get('status') not in (None, 200) or f.get('error')) and not (isinstance(qt, str) and qt.upper() == 'ETF'):
+            said = "Can't check" in self.text and "isn't the same as" not in self.text or "Can't check" in self.text
+            self.addc('FU0', 'the fundamentals feed answered 404 / error: the card says "Can\'t check", never "No red flags"', "Can't check" if said and 'No red flags' not in self.text else 'does not say so', "Can't check",
+                      'PASS' if said and 'No red flags' not in self.text else 'WRONG', 'provider outcome (' + str(f.get('error') or fp.get('status')) + '); not a card bug')
+            e = (self.d['payloads'].get('earnings') or {}).get('body') or {}
+            return
         etf = isinstance(qt, str) and qt.upper() == 'ETF'
         if etf:
             ok = 'Not applicable' in self.text and re.search(r'This (is an ETF|looks like an ETF)', self.text)
@@ -262,7 +269,7 @@ class CardAudit2(CardAudit):
         ag, al = ewm_adj(g), ewm_adj(l); rsi2 = 100.0 if al == 0 else 100 - 100 / (1 + ag / al)
         sma200 = R.sma(c, 200); pct = R.pct(c[-1], sma200) if sma200 else None
         adv = sum(c[i] * v[i] for i in range(len(c) - 20, len(c))) / 20
-        no_vol = sum(1 for x in v[-50:] if x and x > 0) < 40
+        no_vol = (mr.get('avg_dollar_volume') in (0, None)) and (mr.get('avg_volume') in (0, None))   # the MR card's own rule (mrReadRows.volumeIsMissing), not the Technical Read's 40-of-50 rule
         self.addc('MR-rsi', 'RSI(2) = ewm(alpha 1/2) average gain / average loss over all bars (S1 mean_reversion.calculate_rsi_short); tolerance 0.3 (2-dp bars)', f'{mr["rsi2"]}', f'{rsi2:.2f}', 'PASS' if near(mr['rsi2'], rsi2, 0.3) else 'WRONG')
         self.addc('MR-sma', '% above the 200-day average = (close / 200-day SMA - 1)', f'{mr["pct_above_sma200"]}%', f'{pct:.2f}%' if pct is not None else 'n/a', 'PASS' if pct is not None and near(mr['pct_above_sma200'], pct, 0.1) else 'WRONG')
         self.addc('MR-price', 'price = the last completed close', f'{mr["current_price"]}', f'{c[-1]}', 'PASS' if near(mr['current_price'], c[-1], 0.011) else 'WRONG')

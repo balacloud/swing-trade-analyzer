@@ -6,6 +6,13 @@
 
 ## Changes from Day 125
 
+- **Fixed (Day 126): short frames served silently under load, and the RS card reading "N/A" (universe run 2).** After the price-basis fix the second universe run still returned a 1-year (251-bar) `/api/stock`
+  frame for 51 of 117 tickers. Cause: when every provider failed for a 2y request under heavy concurrent load, the orchestrator's stale-cache fallback returned whatever entry existed (the 1y frame another route had cached
+  moments before) with no length check. Fix: the stale fallback applies the same "covers the requested period or >= 95% rows" rule and otherwise raises an explicit error. Second cause of RS "N/A" (NFLX, CEG...): a 1y Yahoo
+  frame starts with an empty first row, so `price52wAgo`/`price13wAgo` (`iloc[-252]`, `iloc[0]`, `iloc[-63]`) hit a NaN and came back None; they now read from the non-NaN closes. Tests: `test_price_basis.py` (21),
+  `test_forming_bar_routes.py` (18). Audit-side corrections the run exposed: a feed 404 shown as "Can't check" is correct (provider outcome, ETN/HD/LLY/PG...); MR volume follows the MR card's own rule; one-cent
+  and rounding borderlines are LOW; the volume tally uses the app's +/-0.1% flat band. Remaining from the run (open): the Buy vs nearest-zone bug (AMD, META, QCOM, PLD), thin Canadian ETFs where MR shows a real
+  tiny dollar figure while the Technical Read says "No volume data" (both true, different rules), and provider 404s for fundamentals on ~10 large US stocks.
 - **Fixed (Day 126): one price basis and one fetch per ticker (found by the 117-ticker universe run).** Two cards on one page could read different price histories (CAT: `/api/stock` 52-week high
   1073.46 vs `/api/patterns` 1068.93; DUK, SO, PG, CVX, COP, JNJ, LIN, GE, AAPU...). Causes, measured: (1) Twelve Data daily prices were requested without `adjust`, so they were split-adjusted only while
   Yahoo's are also dividend-adjusted (DUK: median 3.49% apart, up to 7.23%; with `adjust=all` 0.03%); (2) the OHLCV cache expected 504 rows for 2y but Yahoo returns 500-503, so every cached history

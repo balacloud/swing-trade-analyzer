@@ -1162,19 +1162,19 @@ def get_stock_data(ticker):
 
         # Get 52-week ago price (approximately 252 trading days)
         # Day 61: NaN-safe — check before converting
+        # Day 126 (universe run): count only rows that HAVE a close. A 1-year Yahoo frame starts with an empty first row, so
+        # iloc[-252] / iloc[0] landed on a NaN, price52wAgo came back None and the Relative Strength card read "N/A" for NFLX, CEG...
+        _closes = hist_data['close'].dropna()
         price_52w_ago = None
-        if len(hist_data) >= 252:
-            _val = hist_data.iloc[-252]['close']
-            price_52w_ago = round(float(_val), 2) if not pd.isna(_val) else None
-        elif len(hist_data) > 200:
-            _val = hist_data.iloc[0]['close']
-            price_52w_ago = round(float(_val), 2) if not pd.isna(_val) else None
+        if len(_closes) >= 252:
+            price_52w_ago = round(float(_closes.iloc[-252]), 2)
+        elif len(_closes) > 200:
+            price_52w_ago = round(float(_closes.iloc[0]), 2)
 
         # Get 13-week ago price (approximately 63 trading days)
         price_13w_ago = None
-        if len(hist_data) >= 63:
-            _val = hist_data.iloc[-63]['close']
-            price_13w_ago = round(float(_val), 2) if not pd.isna(_val) else None
+        if len(_closes) >= 63:
+            price_13w_ago = round(float(_closes.iloc[-63]), 2)
 
         # Current price — use last non-NaN close if latest is NaN
         _last_close = hist_data.iloc[-1]['close']

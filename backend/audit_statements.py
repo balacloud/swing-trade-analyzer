@@ -240,7 +240,7 @@ class Audit:
         obv = R.obv_trend(c[:vi + 1], v[:vi + 1])
         votes = []
         if abs(chg) > 0.0 and True:
-            votes.append(1 if chg > 0 else -1 if chg < 0 else 0)
+            votes.append(1 if chg > 0.1 else -1 if chg < -0.1 else 0)   # the app's flat band is +/-0.1% (volumeThresholds DAY_CHANGE_FLAT_PCT)
         if loc is not None: votes.append(1 if loc >= 0.75 else -1 if loc <= 0.25 else 0)
         if obv: votes.append(1 if obv == 'rising' else -1 if obv == 'falling' else 0)
         if m:
@@ -353,7 +353,7 @@ def static_s3() -> List[Row]:
     m = re.search(r'high_52w = df\[.High.\]\.tail\((\d+)\)\.max\(\)', pd_src)
     rows.append(Row('-', 'S3-4', 'Technical Read', '"1-year high": code window', f'tail({m.group(1) if m else "?"})', '250-253 bars', 'PASS' if m and window_ok('1-year high', int(m.group(1))-1, int(m.group(1))) else 'MISLEADING', SEV['PASS' if m and window_ok('1-year high', int(m.group(1))-1, int(m.group(1))) else 'MISLEADING']))
     m = re.search(r'price_52w_ago = round\(float\(_val\), 2\)[^\n]*\n[^\n]*\n[^\n]*\n[^\n]*', be)
-    m2 = re.search(r'hist_data\.iloc\[-(\d+)\]\[.close.\]', be)
+    m2 = re.search(r'_closes\.iloc\[-(\d+)\]', be)   # Day 126: the year-ago close is now read from the non-NaN closes
     rows.append(Row('-', 'S3-5', 'Technical Read', '"past year" return: year-ago bar', f'iloc[-{m2.group(1) if m2 else "?"}]', '250-253 bars span', 'PASS' if m2 and window_ok('past year', int(m2.group(1)) - 1, int(m2.group(1))) else 'MISLEADING', SEV['PASS' if m2 and window_ok('past year', int(m2.group(1)) - 1, int(m2.group(1))) else 'MISLEADING']))
     m = re.search(r'def calculate_obv\(close[^)]*lookback: int = (\d+)', be)
     rows.append(Row('-', 'S3-6', 'Technical Read', '"Last 20 days" / "20-day On-Balance Volume": OBV lookback', f'lookback={m.group(1) if m else "?"}', '20 bars', 'PASS' if m and m.group(1) == '20' else 'MISLEADING', SEV['PASS' if m and m.group(1) == '20' else 'MISLEADING']))

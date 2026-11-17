@@ -185,7 +185,7 @@ class DataProvider:
 
         # 3. Stale cache fallback (serve expired data with warning)
         if CACHE_AVAILABLE:
-            stale = self._get_stale_ohlcv(ticker)
+            stale = self._get_stale_ohlcv(ticker, period)
             if stale is not None:
                 self._last_source[f'{ticker}_ohlcv'] = 'stale_cache'
                 print(f"📦 OHLCV for {ticker}: serving STALE cache (all providers failed)")
@@ -425,13 +425,21 @@ class DataProvider:
     # STALE CACHE HELPERS
     # =========================================================================
 
-    def _get_stale_ohlcv(self, ticker: str) -> Optional[pd.DataFrame]:
+    def _get_stale_ohlcv(self, ticker: str, period: str = '2y') -> Optional[pd.DataFrame]:
         """Get OHLCV from cache even if expired (stale fallback). Day 126: uses the shared side-effect-free
-        reader (was a second copy of the cache deserializer)."""
+        reader (was a second copy of the cache deserializer). Day 126 (universe run): the entry must still COVER the
+        requested period (same rule as the fresh-cache gate). Under heavy load every provider can fail for a 2y request,
+        and this fallback used to hand back the 251-row 1y frame another route had cached moments earlier, silently."""
         if not CACHE_AVAILABLE:
             return None
         try:
-            df, _meta = cache_manager.read_ohlcv_entry(ticker)
+            df, meta = cache_manager.read_ohlcv_entry(ticker)
+            if df is not None and meta:
+                need = cache_manager._period_to_min_rows(period)
+                covers = cache_manager._period_to_min_rows(meta.get('period')) >= need if meta.get('period') else False
+                if not (covers or len(df) >= int(need * cache_manager.OHLCV_ROW_TOLERANCE)):
+                    print(f"⚠️ stale OHLCV for {ticker} is a {meta.get('period')} entry ({len(df)} rows), too short for period={period}; not serving it")
+                    return None
             return df
         except Exception as e:
             print(f"⚠️ stale OHLCV read failed for {ticker}: {e}")
