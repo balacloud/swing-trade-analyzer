@@ -7,6 +7,7 @@
  * input is missing, so the card can say why instead of showing a made-up value.
  */
 import { BREAKOUT_VOLUME_THRESHOLD, getVolumeDirectionRead } from './volumeThresholds';
+import { formatMoney } from './formatMoney';
 
 const isNum = (v) => typeof v === 'number' && Number.isFinite(v);
 const pctDiff = (a, b) => (isNum(a) && isNum(b) && b !== 0 ? ((a - b) / b) * 100 : null);
@@ -45,7 +46,7 @@ export function deriveTrendChecks(patternsData, historyBars = null) {
   const sma200Ago = tt.sma_values?.sma_200_30d_ago;  // null on responses cached before Day 123
   const high = tt.price_position?.high_52w;
   const fromHigh = tt.price_position?.pct_from_high;
-  const money = (v) => (isNum(v) ? `$${v.toFixed(2)}` : '—');
+  const money = (v) => formatMoney(v);
   const signed = (v) => (isNum(v) ? `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(1)}%` : '');
 
   const checks = [
@@ -154,6 +155,41 @@ export function todayInNewYork() {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 }
 
+/** Mirrors backend/breakout_detection.py VOLUME_BARS / MIN_VOLUME_BARS (one definition of "enough volume history", Golden Rule 59). */
+export const VOLUME_WINDOW_BARS = 50;
+export const MIN_VOLUME_DAYS = 40;
+
+/**
+ * Is there real volume to read? The backend decides on completed bars and says so in meta.volume ({available, daysWithVolume, windowBars}).
+ * When that flag is missing (older cached /api/sr, or /api/sr failed) the bars the card would draw are counted the same way, so an
+ * all-zero history can never draw empty bars or print volume numbers (Day 126, SOXL.NE).
+ */
+export function volumeAvailability(history, meta) {
+  const v = meta?.volume;
+  if (v && typeof v.available === 'boolean') {
+    return { available: v.available, daysWithVolume: v.daysWithVolume ?? null, windowBars: v.windowBars ?? VOLUME_WINDOW_BARS, source: 'backend' };
+  }
+  const window = (Array.isArray(history) ? history : []).slice(-VOLUME_WINDOW_BARS);
+  const days = window.filter((b) => isNum(b?.volume) && b.volume > 0).length;
+  return { available: window.length > 0 && days >= MIN_VOLUME_DAYS, daysWithVolume: days, windowBars: window.length, source: 'bars' };
+}
+
+/**
+ * Which bar do the volume reads describe? A complete last bar = today's numbers. While today's bar is forming, the last COMPLETE bar
+ * (meta.prevBar). A missing prior-bar number stays missing: it never falls back to today's partial-bar number under a past date
+ * (Day 126: "Last session (Nov 16): 50.00x" was today's partial volume).
+ * @returns {{useToday:boolean, rvol:?number, changePct:?number, closeLocation:?number, date:?string}}
+ */
+export function pickVolumeBar(srData) {
+  const meta = srData?.meta;
+  const useToday = meta?.candle?.barComplete !== false;
+  const prevBar = meta?.prevBar;
+  const n = (x) => (isNum(x) ? x : null);
+  return useToday
+    ? { useToday, rvol: n(meta?.rvol), changePct: n(srData?.change), closeLocation: n(meta?.candle?.closeLocation), date: meta?.candle?.date ?? null }
+    : { useToday, rvol: n(prevBar?.rvol), changePct: n(prevBar?.changePct), closeLocation: n(prevBar?.closeLocation), date: prevBar?.date ?? null };
+}
+
 const LEAN_ANSWERS = {
   buying: 'Yes',
   mixed: 'Mixed',
@@ -182,6 +218,18 @@ export function deriveEntryVolume({ priceHistory, srData, todayEt = todayInNewYo
   const history = Array.isArray(priceHistory) ? priceHistory.filter((b) => b && b.date && isNum(b.volume) && isNum(b.close)) : [];
   const warnings = [];
   if (history.length < 2) warnings.push('price history missing or empty, no volume bars');
+
+  // Day 126: no real volume history -> say so plainly and read nothing from it (no bars, no tally, no RVOL, no OBV)
+  const avail = volumeAvailability(history, srData?.meta);
+  if (!avail.available && (history.length > 0 || srData?.meta?.volume)) {
+    const none = isNum(avail.daysWithVolume) ? avail.windowBars - avail.daysWithVolume : null;
+    return {
+      state: 'unavailable', noVolume: true,
+      reason: `no volume data: the data source reports no shares traded on ${none ?? 'most'} of the last ${avail.windowBars} days`,
+      text: `No volume data: the data source reports no shares traded on ${none ?? 'most'} of the last ${avail.windowBars} days, so the volume checks are left out.`,
+      bars: [], avg50: null, lastBar: 'unknown', rvol: null, warnings,
+    };
+  }
 
   // Last bar state: 'complete' | 'partial' | 'unknown'
   let lastBar = 'unknown';
@@ -227,11 +275,8 @@ export function deriveEntryVolume({ priceHistory, srData, todayEt = todayInNewYo
 
   // Votes come from the S&R frame alone, so they follow its own barComplete
   // flag even when the bar chart's last bar is 'unknown' (date mismatch).
-  const useToday = meta?.candle?.barComplete !== false;
+  const { useToday, rvol, changePct, closeLocation } = pickVolumeBar(srData);
   const prevBar = meta?.prevBar;
-  const rvol = useToday ? meta?.rvol : (prevBar?.rvol ?? null);
-  const changePct = useToday ? srData.change : (prevBar?.changePct ?? null);
-  const closeLocation = useToday ? meta?.candle?.closeLocation : (prevBar?.closeLocation ?? null);
   const obvTrend = meta?.obv?.trend;
 
   const dir = getVolumeDirectionRead({ changePct, closeLocation, obvTrend });

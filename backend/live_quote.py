@@ -123,7 +123,8 @@ def build_live_quote(ticker, dp, now=None):
 
     _, source, price, tt, age_min, session = chosen
     lc_price, lc_date = _last_close(dp, ticker, now_et)
-    last_close = {'price': round(lc_price, 4), 'date': lc_date} if lc_price is not None else None
+    # Day 126: 2 dp like /api/stock's bars, so the header and the cards show the same cent (SMCI 25.025 read $25.02 vs $25.03)
+    last_close = {'price': round(lc_price, 2), 'date': lc_date} if lc_price is not None else None
 
     if session == 'closed':
         # Weekend, holiday or overnight: no live price, the close line speaks.

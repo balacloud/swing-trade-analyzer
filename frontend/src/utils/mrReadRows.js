@@ -10,9 +10,11 @@
  * backtests) is deliberately untouched.
  */
 
+import { formatMoney } from './formatMoney';
+
 const isNum = (v) => typeof v === 'number' && Number.isFinite(v);
 
-export const money = (v) => (isNum(v) ? `$${v.toFixed(2)}` : '—');
+export const money = (v) => formatMoney(v);
 export const bigMoney = (v) => (!isNum(v) ? '—'
   : v >= 1e9 ? `$${+(v / 1e9).toFixed(1)}B`
   : v >= 1e6 ? `$${+(v / 1e6).toFixed(1)}M`

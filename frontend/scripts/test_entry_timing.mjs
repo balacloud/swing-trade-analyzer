@@ -1,7 +1,7 @@
 // Entry-timing gauge and ladder logic (Day 126). Run: cd frontend && node scripts/test_entry_timing.mjs
 import { register } from 'node:module';
 register('./lib/js-ext-loader.mjs', import.meta.url);
-const { deriveEntryTiming, deriveEntryVolume, gaugeX } = await import('../src/utils/technicalReadChecks.js');
+const { deriveEntryTiming, deriveEntryVolume, gaugeX, pickVolumeBar, volumeAvailability, MIN_VOLUME_DAYS, VOLUME_WINDOW_BARS } = await import('../src/utils/technicalReadChecks.js');
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) { pass++; console.log(`ok ${m}`); } else { fail++; console.log(`FAIL ${m}`); } };
@@ -89,6 +89,33 @@ const disagree = deriveEntryVolume({ priceHistory: hd, srData: sr(false, '2026-0
 ok(disagree.lastBar === 'unknown' && disagree.warnings.some((w) => /disagree/.test(w)), 'genuinely different dates: unknown, with a warning');
 const race = deriveEntryVolume({ priceHistory: hd, srData: sr(true, lastD), todayEt: '2026-11-16' });
 ok(race.lastBar === 'unknown' && race.warnings.some((w) => /disagree/.test(w)), '16:30 race (S&R already has a finished today, history does not): unknown, with a warning');
+
+// Day 126 (Statement Audit): no real volume history. Rule = at least 40 of the last 50 bars have volume > 0 (breakout_detection.MIN_VOLUME_BARS).
+ok(MIN_VOLUME_DAYS === 40 && VOLUME_WINDOW_BARS === 50, 'volume rule constants mirror backend/breakout_detection.py (40 of 50)');
+const mk = (n, withVol) => Array.from({ length: n }, (_, i) => ({ date: `2026-01-${String(i + 1).padStart(2, '0')}`, close: 100 + i, volume: i >= n - withVol ? 5000 : 0 }));
+ok(volumeAvailability(mk(60, 40), null).available === true, '40 of the last 50 days with volume: available');
+ok(volumeAvailability(mk(60, 39), null).available === false, '39 of the last 50 days with volume: not available');
+ok(volumeAvailability(mk(60, 1), null).available === false && volumeAvailability(mk(60, 0), null).available === false, 'a single day with volume, or none: not available');
+ok(volumeAvailability([...mk(59, 0), { date: 'x', close: 1, volume: NaN }], null).available === false, 'NaN volume counts as missing');
+ok(volumeAvailability(mk(60, 60), { volume: { available: false, daysWithVolume: 3, windowBars: 50 } }).available === false, 'the backend flag wins over the bars');
+ok(volumeAvailability(mk(60, 0), { volume: { available: true, daysWithVolume: 50, windowBars: 50 } }).available === true, 'backend says available: trusted');
+const zeroSr = { change: -16, meta: { rvol: 50, candle: { barComplete: false, closeLocation: 0.61 }, obv: { trend: 'falling' }, prevBar: { date: '2026-11-16', rvol: null, changePct: -16.3, closeLocation: null }, volume: { available: false, daysWithVolume: 0, windowBars: 50 } } };
+const zero = deriveEntryVolume({ priceHistory: mk(60, 0), srData: zeroSr, todayEt: '2026-11-17' });
+ok(zero.state === 'unavailable' && zero.noVolume === true && zero.bars.length === 0 && zero.rvol === null, 'zero-volume history: unavailable, no bars, no RVOL');
+ok(/no shares traded on 50 of the last 50 days/.test(zero.text) && /left out/.test(zero.text), 'the plain sentence names the fact and the count');
+const zeroNoSr = deriveEntryVolume({ priceHistory: mk(60, 0), srData: null, todayEt: '2026-11-17' });
+ok(zeroNoSr.state === 'unavailable' && zeroNoSr.noVolume === true, 'zero-volume history with /api/sr failed: still unavailable (bars counted)');
+// the fallback bug: prior-bar numbers missing must stay missing, never today's partial numbers
+const pb = pickVolumeBar(zeroSr);
+ok(pb.useToday === false && pb.rvol === null && pb.closeLocation === null && pb.changePct === -16.3 && pb.date === '2026-11-16', 'forming bar: missing prior-bar RVOL / close location stay null (no fallback to today\'s 50 / 0.61)');
+const pt = pickVolumeBar({ change: 1.2, meta: { rvol: 1.4, candle: { barComplete: true, closeLocation: 0.8, date: '2026-11-17' }, prevBar: { rvol: 9, changePct: 9, closeLocation: 0.1, date: 'x' } } });
+ok(pt.useToday === true && pt.rvol === 1.4 && pt.changePct === 1.2 && pt.closeLocation === 0.8, 'complete bar: today\'s numbers');
+ok(pickVolumeBar(null).rvol === null && pickVolumeBar({}).changePct === null, 'no S&R data: all null, no throw');
+const normal = deriveEntryVolume({ priceHistory: mk(60, 60), srData: { change: 0.4, meta: { rvol: 0.9, candle: { barComplete: true, closeLocation: 0.1 }, obv: { trend: 'falling' }, volume: { available: true, daysWithVolume: 50, windowBars: 50 } } }, todayEt: '2026-11-16' });
+ok(normal.state === 'ok' && normal.bars.length === 20, 'a normal fund is unchanged: volume read as before');
+// close location at the threshold is the unrounded value now
+const edge = deriveEntryVolume({ priceHistory: mk(60, 60), srData: { change: 0.4, meta: { rvol: 0.9, candle: { barComplete: true, closeLocation: 0.2526 }, obv: { trend: 'falling' } } }, todayEt: '2026-11-16' });
+ok(edge.signals.find((x) => x.signal === 'closeLocation').vote === 0, '0.2526 is NOT "near the day\'s low" (threshold 0.25 on the unrounded value)');
 
 // Day 126: with a usable live price the block measures from it; averages and ATR are untouched.
 const base3 = { ema21: 528.10, sma50: 510, sma200: 450, atr: 14.07 };

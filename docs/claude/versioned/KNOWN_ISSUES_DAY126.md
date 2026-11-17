@@ -6,6 +6,17 @@
 
 ## Changes from Day 125
 
+- **Fixed (Day 126, Statement Audit findings, all four): zero-volume data, dividend-adjusted high, ADX forming bar, threshold rounding, plus three more the re-run caught.**
+  Plan `docs/claude/design/STATEMENT_AUDIT_FIXES_PLAN_DAY126.md` (Opus review: 11 points applied).
+  1. **Zero volume (SOXL.NE printed "50.00x normal volume").** `/api/sr` now reports `meta.volume {available, daysWithVolume, windowBars}`: volume is usable only when at least
+     `MIN_VOLUME_BARS` (40, imported from breakout_detection.py) of the last 50 COMPLETED bars have volume > 0 (NaN = missing). Otherwise RVOL, its display text, OBV and the prior-bar RVOL are
+     None and a log line says why. The card shows "No volume data: the data source reports no shares traded on N of the last 50 days, so the volume checks are left out." and hides the bars,
+     tally and detail. `pickVolumeBar` (technicalReadChecks.js) is the one place that chooses which bar's numbers are read; the three `?? today's` fallbacks are gone.
+  2. **1-year high / 52-week low.** `/api/stock` always takes them from the same adjusted bars as the Technical Read (Golden Rule 63), not Yahoo's unadjusted figure (F: $17.38 on both cards, was $17.38 vs $17.78).
+  3. **ADX and OBV on completed bars** in `/api/sr` (was 0.5-1.1 ADX points off mid-session). Intended behaviour change: during the trading day a stock near ADX 20 (the HOLD gate), 25 (entry preference) or 15 (KeyLevels "choppy") can read on the other side of a line compared with before; it now matches the backtests, MR, `/api/stock` and `/api/patterns`. After the close nothing changes.
+  4. **closeLocation** is no longer rounded to 2 decimals (AAPL 0.2526 was called "near the day's low").
+  5. **Caught by the re-run:** effort-vs-result divided ATR by TODAY's live price (now the described bar's close); the quote's last close rounded to 4 dp so SMCI read $25.02 beside $25.03 (now 2 dp like the bars); and **one money format for the page** (`utils/formatMoney.js`): the header used `toLocaleString` and the cards `toFixed`, so RIVN at $12.045 read "$12.05" in the header and "$12.04" in the Entry block, and $1,234.56 read without the comma on the cards. Header, Technical Read, pullback plan and MR rows now share one formatter.
+  Tests: `backend/test_sr_volume_unavailable.py` (18), `test_audit_statements.py` (25), `test_live_quote.py` (63), frontend `test_entry_timing.mjs` (84), `test_format_money.mjs` (6). Statement Audit re-run on 7 tickers: 266 PASS, 0 WRONG, 0 MISLEADING, 12 UNVERIFIED (two sentence rules not mirrored yet). Page checker 55/55 (5 tickers).
 - **Added (Day 126): the Statement Audit** (MASTER_AUDIT_FRAMEWORK Part 7). Triggered by "+1.5% from a month ago" (really 30 trading days, fixed: "over 30
   trading days"). Recomputes every number on the Technical Read from raw bars and checks the words against the window the code uses; every number token on the card is
   claimed or listed. First run, 7 tickers: `docs/test/Statement_Audit_20261117/REPORT.md` (254 PASS, 5 WRONG, 8 MISLEADING, 15 UNVERIFIED). Findings are logged below.
@@ -120,31 +131,13 @@ as a "live copy"; the formula behind it is now `rrg.py`.
 **Fix:** Not actioned — needs a new failure-tracking mechanism, its own session. Oldest open
 item from the Day 108 full-system audit.
 
-### High: zero-volume funds print meaningless volume numbers ("50.00x") (Day 126, Statement Audit)
-SOXL.NE's provider history has volume 0 on every bar. The Technical Read still shows "50.00x normal volume", a volume signal tally, "OBV falling" and an
-effort-vs-result line. Cause: `TechnicalRead.jsx:226` `prevBar?.rvol ?? meta.rvol` falls back to TODAY's partial-bar RVOL when the prior bar's RVOL is missing
-(avg volume 0), and labels it "Last session (2026-11-16)"; with a zero-volume history any partial-bar volume reads as about 50x. The user's real fund, so it matters.
-**Fix (needs its own plan):** treat a window with no volume as "volume not available for this fund" on the card, remove the `?? meta.rvol` fallback, and make
-the backend say so (no RVOL/OBV for all-zero volume).
-
-### Medium: price history is dividend-adjusted, so a "1-year high" is not a price that ever traded (Day 126, Statement Audit)
-F: Technical Read says "$17.38 high", the Price Data card says $17.78. Raw Yahoo high is 17.78; the adjusted history (auto-adjust) gives 17.38. Same family for the
-averages of dividend payers: they are on adjusted closes and will not match a charting platform. Decision needed: raw bars for levels/highs and adjusted only
-for returns, or label the figures "dividend-adjusted". Not fixed.
-
-### Low: ADX on the card includes today's unfinished bar (Day 126, Statement Audit; measured)
-The math is correct Wilder ADX, but `/api/sr` computes it with the forming bar (kept on purpose). Mid-session it reads 0.5 to 1.1 points off the completed-bar value
-(F 19.5 vs 18.4, SMCI 28.6 vs 27.5, SMH 34.9 vs 34.1, SOXL.NE 27.1 vs 26.6, RIVN 25.4 vs 25.9), while the trend rows below it use the last close.
-
-### Low: display rounding at the 0.25 / 0.75 close-location thresholds (Day 126, Statement Audit)
-`meta.candle.closeLocation` is rounded to 2 decimals before the "near the day's low" comparison. AAPL: true 0.2526 reads as 0.25 and is called "near the day's low"
-(and the 3-down tally). Return 4 decimals or compare the raw value.
-
 ### Low: after the forming-bar fix, three small leftovers (Day 126)
 - **52-week high/low** come from Yahoo's info and can include today's intraday high/low, while `currentPrice` is now the last completed
   close, so "% from 52-week high" mixes the two mid-session (tiny).
-- **`/api/sr` keeps today's partial bar on purpose** for `currentPrice`, ADX, daily RSI, OBV, market structure, `change`, RVOL and the candle
-  (the Day 85 watchlist needs them); only its levels and ATR use completed bars. The card's ATR% divides by that partial price (tiny).
+- **`/api/sr` keeps today's partial bar on purpose** for `currentPrice`, daily RSI, market structure, `change`, today's RVOL and the candle
+  (the Day 85 watchlist needs them); levels, ATR, ADX and OBV now use completed bars (Statement Audit fixes, same day). Neither daily RSI nor market structure has a frontend consumer.
+- **Averages are dividend-adjusted.** The 50/200-day averages, the ladder and the 1-year high/low use dividend-adjusted bars, so for a dividend payer they sit slightly below an unadjusted TradingView chart. The Technical Read explainer says so; no fix planned.
+- **SOXL.NE's completed bars are flat** (open = high = low = close, volume 0): the day's close position is undefined and ATR/ADX come only from close-to-close gaps.
 - **Early-close days** (next: Nov 27, 2026, the day after Thanksgiving): the 16:30 ET rule hides that day's final bar from about 13:00 to 16:30.
 
 ### Medium: `assessTechnical()` treats a missing RSI as 50, and 50 counts as a pass toward Strong (Day 123, upgraded from Low)

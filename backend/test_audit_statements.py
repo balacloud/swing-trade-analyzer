@@ -53,6 +53,16 @@ ok(not any(r.sid == 'U1' for r in A.Audit(dump(good)).run().rows), 'a fully clai
 month = f'The 200-day average is still rising x +1.5% over 21 trading days'
 ok(any(r.sid == 'T8w' and r.verdict == 'MISLEADING' for r in A.Audit(dump(month)).run().rows), 'words say 21 trading days but the code uses 30: caught (MISLEADING)')
 
+# the volume statements must stay claimed (a slip once deleted V4-V8 from the auditor without any test noticing)
+chg = (c[-1] / c[-2] - 1) * 100
+vt = f"closed up {chg:.1f}% 1.0× normal volume · from the {ph[-1]['date']} session Last session ({ph[-1]['date']}): 1.00× the 50-day average"
+av = A.Audit(dump(vt)).run()
+ids = {r.sid: r.verdict for r in av.rows}
+ok(ids.get('V2') == 'PASS' and ids.get('V5') == 'PASS' and ids.get('V6') == 'PASS', 'volume statements V2, V5, V6 are registered and pass on a correct planted card')
+ok(A.Audit(dump(vt.replace('1.0×', '3.0×'))).run().rows and any(r.sid == 'V5' and r.verdict == 'WRONG' for r in A.Audit(dump(vt.replace('1.0×', '3.0×'))).run().rows), 'a wrong relative volume is caught')
+nv = A.Audit(dump('Volume behind the move No volume data: the data source reports no shares traded on 50 of the last 50 days, so the volume checks are left out.')).run()
+ok(any(r.sid == 'Z1' and r.verdict == 'WRONG' for r in nv.rows), '"No volume data" on a card whose bars DO have volume is caught')
+
 # static S3 on the real source files: must pass today
 rows = A.static_s3()
 ok(all(r.verdict == 'PASS' for r in rows if r.sid in ('S3-1', 'S3-2', 'S3-3', 'S3-4', 'S3-5', 'S3-6')), 'static S3: the UI words match the code windows in the real source')

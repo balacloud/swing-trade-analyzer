@@ -92,6 +92,7 @@ BACKEND_VERSION = '2.55'
 # docs/claude/design/VOLUME_EFFORT_VS_RESULT_PLAN_DAY116.md Section 5.
 # Day 123: moved to market_time.py (one definition, shared with the MR routes).
 from market_time import MARKET_TZ, MARKET_CLOSE_HOUR, MARKET_CLOSE_MIN, is_forming_bar, drop_forming_bar  # noqa: F401
+from breakout_detection import MIN_VOLUME_BARS, VOLUME_BARS  # Day 126: one definition of "enough volume history" (Golden Rule 59)
 from index_trend import index_trend_facts  # Day 124: Market backdrop card
 from vix_bands import vix_band  # Day 124: one on-screen VIX band definition
 
@@ -1124,15 +1125,17 @@ def get_stock_data(ticker):
 
         # Day 126: Yahoo's 52-week high/low come from its own (unadjusted) history. When the table has a split inside this window,
         # compute them from the adjusted frame instead, so SOXL.NE's "% from 52-week high" is not measured against pre-split prices.
+        # Day 126 (Statement Audit): ALWAYS from the same bars as the Technical Read's "1-year high" and the averages (Golden Rule 63: one source).
+        # Yahoo's own figure is unadjusted for dividends (F: $17.78 vs $17.38 on the adjusted bars) and counts today's live session, so the two cards
+        # disagreed. Yahoo's value stays only as the fallback when the frame is too short to compute.
         _w52_high = safe_float(safe_get(info, 'fiftyTwoWeekHigh'))
         _w52_low = safe_float(safe_get(info, 'fiftyTwoWeekLow'))
         try:
-            if split_adjust.has_split_in_window(hist_data, ticker):
-                _h, _l = split_adjust.adjusted_52w(hist_data)
-                if _h is not None and _l is not None:
-                    _w52_high, _w52_low = _h, _l
+            _h, _l = split_adjust.adjusted_52w(hist_data)
+            if _h is not None and _l is not None:
+                _w52_high, _w52_low = _h, _l
         except Exception as _e:
-            print(f"⚠️ 52-week split fix failed for {ticker}: {_e}")
+            print(f"⚠️ 52-week high/low from the price bars failed for {ticker}: {_e}")
 
         # Prepare price history (using lowercase column names)
         # Day 61: Filter out rows with NaN values to prevent propagation
@@ -1880,10 +1883,14 @@ def get_support_resistance(ticker):
         # Day 39: Calculate ADX (trend strength) and 4H RSI (momentum)
         # Day 49: Added OBV (On-Balance Volume) for v4.9
         # ============================================
+        # Day 126 (Statement Audit): ADX, OBV and the volume window use COMPLETED bars only, like the levels/ATR, /api/stock, SPY and /api/patterns.
+        # Mid-session the forming bar moved ADX by 0.5-1.1 points and let a partial volume into OBV. currentPrice, change, the candle and today's
+        # RVOL stay live on purpose (Day 85 watchlists, Day 116 candle read).
+        df_done, _ = drop_forming_bar(df)
         adx_data = calculate_adx(
-            pd.Series(df['high'].values),
-            pd.Series(df['low'].values),
-            pd.Series(df['close'].values)
+            pd.Series(df_done['high'].values),
+            pd.Series(df_done['low'].values),
+            pd.Series(df_done['close'].values)
         )
 
         rsi_4h_data = calculate_rsi_4h(ticker)
@@ -1892,17 +1899,28 @@ def get_support_resistance(ticker):
         daily_rsi = calculate_rsi(pd.Series(df['close'].values))
 
         # Day 49 (v4.9): Calculate OBV for volume analysis
-        obv_data = calculate_obv(
-            pd.Series(df['close'].values),
-            pd.Series(df['volume'].values)
-        )
+        # Day 126: is there real volume history? Counted on COMPLETED bars: at least MIN_VOLUME_BARS of the last VOLUME_BARS must have volume > 0
+        # (NaN counts as missing). A fund whose provider reports 0 shares every day (SOXL.NE) otherwise printed "50.00x normal volume" from today's
+        # partial bar over an average of zeros. Thin funds with a few real days fall under the same rule.
+        _vol_window = df_done['volume'].tail(VOLUME_BARS)
+        _days_with_volume = int((pd.to_numeric(_vol_window, errors='coerce') > 0).sum())
+        volume_available = _days_with_volume >= MIN_VOLUME_BARS
+        volume_meta = {'available': volume_available, 'daysWithVolume': _days_with_volume, 'windowBars': int(len(_vol_window))}
+        if not volume_available:
+            print(f"   ⚠️ S&R {ticker}: volume not usable ({_days_with_volume} of the last {len(_vol_window)} completed days have volume, need {MIN_VOLUME_BARS}); RVOL and OBV left empty")
+            obv_data = None
+        else:
+            obv_data = calculate_obv(
+                pd.Series(df_done['close'].values),
+                pd.Series(df_done['volume'].values)
+            )
 
         # Day 49 (v4.9): Calculate RVOL (Relative Volume) for display
         avg_volume_50 = df['volume'].tail(50).mean()
         current_volume = df['volume'].iloc[-1]
         # Day 123: no volume history -> None (was a made-up 1.0, "normal volume")
-        rvol = round(float(current_volume / avg_volume_50), 2) if avg_volume_50 > 0 else None
-        if rvol is None:
+        rvol = round(float(current_volume / avg_volume_50), 2) if (volume_available and avg_volume_50 > 0) else None
+        if rvol is None and volume_available:
             print(f"   ⚠️ S&R {ticker}: 50-day average volume is 0, RVOL left empty")
         rvol_display = None if rvol is None else (f"{rvol}x avg" if rvol >= 1.5 else f"{rvol}x")
 
@@ -1918,7 +1936,7 @@ def get_support_resistance(ticker):
         last_open = float(df['open'].iloc[-1])
         _candle_range = last_high - last_low
         candle_meta = {
-            'closeLocation': round((current_price - last_low) / _candle_range, 2) if _candle_range > 0 else None,
+            'closeLocation': round((current_price - last_low) / _candle_range, 6) if _candle_range > 0 else None,   # Day 126: not rounded to 2 dp (the 0.25 / 0.75 thresholds compare it)
             'open': round(last_open, 2),
             'high': round(last_high, 2),
             'low': round(last_low, 2),
@@ -1958,9 +1976,9 @@ def get_support_resistance(ticker):
                 # yesterday's bar with today's date while today's bar was forming.
                 # iloc[-2] is always the bar dated df.index[-2].
                 'date': str(df.index[-2])[:10],
-                'rvol': round(_pv / _pavg, 2) if _pavg > 0 else None,
+                'rvol': round(_pv / _pavg, 2) if (volume_available and _pavg > 0) else None,
                 'changePct': round((_pc - _ppc) / _ppc * 100, 2) if _ppc > 0 else None,
-                'closeLocation': round((_pc - _pl) / _prange, 2) if _prange > 0 else None,
+                'closeLocation': round((_pc - _pl) / _prange, 6) if _prange > 0 else None,
                 'open': round(float(df['open'].iloc[-2]), 2),
                 'high': round(_ph, 2),
                 'low': round(_pl, 2),
@@ -2029,6 +2047,7 @@ def get_support_resistance(ticker):
                 'marketStructure': market_structure,
                 # Day 39: Add trend strength and momentum indicators
                 'adx': adx_data,
+                'volume': volume_meta,  # Day 126: {available, daysWithVolume, windowBars}
                 'rsi_4h': rsi_4h_data,
                 'rsi_daily': daily_rsi,
                 # Day 49 (v4.9): Add OBV and RVOL for enhanced volume analysis

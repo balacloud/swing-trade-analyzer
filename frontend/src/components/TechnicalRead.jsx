@@ -12,16 +12,17 @@
 import React, { useMemo } from 'react';
 import { deriveTechnicalRead, deriveStrongCriteria, STRONG_RULE, ADX_NO_TREND_THRESHOLD } from '../utils/categoricalAssessment';
 import {
-  deriveTrendChecks, deriveEntryTiming, deriveEntryVolume, todayInNewYork, gaugeX,
+  deriveTrendChecks, deriveEntryTiming, deriveEntryVolume, todayInNewYork, gaugeX, pickVolumeBar,
   TREND_TEMPLATE_MIN_BARS,
 } from '../utils/technicalReadChecks';
 import {
   getVolumeConfirmationRead, getVolumeDirectionRead, getObvHorizonRead, getEffortVsResultRead,
 } from '../utils/volumeThresholds';
 import { basisLabel } from '../utils/liveQuote';
+import { formatMoney } from '../utils/formatMoney';
 import useMissingInputWarning from '../hooks/useMissingInputWarning';
 
-const money = (v) => (Number.isFinite(v) ? `$${v.toFixed(2)}` : '—');
+const money = (v) => formatMoney(v);
 const signed = (v, d = 1) => (Number.isFinite(v) ? `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(d)}%` : '—');
 
 const Mark = ({ pass, na }) => (
@@ -220,18 +221,20 @@ function VolumeBars({ volume }) {
  */
 function VolumeDetail({ srData }) {
   const meta = srData?.meta;
-  if (!meta || (meta.rvol == null && meta.prevBar?.rvol == null)) return null;
+  if (!meta || meta.volume?.available === false || (meta.rvol == null && meta.prevBar?.rvol == null)) return null;
   const barComplete = meta.candle?.barComplete !== false;
   const prevBar = meta.prevBar;
-  const effRvol = barComplete ? meta.rvol : (prevBar?.rvol ?? meta.rvol);
-  const effChangePct = barComplete ? srData.change : (prevBar?.changePct ?? srData.change);
-  const effCloseLocation = barComplete ? meta.candle?.closeLocation : (prevBar?.closeLocation ?? meta.candle?.closeLocation);
+  // Day 126: one helper decides which bar's numbers are read; a missing prior-bar number is NOT replaced by today's partial one
+  const { rvol: effRvol, changePct: effChangePct, closeLocation: effCloseLocation } = pickVolumeBar(srData);
 
   const vol = getVolumeConfirmationRead(effRvol);
   if (!vol) return null;
   const dir = getVolumeDirectionRead({ changePct: effChangePct, closeLocation: effCloseLocation, obvTrend: meta.obv?.trend });
   const obvRead = getObvHorizonRead(meta.obv);
-  const atrPct = meta.atr && srData.currentPrice ? (meta.atr / srData.currentPrice) * 100 : null;
+  // Day 126: ATR % is measured against the close of the SAME bar the numbers describe (the last complete one while today's forming),
+  // not today's live price (SMCI read 0.63x instead of 0.66x of its ATR)
+  const atrBasePrice = barComplete ? srData.currentPrice : (prevBar?.close ?? null);
+  const atrPct = meta.atr && atrBasePrice ? (meta.atr / atrBasePrice) * 100 : null;
   const evr = getEffortVsResultRead({
     rvol: effRvol, changePct: effChangePct, atrPct, closeLocation: effCloseLocation, barComplete, asOf: prevBar?.date,
   });
@@ -386,15 +389,17 @@ export default function TechnicalRead({ ticker, technical, adxData, rsData, patt
                 </div>
               )}
             </>
+          ) : volume.noVolume ? (
+            <div className="text-gray-400" data-testid="volume-unavailable">{volume.text}</div>
           ) : (
             <div className="text-gray-400">Can't tell: {volume.reason}.</div>
           )}
-          <VolumeBars volume={volume} />
-          <Why>
+          {!volume.noVolume && <VolumeBars volume={volume} />}
+          {!volume.noVolume && <Why>
             Heavy volume on an up day that closes near its high is what buyer demand looks like (Wyckoff, O'Neil). The three signals are
             the day's change, where it closed in the day's range, and the 20-day On-Balance Volume trend.
-          </Why>
-          <VolumeDetail srData={srData} />
+          </Why>}
+          {!volume.noVolume && <VolumeDetail srData={srData} />}
         </div>
       </div>
 
@@ -408,6 +413,7 @@ export default function TechnicalRead({ ticker, technical, adxData, rsData, patt
             are the ones most traders lean on; the other 4 mostly repeat them.</p>
           <p><b className="text-gray-300">Trend strength (ADX):</b> ADX measures how hard the price is pushing in one direction. Below 20 means it's
             moving sideways right now. In an uptrend that usually means resting, not a broken trend.</p>
+          <p><b className="text-gray-300">Prices are adjusted for dividends:</b> older prices (and so highs and averages) are lowered for dividends paid, so for a dividend payer they can sit a little below what the chart showed on the day. The 1-year high here and on the Price Data card are the same number.</p>
           <p><b className="text-gray-300">Slow vs fast averages:</b> the trend checks use simple averages, which don't flip on a few noisy days. The price
             gauge uses a fast (exponential) 21-day average. Stops use neither; they're based on ATR.</p>
           <p><b className="text-gray-300">The price gauge and ladder</b> show where the price sits against its 21, 50 and 200-day averages: the gauge in day-moves, the ladder in real dollars. It follows an old

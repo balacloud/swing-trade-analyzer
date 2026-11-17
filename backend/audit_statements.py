@@ -42,6 +42,10 @@ SEV = {'PASS': '', 'WRONG': 'CRITICAL', 'MISLEADING': 'HIGH', 'UNVERIFIED': 'INF
 MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 fnum = lambda s: float(s.rstrip('.').replace('−', '-').replace(',', '').replace('+', '').replace('$', '').replace('%', ''))
 f2 = lambda x: 'n/a' if x is None else f'{x:.2f}'
+from decimal import Decimal, ROUND_HALF_UP
+def fm(x):
+    """The page's one money format (frontend/src/utils/formatMoney.js): two decimals, half-up, thousands commas."""
+    return f"{Decimal(repr(float(x))).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP):,}"
 def near(a, b, tol): return a is not None and b is not None and abs(a - b) <= tol
 def dlabel(d): y, m, dd = d.split('-'); return f"{MONTHS[int(m) - 1]} {int(dd)}"
 
@@ -132,14 +136,14 @@ class Audit:
         # T5 counted at the last close
         m = self.find(r'counted at the last close \(\$([\d,.]+), ([A-Z][a-z]{2} \d+)\)')
         if m:
-            ok = near(fnum(m.group(1)), last, 0.005) and m.group(2) == dlabel(self.dates[-1])
+            ok = near(fnum(m.group(1)), last, 0.0051) and m.group(2) == dlabel(self.dates[-1])
             self.add('T5', '"counted at the last close ($X, date)" = last completed bar', f'${m.group(1)}, {m.group(2)}', f'${last:.2f}, {dlabel(self.dates[-1])}', 'PASS' if ok else 'WRONG')
         # T6-T8 averages rows
         for sid, nday, word in (('T6', 200, '200-day'), ('T7', 50, '50-day')):
             m = self.find(rf'(Above|Below) its {word} average.*?\$([\d,.]+) vs \$([\d,.]+) · ([+-]?[\d.]+)%')
             if m:
                 s = R.sma(c, nday)
-                ok = near(fnum(m.group(3)), s, 0.02) and near(fnum(m.group(2)), last, 0.005) and near(float(m.group(4)), R.pct(last, s), 0.06)
+                ok = near(fnum(m.group(3)), s, 0.02) and near(fnum(m.group(2)), last, 0.0051) and near(float(m.group(4)), R.pct(last, s), 0.06)
                 self.add(sid, f'price vs {word} average (S1 pattern sma values)', f'${m.group(2)} vs ${m.group(3)} · {m.group(4)}%', f'${last:.2f} vs ${s:.2f} · {R.pct(last, s):.1f}%', 'PASS' if ok else 'WRONG')
                 self.add(sid + 'w', f'word "{m.group(1)}"', m.group(1), 'Above' if last > s else 'Below', 'PASS' if (m.group(1) == 'Above') == (last > s) else 'MISLEADING')
         m = self.find(r'The 200-day average is (still rising|not rising).*?([+-]?[\d.]+)% over (\d+) trading days')
@@ -173,7 +177,11 @@ class Audit:
             price = q['price'] if live_ok else last
             e21 = R.ema(c, 21); atr = R.wilder_atr(h, l, c)
             shown_p = fnum(m.group(1)); shown_e = fnum(m.group(m.lastindex))
-            self.add('E1', 'compared price = live quote payload, else the last close (S1 api.quote.price)', f'${shown_p}', f'${price:.2f}', 'PASS' if near(shown_p, price, 0.005) else 'WRONG')
+            self.add('E1', 'compared price = live quote payload, else the last close (S1 api.quote.price); exact text in the one money format', f'${m.group(1)}', f'${fm(price)}', 'PASS' if m.group(1) == fm(price) else 'WRONG')
+            hdr = (self.d.get('header') or {}).get('live-price') or ''
+            mh = re.search(r'\$([\d,.]+)', hdr)
+            if live_ok and mh:
+                self.add('S5-price', 'S5: the same live price reads the same on the header and the Entry block', f'header ${mh.group(1)} / entry ${m.group(1)}', 'identical text', 'PASS' if mh.group(1) == m.group(1) else 'MISLEADING', 'two money formats used to disagree on half-cent prices', card='Header vs Technical Read')
             self.add('E2', '21-day average (EMA span 21 over closes; S1 frontend calculateEMA)', f'${shown_e}', f'${e21:.2f}', 'PASS' if near(shown_e, e21, 0.03) else 'WRONG', 'an EMA, so "21-day" is its span, not a 21-bar window')
             if m.lastindex >= 5:
                 pe = R.pct(price, e21)
@@ -203,7 +211,7 @@ class Audit:
                 self.add('L-' + r['key'], f'ladder row {r["key"]}: price and gap = price vs average', f'${r["price"]}, {r["gap"]}%', f'${exp:.2f}, {gap:.1f}%', 'PASS' if okp and okg else 'WRONG')
             now = g.get('now') or {}
             self.add('L-now', 'ladder price row = compared price; name = the basis label', f'${now.get("price")} "{now.get("name")}"', f'${price:.2f} "{(m.group(2) or "").lower()}"',
-                     'PASS' if near(float(now.get('price', 0)), price, 0.005) and (now.get('name') or '').lower() == m.group(2).lower() else 'MISLEADING')
+                     'PASS' if near(float(now.get('price', 0)), price, 0.0051) and (now.get('name') or '').lower() == m.group(2).lower() else 'MISLEADING')
             cn = g.get('closeNote')
             if cn: self.add('L-note', '"Last close $X · date" note = last completed bar', cn, f'${last:.2f} · {dlabel(self.dates[-1])}', 'PASS' if cn.startswith(f'Last close ${last:.2f}') and dlabel(self.dates[-1]) in cn else 'WRONG')
             # ladder text in the card, claim all
@@ -245,10 +253,21 @@ class Audit:
             borderline = loc is not None and not good and (('high' in m.group(1)) == (round(loc + 1e-9, 2) >= 0.75) and ('low' in m.group(1)) == (round(loc + 1e-9, 2) <= 0.25))
             self.add('V3', 'close location words (>=0.75 high, <=0.25 low)', m.group(1), f'close location {f2(loc)}' + (f' (raw {loc:.4f})' if loc is not None else ''),
                      'UNVERIFIED' if loc is None else ('PASS' if good else 'MISLEADING'), 'display rounding at the threshold: raw value is just outside' if borderline else '', sev='LOW' if borderline else None)
-        # zero-volume data: every volume statement is meaningless
-        if sum(v[-50:]) == 0 and any(re.search(p, self.text) for p in (r'× normal volume', r'volume signal', r'Last session \(')):
-            self.add('Z1', 'volume statements shown although the provider volume is 0 on all of the last 50 bars', 'volume numbers shown', 'volume unavailable', 'WRONG',
-                     'TechnicalRead.jsx:226 `prevBar?.rvol ?? meta.rvol` falls back to TODAY\'s partial-bar RVOL (sr meta.rvol) and labels it "Last session (<prior date>)"; with zero-volume history any partial-bar volume reads as ~50x', sev='CRITICAL')
+        # no real volume history (same rule as the app: fewer than 40 of the last 50 completed bars with volume > 0)
+        days_with = sum(1 for x in v[-50:] if x and x > 0)
+        no_volume = len(v) >= 1 and days_with < 40
+        mnv = re.search(r'No volume data: the data source reports no shares traded on (\d+) of the last (\d+) days', self.text)
+        shows_numbers = any(re.search(p, self.text) for p in (r'× normal volume', r'volume signals?:', r'Last session \(', r'Last \d+ days · green up day'))
+        if no_volume:
+            if mnv and not shows_numbers:
+                ok_n = int(mnv.group(1)) == 50 - days_with
+                self.add('Z1', 'no volume data: the card says so (and the count of empty days is right) and shows no volume numbers', f'{mnv.group(1)} of {mnv.group(2)} days empty', f'{50 - days_with} of 50 days empty', 'PASS' if ok_n else 'WRONG')
+                self.work = self.work.replace(mnv.group(0), ' § ')
+                self.work = re.sub(r'Volume behind the move.*?left out\.', ' § ', self.work)
+            else:
+                self.add('Z1', 'volume statements shown although fewer than 40 of the last 50 completed days have volume', 'volume numbers shown', 'volume unavailable', 'WRONG', 'see TechnicalRead.jsx pickVolumeBar / backend meta.volume', sev='CRITICAL')
+        elif mnv:
+            self.add('Z1', '"No volume data" shown although the bars have volume', mnv.group(0), f'{days_with} of 50 days have volume', 'WRONG')
         m = self.find(r'OBV (rising|falling|flat)')
         if m:
             srt = ((self.sr.get('meta') or {}).get('obv') or {}).get('trend')

@@ -42,6 +42,7 @@ import { fetchFullAnalysisData, checkBackendHealth, fetchScanStrategies, fetchSc
 import { calculateScore } from './utils/scoringEngine';
 import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings, getVixPositionMultiplier } from './utils/positionSizing';
 import { runCategoricalAssessment } from './utils/categoricalAssessment';
+import { formatMoney } from './utils/formatMoney';
 import { describePriceAsOf } from './utils/priceAsOf'; // Day 124: header price date label
 import { signedPct } from './utils/liveQuote'; // Day 126: live price line
 import useLiveQuote from './hooks/useLiveQuote'; // Day 126: display-only live price
@@ -714,10 +715,7 @@ function App() {
   };
 
   // Format currency
-  const formatCurrency = (value) => {
-    if (value === null || value === undefined) return 'N/A';
-    return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
+  const formatCurrency = (value) => (value === null || value === undefined ? 'N/A' : formatMoney(value, 'N/A'));  // Day 126: one money format (utils/formatMoney.js)
 
   // Format large numbers (market cap)
   const formatMarketCap = (value) => {

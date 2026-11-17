@@ -12,8 +12,9 @@ import React from 'react';
 import { calculateRiskReward } from '../utils/riskRewardCalc';
 import { zoneSpan } from '../utils/keyLevels';
 import useMissingInputWarning from '../hooks/useMissingInputWarning';
+import { formatMoney } from '../utils/formatMoney';
 
-const money = (v) => (v == null || !Number.isFinite(v) ? '—' : `$${v.toFixed(2)}`);
+const money = (v) => formatMoney(v);
 const pct = (v) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(1)}%`;
 
 // Day 123: each non-ok state says why, in plain words (no silent hide).
