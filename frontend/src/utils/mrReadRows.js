@@ -57,12 +57,13 @@ export function buildMRRows(mrData) {
       key: 'rsi2_oversold',
       label: 'Sharp drop',
       question: 'Has it dropped hard over the last 2 days?',
-      value: isNum(rsi2) ? `2-day RSI ${rsi2.toFixed(0)}` : 'no data',
+      // Day 126 (Statement Audit): one decimal, so a 10.24 reads "10.2 needs under 10" instead of "10 needs under 10"
+      value: isNum(rsi2) ? `2-day RSI ${rsi2.toFixed(1)}` : 'no data',
       needs: `needs under ${rules.rsi2_entry} (a very sharp drop)`,
-      hint: 'RSI scores the last 2 days from 0 to 100. Low = it just fell fast. High = it just rose fast.',
+      hint: 'RSI(2) scores recent momentum from 0 to 100, weighted mostly to the last 2 days. Low = it just fell fast. High = it just rose fast.',
       ends: ['sharp drop', 'sharp rise'],
       state: isNum(rsi2) ? conditions.rsi2_oversold ?? null : null,
-      blocker: 'the 2-day drop is too small',
+      blocker: `the 2-day RSI is ${rules.rsi2_entry} or higher`,   // Day 126: it also fires after a 2-day RISE, so "drop is too small" was wrong there
       gauge: gauge(rsi2, 0, 100, rules.rsi2_entry, 'left'),
     },
     {

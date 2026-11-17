@@ -54,7 +54,11 @@ ok(row(inf, 'above_200sma').value === 'no data' && row(inf, 'above_200sma').stat
 
 // Wording: the dip row must say RSI (low = sharp drop) and label both ends of the bar
 const dip = row(buildMRRows(rivn), 'rsi2_oversold');
-ok(dip.value === '2-day RSI 4' && dip.ends.join() === 'sharp drop,sharp rise', 'dip row: "2-day RSI", ends labelled');
+ok(dip.value === `2-day RSI ${rivn.rsi2.toFixed(1)}` && dip.ends.join() === 'sharp drop,sharp rise', 'dip row: "2-day RSI" to one decimal, ends labelled');
+// Day 126 (Statement Audit): a 10.24 must not read "10 needs under 10"
+const edgeRsi = row(buildMRRows({ ...rivn, rsi2: 10.24, conditions: { ...rivn.conditions, rsi2_oversold: false } }), 'rsi2_oversold');
+ok(edgeRsi.value === '2-day RSI 10.2' && edgeRsi.state === false, 'RSI 10.24 reads "10.2" (not "10") next to "needs under 10"');
+ok(/or higher/.test(edgeRsi.blocker) && !/drop is too small/.test(edgeRsi.blocker), 'the RSI blocker is true after a rise too ("2-day RSI is 10 or higher")');
 ok(row(buildMRRows(rivn), 'above_200sma').ends.join() === 'below,above', 'trend row: ends labelled below / above');
 ok(row(buildMRRows(rivn), 'price_filter').hint && row(buildMRRows(rivn), 'volume_filter').hint, 'price and volume rows explain why they exist');
 ok(row(s, 'volume_filter').hint === null, 'no volume hint when volume is missing');

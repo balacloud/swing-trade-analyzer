@@ -20,7 +20,7 @@ CATALOG = [
     {
         'id': 'sma', 'name': 'SMA 50 / 200', 'kind': 'local_bars',
         'from_text': "this stock's daily closes",
-        'how': 'Average of the last 50 (or 200) closes. Includes today\'s bar.',
+        'how': 'Average of the last 50 (or 200) closes. Completed days only: today\'s unfinished bar is left out (Day 126).',
         'computed_in': ['js:frontend/src/utils/technicalIndicators.js:calculateSMA'],
         'consumers': ['Analyze: trend, Technical Read'],
         'copies': {'live': ['backend/pattern_detection.py:calculate_sma (Trend Template)', 'backend/index_trend.py', 'backend/market_phase_engine.py'],
@@ -29,7 +29,7 @@ CATALOG = [
     {
         'id': 'ema', 'name': 'EMA 8 / 21', 'kind': 'local_bars',
         'from_text': "this stock's daily closes",
-        'how': 'Starts at the first close, then EMA = close x k + previous EMA x (1 - k), k = 2/(period+1), run over every bar. Includes today\'s bar.',
+        'how': 'Starts at the first close, then EMA = close x k + previous EMA x (1 - k), k = 2/(period+1), run over every completed bar. Today\'s unfinished bar is left out (Day 126).',
         'computed_in': ['js:frontend/src/utils/technicalIndicators.js:calculateEMA'],
         'consumers': ['Analyze: trend, pullback to EMA'],
         'copies': {'external': ['Leveraged ETF Board'], 'live': ['backend/backend.py SRPS ema21 (adjust=False)']},
@@ -38,7 +38,7 @@ CATALOG = [
         'id': 'rsi', 'name': 'RSI 14', 'kind': 'local_bars',
         'from_text': "this stock's daily closes",
         'how': "Wilder: first average = simple mean of 14 moves, then (previous x 13 + today) / 14. Decides the verdict's Strong / Decent band. "
-               'Includes today\'s bar. A flat price history gives 100.',
+               'Completed days only (Day 126). A flat price history gives 100.',
         'computed_in': ['js:frontend/src/utils/technicalIndicators.js:calculateRSI'],
         'consumers': ['Analyze verdict (categoricalAssessment.js)'],
         'copies': {'live': [],
@@ -66,7 +66,7 @@ CATALOG = [
     {
         'id': 'adx', 'name': 'ADX 14', 'kind': 'local_bars',
         'from_text': "this stock's daily high, low, close",
-        'how': 'Wilder smoothing (pandas ewm, alpha 1/14) of +DM, -DM and true range; ADX is the smoothed DX. Includes today\'s bar.',
+        'how': 'Wilder smoothing (pandas ewm, alpha 1/14) of +DM, -DM and true range; ADX is the smoothed DX. Completed days only (Day 126).',
         'computed_in': ['py:backend:calculate_adx'],
         'consumers': ['Analyze: Technical Read'],
         'copies': {'live': ['backend/mean_reversion.py:calculate_adx (Mean Reversion gate; differs on tie bars)'],
@@ -76,7 +76,7 @@ CATALOG = [
     {
         'id': 'avgvol', 'name': 'Avg volume 50 / RVOL', 'kind': 'local_bars',
         'from_text': "this stock's daily volume",
-        'how': "Average of the last 50 daily volumes; RVOL = today's volume / that average. Includes today's unfinished bar, so RVOL reads low mid-session.",
+        'how': "Average of the last 50 daily volumes; RVOL = the day\'s volume / that average. The Technical Read uses the last COMPLETED session while today is still forming; the raw API value for today\'s unfinished bar reads low mid-session.",
         'computed_in': ['py:backend:get_support_resistance', 'js:frontend/src/utils/scoringEngine.js:getIndicators'],
         'consumers': ['Analyze: volume read'],
         'copies': {'live': ['backend/breakout_detection.py (50 prior bars, breakout bar excluded)', 'backend/mean_reversion.py (20-day average)',

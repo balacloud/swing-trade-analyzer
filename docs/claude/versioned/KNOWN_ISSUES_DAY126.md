@@ -6,6 +6,14 @@
 
 ## Changes from Day 125
 
+- **Added + fixed (Day 126): Statement Audit phase 3a (Market backdrop, Fundamentals, Mean-Reversion Read).** Plan `docs/claude/design/STATEMENT_AUDIT_PHASE3_PLAN_DAY126.md` (Opus review applied; Data Sources
+  tab split off as phase 3b). New `backend/audit_cards2.py` + `test_audit_cards2.py` (30 checks, incl. proofs that the audit's RSI(2) and index-trend references equal the app's own `mean_reversion` and
+  `index_trend` code). Backdrop: S&P 200/50-day and the 10-session drop recomputed from the app's own bars, QQQ and "largest since" from an independent Yahoo history (dropping the unfinished bar like the app).
+  Result: **238 PASS / 0 WRONG**, 7 UNVERIFIED (VIX "latest quote" has no timestamp in its payload). Phases 1 and 2 re-run unchanged (266 and 256 PASS, 0 WRONG). Fixes: MR shows the 2-day RSI to one decimal (10.24
+  read "10 needs under 10 ✗"); the blocker is "the 2-day RSI is 10 or higher" (the old "drop is too small" was also shown after a rise); dead "Forward Test tab" link and stale "can be Strong there" removed;
+  "Buy the dip" headline is "Signal: all 4 rules pass"; "RSI scores the last 2 days" now says it is weighted mostly to the last 2 days (it is an exponential average over all bars); Fundamentals dropped the
+  unsupported "disagrees about 40% of the time" (a 6-of-15 Day-78 label comparison), "Debt is heavy." became "Debt to equity is above 2.0.", the O'Neil "A" misattribution and the false "company lost money" ROE
+  tooltip were corrected; the Data Sources cache tiles show a dash instead of "0 KB / 0%" for a missing number; the indicator catalog no longer says "Includes today's bar" (stale since the forming-bar fix).
 - **Added + fixed (Day 126): Statement Audit phase 2 (Trade Setup + key levels, Breakout, Price Data, Relative Strength, header badges).** Plan
   `docs/claude/design/STATEMENT_AUDIT_PHASE2_PLAN_DAY126.md` (Opus review applied). New: `backend/audit_cards.py` (an independent plain-words support/resistance reference, zone invariants,
   stop/target/R:R/RS/breakout recomputes, per-card unclaimed-number scan, coverage table), `test_audit_cards.py` (28, incl. a regression gate: the phase-1 rows on the FROZEN dumps in
@@ -147,6 +155,14 @@ item from the Day 108 full-system audit.
 `simple_sr.pick` chooses the nearest support by distance to the zone EDGE and ignores `insideZone`, while the Buy is `max(support)` (riskRewardCalc.js:42, sr_plan.py:28) and the Support row
 and shaded band follow the `nearest` flag. If price sits inside zone A near A.low and a width-capped neighbour B ends just below A, B is flagged nearest but the Buy is A.high.
 The audit asserts "Buy == nearest zone's edge" per ticker (TS1b) and a planted fixture proves it fires. Engine change needed; not made.
+
+### Low: leftovers from the phase-3a audit (Day 126)
+- **VIX "(latest quote)"** has no quote time in `/api/market/vix`, so freshness cannot be checked; the band is chosen from the 2-dp value but the card shows 1 dp (24.96 would read "25.0 · elevated").
+- **MR display rounding at the other cutoffs:** price `$9.995` or dollar volume `$24.95M` can display as the cutoff; RSI is fixed (one decimal), these two are not.
+- **MR "FORWARD-TESTED" badge and "The plan, as tested"** (Buy / Stop / Sell steps) are claims and instructions the audit lists but does not verify; the MR route uses its own 1-year provider frame, not `/api/stock`.
+- **Fundamentals provider fields** (sales, ROE, debt/equity) cannot be recomputed; Finnhub, Alpha Vantage and Yahoo define D/E and ROE differently (the yfinance ROE is one quarter, not trailing twelve months), so a cross-provider number check would fail on definitions. "Weaker signal for banks, utilities, REITs" has no code branch (reviewed copy, not tested).
+- **Backdrop provenance:** the app's index history is Twelve Data's 504 bars while a Yahoo reference starts a few days later, so "largest in data back to <date>" is graded over the app's own span only.
+- **Not yet audited:** the Data Sources tab (phase 3b), planted-payload branch tests through Playwright (signal true, VIX band edges, no-down-day, unavailable backdrop), other tabs.
 
 ### Low: leftovers from the phase-2 audit (Day 126)
 - **Levels sit on a side of price using `/api/sr` currentPrice (today's live bar)**, the card's words use the last completed close; a zone between the two can sit on a different side than the words say (mid-session only).

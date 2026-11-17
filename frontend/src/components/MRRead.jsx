@@ -87,9 +87,9 @@ export default function MRRead({ mrData, loading, ticker }) {
 
   return (
     <Shell>
-      <div className={`text-xl font-bold ${signal ? 'text-green-400' : 'text-gray-200'}`}>{signal ? 'Buy the dip' : 'No signal'}</div>
+      <div className={`text-xl font-bold ${signal ? 'text-green-400' : 'text-gray-200'}`}>{signal ? 'Signal: all 4 rules pass' : 'No signal'}</div>
       <p className="text-sm text-gray-300 mt-1">
-        {signal ? 'A sharp 2-day drop inside an uptrend. All 4 rules pass.'
+        {signal ? 'A sharp 2-day drop inside an uptrend.'
           : blockers.length ? <>Blocked by: {blockers.join('; ')}.</>
           : "Some inputs didn't load, so the rules couldn't all be checked."}
         {!signal && unchecked.length > 0 && <span className="text-gray-400"> Couldn't check: {unchecked.join(', ').toLowerCase()}.</span>}
@@ -148,13 +148,13 @@ export default function MRRead({ mrData, loading, ticker }) {
         <summary className="cursor-pointer text-blue-400">How this read was formed</summary>
         <div className="mt-2 space-y-2">
           <p><b className="text-gray-300">What it is:</b> Larry Connors' RSI(2) system ("Short Term Trading Strategies That Work").
-            RSI(2) scores the last 2 days from 0 to 100; below {rules.rsi2_entry} means a sharp, short drop. It buys that drop only while the
+            RSI(2) scores recent momentum from 0 to 100, weighted mostly to the last 2 days; below {rules.rsi2_entry} means a sharp, short drop. It buys that drop only while the
             stock is above its 200-day average, so it doesn't buy a falling knife.</p>
           <p><b className="text-gray-300">The four rules:</b> the 2-day RSI below {rules.rsi2_entry}, close above the 200-day average, price above
             ${rules.price_min}, and average daily trading above {bigMoney(rules.dollar_volume_min)} (so you can get in and out cleanly). All four must pass.</p>
-          <p><b className="text-gray-300">Track record:</b> on the Forward Test tab, re-run at the next open (what you can actually do).
-            It covers many stocks, not this one.</p>
-          <p><b className="text-gray-300">Independent of the Technical Read:</b> a stock can be Strong there and show No signal here,
+          <p><b className="text-gray-300">Track record:</b> the rules were tested across many stocks with fills at the next open (what you can actually do).
+            That record is about the system, not this stock.</p>
+          <p><b className="text-gray-300">Independent of the Technical Read:</b> a stock can pass most trend checks there and show No signal here,
             or the other way round. They answer different questions, and neither gates the other.</p>
         </div>
       </details>

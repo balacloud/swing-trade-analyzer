@@ -80,7 +80,7 @@ export default function FundamentalsRead({ ticker, fundamental, rawFundamentals,
     no_flags: (screen.missing.length || negativeEquity)
       ? `${screen.checked.length - (negativeEquity ? 1 : 0)} of 3 checks ran; none tripped.`
       : 'All 3 checks ran. None tripped.',
-    flags: screen.flags.map((f) => ({ revenueGrowth: 'Sales are shrinking.', roe: 'Return on equity is negative.', debtToEquity: 'Debt is heavy.' }[f.metric])).join(' '),
+    flags: screen.flags.map((f) => ({ revenueGrowth: 'Sales are shrinking.', roe: 'Return on equity is negative.', debtToEquity: `Debt to equity is above ${RED_FLAG_THRESHOLDS.debtToEquityMin.toFixed(1)}.` }[f.metric])).join(' '),
     unavailable: "The fundamentals data didn't come back. This is not the same as \"no flags\".",
     not_applicable: etf.basis === 'name'
       ? "This looks like an ETF from its name. It holds many companies, so there's no single business to check."
@@ -132,19 +132,19 @@ export default function FundamentalsRead({ ticker, fundamental, rawFundamentals,
 
       {state !== 'not_applicable' && state !== 'unavailable' && (
         <div className="text-xs text-gray-500 mt-3">
-          Source: {sources || 'unknown'}. The live fundamentals feed disagrees with STA's backtest data about 40% of
-          the time (sales growth most), so this card only flags clear facts and never scores. The three cutoffs haven't been backtested.
+          Source: {sources || 'unknown'}. These numbers come from a live feed and can differ from other sources (the sales
+          growth figure most), so this card only flags clear facts and never scores. The three cutoffs haven't been backtested.
         </div>
       )}
 
       <details className="mt-3 text-xs text-gray-400">
         <summary className="cursor-pointer text-blue-400">How these checks were chosen</summary>
         <div className="mt-2 space-y-2">
-          <p><b className="text-gray-300">Sales falling {Math.abs(RED_FLAG_THRESHOLDS.revenueGrowthMax)}% or more:</b> the canon buys growing businesses
-            (O'Neil's "A"). Fast-shrinking sales are a real risk over a multi-week hold, even with a clean chart. Depending on the source, the
+          <p><b className="text-gray-300">Sales falling {Math.abs(RED_FLAG_THRESHOLDS.revenueGrowthMax)}% or more:</b> fast-shrinking sales are a real
+            risk over a multi-week hold, even with a clean chart (traders who buy growth, like O'Neil, look for growing businesses). Depending on the source, the
             number is the latest quarter vs a year ago or the last fiscal year.</p>
-          <p><b className="text-gray-300">Negative return on equity:</b> the company lost money relative to its shareholders' equity. A plain fact.
-            Companies with negative equity (some heavy buyback names) can show odd ROE even when profitable.</p>
+          <p><b className="text-gray-300">Negative return on equity:</b> the feed's return on equity is below zero, which usually means net income was negative. A plain fact.
+            Companies with negative equity (some heavy buyback names) can show a negative ROE even when profitable.</p>
           <p><b className="text-gray-300">Debt/Equity above {RED_FLAG_THRESHOLDS.debtToEquityMin.toFixed(1)}:</b> heavy borrowing. Banks, utilities and
             REITs carry high debt by design, so a flag on those is weaker.</p>
           <p><b className="text-gray-300">Next earnings:</b> O'Neil and Minervini avoid holding a fresh swing trade through a report, because the price

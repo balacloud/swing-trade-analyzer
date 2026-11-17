@@ -171,8 +171,10 @@ function Details({ cacheStatus, provenance }) {
       <div className="mt-4">
         {cacheStatus && !cacheStatus.error ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 text-center">
-            {[['OHLCV entries', cacheStatus.ohlcv?.count ?? 0], ['Fundamentals entries', cacheStatus.fundamentals?.count ?? 0],
-              ['Database size', `${cacheStatus.database_size_kb ?? 0} KB`], ['Hit rate (24h)', `${cacheStatus.ohlcv?.hit_rate_24h ?? 0}%`]].map(([k, v]) => (
+            {/* Day 126 (Statement Audit): a missing number is a dash, never a fake "0 KB" / "0%" */}
+            {[['OHLCV entries', cacheStatus.ohlcv?.count ?? '—'], ['Fundamentals entries', cacheStatus.fundamentals?.count ?? '—'],
+              ['Database size', cacheStatus.database_size_kb != null ? `${cacheStatus.database_size_kb} KB` : '—'],
+              ['Hit rate (24h)', cacheStatus.ohlcv?.hit_rate_24h != null ? `${cacheStatus.ohlcv.hit_rate_24h}%` : '—']].map(([k, v]) => (
               <div key={k} className="bg-gray-700/50 rounded-lg p-3"><div className="text-xl font-bold text-cyan-400">{v}</div><div className="text-xs text-gray-400">{k}</div></div>
             ))}
           </div>

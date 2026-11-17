@@ -71,9 +71,17 @@ async function dump(browser, ticker, outDir) {
     const rows = (sel) => [...document.querySelectorAll(sel)].map((e) => ({ key: e.dataset.key, price: e.dataset.price, gap: e.dataset.gap, off: e.dataset.off || '' }));
     const cardTexts = {};
     ['card-trade-setup', 'card-breakout', 'card-price-data', 'card-relative-strength', 'card-stock-header', 'card-fundamentals', 'card-market-backdrop', 'card-mr-read'].forEach((id) => { const e = q(id); cardTexts[id] = e ? walk(e) : null; });
+    // Day 126 phase 3: parse by test id (the flat card text repeats the hidden mobile labels, so a regex could pin one index's number to the other)
+    const inRow = (row, id) => { const e = row.querySelector(`[data-testid="${id}"]`); return e ? e.textContent.replace(/\s+/g, ' ').trim() : null; };
+    const backdropRows = [...document.querySelectorAll('[data-testid="backdrop-row"]')].map((r) => ({
+      label: r.dataset.label, long: inRow(r, 'backdrop-long'), short: inRow(r, 'backdrop-short'), drop: inRow(r, 'backdrop-drop'), unavailable: inRow(r, 'backdrop-unavailable'),
+    }));
+    const backdropVix = q('backdrop-vix') ? q('backdrop-vix').textContent.replace(/\s+/g, ' ').trim() : null;
+    const mrRows = {};
+    document.querySelectorAll('[data-testid^="mr-row-"]').forEach((e) => { mrRows[e.dataset.testid.replace('mr-row-', '')] = walk(e); });
     const toggle = q('toggle-price-rs');
     return {
-      cardTexts, priceRsToggle: toggle ? walk(toggle) : null,
+      cardTexts, backdropRows, backdropVix, mrRows, priceRsToggle: toggle ? walk(toggle) : null,
       sizePlanPresent: !!q('size-this-plan'),
       etNow: new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }),
       tr: tr ? { text: walk(tr) } : null,
