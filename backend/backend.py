@@ -1095,6 +1095,13 @@ def get_stock_data(ticker):
         if _legacy_path:
             hist = split_adjust.fix_frame(hist, ticker)  # Day 126: the emergency path gets the same split fix, after caching the raw frame
 
+        # Day 126: completed daily bars only (same rule as the MR, pattern, SPY and index-trend paths). Mid-session the history, averages and
+        # "last close" would otherwise carry today's unfinished bar. The cache stays raw; the drop is a slice and never mutates it.
+        hist, forming_dropped = drop_forming_bar(hist)
+        if hist is None or len(hist) == 0:
+            print(f"⚠️ /api/stock {ticker}: no completed trading day yet (only today's forming bar)")
+            return jsonify({'error': f'No completed trading day yet for {ticker}'}), 404
+
         # Get last 260 days (covers full 52 weeks of trading)
         hist_data = hist.tail(260)
 
@@ -1200,7 +1207,8 @@ def get_stock_data(ticker):
             'priceHistory': price_history,
             'dataPoints': len(price_history),
             'oldestDate': price_history[0]['date'] if price_history else None,
-            'newestDate': price_history[-1]['date'] if price_history else None
+            'newestDate': price_history[-1]['date'] if price_history else None,
+            'formingBarDropped': bool(forming_dropped)  # Day 126: today's unfinished bar was left out
         }
         
         return jsonify(response)
@@ -1326,6 +1334,11 @@ def get_spy_data():
         hist = _index_history('SPY')
         if hist is None:
             return jsonify({'error': 'No SPY data found'}), 404
+
+        # Day 126: completed bars only, so relative strength compares the stock and the market over the same days
+        hist, _spy_dropped = drop_forming_bar(hist)
+        if hist is None or len(hist) == 0:
+            return jsonify({'error': 'No completed SPY day yet'}), 404
 
         # Get last 260 days
         hist_data = hist.tail(260)
@@ -2124,7 +2137,13 @@ def get_patterns(ticker):
         if hist is None or hist.empty:
             return jsonify({'error': f'No data found for {ticker}'}), 404
 
+        # Day 126: completed bars only, so the trend checks match the "last close" shown on the page
+        hist, _pat_dropped = drop_forming_bar(hist)
+        if hist is None or hist.empty:
+            return jsonify({'error': f'No completed trading day yet for {ticker}'}), 404
+
         # Normalize to lowercase
+        hist = hist.copy()
         hist.columns = [c.lower() for c in hist.columns]
 
         if len(hist) < 100:

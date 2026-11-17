@@ -71,6 +71,25 @@ const vol2 = deriveEntryVolume({ priceHistory: hist, todayEt: '2026-11-16',
   srData: { change: 0.0, meta: { rvol: 1.0, candle: { barComplete: true, closeLocation: 0.5 }, obv: { trend: 'flat' } } } });
 ok(vol2.tally.up === 0 && vol2.tally.down === 0 && vol2.tally.flat === 3, 'volume tally: all flat');
 
+// Day 126: /api/stock now drops today's forming bar. Four combinations of (history has today?, S&R says partial?)
+const hd = Array.from({ length: 60 }, (_, i) => ({ date: `2026-09-${String(i + 1).padStart(2, '0')}`, close: 100 + i, volume: 1000 + i }));   // last bar 2026-09-60 (test labels)
+const sr = (barComplete, prevDate) => ({ change: 0.4, meta: { rvol: 0.9, candle: { barComplete, closeLocation: 0.1 }, obv: { trend: 'falling' }, prevBar: { date: prevDate, rvol: 1.1, changePct: 0.2, closeLocation: 0.6 } } });
+const lastD = hd[hd.length - 1].date, prevD = hd[hd.length - 2].date;
+const droppedPartial = deriveEntryVolume({ priceHistory: hd, srData: sr(false, lastD), todayEt: '2026-11-16' });
+ok(droppedPartial.lastBar === 'complete' && droppedPartial.warnings.length === 0, 'history already dropped, S&R partial: last bar complete, no warning');
+ok(droppedPartial.bars[droppedPartial.bars.length - 1].state === 'complete', 'the outlined "may be incomplete" bar is not drawn on a complete bar');
+ok(near(droppedPartial.avg50, hd.slice(-50).reduce((a, b) => a + b.volume, 0) / 50), 'the 50-day average includes the last complete bar (same window as the S&R RVOL)');
+ok(droppedPartial.state === 'ok' && droppedPartial.rvol === 1.1, 'votes use the S&R prior-bar values');
+const keptPartial = deriveEntryVolume({ priceHistory: hd, srData: sr(false, prevD), todayEt: '2026-11-16' });
+ok(keptPartial.lastBar === 'partial' && keptPartial.warnings.length === 0, 'history still holds the forming bar, S&R partial: last bar partial, no warning');
+ok(near(keptPartial.avg50, hd.slice(-51, -1).reduce((a, b) => a + b.volume, 0) / 50), 'partial: the 50-day average stops one bar before it');
+const bothDone = deriveEntryVolume({ priceHistory: hd, srData: sr(true, prevD), todayEt: '2026-11-16' });
+ok(bothDone.lastBar === 'complete' && bothDone.warnings.length === 0, 'both complete (after hours): complete, no warning');
+const disagree = deriveEntryVolume({ priceHistory: hd, srData: sr(false, '2026-01-01'), todayEt: '2026-11-16' });
+ok(disagree.lastBar === 'unknown' && disagree.warnings.some((w) => /disagree/.test(w)), 'genuinely different dates: unknown, with a warning');
+const race = deriveEntryVolume({ priceHistory: hd, srData: sr(true, lastD), todayEt: '2026-11-16' });
+ok(race.lastBar === 'unknown' && race.warnings.some((w) => /disagree/.test(w)), '16:30 race (S&R already has a finished today, history does not): unknown, with a warning');
+
 // Day 126: with a usable live price the block measures from it; averages and ATR are untouched.
 const base3 = { ema21: 528.10, sma50: 510, sma200: 450, atr: 14.07 };
 const lv = deriveEntryTiming({ price: 523.88, ...base3, livePrice: 520.10 });

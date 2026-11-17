@@ -169,6 +169,9 @@ const LEAN_ANSWERS = {
  * /api/stock while barComplete comes from /api/sr, a different fetch; when
  * /api/sr is missing the last bar's state is 'unknown', never assumed
  * complete, and when the two disagree on dates the last bar is also 'unknown'.
+ * Day 126: /api/stock now drops today's forming bar itself, so mid-session its last bar is S&R's prevBar
+ * (barComplete false + last date == prevBar.date): that last bar is 'complete', no warning. If /api/stock still
+ * holds the forming bar (the 16:30 race between the two fetches) the old comparison applies.
  *
  * @param {object} args
  * @param {?Array} args.priceHistory - stock.priceHistory [{date, close, volume}]
@@ -187,7 +190,11 @@ export function deriveEntryVolume({ priceHistory, srData, todayEt = todayInNewYo
     lastBar = meta?.candle?.barComplete === false ? 'partial' : 'complete';
     const prevDate = meta?.prevBar?.date;
     const histPrevDate = history.length >= 2 ? history[history.length - 2].date : null;
-    if (prevDate && histPrevDate && prevDate !== histPrevDate) {
+    const histLastDate = history.length >= 1 ? history[history.length - 1].date : null;
+    if (meta?.candle?.barComplete === false && prevDate && histLastDate === prevDate) {
+      // Day 126: /api/stock already left today's forming bar out, so its last bar IS S&R's last complete bar. Nothing disagrees.
+      lastBar = 'complete';
+    } else if (prevDate && histPrevDate && prevDate !== histPrevDate) {
       lastBar = 'unknown';
       warnings.push(`price history (${histPrevDate}) and S&R (${prevDate}) disagree on the prior bar date; bar chart average and RVOL may use different windows`);
     }

@@ -1,10 +1,10 @@
 /**
  * Date label for the stock header price (Day 124, follow-up to Analyze Redesign Step 8).
  * The header price is the last bar's close in /api/stock (backend.py current_price),
- * and newestDate is that bar's date. The route doesn't drop today's unfinished bar,
- * so a bar dated today before the 16:30 ET cutoff (backend/market_time.py
- * MARKET_CLOSE_HOUR/MIN, matching the OHLCV cache expiry) is labelled intraday,
- * never "close".
+ * and newestDate is that bar's date. Day 126: the route now drops today's unfinished bar
+ * (market_time.drop_forming_bar), so this label is a safety net, e.g. when the route's clock and the
+ * browser's clock straddle the 16:30 ET cutoff (backend/market_time.py MARKET_CLOSE_HOUR/MIN, matching
+ * the OHLCV cache expiry): a bar dated today before that cutoff is labelled intraday, never "close".
  * Pure, never throws; a missing or bad date returns null (no label, no guess).
  */
 const CUTOFF_MINUTES = 16 * 60 + 30; // 16:30 New York, same as market_time.py

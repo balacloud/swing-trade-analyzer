@@ -6,6 +6,15 @@
 
 ## Changes from Day 125
 
+- **Fixed (Day 126): `/api/stock`, `/api/market/spy` and `/api/patterns` now leave out today's unfinished bar (completed bars only).**
+  Measured first: mid-session the partial bar made ATR read 0-1.5% low (worst 3.4%), EMA21 off by under 0.5%, SMA50/200 ~0. The Opus review
+  found the plan's first version would have mixed bases (SPY and `/api/patterns` did not drop it), so all three routes got the same
+  `market_time.drop_forming_bar` rule: relative strength now compares the stock and SPY over the same days, and the trend rows match the
+  "last close" shown. An IPO with only today's bar gets a clear 404, not a crash. `/api/stock` adds `formingBarDropped` (nothing in the UI
+  reads it). Volume card: `deriveEntryVolume` now treats the last bar as complete when S&R says "partial" and its prior-bar date equals the
+  history's last date (no false warning, 50-day average includes that bar); the 16:30 race and real mismatches still warn. Plan:
+  `docs/claude/design/STOCK_FORMING_BAR_PLAN_DAY126.md`. Tests: `backend/test_forming_bar_routes.py` (16), entry-timing 69, page checker 44/44.
+  The earlier caveat in the live-price entries (partial bar in averages/ATR) no longer applies. Cache untouched (raw).
 - **Changed (Day 126): Entry checks "Price vs its 21-day average" is now a gauge plus a ladder (display only).** The old price ruler was
   hard to read. The gauge places the price and the 21, 50 and 200-day averages by how many normal day-moves they sit from the 21-day
   average (scale -5 to +3; the 21-day average is at 62.5%); anything beyond the scale is pinned to the edge with an arrow and its real
@@ -22,8 +31,7 @@
   note (from the quote's completed bar) sits under the ruler; the amber marker was removed. The "Is it in an uptrend?"
   rows stay on the close and say so. Pullback plan wording changed from "now / today's price" to "last close" (wording
   only, Trade Setup numbers unchanged). Averages and ATR are still the engine's inputs. A12/A13 updated. Plan:
-  `docs/claude/design/LIVE_ENTRY_TIMING_PLAN_DAY126.md`. Caveat: while the `/api/stock` forming-bar issue is open, a
-  mid-day cache miss can let today's partial bar into the averages and ATR.
+  `docs/claude/design/LIVE_ENTRY_TIMING_PLAN_DAY126.md`. (The forming-bar caveat was fixed later on Day 126.)
 - **Added (Day 126): live price in the Analyze header and ruler.** NVDA showed Friday's close ($162.85) while IBKR showed
   $156.10 (-4.14%): a one-day gap, not a delay. New display-only `GET /api/quote/<ticker>` (`backend/live_quote.py`):
   US = Tradier -> Yahoo 1-minute -> Finnhub; Canadian = Yahoo 1-minute only; own `yfinance_live` breaker and rate budget;
@@ -82,8 +90,7 @@
 No exchange calendar exists, so the session comes from the trade's own time. On an early-close day the session reads
 "regular" until the last trade is older than 20 minutes. Pre/post-market trades have no age limit (thin by nature). The
 Scan tab, leaderboards and the Technical Read card's own numbers still use closes. The header "Last close" line comes from
-the quote answer, so while `/api/stock` still includes the forming bar (Medium issue above) the card inputs and that line
-can differ until that is fixed. Recommended as the very next separate plan.
+the quote answer. (The `/api/stock` forming-bar issue that used to make them differ was fixed later on Day 126.)
 
 ### Low: `backtest/sector_quadrant_history.py` is out of step with the live RRG (Day 126)
 It replays 126-day windows through `compute_rs_ratio_and_quadrant`; the new weekly formula needs about 16+ weeks, so
@@ -108,18 +115,12 @@ as a "live copy"; the formula behind it is now `rrg.py`.
 **Fix:** Not actioned — needs a new failure-tracking mechanism, its own session. Oldest open
 item from the Day 108 full-system audit.
 
-### Medium: `/api/stock` doesn't drop today's unfinished bar (Day 124)
-`backend.py` `get_stock_data` takes `current_price` and `priceHistory` from the last row, and
-neither the route nor the providers apply `market_time.drop_forming_bar` (the MR, pattern and
-index-trend paths do). On a mid-day cache miss, the Analyze page may compute on a partial bar.
-Seen live only as the cached case (yesterday's close, now labelled "Nov 11 close"). The header
-labels a today-dated bar "intraday, not a close" (Day 124). **Fix:** confirm a mid-day cache
-miss returns a partial bar, then apply the shared rule. Engine inputs change, so re-run parity.
-**Measured Day 126 (size of the error):** rebuilt the last 5 sessions of NVDA, AAPL, RIVN, SOXL, TSLA as they looked at 11:00 ET
-(1-minute data) and compared ATR / averages with the full-day bar vs the partial bar. ATR reads 0 to 1.5% low typically, worst 3.4%
-(RIVN). EMA21 moves at most 0.5% (SOXL), typically under 0.15%. SMA50 at most 0.07%, SMA200 at most 0.02%. Rounding-level; priority
-stays Medium-low. Larger earlier in the session. Separate, more visible effect: with no live price mid-session, the Entry-checks row
-reads "last close" but would show the partial price.
+### Low: after the forming-bar fix, three small leftovers (Day 126)
+- **52-week high/low** come from Yahoo's info and can include today's intraday high/low, while `currentPrice` is now the last completed
+  close, so "% from 52-week high" mixes the two mid-session (tiny).
+- **`/api/sr` keeps today's partial bar on purpose** for `currentPrice`, ADX, daily RSI, OBV, market structure, `change`, RVOL and the candle
+  (the Day 85 watchlist needs them); only its levels and ATR use completed bars. The card's ATR% divides by that partial price (tiny).
+- **Early-close days** (next: Nov 27, 2026, the day after Thanksgiving): the 16:30 ET rule hides that day's final bar from about 13:00 to 16:30.
 
 ### Medium: `assessTechnical()` treats a missing RSI as 50, and 50 counts as a pass toward Strong (Day 123, upgraded from Low)
 `categoricalAssessment.js:327` and `:1001` (`rsi || … || 50`). The display now says "momentum
