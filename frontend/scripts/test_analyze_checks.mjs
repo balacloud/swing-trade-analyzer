@@ -79,7 +79,9 @@ const DOM = {
     vix: 'VIX 18.2 · normal range (latest quote)',
   },
   ticker: 'AAPL',
-  timing: { present: true, unavailable: null, price: '$520.10', sentence: '$520.10 (now) is 1.5% below its 21-day average ($528.10)', basis: '(now)', ticks: [450.00, 510.00, 528.10] },
+  timing: { present: true, unavailable: null, price: '$520.10', sentence: '$520.10 (now) is 1.5% below its 21-day average ($528.10)', basis: '(now)', ticks: [450.00, 510.00, 528.10], tickKeys: ['sma200', 'sma50', 'ema21'],
+    ladder: [{ key: 'ema21', price: 528.10, gap: -1.5 }, { key: 'sma50', price: 510.00, gap: 2.0 }, { key: 'sma200', price: 450.00, gap: 15.6 }],
+    nowRow: { price: 520.10, name: 'Now', index: 1 }, ladderOrder: [528.10, 520.10, 510.00, 450.00] },
   live: { priceText: 'Now $520.10', changeText: ' (\u22120.74%)', statusText: ' \u00b7 Live \u00b7 last trade 2:51pm ET', closeText: 'Last close $523.88 \u00b7 Nov 13', tickCount: 0, timingNote: 'Last close $523.88 \u00b7 Nov 13' },
   ds: { present: true, error: false, symbol: 'AAPL', exchange: 'NasdaqGS', currency: 'USD', cls: 'Stock', dataFrom: 'Twelve Data', verdict: 'PASS',
     qualityRows: [], allPass: true,
@@ -271,6 +273,14 @@ mustFail('A12', 'ruler marks contain NaN', d => { d.timing.ticks = [450.00, NaN,
 mustFail('A12', 'ruler drawn but /api/sr has no ATR', null, a => { delete a.sr.body.meta.atr; });
 mustFail('A12', 'neither ruler nor a reason is shown', d => { d.timing = { present: false, unavailable: null, price: null, ticks: [] }; });
 mustFail('A12', 'cannot be drawn although an ATR exists', d => { d.timing = { present: false, unavailable: "Can't tell: ATR unavailable.", price: null, ticks: [] }; });
+mustFail('A12', 'ladder gap has the wrong sign', d => { d.timing.ladder[0].gap = 1.5; });
+mustFail('A12', 'ladder gap is on the wrong base (price 200 vs average 100 would read -50)', d => { d.timing.ladder[2].gap = -13.5; });
+mustFail('A12', 'ladder is out of price order', d => { d.timing.ladderOrder = [520.10, 528.10, 510.00, 450.00]; });
+mustFail('A12', 'ladder price row differs from the dot', d => { d.timing.nowRow.price = 523.88; });
+mustFail('A12', 'ladder price row name differs from the basis label', d => { d.timing.nowRow.name = 'Last close'; });
+mustFail('A12', 'ladder row price differs from its gauge mark', d => { d.timing.ladder[1].price = 511.00; });
+mustFail('A12', 'ladder is missing', d => { d.timing.ladder = []; });
+mustFail('A12', 'ladder has no price row', d => { d.timing.nowRow = null; });
 mustPass('A12', 'not drawn, honest reason: needs 200 days of history', d => { d.timing = { present: false, unavailable: "Can't tell: 21-day average not computed (needs 200 days of history).", price: null, ticks: [] }; });
 mustFail('A12', 'the Weak headline sentence is still on the Technical Read card', d => { d.cards.find(c => c.id === 'card-technical-read').text += " This doesn't look like a market leader right now"; });
 mustFail('A12', 'the old volume verdict is still on the card', d => { d.cards.find(c => c.id === 'card-technical-read').text += ' No, sellers lead'; });
@@ -315,7 +325,7 @@ mustFail('A12', 'bubble still on the bar price although a live quote exists', d 
 mustFail('A12', 'sentence starts with a different price than the bubble', d => { d.timing.sentence = '$523.88 (now) is 0.8% below its 21-day average ($528.10)'; });
 mustFail('A12', 'live price but the basis label says last close', d => { d.timing.basis = '(last close)'; });
 const noLiveQuote = a => { a.quote.body = { available: false, reason: 'no recent trades', ticker: 'AAPL' }; };
-mustPass('A12', 'no live price: bubble = the bar price, label says last close', d => { d.timing.price = '$523.88'; d.timing.sentence = '$523.88 (last close) is 0.8% below its 21-day average ($528.10)'; d.timing.basis = '(last close)'; }, noLiveQuote);
+mustPass('A12', 'no live price: bubble = the bar price, label says last close', d => { d.timing.price = '$523.88'; d.timing.sentence = '$523.88 (last close) is 0.8% below its 21-day average ($528.10)'; d.timing.basis = '(last close)'; d.timing.nowRow = { price: 523.88, name: 'Last close', index: 1 }; d.timing.ladder = [{ key: 'ema21', price: 528.10, gap: -0.8 }, { key: 'sma50', price: 510.00, gap: 2.7 }, { key: 'sma200', price: 450.00, gap: 16.4 }]; d.timing.ladderOrder = [528.10, 523.88, 510.00, 450.00]; }, noLiveQuote);
 mustFail('A12', 'no live price but the label still says now', d => { d.timing.price = '$523.88'; d.timing.sentence = '$523.88 (now) is 0.8% below its 21-day average ($528.10)'; }, noLiveQuote);
 mustFail('A13', 'quote response was not captured', null, a => { a.quote = { status: null, body: null }; });
 mustFail('A13', 'quote returned 500', null, a => { a.quote.status = 500; });

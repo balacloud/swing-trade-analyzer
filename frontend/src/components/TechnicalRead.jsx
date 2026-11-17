@@ -12,7 +12,7 @@
 import React, { useMemo } from 'react';
 import { deriveTechnicalRead, deriveStrongCriteria, STRONG_RULE, ADX_NO_TREND_THRESHOLD } from '../utils/categoricalAssessment';
 import {
-  deriveTrendChecks, deriveEntryTiming, deriveEntryVolume, todayInNewYork,
+  deriveTrendChecks, deriveEntryTiming, deriveEntryVolume, todayInNewYork, gaugeX,
   TREND_TEMPLATE_MIN_BARS,
 } from '../utils/technicalReadChecks';
 import {
@@ -92,51 +92,94 @@ function StrongTiles({ strong }) {
   );
 }
 
-// Price against its moving averages, drawn as a ruler of REAL PRICES (Day 126). No verdict colours: the bar is one calm colour and only the
-// stretch between the price and the 21-day average is filled. The dot carries the current price; the ticks are the 21, 50 and 200-day averages.
-const ROW_GAP = 36;   // px between label rows when two averages sit close together
+// Price against its moving averages (Day 126): a GAUGE on top and a LADDER under it. No good/bad colours: each colour only names a line.
+// The gauge places the price and the 21, 50 and 200-day averages by how many normal day-moves they are from the 21-day average (the
+// distances, not the prices); the ladder gives the real prices, highest first, and is the gauge's legend. Anything beyond the gauge's
+// scale is pinned to its edge, marked with an arrow, and its real distance is written out.
+const LINE_COLOR = {
+  now:    { text: 'text-sky-400',    bg: 'bg-sky-400',    hex: '#38bdf8' },
+  ema21:  { text: 'text-amber-400',  bg: 'bg-amber-400',  hex: '#fbbf24' },
+  sma50:  { text: 'text-violet-400', bg: 'bg-violet-400', hex: '#a78bfa' },
+  sma200: { text: 'text-pink-400',   bg: 'bg-pink-400',   hex: '#f472b6' },
+};
+const ROW_GAP = 18;          // px between rows of tick labels
+const LABEL_MIN_GAP = 17;    // % of the gauge width two labels need between them to share a row
+const dm = (u) => `${u >= 0 ? '+' : '−'}${Math.abs(u).toFixed(1)}`;
+const upperFirst = (t) => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
 
-function TimingRuler({ timing }) {
-  const span = timing.hi - timing.lo;
-  const at = (v) => ((v - timing.lo) / span) * 100;
-  const x = at(timing.price);
-  const e = at(timing.ema21);
-  // keep the price bubble inside the card at the two ends
-  const bubbleShift = x < 12 ? 'translate-x-0' : x > 88 ? '-translate-x-full' : '-translate-x-1/2';
-  const bubbleLeft = x < 12 ? '0%' : x > 88 ? '100%' : `${x}%`;
-  // labels that would overlap drop to a lower row (a label is about a quarter of a phone-width card)
+function TimingGauge({ timing, nowName }) {
+  const x = gaugeX(timing.atrUnits);
+  const e = gaugeX(0);
+  // the price label (above the bar) stays inside the card: left-aligned near the left end, right-aligned near the right end
+  const lab = x < 28 ? { cls: 'translate-x-0', left: `${Math.max(0, x - 4)}%` } : x > 72 ? { cls: '-translate-x-full', left: `${Math.min(100, x + 4)}%` } : { cls: '-translate-x-1/2', left: `${x}%` };
+  // tick labels that would overlap drop to a lower row; items pinned to the same edge stack on separate rows
   const lastX = [];
   const ticks = timing.marks.map((k) => {
-    const px = at(k.price);
-    let row = lastX.findIndex((lx) => px - lx >= 26);
+    const px = gaugeX(k.units);
+    let row = lastX.findIndex((lx) => px - lx >= LABEL_MIN_GAP);
     if (row < 0) row = lastX.length < 3 ? lastX.length : 0;
     lastX[row] = px;
     return { ...k, px, row };
   });
-  const rows = Math.max(...ticks.map((k) => k.row)) + 1;
+  const rows = Math.max(0, ...ticks.map((k) => k.row)) + 1;
+  const unitTicks = [];
+  for (let u = timing.unitsMin; u <= timing.unitsMax; u++) unitTicks.push(u);
+  const dir = x <= e ? 'to right' : 'to left';
+  const gradient = `linear-gradient(${dir}, ${LINE_COLOR.now.hex}, ${LINE_COLOR.ema21.hex})`;
+  const offFacts = [
+    timing.priceOff && `the price is beyond the scale (${dm(timing.atrUnits)} day-moves from the 21-day average)`,
+    ...timing.marks.filter((k) => k.off).map((k) => `the ${k.name} is beyond the scale (${dm(k.units)} day-moves)`),
+  ].filter(Boolean);
+  const aria = `Gauge: price ${money(timing.price)} is ${Math.abs(timing.atrUnits).toFixed(1)} day-moves ${timing.side === 'at' ? 'at' : timing.side} the 21-day average.${offFacts.length ? ` Note: ${offFacts.join('; ')}.` : ''}`;
   return (
-    <div className="mt-2 mb-1" data-testid="timing-ruler">
-      <div className="relative h-9">
-        <span className={`absolute top-0 ${bubbleShift} px-2 py-0.5 rounded-md bg-white text-gray-900 text-xs font-bold whitespace-nowrap shadow`}
-          style={{ left: bubbleLeft }} data-testid="timing-price">{money(timing.price)}</span>
-        <span className="absolute bottom-0 -translate-x-1/2 border-x-[5px] border-x-transparent border-t-[6px] border-t-white" style={{ left: `${x}%` }} />
-      </div>
-      <div className="relative h-3 rounded-full overflow-hidden bg-gray-700/50">
-        <span className="absolute inset-y-0 bg-sky-800/70" style={{ left: `${Math.min(x, e)}%`, width: `${Math.abs(x - e)}%` }} />
-      </div>
-      <div className="relative mt-0" style={{ height: 6 + (rows - 1) * ROW_GAP + 34 }}>
-        {ticks.map((k) => (
-          <div key={k.key} data-testid="timing-tick" data-key={k.key} data-price={k.price.toFixed(2)}>
-            <span className="absolute top-0 w-px bg-gray-400" style={{ left: `${k.px}%`, height: 6 + k.row * ROW_GAP }} />
-            {/* the label is kept inside the card; the tick above it stays at the true price */}
-            <div className="absolute -translate-x-1/2 text-center leading-tight"
-              style={{ top: 6 + k.row * ROW_GAP, left: `min(max(${k.px}%, 46px), calc(100% - 46px))` }}>
-              <div className={`text-[11px] sm:text-xs font-mono ${k.key === 'ema21' ? 'text-gray-100 font-semibold' : 'text-gray-300'}`}>{money(k.price)}</div>
-              <div className="text-[11px] text-gray-500 whitespace-nowrap">{k.caption}</div>
-            </div>
+    <div className="mt-3" data-testid="timing-ruler">
+      <div className="px-3" role="img" aria-label={aria}>
+        <div className="relative h-7" aria-hidden="true">
+          <div className={`absolute top-0 ${lab.cls} whitespace-nowrap text-xs`} style={{ left: lab.left }}>
+            <span className="font-bold font-mono text-sky-300" data-testid="timing-price">{money(timing.price)}</span>
+            <span className="text-sky-400/80" data-testid="timing-dot-note">{timing.priceOff ? ` ${timing.priceOff === 'low' ? '◂' : '▸'}` : ''} · {Math.abs(timing.atrUnits).toFixed(1)} day-moves {timing.side === 'at' ? 'from it' : timing.side}</span>
           </div>
-        ))}
+        </div>
+        <div className="relative h-4" aria-hidden="true">
+          <div className="absolute inset-x-0 top-[5px] h-[6px] rounded-full bg-gray-700/70" />
+          <div className="absolute top-[5px] h-[6px] rounded-full" style={{ left: `${Math.min(x, e)}%`, width: `${Math.abs(x - e)}%`, background: gradient, opacity: 0.85 }} />
+          {unitTicks.map((u) => <span key={u} className="absolute top-[3px] h-[10px] w-px bg-gray-500/70" style={{ left: `${gaugeX(u)}%` }} />)}
+          {timing.marks.map((k) => (
+            <span key={k.key} data-testid="timing-tick" data-key={k.key} data-price={k.price.toFixed(2)} data-off={k.off || ''}
+              className={`absolute top-0 h-4 w-[3px] -ml-[1.5px] rounded-sm ${LINE_COLOR[k.key].bg}`} style={{ left: `${gaugeX(k.units)}%` }} />
+          ))}
+          <span className="absolute top-[0px] h-4 w-4 -ml-2 rounded-full bg-sky-400 border-[3px] border-gray-800 shadow-[0_0_0_2px_#38bdf8,0_0_10px_2px_rgba(56,189,248,0.55)]" style={{ left: `${x}%` }} />
+        </div>
+        <div className="relative" style={{ height: 6 + (rows - 1) * ROW_GAP + 16 }} aria-hidden="true">
+          {ticks.map((k) => (
+            <div key={k.key} className={`absolute -translate-x-1/2 text-[11px] leading-none whitespace-nowrap font-semibold ${LINE_COLOR[k.key].text}`}
+              style={{ top: 6 + k.row * ROW_GAP, left: `min(max(${k.px}%, 30px), calc(100% - 30px))` }}>
+              {k.off === 'low' ? '◂ ' : ''}{k.short}{k.off === 'high' ? ' ▸' : ''}{k.off ? <span className="font-normal text-gray-400"> {dm(k.units)}</span> : null}
+            </div>
+          ))}
+        </div>
       </div>
+      <div className="text-[11px] text-gray-500 mb-2">Each small tick is one normal day's move. The gauge shows distances; the ladder below has the prices.</div>
+      <table className="w-full text-sm border border-gray-700 rounded-md border-separate border-spacing-0 overflow-hidden" data-testid="timing-ladder">
+        <thead className="sr-only"><tr><th scope="col">Line</th><th scope="col">Price</th><th scope="col">Price against it</th></tr></thead>
+        <tbody>
+          {timing.ladder.map((r) => {
+            const c = LINE_COLOR[r.key];
+            const gap = r.isNow ? '' : Math.abs(r.gapPct ?? 0) < 0.05 ? 'at it' : `${Math.abs(r.gapPct).toFixed(1)}% ${r.gapPct > 0 ? 'above' : 'below'}`;
+            return (
+              <tr key={r.key} className={r.isNow ? 'bg-sky-500/15' : ''} data-testid={r.isNow ? 'timing-now-row' : 'timing-ladder-row'}
+                data-key={r.key} data-price={r.price.toFixed(2)} data-gap={r.isNow || r.gapPct == null ? '' : r.gapPct.toFixed(1)}>
+                <th scope="row" className={`text-left font-normal py-1.5 pl-2 pr-1 border-t border-gray-700/70 ${r.isNow ? 'font-bold ' + c.text : 'text-gray-300'}`}>
+                  <span className={`inline-block align-middle mr-2 ${r.isNow ? 'h-2.5 w-2.5 rounded-full' : 'h-3 w-[3px] rounded-sm'} ${c.bg}`} aria-hidden="true" />
+                  <span data-testid={r.isNow ? 'timing-now-name' : undefined}>{r.isNow ? nowName : r.name}</span>
+                </th>
+                <td className={`py-1.5 pr-2 border-t border-gray-700/70 text-right font-mono tabular-nums ${r.isNow ? 'font-bold text-gray-100' : 'text-gray-200'}`}>{money(r.price)}</td>
+                <td className="py-1.5 pr-2 border-t border-gray-700/70 text-right text-xs text-gray-400 tabular-nums whitespace-nowrap">{gap}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -296,7 +339,7 @@ export default function TechnicalRead({ ticker, technical, adxData, rsData, patt
               <div className="text-xs text-gray-400" data-testid="timing-sub">
                 That is {Math.abs(timing.atrUnits).toFixed(1)} of a normal day's move{timing.side === 'at' ? '' : ` ${timing.side} it`}. A normal day's move here is {money(timing.atr)}.
               </div>
-              <TimingRuler timing={timing} />
+              <TimingGauge timing={timing} nowName={upperFirst(timing.basis === 'live' ? basisLabel(live) : 'last close')} />
               {timing.basis === 'live' && live?.lastClose && (
                 <div className="text-xs text-gray-500" data-testid="timing-close-note">
                   Last close {money(live.lastClose.price)}{live.lastClose.dateLabel ? ` · ${live.lastClose.dateLabel}` : ''}
@@ -305,8 +348,8 @@ export default function TechnicalRead({ ticker, technical, adxData, rsData, patt
               <Why>
                 The 21-day average is the line the stock has hovered around for about a month. A "day's move" is the stock's ATR
                 ({money(timing.atr)} here), how far it normally travels in a day, and it is the same number your stop on the Trade Setup
-                card uses. The ruler marks the 21, 50 and 200-day averages at their real prices, so you can see how far the price sits from
-                each. Closer to the 21-day line usually means a closer stop; well above it means buying after a run. The marks are a
+                card uses. The gauge places the price and the 21, 50 and 200-day averages by how many day-moves they sit from the 21-day average,
+                and the ladder under it gives their real prices. Closer to the 21-day line usually means a closer stop; well above it means buying after a run. The marks are a
                 measuring stick for your own judgment, not signals, and STA has not tested them.
               </Why>
             </>
@@ -366,8 +409,8 @@ export default function TechnicalRead({ ticker, technical, adxData, rsData, patt
           <p><b className="text-gray-300">Trend strength (ADX):</b> ADX measures how hard the price is pushing in one direction. Below 20 means it's
             moving sideways right now. In an uptrend that usually means resting, not a broken trend.</p>
           <p><b className="text-gray-300">Slow vs fast averages:</b> the trend checks use simple averages, which don't flip on a few noisy days. The price
-            ruler uses a fast (exponential) 21-day average. Stops use neither; they're based on ATR.</p>
-          <p><b className="text-gray-300">The price ruler</b> shows where the price sits against its 21, 50 and 200-day averages, in real dollars. It follows an old
+            gauge uses a fast (exponential) 21-day average. Stops use neither; they're based on ATR.</p>
+          <p><b className="text-gray-300">The price gauge and ladder</b> show where the price sits against its 21, 50 and 200-day averages: the gauge in day-moves, the ladder in real dollars. It follows an old
             trading idea: buying far above the 21-day average means a farther stop (Livermore's pivotal points, O'Neil's "don't buy extended"). It shows for every
             stock and only measures; when to buy is your call.</p>
         </div>

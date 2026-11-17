@@ -6,6 +6,16 @@
 
 ## Changes from Day 125
 
+- **Changed (Day 126): Entry checks "Price vs its 21-day average" is now a gauge plus a ladder (display only).** The old price ruler was
+  hard to read. The gauge places the price and the 21, 50 and 200-day averages by how many normal day-moves they sit from the 21-day
+  average (scale -5 to +3; the 21-day average is at 62.5%); anything beyond the scale is pinned to the edge with an arrow and its real
+  distance written out. Under it a ladder (real table) lists the real prices highest first, the compared price at its true place, with
+  "N% above/below" the same base and sign as the sentence. Row name comes from the same basis label as the sentence (Now / After hours /
+  Last trade… / Last close). Colours only name lines (sky = price, amber = 21-day, violet = 50-day, pink = 200-day), never good/bad.
+  Plan: `docs/claude/design/ENTRY_GAUGE_LADDER_PLAN_DAY126.md` (v2, Opus review: 13 points applied). `deriveEntryTiming` lost price
+  `lo`/`hi`, gained `unitsMin/unitsMax`, per-mark `units/off/gapPct`, `ladder`, `priceOff`. Page check A12 now also checks the ladder
+  against the gauge marks and the dot (page against itself: the averages are computed in the browser). 60 + 160 unit checks, page
+  checker 44/44 (AAPL, SOXL.NE, NVDA, RIVN), screenshots at 390px and 1280px checked. Not changed: any number, rule, stop or verdict.
 - **Changed (Day 126): the Entry-checks block measures from the live price.** The sentence, the white bubble and the
   "normal day's move" distance use the live price when one exists, labelled `(now)` / `(pre-market)` / `(after hours)` /
   `(last trade 2:51pm ET)`; without one they use the last bar, labelled `(last close)`. A grey `Last close $X · date`

@@ -1,7 +1,7 @@
-// Entry-timing ruler logic (Day 126). Run: cd frontend && node scripts/test_entry_timing.mjs
+// Entry-timing gauge and ladder logic (Day 126). Run: cd frontend && node scripts/test_entry_timing.mjs
 import { register } from 'node:module';
 register('./lib/js-ext-loader.mjs', import.meta.url);
-const { deriveEntryTiming, deriveEntryVolume } = await import('../src/utils/technicalReadChecks.js');
+const { deriveEntryTiming, deriveEntryVolume, gaugeX } = await import('../src/utils/technicalReadChecks.js');
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) { pass++; console.log(`ok ${m}`); } else { fail++; console.log(`FAIL ${m}`); } };
@@ -17,11 +17,25 @@ const t3 = deriveEntryTiming({ price: 523.88, ema21: 528.10, sma50: 510, sma200:
 ok(t3.marks.map((m) => m.key).join() === 'sma200,sma50,ema21', 'three marks, left to right by price');
 ok(t3.marks.map((m) => m.caption).join() === '200-day avg,50-day avg,21-day avg', 'captions say 200-day, 50-day and 21-day average');
 ok(t3.marks.every((m) => /^(sma200|sma50|ema21)$/.test(m.key)) && near(t3.marks[0].price, 450) && near(t3.marks[1].price, 510), 'tick prices are the real averages');
-ok(t3.lo < 450 && t3.hi > 528.10, 'ruler spans every mark with room at both ends');
+ok(t3.unitsMin === -5 && t3.unitsMax === 3 && !('lo' in t3) && !('hi' in t3), 'gauge scale is -5..+3 day-moves; no price lo/hi any more');
+ok(near(t3.marks.find((m) => m.key === 'ema21').units, 0), 'the 21-day average sits at 0 day-moves');
+ok(near(t3.marks.find((m) => m.key === 'sma50').units, (510 - 528.10) / 14.07), 'mark units = (average - 21-day average) / ATR');
+ok(near(gaugeX(0), 62.5) && near(gaugeX(-5), 0) && near(gaugeX(3), 100) && gaugeX(-99) === 0 && gaugeX(99) === 100, 'gauge position: 21-day average at 62.5%, clamped to the ends');
+// ladder: highest first, price at its true place, gap = price vs average with the sentence's base and sign
+ok(t3.ladder.map((r) => r.key).join() === 'ema21,now,sma50,sma200', 'ladder in price order, the price at its true place');
+ok(near(t3.ladder.find((r) => r.key === 'ema21').gapPct, t3.pctFromEma), 'ladder gap on the 21-day row equals the sentence percent (same base, same sign)');
+ok(near(t3.ladder.find((r) => r.key === 'sma200').gapPct, ((523.88 - 450) / 450) * 100), 'ladder gap = (price - average) / average');
+ok(near(deriveEntryTiming({ price: 200, ema21: 100, sma200: 100, atr: 50 }).ladder.find((r) => r.key === 'sma200').gapPct, 100), 'price 200 vs average 100 reads +100%, not -50%');
+ok(t3.priceOff === null && t3.marks.find((m) => m.key === 'sma200').off === 'low' && t3.marks.find((m) => m.key === 'sma50').off === null, 'price in scale; the 200-day (-5.5 day-moves) is flagged off-scale, the 50-day is not');
 const above = deriveEntryTiming({ price: 700, ema21: 528.10, sma50: 510, sma200: 450, atr: 14.07 });
-ok(above.hi > 700 && above.lo < 450, 'price far above every average still sits on the ruler');
+ok(above.priceOff === 'high' && gaugeX(above.atrUnits) === 100, 'price far above: flagged off-scale, pinned at the right edge');
 const below = deriveEntryTiming({ price: 300, ema21: 528.10, sma50: 510, sma200: 450, atr: 14.07 });
-ok(below.lo < 300 && below.hi > 528.10, 'price far below every average still sits on the ruler');
+ok(below.priceOff === 'low' && gaugeX(below.atrUnits) === 0 && near(below.atrUnits, (300 - 528.10) / 14.07), 'price far below: flagged off-scale, pinned left, real distance kept');
+ok(above.ladder[0].key === 'now' && below.ladder[below.ladder.length - 1].key === 'now', 'price above every average tops the ladder; below every average ends it');
+const both = deriveEntryTiming({ price: 300, ema21: 528.10, sma200: 280, atr: 5 });
+ok(both.priceOff === 'low' && both.marks.find((m) => m.key === 'sma200').off === 'low', 'price and 200-day both pinned left: both flagged');
+const bothR = deriveEntryTiming({ price: 700, ema21: 528.10, sma50: 690, atr: 5 });
+ok(bothR.priceOff === 'high' && bothR.marks.find((m) => m.key === 'sma50').off === 'high', 'price and 50-day both pinned right: both flagged');
 ok(deriveEntryTiming({ price: 100, ema21: 100, sma50: null, sma200: NaN, atr: 2 }).marks.length === 1, 'a missing or NaN average is left out, never invented');
 ok(!('zone' in t) && !('good' in t) && !('answer' in t) && !('why' in t), 'no verdict fields (zone / good / answer) are returned');
 
@@ -66,19 +80,19 @@ ok(lv.ema21 === 528.10 && lv.atr === 14.07 && lv.marks.length === 3, 'averages a
 ok(!('live' in lv) && !('lastClose' in lv), 'no second marker field and no lastClose field (the note comes from the quote)');
 ok(t3.basis === 'close' && t3.price === 523.88, 'no live price: basis = close, price = the bar price');
 const lvLow = deriveEntryTiming({ price: 523.88, ...base3, livePrice: 380 });
-ok(lvLow.lo < 380 && lvLow.hi > 528.10 && lvLow.side === 'below', 'live far below every average sits on the ruler');
+ok(lvLow.priceOff === 'low' && lvLow.side === 'below', 'live far below every average is flagged off-scale');
 const lvHigh = deriveEntryTiming({ price: 523.88, ...base3, livePrice: 640 });
-ok(lvHigh.hi > 640 && lvHigh.side === 'above', 'live above every average sits on the ruler');
+ok(lvHigh.priceOff === 'high' && lvHigh.side === 'above', 'live far above every average is flagged off-scale');
 ok(deriveEntryTiming({ price: 523.88, ...base3, livePrice: 540 }).side === 'above' && deriveEntryTiming({ price: 540, ...base3, livePrice: 520 }).side === 'below', 'live price decides the side, not the bar price');
 ok(deriveEntryTiming({ price: 523.88, ...base3, livePrice: 528.10 }).side === 'at', 'live exactly on the 21-day average = at');
 ok(deriveEntryTiming({ price: 523.88, ...base3, livePrice: 523.88 }).pctFromEma === t3.pctFromEma, 'live equal to the bar price gives the same numbers');
 for (const bad of [NaN, Infinity, -5, 0, undefined, null, '520']) {
   const r = deriveEntryTiming({ price: 523.88, ...base3, livePrice: bad });
-  ok(r.basis === 'close' && r.price === 523.88 && r.lo === t3.lo && r.hi === t3.hi, `bad live price ${String(bad)} falls back to the bar price`);
+  ok(r.basis === 'close' && r.price === 523.88 && r.priceOff === t3.priceOff && r.ladder.length === t3.ladder.length, `bad live price ${String(bad)} falls back to the bar price`);
 }
 ok(deriveEntryTiming({ price: null, ...base3, livePrice: 520 }).state === 'ok', 'bar price missing but live present still works');
 ok(deriveEntryTiming({ price: null, ...base3, livePrice: null }).state === 'unavailable', 'both missing: unavailable');
-ok(deriveEntryTiming({ price: 100, ema21: 100, atr: 2, livePrice: 100 }).hi > 100, 'live equal to everything still gets room');
+ok(deriveEntryTiming({ price: 100, ema21: 100, atr: 2, livePrice: 100 }).side === 'at', 'live equal to everything is at the average');
 ok(deriveEntryTiming({ price: 523.88, ema21: null, atr: 14.07, livePrice: 520 }).state === 'unavailable', 'missing 21-day average stays unavailable even with a live price');
 
 console.log(`\n${pass} passed, ${fail} failed`);

@@ -83,10 +83,12 @@ export function deriveTrendChecks(patternsData, historyBars = null) {
 }
 
 /**
- * Where is price against its 21-day average? (Day 126 redesign: a RULER, not a verdict.)
- * The user decides; this only measures. Distance is also expressed in "a normal day's move" (ATR, the same Wilder ATR the Trade Setup
- * stop uses), and the ruler's tick marks are real prices: the 21, 50 and 200-day averages (a missing one is left out). The marks are a
- * measuring stick, not signals, and are not tested by STA. No gating on the Technical Read: it shows for every stock.
+ * Where is price against its 21-day average? (Day 126: a GAUGE plus a LADDER, not a verdict.)
+ * The user decides; this only measures. Distance is expressed in "a normal day's move" (ATR, the same Wilder ATR the Trade Setup stop
+ * uses). The gauge places the price and the 21, 50 and 200-day averages by that distance from the 21-day average (scale -5 to +3 day-moves,
+ * so the 21-day average sits at 62.5%; anything beyond the scale is pinned to the edge and flagged `off`, with its real number kept).
+ * The real prices are in the ladder (highest first, the compared price at its true place). A missing average is left out, never invented.
+ * Not signals, not tested by STA. No gating on the Technical Read: it shows for every stock.
  *
  * @param {object} args
  * @param {?number} args.price - analysisResult.currentPrice (same frame as ema21)
@@ -94,9 +96,18 @@ export function deriveTrendChecks(patternsData, historyBars = null) {
  * @param {?number} args.sma50 - analysisResult.indicators.sma50 (optional)
  * @param {?number} args.sma200 - analysisResult.indicators.sma200 (optional)
  * @param {?number} args.atr - srData.meta.atr (Wilder ATR(14) on completed bars)
- * @param {?number} args.livePrice - Day 126, display only: today's live price; when valid it IS the compared price (basis 'live'), otherwise the bar price is used (basis 'close')
+ * @param {?number} args.livePrice - display only: today's live price; when valid it IS the compared price (basis 'live'), otherwise the bar price is used (basis 'close')
  */
-const RULER_MARKS = [['ema21', '21-day avg'], ['sma50', '50-day avg'], ['sma200', '200-day avg']];
+export const GAUGE_UNITS_MIN = -5;
+export const GAUGE_UNITS_MAX = 3;
+const RULER_MARKS = [['ema21', '21-day avg', '21d', '21-day average'], ['sma50', '50-day avg', '50d', '50-day average'], ['sma200', '200-day avg', '200d', '200-day average']];
+
+/** Position on the gauge, 0 to 100 (%), from a distance in day-moves. Clamped to the scale. */
+export function gaugeX(units) {
+  const u = Math.min(GAUGE_UNITS_MAX, Math.max(GAUGE_UNITS_MIN, units));
+  return ((u - GAUGE_UNITS_MIN) / (GAUGE_UNITS_MAX - GAUGE_UNITS_MIN)) * 100;
+}
+const offScale = (u) => (u < GAUGE_UNITS_MIN ? 'low' : u > GAUGE_UNITS_MAX ? 'high' : null);
 
 export function deriveEntryTiming({ price, ema21, sma50, sma200, atr, livePrice = null }) {
   // price: the last bar from /api/stock; livePrice (optional) replaces it when valid
@@ -112,12 +123,14 @@ export function deriveEntryTiming({ price, ema21, sma50, sma200, atr, livePrice 
   const vals = { ema21, sma50, sma200 };
   // real averages only, left to right by price; one that is missing is left out, never invented
   const marks = RULER_MARKS.filter(([k]) => isNum(vals[k]) && vals[k] > 0)
-    .map(([key, caption]) => ({ key, price: vals[key], caption }))
+    .map(([key, caption, short, name]) => {
+      const units = (vals[key] - ema21) / atr;       // 0 for the 21-day average itself
+      return { key, price: vals[key], caption, short, name, units, off: offScale(units), gapPct: pctDiff(price, vals[key]) };
+    })
     .sort((a, b) => a.price - b.price);
-  // the ruler always contains the price and every mark, with a little room at both ends
-  const all = [price, ...marks.map((m) => m.price)];
-  const min = Math.min(...all), max = Math.max(...all);
-  const pad = (max - min) * 0.12 || max * 0.01;
+  // the ladder: the three averages and the compared price, highest first (the price at its true place)
+  const ladder = [{ key: 'now', price, gapPct: null, isNow: true }, ...marks.map((m) => ({ key: m.key, price: m.price, name: m.name, gapPct: m.gapPct, isNow: false }))]
+    .sort((a, b) => b.price - a.price);
   const side = Math.abs(pctFromEma) < 0.05 ? 'at' : pctFromEma > 0 ? 'above' : 'below';
   return {
     state: 'ok',
@@ -128,9 +141,11 @@ export function deriveEntryTiming({ price, ema21, sma50, sma200, atr, livePrice 
     pctFromEma,
     side,
     marks,
+    ladder,
+    priceOff: offScale(atrUnits),
+    unitsMin: GAUGE_UNITS_MIN,
+    unitsMax: GAUGE_UNITS_MAX,
     basis: live !== null ? 'live' : 'close',
-    lo: min - pad,
-    hi: max + pad,
   };
 }
 

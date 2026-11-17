@@ -27,7 +27,7 @@ const NAMES = {
   A9: 'Cards fit at 390px',
   A10: 'Buy and level rows match /api/sr',
   A11: 'Data Sources tab matches the backend',
-  A12: 'Entry ruler matches the data',
+  A12: 'Entry gauge and ladder match the data',
   A13: 'Live price line matches /api/quote',
 };
 const ORDER = ['card-market-backdrop', 'card-stock-header', 'card-technical-read', 'card-mr-read', 'card-trade-setup', 'card-fundamentals', 'card-breakout'];
@@ -283,11 +283,11 @@ function checkA11(dom, api, h) {
   return result('A11', problems.length === 0, 'tab identity, source, quality verdict and chain equal the backend', problems.join('; ') || `verdict ${ds.verdict || 'none'}, identity and chain match`);
 }
 
-// A12 (Day 126): the "Price vs its 21-day average" ruler shows REAL numbers: the dot carries the page price, the tick marks are the 21, 50 and
+// A12 (Day 126): the "Price vs its 21-day average" gauge shows REAL numbers: the dot carries the page price, the tick marks are the 21, 50 and
 // 200-day averages, and the old verdict wording is gone.
 function checkA12(dom, api) {
   const t = dom.timing;
-  if (!t) return result('A12', false, 'entry ruler reader', 'page reader did not return timing');
+  if (!t) return result('A12', false, 'entry gauge reader', 'page reader did not return timing');
   const atr = api.sr && api.sr.body && api.sr.body.meta && api.sr.body.meta.atr;
   const goodAtr = Number.isFinite(atr) && atr > 0;
   const tr = (dom.cards || []).find(c => c.id === 'card-technical-read');
@@ -299,12 +299,12 @@ function checkA12(dom, api) {
   if (tr && /No, sellers lead|No clear lean|No, heavy selling|signals disagree|Are buyers behind the move/.test(tr.text)) problems.push('the old volume verdict wording is still on the Technical Read card');
   if (tr && !/Trend, momentum and strength against the market/.test(tr.text)) problems.push('the facts block title is missing from the Technical Read card');
   if (!t.present) {
-    if (!t.unavailable) problems.push('neither the ruler nor a "Can\'t tell" reason is shown');
+    if (!t.unavailable) problems.push('neither the gauge nor a "Can\'t tell" reason is shown');
     else if (goodAtr && !/200 days/.test(t.unavailable)) problems.push(`"${norm(t.unavailable)}" shown although /api/sr has an ATR`);
-    return result('A12', problems.length === 0, 'ruler, or an honest reason it cannot be drawn', problems.join('; ') || `not drawn: ${norm(t.unavailable)}`);
+    return result('A12', problems.length === 0, 'gauge, or an honest reason it cannot be drawn', problems.join('; ') || `not drawn: ${norm(t.unavailable)}`);
   }
   if (!ok(api.stock)) return result('A12', false, 'stock payload', 'stock response not captured');
-  // Day 126: with a usable live quote the ruler measures from it; otherwise from the /api/stock price
+  // Day 126: with a usable live quote the gauge measures from it; otherwise from the /api/stock price
   const qb = ok(api.quote) ? api.quote.body : null;
   const liveUsable = !!qb && qb.available === true && qb.session !== 'closed' && Number.isFinite(qb.price) && qb.price > 0;
   const price = liveUsable ? qb.price : api.stock.body.currentPrice;
@@ -313,14 +313,35 @@ function checkA12(dom, api) {
   if (!liveUsable && t.basis && !/\(last close\)/.test(norm(t.basis))) problems.push(`no live price but the basis label says "${norm(t.basis)}"`);
   if (liveUsable && t.basis && /\(last close\)/.test(norm(t.basis))) problems.push('live price but the basis label says last close');
   const k = t.ticks || [];
-  if (k.length < 1 || k.length > 3 || k.some(x => !Number.isFinite(x) || !(x > 0))) problems.push(`expected 1 to 3 ruler marks that are positive prices, found ${k.length}`);
-  else if (k.some((x, i) => i > 0 && x < k[i - 1])) problems.push('ruler marks are not in price order');
-  if (!goodAtr) problems.push('ruler drawn although /api/sr has no ATR');
-  return result('A12', problems.length === 0, 'dot = page price, marks = 21/50/200-day averages, no verdict wording', problems.join('; ') || `dot ${norm(t.price)}, marks ${k.map(x => x.toFixed(2)).join(' / ')}`);
+  if (k.length < 1 || k.length > 3 || k.some(x => !Number.isFinite(x) || !(x > 0))) problems.push(`expected 1 to 3 gauge marks that are positive prices, found ${k.length}`);
+  else if (k.some((x, i) => i > 0 && x < k[i - 1])) problems.push('gauge marks are not in price order');
+  if (!goodAtr) problems.push('gauge drawn although /api/sr has no ATR');
+  // Day 126 ladder: the page checked against itself (the averages are computed in the browser, so there is no outside copy to compare with)
+  const lad = t.ladder || [];
+  const keys = t.tickKeys || [];
+  if (lad.length !== k.length) problems.push(`ladder has ${lad.length} average rows but the gauge has ${k.length} marks`);
+  else keys.forEach((key, i) => {
+    const row = lad.find(r => r.key === key);
+    if (!row) problems.push(`gauge mark "${key}" has no ladder row`);
+    else if (Math.abs(row.price - k[i]) > 0.005) problems.push(`ladder ${key} ${row.price} != gauge mark ${k[i]}`);
+    else {
+      const wantGap = (pageP => (pageP - row.price) / row.price * 100)(Number(String(norm(t.price)).replace(/[^0-9.\-]/g, '')));
+      if (!Number.isFinite(row.gap) || Math.abs(row.gap - wantGap) > 0.1) problems.push(`ladder ${key} gap ${row.gap} != price vs average ${wantGap.toFixed(1)}`);
+    }
+  });
+  if (!t.nowRow) problems.push('ladder has no price row');
+  else {
+    if (norm(t.price) !== money2(t.nowRow.price)) problems.push(`ladder price row ${t.nowRow.price} != dot price ${norm(t.price)}`);
+    const basisWords = norm(t.basis).replace(/^\(|\)$/g, '').toLowerCase();
+    if (basisWords && norm(t.nowRow.name).toLowerCase() !== basisWords) problems.push(`ladder price row says "${norm(t.nowRow.name)}" but the basis label says "${basisWords}"`);
+  }
+  const order = t.ladderOrder || [];
+  if (order.length < 2 || order.some((x, i) => !Number.isFinite(x) || (i > 0 && x > order[i - 1]))) problems.push('ladder is not in price order, highest first');
+  return result('A12', problems.length === 0, 'dot = page price, ladder = gauge marks, gaps = price vs average, no verdict wording', problems.join('; ') || `dot ${norm(t.price)}, marks ${k.map(x => x.toFixed(2)).join(' / ')}`);
 }
 
 // A13 (Day 126): the live price line shows what /api/quote sent, with its trade time; the "Last close" line is the quote's own;
-// the ruler "Last close" note exists only with a usable live price (no amber marker any more); every other state is said out loud, never a stale close posing as live.
+// the gauge "Last close" note exists only with a usable live price (no amber marker any more); every other state is said out loud, never a stale close posing as live.
 function checkA13(dom, api) {
   const L = dom.live;
   if (!L) return result('A13', false, 'live price reader', 'page reader did not return live');
@@ -332,11 +353,11 @@ function checkA13(dom, api) {
     return result('A13', false, 'live price line equals /api/quote', problems.join('; '));
   }
   const usable = body.available === true && body.session !== 'closed' && Number.isFinite(body.price) && body.price > 0;
-  // Day 126: the amber live-tick marker is gone (the ruler bubble IS the live price); a "Last close" note shows with a usable live price
+  // Day 126: the amber live-tick marker is gone (the gauge bubble IS the live price); a "Last close" note shows with a usable live price
   if (L.tickCount !== 0) problems.push(`${L.tickCount} live-tick marker(s), expected none`);
   const noteWanted = usable && dom.timing && dom.timing.present && body.last_close && Number.isFinite(body.last_close.price);
-  if (noteWanted && !norm(L.timingNote).startsWith(`Last close ${money2(body.last_close.price)}`)) problems.push(`ruler close note "${norm(L.timingNote)}" != quote last close ${money2(body.last_close.price)}`);
-  if (!noteWanted && L.timingNote) problems.push(`ruler close note "${norm(L.timingNote)}" shown without a usable live price`);
+  if (noteWanted && !norm(L.timingNote).startsWith(`Last close ${money2(body.last_close.price)}`)) problems.push(`gauge close note "${norm(L.timingNote)}" != quote last close ${money2(body.last_close.price)}`);
+  if (!noteWanted && L.timingNote) problems.push(`gauge close note "${norm(L.timingNote)}" shown without a usable live price`);
   if (usable) {
     if (norm(L.priceText) !== `Now ${money2(body.price)}`) problems.push(`live price "${norm(L.priceText)}" != "Now ${money2(body.price)}"`);
     if (!/last trade \d{1,2}:\d{2}(am|pm) ET/.test(norm(L.statusText))) problems.push(`no trade time in "${norm(L.statusText)}"`);
@@ -351,7 +372,7 @@ function checkA13(dom, api) {
     const want = body.available === true ? /closed/ : /unavailable/;
     if (!want.test(norm(L.statusText))) problems.push(`state not said out loud (wanted ${want}, got "${norm(L.statusText)}")`);
   }
-  return result('A13', problems.length === 0, 'live line, close line and ruler marker equal /api/quote; other states shown in words',
+  return result('A13', problems.length === 0, 'live line, close line and gauge marker equal /api/quote; other states shown in words',
     problems.join('; ') || (usable ? `${money2(body.price)} · ${norm(L.statusText)}` : `${body.available === true ? 'market closed' : 'unavailable (' + body.reason + ')'} shown in words`));
 }
 

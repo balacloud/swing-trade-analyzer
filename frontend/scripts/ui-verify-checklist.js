@@ -134,6 +134,10 @@ async function extractDom(page) {
           sentence: text(q('timing-sentence')),
           basis: text(q('timing-basis')),
           ticks: [...document.querySelectorAll('[data-testid="timing-tick"]')].map(t => parseFloat(t.dataset.price)),
+          tickKeys: [...document.querySelectorAll('[data-testid="timing-tick"]')].map(t => t.dataset.key),
+          ladder: [...document.querySelectorAll('[data-testid="timing-ladder-row"]')].map(t => ({ key: t.dataset.key, price: parseFloat(t.dataset.price), gap: t.dataset.gap === '' ? null : parseFloat(t.dataset.gap) })),
+          nowRow: (() => { const n = q('timing-now-row'); return n ? { price: parseFloat(n.dataset.price), name: text(q('timing-now-name')), index: [...n.parentElement.children].indexOf(n) } : null; })(),
+          ladderOrder: [...document.querySelectorAll('[data-testid="timing-ladder-row"], [data-testid="timing-now-row"]')].map(t => parseFloat(t.dataset.price)),
         };
       })(),
       live: {
