@@ -107,10 +107,17 @@ async function dump(browser, ticker, outDir) {
   const [outDir, ...tickers] = process.argv.slice(2);
   if (!outDir || tickers.length === 0) { console.error('usage: node scripts/dump_page_statements.js OUT_DIR TICKER...'); process.exit(2); }
   fs.mkdirSync(outDir, { recursive: true });
-  const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
+  const launch = () => puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
+  let browser = await launch();
   for (const t of tickers) {
     try { console.log(JSON.stringify(await dump(browser, t, outDir))); }
-    catch (e) { console.error(`dump failed for ${t}: ${e.message}`); }
+    catch (e) {
+      console.error(`dump failed for ${t}: ${e.message}`);
+      // Day 126: a crashed browser ("Connection closed", detached frame) made every later ticker fail instantly; start a fresh one and retry this ticker once
+      try { await browser.close(); } catch (_) { /* already gone */ }
+      browser = await launch();
+      try { console.log(JSON.stringify(await dump(browser, t, outDir))); } catch (e2) { console.error(`dump failed again for ${t}: ${e2.message}`); }
+    }
   }
-  await browser.close();
+  try { await browser.close(); } catch (_) { /* already gone */ }
 })();
