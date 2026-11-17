@@ -115,6 +115,11 @@ index-trend paths do). On a mid-day cache miss, the Analyze page may compute on 
 Seen live only as the cached case (yesterday's close, now labelled "Nov 11 close"). The header
 labels a today-dated bar "intraday, not a close" (Day 124). **Fix:** confirm a mid-day cache
 miss returns a partial bar, then apply the shared rule. Engine inputs change, so re-run parity.
+**Measured Day 126 (size of the error):** rebuilt the last 5 sessions of NVDA, AAPL, RIVN, SOXL, TSLA as they looked at 11:00 ET
+(1-minute data) and compared ATR / averages with the full-day bar vs the partial bar. ATR reads 0 to 1.5% low typically, worst 3.4%
+(RIVN). EMA21 moves at most 0.5% (SOXL), typically under 0.15%. SMA50 at most 0.07%, SMA200 at most 0.02%. Rounding-level; priority
+stays Medium-low. Larger earlier in the session. Separate, more visible effect: with no live price mid-session, the Entry-checks row
+reads "last close" but would show the partial price.
 
 ### Medium: `assessTechnical()` treats a missing RSI as 50, and 50 counts as a pass toward Strong (Day 123, upgraded from Low)
 `categoricalAssessment.js:327` and `:1001` (`rsi || … || 50`). The display now says "momentum
