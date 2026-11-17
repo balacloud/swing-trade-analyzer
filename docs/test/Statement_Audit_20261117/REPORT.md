@@ -1,8 +1,8 @@
 # Statement Audit report
 
-Run: 2026-11-17T14:39 · dumps: AAPL, F, NVDA, RIVN, SMCI, SMH, SOXL.NE · ET at first dump: 11/17/2026, 2:37:43 PM
+Run: 2026-11-17T14:42 · dumps: AAPL, F, NVDA, RIVN, SMCI, SMH, SOXL.NE · ET at first dump: 11/17/2026, 2:42:02 PM
 
-Verdicts: PASS 264 · WRONG 0 (CRITICAL) · MISLEADING 3 (HIGH) · UNVERIFIED 12 (INFO)
+Verdicts: PASS 266 · WRONG 0 (CRITICAL) · MISLEADING 1 (HIGH) · UNVERIFIED 12 (INFO)
 
 Scope: Technical Read card (full text scan) + the gauge and ladder + header price lines via the card text. NOT YET COVERED: earnings badge, sector badge, Trade Setup, Breakout, S&R levels, MR Read, Price Data, Relative Strength, Fundamentals, Market backdrop, Data Sources.
 S4 (outside reference): none run here; closes vs IBKR/other providers belong to the data-source audit (C3/C9) and are UNVERIFIED for these tickers unless listed there.
@@ -10,8 +10,6 @@ S4 (outside reference): none run here; closes vs IBKR/other providers belong to 
 | Ticker | ID | Claim | Shown | Recomputed | Verdict | Severity | Note |
 |---|---|---|---|---|---|---|---|
 | F | T4w | words "20 or more / below 20" | 20 or more | ADX 20.0 | MISLEADING | LOW | display rounding at the 20 line: ADX is 19.97, the backend rounds it to 1 decimal before the card compares it |
-| SMCI | L-note | "Last close $X · date" note = last completed bar | Last close $25.02 · Nov 16 | $25.03 · Nov 16 | MISLEADING | LOW | one-cent disagreement between two data providers for the same close |
-| SMCI | T5 | "counted at the last close ($X, date)" = last completed bar | $25.02, Nov 16 | $25.03, Nov 16 | MISLEADING | LOW | one-cent disagreement between two data providers for the same close (e.g. Twelve Data 25.025 vs Yahoo 25.03); the header/quote path and the price bars can read different providers |
 | AAPL | V-effort | effort/result wording thresholds 0.5 / 1.0 ATR and 1.5x RVOL | shown | rule not mirrored in the audit yet | UNVERIFIED | INFO | sentence logic not recomputed; the numbers inside it are claimed above where possible |
 | AAPL | V-obv20 | OBV 20-day divergence sentence (backend calculate_obv signal text) | shown | rule not mirrored in the audit yet | UNVERIFIED | INFO | sentence logic not recomputed; the numbers inside it are claimed above where possible |
 | F | V-effort | effort/result wording thresholds 0.5 / 1.0 ATR and 1.5x RVOL | shown | rule not mirrored in the audit yet | UNVERIFIED | INFO | sentence logic not recomputed; the numbers inside it are claimed above where possible |
@@ -31,7 +29,7 @@ S4 (outside reference): none run here; closes vs IBKR/other providers belong to 
 | - | S3-5 | "past year" return: year-ago bar | iloc[-252] | 250-253 bars span | PASS |  |  |
 | - | S3-6 | "Last 20 days" / "20-day On-Balance Volume": OBV lookback | lookback=20 | 20 bars | PASS |  |  |
 | - | S3-7 | "at least 1 month" vs the 30-trading-day code | fixed | 30 trading days | PASS |  | not page text; logged for the Coherence audit |
-| AAPL | E1 | compared price = live quote payload, else the last close (S1 api.quote.price); exact text in the one money format | $350.51 | $350.51 | PASS |  |  |
+| AAPL | E1 | compared price = live quote payload, else the last close (S1 api.quote.price); exact text in the one money format | $350.57 | $350.57 | PASS |  |  |
 | AAPL | E2 | 21-day average (EMA span 21 over closes; S1 frontend calculateEMA) | $346.86 | $346.86 | PASS |  | an EMA, so "21-day" is its span, not a 21-bar window |
 | AAPL | E3 | percent from the 21-day average | 1.1% above | 1.1% above | PASS |  |  |
 | AAPL | E3w | basis label for a live price (now / pre-market / after hours / last trade ...) | (now) | session=regular | PASS |  |  |
@@ -40,10 +38,10 @@ S4 (outside reference): none run here; closes vs IBKR/other providers belong to 
 | AAPL | E6 | off-scale gauge label 200d: real distance in day-moves from the 21-day average | -5.6 | -5.6 | PASS |  |  |
 | AAPL | L-ema21 | ladder row ema21: price and gap = price vs average | $346.86, 1.1% | $346.86, 1.1% | PASS |  |  |
 | AAPL | L-note | "Last close $X · date" note = last completed bar | Last close $352.78 · Nov 16 | $352.78 · Nov 16 | PASS |  |  |
-| AAPL | L-now | ladder price row = compared price; name = the basis label | $350.51 "Now" | $350.51 "now" | PASS |  |  |
+| AAPL | L-now | ladder price row = compared price; name = the basis label | $350.57 "Now" | $350.57 "now" | PASS |  |  |
 | AAPL | L-sma200 | ladder row sma200: price and gap = price vs average | $301.72, 16.2% | $301.72, 16.2% | PASS |  |  |
 | AAPL | L-sma50 | ladder row sma50: price and gap = price vs average | $339.69, 3.2% | $339.69, 3.2% | PASS |  |  |
-| AAPL | S5-price | S5: the same live price reads the same on the header and the Entry block | header $350.51 / entry $350.51 | identical text | PASS |  | two money formats used to disagree on half-cent prices |
+| AAPL | S5-price | S5: the same live price reads the same on the header and the Entry block | header $350.57 / entry $350.57 | identical text | PASS |  | two money formats used to disagree on half-cent prices |
 | AAPL | T1 | Trend checks N / 8 (S1 pattern_detection.check_trend_template) | 8 / 8 | 8 / 8 | PASS |  | recomputed all 8 criteria from the bars |
 | AAPL | T2 | RSI 14 (S1 frontend technicalIndicators RSI) | 57.0 | 57.0 | PASS |  | Wilder 14 from closes (tolerance 0.3: 2-decimal closes) |
 | AAPL | T3 | Stock vs S&P 500 return over the "past year" (S1 api.stock.price52wAgo + spy) | +29.5% vs +10.1% | 29.5% vs 10.1% | PASS |  |  |
@@ -79,7 +77,7 @@ S4 (outside reference): none run here; closes vs IBKR/other providers belong to 
 | F | L-note | "Last close $X · date" note = last completed bar | Last close $11.57 · Nov 16 | $11.57 · Nov 16 | PASS |  |  |
 | F | L-now | ladder price row = compared price; name = the basis label | $11.33 "Now" | $11.33 "now" | PASS |  |  |
 | F | L-sma200 | ladder row sma200: price and gap = price vs average | $13.26, -14.6% | $13.26, -14.6% | PASS |  |  |
-| F | L-sma50 | ladder row sma50: price and gap = price vs average | $12.5, -9.3% | $12.50, -9.3% | PASS |  |  |
+| F | L-sma50 | ladder row sma50: price and gap = price vs average | $12.5, -9.4% | $12.50, -9.4% | PASS |  |  |
 | F | S5-price | S5: the same live price reads the same on the header and the Entry block | header $11.33 / entry $11.33 | identical text | PASS |  | two money formats used to disagree on half-cent prices |
 | F | T1 | Trend checks N / 8 (S1 pattern_detection.check_trend_template) | 1 / 8 | 1 / 8 | PASS |  | recomputed all 8 criteria from the bars |
 | F | T2 | RSI 14 (S1 frontend technicalIndicators RSI) | 36.5 | 36.5 | PASS |  | Wilder 14 from closes (tolerance 0.3: 2-decimal closes) |
@@ -106,7 +104,7 @@ S4 (outside reference): none run here; closes vs IBKR/other providers belong to 
 | F | V6 | Volume detail: last session date and RVOL | 2026-11-16 0.99× | 2026-11-16 0.99× | PASS |  |  |
 | F | V7 | effort vs result: RVOL and /day change/ / (ATR / price) | 0.99× / 0.96× | 0.99× / 0.96× | PASS |  | ATR % uses the sr price (may be a partial bar) |
 | F | V8 | "Last 20 days" volume bars = the last 20 completed bars (dates and volumes) | 20 bars, last ('2026-11-16', 43936700) | 20 bars, last ('2026-11-16', 43936700) | PASS |  |  |
-| NVDA | E1 | compared price = live quote payload, else the last close (S1 api.quote.price); exact text in the one money format | $153.57 | $153.57 | PASS |  |  |
+| NVDA | E1 | compared price = live quote payload, else the last close (S1 api.quote.price); exact text in the one money format | $153.55 | $153.55 | PASS |  |  |
 | NVDA | E2 | 21-day average (EMA span 21 over closes; S1 frontend calculateEMA) | $190.71 | $190.71 | PASS |  | an EMA, so "21-day" is its span, not a 21-bar window |
 | NVDA | E3 | percent from the 21-day average | 19.5% below | 19.5% below | PASS |  |  |
 | NVDA | E3w | basis label for a live price (now / pre-market / after hours / last trade ...) | (now) | session=regular | PASS |  |  |
@@ -114,10 +112,10 @@ S4 (outside reference): none run here; closes vs IBKR/other providers belong to 
 | NVDA | E5 | distance in normal day-moves | 3.8 | 3.8 | PASS |  | gauge dot note uses the same number:  · 3.8 day-moves below |
 | NVDA | L-ema21 | ladder row ema21: price and gap = price vs average | $190.71, -19.5% | $190.71, -19.5% | PASS |  |  |
 | NVDA | L-note | "Last close $X · date" note = last completed bar | Last close $156.14 · Nov 16 | $156.14 · Nov 16 | PASS |  |  |
-| NVDA | L-now | ladder price row = compared price; name = the basis label | $153.57 "Now" | $153.56 "now" | PASS |  |  |
+| NVDA | L-now | ladder price row = compared price; name = the basis label | $153.55 "Now" | $153.55 "now" | PASS |  |  |
 | NVDA | L-sma200 | ladder row sma200: price and gap = price vs average | $204.02, -24.7% | $204.02, -24.7% | PASS |  |  |
 | NVDA | L-sma50 | ladder row sma50: price and gap = price vs average | $213.16, -28.0% | $213.16, -28.0% | PASS |  |  |
-| NVDA | S5-price | S5: the same live price reads the same on the header and the Entry block | header $153.57 / entry $153.57 | identical text | PASS |  | two money formats used to disagree on half-cent prices |
+| NVDA | S5-price | S5: the same live price reads the same on the header and the Entry block | header $153.55 / entry $153.55 | identical text | PASS |  | two money formats used to disagree on half-cent prices |
 | NVDA | T1 | Trend checks N / 8 (S1 pattern_detection.check_trend_template) | 3 / 8 | 3 / 8 | PASS |  | recomputed all 8 criteria from the bars |
 | NVDA | T2 | RSI 14 (S1 frontend technicalIndicators RSI) | 22.7 | 22.7 | PASS |  | Wilder 14 from closes (tolerance 0.3: 2-decimal closes) |
 | NVDA | T3 | Stock vs S&P 500 return over the "past year" (S1 api.stock.price52wAgo + spy) | -17.9% vs +10.1% | -17.9% vs 10.1% | PASS |  |  |
@@ -144,19 +142,19 @@ S4 (outside reference): none run here; closes vs IBKR/other providers belong to 
 | NVDA | V7 | effort vs result: RVOL and /day change/ / (ATR / price) | 2.18× / 0.65× | 2.18× / 0.65× | PASS |  | ATR % uses the sr price (may be a partial bar) |
 | NVDA | V8 | "Last 20 days" volume bars = the last 20 completed bars (dates and volumes) | 20 bars, last ('2026-11-16', 331405000) | 20 bars, last ('2026-11-16', 331405000) | PASS |  |  |
 | NVDA | V9 | caution sentence "heavy volume while OBV is falling" fires only when RVOL >= 1.5 and OBV falling | shown, RVOL 2.18, OBV falling | condition true | PASS |  |  |
-| RIVN | E1 | compared price = live quote payload, else the last close (S1 api.quote.price); exact text in the one money format | $11.99 | $11.99 | PASS |  |  |
+| RIVN | E1 | compared price = live quote payload, else the last close (S1 api.quote.price); exact text in the one money format | $11.96 | $11.96 | PASS |  |  |
 | RIVN | E2 | 21-day average (EMA span 21 over closes; S1 frontend calculateEMA) | $13.01 | $13.01 | PASS |  | an EMA, so "21-day" is its span, not a 21-bar window |
-| RIVN | E3 | percent from the 21-day average | 7.8% below | 7.8% below | PASS |  |  |
+| RIVN | E3 | percent from the 21-day average | 8.1% below | 8.1% below | PASS |  |  |
 | RIVN | E3w | basis label for a live price (now / pre-market / after hours / last trade ...) | (now) | session=regular | PASS |  |  |
 | RIVN | E4 | ATR ("a normal day's move"): Wilder 14 (S1 api.sr.meta.atr) | $0.65 | $0.65 (sr=0.6486) | PASS |  | Wilder ATR14 |
 | RIVN | E5 | distance in normal day-moves | 1.6 | 1.6 | PASS |  | gauge dot note uses the same number:  · 1.6 day-moves below |
 | RIVN | E6 | off-scale gauge label 200d: real distance in day-moves from the 21-day average | +3.6 | +3.6 | PASS |  |  |
-| RIVN | L-ema21 | ladder row ema21: price and gap = price vs average | $13.01, -7.8% | $13.01, -7.8% | PASS |  |  |
+| RIVN | L-ema21 | ladder row ema21: price and gap = price vs average | $13.01, -8.1% | $13.01, -8.1% | PASS |  |  |
 | RIVN | L-note | "Last close $X · date" note = last completed bar | Last close $12.10 · Nov 16 | $12.10 · Nov 16 | PASS |  |  |
-| RIVN | L-now | ladder price row = compared price; name = the basis label | $11.99 "Now" | $11.99 "now" | PASS |  |  |
-| RIVN | L-sma200 | ladder row sma200: price and gap = price vs average | $15.32, -21.7% | $15.32, -21.7% | PASS |  |  |
-| RIVN | L-sma50 | ladder row sma50: price and gap = price vs average | $13.88, -13.6% | $13.88, -13.6% | PASS |  |  |
-| RIVN | S5-price | S5: the same live price reads the same on the header and the Entry block | header $11.99 / entry $11.99 | identical text | PASS |  | two money formats used to disagree on half-cent prices |
+| RIVN | L-now | ladder price row = compared price; name = the basis label | $11.96 "Now" | $11.96 "now" | PASS |  |  |
+| RIVN | L-sma200 | ladder row sma200: price and gap = price vs average | $15.32, -22.0% | $15.32, -22.0% | PASS |  |  |
+| RIVN | L-sma50 | ladder row sma50: price and gap = price vs average | $13.88, -13.8% | $13.88, -13.8% | PASS |  |  |
+| RIVN | S5-price | S5: the same live price reads the same on the header and the Entry block | header $11.96 / entry $11.96 | identical text | PASS |  | two money formats used to disagree on half-cent prices |
 | RIVN | T1 | Trend checks N / 8 (S1 pattern_detection.check_trend_template) | 1 / 8 | 1 / 8 | PASS |  | recomputed all 8 criteria from the bars |
 | RIVN | T2 | RSI 14 (S1 frontend technicalIndicators RSI) | 39.6 | 39.6 | PASS |  | Wilder 14 from closes (tolerance 0.3: 2-decimal closes) |
 | RIVN | T3 | Stock vs S&P 500 return over the "past year" (S1 api.stock.price52wAgo + spy) | -19.9% vs +10.1% | -19.9% vs 10.1% | PASS |  |  |
@@ -189,8 +187,9 @@ S4 (outside reference): none run here; closes vs IBKR/other providers belong to 
 | SMCI | E4 | ATR ("a normal day's move"): Wilder 14 (S1 api.sr.meta.atr) | $2.58 | $2.58 (sr=2.5785) | PASS |  | Wilder ATR14 |
 | SMCI | E5 | distance in normal day-moves | 2.6 | 2.6 | PASS |  | gauge dot note uses the same number:  · 2.6 day-moves below |
 | SMCI | L-ema21 | ladder row ema21: price and gap = price vs average | $30.82, -22.1% | $30.82, -22.1% | PASS |  |  |
+| SMCI | L-note | "Last close $X · date" note = last completed bar | Last close $25.03 · Nov 16 | $25.03 · Nov 16 | PASS |  |  |
 | SMCI | L-now | ladder price row = compared price; name = the basis label | $24.02 "Now" | $24.02 "now" | PASS |  |  |
-| SMCI | L-sma200 | ladder row sma200: price and gap = price vs average | $32.52, -26.2% | $32.52, -26.2% | PASS |  |  |
+| SMCI | L-sma200 | ladder row sma200: price and gap = price vs average | $32.52, -26.1% | $32.52, -26.1% | PASS |  |  |
 | SMCI | L-sma50 | ladder row sma50: price and gap = price vs average | $36.25, -33.7% | $36.25, -33.7% | PASS |  |  |
 | SMCI | S5-price | S5: the same live price reads the same on the header and the Entry block | header $24.02 / entry $24.02 | identical text | PASS |  | two money formats used to disagree on half-cent prices |
 | SMCI | T1 | Trend checks N / 8 (S1 pattern_detection.check_trend_template) | 3 / 8 | 3 / 8 | PASS |  | recomputed all 8 criteria from the bars |
@@ -199,6 +198,7 @@ S4 (outside reference): none run here; closes vs IBKR/other providers belong to 
 | SMCI | T3w | words "past year" vs the window used | 251 / 251 bars back | 250-253 bars | PASS |  |  |
 | SMCI | T4 | ADX 14 (S1 /api/sr meta.adx) | 27.5 | 27.5 | PASS |  | Wilder, completed bars |
 | SMCI | T4w | words "20 or more / below 20" | 20 or more | ADX 27.5 | PASS |  |  |
+| SMCI | T5 | "counted at the last close ($X, date)" = last completed bar | $25.03, Nov 16 | $25.03, Nov 16 | PASS |  |  |
 | SMCI | T6 | price vs 200-day average (S1 pattern sma values) | $25.03 vs $32.52 · -23.0% | $25.03 vs $32.52 · -23.0% | PASS |  |  |
 | SMCI | T6w | word "Below" | Below | Below | PASS |  |  |
 | SMCI | T7 | price vs 50-day average (S1 pattern sma values) | $25.03 vs $36.25 · -31.0% | $25.03 vs $36.25 · -30.9% | PASS |  |  |
@@ -218,18 +218,18 @@ S4 (outside reference): none run here; closes vs IBKR/other providers belong to 
 | SMCI | V6 | Volume detail: last session date and RVOL | 2026-11-16 0.84× | 2026-11-16 0.84× | PASS |  |  |
 | SMCI | V7 | effort vs result: RVOL and /day change/ / (ATR / price) | 0.84× / 0.66× | 0.84× / 0.66× | PASS |  | ATR % uses the sr price (may be a partial bar) |
 | SMCI | V8 | "Last 20 days" volume bars = the last 20 completed bars (dates and volumes) | 20 bars, last ('2026-11-16', 34333000) | 20 bars, last ('2026-11-16', 34333000) | PASS |  |  |
-| SMH | E1 | compared price = live quote payload, else the last close (S1 api.quote.price); exact text in the one money format | $454.16 | $454.16 | PASS |  |  |
+| SMH | E1 | compared price = live quote payload, else the last close (S1 api.quote.price); exact text in the one money format | $454.27 | $454.27 | PASS |  |  |
 | SMH | E2 | 21-day average (EMA span 21 over closes; S1 frontend calculateEMA) | $512.91 | $512.91 | PASS |  | an EMA, so "21-day" is its span, not a 21-bar window |
-| SMH | E3 | percent from the 21-day average | 11.5% below | 11.5% below | PASS |  |  |
+| SMH | E3 | percent from the 21-day average | 11.4% below | 11.4% below | PASS |  |  |
 | SMH | E3w | basis label for a live price (now / pre-market / after hours / last trade ...) | (now) | session=regular | PASS |  |  |
-| SMH | E4 | ATR ("a normal day's move"): Wilder 14 (S1 api.sr.meta.atr) | $24.35 | $24.35 (sr=24.3514) | PASS |  | Wilder ATR14 |
+| SMH | E4 | ATR ("a normal day's move"): Wilder 14 (S1 api.sr.meta.atr) | $24.35 | $24.35 (sr=24.3517) | PASS |  | Wilder ATR14 |
 | SMH | E5 | distance in normal day-moves | 2.4 | 2.4 | PASS |  | gauge dot note uses the same number:  · 2.4 day-moves below |
-| SMH | L-ema21 | ladder row ema21: price and gap = price vs average | $512.91, -11.5% | $512.91, -11.5% | PASS |  |  |
+| SMH | L-ema21 | ladder row ema21: price and gap = price vs average | $512.91, -11.4% | $512.91, -11.4% | PASS |  |  |
 | SMH | L-note | "Last close $X · date" note = last completed bar | Last close $461.90 · Nov 16 | $461.90 · Nov 16 | PASS |  |  |
-| SMH | L-now | ladder price row = compared price; name = the basis label | $454.16 "Now" | $454.16 "now" | PASS |  |  |
-| SMH | L-sma200 | ladder row sma200: price and gap = price vs average | $524.18, -13.4% | $524.18, -13.4% | PASS |  |  |
-| SMH | L-sma50 | ladder row sma50: price and gap = price vs average | $557.7, -18.6% | $557.70, -18.6% | PASS |  |  |
-| SMH | S5-price | S5: the same live price reads the same on the header and the Entry block | header $454.16 / entry $454.16 | identical text | PASS |  | two money formats used to disagree on half-cent prices |
+| SMH | L-now | ladder price row = compared price; name = the basis label | $454.27 "Now" | $454.27 "now" | PASS |  |  |
+| SMH | L-sma200 | ladder row sma200: price and gap = price vs average | $524.18, -13.3% | $524.18, -13.3% | PASS |  |  |
+| SMH | L-sma50 | ladder row sma50: price and gap = price vs average | $557.7, -18.5% | $557.70, -18.5% | PASS |  |  |
+| SMH | S5-price | S5: the same live price reads the same on the header and the Entry block | header $454.27 / entry $454.27 | identical text | PASS |  | two money formats used to disagree on half-cent prices |
 | SMH | T1 | Trend checks N / 8 (S1 pattern_detection.check_trend_template) | 3 / 8 | 3 / 8 | PASS |  | recomputed all 8 criteria from the bars |
 | SMH | T2 | RSI 14 (S1 frontend technicalIndicators RSI) | 35.6 | 35.6 | PASS |  | Wilder 14 from closes (tolerance 0.3: 2-decimal closes) |
 | SMH | T3 | Stock vs S&P 500 return over the "past year" (S1 api.stock.price52wAgo + spy) | +34.3% vs +10.1% | 34.3% vs 10.1% | PASS |  |  |
@@ -256,20 +256,20 @@ S4 (outside reference): none run here; closes vs IBKR/other providers belong to 
 | SMH | V6 | Volume detail: last session date and RVOL | 2026-11-16 1.10× | 2026-11-16 1.10× | PASS |  |  |
 | SMH | V7 | effort vs result: RVOL and /day change/ / (ATR / price) | 1.10× / 0.97× | 1.10× / 0.97× | PASS |  | ATR % uses the sr price (may be a partial bar) |
 | SMH | V8 | "Last 20 days" volume bars = the last 20 completed bars (dates and volumes) | 20 bars, last ('2026-11-16', 10038300) | 20 bars, last ('2026-11-16', 10038300) | PASS |  |  |
-| SOXL.NE | E1 | compared price = live quote payload, else the last close (S1 api.quote.price); exact text in the one money format | $11.81 | $11.81 | PASS |  |  |
+| SOXL.NE | E1 | compared price = live quote payload, else the last close (S1 api.quote.price); exact text in the one money format | $11.80 | $11.80 | PASS |  |  |
 | SOXL.NE | E2 | 21-day average (EMA span 21 over closes; S1 frontend calculateEMA) | $18.96 | $18.96 | PASS |  | an EMA, so "21-day" is its span, not a 21-bar window |
-| SOXL.NE | E3 | percent from the 21-day average | 37.7% below | 37.7% below | PASS |  |  |
+| SOXL.NE | E3 | percent from the 21-day average | 37.8% below | 37.8% below | PASS |  |  |
 | SOXL.NE | E3w | basis label for a live price (now / pre-market / after hours / last trade ...) | (now) | session=regular | PASS |  |  |
 | SOXL.NE | E4 | ATR ("a normal day's move"): Wilder 14 (S1 api.sr.meta.atr) | $2.04 | $2.04 (sr=2.042) | PASS |  | Wilder ATR14 |
 | SOXL.NE | E5 | distance in normal day-moves | 3.5 | 3.5 | PASS |  | gauge dot note uses the same number:  · 3.5 day-moves below |
 | SOXL.NE | E6 | off-scale gauge label 50d: real distance in day-moves from the 21-day average | +4.0 | +4.0 | PASS |  |  |
 | SOXL.NE | E6 | off-scale gauge label 200d: real distance in day-moves from the 21-day average | +5.8 | +5.8 | PASS |  |  |
-| SOXL.NE | L-ema21 | ladder row ema21: price and gap = price vs average | $18.96, -37.7% | $18.96, -37.7% | PASS |  |  |
+| SOXL.NE | L-ema21 | ladder row ema21: price and gap = price vs average | $18.96, -37.8% | $18.96, -37.8% | PASS |  |  |
 | SOXL.NE | L-note | "Last close $X · date" note = last completed bar | Last close $12.30 · Nov 16 | $12.30 · Nov 16 | PASS |  |  |
-| SOXL.NE | L-now | ladder price row = compared price; name = the basis label | $11.81 "Now" | $11.81 "now" | PASS |  |  |
+| SOXL.NE | L-now | ladder price row = compared price; name = the basis label | $11.8 "Now" | $11.80 "now" | PASS |  |  |
 | SOXL.NE | L-sma200 | ladder row sma200: price and gap = price vs average | $30.88, -61.8% | $30.88, -61.8% | PASS |  |  |
 | SOXL.NE | L-sma50 | ladder row sma50: price and gap = price vs average | $27.08, -56.4% | $27.08, -56.4% | PASS |  |  |
-| SOXL.NE | S5-price | S5: the same live price reads the same on the header and the Entry block | header $11.81 / entry $11.81 | identical text | PASS |  | two money formats used to disagree on half-cent prices |
+| SOXL.NE | S5-price | S5: the same live price reads the same on the header and the Entry block | header $11.80 / entry $11.80 | identical text | PASS |  | two money formats used to disagree on half-cent prices |
 | SOXL.NE | T1 | Trend checks N / 8 (S1 pattern_detection.check_trend_template) | 3 / 8 | 3 / 8 | PASS |  | recomputed all 8 criteria from the bars |
 | SOXL.NE | T2 | RSI 14 (S1 frontend technicalIndicators RSI) | 34.5 | 34.5 | PASS |  | Wilder 14 from closes (tolerance 0.3: 2-decimal closes) |
 | SOXL.NE | T3 | Stock vs S&P 500 return over the "past year" (S1 api.stock.price52wAgo + spy) | +21.7% vs +10.1% | 21.7% vs 10.1% | PASS |  |  |

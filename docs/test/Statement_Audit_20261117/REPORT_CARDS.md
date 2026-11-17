@@ -1,8 +1,8 @@
 # Statement Audit phase 2 report (Trade Setup, key levels, Breakout, Price Data, Relative Strength, header badges)
 
-Run: 2026-11-17T14:39 · dumps: AAPL, F, NVDA, RIVN, SMCI, SMH, SOXL.NE
+Run: 2026-11-17T14:42 · dumps: AAPL, F, NVDA, RIVN, SMCI, SMH, SOXL.NE
 
-Verdicts: PASS 254 · WRONG 0 (CRITICAL) · MISLEADING 1 (HIGH/LOW per row) · UNVERIFIED 6 (INFO)
+Verdicts: PASS 256 · WRONG 0 (CRITICAL) · MISLEADING 0 (HIGH/LOW per row) · UNVERIFIED 5 (INFO)
 
 ## Coverage (honest)
 | Card | statements claimed (spans) | number tokens left unclaimed |
@@ -18,13 +18,11 @@ NOT YET COVERED: Fundamentals, Market backdrop, Data Sources, MR Read, the other
 
 | Ticker | ID | Claim | Shown | Recomputed | Verdict | Severity | Note |
 |---|---|---|---|---|---|---|---|
-| SMCI | HB4 | header "Last close $X · date" = the last completed bar (S5 with Price Data and the plan) | Last close $25.02 · Nov 16 | $25.03 · Nov 16 | MISLEADING | LOW | one-cent disagreement between two data providers for the same close (header/quote path vs price bars) |
 | F | TS-live-side | levels are placed on a side of price using /api/sr currentPrice (today's live bar), the card's words use the last close | sr price $11.35 | last close $11.57 | UNVERIFIED | INFO | a zone between the two prices can sit on a different side than the words say; mid-session only (known Low) |
-| RIVN | TS-live-side | levels are placed on a side of price using /api/sr currentPrice (today's live bar), the card's words use the last close | sr price $11.99 | last close $12.10 | UNVERIFIED | INFO | a zone between the two prices can sit on a different side than the words say; mid-session only (known Low) |
+| RIVN | TS-live-side | levels are placed on a side of price using /api/sr currentPrice (today's live bar), the card's words use the last close | sr price $11.95 | last close $12.10 | UNVERIFIED | INFO | a zone between the two prices can sit on a different side than the words say; mid-session only (known Low) |
 | SMCI | TS-live-side | levels are placed on a side of price using /api/sr currentPrice (today's live bar), the card's words use the last close | sr price $24.01 | last close $25.03 | UNVERIFIED | INFO | a zone between the two prices can sit on a different side than the words say; mid-session only (known Low) |
-| SMH | TS-live-side | levels are placed on a side of price using /api/sr currentPrice (today's live bar), the card's words use the last close | sr price $454.25 | last close $461.90 | UNVERIFIED | INFO | a zone between the two prices can sit on a different side than the words say; mid-session only (known Low) |
-| SMH | TS-ref | zones in the payload = zones rebuilt from the bars by the plain-words rules | 1 of 8 differ: 374.16-375.59 x3 | match | UNVERIFIED | INFO | borderline: the audit frame is /api/stock's 260 two-decimal bars; a merge decision near the 0.5/1.0 ATR cut or a 2-dp tie can differ. Inspect before trusting. |
-| SOXL.NE | TS-live-side | levels are placed on a side of price using /api/sr currentPrice (today's live bar), the card's words use the last close | sr price $11.81 | last close $12.30 | UNVERIFIED | INFO | a zone between the two prices can sit on a different side than the words say; mid-session only (known Low) |
+| SMH | TS-live-side | levels are placed on a side of price using /api/sr currentPrice (today's live bar), the card's words use the last close | sr price $454.08 | last close $461.90 | UNVERIFIED | INFO | a zone between the two prices can sit on a different side than the words say; mid-session only (known Low) |
+| SOXL.NE | TS-live-side | levels are placed on a side of price using /api/sr currentPrice (today's live bar), the card's words use the last close | sr price $11.79 | last close $12.30 | UNVERIFIED | INFO | a zone between the two prices can sit on a different side than the words say; mid-session only (known Low) |
 | AAPL | BO1 | 60-day high = highest high of the 60 bars that end 10 bars before the last bar (S1 breakout_detection) | $351.73 | $351.73 | PASS |  |  |
 | AAPL | BO2 | close % from the 60-day high (tolerance 0.06: the audit bars are rounded to 2 dp, the breakout route uses its own unrounded bars) | 0.3% | 0.30% | PASS |  |  |
 | AAPL | BO3 | breakout day = first close above the 60-day high within the last 10 bars | 2026-11-11 | 2026-11-11 | PASS |  |  |
@@ -95,6 +93,7 @@ NOT YET COVERED: Fundamentals, Market backdrop, Data Sources, MR Read, the other
 | SMCI | HB1 | sector badge numbers = the sector rotation payload (RS ratio, momentum, rank n/11) | [Technology (XLK) — RS: 99.11 / Mom: -1.91 / Rank: 5/11] XLK LAGGING | RS 99.11 Mom -1.91 Rank 5/11 | PASS |  |  |
 | SMCI | HB2 | S3: quadrant word vs RS ratio (above/below 100) and momentum (above/below 0) | LAGGING | LAGGING | PASS |  |  |
 | SMCI | HB3 | no earnings badge when none is upcoming | none | none | PASS |  |  |
+| SMCI | HB4 | header "Last close $X · date" = the last completed bar (S5 with Price Data and the plan) | Last close $25.03 · Nov 16 | $25.03 · Nov 16 | PASS |  |  |
 | SMH | HB3 | no earnings badge when none is upcoming | none | none | PASS |  |  |
 | SMH | HB4 | header "Last close $X · date" = the last completed bar (S5 with Price Data and the plan) | Last close $461.90 · Nov 16 | $461.90 · Nov 16 | PASS |  |  |
 | SOXL.NE | HB3 | no earnings badge when none is upcoming | none | none | PASS |  |  |
@@ -220,9 +219,9 @@ NOT YET COVERED: Fundamentals, Market backdrop, Data Sources, MR Read, the other
 | NVDA | TS-inv | structural invariants on the zones (low<=high, width<=1 ATR, swings=highs+lows, sides, one nearest per side = closest, window, insideZone) | 4 zones | all hold | PASS |  |  |
 | NVDA | TS-ref | zones in the payload = zones rebuilt from the bars by the plain-words rules (swings, merge 0.5 ATR, width 1 ATR; using payload ATR) | 4 zones match | match | PASS |  |  |
 | NVDA | TS1 | no support level: the card says there is no plan | says so | says so | PASS |  |  |
-| RIVN | KL-resistance | Resistance row: zone range, % away, turned-here count (S1 meta.zones nearest resistance) | Resistance $12.65 · 5.5% above · turned here 1× | $12.65 · 5.5% · 1× | PASS |  |  |
+| RIVN | KL-resistance | Resistance row: zone range, % away, turned-here count (S1 meta.zones nearest resistance) | Resistance $12.65 · 5.9% above · turned here 1× | $12.65 · 5.9% · 1× | PASS |  |  |
 | RIVN | KL-state | one-line price state re-derived from the numbers (levels, trend checks, ADX, ATR) | Close to both support and resistance | Close to both support and resistance | PASS |  |  |
-| RIVN | KL-support | Support row: zone range, % away, turned-here count (S1 meta.zones nearest support) | Support $11.38 · 5.1% below · turned here 1× | $11.38 · 5.1% · 1× | PASS |  |  |
+| RIVN | KL-support | Support row: zone range, % away, turned-here count (S1 meta.zones nearest support) | Support $11.38 · 4.8% below · turned here 1× | $11.38 · 4.8% · 1× | PASS |  |  |
 | RIVN | TS-atr | ATR in the payload = Wilder ATR14 from the bars (the stop uses the payload value exactly) | 0.6486 | 0.6486 | PASS |  |  |
 | RIVN | TS-inv | structural invariants on the zones (low<=high, width<=1 ATR, swings=highs+lows, sides, one nearest per side = closest, window, insideZone) | 6 zones | all hold | PASS |  |  |
 | RIVN | TS-ref | zones in the payload = zones rebuilt from the bars by the plain-words rules (swings, merge 0.5 ATR, width 1 ATR; using payload ATR) | 6 zones match | match | PASS |  |  |
@@ -253,8 +252,9 @@ NOT YET COVERED: Fundamentals, Market backdrop, Data Sources, MR Read, the other
 | SMH | KL-resistance | Resistance row: zone range, % away, turned-here count (S1 meta.zones nearest resistance) | Resistance $503.63 · 10.9% above · turned here 1× | $503.63 · 10.9% · 1× | PASS |  |  |
 | SMH | KL-state | one-line price state re-derived from the numbers (levels, trend checks, ADX, ATR) | 3 of 8 trend checks pass · ADX 34.1 | 3 of 8 trend checks pass · ADX 34.1 | PASS |  |  |
 | SMH | KL-support | Support row: zone range, % away, turned-here count (S1 meta.zones nearest support) | Support $445.59 · 1.9% below · turned here 1× | $445.59 · 1.9% · 1× | PASS |  |  |
-| SMH | TS-atr | ATR in the payload = Wilder ATR14 from the bars (the stop uses the payload value exactly) | 24.3514 | 24.3517 | PASS |  |  |
+| SMH | TS-atr | ATR in the payload = Wilder ATR14 from the bars (the stop uses the payload value exactly) | 24.3517 | 24.3517 | PASS |  |  |
 | SMH | TS-inv | structural invariants on the zones (low<=high, width<=1 ATR, swings=highs+lows, sides, one nearest per side = closest, window, insideZone) | 8 zones | all hold | PASS |  |  |
+| SMH | TS-ref | zones in the payload = zones rebuilt from the bars by the plain-words rules (swings, merge 0.5 ATR, width 1 ATR; using payload ATR) | 8 zones match | match | PASS |  |  |
 | SMH | TS1 | Buy = the nearest support edge (S1 /api/sr support, max) | $445.59 | $445.59 | PASS |  |  |
 | SMH | TS1b | S5: the Buy equals the edge of the zone flagged nearest (Support row) | buy 445.59, nearest zone high 445.59 | equal | PASS |  |  |
 | SMH | TS1c | S5: the Buy on the bar = the Buy in the box | $445.59 | $445.59 | PASS |  |  |
@@ -264,9 +264,9 @@ NOT YET COVERED: Fundamentals, Market backdrop, Data Sources, MR Read, the other
 | SMH | TS4 | Target = nearest resistance edge and its % from the buy | $503.63 +13.0% | $503.63 +13.0% | PASS |  |  |
 | SMH | TS5 | reward : risk = (target - buy) / (buy - stop) | 1.2 : 1 | 1.2 : 1 | PASS |  |  |
 | SMH | TS6 | Risk $ (and reward $ per share) | Risk $48.70 to make $58.04 a share | Risk $48.70 to make $58.04 | PASS |  |  |
-| SOXL.NE | KL-resistance | Resistance row: zone range, % away, turned-here count (S1 meta.zones nearest resistance) | Resistance $12.05 – $13.46 · 2.0% above · turned here 3× | $12.05 – $13.46 · 2.0% · 3× | PASS |  |  |
+| SOXL.NE | KL-resistance | Resistance row: zone range, % away, turned-here count (S1 meta.zones nearest resistance) | Resistance $12.05 – $13.46 · 2.2% above · turned here 3× | $12.05 – $13.46 · 2.2% · 3× | PASS |  |  |
 | SOXL.NE | KL-state | one-line price state re-derived from the numbers (levels, trend checks, ADX, ATR) | Close to both support and resistance | Close to both support and resistance | PASS |  |  |
-| SOXL.NE | KL-support | Support row: zone range, % away, turned-here count (S1 meta.zones nearest support) | Support $9.22 – $10.73 · 9.1% below · turned here 4× | $9.22 – $10.73 · 9.1% · 4× | PASS |  |  |
+| SOXL.NE | KL-support | Support row: zone range, % away, turned-here count (S1 meta.zones nearest support) | Support $9.22 – $10.73 · 9.0% below · turned here 4× | $9.22 – $10.73 · 9.0% · 4× | PASS |  |  |
 | SOXL.NE | TS-atr | ATR in the payload = Wilder ATR14 from the bars (the stop uses the payload value exactly) | 2.042 | 2.0424 | PASS |  |  |
 | SOXL.NE | TS-inv | structural invariants on the zones (low<=high, width<=1 ATR, swings=highs+lows, sides, one nearest per side = closest, window, insideZone) | 3 zones | all hold | PASS |  |  |
 | SOXL.NE | TS-ref | zones in the payload = zones rebuilt from the bars by the plain-words rules (swings, merge 0.5 ATR, width 1 ATR; using payload ATR) | 3 zones match | match | PASS |  |  |

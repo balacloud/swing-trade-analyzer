@@ -16,6 +16,7 @@ const KEYS = (t) => ({
   [`/api/stock/${t}`]: 'stock', [`/api/sr/${t}`]: 'sr', [`/api/patterns/${t}`]: 'patterns',
   [`/api/quote/${t}`]: 'quote', '/api/market/spy': 'spy',
   [`/api/breakout/${t}`]: 'breakout', [`/api/earnings/${t}`]: 'earnings', '/api/sectors/rotation': 'sectors',
+  [`/api/fundamentals/${t}`]: 'fundamentals', [`/api/mr/signal/${t}`]: 'mr', '/api/market/index/QQQ': 'qqq', '/api/market/vix': 'vix', '/api/fear-greed': 'feargreed',
 });
 
 async function dump(browser, ticker, outDir) {
@@ -69,7 +70,7 @@ async function dump(browser, ticker, outDir) {
     hdrIds.forEach((id) => { const e = q(id); header[id] = e ? e.textContent.replace(/\s+/g, ' ').trim() : null; });
     const rows = (sel) => [...document.querySelectorAll(sel)].map((e) => ({ key: e.dataset.key, price: e.dataset.price, gap: e.dataset.gap, off: e.dataset.off || '' }));
     const cardTexts = {};
-    ['card-trade-setup', 'card-breakout', 'card-price-data', 'card-relative-strength', 'card-stock-header'].forEach((id) => { const e = q(id); cardTexts[id] = e ? walk(e) : null; });
+    ['card-trade-setup', 'card-breakout', 'card-price-data', 'card-relative-strength', 'card-stock-header', 'card-fundamentals', 'card-market-backdrop', 'card-mr-read'].forEach((id) => { const e = q(id); cardTexts[id] = e ? walk(e) : null; });
     const toggle = q('toggle-price-rs');
     return {
       cardTexts, priceRsToggle: toggle ? walk(toggle) : null,
