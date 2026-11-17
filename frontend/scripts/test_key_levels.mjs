@@ -1,6 +1,8 @@
 // describeKeyLevels + zoneSpan + deriveStructureState (rebuilt Day 126 for the simple S&R engine).
 //   cd frontend && node scripts/test_key_levels.mjs
-import { describeKeyLevels, deriveStructureState, zoneSpan } from '../src/utils/keyLevels.js';
+import { register } from 'node:module';
+register('./lib/js-ext-loader.mjs', import.meta.url);   // keyLevels.js imports ./formatMoney (webpack-style, no extension)
+const { describeKeyLevels, deriveStructureState, zoneSpan } = await import('../src/utils/keyLevels.js');
 
 let pass = 0, fail = 0;
 const ok = (cond, m) => { if (cond) { pass++; console.log(`ok ${m}`); } else { fail++; console.log(`FAIL ${m}`); } };
@@ -92,13 +94,13 @@ ok(st.state === 'Uptrend pulling back to support', `near nearest support -> pull
 st = deriveStructureState(100, [130, 101.5], [80], 7, { adx: 25 }, 1);
 ok(st.state === 'Uptrend testing resistance', `nearest resistance from unsorted input (got "${st.state}")`);
 st = deriveStructureState(100, [], [95], 7, { adx: 25 }, 1);
-ok(st.state === 'No resistance within 30% above — strong trend', 'no real resistance + strong trend -> no ceiling within 30%');
+ok(st.state === 'No resistance within 30% above · 7 of 8 trend checks pass', 'no real resistance -> no ceiling within 30%, with the trend-check count (no verdict words)');
 st = deriveStructureState(100, [120], [], 7, { adx: 25 }, 1, { supportPct: 20 });
 ok(st.state === 'No support within 20% below', 'no real support -> no floor within 20%');
 ok(deriveStructureState(100, [120], [95], null, { adx: 25 }, 1) === null, 'missing trend data -> no line (not "Downtrend")');
 ok(deriveStructureState(100, [120], [95], 2, null, 1) === null, 'weak trend + missing ADX -> no line');
 st = deriveStructureState(100, [120], [90], 2, { adx: 30 }, 1);
-ok(st.state === 'Downtrend', 'weak trend + ADX 30 -> Downtrend');
+ok(st.state === '2 of 8 trend checks pass · ADX 30.0', 'few trend checks + ADX 30 -> the two numbers, not the word "Downtrend"');
 // Day 126: price inside the support zone (its high is ABOVE price, so it never passes the "below" filter)
 st = deriveStructureState(100, [120], [100.5], 7, { adx: 25 }, 1, { insideSupport: true });
 ok(st.state === 'Uptrend pulling back to support', `inside the support zone counts as near support (got "${st.state}")`);

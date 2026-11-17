@@ -351,7 +351,7 @@ a comparison (above/below, rising), a count (3 / 8). Not advice, not design copy
 Ticker set: the Part 3 minimum plus a young-history ticker. First run: `docs/test/Statement_Audit_20261117/REPORT.md`.
 
 **Limits (say them out loud).** The reference uses the same `/api/stock` bars, so it proves the maths and the words, not the data source (S4).
-Cards not yet registered are listed NOT YET COVERED in the report and the ledger. Live runs only reach the branches those tickers hit: the first run covers the Technical Read.
+Cards not yet registered are listed NOT YET COVERED in the report and the ledger. Phase 2 (Day 126) added `backend/audit_cards.py` for Trade Setup, key levels, Breakout, Price Data, Relative Strength and the header badges; `test_audit_cards.py` carries a regression gate (the frozen phase-1 dumps must give identical rows). Live runs only reach the branches those tickers hit: the first run covers the Technical Read.
 
 ---
 

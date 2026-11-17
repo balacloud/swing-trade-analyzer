@@ -6,6 +6,18 @@
 
 ## Changes from Day 125
 
+- **Added + fixed (Day 126): Statement Audit phase 2 (Trade Setup + key levels, Breakout, Price Data, Relative Strength, header badges).** Plan
+  `docs/claude/design/STATEMENT_AUDIT_PHASE2_PLAN_DAY126.md` (Opus review applied). New: `backend/audit_cards.py` (an independent plain-words support/resistance reference, zone invariants,
+  stop/target/R:R/RS/breakout recomputes, per-card unclaimed-number scan, coverage table), `test_audit_cards.py` (28, incl. a regression gate: the phase-1 rows on the FROZEN dumps in
+  `docs/test/Statement_Audit_phase1_frozen/` must be identical), dump script now captures breakout/earnings/sector payloads and the collapsed Price & RS cards (new testids `card-price-data`,
+  `card-relative-strength`, `toggle-price-rs`). First run: 238 PASS / 0 WRONG / 45 MISLEADING; every finding fixed or logged; final: phase 2 **254 PASS / 0 WRONG**, phase 1 **264 PASS / 0 WRONG**
+  (remaining MISLEADING are LOW: one-cent provider disagreement, ADX 19.97 displayed as 20.0). Fixes made: Trade Setup's "last close" now measures from the last COMPLETED close
+  (it read today's live bar for 5 of 7 tickers); "at its 52-week high" became "near its 52-week high (within 3%)" (AAPL was 2.2% below it, and Price Data said so); Price Data "Current Price" is
+  "Last close"; liquidity says "N/A (no volume data)" for zero-volume funds (a Yahoo figure beside "No volume data" contradicted the page); the key-levels state quotes numbers ("8 of 8 trend
+  checks pass", "ADX 30.0") instead of "strong/weak trend", "Compression" and "Downtrend"; the RS sentence uses plain facts ("Ahead of the market", not "Top tier performer", "Avoid for swing
+  trades", or "in-line" for up to 10% ahead); the stale "does not affect any score or the verdict" copy is gone; earnings tooltip text is a fact, not "HIGH RISK / Consider waiting"; the breakout
+  card names its volume window ("its prior 50-day average volume") and no longer says a climber "re-qualifies about every 10 days"; zone ranges use the page's one money format; "Size this
+  plan" hands over exactly what the card shows (half-cent ties); `data-price` attributes use the same rounding.
 - **Fixed (Day 126, Statement Audit findings, all four): zero-volume data, dividend-adjusted high, ADX forming bar, threshold rounding, plus three more the re-run caught.**
   Plan `docs/claude/design/STATEMENT_AUDIT_FIXES_PLAN_DAY126.md` (Opus review: 11 points applied).
   1. **Zero volume (SOXL.NE printed "50.00x normal volume").** `/api/sr` now reports `meta.volume {available, daysWithVolume, windowBars}`: volume is usable only when at least
@@ -130,6 +142,20 @@ as a "live copy"; the formula behind it is now `rrg.py`.
 ### High: Per-ticker provenance can't distinguish "never checked" from "just failed" (carried from Day 108)
 **Fix:** Not actioned — needs a new failure-tracking mechanism, its own session. Oldest open
 item from the Day 108 full-system audit.
+
+### Medium: the Buy can disagree with the nearest support zone (Day 126, Statement Audit phase 2; latent, no audited ticker hits it)
+`simple_sr.pick` chooses the nearest support by distance to the zone EDGE and ignores `insideZone`, while the Buy is `max(support)` (riskRewardCalc.js:42, sr_plan.py:28) and the Support row
+and shaded band follow the `nearest` flag. If price sits inside zone A near A.low and a width-capped neighbour B ends just below A, B is flagged nearest but the Buy is A.high.
+The audit asserts "Buy == nearest zone's edge" per ticker (TS1b) and a planted fixture proves it fires. Engine change needed; not made.
+
+### Low: leftovers from the phase-2 audit (Day 126)
+- **Levels sit on a side of price using `/api/sr` currentPrice (today's live bar)**, the card's words use the last completed close; a zone between the two can sit on a different side than the words say (mid-session only).
+- **Provider disagreement:** SMCI's Nov 16 close is 25.025 (Twelve Data) vs 25.03 (Yahoo); the header (quote path) and the cards (price bars) can read different providers within a minute and show $25.02 vs $25.03. The audit labels such one-cent gaps LOW.
+- **Zone reference mismatches (UNVERIFIED):** the independent reference rebuilds all nearest zones for 6 of 7 tickers but one or two zones on F and SMH differ (a merge decision near the 0.5/1.0 ATR cut on 2-dp bars); inspect, not a failure.
+- **Short history RS:** with 200 to 251 bars the stock's year-ago price is its FIRST bar while SPY uses 252 bars, so "RS vs S&P 500" compares different periods.
+- **Breakout card fetches its own bars** (NaN volume dropped, not zero) and excludes the breakout day from its volume average; the Technical Read includes the bar itself. Now named in the words; one definition would be cleaner. "Retest holding" also fires when the low undercut the old high by any amount (breakout_detection.py:135).
+- **Liquidity (Daily $)** is Yahoo's avgVolume x price: a provider field, not the bars, window unstated.
+- **ADX displayed to 1 decimal then compared with 20** (F: 19.97 shown "20.0" reads "20 or more").
 
 ### Low: after the forming-bar fix, three small leftovers (Day 126)
 - **52-week high/low** come from Yahoo's info and can include today's intraday high/low, while `currentPrice` is now the last completed

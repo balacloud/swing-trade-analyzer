@@ -1,0 +1,1899 @@
+[
+[
+"AAPL",
+"T1",
+"8 / 8",
+"8 / 8",
+"PASS"
+],
+[
+"AAPL",
+"T2",
+"57.0",
+"57.0",
+"PASS"
+],
+[
+"AAPL",
+"T3",
+"+29.5% vs +10.1%",
+"29.5% vs 10.1%",
+"PASS"
+],
+[
+"AAPL",
+"T3w",
+"251 / 251 bars back",
+"250-253 bars",
+"PASS"
+],
+[
+"AAPL",
+"T4",
+"18.6",
+"18.6",
+"PASS"
+],
+[
+"AAPL",
+"T4w",
+"below 20",
+"ADX 18.6",
+"PASS"
+],
+[
+"AAPL",
+"T5",
+"$352.78, Nov 16",
+"$352.78, Nov 16",
+"PASS"
+],
+[
+"AAPL",
+"T6",
+"$352.78 vs $301.72 \u00b7 +16.9%",
+"$352.78 vs $301.72 \u00b7 16.9%",
+"PASS"
+],
+[
+"AAPL",
+"T6w",
+"Above",
+"Above",
+"PASS"
+],
+[
+"AAPL",
+"T7",
+"$352.78 vs $339.69 \u00b7 +3.9%",
+"$352.78 vs $339.69 \u00b7 3.9%",
+"PASS"
+],
+[
+"AAPL",
+"T7w",
+"Above",
+"Above",
+"PASS"
+],
+[
+"AAPL",
+"T8",
+"+4.2% over 30 td",
+"+4.2% over 30 td",
+"PASS"
+],
+[
+"AAPL",
+"T8w",
+"30",
+"30",
+"PASS"
+],
+[
+"AAPL",
+"T8r",
+"still rising",
+"rising",
+"PASS"
+],
+[
+"AAPL",
+"T9",
+"2.2% below $360.83",
+"2.2% below $360.83",
+"PASS"
+],
+[
+"AAPL",
+"T9w",
+"Within 25% of",
+"2.2% below",
+"PASS"
+],
+[
+"AAPL",
+"T9x",
+"$360.83",
+"$360.82999",
+"PASS"
+],
+[
+"AAPL",
+"E1",
+"$350.52",
+"$350.52",
+"PASS"
+],
+[
+"AAPL",
+"S5-price",
+"header $350.52 / entry $350.52",
+"identical text",
+"PASS"
+],
+[
+"AAPL",
+"E2",
+"$346.86",
+"$346.86",
+"PASS"
+],
+[
+"AAPL",
+"E3",
+"1.1% above",
+"1.1% above",
+"PASS"
+],
+[
+"AAPL",
+"E3w",
+"(now)",
+"session=regular",
+"PASS"
+],
+[
+"AAPL",
+"E4",
+"$8.05",
+"$8.05 (sr=8.0462)",
+"PASS"
+],
+[
+"AAPL",
+"E5",
+"0.5",
+"0.5",
+"PASS"
+],
+[
+"AAPL",
+"L-ema21",
+"$346.86, 1.1%",
+"$346.86, 1.1%",
+"PASS"
+],
+[
+"AAPL",
+"L-sma50",
+"$339.69, 3.2%",
+"$339.69, 3.2%",
+"PASS"
+],
+[
+"AAPL",
+"L-sma200",
+"$301.72, 16.2%",
+"$301.72, 16.2%",
+"PASS"
+],
+[
+"AAPL",
+"L-now",
+"$350.52 \"Now\"",
+"$350.52 \"now\"",
+"PASS"
+],
+[
+"AAPL",
+"L-note",
+"Last close $352.78 \u00b7 Nov 16",
+"$352.78 \u00b7 Nov 16",
+"PASS"
+],
+[
+"AAPL",
+"V1",
+"3 signals, 0 up, 2 down, 1 flat",
+"3 signals, 0 up, 2 down, 1 flat",
+"PASS"
+],
+[
+"AAPL",
+"V2",
+"down 1.0%",
+"-0.98%",
+"PASS"
+],
+[
+"AAPL",
+"V4",
+"falling",
+"falling (sr says falling)",
+"PASS"
+],
+[
+"AAPL",
+"V5",
+"1.1\u00d7 from 2026-11-16",
+"1.05\u00d7 from 2026-11-16",
+"PASS"
+],
+[
+"AAPL",
+"V6",
+"2026-11-16 1.05\u00d7",
+"2026-11-16 1.05\u00d7",
+"PASS"
+],
+[
+"AAPL",
+"V7",
+"1.05\u00d7 / 0.43\u00d7",
+"1.05\u00d7 / 0.43\u00d7",
+"PASS"
+],
+[
+"AAPL",
+"V8",
+"20 bars, last ('2026-11-16', 45945500)",
+"20 bars, last ('2026-11-16', 45945500)",
+"PASS"
+],
+[
+"AAPL",
+"E6",
+"-5.6",
+"-5.6",
+"PASS"
+],
+[
+"AAPL",
+"V-obv20",
+"shown",
+"rule not mirrored in the audit yet",
+"UNVERIFIED"
+],
+[
+"AAPL",
+"V-effort",
+"shown",
+"rule not mirrored in the audit yet",
+"UNVERIFIED"
+],
+[
+"F",
+"T1",
+"1 / 8",
+"1 / 8",
+"PASS"
+],
+[
+"F",
+"T2",
+"38.0",
+"38.0",
+"PASS"
+],
+[
+"F",
+"T3",
+"-8.2% vs +10.1%",
+"-8.2% vs 10.1%",
+"PASS"
+],
+[
+"F",
+"T3w",
+"251 / 251 bars back",
+"250-253 bars",
+"PASS"
+],
+[
+"F",
+"T4",
+"18.4",
+"18.4",
+"PASS"
+],
+[
+"F",
+"T4w",
+"below 20",
+"ADX 18.4",
+"PASS"
+],
+[
+"F",
+"T5",
+"$11.57, Nov 16",
+"$11.57, Nov 16",
+"PASS"
+],
+[
+"F",
+"T6",
+"$11.57 vs $12.96 \u00b7 -10.7%",
+"$11.57 vs $12.96 \u00b7 -10.7%",
+"PASS"
+],
+[
+"F",
+"T6w",
+"Below",
+"Below",
+"PASS"
+],
+[
+"F",
+"T7",
+"$11.57 vs $12.36 \u00b7 -6.4%",
+"$11.57 vs $12.36 \u00b7 -6.4%",
+"PASS"
+],
+[
+"F",
+"T7w",
+"Below",
+"Below",
+"PASS"
+],
+[
+"F",
+"T8",
+"-1.1% over 30 td",
+"-1.1% over 30 td",
+"PASS"
+],
+[
+"F",
+"T8w",
+"30",
+"30",
+"PASS"
+],
+[
+"F",
+"T8r",
+"not rising",
+"not rising",
+"PASS"
+],
+[
+"F",
+"T9",
+"33.4% below $17.38",
+"33.4% below $17.38",
+"PASS"
+],
+[
+"F",
+"T9w",
+"More than 25% below",
+"33.4% below",
+"PASS"
+],
+[
+"F",
+"T9x",
+"$17.38",
+"$17.378763762161626",
+"PASS"
+],
+[
+"F",
+"E1",
+"$11.43",
+"$11.43",
+"PASS"
+],
+[
+"F",
+"S5-price",
+"header $11.43 / entry $11.43",
+"identical text",
+"PASS"
+],
+[
+"F",
+"E2",
+"$12.09",
+"$12.09",
+"PASS"
+],
+[
+"F",
+"E3",
+"5.5% below",
+"5.5% below",
+"PASS"
+],
+[
+"F",
+"E3w",
+"(now)",
+"session=regular",
+"PASS"
+],
+[
+"F",
+"E4",
+"$0.33",
+"$0.33 (sr=0.3324)",
+"PASS"
+],
+[
+"F",
+"E5",
+"2.0",
+"2.0",
+"PASS"
+],
+[
+"F",
+"L-sma200",
+"$12.96, -11.8%",
+"$12.96, -11.8%",
+"PASS"
+],
+[
+"F",
+"L-sma50",
+"$12.36, -7.5%",
+"$12.36, -7.5%",
+"PASS"
+],
+[
+"F",
+"L-ema21",
+"$12.09, -5.5%",
+"$12.09, -5.5%",
+"PASS"
+],
+[
+"F",
+"L-now",
+"$11.43 \"Now\"",
+"$11.43 \"now\"",
+"PASS"
+],
+[
+"F",
+"L-note",
+"Last close $11.57 \u00b7 Nov 16",
+"$11.57 \u00b7 Nov 16",
+"PASS"
+],
+[
+"F",
+"V1",
+"3 signals, 0 up, 3 down, 0 flat",
+"3 signals, 0 up, 3 down, 0 flat",
+"PASS"
+],
+[
+"F",
+"V2",
+"down 2.9%",
+"-2.85%",
+"PASS"
+],
+[
+"F",
+"V3",
+"near the day's low",
+"close location 0.20 (raw 0.2045)",
+"PASS"
+],
+[
+"F",
+"V4",
+"falling",
+"falling (sr says falling)",
+"PASS"
+],
+[
+"F",
+"V5",
+"1.0\u00d7 from 2026-11-16",
+"0.99\u00d7 from 2026-11-16",
+"PASS"
+],
+[
+"F",
+"V6",
+"2026-11-16 0.99\u00d7",
+"2026-11-16 0.99\u00d7",
+"PASS"
+],
+[
+"F",
+"V7",
+"0.99\u00d7 / 0.99\u00d7",
+"0.99\u00d7 / 0.99\u00d7",
+"PASS"
+],
+[
+"F",
+"V8",
+"20 bars, last ('2026-11-16', 43936700)",
+"20 bars, last ('2026-11-16', 43936700)",
+"PASS"
+],
+[
+"F",
+"V10",
+"2026-11-16",
+"2026-11-16",
+"PASS"
+],
+[
+"F",
+"V-obv20",
+"shown",
+"rule not mirrored in the audit yet",
+"UNVERIFIED"
+],
+[
+"F",
+"V-effort",
+"shown",
+"rule not mirrored in the audit yet",
+"UNVERIFIED"
+],
+[
+"NVDA",
+"T1",
+"3 / 8",
+"3 / 8",
+"PASS"
+],
+[
+"NVDA",
+"T2",
+"22.7",
+"22.7",
+"PASS"
+],
+[
+"NVDA",
+"T3",
+"-17.9% vs +10.1%",
+"-17.9% vs 10.1%",
+"PASS"
+],
+[
+"NVDA",
+"T3w",
+"251 / 251 bars back",
+"250-253 bars",
+"PASS"
+],
+[
+"NVDA",
+"T4",
+"43.5",
+"43.5",
+"PASS"
+],
+[
+"NVDA",
+"T4w",
+"20 or more",
+"ADX 43.5",
+"PASS"
+],
+[
+"NVDA",
+"T5",
+"$156.14, Nov 16",
+"$156.14, Nov 16",
+"PASS"
+],
+[
+"NVDA",
+"T6",
+"$156.14 vs $204.02 \u00b7 -23.5%",
+"$156.14 vs $204.02 \u00b7 -23.5%",
+"PASS"
+],
+[
+"NVDA",
+"T6w",
+"Below",
+"Below",
+"PASS"
+],
+[
+"NVDA",
+"T7",
+"$156.14 vs $213.16 \u00b7 -26.7%",
+"$156.14 vs $213.16 \u00b7 -26.8%",
+"PASS"
+],
+[
+"NVDA",
+"T7w",
+"Below",
+"Below",
+"PASS"
+],
+[
+"NVDA",
+"T8",
+"+1.5% over 30 td",
+"+1.5% over 30 td",
+"PASS"
+],
+[
+"NVDA",
+"T8w",
+"30",
+"30",
+"PASS"
+],
+[
+"NVDA",
+"T8r",
+"still rising",
+"rising",
+"PASS"
+],
+[
+"NVDA",
+"T9",
+"35.8% below $243.37",
+"35.8% below $243.37",
+"PASS"
+],
+[
+"NVDA",
+"T9w",
+"More than 25% below",
+"35.8% below",
+"PASS"
+],
+[
+"NVDA",
+"T9x",
+"$243.37",
+"$243.37",
+"PASS"
+],
+[
+"NVDA",
+"E1",
+"$153.21",
+"$153.21",
+"PASS"
+],
+[
+"NVDA",
+"S5-price",
+"header $153.21 / entry $153.21",
+"identical text",
+"PASS"
+],
+[
+"NVDA",
+"E2",
+"$190.71",
+"$190.71",
+"PASS"
+],
+[
+"NVDA",
+"E3",
+"19.7% below",
+"19.7% below",
+"PASS"
+],
+[
+"NVDA",
+"E3w",
+"(now)",
+"session=regular",
+"PASS"
+],
+[
+"NVDA",
+"E4",
+"$9.85",
+"$9.85 (sr=9.8532)",
+"PASS"
+],
+[
+"NVDA",
+"E5",
+"3.8",
+"3.8",
+"PASS"
+],
+[
+"NVDA",
+"L-sma50",
+"$213.16, -28.1%",
+"$213.16, -28.1%",
+"PASS"
+],
+[
+"NVDA",
+"L-sma200",
+"$204.02, -24.9%",
+"$204.02, -24.9%",
+"PASS"
+],
+[
+"NVDA",
+"L-ema21",
+"$190.71, -19.7%",
+"$190.71, -19.7%",
+"PASS"
+],
+[
+"NVDA",
+"L-now",
+"$153.21 \"Now\"",
+"$153.21 \"now\"",
+"PASS"
+],
+[
+"NVDA",
+"L-note",
+"Last close $156.14 \u00b7 Nov 16",
+"$156.14 \u00b7 Nov 16",
+"PASS"
+],
+[
+"NVDA",
+"V1",
+"3 signals, 0 up, 3 down, 0 flat",
+"3 signals, 0 up, 3 down, 0 flat",
+"PASS"
+],
+[
+"NVDA",
+"V2",
+"down 4.1%",
+"-4.12%",
+"PASS"
+],
+[
+"NVDA",
+"V3",
+"near the day's low",
+"close location 0.14 (raw 0.1380)",
+"PASS"
+],
+[
+"NVDA",
+"V4",
+"falling",
+"falling (sr says falling)",
+"PASS"
+],
+[
+"NVDA",
+"V5",
+"2.2\u00d7 from 2026-11-16",
+"2.18\u00d7 from 2026-11-16",
+"PASS"
+],
+[
+"NVDA",
+"V6",
+"2026-11-16 2.18\u00d7",
+"2026-11-16 2.18\u00d7",
+"PASS"
+],
+[
+"NVDA",
+"V7",
+"2.18\u00d7 / 0.65\u00d7",
+"2.18\u00d7 / 0.65\u00d7",
+"PASS"
+],
+[
+"NVDA",
+"V8",
+"20 bars, last ('2026-11-16', 331405000)",
+"20 bars, last ('2026-11-16', 331405000)",
+"PASS"
+],
+[
+"NVDA",
+"V9",
+"shown, RVOL 2.18, OBV falling",
+"condition true",
+"PASS"
+],
+[
+"NVDA",
+"V-obv20",
+"shown",
+"rule not mirrored in the audit yet",
+"UNVERIFIED"
+],
+[
+"NVDA",
+"V-effort",
+"shown",
+"rule not mirrored in the audit yet",
+"UNVERIFIED"
+],
+[
+"RIVN",
+"T1",
+"1 / 8",
+"1 / 8",
+"PASS"
+],
+[
+"RIVN",
+"T2",
+"39.6",
+"39.6",
+"PASS"
+],
+[
+"RIVN",
+"T3",
+"-19.9% vs +10.1%",
+"-19.9% vs 10.1%",
+"PASS"
+],
+[
+"RIVN",
+"T3w",
+"251 / 251 bars back",
+"250-253 bars",
+"PASS"
+],
+[
+"RIVN",
+"T4",
+"25.9",
+"25.9",
+"PASS"
+],
+[
+"RIVN",
+"T4w",
+"20 or more",
+"ADX 25.9",
+"PASS"
+],
+[
+"RIVN",
+"T5",
+"$12.10, Nov 16",
+"$12.10, Nov 16",
+"PASS"
+],
+[
+"RIVN",
+"T6",
+"$12.10 vs $15.32 \u00b7 -21.0%",
+"$12.10 vs $15.32 \u00b7 -21.0%",
+"PASS"
+],
+[
+"RIVN",
+"T6w",
+"Below",
+"Below",
+"PASS"
+],
+[
+"RIVN",
+"T7",
+"$12.10 vs $13.88 \u00b7 -12.8%",
+"$12.10 vs $13.88 \u00b7 -12.8%",
+"PASS"
+],
+[
+"RIVN",
+"T7w",
+"Below",
+"Below",
+"PASS"
+],
+[
+"RIVN",
+"T8",
+"-5.1% over 30 td",
+"-5.1% over 30 td",
+"PASS"
+],
+[
+"RIVN",
+"T8w",
+"30",
+"30",
+"PASS"
+],
+[
+"RIVN",
+"T8r",
+"not rising",
+"not rising",
+"PASS"
+],
+[
+"RIVN",
+"T9",
+"46.7% below $22.69",
+"46.7% below $22.69",
+"PASS"
+],
+[
+"RIVN",
+"T9w",
+"More than 25% below",
+"46.7% below",
+"PASS"
+],
+[
+"RIVN",
+"T9x",
+"$22.69",
+"$22.690000534057617",
+"PASS"
+],
+[
+"RIVN",
+"E1",
+"$12.04",
+"$12.04",
+"PASS"
+],
+[
+"RIVN",
+"S5-price",
+"header $12.04 / entry $12.04",
+"identical text",
+"PASS"
+],
+[
+"RIVN",
+"E2",
+"$13.01",
+"$13.01",
+"PASS"
+],
+[
+"RIVN",
+"E3",
+"7.4% below",
+"7.4% below",
+"PASS"
+],
+[
+"RIVN",
+"E3w",
+"(now)",
+"session=regular",
+"PASS"
+],
+[
+"RIVN",
+"E4",
+"$0.65",
+"$0.65 (sr=0.6486)",
+"PASS"
+],
+[
+"RIVN",
+"E5",
+"1.5",
+"1.5",
+"PASS"
+],
+[
+"RIVN",
+"L-sma200",
+"$15.32, -21.4%",
+"$15.32, -21.4%",
+"PASS"
+],
+[
+"RIVN",
+"L-sma50",
+"$13.88, -13.2%",
+"$13.88, -13.2%",
+"PASS"
+],
+[
+"RIVN",
+"L-ema21",
+"$13.01, -7.4%",
+"$13.01, -7.4%",
+"PASS"
+],
+[
+"RIVN",
+"L-now",
+"$12.04 \"Now\"",
+"$12.04 \"now\"",
+"PASS"
+],
+[
+"RIVN",
+"L-note",
+"Last close $12.10 \u00b7 Nov 16",
+"$12.10 \u00b7 Nov 16",
+"PASS"
+],
+[
+"RIVN",
+"V1",
+"3 signals, 0 up, 2 down, 1 flat",
+"3 signals, 0 up, 2 down, 1 flat",
+"PASS"
+],
+[
+"RIVN",
+"V2",
+"down 0.7%",
+"-0.66%",
+"PASS"
+],
+[
+"RIVN",
+"V4",
+"falling",
+"falling (sr says falling)",
+"PASS"
+],
+[
+"RIVN",
+"V5",
+"1.3\u00d7 from 2026-11-16",
+"1.28\u00d7 from 2026-11-16",
+"PASS"
+],
+[
+"RIVN",
+"V6",
+"2026-11-16 1.28\u00d7",
+"2026-11-16 1.28\u00d7",
+"PASS"
+],
+[
+"RIVN",
+"V7",
+"1.28\u00d7 / 0.12\u00d7",
+"1.28\u00d7 / 0.12\u00d7",
+"PASS"
+],
+[
+"RIVN",
+"V8",
+"20 bars, last ('2026-11-16', 35041700)",
+"20 bars, last ('2026-11-16', 35041700)",
+"PASS"
+],
+[
+"RIVN",
+"E6",
+"+3.6",
+"+3.6",
+"PASS"
+],
+[
+"RIVN",
+"V10",
+"2026-11-16",
+"2026-11-16",
+"PASS"
+],
+[
+"RIVN",
+"V-obv20",
+"shown",
+"rule not mirrored in the audit yet",
+"UNVERIFIED"
+],
+[
+"RIVN",
+"V-effort",
+"shown",
+"rule not mirrored in the audit yet",
+"UNVERIFIED"
+],
+[
+"SMCI",
+"T1",
+"3 / 8",
+"3 / 8",
+"PASS"
+],
+[
+"SMCI",
+"T2",
+"33.1",
+"33.1",
+"PASS"
+],
+[
+"SMCI",
+"T3",
+"-31.3% vs +10.1%",
+"-31.3% vs 10.1%",
+"PASS"
+],
+[
+"SMCI",
+"T3w",
+"251 / 251 bars back",
+"250-253 bars",
+"PASS"
+],
+[
+"SMCI",
+"T4",
+"27.5",
+"27.5",
+"PASS"
+],
+[
+"SMCI",
+"T4w",
+"20 or more",
+"ADX 27.5",
+"PASS"
+],
+[
+"SMCI",
+"T5",
+"$25.03, Nov 16",
+"$25.03, Nov 16",
+"PASS"
+],
+[
+"SMCI",
+"T6",
+"$25.03 vs $32.52 \u00b7 -23.0%",
+"$25.03 vs $32.52 \u00b7 -23.0%",
+"PASS"
+],
+[
+"SMCI",
+"T6w",
+"Below",
+"Below",
+"PASS"
+],
+[
+"SMCI",
+"T7",
+"$25.03 vs $36.25 \u00b7 -31.0%",
+"$25.03 vs $36.25 \u00b7 -30.9%",
+"PASS"
+],
+[
+"SMCI",
+"T7w",
+"Below",
+"Below",
+"PASS"
+],
+[
+"SMCI",
+"T8",
+"+1.4% over 30 td",
+"+1.4% over 30 td",
+"PASS"
+],
+[
+"SMCI",
+"T8w",
+"30",
+"30",
+"PASS"
+],
+[
+"SMCI",
+"T8r",
+"still rising",
+"rising",
+"PASS"
+],
+[
+"SMCI",
+"T9",
+"51.3% below $51.40",
+"51.3% below $51.40",
+"PASS"
+],
+[
+"SMCI",
+"T9w",
+"More than 25% below",
+"51.3% below",
+"PASS"
+],
+[
+"SMCI",
+"T9x",
+"$51.40",
+"$51.400001525878906",
+"PASS"
+],
+[
+"SMCI",
+"E1",
+"$23.95",
+"$23.95",
+"PASS"
+],
+[
+"SMCI",
+"S5-price",
+"header $23.95 / entry $23.95",
+"identical text",
+"PASS"
+],
+[
+"SMCI",
+"E2",
+"$30.82",
+"$30.82",
+"PASS"
+],
+[
+"SMCI",
+"E3",
+"22.3% below",
+"22.3% below",
+"PASS"
+],
+[
+"SMCI",
+"E3w",
+"(now)",
+"session=regular",
+"PASS"
+],
+[
+"SMCI",
+"E4",
+"$2.58",
+"$2.58 (sr=2.5785)",
+"PASS"
+],
+[
+"SMCI",
+"E5",
+"2.7",
+"2.7",
+"PASS"
+],
+[
+"SMCI",
+"L-sma50",
+"$36.25, -33.9%",
+"$36.25, -33.9%",
+"PASS"
+],
+[
+"SMCI",
+"L-sma200",
+"$32.52, -26.4%",
+"$32.52, -26.4%",
+"PASS"
+],
+[
+"SMCI",
+"L-ema21",
+"$30.82, -22.3%",
+"$30.82, -22.3%",
+"PASS"
+],
+[
+"SMCI",
+"L-now",
+"$23.95 \"Now\"",
+"$23.95 \"now\"",
+"PASS"
+],
+[
+"SMCI",
+"L-note",
+"Last close $25.03 \u00b7 Nov 16",
+"$25.03 \u00b7 Nov 16",
+"PASS"
+],
+[
+"SMCI",
+"V1",
+"3 signals, 0 up, 3 down, 0 flat",
+"3 signals, 0 up, 3 down, 0 flat",
+"PASS"
+],
+[
+"SMCI",
+"V2",
+"down 6.8%",
+"-6.85%",
+"PASS"
+],
+[
+"SMCI",
+"V3",
+"near the day's low",
+"close location 0.11 (raw 0.1064)",
+"PASS"
+],
+[
+"SMCI",
+"V4",
+"falling",
+"falling (sr says falling)",
+"PASS"
+],
+[
+"SMCI",
+"V5",
+"0.8\u00d7 from 2026-11-16",
+"0.84\u00d7 from 2026-11-16",
+"PASS"
+],
+[
+"SMCI",
+"V6",
+"2026-11-16 0.84\u00d7",
+"2026-11-16 0.84\u00d7",
+"PASS"
+],
+[
+"SMCI",
+"V7",
+"0.84\u00d7 / 0.66\u00d7",
+"0.84\u00d7 / 0.66\u00d7",
+"PASS"
+],
+[
+"SMCI",
+"V8",
+"20 bars, last ('2026-11-16', 34108300)",
+"20 bars, last ('2026-11-16', 34108300)",
+"PASS"
+],
+[
+"SMCI",
+"V10",
+"2026-11-16",
+"2026-11-16",
+"PASS"
+],
+[
+"SMCI",
+"V-obv20",
+"shown",
+"rule not mirrored in the audit yet",
+"UNVERIFIED"
+],
+[
+"SMCI",
+"V-effort",
+"shown",
+"rule not mirrored in the audit yet",
+"UNVERIFIED"
+],
+[
+"SMH",
+"T1",
+"3 / 8",
+"3 / 8",
+"PASS"
+],
+[
+"SMH",
+"T2",
+"35.6",
+"35.6",
+"PASS"
+],
+[
+"SMH",
+"T3",
+"+34.3% vs +10.1%",
+"34.3% vs 10.1%",
+"PASS"
+],
+[
+"SMH",
+"T3w",
+"251 / 251 bars back",
+"250-253 bars",
+"PASS"
+],
+[
+"SMH",
+"T4",
+"34.1",
+"34.1",
+"PASS"
+],
+[
+"SMH",
+"T4w",
+"20 or more",
+"ADX 34.1",
+"PASS"
+],
+[
+"SMH",
+"T5",
+"$461.90, Nov 16",
+"$461.90, Nov 16",
+"PASS"
+],
+[
+"SMH",
+"T6",
+"$461.90 vs $524.18 \u00b7 -11.9%",
+"$461.90 vs $524.18 \u00b7 -11.9%",
+"PASS"
+],
+[
+"SMH",
+"T6w",
+"Below",
+"Below",
+"PASS"
+],
+[
+"SMH",
+"T7",
+"$461.90 vs $557.70 \u00b7 -17.2%",
+"$461.90 vs $557.70 \u00b7 -17.2%",
+"PASS"
+],
+[
+"SMH",
+"T7w",
+"Below",
+"Below",
+"PASS"
+],
+[
+"SMH",
+"T8",
+"+4.6% over 30 td",
+"+4.6% over 30 td",
+"PASS"
+],
+[
+"SMH",
+"T8w",
+"30",
+"30",
+"PASS"
+],
+[
+"SMH",
+"T8r",
+"still rising",
+"rising",
+"PASS"
+],
+[
+"SMH",
+"T9",
+"31.2% below $671.83",
+"31.2% below $671.83",
+"PASS"
+],
+[
+"SMH",
+"T9w",
+"More than 25% below",
+"31.2% below",
+"PASS"
+],
+[
+"SMH",
+"T9x",
+"$671.83",
+"$671.8300170898438",
+"PASS"
+],
+[
+"SMH",
+"E1",
+"$454.65",
+"$454.65",
+"PASS"
+],
+[
+"SMH",
+"S5-price",
+"header $454.65 / entry $454.65",
+"identical text",
+"PASS"
+],
+[
+"SMH",
+"E2",
+"$512.91",
+"$512.91",
+"PASS"
+],
+[
+"SMH",
+"E3",
+"11.4% below",
+"11.4% below",
+"PASS"
+],
+[
+"SMH",
+"E3w",
+"(now)",
+"session=regular",
+"PASS"
+],
+[
+"SMH",
+"E4",
+"$24.35",
+"$24.35 (sr=24.3517)",
+"PASS"
+],
+[
+"SMH",
+"E5",
+"2.4",
+"2.4",
+"PASS"
+],
+[
+"SMH",
+"L-sma50",
+"$557.70, -18.5%",
+"$557.70, -18.5%",
+"PASS"
+],
+[
+"SMH",
+"L-sma200",
+"$524.18, -13.3%",
+"$524.18, -13.3%",
+"PASS"
+],
+[
+"SMH",
+"L-ema21",
+"$512.91, -11.4%",
+"$512.91, -11.4%",
+"PASS"
+],
+[
+"SMH",
+"L-now",
+"$454.65 \"Now\"",
+"$454.65 \"now\"",
+"PASS"
+],
+[
+"SMH",
+"L-note",
+"Last close $461.90 \u00b7 Nov 16",
+"$461.90 \u00b7 Nov 16",
+"PASS"
+],
+[
+"SMH",
+"V1",
+"3 signals, 0 up, 3 down, 0 flat",
+"3 signals, 0 up, 3 down, 0 flat",
+"PASS"
+],
+[
+"SMH",
+"V2",
+"down 5.1%",
+"-5.11%",
+"PASS"
+],
+[
+"SMH",
+"V3",
+"near the day's low",
+"close location 0.10 (raw 0.0993)",
+"PASS"
+],
+[
+"SMH",
+"V4",
+"falling",
+"falling (sr says falling)",
+"PASS"
+],
+[
+"SMH",
+"V5",
+"1.1\u00d7 from 2026-11-16",
+"1.09\u00d7 from 2026-11-16",
+"PASS"
+],
+[
+"SMH",
+"V6",
+"2026-11-16 1.09\u00d7",
+"2026-11-16 1.09\u00d7",
+"PASS"
+],
+[
+"SMH",
+"V7",
+"1.09\u00d7 / 0.97\u00d7",
+"1.09\u00d7 / 0.97\u00d7",
+"PASS"
+],
+[
+"SMH",
+"V8",
+"20 bars, last ('2026-11-16', 10005100)",
+"20 bars, last ('2026-11-16', 10005100)",
+"PASS"
+],
+[
+"SMH",
+"V10",
+"2026-11-16",
+"2026-11-16",
+"PASS"
+],
+[
+"SMH",
+"V-obv20",
+"shown",
+"rule not mirrored in the audit yet",
+"UNVERIFIED"
+],
+[
+"SMH",
+"V-effort",
+"shown",
+"rule not mirrored in the audit yet",
+"UNVERIFIED"
+],
+[
+"SOXL.NE",
+"T1",
+"3 / 8",
+"3 / 8",
+"PASS"
+],
+[
+"SOXL.NE",
+"T2",
+"34.5",
+"34.5",
+"PASS"
+],
+[
+"SOXL.NE",
+"T3",
+"+21.7% vs +10.1%",
+"21.7% vs 10.1%",
+"PASS"
+],
+[
+"SOXL.NE",
+"T3w",
+"251 / 251 bars back",
+"250-253 bars",
+"PASS"
+],
+[
+"SOXL.NE",
+"T4",
+"26.6",
+"26.6",
+"PASS"
+],
+[
+"SOXL.NE",
+"T4w",
+"20 or more",
+"ADX 26.6",
+"PASS"
+],
+[
+"SOXL.NE",
+"T5",
+"$12.30, Nov 16",
+"$12.30, Nov 16",
+"PASS"
+],
+[
+"SOXL.NE",
+"T6",
+"$12.30 vs $30.88 \u00b7 -60.2%",
+"$12.30 vs $30.88 \u00b7 -60.2%",
+"PASS"
+],
+[
+"SOXL.NE",
+"T6w",
+"Below",
+"Below",
+"PASS"
+],
+[
+"SOXL.NE",
+"T7",
+"$12.30 vs $27.08 \u00b7 -54.6%",
+"$12.30 vs $27.08 \u00b7 -54.6%",
+"PASS"
+],
+[
+"SOXL.NE",
+"T7w",
+"Below",
+"Below",
+"PASS"
+],
+[
+"SOXL.NE",
+"T8",
+"+5.0% over 30 td",
+"+5.0% over 30 td",
+"PASS"
+],
+[
+"SOXL.NE",
+"T8w",
+"30",
+"30",
+"PASS"
+],
+[
+"SOXL.NE",
+"T8r",
+"still rising",
+"rising",
+"PASS"
+],
+[
+"SOXL.NE",
+"T9",
+"83.4% below $74.21",
+"83.4% below $74.21",
+"PASS"
+],
+[
+"SOXL.NE",
+"T9w",
+"More than 25% below",
+"83.4% below",
+"PASS"
+],
+[
+"SOXL.NE",
+"T9x",
+"$74.21",
+"$74.21369934082031",
+"PASS"
+],
+[
+"SOXL.NE",
+"E1",
+"$11.82",
+"$11.82",
+"PASS"
+],
+[
+"SOXL.NE",
+"S5-price",
+"header $11.82 / entry $11.82",
+"identical text",
+"PASS"
+],
+[
+"SOXL.NE",
+"E2",
+"$18.96",
+"$18.96",
+"PASS"
+],
+[
+"SOXL.NE",
+"E3",
+"37.6% below",
+"37.6% below",
+"PASS"
+],
+[
+"SOXL.NE",
+"E3w",
+"(now)",
+"session=regular",
+"PASS"
+],
+[
+"SOXL.NE",
+"E4",
+"$2.04",
+"$2.04 (sr=2.042)",
+"PASS"
+],
+[
+"SOXL.NE",
+"E5",
+"3.5",
+"3.5",
+"PASS"
+],
+[
+"SOXL.NE",
+"L-sma200",
+"$30.88, -61.7%",
+"$30.88, -61.7%",
+"PASS"
+],
+[
+"SOXL.NE",
+"L-sma50",
+"$27.08, -56.3%",
+"$27.08, -56.3%",
+"PASS"
+],
+[
+"SOXL.NE",
+"L-ema21",
+"$18.96, -37.6%",
+"$18.96, -37.6%",
+"PASS"
+],
+[
+"SOXL.NE",
+"L-now",
+"$11.82 \"Now\"",
+"$11.82 \"now\"",
+"PASS"
+],
+[
+"SOXL.NE",
+"L-note",
+"Last close $12.30 \u00b7 Nov 16",
+"$12.30 \u00b7 Nov 16",
+"PASS"
+],
+[
+"SOXL.NE",
+"Z1",
+"50 of 50 days empty",
+"50 of 50 days empty",
+"PASS"
+],
+[
+"SOXL.NE",
+"E6",
+"+4.0",
+"+4.0",
+"PASS"
+],
+[
+"SOXL.NE",
+"E6",
+"+5.8",
+"+5.8",
+"PASS"
+]
+]

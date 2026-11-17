@@ -217,19 +217,20 @@ function interpretRS(rs52Week, rs13Week, rsTrend) {
   
   // Base interpretation
   if (rs52Week >= 1.3) {
-    interpretation = 'Exceptional strength - Top tier performer';
+    // Day 126 (Statement Audit): plain facts, no advice words; "in-line" was used for 1.00-1.099 (up to 10% ahead)
+    interpretation = 'Well ahead of the market';
   } else if (rs52Week >= 1.2) {
-    interpretation = 'Strong outperformance vs market';
+    interpretation = 'Ahead of the market';
   } else if (rs52Week >= 1.1) {
-    interpretation = 'Good relative strength';
+    interpretation = 'Somewhat ahead of the market';
   } else if (rs52Week >= 1.0) {
-    interpretation = 'Performing in-line with market';
+    interpretation = 'Slightly ahead of the market';
   } else if (rs52Week >= 0.9) {
-    interpretation = 'Slight underperformance';
+    interpretation = 'Slightly behind the market';
   } else if (rs52Week >= 0.8) {
-    interpretation = 'Underperforming - Caution advised';
+    interpretation = 'Behind the market';
   } else {
-    interpretation = 'Significant laggard - Avoid for swing trades';
+    interpretation = 'Well behind the market';
   }
   
   // Add trend context

@@ -132,18 +132,22 @@ class Audit:
             else:
                 self.add('T4', 'ADX 14 (S1 /api/sr meta.adx)', m.group(1), f'{e:.1f}' if e is not None else 'n/a', 'WRONG', 'matches neither the completed-bar nor the forming-bar Wilder ADX')
             words_ok = (e is not None) and ((e >= 20) == m.group(2).startswith('20 or more'))
-            self.add('T4w', 'words "20 or more / below 20"', m.group(2), f'ADX {e:.1f}' if e is not None else 'n/a', 'PASS' if words_ok else 'MISLEADING')
+            edge = (not words_ok) and e is not None and abs(e - 20) < 0.05 and abs(shown_adx - 20) < 0.051
+            self.add('T4w', 'words "20 or more / below 20"', m.group(2), f'ADX {e:.1f}' if e is not None else 'n/a', 'PASS' if words_ok else 'MISLEADING',
+                     f'display rounding at the 20 line: ADX is {e:.2f}, the backend rounds it to 1 decimal before the card compares it' if edge else '', sev='LOW' if edge else None)
         # T5 counted at the last close
         m = self.find(r'counted at the last close \(\$([\d,.]+), ([A-Z][a-z]{2} \d+)\)')
         if m:
             ok = near(fnum(m.group(1)), last, 0.0051) and m.group(2) == dlabel(self.dates[-1])
-            self.add('T5', '"counted at the last close ($X, date)" = last completed bar', f'${m.group(1)}, {m.group(2)}', f'${last:.2f}, {dlabel(self.dates[-1])}', 'PASS' if ok else 'WRONG')
+            cent = (not ok) and near(fnum(m.group(1)), last, 0.0111) and m.group(2) == dlabel(self.dates[-1])
+            self.add('T5', '"counted at the last close ($X, date)" = last completed bar', f'${m.group(1)}, {m.group(2)}', f'${last:.2f}, {dlabel(self.dates[-1])}', 'PASS' if ok else ('MISLEADING' if cent else 'WRONG'),
+                     'one-cent disagreement between two data providers for the same close (e.g. Twelve Data 25.025 vs Yahoo 25.03); the header/quote path and the price bars can read different providers' if cent else '', sev='LOW' if cent else None)
         # T6-T8 averages rows
         for sid, nday, word in (('T6', 200, '200-day'), ('T7', 50, '50-day')):
             m = self.find(rf'(Above|Below) its {word} average.*?\$([\d,.]+) vs \$([\d,.]+) · ([+-]?[\d.]+)%')
             if m:
                 s = R.sma(c, nday)
-                ok = near(fnum(m.group(3)), s, 0.02) and near(fnum(m.group(2)), last, 0.0051) and near(float(m.group(4)), R.pct(last, s), 0.06)
+                ok = near(fnum(m.group(3)), s, 0.02) and near(fnum(m.group(2)), last, 0.0051) and near(float(m.group(4)), R.pct(last, s), 0.1)   # 0.1: the app divides by the 2-dp ROUNDED average (F: -12.745 vs -12.80 unrounded)
                 self.add(sid, f'price vs {word} average (S1 pattern sma values)', f'${m.group(2)} vs ${m.group(3)} · {m.group(4)}%', f'${last:.2f} vs ${s:.2f} · {R.pct(last, s):.1f}%', 'PASS' if ok else 'WRONG')
                 self.add(sid + 'w', f'word "{m.group(1)}"', m.group(1), 'Above' if last > s else 'Below', 'PASS' if (m.group(1) == 'Above') == (last > s) else 'MISLEADING')
         m = self.find(r'The 200-day average is (still rising|not rising).*?([+-]?[\d.]+)% over (\d+) trading days')
@@ -213,7 +217,12 @@ class Audit:
             self.add('L-now', 'ladder price row = compared price; name = the basis label', f'${now.get("price")} "{now.get("name")}"', f'${price:.2f} "{(m.group(2) or "").lower()}"',
                      'PASS' if near(float(now.get('price', 0)), price, 0.0051) and (now.get('name') or '').lower() == m.group(2).lower() else 'MISLEADING')
             cn = g.get('closeNote')
-            if cn: self.add('L-note', '"Last close $X · date" note = last completed bar', cn, f'${last:.2f} · {dlabel(self.dates[-1])}', 'PASS' if cn.startswith(f'Last close ${last:.2f}') and dlabel(self.dates[-1]) in cn else 'WRONG')
+            if cn:
+                good = cn.startswith(f'Last close ${last:.2f}') and dlabel(self.dates[-1]) in cn
+                mc = re.match(r'Last close \$([\d,.]+)', cn)
+                cent = (not good) and mc and near(fnum(mc.group(1)), last, 0.0111) and dlabel(self.dates[-1]) in cn
+                self.add('L-note', '"Last close $X · date" note = last completed bar', cn, f'${last:.2f} · {dlabel(self.dates[-1])}', 'PASS' if good else ('MISLEADING' if cent else 'WRONG'),
+                         'one-cent disagreement between two data providers for the same close' if cent else '', sev='LOW' if cent else None)
             # ladder text in the card, claim all
             self.work = re.sub(r'Line Price Price against it.*?(?=why\? ⓘ)', ' § ', self.work, flags=re.S)
             self.work = re.sub(r'\[Gauge:[^\]]*\]', ' § ', self.work)

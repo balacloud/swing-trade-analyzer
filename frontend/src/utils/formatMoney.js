@@ -5,6 +5,13 @@
  * "$1,234.56" in one place and "$1234.56" in another. Everything now goes through here.
  * Non-finite input returns the dash, never "NaN".
  */
+/** The number a price displays as (two decimals, same rounding as formatMoney), so a value handed to another tool equals what the card shows. */
+export function roundMoney(v) {
+  return typeof v === 'number' && Number.isFinite(v)
+    ? Number(v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false }))
+    : null;
+}
+
 export function formatMoney(v, dash = '—') {
   return typeof v === 'number' && Number.isFinite(v)
     ? `$${v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`

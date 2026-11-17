@@ -15,12 +15,14 @@
  * Common trader rules, not tested.
  */
 
+import { formatMoney } from './formatMoney.js';   // explicit extension: the page-check scripts load this file with plain node ESM
+
 const isNum = (x) => typeof x === 'number' && Number.isFinite(x);
 
 /** "$94.00 – $95.10", or one price when the zone is a single price. Shared with the page checker (A10). */
 export function formatZoneRange(low, high) {
-  const m = (x) => `$${x.toFixed(2)}`;
-  return low.toFixed(2) === high.toFixed(2) ? m(low) : `${m(low)} – ${m(high)}`;
+  const m = (x) => formatMoney(x);   // Day 126: the page's one money format (commas, half-up)
+  return m(low) === m(high) ? m(low) : `${m(low)} – ${m(high)}`;
 }
 
 function sideLimitPct(meta, key, fallback) {
@@ -120,12 +122,13 @@ export function deriveStructureState(currentPrice, resistance, support, trendCri
 
   if (!R1 && !S1) return { state: 'Insufficient data', color: 'gray', rule: 1 };
   if (!R1 && S1) {
-    if (tt >= 5) return { state: `No resistance within ${resPct}% above — strong trend`, color: 'green', rule: 2 };
-    return { state: `No resistance within ${resPct}% above — weak trend`, color: 'yellow', rule: 2 };
+    // Day 126 (Statement Audit): numbers, not "strong/weak trend" verdict words
+    if (tt >= 5) return { state: `No resistance within ${resPct}% above · ${tt} of 8 trend checks pass`, color: 'green', rule: 2 };
+    return { state: `No resistance within ${resPct}% above · ${tt} of 8 trend checks pass`, color: 'yellow', rule: 2 };
   }
   if (R1 && !S1) return { state: `No support within ${supPct}% below`, color: 'red', rule: 3 };
   if (isNearLevel(currentPrice, R1, atr) && isNearLevel(currentPrice, S1, atr)) {
-    return { state: 'Compression — range narrowing', color: 'yellow', rule: 4 };
+    return { state: 'Close to both support and resistance', color: 'yellow', rule: 4 };   // Day 126: nothing measures "narrowing"; the rule is only "near both"
   }
   if (tt >= 7) {
     if (isNearLevel(currentPrice, R1, atr)) return { state: 'Uptrend testing resistance', color: 'green', rule: 5 };
@@ -138,6 +141,7 @@ export function deriveStructureState(currentPrice, resistance, support, trendCri
     return { state: 'Mixed trend — between levels', color: 'yellow', rule: 10 };
   }
   if (adxVal == null) return null;   // can't tell choppy from downtrend without ADX
-  if (adxVal < 15) return { state: 'Choppy — no clear trend', color: 'red', rule: 11 };
-  return { state: 'Downtrend', color: 'red', rule: 12 };
+  // Day 126: ADX has no direction, so "Downtrend" over-read it; the state quotes the two numbers it rests on
+  if (adxVal < 15) return { state: `${tt} of 8 trend checks pass · ADX ${adxVal.toFixed(1)}, under 15`, color: 'red', rule: 11 };
+  return { state: `${tt} of 8 trend checks pass · ADX ${adxVal.toFixed(1)}`, color: 'red', rule: 12 };
 }

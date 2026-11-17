@@ -25,7 +25,7 @@ function Row({ label, side, isCeiling, nearHigh52w }) {
     body = (
       <span className="text-gray-400">
         None within {side.limitPct}% {where}.
-        {isCeiling && nearHigh52w && ' The stock is at its 52-week high.'}
+        {isCeiling && nearHigh52w && ' The stock is near its 52-week high (within 3%).'}
       </span>
     );
   }

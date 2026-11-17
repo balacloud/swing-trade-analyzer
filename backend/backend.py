@@ -1695,13 +1695,14 @@ def get_earnings_calendar(ticker):
             recommendation = 'Earnings have passed - check recent news'
         elif days_until == 0:
             warning = '⚠️ EARNINGS TODAY'
-            recommendation = 'HIGH RISK - Gap risk is maximum. Consider waiting.'
+            # Day 126 (Statement Audit): facts, not advice (the card shows numbers; the user decides)
+            recommendation = 'Earnings are today. The price can gap in either direction at the report.'
         elif days_until <= 3:
             warning = f'⚠️ Earnings in {days_until} day{"s" if days_until > 1 else ""}'
-            recommendation = 'CAUTION - Close to earnings. Size position smaller or wait.'
+            recommendation = f'Earnings are in {days_until} day{"s" if days_until > 1 else ""}. The price can gap in either direction at the report.'
         elif days_until <= warning_days:
             warning = f'📅 Earnings in {days_until} days'
-            recommendation = 'AWARE - Consider exiting before earnings if position is taken.'
+            recommendation = f'Earnings are in {days_until} days. A position held through the report is exposed to its gap.'
 
         return jsonify({
             'ticker': ticker,

@@ -1082,6 +1082,7 @@ function App() {
                 <div className="bg-gray-800 rounded-lg">
                   <button
                     onClick={() => toggleSection('priceRS')}
+                    data-testid="toggle-price-rs"
                     className="flex items-center gap-2 w-full px-6 py-4 text-left hover:bg-gray-700/30 transition-colors rounded-lg"
                   >
                     <span className="text-sm text-gray-500">{expandedSections.priceRS ? '▼' : '▶'}</span>
@@ -1094,11 +1095,11 @@ function App() {
                 {expandedSections.priceRS && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Price Card */}
-                  <div className="bg-gray-800 rounded-lg p-6">
+                  <div data-testid="card-price-data" className="bg-gray-800 rounded-lg p-6">
                     <h3 className="text-lg font-semibold mb-4 text-blue-400">💰 Price Data</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-gray-400">Current Price:</span>
+                        <span className="text-gray-400">Last close:</span>
                         <span className="font-bold">{formatCurrency(analysisResult.currentPrice)}</span>
                       </div>
                       <div className="flex justify-between">
@@ -1122,7 +1123,10 @@ function App() {
                           standard from the other two views. Day 126: both of those views are
                           gone; this card is the only liquidity display on the Analyze page. */}
                       {(() => {
-                        const avgVol = rawAnalysisData?.stock?.avgVolume || 0;
+                        // Day 126 (Statement Audit): Yahoo's avgVolume is a second volume source. When the price bars carry no volume (the
+                        // Technical Read says so), a Yahoo figure beside it contradicts the page, so liquidity is "not available" there.
+                        const noBarVolume = srData?.meta?.volume?.available === false;
+                        const avgVol = noBarVolume ? 0 : (rawAnalysisData?.stock?.avgVolume || 0);
                         const dollarVol = avgVol * (analysisResult.currentPrice || 0);
                         const marketCap = rawAnalysisData?.stock?.fundamentals?.marketCap || rawAnalysisData?.stock?.marketCap || 0;
                         const { threshold: liquidityThreshold } = getLiquidityThreshold(marketCap);
@@ -1131,7 +1135,7 @@ function App() {
                           <div className="flex justify-between">
                             <span className="text-gray-400">Liquidity (Daily $):</span>
                             <span className={`font-semibold ${color}`}>
-                              {dollarVol > 0 ? formatMarketCap(dollarVol) : 'N/A'}
+                              {dollarVol > 0 ? formatMarketCap(dollarVol) : (noBarVolume ? 'N/A (no volume data)' : 'N/A')}
                             </span>
                           </div>
                         );
@@ -1140,7 +1144,7 @@ function App() {
                   </div>
 
                   {/* RS Card */}
-                  <div className="bg-gray-800 rounded-lg p-6">
+                  <div data-testid="card-relative-strength" className="bg-gray-800 rounded-lg p-6">
                     <h3 className="text-lg font-semibold mb-4 text-blue-400">📈 Relative Strength</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between">
@@ -1199,7 +1203,7 @@ function App() {
                         return (
                           <div
                             className="mt-2 pt-2 border-t border-gray-700 text-xs text-gray-400"
-                            title="Dual momentum's second leg (Antonacci, 2014). Relative strength above asks whether the stock beat the market; this asks whether it beat cash. The 5% figure is a static risk-free proxy carried from this project's own Day 107 backtest, not a live T-bill yield. Informational only — it does not affect any score or the verdict."
+                            title="Dual momentum's second leg (Antonacci, 2014). Relative strength above asks whether the stock beat the market; this asks whether it beat cash. The 5% figure is a static risk-free proxy carried from this project's own Day 107 backtest, not a live T-bill yield. Informational only."
                           >
                             <span className="text-gray-500">Absolute momentum (info only): </span>{abs.text}
                           </div>
@@ -1290,11 +1294,11 @@ function App() {
                           60-day high {formatCurrency(breakoutData.breakoutLevel)}
                           {breakoutData.pctFromLevel != null && ` · close ${Math.abs(breakoutData.pctFromLevel).toFixed(2)}% ${breakoutData.pctFromLevel >= 0 ? 'above' : 'below'}`}
                           {breakoutData.breakoutDate && ` · broke out ${fmtDate(breakoutData.breakoutDate)}`}
-                          {breakoutData.breakoutDate && (breakoutData.rvol != null ? ` on ${breakoutData.rvol.toFixed(2)}× normal volume` : ' (volume unknown)')}
+                          {breakoutData.breakoutDate && (breakoutData.rvol != null ? ` on ${breakoutData.rvol.toFixed(2)}× its prior 50-day average volume` : ' (volume unknown)')}
                           {breakoutData.asOfDate && ` · ${fmtDate(breakoutData.asOfDate)} close`}
                         </p>
                         <p className="text-xs text-gray-500 mt-2">
-                          Common trader rules, not tested: a close above the 60-day high (measured before the last 10 days), volume 1.5× normal or more, no more than 5% above. A stock that keeps climbing re-qualifies about every 10 days.
+                          Common trader rules, not tested: a close above the 60-day high (measured before the last 10 days), volume 1.5× its 50-day average or more, no more than 5% above. The breakout date is the first close above that high within the last 10 days, so for a stock that keeps climbing it moves forward each day.
                         </p>
                       </>
                     )}

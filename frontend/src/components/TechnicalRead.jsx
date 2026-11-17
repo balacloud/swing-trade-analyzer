@@ -19,7 +19,7 @@ import {
   getVolumeConfirmationRead, getVolumeDirectionRead, getObvHorizonRead, getEffortVsResultRead,
 } from '../utils/volumeThresholds';
 import { basisLabel } from '../utils/liveQuote';
-import { formatMoney } from '../utils/formatMoney';
+import { formatMoney, roundMoney } from '../utils/formatMoney';
 import useMissingInputWarning from '../hooks/useMissingInputWarning';
 
 const money = (v) => formatMoney(v);
@@ -146,7 +146,7 @@ function TimingGauge({ timing, nowName }) {
           <div className="absolute top-[5px] h-[6px] rounded-full" style={{ left: `${Math.min(x, e)}%`, width: `${Math.abs(x - e)}%`, background: gradient, opacity: 0.85 }} />
           {unitTicks.map((u) => <span key={u} className="absolute top-[3px] h-[10px] w-px bg-gray-500/70" style={{ left: `${gaugeX(u)}%` }} />)}
           {timing.marks.map((k) => (
-            <span key={k.key} data-testid="timing-tick" data-key={k.key} data-price={k.price.toFixed(2)} data-off={k.off || ''}
+            <span key={k.key} data-testid="timing-tick" data-key={k.key} data-price={roundMoney(k.price)} data-off={k.off || ''}
               className={`absolute top-0 h-4 w-[3px] -ml-[1.5px] rounded-sm ${LINE_COLOR[k.key].bg}`} style={{ left: `${gaugeX(k.units)}%` }} />
           ))}
           <span className="absolute top-[0px] h-4 w-4 -ml-2 rounded-full bg-sky-400 border-[3px] border-gray-800 shadow-[0_0_0_2px_#38bdf8,0_0_10px_2px_rgba(56,189,248,0.55)]" style={{ left: `${x}%` }} />
@@ -169,7 +169,7 @@ function TimingGauge({ timing, nowName }) {
             const gap = r.isNow ? '' : Math.abs(r.gapPct ?? 0) < 0.05 ? 'at it' : `${Math.abs(r.gapPct).toFixed(1)}% ${r.gapPct > 0 ? 'above' : 'below'}`;
             return (
               <tr key={r.key} className={r.isNow ? 'bg-sky-500/15' : ''} data-testid={r.isNow ? 'timing-now-row' : 'timing-ladder-row'}
-                data-key={r.key} data-price={r.price.toFixed(2)} data-gap={r.isNow || r.gapPct == null ? '' : r.gapPct.toFixed(1)}>
+                data-key={r.key} data-price={roundMoney(r.price)} data-gap={r.isNow || r.gapPct == null ? '' : r.gapPct.toFixed(1)}>
                 <th scope="row" className={`text-left font-normal py-1.5 pl-2 pr-1 border-t border-gray-700/70 ${r.isNow ? 'font-bold ' + c.text : 'text-gray-300'}`}>
                   <span className={`inline-block align-middle mr-2 ${r.isNow ? 'h-2.5 w-2.5 rounded-full' : 'h-3 w-[3px] rounded-sm'} ${c.bg}`} aria-hidden="true" />
                   <span data-testid={r.isNow ? 'timing-now-name' : undefined}>{r.isNow ? nowName : r.name}</span>

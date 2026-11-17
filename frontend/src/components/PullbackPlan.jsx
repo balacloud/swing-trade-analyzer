@@ -12,7 +12,7 @@ import React from 'react';
 import { calculateRiskReward } from '../utils/riskRewardCalc';
 import { zoneSpan } from '../utils/keyLevels';
 import useMissingInputWarning from '../hooks/useMissingInputWarning';
-import { formatMoney } from '../utils/formatMoney';
+import { formatMoney, roundMoney } from '../utils/formatMoney';
 
 const money = (v) => formatMoney(v);
 const pct = (v) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(1)}%`;
@@ -29,7 +29,9 @@ const EMPTY_MESSAGES = {
 // where it only showed on a 9/9 TRADE. Shown whenever the plan has a buy and a stop; no verdict.
 export default function PullbackPlan({ srData, ticker, onSizePlan }) {
   const plan = calculateRiskReward(srData);
-  const now = srData?.currentPrice;
+  // Day 126 (Statement Audit): the card says "last close", so it measures from the last COMPLETED close. /api/sr's currentPrice is today's
+  // live bar mid-session (it differed from the completed close for 5 of 7 audited tickers); prevBar is the last complete bar while today forms.
+  const now = srData?.meta?.candle?.barComplete === false && Number.isFinite(srData?.meta?.prevBar?.close) ? srData.meta.prevBar.close : srData?.currentPrice;
   const state = plan.state === 'no_data' || plan.state === 'no_support' ? plan.state
     : !Number.isFinite(now) ? 'no_price'
     : plan.state;
@@ -135,7 +137,7 @@ export default function PullbackPlan({ srData, ticker, onSizePlan }) {
           <div className="font-mono text-green-400 mt-0.5">{money(target)}</div>
           <div className="text-xs text-gray-400 mt-0.5">
             {target == null
-              ? (atHigh ? 'no resistance above, the stock is at its 52-week high' : `no resistance within ${Math.round((srData?.meta?.proximityFilter?.resistancePct ?? 0.3) * 100)}% above`)
+              ? (atHigh ? 'no resistance above, the stock is near its 52-week high (within 3%)' : `no resistance within ${Math.round((srData?.meta?.proximityFilter?.resistancePct ?? 0.3) * 100)}% above`)
               : `${pct(targetPct)} from the buy · nearest resistance`}
           </div>
         </div>
@@ -145,13 +147,13 @@ export default function PullbackPlan({ srData, ticker, onSizePlan }) {
         {reward != null ? (
           <>Risk <b className="text-gray-100">{money(risk)}</b> to make <b className="text-gray-100">{money(reward)}</b> a share.</>
         ) : (
-          <>Risk <b className="text-gray-100">{money(risk)}</b> a share. {atHigh ? 'The stock is at its 52-week high with no resistance above, so no target is shown and there is no reward:risk.' : 'No resistance target was found, so there is no reward:risk to show.'}</>
+          <>Risk <b className="text-gray-100">{money(risk)}</b> a share. {atHigh ? 'The stock is near its 52-week high (within 3%) with no resistance above, so no target is shown and there is no reward:risk.' : 'No resistance target was found, so there is no reward:risk to show.'}</>
         )}
         {onSizePlan && (
           <button
             type="button"
             data-testid="size-this-plan"
-            onClick={() => onSizePlan(Number(entry.toFixed(2)), Number(stop.toFixed(2)))}
+            onClick={() => onSizePlan(roundMoney(entry), roundMoney(stop))}
             className="ml-2 text-blue-400 hover:text-blue-300 focus:outline-none focus-visible:underline"
           >
             Size this plan →

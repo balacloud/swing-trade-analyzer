@@ -15,6 +15,7 @@ const FRONTEND = 'http://localhost:3000';
 const KEYS = (t) => ({
   [`/api/stock/${t}`]: 'stock', [`/api/sr/${t}`]: 'sr', [`/api/patterns/${t}`]: 'patterns',
   [`/api/quote/${t}`]: 'quote', '/api/market/spy': 'spy',
+  [`/api/breakout/${t}`]: 'breakout', [`/api/earnings/${t}`]: 'earnings', '/api/sectors/rotation': 'sectors',
 });
 
 async function dump(browser, ticker, outDir) {
@@ -25,7 +26,11 @@ async function dump(browser, ticker, outDir) {
   page.on('response', async (res) => {
     try {
       const p = new URL(res.url()).pathname;
-      if (keys[p]) payloads[keys[p]] = { status: res.status(), body: await res.json() };
+      if (keys[p]) {
+        const entry = { status: res.status(), body: await res.json(), url: res.url() };
+        payloads[keys[p]] = entry;                                   // the last response wins (as before)
+        (payloads[`${keys[p]}_all`] = payloads[`${keys[p]}_all`] || []).push(entry);   // every response kept (sector rotation is fetched twice)
+      }
     } catch (_) { /* not json / aborted: left out, the audit reports it as missing */ }
   });
   await page.goto(FRONTEND, { waitUntil: 'networkidle2', timeout: 60000 });
@@ -35,6 +40,10 @@ async function dump(browser, ticker, outDir) {
   await page.keyboard.press('Enter');
   await page.waitForSelector('[data-testid="card-technical-read"], [data-testid="analysis-error"]', { timeout: 120000 });
   await new Promise((r) => setTimeout(r, 2500));      // let the live quote and late panels settle
+  // Price & Relative Strength is collapsed by default: open it so the two cards render. The breakout card loads later than the rest.
+  await page.evaluate(() => { if (!document.querySelector('[data-testid="card-price-data"]')) { const b = document.querySelector('[data-testid="toggle-price-rs"]'); if (b) b.click(); } });
+  await page.waitForSelector('[data-testid="card-breakout"]', { timeout: 20000 }).catch(() => {});
+  await new Promise((r) => setTimeout(r, 1500));
 
   const out = await page.evaluate(() => {
     // text of an element with a space between every element, closed <details> opened, title/aria-label added
@@ -59,7 +68,12 @@ async function dump(browser, ticker, outDir) {
     const header = {};
     hdrIds.forEach((id) => { const e = q(id); header[id] = e ? e.textContent.replace(/\s+/g, ' ').trim() : null; });
     const rows = (sel) => [...document.querySelectorAll(sel)].map((e) => ({ key: e.dataset.key, price: e.dataset.price, gap: e.dataset.gap, off: e.dataset.off || '' }));
+    const cardTexts = {};
+    ['card-trade-setup', 'card-breakout', 'card-price-data', 'card-relative-strength', 'card-stock-header'].forEach((id) => { const e = q(id); cardTexts[id] = e ? walk(e) : null; });
+    const toggle = q('toggle-price-rs');
     return {
+      cardTexts, priceRsToggle: toggle ? walk(toggle) : null,
+      sizePlanPresent: !!q('size-this-plan'),
       etNow: new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }),
       tr: tr ? { text: walk(tr) } : null,
       header,
