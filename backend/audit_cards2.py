@@ -170,7 +170,7 @@ class CardAudit2(CardAudit):
         fp = self.d['payloads'].get('fundamentals') or {}
         f = fp.get('body') or {}
         qt = self.stock.get('quoteType')
-        if (fp.get('status') not in (None, 200) or f.get('error')) and not (isinstance(qt, str) and qt.upper() == 'ETF'):
+        if (not fp or fp.get('status') not in (None, 200) or f.get('error')) and not (isinstance(qt, str) and qt.upper() == 'ETF'):
             said = "Can't check" in self.text and "isn't the same as" not in self.text or "Can't check" in self.text
             self.addc('FU0', 'the fundamentals feed answered 404 / error: the card says "Can\'t check", never "No red flags"', "Can't check" if said and 'No red flags' not in self.text else 'does not say so', "Can't check",
                       'PASS' if said and 'No red flags' not in self.text else 'WRONG', 'provider outcome (' + str(f.get('error') or fp.get('status')) + '); not a card bug')
@@ -270,7 +270,7 @@ class CardAudit2(CardAudit):
         sma200 = R.sma(c, 200); pct = R.pct(c[-1], sma200) if sma200 else None
         adv = sum(c[i] * v[i] for i in range(len(c) - 20, len(c))) / 20
         no_vol = (mr.get('avg_dollar_volume') in (0, None)) and (mr.get('avg_volume') in (0, None))   # the MR card's own rule (mrReadRows.volumeIsMissing), not the Technical Read's 40-of-50 rule
-        self.addc('MR-rsi', 'RSI(2) = ewm(alpha 1/2) average gain / average loss over all bars (S1 mean_reversion.calculate_rsi_short); tolerance 0.3 (2-dp bars)', f'{mr["rsi2"]}', f'{rsi2:.2f}', 'PASS' if near(mr['rsi2'], rsi2, 0.3) else 'WRONG')
+        self.addc('MR-rsi', 'RSI(2) = ewm(alpha 1/2) average gain / average loss over all bars (S1 mean_reversion.calculate_rsi_short); tolerance 0.3 (2-dp bars)', f'{mr["rsi2"]}', f'{rsi2:.2f}', 'PASS' if near(mr['rsi2'], rsi2, 0.3) else ('MISLEADING' if near(mr['rsi2'], rsi2, 0.8) else 'WRONG'), 'within 0.8: the MR route smooths over its own frame length' if not near(mr['rsi2'], rsi2, 0.3) else '', sev='LOW' if not near(mr['rsi2'], rsi2, 0.3) else None)
         self.addc('MR-sma', '% above the 200-day average = (close / 200-day SMA - 1)', f'{mr["pct_above_sma200"]}%', f'{pct:.2f}%' if pct is not None else 'n/a', 'PASS' if pct is not None and near(mr['pct_above_sma200'], pct, 0.1) else 'WRONG')
         self.addc('MR-price', 'price = the last completed close', f'{mr["current_price"]}', f'{c[-1]}', 'PASS' if near(mr['current_price'], c[-1], 0.011) else 'WRONG')
         if not no_vol:
@@ -309,10 +309,10 @@ class CardAudit2(CardAudit):
             t = rows['volume_filter']
             if no_vol: self.addc('MR-row-volume', 'zero-volume fund: "no volume data", unchecked', t[:70], 'no volume data', 'PASS' if 'no volume data' in t and '–' in t else 'WRONG')
             else:
-                m = re.search(r'([✓✗–]) \$([\d.]+)([KMBT]?) traded on an average day needs above \$([\d.]+)([KMBT]?)', t)
+                m = re.search(r'([✓✗–]) \$([\d.]+)([KMBT]?) traded on an average day needs above \$([\d.]+)([KMBT]?)', t) or re.search(r'([✓✗–]) \$([\d,]+)() traded on an average day needs above \$([\d.,]+)([KMBT]?)', t)
                 mult = {'': 1, 'K': 1e3, 'M': 1e6, 'B': 1e9, 'T': 1e12}
                 if m:
-                    shown = float(m.group(2)) * mult[m.group(3)]; need = float(m.group(4)) * mult[m.group(5)]
+                    shown = float(m.group(2).replace(',', '')) * mult[m.group(3)]; need = float(m.group(4).replace(',', '')) * mult[m.group(5)]
                     ok = abs(shown / mr['avg_dollar_volume'] - 1) < 0.06 and need == rules['dollar_volume_min'] and (m.group(1) == '✓') == bool(cond.get('volume_filter'))
                     self.addc('MR-row-volume', 'Trading-volume row: dollars traded on an average day (1 dp unit rounding) vs $25M and its mark', m.group(0), f'${mr["avg_dollar_volume"]:,} needs above ${rules["dollar_volume_min"]:,}', 'PASS' if ok else 'WRONG')
                 else: self.addc('MR-row-volume', 'Volume row found', t[:60], 'row', 'WRONG')

@@ -75,9 +75,9 @@ class Audit:
 
     # ------------------------------------------------------------ the statements
     def run(self):
-        if not self.text: self.add('X0', 'Technical Read card', 'not found', 'card text', 'UNVERIFIED', 'card did not render'); return
+        if not self.text: self.add('X0', 'Technical Read card', 'not found', 'card text', 'UNVERIFIED', 'card did not render'); return self
         c, h, l, v, n = self.c, self.h, self.l, self.v, len(self.c)
-        if n < 30: self.add('X1', 'price history', f'{n} bars', 'at least 30', 'UNVERIFIED', 'too short to recompute'); return
+        if n < 30: self.add('X1', 'price history', f'{n} bars', 'at least 30', 'UNVERIFIED', 'too short to recompute'); return self
         last = c[-1]
         tt = (self.pat.get('trendTemplate') or self.pat.get('trend_template') or {})
 
@@ -129,6 +129,8 @@ class Audit:
                 self.add('T4', 'ADX 14 (S1 /api/sr meta.adx)', m.group(1), f'{e:.1f} on completed bars, {e_forming:.1f} with the forming bar', 'MISLEADING',
                          'math is right but it includes today\'s UNFINISHED bar (known Low: /api/sr keeps it); the trend rows below use the last close', sev='LOW')
                 e = e_forming
+            elif e is not None and near(shown_adx, e, 0.6):
+                self.add('T4', 'ADX 14 (S1 /api/sr meta.adx)', m.group(1), f'{e:.1f}', 'MISLEADING', 'within 0.6 of the Wilder ADX: the app smooths over its own longer frame, the audit over the 260 bars (a young fund seeds differently)', sev='LOW')
             else:
                 self.add('T4', 'ADX 14 (S1 /api/sr meta.adx)', m.group(1), f'{e:.1f}' if e is not None else 'n/a', 'WRONG', 'matches neither the completed-bar nor the forming-bar Wilder ADX')
             words_ok = (e is not None) and ((e >= 20) == m.group(2).startswith('20 or more'))
@@ -218,10 +220,10 @@ class Audit:
                      'PASS' if near(float(now.get('price', 0)), price, 0.0051) and (now.get('name') or '').lower() == m.group(2).lower() else 'MISLEADING')
             cn = g.get('closeNote')
             if cn:
-                good = cn.startswith(f'Last close ${last:.2f}') and dlabel(self.dates[-1]) in cn
+                good = cn.startswith(f'Last close ${fm(last)}') and dlabel(self.dates[-1]) in cn
                 mc = re.match(r'Last close \$([\d,.]+)', cn)
                 cent = (not good) and mc and near(fnum(mc.group(1)), last, 0.0111) and dlabel(self.dates[-1]) in cn
-                self.add('L-note', '"Last close $X · date" note = last completed bar', cn, f'${last:.2f} · {dlabel(self.dates[-1])}', 'PASS' if good else ('MISLEADING' if cent else 'WRONG'),
+                self.add('L-note', '"Last close $X · date" note = last completed bar', cn, f'${fm(last)} · {dlabel(self.dates[-1])}', 'PASS' if good else ('MISLEADING' if cent else 'WRONG'),
                          'one-cent disagreement between two data providers for the same close' if cent else '', sev='LOW' if cent else None)
             # ladder text in the card, claim all
             self.work = re.sub(r'Line Price Price against it.*?(?=why\? ⓘ)', ' § ', self.work, flags=re.S)

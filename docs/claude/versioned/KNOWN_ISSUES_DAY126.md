@@ -6,6 +6,14 @@
 
 ## Changes from Day 125
 
+- **Fixed + logged (Day 126, universe run 3: 117 tickers, all dumped; audits 0 WRONG on Technical Read/cards except two latent items).** Final counts: Technical Read 3797 PASS / 1 WRONG / 8 MISLEADING; Trade Setup,
+  Breakout, Price Data, RS, header 4077 / 1 / 21; Backdrop, Fundamentals, MR 3682 / 0 / 1. Short 1y frames are gone (only genuinely young listings remain: ANET.TO, SGRD.TO, WDC.TO, DRAL, SPCL, COPZ). **Run after the
+  close only:** forming-bar and live-quote logic was NOT exercised across these 117 (tested earlier on 7 tickers pre-market and mid-session, plus faked-clock route tests); re-run mid-session. **New fix:** when every price source
+  fails for a request (rate limit or outage under load) `/api/stock` answered 404 "No data found for ABBV" for real tickers (9 of 117 during run 3: ABBV, CAMT, GIB-A.TO, HD, LLY, MRVL, MU.TO, ONTO, V; all load fine
+  afterwards); it now answers 503 "Price data sources are not answering ... Try again in a minute", and a genuinely unknown ticker (DataNotFoundError) stays 404. Test in `test_forming_bar_routes.py` (20). The browser-based
+  dump script relaunches after a crash. **Open from the run:** TS1b (the Buy disagrees with the nearest support zone, now on PLD; latent engine bug, Medium); RS card "N/A" below 200 bars is by design but does not say why
+  (suggest "needs more than 200 days"); "past year" and RS compare different periods on listings under a year (ANET.TO 226 bars); fundamentals feed 404s for ~10 large US stocks under load; liquidity (Yahoo avgVolume) vs the
+  bars disagrees on 16 thin ETFs (LOW); ADX/RSI differ by up to 0.6 to 0.8 on young funds (the app smooths over a longer frame).
 - **Fixed (Day 126): short frames served silently under load, and the RS card reading "N/A" (universe run 2).** After the price-basis fix the second universe run still returned a 1-year (251-bar) `/api/stock`
   frame for 51 of 117 tickers. Cause: when every provider failed for a 2y request under heavy concurrent load, the orchestrator's stale-cache fallback returned whatever entry existed (the 1y frame another route had cached
   moments before) with no length check. Fix: the stale fallback applies the same "covers the requested period or >= 95% rows" rule and otherwise raises an explicit error. Second cause of RS "N/A" (NFLX, CEG...): a 1y Yahoo

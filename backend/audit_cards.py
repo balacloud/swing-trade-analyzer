@@ -369,6 +369,11 @@ class CardAudit(Audit):
             if self.stock: self.addc('RS0', 'Relative Strength card present', 'card not found', 'card text', 'WRONG')
             return
         c = self.c
+        if len(c) <= 200:   # by design: the year-ago price needs more than 200 bars
+            ok_na = bool(re.search(r'RS vs S&P 500: N/A Stock 52W Return: N/A S&P 52W Return: N/A', self.text))
+            self.addc('RS1', f'a history of {len(c)} bars (<= 200) cannot give a 52-week RS: the card says N/A, never a number', 'N/A' if ok_na else 'a number', 'N/A', 'PASS' if ok_na else 'WRONG',
+                      'by design (needs more than 200 bars); the card does not say why' if ok_na else '')
+            return
         sc = [b['close'] for b in (self.spy.get('priceHistory') or [])]
         if len(sc) < 201:
             self.addc('RS-X', 'SPY history', f'{len(sc)} bars', 'over 200', 'UNVERIFIED'); return

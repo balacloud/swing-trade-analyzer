@@ -1072,11 +1072,13 @@ def get_stock_data(ticker):
 
         # Day 51: Use DataProvider (cache-first + multi-source fallback)
         hist = None
+        _provider_error = None
         if DATA_PROVIDER_AVAILABLE:
             try:
                 dp = get_data_provider()
                 hist = dp.get_ohlcv(ticker, '2y')
             except Exception as e:
+                _provider_error = e
                 print(f"⚠️ DataProvider OHLCV failed for {ticker}: {e}")
 
         # Fallback to legacy path if DataProvider unavailable
@@ -1090,6 +1092,15 @@ def get_stock_data(ticker):
                 stock = yf.Ticker(ticker)
                 hist = stock.history(period='2y')
                 if hist.empty:
+                    # Day 126 (universe run): "No data found" reads like a bad ticker. When the price sources FAILED (rate limit, outage, all
+                    # providers down under load) say so, with a 503, instead of calling a real ticker (ABBV, HD, LLY...) unknown.
+                    try:
+                        from providers.exceptions import DataNotFoundError as _DNF
+                    except Exception:  # noqa: BLE001
+                        _DNF = ()
+                    if _provider_error is not None and not (_DNF and isinstance(_provider_error, _DNF)):
+                        print(f"⚠️ /api/stock {ticker}: every price source failed ({_provider_error}); answering 503, not 404")
+                        return jsonify({'error': f'Price data sources are not answering for {ticker} right now (rate limit or outage). Try again in a minute.'}), 503
                     return jsonify({'error': f'No data found for {ticker}'}), 404
                 hist.columns = [c.lower() for c in hist.columns]
                 set_cached_ohlcv(ticker, hist)      # the cache stays RAW (Day 126)

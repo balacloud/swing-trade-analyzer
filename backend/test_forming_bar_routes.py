@@ -100,5 +100,25 @@ r = get('/api/stock/FAKE', nanf, at(2026, 11, 17, 9, 15)); j = r.get_json()
 ok(r.status_code == 200 and j['price52wAgo'] is not None and j['price13wAgo'] is not None, 'a leading NaN row does not blank price52wAgo / price13wAgo (RS card N/A bug)')
 ok(j['price52wAgo'] == round(float(nanf['close'].dropna().iloc[0]), 2) or j['price52wAgo'] == round(float(nanf['close'].dropna().iloc[-252]), 2), 'price52wAgo is the first real close of the window')
 
+# ---- every price source failed: a real ticker must not be called "not found" (503 + plain message); a genuinely unknown ticker stays 404
+from providers.exceptions import ProviderUnavailableError, DataNotFoundError
+class RaisingDP(FakeDP):
+    def __init__(self, err): super().__init__(frame('2026-11-16')); self.err = err
+    def get_ohlcv(self, t, p): raise self.err
+class EmptyYF:
+    def __init__(self, *a, **k): pass
+    def history(self, **k): return pd.DataFrame()
+real_yf = backend.yf.Ticker
+backend.yf.Ticker = EmptyYF
+try:
+    backend.get_data_provider = lambda: RaisingDP(ProviderUnavailableError('twelvedata', 'rate limited', 'ABBV'))
+    r = client.get('/api/stock/NOCACHEQ'); j = r.get_json()
+    ok(r.status_code == 503 and 'Try again' in j['error'] and 'No data found' not in j['error'], 'all providers failed: 503 with a plain "try again" message, not "No data found"')
+    backend.get_data_provider = lambda: RaisingDP(DataNotFoundError('yfinance', 'unknown symbol', 'ZZZZ'))
+    r = client.get('/api/stock/ZZZZ'); j = r.get_json()
+    ok(r.status_code == 404 and 'No data found' in j['error'], 'a genuinely unknown ticker (DataNotFoundError) stays a 404 "No data found"')
+finally:
+    backend.yf.Ticker = real_yf
+
 print(f"\n{passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)
