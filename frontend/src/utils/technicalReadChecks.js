@@ -61,7 +61,7 @@ export function deriveTrendChecks(patternsData, historyBars = null) {
       pass: c.sma_200_trending_up === true,
       label: c.sma_200_trending_up ? 'The 200-day average is still rising' : 'The 200-day average is not rising',
       why: c.sma_200_trending_up ? "The long-term trend hasn't stalled." : 'The long-term trend has stalled or turned down.',
-      detail: isNum(sma200Ago) ? `${signed(pctDiff(sma200, sma200Ago))} from a month ago` : 'vs a month ago',
+      detail: isNum(sma200Ago) ? `${signed(pctDiff(sma200, sma200Ago))} over 30 trading days` : 'over 30 trading days',
     },
     {
       key: 'above_50sma',
