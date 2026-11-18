@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.sta.nightly.audit</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/balajik/projects/swing-trade-analyzer/nightly_audit.sh</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/balajik/projects/swing-trade-analyzer</string>
+    <!-- Weekdays 18:00 local time (this machine is on Eastern time): 90 minutes after the 16:30 cache expiry and the close. Day 127. -->
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>18</integer><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Weekday</key><integer>2</integer><key>Hour</key><integer>18</integer><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Weekday</key><integer>3</integer><key>Hour</key><integer>18</integer><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Weekday</key><integer>4</integer><key>Hour</key><integer>18</integer><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Weekday</key><integer>5</integer><key>Hour</key><integer>18</integer><key>Minute</key><integer>0</integer></dict>
+    </array>
+    <key>StandardOutPath</key>
+    <string>/tmp/sta_nightly_audit.out</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/sta_nightly_audit.err</string>
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>

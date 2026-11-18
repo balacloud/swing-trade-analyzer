@@ -6,6 +6,12 @@
 
 ## Changes from Day 125
 
+- **Added (Day 127): two ways to run the existing checks without remembering to.** (1) `./run_all_checks.sh [--quick]`: every backend and frontend test suite, and (without `--quick`) the page checker and a smoke
+  audit on 8 fixed tickers (`backend/audit_smoke.txt`); ends with one line "ALL OK" or "FAILED: ...". Not a hook. (2) `nightly_audit.sh`, scheduled by launchd (`com.sta.nightly.audit`, weekdays 18:00 Eastern;
+  plist copy in `docs/claude/design/com.sta.nightly.audit.plist.txt`): the 117-ticker universe (`backend/audit_universe.txt`) through the three audits, output in `backend/validation_results/nightly/<date>/`, a
+  one-line history in `nightly/history.csv`, "new WRONG rows since the last run" in `SUMMARY.txt` (`backend/audit_summary.py`), a desktop notification when anything is wrong or under 90% of tickers load. It needs the
+  app running and does not start it. Runs after the close, so it does not exercise forming-bar/live-quote logic (run `nightly_audit.sh` or the smoke audit mid-session for that). Disable: `launchctl unload
+  ~/Library/LaunchAgents/com.sta.nightly.audit.plist`. No new Golden Rules: these only automate the audits and rules that already exist.
 - **Fixed + logged (Day 126, universe run 3: 117 tickers, all dumped; audits 0 WRONG on Technical Read/cards except two latent items).** Final counts: Technical Read 3797 PASS / 1 WRONG / 8 MISLEADING; Trade Setup,
   Breakout, Price Data, RS, header 4077 / 1 / 21; Backdrop, Fundamentals, MR 3682 / 0 / 1. Short 1y frames are gone (only genuinely young listings remain: ANET.TO, SGRD.TO, WDC.TO, DRAL, SPCL, COPZ). **Run after the
   close only:** forming-bar and live-quote logic was NOT exercised across these 117 (tested earlier on 7 tickers pre-market and mid-session, plus faked-clock route tests); re-run mid-session. **New fix:** when every price source
