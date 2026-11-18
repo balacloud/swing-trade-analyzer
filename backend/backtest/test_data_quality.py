@@ -142,6 +142,30 @@ check('name but no quote type -> Unknown with a basis', C(None, 'Something')['cl
 check('odd quote type -> Unknown', C('FUTURE', 'x')['class'] == 'Unknown')
 check('every class result carries a basis', all(C(q, n)['basis'] for q, n in [('EQUITY', 'a'), ('ETF', 'b'), ('ETF', 'x 2X'), ('ETF', 'y CDR'), (None, None)]))
 
+# ---------------------------------------------------------------- audit_class (Day 127): the matrix class for any ticker
+A = dq.audit_class
+check('audit_class US stock', A('JPM', 'EQUITY', 'JPMorgan Chase') == 'US stock')
+check('audit_class US ETF', A('SMH', 'ETF', 'VanEck Semiconductor ETF') == 'US ETF')
+check('audit_class US leveraged', A('QPUX', 'ETF', 'Defiance Daily Target 2X Long D') == 'US leveraged')
+check('audit_class CA stock (.TO)', A('RY.TO', 'EQUITY', 'ROYAL BANK OF CANADA') == 'CA stock')
+check('audit_class CA leveraged (.NE)', A('SOXL.NE', 'ETF', 'BETAPRO 3X SEMICONDUCTOR DAILY ') == 'CA leveraged')
+check('audit_class CDR wins over the region', A('AMD.TO', 'EQUITY', 'ADVANCED MICRO DEVICES CDR (CAD') == 'CDR' and A('MU.TO', 'ETF', 'MICRON CDR (CAD HEDGED)') == 'CDR')
+check('audit_class .V suffix is Canadian', A('PNG.V', 'EQUITY', 'Kraken Robotics') == 'CA stock')
+check('audit_class unknown kind keeps the region, never guesses', A('ZZZ', None, None) == 'US other' and A('ZZZ.TO', None, None) == 'CA other')
+check('audit_class odd quote type -> other', A('X', 'FUTURE', 'x') == 'US other')
+
+# universe_from_file: blank lines, comments, duplicates, curated notes kept, offline never calls a provider
+import tempfile  # noqa: E402
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__))))
+import audit_data_sources as _ads  # noqa: E402
+with tempfile.NamedTemporaryFile('w', suffix='.txt', delete=False) as _f:
+    _f.write('JPM\n\n# a comment\nQPUX  # trailing note\nJPM\nNOSUCH.TO\n')
+_u = _ads.universe_from_file(_f.name, offline=True)
+check('universe file: blanks, comments and duplicates dropped, order kept', [x[1] for x in _u] == ['JPM', 'QPUX', 'NOSUCH.TO'])
+check('universe file: a curated ticker keeps its class and its note', _u[1][0] == 'US leveraged' and 'reverse split' in _u[1][2])
+check('universe file: an unknown ticker offline is "CA other", never a guess', _u[2][0] == 'CA other')
+os.unlink(_f.name)
+
 # ---------------------------------------------------------------- worst()
 check('worst picks FAIL', dq.worst(['PASS', 'WARN', 'FAIL']) == 'FAIL')
 check('worst ignores NA', dq.worst(['NA', 'PASS']) == 'PASS' and dq.worst(['NA']) == 'NA' and dq.worst([]) == 'NA')

@@ -72,6 +72,53 @@ EODHD_PRIORITY = ['SOXL.NE', 'GDXU.TO', 'SNDK.TO', 'MU.TO', 'AMD.TO', 'AVGO.TO',
                   'HXQ.TO', 'XCHP.TO', 'CNR.TO', 'ATD.TO']
 
 
+CLASS_CACHE = os.path.join(BACKEND, 'validation_results', 'instrument_class_cache.json')   # {sym: {quote_type, name}}, so a re-run costs no calls
+
+
+def lookup_class(sym, dp=None, offline=False):
+    """Matrix class for any ticker: Yahoo quote type + name through data_quality.audit_class. Cached on disk.
+    No answer (offline, or Yahoo has nothing) -> 'US other' / 'CA other', never a guess at the kind."""
+    try:
+        cache = json.load(open(CLASS_CACHE))
+    except (OSError, ValueError):
+        cache = {}
+    if sym not in cache and not offline and dp is not None:
+        info = None
+        for attempt in range(3):          # Yahoo throttles bursts: back off, then try again (a failure is never cached)
+            info = dp.get_stock_info(sym)
+            if info is not None:
+                break
+            time.sleep(4.0 * (attempt + 1))
+        d = getattr(info, 'data', None) or {}
+        if d.get('quoteType'):            # cache real answers only; a failed lookup is retried on the next run
+            cache[sym] = {'quote_type': d.get('quoteType'), 'name': d.get('shortName') or d.get('name')}
+            json.dump(cache, open(CLASS_CACHE, 'w'), indent=1)
+        else:
+            print(f'  class lookup {sym}: no answer, left as other')
+        time.sleep(1.0)
+    c = cache.get(sym) or {}
+    return dq.audit_class(sym, c.get('quote_type'), c.get('name'))
+
+
+def universe_from_file(path, offline=False):
+    """[(class, symbol, why)] for every ticker in the file. The curated 24 keep their class and note; the rest are
+    classified from Yahoo. Order = file order, duplicates dropped."""
+    curated = {s: (c, w) for c, s, w in UNIVERSE}
+    dp = None
+    if not offline:
+        from providers import get_data_provider
+        dp = get_data_provider()
+    out, seen = [], set()
+    for line in open(path):
+        sym = line.split('#')[0].strip()
+        if not sym or sym in seen:
+            continue
+        seen.add(sym)
+        c, w = curated.get(sym) or (lookup_class(sym, dp, offline), '')
+        out.append((c, sym, w))
+    return out
+
+
 def is_ca(sym):
     return sym.endswith(('.TO', '.NE', '.V'))
 
@@ -305,9 +352,14 @@ def main():
     ap.add_argument('--now', default=None, help='fix the clock, ISO time (New York if no zone), for a reproducible replay')
     ap.add_argument('--offline', action='store_true', help='replay: no provider calls, no backend calls; tab claims come from the saved JSON')
     ap.add_argument('--update-reference', action='store_true', help='write this run into backend/reference/data_audit_latest.json (read by the Data Sources tab)')
+    ap.add_argument('--tickers-file', default=None, help='one ticker per line (e.g. backend/audit_universe.txt); default: the curated 24')
     ap.add_argument('--suffix', default=None, help="output name suffix (default '' online, '_offline' offline) so a replay never overwrites the saved run")
     args = ap.parse_args()
     configure(args.date, args.now)
+    global UNIVERSE
+    if args.tickers_file:
+        UNIVERSE = universe_from_file(args.tickers_file, offline=args.offline)
+        print(f'Universe: {len(UNIVERSE)} tickers from {args.tickers_file}')
     suffix = args.suffix if args.suffix is not None else ('_offline' if args.offline else '')
     saved_tabs = None
     if args.offline:

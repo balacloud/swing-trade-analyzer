@@ -45,6 +45,22 @@ CLASS = {'JPM': 'US stock', 'CAT': 'US stock', 'BRK-B': 'US stock', 'SMH': 'US E
 ICON, ORDER, worst = dq.ICON, dq.ORDER, dq.worst
 
 
+def _class_for(sym):
+    """Class for a ticker outside the curated 24: the class cache the truth-free audit wrote (Yahoo type + name), else 'US other'/'CA other'."""
+    try:
+        c = json.load(open(os.path.join(BACKEND, 'validation_results', 'instrument_class_cache.json'))).get(sym) or {}
+    except (OSError, ValueError):
+        c = {}
+    return dq.audit_class(sym, c.get('quote_type'), c.get('name'))
+
+
+_ORDER = list(dict.fromkeys(CLASS.values())) + ['US other', 'CA other']
+
+
+def _class_rank(cls):
+    return _ORDER.index(cls) if cls in _ORDER else len(_ORDER)   # an unexpected class sorts last, never raises
+
+
 def load_frames(path):
     raw = json.load(open(path))
     out = {}
@@ -139,7 +155,7 @@ def main():
         per = {}
         for src, f in frames.get(sym, {}).items():
             per[src] = check_source(sym, src, f, t)
-        rows.append({'symbol': sym, 'class': CLASS.get(sym, '?'), 'conid': t['conid'], 'ibkr': t['ibkr_description'],
+        rows.append({'symbol': sym, 'class': CLASS.get(sym) or _class_for(sym), 'conid': t['conid'], 'ibkr': t['ibkr_description'],
                      'ibkr_splits': t['splits'], 'per_source': {s: {k: {'level': v[0], 'note': v[1]} for k, v in r.items()} for s, r in per.items()}})
     json.dump(rows, open(os.path.join(BACKEND, 'validation_results', f'data_audit_vs_ibkr_{a.date}.json'), 'w'), indent=1)
     d = os.path.join(REPO, 'docs', 'test', f'DataSources_{a.date}')
@@ -151,7 +167,7 @@ def main():
          'Volume is not expected to equal IBKR\'s (it counts a subset of trades); only zero or wildly off volume is flagged.\n',
          '## Matrix (worst result across the sources that can serve the ticker)\n',
          '| Class | Ticker | IBKR splits in the last year | Source | C3 close | C5 level | C7 volume |', '|---|---|---|---|---|---|---|']
-    for r in sorted(rows, key=lambda x: (list(dict.fromkeys(CLASS.values())).index(x['class']), x['symbol'])):
+    for r in sorted(rows, key=lambda x: (_class_rank(x['class']), x['symbol'])):
         sp = ', '.join(f"{s['date']} ×{s['value']:g}" for s in r['ibkr_splits']) or '—'
         first = True
         for src, c in r['per_source'].items():

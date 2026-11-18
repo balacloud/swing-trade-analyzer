@@ -227,6 +227,18 @@ def classify_instrument(quote_type, name):
     return {'class': 'Unknown', 'basis': f'quote type {qt}'}
 
 
+def audit_class(sym, quote_type=None, name=None):
+    """Matrix class for the data-source audits (Day 127): region from the suffix + kind from classify_instrument,
+    e.g. 'US stock', 'CA ETF', 'CA leveraged', 'CDR'. 'US other' / 'CA other' when the kind is Unknown.
+    Replaces the hard-coded 24-ticker CLASS table so the audits run on any ticker list."""
+    ca = str(sym).upper().endswith(('.TO', '.NE', '.V'))
+    kind = classify_instrument(quote_type, name)['class']
+    if kind == 'CDR':
+        return 'CDR'
+    word = {'Stock': 'stock', 'ETF': 'ETF', 'Leveraged ETF': 'leveraged'}.get(kind, 'other')
+    return ('CA ' if ca else 'US ') + word
+
+
 # ---------------------------------------------------------------------------------------------- audit reference file
 # backend/reference/ is tracked (backend/data/ is gitignored). Each audit script updates ONLY its own section per ticker;
 # regeneration is manual (whoever runs the audit). Written atomically so a reader never sees half a file.
