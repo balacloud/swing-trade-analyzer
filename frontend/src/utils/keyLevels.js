@@ -9,7 +9,7 @@
  * - `swings` = how many times price turned there ("turned here N×"). One turn is a
  *   real level too; the user judges whether it is enough, nothing here ranks it.
  * - Distance is to the zone edge nearest price (support: its high, resistance: its low),
- *   the same edge the Buy and Target use (Golden Rule 63: one label, one number).
+ *   the edge the Target uses; the Buy is the same edge unless the last close is already inside the support zone (then the Buy is that close, Day 127) (Golden Rule 63: one label, one number).
  * - No projected/ATR/Fibonacci levels exist on this engine. Missing zones are never
  *   replaced with a made-up level.
  * Common trader rules, not tested.

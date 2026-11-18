@@ -130,7 +130,7 @@ def compute_simple_sr(df, current_price=None, now=None,
     Returns a dict:
         support / resistance: zone edges nearest to price, nearest first
             (the zone price is INSIDE counts as distance 0, Day 127; support -> zone HIGH, resistance -> zone LOW; Fable #1, so the Buy
-            price is the same everywhere). Every zone in the window on that side,
+            price is the same everywhere, except that sr_plan.plan_entry uses the last completed close as the Buy when that close is already inside the nearest support zone, Day 127). Every zone in the window on that side,
             whatever its turn count (the nearest one is flagged `nearest`).
         allSupport / allResistance: every zone's edge on that side, no window.
         zones: every zone inside the window, with low/high/mid/swings/highs/

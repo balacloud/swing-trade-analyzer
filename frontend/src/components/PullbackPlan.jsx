@@ -80,14 +80,17 @@ export default function PullbackPlan({ srData, ticker, onSizePlan }) {
   const supportBand = zoneSpan(zones.find((z) => z.nearest && z.side === 'support'), scaleLo, scaleHi);
   const resistanceBand = zoneSpan(zones.find((z) => z.nearest && z.side === 'resistance'), scaleLo, scaleHi);
   const atHigh = target == null && srData?.meta?.nearHigh52w === true;
-  const insideSupport = zones.some((z) => z.nearest && z.side === 'support' && z.insideZone === true);
+  // Day 127: the wording follows the backend's entry basis (the Buy IS the last close when that close is inside the nearest support zone). A payload without
+  // entryBasis (an old response) keeps the previous wording.
+  const buyIsLastClose = srData?.meta?.entryBasis === 'last_close_inside_zone';
+  const insideSupport = buyIsLastClose || (srData?.meta?.entryBasis == null && zones.some((z) => z.nearest && z.side === 'support' && z.insideZone === true));
   const nowNearEntry = Math.abs(pNow - pEntry) < 12;
 
   return (
     <div className="mb-4">
       <div className="flex justify-between items-baseline gap-2 flex-wrap">
         <span className="font-semibold text-gray-200">
-          Pullback plan <span className="font-normal text-gray-400 text-sm ml-1">wait for a dip to support</span>
+          Pullback plan <span className="font-normal text-gray-400 text-sm ml-1">{buyIsLastClose ? 'price is already at support' : 'wait for a dip to support'}</span>
         </span>
         <span className="font-mono text-lg text-gray-200">
           {rr != null ? `${rr.toFixed(1)} : 1` : '—'}
@@ -125,7 +128,7 @@ export default function PullbackPlan({ srData, ticker, onSizePlan }) {
         <div className="rounded-lg bg-gray-700/40 border border-gray-700 p-2.5">
           <div className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Buy</div>
           <div data-testid="plan-buy-value" className="font-mono text-gray-100 mt-0.5">{money(entry)}</div>
-          <div className="text-xs text-gray-400 mt-0.5">{insideSupport ? 'top of the support zone; price is inside it at the last close' : `support, ${Math.abs(entryVsNow).toFixed(1)}% ${entryVsNow <= 0 ? 'below' : 'above'} the last close`}</div>
+          <div className="text-xs text-gray-400 mt-0.5">{buyIsLastClose ? 'the last close, inside the support zone' : insideSupport ? 'top of the support zone; price is inside it at the last close' : `support, ${Math.abs(entryVsNow).toFixed(1)}% ${entryVsNow <= 0 ? 'below' : 'above'} the last close`}</div>
         </div>
         <div className="rounded-lg bg-gray-700/40 border border-gray-700 p-2.5">
           <div className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Stop</div>
@@ -169,8 +172,8 @@ export default function PullbackPlan({ srData, ticker, onSizePlan }) {
       <details className="mt-3 text-xs text-gray-400">
         <summary className="cursor-pointer text-blue-400">How this setup was formed</summary>
         <div className="mt-2 space-y-2">
-          <p><b className="text-gray-300">Levels:</b> support and resistance are zones where price turned before (swing highs and lows over the last year). The buy is the top of the nearest support zone and the target is the bottom of the nearest resistance zone above the last close.</p>
-          <p><b className="text-gray-300">Buy and stop:</b> buy at the nearest support, stop 2 ATR below it (ATR is how much the stock normally moves in a day). Buying a pullback near support is the canon low-risk entry (Minervini, Livermore's pivots); stops below support with an ATR buffer follow the Turtles.</p>
+          <p><b className="text-gray-300">Levels:</b> support and resistance are zones where price turned before (swing highs and lows over the last year). The buy is the top of the nearest support zone (or, when the last close is already inside that zone, the last close itself) and the target is the bottom of the nearest resistance zone above the last close.</p>
+          <p><b className="text-gray-300">Buy and stop:</b> buy at the nearest support (the last close when price is already inside the support zone), stop 2 ATR below the buy (ATR is how much the stock normally moves in a day). Buying a pullback near support is the canon low-risk entry (Minervini, Livermore's pivots); stops below support with an ATR buffer follow the Turtles.</p>
           <p><b className="text-gray-300">Zones on the bar:</b> the faint green band is the nearest support zone and the red band the nearest resistance zone, drawn on the same price scale. A zone outside the bar's range isn't drawn; its row below still lists it.</p>
           <p><b className="text-gray-300">At a high with no resistance above</b> there is no target. STA doesn't invent one.</p>
           <p><b className="text-gray-300">Why there is no "buy now" plan:</b> STA's momentum system failed every backtest and the forward test, so the card doesn't show it. The pullback plan hasn't been tested by STA either; it's shown because it matches how the one tested edge works (the Mean-Reversion signal buys dips inside an uptrend).</p>

@@ -1234,7 +1234,7 @@ function App() {
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-900/40 text-amber-300">◇ YOUR CALL</span>
                       </div>
                     </div>
-                    <p data-card-head className="text-sm text-gray-400 mb-4">The pullback plan: wait for a dip to support, then buy. Plain arithmetic, not a tested system.</p>
+                    <p data-card-head className="text-sm text-gray-400 mb-4">The pullback plan: a buy, stop and target from the nearest support and resistance zones. Plain arithmetic, not a tested system.</p>
                     <PullbackPlan
                       srData={srData}
                       ticker={analysisResult.ticker}

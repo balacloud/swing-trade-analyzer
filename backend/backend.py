@@ -99,7 +99,7 @@ from vix_bands import vix_band  # Day 124: one on-screen VIX band definition
 
 from constants import SUPPORT_PROXIMITY_PCT, RESISTANCE_PROXIMITY_PCT  # shared with support_resistance.py
 from constants import SR_ENGINE  # Day 126: 'legacy' | 'simple' for /api/sr
-from sr_plan import trade_plan, legacy_actionable  # Day 126: one buy/stop/target calc for both engines
+from sr_plan import trade_plan, legacy_actionable, plan_entry  # Day 126: one buy/stop/target calc for both engines
 # Day 126: simple S&R engine, imported on its own (no sklearn), so a missing
 # scikit-learn only blocks the legacy engine (SIMPLE_SR_PLAN_DAY125.md §8 #8).
 try:
@@ -1774,7 +1774,7 @@ def get_support_resistance(ticker):
     - allResistance: All historical resistance levels (for reference)
     - method: Which method was used (pivot/kmeans/volume_profile)
     - currentPrice: Current stock price
-    - suggestedEntry: Nearest actionable support (potential entry)
+    - suggestedEntry: Nearest actionable support (the zone high), or the last COMPLETED close when it is already inside the nearest support zone (meta.entryBasis, Day 127)
     - suggestedStop: Below nearest support (stop loss)
     - suggestedTarget: Nearest actionable resistance (profit target)
 
@@ -2018,10 +2018,15 @@ def get_support_resistance(ticker):
         support_floor = current_price * (1 - SUPPORT_PROXIMITY_PCT)
         resistance_ceiling = current_price * (1 + RESISTANCE_PROXIMITY_PCT)
 
-        # Entry = nearest support, stop = entry − 2×ATR (matches riskRewardCalc.js;
+        # Entry = nearest support (or the last completed close when it is inside that zone, plan_entry), stop = entry − 2×ATR (matches riskRewardCalc.js;
         # Day 123: no ATR -> no stop, never a made-up 3%), target = nearest
         # resistance, R:R. One function for both engines and the comparison script.
-        plan = trade_plan(actionable_support, actionable_resistance, atr_value)
+        # Day 127: when the last COMPLETED close is already inside the nearest support zone, the Buy is that close, not the zone's top (sr_plan.plan_entry)
+        _last_done_close = float(df_done['close'].iloc[-1]) if len(df_done) else float('nan')
+        entry_override, entry_basis = plan_entry(simple['zones'] if simple is not None else None, _last_done_close)
+        if entry_basis == 'zone_high' and not (_last_done_close == _last_done_close):
+            print(f"   ⚠️ S&R {ticker}: last completed close is NaN, Buy left at the zone high")
+        plan = trade_plan(actionable_support, actionable_resistance, atr_value, entry_override=entry_override)
         suggested_entry = plan['entry']
         suggested_stop = plan['stop']
         suggested_target = plan['target']
@@ -2091,12 +2096,14 @@ def get_support_resistance(ticker):
                 'mtf': sr_levels.meta.get('mtf'),
                 # Day 72: Expose touch counts per level (for Price Structure card)
                 'levelScores': sr_levels.meta.get('level_scores', {}),
+                'entryBasis': entry_basis,   # Day 127: the legacy engine has no zones: 'nearest_support'
             })
         else:
             # Day 126: simple engine. Zones in the window, nearest first; the two
             # used for the plan carry nearest: true. No projected levels exist.
             response['meta'].update({
                 'zones': simple['zones'],
+                'entryBasis': entry_basis,   # Day 127: 'last_close_inside_zone' | 'zone_high' | 'nearest_support' (legacy)
                 'high52w': simple['high52w'],
                 'nearHigh52w': simple['nearHigh52w'],
                 'confirmedThrough': simple['confirmedThrough'],

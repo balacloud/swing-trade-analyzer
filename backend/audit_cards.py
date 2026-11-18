@@ -126,23 +126,43 @@ class CardAudit(Audit):
             self.addc('TS1', 'no support level: the card says there is no plan', 'says so' if m else 'no such sentence', 'says so', 'PASS' if m else 'WRONG')
         else:
             entry = max(sup)
+            # Day 127: when the last COMPLETED close is inside the nearest support zone the Buy is that close (independent rule: from the bars and the zone,
+            # NOT copied from suggestedEntry). A payload without meta.entryBasis (an older dump) keeps the zone-high rule.
+            _nz = next((z for z in zones if z.get('nearest') and z.get('side') == 'support'), None)
+            basis_in_payload = meta.get('entryBasis')
+            close_inside = bool(_nz) and _nz['low'] <= last_close <= _nz['high']
+            if basis_in_payload is not None and close_inside:
+                entry = round(last_close, 2)
+            if basis_in_payload is not None:
+                exp_basis = 'last_close_inside_zone' if close_inside else 'zone_high'
+                self.addc('TS-basis', 'entryBasis in the payload = the rule re-derived from the last completed close and the nearest support zone', str(basis_in_payload), exp_basis, 'PASS' if basis_in_payload == exp_basis else 'WRONG')
             m = re.search(r'BUY \$([\d,.]+)(?: CLOSE)? \$([\d,.]+)(?: \$([\d,.]+))?', self.text)
-            mb = re.search(r'Buy \$([\d,.]+) (support, ([\d.]+)% (below|above) the last close|top of the support zone; price is inside it at the last close)', self.text)
+            mb = re.search(r'Buy \$([\d,.]+) (support, ([\d.]+)% (below|above) the last close|top of the support zone; price is inside it at the last close|the last close, inside the support zone)', self.text)
             if mb:
                 self.work = self.work.replace(mb.group(0), ' § ', 1)
                 self.addc('TS1', 'Buy = the nearest support edge (S1 /api/sr support, max)', f'${mb.group(1)}', f'${fm(entry)}', 'PASS' if mb.group(1) == fm(entry) else 'WRONG')
                 nearest_sup = next((z for z in zones if z.get('nearest') and z.get('side') == 'support'), None)
                 if nearest_sup:
-                    ok = near(nearest_sup['high'], entry, 0.005)
-                    self.addc('TS1b', 'S5: the Buy equals the edge of the zone flagged nearest (Support row)', f'buy {entry}, nearest zone high {nearest_sup["high"]}', 'equal', 'PASS' if ok else 'WRONG',
-                              '' if ok else 'the Buy and the Support row disagree (inside-zone + width-cap split)')
+                    if basis_in_payload is not None and close_inside:
+                        ok = nearest_sup['low'] - 0.005 <= entry <= nearest_sup['high'] + 0.005
+                        self.addc('TS1b', 'S5: the last close is inside the nearest support zone (Support row) and the Buy is that close', f'buy {entry}, zone {nearest_sup["low"]}-{nearest_sup["high"]}', 'inside the zone', 'PASS' if ok else 'WRONG')
+                        self.addc('TS1d', 'S3: the plan says "wait for a dip" only when the Buy is not above the last close (a Buy above the market fills at once)', f'buy {entry} vs last close {last_close}', 'Buy <= last close', 'PASS' if entry <= last_close + 0.005 else 'MISLEADING')
+                    else:
+                        ok = near(nearest_sup['high'], entry, 0.005)
+                        self.addc('TS1b', 'S5: the Buy equals the edge of the zone flagged nearest (Support row)', f'buy {entry}, nearest zone high {nearest_sup["high"]}', 'equal', 'PASS' if ok else 'WRONG',
+                                  '' if ok else 'the Buy and the Support row disagree (inside-zone + width-cap split)')
+                        if basis_in_payload is not None and entry > last_close + 0.005 and nearest_sup.get('insideZone'):
+                            self.addc('TS1d', 'S3: a Buy above the last close while the live price is inside the zone (the two prices sit on different sides)', f'buy {entry} vs last close {last_close}', 'Buy <= last close', 'UNVERIFIED', 'mid-session only: the live price is inside the zone, the last close is not (known Low TS-live-side)')
                 if mb.group(3):
                     pe = (entry - price_card) / price_card * 100
                     exp = f'{abs(pe):.1f}% {"below" if pe <= 0 else "above"}'
                     self.addc('TS2', '"x% below/above the last close" = distance from the buy to the last COMPLETED close (S5 with the header)', f'{mb.group(3)}% {mb.group(4)}', exp, 'PASS' if pe is not None and near(float(mb.group(3)), abs(pe), 0.06) and mb.group(4) == ('below' if pe <= 0 else 'above') else 'WRONG')
                 else:
-                    ins = any(z.get('insideZone') and z.get('nearest') for z in zones)
-                    self.addc('TS2', '"price is inside it" = a nearest support zone with insideZone', 'inside wording', f'insideZone={ins}', 'PASS' if ins else 'MISLEADING')
+                    if 'the last close, inside the support zone' in mb.group(0):
+                        self.addc('TS2', '"the last close, inside the support zone" = the last completed close really is inside the nearest support zone', 'inside wording', f'close inside={close_inside}', 'PASS' if close_inside else 'MISLEADING')
+                    else:
+                        ins = any(z.get('insideZone') and z.get('nearest') for z in zones)
+                        self.addc('TS2', '"price is inside it" = a nearest support zone with insideZone', 'inside wording', f'insideZone={ins}', 'PASS' if ins else 'MISLEADING')
             else:
                 self.addc('TS1', 'Buy box not found although a support exists', 'missing', f'${fm(entry)}', 'WRONG')
             if m:

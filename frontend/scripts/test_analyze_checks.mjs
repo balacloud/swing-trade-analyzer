@@ -228,6 +228,12 @@ mustFail('A10', 'support row shows the wrong zone', d => { d.levelRows.support =
 mustFail('A10', 'resistance row missing', d => { d.levelRows.resistance = null; });
 mustFail('A10', 'api suggestedEntry disagrees with max(support)', null, a => { a.sr.body.suggestedEntry = 250.00; });
 mustFail('A10', 'zone high no longer equals suggestedEntry', null, a => { a.sr.body.meta.zones[0].high = 262.50; });
+// Day 127: price already inside the nearest support zone -> the Buy is the last COMPLETED close (not the zone high, which is above the market)
+mustPass('A10', 'close inside the nearest support zone: the Buy is the last close', d => { d.planBuy = '$261.50'; }, a => { a.sr.body.currentPrice = 261.5; a.sr.body.suggestedEntry = 261.5; });
+mustFail('A10', 'close inside the zone but the Buy is still the zone high', null, a => { a.sr.body.currentPrice = 261.5; });
+mustFail('A10', 'close inside the zone but the Buy tile still shows the zone high', d => { d.planBuy = '$262.10'; }, a => { a.sr.body.currentPrice = 261.5; a.sr.body.suggestedEntry = 261.5; });
+mustFail('A10', 'close inside the zone and the Buy is the zone midpoint (a wrong number)', d => { d.planBuy = '$261.30'; }, a => { a.sr.body.currentPrice = 261.5; a.sr.body.suggestedEntry = 261.3; });
+mustPass('A10', 'forming bar: the card measures from the last COMPLETED close (prevBar), not the live price', d => { d.planBuy = '$261.50'; }, a => { a.sr.body.currentPrice = 270.0; a.sr.body.suggestedEntry = 261.5; a.sr.body.meta.candle = { barComplete: false }; a.sr.body.meta.prevBar = { close: 261.5 }; });
 mustFail('A10', '/api/sr response not captured', null, a => { a.sr = { status: null, body: null }; });
 mustFail('A10', 'payload in the old format (no meta.zones)', null, a => { delete a.sr.body.meta.zones; });
 mustFail('A10', 'a side with no zone must say "None within"', null, a => { a.sr.body.meta.zones = a.sr.body.meta.zones.filter(z => z.side !== 'resistance'); a.sr.body.resistance = []; a.sr.body.suggestedTarget = null; });

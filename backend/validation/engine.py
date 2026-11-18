@@ -434,7 +434,11 @@ class ValidationEngine:
         # Check 1: Entry should be below current price (if exists)
         entry = sr_data.get('suggestedEntry')
         if entry is not None:
-            entry_valid = entry < current_price
+            # Day 127: the Buy may now BE the last completed close (price already inside the support zone), so the sanity check is "not above the
+            # market": <= and against the last completed close (the card's own reference), not the live bar mid-session
+            _meta = sr_data.get('meta') or {}
+            _ref = (_meta.get('prevBar') or {}).get('close') if (_meta.get('candle') or {}).get('barComplete') is False else None
+            entry_valid = entry <= (_ref if _ref is not None else current_price)
             results.append(ValidationResult(
                 ticker=ticker,
                 metric='sr_entry_below_price',
@@ -445,7 +449,7 @@ class ValidationEngine:
                 tolerance_pct=0,
                 status=ValidationStatus.PASS if entry_valid else ValidationStatus.FAIL,
                 timestamp=timestamp,
-                notes=f"Entry ${entry:.2f} {'<' if entry_valid else '>='} Current ${current_price:.2f}"
+                notes=f"Entry ${entry:.2f} {'<=' if entry_valid else '>'} Current ${current_price:.2f}"
             ))
             
             # Check 2: Entry within 20% of current price (proximity filter)

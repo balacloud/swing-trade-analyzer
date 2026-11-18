@@ -6,6 +6,15 @@
 
 ## Changes from Day 125
 
+- **Changed (Day 127): the Buy when price is already inside the support zone is the last completed close (persona decision, Opus review applied).** The old Buy was the zone's HIGH, above the market whenever price sat inside
+  the zone (SOXL.NE +8.9%, AMD +5.3%, FCX +4.6%, ETN +3.9%, PLD +1.8%): a "wait for a dip" plan whose Buy fills at once, with risk and reward measured from a price you cannot get and "Size this plan" passing it on. Now
+  `sr_plan.plan_entry(zones, last_close)` decides in ONE place: the last COMPLETED close is inside the nearest support zone -> the Buy is that close (`meta.entryBasis = 'last_close_inside_zone'`), otherwise the zone high as
+  before (`'zone_high'`; legacy engine `'nearest_support'`). No clamping: the live price (which sets `insideZone`) and the last close can sit on different sides of an edge mid-session, so the label is true only when the CLOSE
+  is inside. The stop stays 2 ATR below the Buy (always below the zone: zones are at most 1 ATR wide). The page reads `suggestedEntry` from the backend (the `max(support)` stays only as a fallback), the card header and Buy
+  box follow `entryBasis` ("price is already at support", "the last close, inside the support zone"), page check A10 and the audit re-derive the Buy independently, and `validation/engine.py`'s "entry below price" check is now
+  `<=` against the last completed close. Real numbers: AMD Buy 503.41 (was 530.13), stop 422.27, R:R 0.53 (was 0.2); SOXL.NE 12.36, 0.49; PLD 125.56, 1.26. Tests: `plan_entry`/`trade_plan` (63 checks), route test with
+  frozen clock incl. mid-session and NaN (24), A10 fixtures (165), audit rows (35). Plan `docs/claude/design/INSIDE_ZONE_BUY_PLAN_DAY127.md`. `compare_sr_engines.py` re-runs are no longer comparable with the Day-126 table.
+  The last close is not a fill price (Golden Rule 60: you get the next open); the card says "the last close", never "your buy price".
 - **Fixed (Day 127): the Buy could disagree with the nearest support zone (PLD), plus three small honesty fixes.** Mid-session universe run (10:13 ET, 112 of 117 tickers on a live regular-session quote): no new
   problems; the live-price and unfinished-bar logic held. **Engine:** `simple_sr.pick` ranked zones by distance to their edge, so on PLD (price 125.56 inside the zone 125.38-127.82) a lower zone 122.60-124.69 won the
   `nearest` flag while the Buy was the inside zone's high; the card showed two different supports. Rule 3 says the zone price is inside IS the support. Fix: the zone price is inside counts as distance 0 (one helper

@@ -39,7 +39,9 @@ export function calculateRiskReward(srData) {
   const supports = Array.isArray(srData.support) ? srData.support.filter(Number.isFinite) : [];
   if (supports.length === 0) return { state: 'no_support' };
 
-  const entry = Math.max(...supports);
+  // Day 127: ONE place decides the Buy: the backend (`suggestedEntry`; the last close when it is already inside the nearest support zone, else the zone high).
+  // max(support) stays only as the fallback for a payload without it.
+  const entry = Number.isFinite(srData.suggestedEntry) ? srData.suggestedEntry : Math.max(...supports);
   const target = Number.isFinite(srData.suggestedTarget) ? srData.suggestedTarget : null;
   const atr = srData.meta?.atr;
 

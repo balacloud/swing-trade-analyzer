@@ -94,5 +94,36 @@ undo = with_clock(at(9, 15))
 try: js = client.get('/api/stock/FAKE').get_json()
 finally: undo()
 ok(abs(js['fiftyTwoWeekHigh'] - float(df['high'].tail(252).max())) < 1e-9 and abs(js['fiftyTwoWeekLow'] - float(df['low'].tail(252).min())) < 1e-9, '/api/stock 52-week high/low come from the 252 bars, not Yahoo\'s info (999 / 1)')
+# ---- Day 127: /api/sr Buy when the last COMPLETED close is inside the nearest support zone
+import sr_plan
+def planted(zone_low, zone_high, inside_flag=True):
+    z = [{'low': zone_low, 'high': zone_high, 'mid': (zone_low + zone_high) / 2, 'swings': 3, 'highs': 1, 'lows': 2, 'side': 'support', 'insideZone': inside_flag, 'nearest': True, 'lastSwingDate': 'x'}]
+    return lambda hist, current_price=None, **k: {'support': [round(zone_high, 2)], 'resistance': [round(zone_high + 20, 2)], 'allSupport': [round(zone_high, 2)], 'allResistance': [round(zone_high + 20, 2)],
+        'zones': z, 'atr': 1.0, 'high52w': 999.0, 'nearHigh52w': False, 'confirmedThrough': {'daily': 'x'}, 'currentPrice': round(float(current_price or 0), 2), 'barsUsed': 250, 'droppedFormingBar': False, 'nanRowsDropped': 0}
+real_csr = backend.compute_simple_sr
+try:
+    d = frame()
+    lc = round(float(d['close'].iloc[-1]), 2)          # after the close the last bar is completed
+    backend.compute_simple_sr = planted(lc - 0.5, lc + 1.0)
+    r, j = sr(d, at(16, 45)); m = j['meta']
+    ok(r.status_code == 200 and j['suggestedEntry'] == lc and m['entryBasis'] == 'last_close_inside_zone', f'close inside the zone: suggestedEntry is the last close ({lc}), entryBasis says so')
+    ok(j['suggestedStop'] == round(lc - 2.0, 2) and j['riskReward'] is not None, 'the stop is 2 ATR below that Buy and R:R follows')
+    ok(j['suggestedEntry'] <= j['currentPrice'] + 1e-9, 'the Buy is not above the market (after the close the last close is the price)')
+    backend.compute_simple_sr = planted(lc - 3.0, lc - 1.5, inside_flag=False)
+    r, j = sr(d, at(16, 45)); m = j['meta']
+    ok(j['suggestedEntry'] == round(lc - 1.5, 2) and m['entryBasis'] == 'zone_high', 'price above the zone: the Buy is the zone high, entryBasis zone_high (unchanged)')
+    # mid-session: the forming bar is dropped, the Buy follows the last COMPLETED close, not the live bar
+    lc2 = round(float(d['close'].iloc[-2]), 2)
+    backend.compute_simple_sr = planted(lc2 - 0.05, lc2 + 0.05)
+    r, j = sr(d, at(11, 0)); m = j['meta']
+    ok(j['suggestedEntry'] == lc2 and m['entryBasis'] == 'last_close_inside_zone', 'mid-session: the Buy is the last COMPLETED close, not the live bar')
+    # a NaN last completed close falls back to the zone high
+    dn = frame(); dn.iloc[-1, dn.columns.get_loc('close')] = np.nan
+    backend.compute_simple_sr = planted(lc - 0.5, lc + 1.0)
+    r, j = sr(dn, at(16, 45))
+    ok(r.status_code in (200, 400) and (r.status_code != 200 or j['meta']['entryBasis'] in ('zone_high', 'last_close_inside_zone')), 'a NaN close does not crash the route')
+finally:
+    backend.compute_simple_sr = real_csr
+
 print(f'\n{passed} passed, {failed} failed')
 sys.exit(1 if failed else 0)

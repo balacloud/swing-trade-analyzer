@@ -40,11 +40,11 @@ ZONES = [
     {'low': 98.0, 'high': 98.5, 'mid': 98.25, 'swings': 3, 'highs': 1, 'lows': 2, 'side': 'support', 'insideZone': False, 'nearest': True, 'lastSwingDate': 'd010'},
     {'low': 104.0, 'high': 104.4, 'mid': 104.2, 'swings': 2, 'highs': 2, 'lows': 0, 'side': 'resistance', 'insideZone': False, 'nearest': True, 'lastSwingDate': 'd020'},
 ]
-def dump(text, zones=None, support=(98.5,), atr=1.0, price=100.0):
+def dump(text, zones=None, support=(98.5,), atr=1.0, price=100.0, basis=None):
     return {'ticker': 'TST', 'payloads': {
         'stock': {'body': {'priceHistory': ph, 'fiftyTwoWeekHigh': 100.5}},
         'sr': {'body': {'currentPrice': price, 'support': list(support), 'resistance': [104.0], 'suggestedTarget': 104.0,
-                        'meta': {'atr': atr, 'zones': zones if zones is not None else ZONES, 'proximityFilter': {'resistancePct': 0.3, 'supportPct': 0.2}, 'nearHigh52w': False, 'adx': {'adx': 22}}}},
+                        'meta': {'atr': atr, 'zones': zones if zones is not None else ZONES, 'proximityFilter': {'resistancePct': 0.3, 'supportPct': 0.2}, 'nearHigh52w': False, 'adx': {'adx': 22}, **({'entryBasis': basis} if basis else {})}}},
         'patterns': {'body': {'trendTemplate': {'criteria_met': 6}}}, 'spy': {'body': {'priceHistory': ph}}, 'quote': {'body': {'available': False}}},
         'cardTexts': {'card-trade-setup': text}, 'tr': {'text': ''}}
 GOOD = ('Pullback plan 2.8 : 1 reward : risk BUY $98.50 $96.50 $104.00 Buy $98.50 support, 1.5% below the last close Stop $96.50 -2.0% from the buy · 2 ATR below '
@@ -76,6 +76,13 @@ ok(ri['TS-inv'].verdict == 'PASS', 'an inside zone flagged nearest, with a lower
 ok(ri['TS1b'].verdict == 'PASS', 'and the Buy equals that inside zone high')
 inside_wrong = [dict(inside_z[0], nearest=False), dict(inside_z[1], nearest=True), ZONES[1]]
 ok(rows(GOOD, zones=inside_wrong)['TS-inv'].verdict == 'WRONG', 'the nearest flag on the outside zone while the price is inside another zone fails the invariants')
+# Day 127: the Buy is the last COMPLETED close when it is inside the nearest support zone (the payload says so in meta.entryBasis; the audit re-derives it)
+INSIDE_TXT = GOOD.replace('Buy $98.50 support, 1.5% below the last close', 'Buy $100.00 the last close, inside the support zone').replace('BUY $98.50', 'BUY $100.00')
+rb = rows(INSIDE_TXT, zones=inside_z, support=(100.95, 99.3), basis='last_close_inside_zone')
+ok(rb['TS-basis'].verdict == 'PASS' and rb['TS1'].verdict == 'PASS' and rb['TS1b'].verdict == 'PASS' and rb['TS1d'].verdict == 'PASS' and rb['TS2'].verdict == 'PASS', 'close inside the zone: entryBasis, the Buy (= the close), the zone check and the "not above the market" check all pass')
+ok(rows(INSIDE_TXT.replace('$100.00', '$100.95'), zones=inside_z, support=(100.95, 99.3), basis='last_close_inside_zone')['TS1'].verdict == 'WRONG', 'close inside the zone but the card still shows the zone high as the Buy: caught')
+ok(rows(INSIDE_TXT, zones=inside_z, support=(100.95, 99.3), basis='zone_high')['TS-basis'].verdict == 'WRONG', 'the payload says zone_high while the close is inside the zone: caught')
+ok(rows(INSIDE_TXT, zones=[dict(inside_z[0], low=100.2, high=101.0), inside_z[1]], support=(101.0, 99.3), basis='last_close_inside_zone')['TS-basis'].verdict == 'WRONG', 'the payload says last_close_inside_zone while the close is below the zone: caught')
 # the latent engine bug the review named: the Buy (max support edge) disagrees with the zone flagged nearest
 disagree = [dict(ZONES[0], high=97.0, low=96.5), ZONES[1]]
 ok(rows(GOOD, zones=disagree)['TS1b'].verdict == 'WRONG', 'the Buy and the Support row disagreeing (Buy != nearest zone high) is caught')

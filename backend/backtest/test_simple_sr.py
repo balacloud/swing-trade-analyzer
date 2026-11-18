@@ -19,7 +19,7 @@ import pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # backend/
 
 from simple_sr import compute_simple_sr, wilder_atr, SimpleSRError, MIN_BARS
-from sr_plan import trade_plan, legacy_actionable
+from sr_plan import trade_plan, legacy_actionable, plan_entry
 from market_time import MARKET_TZ
 
 passed = 0
@@ -249,11 +249,26 @@ for edge_price, label in ((109.0, 'low'), (109.9, 'high')):
 r = pld_shape(110.6)
 zb = zone_at(r, 109.45)
 check('price above the zone (not inside): the nearest edge wins as before', zb['insideZone'] is False and zb['nearest'] is True)
-# the Buy never moves (zones never overlap, so the inside zone high is the largest support edge)
+# trade_plan's DEFAULT Buy is max(support), the inside zone high (the route now overrides it with the last close when that close is inside, see plan_entry)
 check('Buy = max(support) = the inside zone high', trade_plan(r['support'], r['resistance'], r['atr'])['entry'] == round(max(r['support']), 2))
 r = pld_shape(109.0)
 check('Buy = max(support) = the nearest zone high when price is inside', trade_plan(r['support'], r['resistance'], r['atr'])['entry'] == r['support'][0])
 # resistance side is untouched by an inside support zone
 check('resistance flag/order unchanged when price is inside a support zone', all(z['side'] == 'support' or z['insideZone'] is False for z in r['zones']))
+
+# ---------------------------------------------------------------- the Buy when the last COMPLETED close is already inside the nearest support zone (Day 127)
+Z = [{'nearest': True, 'side': 'support', 'low': 125.38, 'high': 127.82, 'insideZone': True}, {'nearest': True, 'side': 'resistance', 'low': 131.85, 'high': 132.6, 'insideZone': False}]
+check('close inside the nearest support zone: the Buy is that close', plan_entry(Z, 125.56) == (125.56, 'last_close_inside_zone'))
+check('close exactly at the zone low and at its high: still inside', plan_entry(Z, 125.38)[1] == 'last_close_inside_zone' and plan_entry(Z, 127.82)[1] == 'last_close_inside_zone')
+check('close above the zone (live price came down into it): no override, the zone high', plan_entry(Z, 128.9) == (None, 'zone_high'))
+check('close below the zone (a gap up into it): no override, the zone high; the label never says "last close"', plan_entry(Z, 124.0) == (None, 'zone_high'))
+check('a NaN or missing close falls back to the zone high', plan_entry(Z, float('nan')) == (None, 'zone_high') and plan_entry(Z, None) == (None, 'zone_high'))
+check('no zones (legacy engine) or no nearest support zone: the default rule', plan_entry(None, 100.0) == (None, 'nearest_support') and plan_entry([], 100.0) == (None, 'nearest_support') and plan_entry([Z[1]], 100.0) == (None, 'nearest_support'))
+p1 = trade_plan([127.82, 124.69], [131.85], atr=2.5, entry_override=125.56)
+check('override: entry is the override, stop = entry - 2 ATR, target and R:R follow', p1['entry'] == 125.56 and p1['stop'] == 120.56 and p1['target'] == 131.85 and p1['riskReward'] == round((131.85 - 125.56) / 5.0, 2))
+p2 = trade_plan([127.82, 124.69], [131.85], atr=2.5)
+check('no override: unchanged (max(support), the zone high)', p2['entry'] == 127.82 and p2['stop'] == 122.82)
+check('override without ATR: entry kept, no stop, no R:R (never a made-up number)', trade_plan([127.82], [131.85], None, entry_override=125.56)['stop'] is None)
+check('the stop is always below the inside zone (zones are at most 1 ATR wide, the stop is 2 ATR under a close inside the zone)', p1['stop'] < 125.38 - 1.0)
 
 print(f'\n{passed} checks passed')

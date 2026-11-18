@@ -199,8 +199,13 @@ function checkA10(dom, api, h) {
   if (!Array.isArray(zones)) return result('A10', false, '/api/sr meta.zones', 'payload has no meta.zones (old engine format?)');
   const problems = [];
   const sup = Array.isArray(b.support) ? b.support.filter(Number.isFinite) : [];
-  const entry = sup.length ? Math.max(...sup) : null;
-  if ((entry === null ? null : entry) !== (b.suggestedEntry == null ? null : b.suggestedEntry)) problems.push(`suggestedEntry ${b.suggestedEntry} != max(support) ${entry}`);
+  // Day 127: the Buy is the last COMPLETED close when that close is inside the nearest support zone, else the zone high (= max(support)).
+  // Worked out here from the zones and the close, NOT copied from suggestedEntry, so the payload is still checked.
+  const nearestSup = zones.find(q => q && q.nearest === true && q.side === 'support');
+  const lastClose = b.meta && b.meta.candle && b.meta.candle.barComplete === false && b.meta.prevBar && Number.isFinite(b.meta.prevBar.close) ? b.meta.prevBar.close : b.currentPrice;
+  const closeInside = !!nearestSup && Number.isFinite(lastClose) && nearestSup.low <= lastClose && lastClose <= nearestSup.high;
+  const entry = closeInside ? Math.round(lastClose * 100) / 100 : (sup.length ? Math.max(...sup) : null);
+  if ((entry === null ? null : entry) !== (b.suggestedEntry == null ? null : b.suggestedEntry)) problems.push(`suggestedEntry ${b.suggestedEntry} != ${closeInside ? 'the last close (inside the nearest support zone)' : 'max(support)'} ${entry}`);
   if (entry !== null) {
     const want = `$${entry.toFixed(2)}`;
     const ts = (dom.cards || []).find(c => c.id === 'card-trade-setup');
@@ -216,7 +221,7 @@ function checkA10(dom, api, h) {
       if (!text.includes(want)) problems.push(`${side} row "${text}" lacks ${want}`);
       const edge = side === 'support' ? z.high : z.low;
       const api_edge = side === 'support' ? b.suggestedEntry : b.suggestedTarget;
-      if (api_edge !== edge) problems.push(`${side} zone edge ${edge} != ${side === 'support' ? 'suggestedEntry' : 'suggestedTarget'} ${api_edge}`);
+      if (api_edge !== edge && !(side === 'support' && closeInside)) problems.push(`${side} zone edge ${edge} != ${side === 'support' ? 'suggestedEntry' : 'suggestedTarget'} ${api_edge}`);
     } else if (!text.includes('None within')) problems.push(`${side} row should say "None within…" (no zone): "${text}"`);
   }
   return result('A10', problems.length === 0, 'Buy and Support/Resistance rows equal the /api/sr nearest zones', problems.join('; ') || 'ok');

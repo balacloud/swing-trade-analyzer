@@ -3,7 +3,7 @@ Old-vs-new support/resistance table (Day 126, one-off).
 Plan: docs/claude/design/SIMPLE_SR_PLAN_DAY125.md §4 + §8 #5.
 
 Asks the RUNNING backend's /api/sr/<t>?engine=legacy and ?engine=simple, so both
-columns come from the route's own arithmetic (sr_plan.trade_plan), not a second
+columns come from the route's own arithmetic (since Day 127 the Buy can be the last close when it is inside the support zone, so a re-run is not comparable with the Day-126 table) (sr_plan.trade_plan), not a second
 copy. The only logic here is the Simple Checklist's criteria 3 and 4, copied
 from frontend/src/utils/simplifiedScoring.js (same arithmetic, one-off, for
 this table only). That checklist was removed Day 126, so these two columns are

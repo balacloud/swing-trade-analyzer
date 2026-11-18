@@ -389,7 +389,7 @@ export async function fetchBreakout(ticker) {
  * Day 126: served by the simple S&R engine (backend/simple_sr.py). BREAKING for the old fields:
  * levelScores, mtf, resistanceProjected, supportProjected, pivotSelection and tradeViability are
  * no longer sent (they remain on ?engine=legacy only).
- * - support: nearest-first zone edges below price (each zone's HIGH, the Buy price)
+ * - support: nearest-first zone edges below price (each zone's HIGH, the Buy price, unless meta.entryBasis is 'last_close_inside_zone' (then suggestedEntry is the last completed close))
  * - resistance: nearest-first zone edges above price (each zone's LOW, the Target)
  * - method: 'simple'
  * - suggestedEntry: Nearest support (entry point)

@@ -107,6 +107,18 @@ reruns the 86,400-combo parity test and reports any mismatch immediately.
 
 ## Feedback Log (append-only, most recent session first)
 
+### Day 127
+**A buy order above the market is not a plan.** The Statement Audit showed that when price already sits inside the
+support zone, the Trade Setup's Buy was the zone's top: above the market on five audited tickers (up to +8.9%).
+The card said "wait for a dip, then buy", a Buy above price fills at once, and risk and reward were measured from a
+price you cannot get, then passed to "Size this plan". The lens said: sizing matters more than entry, and the page
+must tell one story. **Decision (user, after the persona read): the Buy is the last completed close when that close is
+inside the zone**, stop unchanged at 2 ATR below the Buy. Rejected the zone LOW: it would flatter the reward:risk by
+assuming a deeper dip that may never come ("illusion of control"). The honest number is lower (AMD 0.2 -> 0.53 after
+the fix because the old Buy also misstated the stop), and that is the card telling the truth rather than flattering.
+Architect's Lens applied: the Buy rule lived in four copies, so it now lives in one backend function. **Lesson:** a
+precise-looking plan number is only worth showing if you could actually trade it.
+
 ### Day 125
 **Accepted convention over proof, on purpose, and said so on the page.** The user wanted the
 breakout and support/resistance reads rebuilt on "what most traders agree on" and said
