@@ -1160,6 +1160,11 @@ function App() {
                           {analysisResult.rsData?.rs52Week?.toFixed(2) || 'N/A'}
                         </span>
                       </div>
+                      {analysisResult.rsData?.rs52Week == null && (
+                        <div className="text-xs text-gray-500" data-testid="rs-na-reason">
+                          Needs more than 200 days of price history ({rawAnalysisData?.stock?.priceHistory?.length ?? 0} loaded), so there is no 52-week comparison yet.
+                        </div>
+                      )}
                       <div className="flex justify-between">
                         <span className="text-gray-400">Stock 52W Return:</span>
                         <span className={analysisResult.rsData?.stock52wReturn >= 0 ? 'text-green-400' : 'text-red-400'}>

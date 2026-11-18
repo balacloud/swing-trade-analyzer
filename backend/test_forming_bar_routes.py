@@ -120,5 +120,23 @@ try:
 finally:
     backend.yf.Ticker = real_yf
 
+# ---- fundamentals: an empty answer under load gets ONE retry, then 200 if the second answer is good; two empties still say so
+calls = {'n': 0}
+class FundDP(FakeDP):
+    def __init__(self, answers): super().__init__(frame('2026-11-16')); self.answers = answers
+    def get_fundamentals(self, t):
+        a = self.answers[min(calls['n'], len(self.answers) - 1)]; calls['n'] += 1; return dict(a) if a else a
+good = {'roe': 20.0, 'revenueGrowth': 5.0, 'debtToEquity': 1.0, 'epsGrowth': 3.0}
+backend.time.sleep = lambda s: None
+calls['n'] = 0; backend.get_data_provider = lambda: FundDP([None, good])
+r = client.get('/api/fundamentals/FAKE')
+ok(r.status_code == 200 and calls['n'] == 2, 'fundamentals: first answer empty, the retry succeeds -> 200 (two calls)')
+calls['n'] = 0; backend.get_data_provider = lambda: FundDP([None, None])
+r = client.get('/api/fundamentals/FAKE')
+ok(r.status_code != 200 and calls['n'] == 2, 'fundamentals: two empty answers still fail honestly (404/503), after exactly one retry')
+calls['n'] = 0; backend.get_data_provider = lambda: FundDP([good])
+r = client.get('/api/fundamentals/FAKE')
+ok(r.status_code == 200 and calls['n'] == 1, 'fundamentals: a good first answer is not retried')
+
 print(f"\n{passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)

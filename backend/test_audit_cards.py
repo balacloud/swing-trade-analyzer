@@ -69,6 +69,13 @@ two = [ZONES[0], dict(ZONES[0], low=90.0, high=90.4, nearest=True), ZONES[1]]
 ok(rows(GOOD, zones=two)['TS-inv'].verdict == 'WRONG', 'two zones flagged nearest on one side fail the invariants')
 far_flag = [dict(ZONES[0], nearest=False), dict(ZONES[0], low=90.0, high=90.4, nearest=True), ZONES[1]]
 ok(rows(GOOD, zones=far_flag)['TS-inv'].verdict == 'WRONG', 'the nearest flag on a farther zone fails the invariants')
+# Day 127: an inside zone flagged nearest while an outside zone's edge is nearer is CORRECT (PLD): invariants and the Buy check pass
+inside_z = [dict(ZONES[0], low=99.95, high=100.95, insideZone=True, nearest=True), dict(ZONES[0], low=98.9, high=99.3, insideZone=False, nearest=False), ZONES[1]]
+ri = rows(GOOD.replace('Buy $98.50', 'Buy $100.95').replace('BUY $98.50', 'BUY $100.95'), zones=inside_z, support=(100.95, 99.3))
+ok(ri['TS-inv'].verdict == 'PASS', 'an inside zone flagged nearest, with a lower zone whose edge is nearer, passes the invariants (engine rule: inside = distance 0)')
+ok(ri['TS1b'].verdict == 'PASS', 'and the Buy equals that inside zone high')
+inside_wrong = [dict(inside_z[0], nearest=False), dict(inside_z[1], nearest=True), ZONES[1]]
+ok(rows(GOOD, zones=inside_wrong)['TS-inv'].verdict == 'WRONG', 'the nearest flag on the outside zone while the price is inside another zone fails the invariants')
 # the latent engine bug the review named: the Buy (max support edge) disagrees with the zone flagged nearest
 disagree = [dict(ZONES[0], high=97.0, low=96.5), ZONES[1]]
 ok(rows(GOOD, zones=disagree)['TS1b'].verdict == 'WRONG', 'the Buy and the Support row disagreeing (Buy != nearest zone high) is caught')

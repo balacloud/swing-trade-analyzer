@@ -255,7 +255,8 @@ class CardAudit(Audit):
             if cand and not any(z.get('nearest') for z in cand): bad.append(f'no nearest {side}')
             if cand:
                 edge = (lambda z: z['low']) if side == 'resistance' else (lambda z: z['high'])
-                near_z = min(cand, key=lambda z: abs(edge(z) - price))
+                # the engine's rule (simple_sr.pick, Day 127): the zone price is INSIDE counts as distance 0, otherwise distance to the edge
+                near_z = min(cand, key=lambda z: 0.0 if z.get('insideZone') else abs(edge(z) - price))
                 if not near_z.get('nearest'): bad.append(f'nearest {side} flag is not on the closest zone')
         floor, ceil = price * (1 - (meta.get('proximityFilter') or {}).get('supportPct', .2)), price * (1 + (meta.get('proximityFilter') or {}).get('resistancePct', .3))
         for z in zones:
@@ -390,7 +391,7 @@ class CardAudit(Audit):
             self.addc('RS2', 'Stock 52W Return and S&P 52W Return', f'{m.group(2)}% / {m.group(3)}%', f'{sr_:+.1f}% / {pr_:+.1f}%', 'PASS' if near(float(m.group(2)), sr_, 0.06) and near(float(m.group(3)), pr_, 0.06) else 'WRONG')
             same = (len(c) >= 252) == (len(sc) >= 252)
             self.addc('RS3w', 'S3: both returns cover the same period ("52 weeks")', f'stock {len(c) - 1 - i_s} bars, SPY {len(sc) - 1 - (len(sc) - 252 if len(sc) >= 252 else 0)} bars', 'equal', 'PASS' if same else 'MISLEADING',
-                      '' if same else 'short history: the stock\'s year-ago price is its FIRST bar while SPY uses 252 bars, so RS compares different periods')
+                      '' if same else 'short history: the stock\'s year-ago price is its FIRST bar while SPY uses 252 bars, so RS compares different periods (the Technical Read tile now says "since <date>"; the RS card still labels it 52W)', sev=None if same else 'LOW')
             mr = re.search(r'RS Rating \(scaled, not a percentile\): (\d+|N/A)', self.text)
             if mr:
                 self.work = self.work.replace(mr.group(0), ' § ', 1)

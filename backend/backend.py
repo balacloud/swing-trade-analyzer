@@ -24,6 +24,7 @@ Day 51: v4.14 Multi-Source Data Intelligence (TwelveData + Finnhub + FMP + yfina
 
 import os
 import json
+import time
 import requests
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -1260,6 +1261,12 @@ def get_fundamentals(ticker):
 
         dp = get_data_provider()
         fundamentals = dp.get_fundamentals(ticker)
+        if not fundamentals or _is_fundamentals_empty(fundamentals):
+            # Day 127 (universe run): under heavy load ~10 large US stocks (ETN, HD, LLY, PG...) got an empty answer from every source at once and
+            # a "Can't check" card, then loaded fine seconds later. One short retry before giving up.
+            time.sleep(1.5)
+            print(f"⚠️ /api/fundamentals {ticker}: empty answer, retrying once")
+            fundamentals = dp.get_fundamentals(ticker)
 
         if fundamentals and not _is_fundamentals_empty(fundamentals):
             fundamentals['ticker'] = ticker

@@ -129,7 +129,7 @@ def compute_simple_sr(df, current_price=None, now=None,
 
     Returns a dict:
         support / resistance: zone edges nearest to price, nearest first
-            (support -> zone HIGH, resistance -> zone LOW; Fable #1, so the Buy
+            (the zone price is INSIDE counts as distance 0, Day 127; support -> zone HIGH, resistance -> zone LOW; Fable #1, so the Buy
             price is the same everywhere). Every zone in the window on that side,
             whatever its turn count (the nearest one is flagged `nearest`).
         allSupport / allResistance: every zone's edge on that side, no window.
@@ -192,9 +192,15 @@ def compute_simple_sr(df, current_price=None, now=None,
         if in_win:
             in_window.append(zone)
 
+    def distance(z):
+        # Day 127 (Statement Audit, PLD): the zone price is INSIDE is the support (rule 3, Fable #11), so it is distance 0. Before, every zone was
+        # ranked by the distance to its edge (the HIGH for support), so a lower zone whose high was nearer won and the Buy (the inside zone's high)
+        # disagreed with the "nearest" Support row. Zones never overlap, so at most one zone holds the price.
+        return 0.0 if z['insideZone'] else abs(z['_edge'] - price)
+
     def pick(side):
         cands = [z for z in in_window if z['side'] == side]
-        cands.sort(key=lambda z: abs(z['_edge'] - price))
+        cands.sort(key=distance)
         if cands:
             cands[0]['nearest'] = True
         return [round(z['_edge'], 2) for z in cands]
@@ -205,7 +211,7 @@ def compute_simple_sr(df, current_price=None, now=None,
     high52w = float(frame['high'].iloc[-DAILY_LOOKBACK:].max())
     near_high = not resistance and price >= high52w * (1 - NEAR_HIGH_PCT)
 
-    in_window.sort(key=lambda z: abs(z['_edge'] - price))
+    in_window.sort(key=distance)
     for z in in_window:
         del z['_edge']
 

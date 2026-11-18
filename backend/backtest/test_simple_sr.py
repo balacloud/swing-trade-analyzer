@@ -222,4 +222,38 @@ check('no support: no entry, no stop', p['entry'] is None and p['stop'] is None 
 s, rr = legacy_actionable([79.0, 80.0, 95.0, 105.0], [99.0, 104.0, 131.0], 100.0, 0.20, 0.30)
 check('legacy filter: support in [80, 100), resistance in (100, 130]', s == [80.0, 95.0] and rr == [104.0])
 
+# ---------------------------------------------------------------- the zone price is INSIDE is the nearest support, even when a lower zone's edge is nearer (Day 127, PLD)
+# Zone B = three lows 109.0 / 109.45 / 109.9 (one zone, width 0.9); zone A = one low at 108.2 (its high is 0.8 below price, B's high is 0.9 above it).
+def pld_shape(price):
+    df = base()
+    major_low(df, -40, 109.0)
+    major_low(df, -55, 109.45)
+    major_low(df, -70, 109.9)
+    major_low(df, -85, 108.2)
+    return run(df, price=price)
+
+r = pld_shape(109.0)
+zB = zone_at(r, 109.45)
+zA = zone_at(r, 108.2)
+check('PLD shape: two separate support zones exist, price inside the upper one', zA is not None and zB is not None and zA is not zB and zB['insideZone'] is True and zA['insideZone'] is False)
+check('PLD shape: the zone price is inside is the nearest support (flag on it, not on the lower zone)', zB['nearest'] is True and zA['nearest'] is False)
+check('PLD shape: support[0] is the inside zone high, and the list is sorted nearest first (descending)', r['support'][0] == zB['high'] and r['support'] == sorted(r['support'], reverse=True))
+check('PLD shape: meta.zones lists the inside zone first (nearest first)', r['zones'][0] is zB or r['zones'][0]['low'] == zB['low'])
+check('PLD shape: exactly one nearest per side', sum(1 for z in r['zones'] if z['nearest'] and z['side'] == 'support') == 1)
+# price exactly at the inside zone's low and exactly at its high: still inside, still the nearest
+for edge_price, label in ((109.0, 'low'), (109.9, 'high')):
+    rr_ = pld_shape(edge_price)
+    zb = zone_at(rr_, 109.45)
+    check(f'price exactly at the inside zone {label}: still inside and nearest', zb['insideZone'] is True and zb['nearest'] is True)
+# no inside zone: unchanged (nearest by edge distance)
+r = pld_shape(110.6)
+zb = zone_at(r, 109.45)
+check('price above the zone (not inside): the nearest edge wins as before', zb['insideZone'] is False and zb['nearest'] is True)
+# the Buy never moves (zones never overlap, so the inside zone high is the largest support edge)
+check('Buy = max(support) = the inside zone high', trade_plan(r['support'], r['resistance'], r['atr'])['entry'] == round(max(r['support']), 2))
+r = pld_shape(109.0)
+check('Buy = max(support) = the nearest zone high when price is inside', trade_plan(r['support'], r['resistance'], r['atr'])['entry'] == r['support'][0])
+# resistance side is untouched by an inside support zone
+check('resistance flag/order unchanged when price is inside a support zone', all(z['side'] == 'support' or z['insideZone'] is False for z in r['zones']))
+
 print(f'\n{passed} checks passed')

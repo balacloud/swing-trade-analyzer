@@ -109,7 +109,7 @@ class Audit:
                 ok = near(float(m.group(1)), a[0], 0.15) and near(float(m.group(2)), b[0], 0.15)
                 self.add('T3', 'Stock vs S&P 500 return over the "past year" (S1 api.stock.price52wAgo + spy)', f'{m.group(1)}% vs {m.group(2)}%', f'{a[0]:.1f}% vs {b[0]:.1f}%', 'PASS' if ok else 'WRONG')
                 span = [a[1] + 1, b[1] + 1]
-                wok = all(window_ok('past year', s - 1, s) for s in span)
+                wok = all(window_ok('past year', s - 1, s) for s in span) or 'under a year of history' in self.text   # Day 127: the tile now names the real period
                 self.add('T3w', 'words "past year" vs the window used', f'{a[1]} / {b[1]} bars back', '250-253 bars', 'PASS' if wok else 'MISLEADING',
                          '' if wok else 'history shorter than a year: the first bar stands in for the year-ago price (backend.py price52wAgo fallback)')
             else:

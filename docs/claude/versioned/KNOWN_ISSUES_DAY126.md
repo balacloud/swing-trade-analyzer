@@ -6,6 +6,15 @@
 
 ## Changes from Day 125
 
+- **Fixed (Day 127): the Buy could disagree with the nearest support zone (PLD), plus three small honesty fixes.** Mid-session universe run (10:13 ET, 112 of 117 tickers on a live regular-session quote): no new
+  problems; the live-price and unfinished-bar logic held. **Engine:** `simple_sr.pick` ranked zones by distance to their edge, so on PLD (price 125.56 inside the zone 125.38-127.82) a lower zone 122.60-124.69 won the
+  `nearest` flag while the Buy was the inside zone's high; the card showed two different supports. Rule 3 says the zone price is inside IS the support. Fix: the zone price is inside counts as distance 0 (one helper
+  used by `pick` and the `meta.zones` sort). Zones never overlap, so `max(support)` (the Buy) is unchanged; only the flag, list order and what reads them change. Plan
+  `docs/claude/design/SR_INSIDE_ZONE_PICK_PLAN_DAY127.md` (Opus review applied: audit TS-inv rule, tests in `backtest/test_simple_sr.py` (53) wired into `run_all_checks.sh`, second sort). 25 of 115 tickers have price inside a
+  zone; PLD was the only one affected. **Small fixes:** the RS card says why it is N/A ("needs more than 200 days of price history (N loaded)"); the Technical Read tile says "since <first date> (under a year of
+  history)" instead of "past year" on short listings; `/api/fundamentals` retries once after an empty answer (about 10 large US stocks got "Can't check" under load). **Found by the tests:** a first draft of the retry would have
+  crashed (`time` was not imported in backend.py). **Open for you to decide (design, not a bug):** when price is already inside a support zone the Buy is the zone's HIGH, i.e. above the current price (SOXL.NE +8.9%, AMD
+  +5.3%, FCX +4.6%, ETN +3.9%): a "wait for a dip, then buy" plan with a buy above the market. Options: Buy at the last close, at the zone high (today), or at the zone low. Not changed.
 - **Added (Day 127): two ways to run the existing checks without remembering to.** (1) `./run_all_checks.sh [--quick]`: every backend and frontend test suite, and (without `--quick`) the page checker and a smoke
   audit on 8 fixed tickers (`backend/audit_smoke.txt`); ends with one line "ALL OK" or "FAILED: ...". Not a hook. (2) `nightly_audit.sh`, scheduled by launchd (`com.sta.nightly.audit`, weekdays 18:00 Eastern;
   plist copy in `docs/claude/design/com.sta.nightly.audit.plist.txt`): the 117-ticker universe (`backend/audit_universe.txt`) through the three audits, output in `backend/validation_results/nightly/<date>/`, a

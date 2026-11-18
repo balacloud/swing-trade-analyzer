@@ -42,7 +42,7 @@ const Why = ({ children }) => (
   </details>
 );
 
-function StrongTiles({ strong }) {
+function StrongTiles({ strong, historyBars = null, firstDate = null }) {
   if (strong.state !== 'ok') {
     return <div className="text-sm text-gray-400">The three checks couldn't be read ({strong.reason}).</div>;
   }
@@ -86,7 +86,10 @@ function StrongTiles({ strong }) {
             : `${rs.ratio.toFixed(2)}×`}
         </div>
         <div className="text-xs text-gray-400 mt-1">
-          {rs.available ? 'rule of thumb: beat it · past year' : "relative strength didn't load"}
+          {rs.available
+            // Day 127 (universe run): with under a year of history the "year-ago" price is the first bar, so say the period it really covers
+            ? `rule of thumb: beat it · ${Number.isFinite(historyBars) && historyBars < 252 && firstDate ? `since ${firstDate} (under a year of history)` : 'past year'}`
+            : "relative strength didn't load"}
         </div>
       </div>
     </div>
@@ -299,7 +302,7 @@ export default function TechnicalRead({ ticker, technical, adxData, rsData, patt
         <div className="text-sm font-semibold text-gray-200 mb-2">Trend, momentum and strength against the market
           <span className="font-normal text-gray-500"> · common rules of thumb, not tested by STA</span></div>
         {(read.read === 'Unavailable' || trendChecks.state !== 'ok') && <p className="text-sm text-gray-400 mb-2" data-testid="technical-unavailable">{unavailableText}</p>}
-        <StrongTiles strong={strong} />
+        <StrongTiles strong={strong} historyBars={priceHistory?.length ?? null} firstDate={priceHistory?.[0]?.date ?? null} />
         <div className="text-xs text-gray-400 mt-2" data-testid="technical-adx">
           Trend strength (ADX): {Number.isFinite(read.adx) ? <span className="font-mono text-gray-200">{read.adx.toFixed(1)}</span> : 'not available'}
           {Number.isFinite(read.adx) && ` · ${read.adx < ADX_NO_TREND_THRESHOLD ? 'below 20 usually means it is moving sideways right now' : '20 or more usually means the price is pushing in one direction'}`}
