@@ -118,6 +118,9 @@ assuming a deeper dip that may never come ("illusion of control"). The honest nu
 the fix because the old Buy also misstated the stop), and that is the card telling the truth rather than flattering.
 Architect's Lens applied: the Buy rule lived in four copies, so it now lives in one backend function. **Lesson:** a
 precise-looking plan number is only worth showing if you could actually trade it.
+**Second lesson, same day (user's challenge):** "audit the data source first, or the audit will not sit right." The page
+audit recomputed from the same bars the page received, so a wrong provider close would have passed as PASS: a clean
+result from a check that cannot see the fault is false comfort. Check the inputs before trusting a check that reads them.
 
 ### Day 125
 **Accepted convention over proof, on purpose, and said so on the page.** The user wanted the

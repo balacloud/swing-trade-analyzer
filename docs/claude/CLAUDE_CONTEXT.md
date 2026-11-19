@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 126 — 2026-11-16
+> **Last Updated:** Day 127 — 2026-11-19
 
 ---
 
@@ -11,15 +11,21 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 126 |
-| Version | v4.66 (Backend v2.55, Frontend v4.63) |
-| Latest Status | PROJECT_STATUS_DAY126_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY126.md |
-| Latest API | API_CONTRACTS_DAY126.md |
-| Focus | **Data trust and facts-only cards done (Day 126):** indicator table made true, stock-split mechanism (SOXL.NE), Validate tab deleted / Forward Test hidden, Technical Read and volume card show plain facts, ruler marks the real 21/50/200-day averages, three-pass review enforced by a hook. **Next: the user's further questions;** optional follow-ups listed in `KNOWN_ISSUES_DAY126.md` and ROADMAP #19. |
+| Current Day | 127 |
+| Version | v4.67 (Backend v2.56, Frontend v4.64) |
+| Latest Status | PROJECT_STATUS_DAY127_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY127.md |
+| Latest API | API_CONTRACTS_DAY127.md |
+| Focus | **Data Source Audit Round 2 (Day 127 plan, step 0 done):** the page audit proves maths, not data, so audit the sources on all 117 tickers first (fetched-vs-computed inventory next), then the tab statements, then the 117 page audit. Playbook research prompt drafted (runs after). `DATA_SOURCE_AUDIT_ROUND2_PLAN_DAY127.md`. |
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 127 Summary (Audit follow-through and data-source plan — v4.67)
+- **Audit follow-through:** universe audit 177 → ~2 WRONG; one price basis, cache rules, 503 vs 404, fundamentals retry. `run_all_checks.sh` and a nightly universe audit (no new rules, no slow hooks).
+- **Buy fix (persona decision):** the zone price is inside is the nearest support; when the last completed close is inside it, the Buy is that close (`meta.entryBasis`, one function `sr_plan.plan_entry`). AMD R:R 0.2 → 0.53. Opus review applied.
+- **Data Source Audit Round 2:** plan + Opus review; step 0 built (audit scripts take any ticker list; 117 classified). Tradier: live quote already first for US; history stays dividend-adjusted.
+- **Playbook research prompt** (macro → sector → stock, tested against the 117) drafted, not run.
 
 ### Day 126 Summary (Data trust and facts-only cards — v4.66, Golden Rule 64)
 - **User rule: "I make the decision as a human, you just help with data."** Verdict words left the Technical Read
@@ -48,25 +54,6 @@
   The switch waits for the user's old-vs-new review. **No in-app chart** (Claude reads numbers;
   the user reads TradingView). PERSONA log entry.
 - Puppeteer's new headless mode hung on any `click()` late in the day; `headless: 'shell'` works.
-
-### Day 124 Summary (Analyze Page Redesign complete — Steps 7–8, v4.64, Golden Rule 62)
-- **Step 7 (user decision: no market verdict):** the Regime band became the facts-only
-  **Market backdrop** card, first on the page: S&P 500 and Nasdaq-100 vs 200-day and 50-day,
-  biggest 1-day drop in 10 sessions (with "largest since"), VIX. New `index_trend.py`,
-  `/api/market/index/<ticker>`, SPY `trend`. Full Analysis default; Simple says "No Trade";
-  ETFs say "Exchange-traded fund (ETF)".
-- **Same day:** one VIX display band (`vix_bands.py`) on Analyze and Context; Forward Test shows
-  MR next-open figures (`openBasis`); backdrop → Context link.
-- **Step 8:** `ui-verify-checklist.js` rewritten (8 checks, pure module, 69 unit checks, exit 1
-  on failure, 40/40 live on AAPL/NVDA/SMH/JPM/RIVN; deliberate breaks caught). Fable caught a
-  vacuous blank-card check, fixed with `data-card-head`. One VIX sizing ladder ("VIX not
-  loaded" shown); `qualityGates` removed; docs + HOW_STOCK_PICKING_WORKS republished.
-- **AVGO question** (+24% in a week vs STA "Weak"): bounce vs trend, not a contradiction (still
-  below a flat 200-day). It exposed a real gap: the header price had no date. Now "Nov 11 close"
-  / "intraday, not a close". PERSONA log entry.
-- **Golden Rule 62:** explain to the user in very simple English. `PROJECT_INSTRUCTIONS.md` deleted.
-
----
 
 ## SESSION START PROTOCOL
 
@@ -139,9 +126,8 @@ places and manages every trade themselves. Every item below is available to work
 pick deliberately based on what the user actually wants next, not backlog order.
 
 **Next up (each: plan → Fable review → build → sign-off):**
-0. **The user's further questions come first.** Day 126 ended with "after that I have series of questions"
-   still open. After each code change run `/three-pass` (Golden Rule 64; a Stop hook enforces it), and
-   `cd frontend && node scripts/ui-verify-checklist.js AAPL SOXL.NE NVDA RIVN` after any Analyze-page change.
+0. **Data Source Audit Round 2 (ROADMAP #20), step 1 onward.** Step 0 done (Day 127: audit scripts take `--tickers-file`, 117 classified). Next: fetched-vs-computed inventory over all `backend/*.py`, truth-free audit on the 117, IBKR truth for tickers with a watchlist contract id (list the missing first), Tradier measurement then the user's decision, Data Sources tab statement audit + Playwright rare states, framework Part 8. Then the 117 page audit and the other tabs. After each code change run `/three-pass` (Golden Rule 64) and `./run_all_checks.sh --quick`.
+0-. **Playbook research (ROADMAP #21):** the user reviews `PLAYBOOK_RESEARCH_PROMPT_DAY127.md`; runs after #20. The user's open "fork question" from Day 127 was not asked yet.
 0a. **Day 126 follow-ups, all optional (ROADMAP #19):** weekly watchlist-wide split scan, Tradier 40% jump
    guard, delete the dead `/api/validation/*` routes, retire the engine verdict labels no card shows any more.
    The simple S&R engine (Priority #18) is DONE and live.
