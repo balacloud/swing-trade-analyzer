@@ -25,7 +25,7 @@
 The Statement Audit proves the maths on the bars the page received, not the data. Round 2 (`docs/claude/design/DATA_SOURCE_AUDIT_ROUND2_PLAN_DAY127.md`).
 **Done:** step 0 (audit scripts take `--tickers-file`), Analyze-page inventory (draft), truth-free audit on all 117 (mid-session), Tradier 400 fix, empty-price-row fix + audit checks.
 **Not done:** (1) re-run the audit AFTER the 4pm close (freshness read "warn" for every ticker because the run was at 10:17 ET; Tradier's breaker opened so only 1 of 79 US tickers was tested); (2) IBKR truth for the 117
-(list the tickers without a watchlist contract id first; QPUX and DRAL close differ 3-4% between Yahoo and Twelve Data); (3) fix FINN.NE (22 malformed bars), XDRV.TO (83% flat zero-volume bars), SOXL.NE (100% flat,
+(every ticker has a watchlist contract id; 24 already have truth from Round 1; QPUX and DRAL were CLEARED: the 3-4% Yahoo vs Twelve Data gap was only on Nov 19, the unfinished day, and both match IBKR exactly on every completed day); (3) fix FINN.NE (22 malformed bars), XDRV.TO (83% flat zero-volume bars), SOXL.NE (100% flat,
 close-only; known); (4) Canada has one source for most tickers, so "unchecked" there is not "clean"; (5) Data Sources tab statement audit + Playwright rare states; (6) inventory of the other tabs and about 17 direct
 provider calls that bypass the orchestrator; (7) the 117-ticker page audit, then Scan / Sectors / Context; (8) framework Part 8.
 The nightly summary should keep saying "data UNVERIFIED" until (1)-(3) are done.

@@ -137,7 +137,7 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
   <section>
     <div class="shead"><h2>Next priorities</h2><span class="src">CLAUDE_CONTEXT.md</span></div>
     <ol class="pri">
-      <li><span class="sev med">Next</span><strong>Data Source Audit Round 2 (about 40% done):</strong> re-run the audit after the 4pm close; compare the 117 tickers with IBKR (first list the ones with no watchlist contract id); fix FINN.NE, XDRV.TO and SOXL.NE and decide QPUX and DRAL; then the Data Sources tab and the other tabs. The playbook research runs after it.</li>
+      <li><span class="sev med">Next</span><strong>Data Source Audit Round 2 (about 40% done):</strong> re-run the audit after the 4pm close; compare the 117 tickers with IBKR (first list the ones with no watchlist contract id); fix FINN.NE, XDRV.TO and SOXL.NE (QPUX and DRAL were cleared: they only differed on the unfinished day); then the Data Sources tab and the other tabs. The playbook research runs after it.</li>
       <li><span class="sev med">Next</span><strong>Twelve Data keeps running out, and Tradier stalls.</strong> Remove the unused 4-hour RSI call that uses the same allowance, and decide on one retry when Tradier stalls. Each needs a small plan and an Opus review first.</li>
       <li><span class="sev med">Optional</span><strong>Page layout review.</strong> No layout plan exists yet. You name the 2 or 3 least intuitive screens and we go screen by screen, like the Analyze redesign.</li>
       <li><span class="sev med">Optional</span><strong>Your next questions.</strong> After every code change, <code>/three-pass</code> runs the three review passes (a hook now requires it).</li>
@@ -169,7 +169,7 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
     <ul class="bugs">
       <li><span class="sev med">Medium</span>New Day 128: Twelve Data keeps hitting its limit (its breaker opened 82 times), so the app uses Yahoo for 61 of 97 US tickers. Likely relief: remove the unused 4-hour RSI call.</li>
       <li><span class="sev med">Medium</span>New Day 128: Tradier stalls on about 1 call in 6 to 8, which trips its breaker. A retry is a design choice, not made yet.</li>
-      <li><span class="sev med">Medium</span>Day 127, about 40% done: the page audit proves the maths, not the data. The data audit found FINN.NE, XDRV.TO, SOXL.NE, QPUX and DRAL to fix; the IBKR comparison and the Data Sources tab audit are still to do.</li>
+      <li><span class="sev med">Medium</span>Day 127, about 40% done: the page audit proves the maths, not the data. The data audit found FINN.NE, XDRV.TO and SOXL.NE to fix (QPUX and DRAL turned out fine); the IBKR comparison and the Data Sources tab audit are still to do.</li>
       <li><span class="sev med">Medium</span>New Day 126: the stock-split table is kept by hand. A split is adjusted only after someone verifies it; an unknown one shows as a FAIL on the Data Sources tab only for tickers you open.</li>
       <li><span class="sev high">High</span>Per-ticker provenance can't distinguish "never checked" from "just failed."</li>
             <li><span class="sev med">Medium</span>New Day 123: a missing RSI is scored as 50 and counts as a pass toward Strong (the card now says "momentum n/a").</li>

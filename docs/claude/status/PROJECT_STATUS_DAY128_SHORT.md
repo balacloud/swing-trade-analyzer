@@ -12,7 +12,7 @@ The user's worry carried on from Day 127: "if the data is wrong the whole comput
 Draft in `docs/test/DataSources_20261119/INVENTORY.md`, from reading the code. Findings: the same price bars are fetched separately by `/api/stock`, `/api/sr`, `/api/patterns`, `/api/breakout`, the live quote and SPY/QQQ, so two cards can come from different providers; the Mean-Reversion card reads Yahoo directly, around the provider chain; the Liquidity row uses Yahoo's average volume although the app computes one from bars; `rsi_4h` spends an intraday call on every `/api/sr` and no card uses it. Other tabs and about 17 bypass calls are not inventoried yet.
 
 ### 2. Truth-free audit on all 117 tickers (run mid-session, 10:17 ET)
-Report: `docs/test/DataSources_20261119/REPORT.md`. Clean for all 47 US stocks, 13 Canadian stocks and 8 CDRs. Real problems: FINN.NE (22 malformed bars), XDRV.TO (83% flat zero-volume bars), SOXL.NE (100% flat, known), QPUX and DRAL (Yahoo and Twelve Data close differ 3-4%; needs IBKR to say who is right). Not settled by this run: freshness (ran mid-session, every ticker warned), Tradier (breaker opened, 1 of 79 US tickers tested), Canada (one source only).
+Report: `docs/test/DataSources_20261119/REPORT.md`. Clean for all 47 US stocks, 13 Canadian stocks and 8 CDRs. Real problems: FINN.NE (22 malformed bars), XDRV.TO (83% flat zero-volume bars), SOXL.NE (100% flat, known), QPUX and DRAL looked like a 3-4% Yahoo vs Twelve Data disagreement but it is only on Nov 19, the unfinished day (the run was mid-session); on every completed day both match IBKR exactly (checked afterwards against the Nov 14 IBKR truth), so they are NOT data problems. Not settled by this run: freshness (ran mid-session, every ticker warned), Tradier (breaker opened, 1 of 79 US tickers tested), Canada (one source only).
 Measured, not assumed: the app's cache shows Yahoo served 61 of 97 US tickers; the app log shows Twelve Data's breaker opened 82 times ("Rate limit exceeded"). So the app really falls back to Yahoo a lot. **My first explanation (the audit itself used up the limit) was wrong and was retracted.**
 
 ### 3. Tradier error handling (plan, Opus review, built, three passes)
@@ -45,7 +45,7 @@ No live forward-test gates (program discontinued Day 113). `daily_job.py --repor
 | Path B | 232 | 42.24% | 0.87 | — (retired Day 112) |
 
 ## Data Source Audit Round 2: about 40% done
-Done: step 0, Analyze-page inventory (draft), truth-free audit (mid-session), Tradier 400 fix, empty-price-row fix and its audit checks. Not done: after-close re-run, IBKR truth (list tickers without a watchlist contract id first), fixes for FINN.NE / XDRV.TO / SOXL.NE / QPUX / DRAL, Twelve Data running out, Data Sources tab statement audit + rare states, other tabs, 117-ticker page audit, framework Part 8.
+Done: step 0, Analyze-page inventory (draft), truth-free audit (mid-session), Tradier 400 fix, empty-price-row fix and its audit checks. Not done: after-close re-run, IBKR truth (list tickers without a watchlist contract id first), fixes for FINN.NE / XDRV.TO / SOXL.NE (QPUX and DRAL cleared), Twelve Data running out, Data Sources tab statement audit + rare states, other tabs, 117-ticker page audit, framework Part 8.
 
 ## Next Session Priorities
 1. Re-run the truth-free audit after the 4pm close (freshness, Tradier); measure which provider serves each of the 117.
