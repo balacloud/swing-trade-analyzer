@@ -79,7 +79,13 @@ def check_history(df, now=None, ticker=None):
         h, dropped = drop_forming_bar(h, now=now)
         if len(h) == 0:
             return {'state': 'error', 'reason': 'only a forming bar, no completed history'}
-        last = h.index[-1]
+        # Day 127: "last bar" is the last bar WITH a close price. An empty newest row (Yahoo, Nov 18: 15 tickers) used to read
+        # as a fresh bar, so freshness said "current" while every price on the page was NaN.
+        newest_missing = bool(h['close'].isna().iloc[-1])
+        last_valid = h['close'].last_valid_index()
+        if last_valid is None:
+            return {'state': 'error', 'reason': 'no row has a close price'}
+        last = last_valid
         exp = expected_last_session(now)
         flat = float(((h['high'] == h['low']) & (h['volume'].fillna(0) == 0)).mean())
         tol = BAR_TOL * h['close']
@@ -114,6 +120,7 @@ def check_history(df, now=None, ticker=None):
             'zero_volume_last5': int((h['volume'].tail(5).fillna(0) == 0).sum()),
             'bad_rows': bad,
             'nan_closes': int(h['close'].isna().sum()),
+            'newest_close_missing': newest_missing,
             'jumps': jumps,
             'splits': splits,
             'split_table_errors': table_errors,
@@ -137,8 +144,8 @@ def level_freshness(sessions_behind, forming_bar_dropped=False, tolerant=False):
     return 'PASS'
 
 
-def level_integrity(flat_pct, bad_rows, zero_volume_last5, nan_closes):
-    if flat_pct / 100 > FLAT_FAIL or bad_rows > 3:
+def level_integrity(flat_pct, bad_rows, zero_volume_last5, nan_closes, newest_close_missing=False):
+    if flat_pct / 100 > FLAT_FAIL or bad_rows > 3 or newest_close_missing:
         return 'FAIL'
     if flat_pct / 100 > FLAT_WARN or bad_rows or zero_volume_last5 or nan_closes:
         return 'WARN'
@@ -191,9 +198,12 @@ def quality_level(facts, tolerant=True):
     c['freshness'] = {'level': level_freshness(n, facts['forming_bar_dropped'], tolerant),
                       'note': f"last bar {facts['last_date']}" + (f', {n} session{"s" if n != 1 else ""} behind' if n else '')
                               + (' (a market holiday can explain 1-2)' if 0 < n <= 2 and tolerant else '')}
-    c['integrity'] = {'level': level_integrity(facts['flat_zero_volume_pct'], facts['bad_rows'], facts['zero_volume_last5'], facts['nan_closes']),
+    c['integrity'] = {'level': level_integrity(facts['flat_zero_volume_pct'], facts['bad_rows'], facts['zero_volume_last5'], facts['nan_closes'],
+                                             facts.get('newest_close_missing', False)),
                       'note': f"{facts['flat_zero_volume_pct']:.0f}% of bars flat with zero volume; {facts['bad_rows']} malformed bars; "
-                              f"zero volume on {facts['zero_volume_last5']} of the last 5 days"}
+                              f"zero volume on {facts['zero_volume_last5']} of the last 5 days"
+                              + ('; the NEWEST bar has no price (the app skips it when serving)' if facts.get('newest_close_missing') else
+                                 f"; {facts['nan_closes']} bar(s) with no price" if facts['nan_closes'] else '')}
     c['history'] = {'level': level_history(facts['bars']), 'note': f"{facts['bars']} bars from {facts['first_date']}"}
     c['jumps'] = _jumps_check(facts)
     return {'level': worst([v['level'] for v in c.values()]), 'checks': c}

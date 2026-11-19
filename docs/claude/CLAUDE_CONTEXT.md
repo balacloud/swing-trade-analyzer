@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 127 — 2026-11-19
+> **Last Updated:** Day 128 — 2026-11-19
 
 ---
 
@@ -11,15 +11,21 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 127 |
-| Version | v4.67 (Backend v2.56, Frontend v4.64) |
-| Latest Status | PROJECT_STATUS_DAY127_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY127.md |
-| Latest API | API_CONTRACTS_DAY127.md |
-| Focus | **Data Source Audit Round 2 (Day 127 plan, step 0 done):** the page audit proves maths, not data, so audit the sources on all 117 tickers first (fetched-vs-computed inventory next), then the tab statements, then the 117 page audit. Playbook research prompt drafted (runs after). `DATA_SOURCE_AUDIT_ROUND2_PLAN_DAY127.md`. |
+| Current Day | 128 |
+| Version | v4.68 (Backend v2.57, Frontend v4.64) |
+| Latest Status | PROJECT_STATUS_DAY128_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY128.md |
+| Latest API | API_CONTRACTS_DAY128.md |
+| Focus | **Data Source Audit Round 2, about 40% done (Day 128):** truth-free audit on the 117 ran, Tradier 400 handling and the empty-price-row fix are built. Next: re-run the audit after the 4pm close, IBKR truth for the 117 (list tickers without a watchlist contract id first), fix FINN.NE / XDRV.TO / SOXL.NE / QPUX / DRAL, Twelve Data running out, Data Sources tab audit. `DATA_SOURCE_AUDIT_ROUND2_PLAN_DAY127.md`. |
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 128 Summary (Data Source Audit Round 2 started — v4.68, Golden Rules 65-66)
+- **Audit of the data itself (user: "if the data is wrong the whole compute is wrong").** Truth-free audit on all 117 tickers: clean for US stocks, Canadian stocks, CDRs; real problems FINN.NE, XDRV.TO, SOXL.NE, QPUX/DRAL. Draft fetched-vs-computed inventory. The app falls back to Yahoo for 61 of 97 US tickers because Twelve Data's breaker keeps opening (82 times).
+- **Tradier 400 (Golden Rule 65):** one HTTP code meant over-limit, unknown ticker and our own bug; now classified by body, unknown tickers no longer open the breaker. 61 tests. Tradier also stalls on about 1 call in 6-8 (open item).
+- **Empty price row (Golden Rule 66):** 15 cached Yahoo tickers had a newest bar with no prices; `/api/sr` sent invalid JSON. Rows are dropped when served (cache stays raw, 30-minute expiry), the Data Sources tab and audit FAIL it, `/api/stock` never answers 0, page checker A14. 44 tests. Opus reviewed both plans and changed both.
+- User asked for plain English and a straight answer to the narrow question; no layout plan exists (ROADMAP #26).
 
 ### Day 127 Summary (Audit follow-through and data-source plan — v4.67)
 - **Audit follow-through:** universe audit 177 → ~2 WRONG; one price basis, cache rules, 503 vs 404, fundamentals retry. `run_all_checks.sh` and a nightly universe audit (no new rules, no slow hooks).
@@ -39,21 +45,6 @@
 - **Tabs:** Validate Data deleted, Forward Test hidden. **Ruler:** real 21/50/200-day averages.
 - **Process:** passes were skipped on small edits until asked, so Golden Rule 64 + a Stop hook and `/three-pass`
   now enforce them. Simple S&R engine (Priority #18) is live.
-
-### Day 125 Summary (Analyze cleanup — v4.65, Golden Rule 63)
-- **Card by card, "does it help or just add words?" (user).** Trade Setup ends with the nearest
-  **Resistance** and **Support** (zone, "near it on N days", weekly ★; projected levels never
-  shown as real; one-line state fixed to use the nearest level). Removed: Price Structure, Pattern
-  Detection (the fetch stays because it feeds the verdict), P/E guide, MTF extras, MR track-record box.
-- **Breakout = widely agreed trader rules, not backtested** (user: rabbit hole): a close above the
-  60-day high measured before the last 10 days, volume 1.5× on the breakout day, ≤5% above.
-  Completed bars only, 7 states, no SPY. Fable caught the moving pivot ("Failed" on day 1) and
-  volume judged on the wrong day before build.
-- **Golden Rule 63:** one label, one number ("Ceiling" meant two prices; plan had two Buy prices).
-- **Simple S&R engine planned** (`SIMPLE_SR_PLAN_DAY125.md`): Fable GO, Reddit check agrees.
-  The switch waits for the user's old-vs-new review. **No in-app chart** (Claude reads numbers;
-  the user reads TradingView). PERSONA log entry.
-- Puppeteer's new headless mode hung on any `click()` late in the day; `headless: 'shell'` works.
 
 ## SESSION START PROTOCOL
 
@@ -126,7 +117,7 @@ places and manages every trade themselves. Every item below is available to work
 pick deliberately based on what the user actually wants next, not backlog order.
 
 **Next up (each: plan → Fable review → build → sign-off):**
-0. **Data Source Audit Round 2 (ROADMAP #20), step 1 onward.** Step 0 done (Day 127: audit scripts take `--tickers-file`, 117 classified). Next: fetched-vs-computed inventory over all `backend/*.py`, truth-free audit on the 117, IBKR truth for tickers with a watchlist contract id (list the missing first), Tradier measurement then the user's decision, Data Sources tab statement audit + Playwright rare states, framework Part 8. Then the 117 page audit and the other tabs. After each code change run `/three-pass` (Golden Rule 64) and `./run_all_checks.sh --quick`.
+0. **Data Source Audit Round 2 (ROADMAP #20), about 40% done (Day 128).** Done: step 0, Analyze-page inventory (draft), truth-free audit on the 117 (run mid-session), Tradier 400 fix, empty-price-row fix + audit checks. Next, in order: (a) re-run the truth-free audit AFTER the 4pm close (freshness; Tradier) and count which provider serves each of the 117; (b) list the tickers without a watchlist contract id, then IBKR truth (decide QPUX / DRAL; fix FINN.NE, XDRV.TO, SOXL.NE); (c) Twelve Data running out (ROADMAP #22: remove the unused 4-hour RSI call, plan + Opus first) and Tradier stalls (#23); (d) Data Sources tab statement audit + Playwright rare states, then Scan / Sectors / Context, then the 117-ticker page audit; framework Part 8. After each code change run `/three-pass` (Golden Rule 64) and `./run_all_checks.sh --quick`.
 0-. **Playbook research (ROADMAP #21):** the user reviews `PLAYBOOK_RESEARCH_PROMPT_DAY127.md`; runs after #20. The user's open "fork question" from Day 127 was not asked yet.
 0a. **Day 126 follow-ups, all optional (ROADMAP #19):** weekly watchlist-wide split scan, Tradier 40% jump
    guard, delete the dead `/api/validation/*` routes, retire the engine verdict labels no card shows any more.
@@ -183,7 +174,7 @@ pick deliberately based on what the user actually wants next, not backlog order.
     orchestrator its two newer siblings use (Day 108) — the `fetchSectorRotation()` half of
     this was fixed Day 108 (Golden Rule 47); the backend half remains.
 
-**Full detail on every open item:** `docs/claude/versioned/KNOWN_ISSUES_DAY124.md`.
+**Full detail on every open item:** `docs/claude/versioned/KNOWN_ISSUES_DAY128.md`.
 
 ---
 
@@ -296,6 +287,7 @@ sqlite3 backend/validation_results/paper_trading_ledger.db "SELECT MAX(run_date)
 | 119 | Planning-only, no version bump. User challenged the shape of the post-Day-118 backlog (diminishing-returns audit items, no live gates left); agreed and re-scoped the Analyze Page Redesign (Priority #17) as the one bounded piece of real work remaining. Opus-planned re-verification of the Day 109 decision doc's own §7/§8 execution plan against six sessions of intervening code (Golden Rule 55): 17 decisions and phase structure hold; freeze-safety audit's conclusions survive but for new reasons (parity/backtest-comparability, not forward-test — the freeze itself ended Day 113); 9 corrections found, most importantly two blocks of prescribed on-card copy that described bugs already fixed (Day 112/118) and would have shipped as fabrications. New plan: `ANALYZE_PAGE_REDESIGN_IMPLEMENTATION_PLAN_DAY119.md`, go/no-go GO, not yet built. Zero application code touched. |
 | 125 | **Analyze cleanup:** nearest Resistance/Support only, breakout on trader rules (not tested, completed bars, 7 states), Price Structure / Pattern Detection / P/E guide / MR track record removed. Simple S&R engine planned + Fable-reviewed; no in-app chart. Golden Rule 63. v4.65. |
 | 124 | **Analyze Page Redesign complete** (Steps 7–8): facts-only Market backdrop first, Full Analysis default, No Trade wording, one VIX band, MR next-open on Forward Test, page checker rewritten (40/40), header price dated. Golden Rule 62. v4.64. |
+| 128 | **Data Source Audit Round 2 started:** truth-free audit on 117 tickers, Tradier 400 handling (Golden Rule 65), empty price row dropped when served + audit FAIL + page checker A14 (Golden Rule 66). Opus reviewed both plans. v4.68. |
 
 ---
 

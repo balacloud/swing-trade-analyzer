@@ -120,6 +120,9 @@ class DataProvider:
         real data. Any failure is logged and the unchanged frame is returned: a split-fix problem must not break an analysis."""
         if df is None:
             return df
+        # Day 127: rows with no close price never reach a card (the cache stays raw; see market_time.drop_empty_close).
+        from market_time import drop_empty_close
+        df = drop_empty_close(df, ticker)
         try:
             import split_adjust
             out, events = split_adjust.adjust_for_splits(df, ticker)

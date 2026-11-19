@@ -2,7 +2,7 @@
 
 > **Purpose:** A decision-making lens for judgment calls this project makes about trading logic — not a coding-style guide. GOLDEN_RULES.md governs *how Claude works*; this file governs *how Claude should think* when evaluating a threshold, a backtest result, a "can we speed this up" request, or any other call that touches the actual trading system.
 > **Created:** Day 95 (July 24, 2026) — user-requested, to make key trading decisions consistently rather than re-deriving judgment each session.
-> **Last Updated:** Day 125 (2026-11-12)
+> **Last Updated:** Day 128 (2026-11-19)
 > **Loaded:** At session start (`/sta-start`), alongside GOLDEN_RULES.md. Updated at session close (`/sta-end`) via the Feedback Log below — this file is meant to accumulate, not stay static.
 
 ---
@@ -106,6 +106,20 @@ reruns the 86,400-combo parity test and reports any mismatch immediately.
 ---
 
 ## Feedback Log (append-only, most recent session first)
+
+### Day 128
+**A clean audit result from a check that cannot see the fault is false comfort. The fault was in the copy, not the download.**
+The user's Day 127 worry ("if the data is wrong, the whole compute is wrong") was tested for the first time. The audit downloaded each
+provider fresh and graded it clean; the live app was sending invalid prices for 15 stocks, because Yahoo's after-hours bar had no prices,
+the cache kept it until the close, and the Data Sources tab called it "fresh" (it took "last bar" from the empty row). It surfaced only
+because the page checker printed a warning and still passed. The lens: a check should read what the user is shown, and a checker that only
+warns is the same as no checker. The honest fix kept the cache raw (so an audit can still see the hole) and cleaned the data once, where it is served.
+**Second lesson: Claude's own explanations went through the same filter and two were wrong.** (1) "The Yahoo share is partly my own audit using
+up Twelve Data's limit": the cache and the log showed the app already fell back to Yahoo for 61 of 97 US tickers before the audit ran.
+(2) "Nothing checks for an empty row": a check existed but read the wrong "last bar". Both were corrected in plain view, and the Opus review's
+five corrections were applied, not argued. A confident story about a cause is a hypothesis until the data is read (Core Principle 3, Golden Rule 26).
+**Third: the user's question was narrower than the answer.** "Was the math perfect?" got a long list of data and card issues. The lens
+for a trader's assistant: answer the question that was asked first, then offer the rest.
 
 ### Day 127
 **A buy order above the market is not a plan.** The Statement Audit showed that when price already sits inside the

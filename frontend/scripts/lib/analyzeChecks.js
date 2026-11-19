@@ -16,7 +16,8 @@
 // Day 126: A10 added with the simple S&R switch (7 -> 8 checks).
 // Day 126: A11 added with the Data Sources tab v2 (8 -> 9 checks).
 // Day 126: A12 added with the entry-timing ruler (9 -> 10 checks); A13 with the live price line (10 -> 11).
-const CHECK_IDS = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A9', 'A10', 'A11', 'A12', 'A13'];
+// Day 127: A14 added (11 -> 12 checks) after /api/sr answered with NaN (invalid JSON) for 15 tickers and the runner only warned.
+const CHECK_IDS = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A9', 'A10', 'A11', 'A12', 'A13', 'A14'];
 const NAMES = {
   A1: 'Card order (backdrop first)',
   A2: 'Removed elements absent',
@@ -29,6 +30,7 @@ const NAMES = {
   A11: 'Data Sources tab matches the backend',
   A12: 'Entry gauge and ladder match the data',
   A13: 'Live price line matches /api/quote',
+  A14: 'Price answers are valid JSON with a real price',
 };
 const ORDER = ['card-market-backdrop', 'card-stock-header', 'card-technical-read', 'card-mr-read', 'card-trade-setup', 'card-fundamentals', 'card-breakout'];
 // A6 measures each card's BODY: the text below its title row and subtitle, which carry
@@ -381,11 +383,27 @@ function checkA13(dom, api) {
     problems.join('; ') || (usable ? `${money2(body.price)} · ${norm(L.statusText)}` : `${body.available === true ? 'market closed' : 'unavailable (' + body.reason + ')'} shown in words`));
 }
 
+// A14 (Day 127): the two price answers the page is built on must be valid JSON with a real current price. A cached bar with no
+// close price once made /api/sr answer `"currentPrice": NaN` (invalid JSON); the runner only printed a warning and every other
+// check still passed. A failed (non-200) answer is left to the checks that already cover an error banner.
+function checkA14(dom, api) {
+  const problems = [];
+  for (const key of ['stock', 'sr']) {
+    const r = api && api[key];
+    if (!r || r.status == null) { problems.push(`/api/${key} was not captured`); continue; }
+    if (r.status !== 200) continue;
+    if (r.body == null) { problems.push(`/api/${key} answered 200 but its body is not valid JSON (NaN?)`); continue; }
+    const p = r.body.currentPrice;
+    if (!(typeof p === 'number' && Number.isFinite(p) && p > 0)) problems.push(`/api/${key} currentPrice is not a real price (${p})`);
+  }
+  return result('A14', problems.length === 0, 'stock and S&R answers are valid JSON with a real current price', problems.join('; ') || 'ok');
+}
+
 function runChecks(dom, api, helpers) {
   const d = dom || {};
   const a = api || {};
   if (d.error) return CHECK_IDS.map(id => result(id, false, 'analysis loads', `error banner: ${norm(d.error).slice(0, 120)}`));
-  const fns = { A1: checkA1, A2: checkA2, A3: checkA3, A4: checkA4, A5: checkA5, A6: checkA6, A9: checkA9, A10: checkA10, A11: checkA11, A12: checkA12, A13: checkA13 };
+  const fns = { A1: checkA1, A2: checkA2, A3: checkA3, A4: checkA4, A5: checkA5, A6: checkA6, A9: checkA9, A10: checkA10, A11: checkA11, A12: checkA12, A13: checkA13, A14: checkA14 };
   return CHECK_IDS.map(id => {
     try { return fns[id](d, a, helpers || {}); }
     catch (err) { return result(id, false, 'check runs', `check threw: ${err.message}`); }

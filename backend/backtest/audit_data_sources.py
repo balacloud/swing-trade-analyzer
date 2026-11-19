@@ -248,7 +248,10 @@ def source_checks(name, h, others):
     parts = [f"flat zero-volume {f0['flat_zero_volume_pct']:.0f}%", f"bad OHLC rows {f0['bad_rows']}", f"zero-volume in last 5: {f0['zero_volume_last5']}"]
     if f0['nan_closes']:
         parts.append(f"{f0['nan_closes']} NaN closes")
-    res['C4'] = (dq.level_integrity(f0['flat_zero_volume_pct'], f0['bad_rows'], f0['zero_volume_last5'], f0['nan_closes']), '; '.join(parts))
+    if f0.get('newest_close_missing'):
+        parts.append('the NEWEST bar has no close price')   # Day 127
+    res['C4'] = (dq.level_integrity(f0['flat_zero_volume_pct'], f0['bad_rows'], f0['zero_volume_last5'], f0['nan_closes'],
+                                    f0.get('newest_close_missing', False)), '; '.join(parts))
     ju = jumps(h)
     notes, lv = [], 'PASS'
     for d, v in ju.items():

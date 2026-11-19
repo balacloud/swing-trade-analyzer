@@ -82,7 +82,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 # /api/sectors/pullback-screen endpoint (SRPS discretionary screener).
 # Day 105: bumped to 2.46 for the new /api/sectors/sub-industry-pullback-screen
 # endpoint + the shared _srps_true_rs()/_srps_evaluate_candidate() refactor.
-BACKEND_VERSION = '2.56'
+BACKEND_VERSION = '2.57'
 
 # Day 116: market-hours test for "is /api/sr's last bar still forming?" Mirrors
 # paper_trading/live_signals.py's _prepare_ohlcv() guard (Day 99, Golden Rule 33 —
@@ -1192,7 +1192,11 @@ def get_stock_data(ticker):
         _last_close = hist_data.iloc[-1]['close']
         if pd.isna(_last_close):
             _non_nan = hist_data['close'].dropna()
-            _last_close = _non_nan.iloc[-1] if len(_non_nan) > 0 else 0
+            _last_close = _non_nan.iloc[-1] if len(_non_nan) > 0 else None
+        if _last_close is None:
+            # Day 127 (Code Architecture Rule 5/6): no usable price is "no price", never a made-up 0.
+            print(f"⚠️ /api/stock {ticker}: no bar has a close price")
+            return jsonify({'error': f'No usable price data for {ticker}'}), 404
         current_price = round(float(_last_close), 2)
         
         # SRP: Fundamentals are NOT included here.

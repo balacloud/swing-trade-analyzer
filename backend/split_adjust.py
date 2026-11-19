@@ -196,6 +196,11 @@ def fix_frame(df, symbol):
     """For the emergency direct-Yahoo fallbacks in the routes: same adjustment, any column case, same column names back, never raises."""
     if df is None or len(df) == 0:
         return df
+    # Day 127: the direct-Yahoo fallbacks get the same empty-row rule as the orchestrator (market_time.drop_empty_close).
+    from market_time import drop_empty_close
+    df = drop_empty_close(df, symbol)
+    if len(df) == 0:
+        return df
     try:
         orig = list(df.columns)
         low = df.copy()

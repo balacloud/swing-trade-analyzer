@@ -150,7 +150,8 @@ def calculate_fundamentals_expiry() -> datetime:
 # =============================================================================
 
 OHLCV_ROW_TOLERANCE = 0.95          # Day 126: Yahoo's 2y is 500-503 rows, not 504
-TRADIER_OHLCV_TTL_MIN = 45           # Day 126: Tradier history is not dividend-adjusted; keep it short so the next load retries an adjusted source
+EMPTY_NEWEST_BAR_TTL_MIN = 30        # Day 127: newest bar has no close price -> short cache (plan EMPTY_PRICE_ROW_PLAN_DAY127)
+TRADIER_OHLCV_TTL_MIN = 45          # Day 126: Tradier history is not dividend-adjusted; keep it short so the next load retries an adjusted source
 
 
 def _period_to_min_rows(period: str) -> int:
@@ -311,6 +312,12 @@ def set_cached_ohlcv(ticker: str, df: pd.DataFrame, period: str = '2y', source: 
         expires_at = calculate_ohlcv_expiry()
         if source == 'tradier':
             expires_at = min(expires_at, datetime.now(ET) + timedelta(minutes=TRADIER_OHLCV_TTL_MIN))
+        # Day 127: a frame whose NEWEST bar has no close price (Yahoo, not-yet-settled day) is kept RAW but only briefly,
+        # so the next request asks again instead of serving it until the next close.
+        from market_time import newest_close_missing
+        if newest_close_missing(df):
+            expires_at = min(expires_at, datetime.now(ET) + timedelta(minutes=EMPTY_NEWEST_BAR_TTL_MIN))
+            print(f"⚠️ OHLCV for {ticker}: newest bar has no close price, cache kept only {EMPTY_NEWEST_BAR_TTL_MIN} min")
 
         # Day 126: a shorter fetch (e.g. the MR route's 1y) must not overwrite a FRESH longer entry (a 2y frame)
         cursor.execute("SELECT period, expires_at FROM ohlcv_cache WHERE ticker = ?", (ticker,))

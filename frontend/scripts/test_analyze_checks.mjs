@@ -42,6 +42,7 @@ const API = {
     last_trade_at: '2026-11-16T14:51:00-05:00', age_minutes: 1.0, last_close: { price: 523.88, date: '2026-11-13' }, source: 'tradier' } },
   earnings: { status: 200, body: { has_upcoming: false, earnings_date: '2027-01-29', days_until: 78 } },
   sr: { status: 200, body: {
+    currentPrice: 270.5,
     support: [262.10, 250.00], resistance: [281.00], suggestedEntry: 262.10, suggestedTarget: 281.00,
     meta: { atr: 14.07, zones: [
       { low: 260.5, high: 262.10, swings: 3, side: 'support', insideZone: false, nearest: true },
@@ -345,6 +346,17 @@ mustPass('A13', 'source down: said in words, no marker', d => { d.live = { price
 mustFail('A13', 'source down but the page still shows a live price', null, downQuote);
 mustFail('A13', 'source down and the ruler still has a close note', d => { d.live.priceText = null; d.live.statusText = 'Live price unavailable (no recent trades)'; }, downQuote);
 mustPass('A13', 'ruler not drawn (no ATR): no close note expected', d => { d.timing = { present: false, unavailable: "Can't tell: ATR unavailable.", price: null, ticks: [] }; d.live.timingNote = null; }, a => { delete a.sr.body.meta.atr; });
+
+// ---------- A14 price answers are valid JSON with a real price (Day 127) ----------
+mustFail('A14', '/api/sr body unreadable (NaN in the JSON, the Nov 18 bug)', null, a => { a.sr = { status: 200, body: null }; });
+mustFail('A14', '/api/stock body unreadable', null, a => { a.stock = { status: 200, body: null }; });
+mustFail('A14', '/api/sr currentPrice is null', null, a => { a.sr.body.currentPrice = null; });
+mustFail('A14', '/api/stock currentPrice is a fake 0', null, a => { a.stock.body.currentPrice = 0; });
+mustFail('A14', '/api/sr currentPrice is NaN', null, a => { a.sr.body.currentPrice = NaN; });
+mustFail('A14', '/api/sr currentPrice is a string', null, a => { a.sr.body.currentPrice = '270.5'; });
+mustFail('A14', '/api/sr was not captured', null, a => { a.sr = { status: null, body: null }; });
+mustPass('A14', 'a failed (non-200) answer is left to the error-banner checks', null, a => { a.sr = { status: 500, body: { error: 'x' } }; });
+mustPass('A14', 'both answers are valid with real prices');
 
 // ---------- never throws ----------
 {

@@ -40,7 +40,7 @@ import pandas as pd
 from .base import OHLCVProvider, QuoteProvider, OHLCVResult, QuoteResult
 from .exceptions import (
     DataNotFoundError, ProviderUnavailableError, InsufficientDataError,
-    RateLimitError, AuthenticationError
+    RateLimitError, AuthenticationError, ProviderError
 )
 from .rate_limiter import check_rate_limit
 from .circuit_breaker import get_breaker
@@ -109,7 +109,7 @@ class TradierProvider(OHLCVProvider, QuoteProvider):
             return OHLCVResult(df=df, source=self.name, ticker=ticker, period=period)
 
         except (DataNotFoundError, RateLimitError, AuthenticationError,
-                ProviderUnavailableError, InsufficientDataError):
+                ProviderUnavailableError, InsufficientDataError, ProviderError):
             raise
         except Exception as e:
             breaker.record_failure()
@@ -117,6 +117,7 @@ class TradierProvider(OHLCVProvider, QuoteProvider):
 
     def get_quote(self, ticker: str) -> QuoteResult:
         """Fetch current price + previous close from /v1/markets/quotes."""
+        self._require_symbol(ticker)
         self._check_availability()
 
         breaker = get_breaker(self.name)
@@ -156,7 +157,7 @@ class TradierProvider(OHLCVProvider, QuoteProvider):
                 ticker=ticker
             )
 
-        except (DataNotFoundError, RateLimitError, AuthenticationError, ProviderUnavailableError):
+        except (DataNotFoundError, RateLimitError, AuthenticationError, ProviderUnavailableError, ProviderError):
             raise
         except Exception as e:
             breaker.record_failure()
@@ -166,6 +167,7 @@ class TradierProvider(OHLCVProvider, QuoteProvider):
         """Day 126: last price + the time of that trade (display-only live quote).
         Returns {'price', 'trade_time' (tz-aware UTC datetime or None), 'source'}.
         Same error contract as get_quote."""
+        self._require_symbol(ticker)
         self._check_availability()
         breaker = get_breaker(self.name)
         try:
@@ -188,7 +190,7 @@ class TradierProvider(OHLCVProvider, QuoteProvider):
                 trade_time = datetime.fromtimestamp(ms / 1000.0, tz=timezone.utc)
             breaker.record_success()
             return {'price': float(price), 'trade_time': trade_time, 'source': self.name}
-        except (DataNotFoundError, RateLimitError, AuthenticationError, ProviderUnavailableError):
+        except (DataNotFoundError, RateLimitError, AuthenticationError, ProviderUnavailableError, ProviderError):
             raise
         except Exception as e:
             breaker.record_failure()
@@ -215,6 +217,13 @@ class TradierProvider(OHLCVProvider, QuoteProvider):
         df = df.set_index('datetime').sort_index()
         return df
 
+    @staticmethod
+    def _require_symbol(ticker):
+        """Day 127: a ticker that is empty once '^' is stripped (the Flask route accepts '^') would send
+        `symbols=''`, and Tradier then hangs until our read timeout (measured). No request, no breaker failure."""
+        if not (ticker or '').replace('^', '').strip():
+            raise DataNotFoundError('tradier', "Empty symbol", ticker)
+
     def _headers(self) -> dict:
         # Tradier defaults to XML without an explicit Accept header.
         return {
@@ -234,6 +243,25 @@ class TradierProvider(OHLCVProvider, QuoteProvider):
         if resp.status_code >= 500:
             breaker.record_failure()
             raise ProviderUnavailableError(self.name, f"HTTP {resp.status_code}", ticker)
+        if resp.status_code == 400:
+            # Day 127 (Tradier docs + live probes): Tradier answers with HTTP 400, never 429, for BOTH a quota
+            # violation and a bad request; error bodies are plain text, not JSON. Three cases (plan
+            # TRADIER_ERROR_HANDLING_PLAN_DAY127.md):
+            body = (resp.text or '').strip()[:200]
+            available = resp.headers.get('X-Ratelimit-Available')
+            if 'symbol not found' in body.lower():
+                # Checked FIRST: Tradier echoes the symbol in this text, so a ticker spelled like "QUOTA" must not be
+                # mistaken for a quota hit. Unknown to Tradier = NOT a health signal (Golden Rule 36), no breaker failure.
+                raise DataNotFoundError(self.name, body, ticker)
+            if 'quota' in body.lower() or available == '0':
+                # Over the limit: a real provider-health signal, same as the 429 branch above.
+                print(f"⚠️ Tradier quota hit for {ticker}: X-Ratelimit-Available={available} body={body!r}")
+                breaker.record_failure()
+                raise RateLimitError(self.name, f"HTTP 400 quota: {body or '(empty)'}", ticker)
+            # Any other 400 (bad date, empty or unknown body) is most likely OUR request bug. Fail loudly and
+            # keep it out of the breaker; do not call it "no data" (it would hide a symbol-mapping bug).
+            print(f"🛑 Tradier rejected the request for {ticker}: HTTP 400 {body!r}")
+            raise ProviderError(self.name, f"HTTP 400 bad request: {body or '(empty)'}", ticker)
         resp.raise_for_status()
 
     def _check_availability(self):

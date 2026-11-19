@@ -37,6 +37,48 @@ def drop_forming_bar(df, now=None):
     return df, False
 
 
+# --- Day 127: bars with no close price ------------------------------------
+# Yahoo sometimes returns a row with open/high/low/close all empty but a normal-looking volume (15 cached
+# tickers on Nov 18). Left in, `df['close'].iloc[-1]` is NaN and /api/sr answers with invalid JSON. Plan:
+# docs/claude/design/EMPTY_PRICE_ROW_PLAN_DAY127.md. The CACHE stays raw (the audit and the Data Sources tab
+# must be able to SEE the empty row); the rows are dropped when a frame is SERVED (orchestrator._deliver and
+# split_adjust.fix_frame, which together cover every route and every direct-Yahoo fallback).
+def _close_column(df):
+    return next((c for c in df.columns if str(c).lower() == 'close'), None)
+
+
+def newest_close_missing(df):
+    """True when the newest row has no close price. Never raises."""
+    try:
+        if df is None or len(df) == 0:
+            return False
+        col = _close_column(df)
+        return col is not None and bool(df[col].isna().iloc[-1])
+    except Exception:  # noqa: BLE001 - a helper for logging/expiry must never break a request
+        return False
+
+
+def drop_empty_close(df, ticker=''):
+    """Return `df` without rows whose close is empty (NaN), with one log line naming the dates. Never mutates
+    `df`, never raises (on any problem the frame comes back unchanged). Works with any column case."""
+    try:
+        if df is None or len(df) == 0:
+            return df
+        col = _close_column(df)
+        if col is None:
+            return df
+        bad = df[col].isna().to_numpy()          # by POSITION: a duplicated date index must not misalign the filter
+        if not bool(bad.any()):
+            return df
+        dates = [str(d)[:10] for d in df.index[bad]]
+        shown = dates[:5] + (['...'] if len(dates) > 5 else [])
+        print(f"⚠️ {ticker or '?'}: dropped {len(dates)} bar(s) with no close price: {shown}")
+        return df.iloc[~bad]
+    except Exception as exc:  # noqa: BLE001
+        print(f"⚠️ {ticker or '?'}: could not check for empty price rows: {exc}")
+        return df
+
+
 # --- Day 126: session of a quote, from the quote's OWN trade time ----------
 # No exchange calendar exists in STA, so none is invented. A trade that is not
 # from today (New York date) or is outside the usual extended hours means the
