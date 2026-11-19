@@ -25,7 +25,7 @@
 The Statement Audit proves the maths on the bars the page received, not the data. Round 2 (`docs/claude/design/DATA_SOURCE_AUDIT_ROUND2_PLAN_DAY127.md`).
 **Done:** step 0 (audit scripts take `--tickers-file`), Analyze-page inventory (draft), truth-free audit on all 117 (mid-session), Tradier 400 fix, empty-price-row fix + audit checks.
 **Not done:** (1) re-run the audit AFTER the 4pm close (freshness read "warn" for every ticker because the run was at 10:17 ET; Tradier's breaker opened so only 1 of 79 US tickers was tested); (2) IBKR truth for the 117
-(every ticker has a watchlist contract id; 24 already have truth from Round 1; QPUX and DRAL were CLEARED: the 3-4% Yahoo vs Twelve Data gap was only on Nov 19, the unfinished day, and both match IBKR exactly on every completed day); (3) fix FINN.NE (22 malformed bars), XDRV.TO (83% flat zero-volume bars), SOXL.NE (100% flat,
+(every ticker has a watchlist contract id; 24 already have truth from Round 1; QPUX and DRAL were CLEARED: the 3-4% Yahoo vs Twelve Data gap was only on Nov 19, the unfinished day; on every completed day the two providers agree within 1% for all 79 tickers that have both, and both match IBKR on the 5 days Round 1 covered, Nov 9-13); (3) fix FINN.NE (22 malformed bars), XDRV.TO (83% flat zero-volume bars), SOXL.NE (100% flat,
 close-only; known); (4) Canada has one source for most tickers, so "unchecked" there is not "clean"; (5) Data Sources tab statement audit + Playwright rare states; (6) inventory of the other tabs and about 17 direct
 provider calls that bypass the orchestrator; (7) the 117-ticker page audit, then Scan / Sectors / Context; (8) framework Part 8.
 The nightly summary should keep saying "data UNVERIFIED" until (1)-(3) are done.
@@ -47,6 +47,9 @@ A single "NaN becomes null" encoder would be a safety net with a wide blast radi
 ### Low-Medium: the 4:00-4:30pm cache gap (Day 128, found by the Opus review)
 A frame fetched between 16:00 and 16:30 ET is kept until the NEXT day's 16:30 (`cache_manager.calculate_ohlcv_expiry`), and after 16:30 `drop_forming_bar` treats that possibly partial bar as complete for the whole next day
 (`market_time.py` cutoff vs the cache expiry). Not changed.
+
+### Low: audit C9 includes the unfinished day (Day 128, found by the Opus review of the IBKR plan)
+`backtest/audit_data_sources.py` (~:303) compares the last 20 common closes including today's forming bar when run mid-session, so two providers' different intraday prices read as a disagreement (QPUX -3.98% and DRAL +3.33% on Nov 19; both false). With the unfinished day excluded, 0 of 79 tickers differ by more than 1% on any completed day. Fix: drop the forming bar in C9 like C2 does (small, plan not needed beyond a three-pass), or run the audit after the close. Not changed.
 
 ### Low: leftovers from the empty-price-row fix (Day 128)
 - The cause of Yahoo's empty Nov 18 bar is unknown (the fetch was 5 hours after the close and other tickers fetched then are fine). The serve-time drop and the 30-minute cache make the app safe, not the cause known.
