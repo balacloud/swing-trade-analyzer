@@ -66,3 +66,4 @@ Then ask: "What would you like to focus on?"
 - README.md is external-facing — not part of session start
 - If PROJECT_STATUS or KNOWN_ISSUES file for Day N is missing, say so explicitly — do not guess or fabricate content
 - Do not begin any work until the user responds to "What would you like to focus on?"
+- Every code change follows the flow (Golden Rules 55, 64): plan in plan mode (EnterPlanMode; the user approves at ExitPlanMode) -> write it to `docs/claude/design/<NAME>_PLAN_<DAY>.md` and get an Opus review, apply its changes and tell the user what changed -> build -> `/three-pass` -> `three_pass_check.sh --stamp ... --plan <file>` (trivial changes only: `--trivial "kind: reason"`). A hook refuses the stamp without a plan.

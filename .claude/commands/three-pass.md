@@ -5,7 +5,9 @@ argument-hint: [skip]
 
 Run the three review passes on everything that changed in `frontend/src`, `frontend/scripts` and `backend` since the last stamp. Find the files with `bash .claude/hooks/three_pass_check.sh --status`.
 
-If the argument is `skip`: only allowed when the change is text/wording only and no logic changed. Say plainly which text changed, then run `bash .claude/hooks/three_pass_check.sh --stamp "text-only skip"` and stop.
+**Before the passes (Golden Rules 55 and 64): is there a plan?** Every code change needs a written plan in `docs/claude/design/<NAME>_PLAN_<DAY>.md` with an Opus review verdict (GO or GO WITH CHANGES), written BEFORE the code. Check it with `bash .claude/hooks/three_pass_check.sh --plan-check <plan file>`. The stamp is refused without it.
+
+If the argument is `skip`: only allowed for a trivial change with no logic: dead-code deletion, a docstring, a label or wording fix, a rename with no callers, or a version number. Say plainly what changed, then run `bash .claude/hooks/three_pass_check.sh --stamp "text-only skip" --trivial "<kind>: <reason>"` (kind is one of dead-code, docstring, label, wording, rename, version; the reason is at least 8 characters; it is logged and listed at session close) and stop.
 
 Otherwise do the passes in order. Each one must dig deeper than the last, and each must find something or say why it could not:
 
@@ -15,6 +17,6 @@ Otherwise do the passes in order. Each one must dig deeper than the last, and ea
 
 Fix what you find, re-run the tests, then report plainly (simple English): per pass, what was found and fixed, and the final test results. Only when all three passes are done and everything passes, run:
 
-`bash .claude/hooks/three_pass_check.sh --stamp "three passes done"`
+`bash .claude/hooks/three_pass_check.sh --stamp "three passes done" --plan docs/claude/design/<NAME>_PLAN_<DAY>.md`
 
 Never stamp if a test fails or a pass was skipped.

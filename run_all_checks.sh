@@ -24,6 +24,7 @@ cd "$PROJECT/backend"
 for t in test_price_basis test_forming_bar_routes test_sr_volume_unavailable test_live_quote test_tradier_errors test_empty_price_row test_audit_statements test_audit_cards test_audit_cards2 test_rrg test_sector_rotation test_sub_industry_rotation; do
   [ -f "$t.py" ] && run "$t" "$PY" "$t.py"
 done
+run test_review_gate bash "$PROJECT/.claude/hooks/test_three_pass_check.sh"
 run test_simple_sr "$PY" backtest/test_simple_sr.py
 run test_indicators "$PY" backtest/test_indicators.py
 run test_data_quality "$PY" backtest/test_data_quality.py

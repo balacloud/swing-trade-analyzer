@@ -69,6 +69,7 @@
 - READ files before modifying them
 - RUN diagnostics before writing fixes
 - TEST incrementally — one change at a time
+- Every code change: plan (plan mode) -> `docs/claude/design/*_PLAN_*.md` with an Opus review verdict -> build -> `/three-pass` -> stamp with `--plan <file>`; only trivial changes may use `--trivial "kind: reason"` (hook-enforced, Golden Rules 55 and 64)
 - If fix fails, STOP and diagnose — don't chain guesses
 - NEVER ask user to manually update files — Claude does it
 - NEVER provide git commands — Claude commits AND pushes

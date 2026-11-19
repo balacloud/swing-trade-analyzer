@@ -15,6 +15,10 @@ Ask the user one consolidated question before proceeding:
 
 Wait for the user's answers, then proceed through all steps.
 
+## Step 0b: List the review exemptions used this session
+
+Run `cat .claude/.review_log.tsv 2>/dev/null | tail -20`. Rows with kind `trivial` are changes that skipped the plan and Opus review (Golden Rule 55). Show each one (date, reason, number of code files) in the status file under "Review exemptions" so the user can spot misuse. Rows with kind `plan` need no listing beyond the plan name. If the file is empty or missing, write "none".
+
 ## Step 1: Create PROJECT_STATUS_DAY[N+1]_SHORT.md
 
 Create `docs/claude/status/PROJECT_STATUS_DAY[N+1]_SHORT.md`.

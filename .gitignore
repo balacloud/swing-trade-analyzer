@@ -54,3 +54,5 @@ backend/data/
 
 # three-pass review stamp (local, per checkout)
 .claude/.three_pass_done
+# plan / trivial review log (local, listed at session close)
+.claude/.review_log.tsv
