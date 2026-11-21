@@ -44,6 +44,7 @@ def _indicator_block():
 
 
 import split_adjust  # Day 126: known-splits table + adjuster (orchestrator delivers adjusted frames; fallbacks call fix_frame)
+from providers.fallback_policy import tradier_blocked  # Day 129: leveraged funds never served by Tradier
 import data_quality  # Day 126: shared price-history checks and fund-type rule (Data Sources tab, audit scripts)
 import pandas as pd
 import numpy as np
@@ -978,7 +979,7 @@ def get_data_provenance(ticker):
             _df, _meta = cache_manager.read_ohlcv_entry(ticker)
             if _df is not None:
                 _facts = data_quality.check_history(_df, ticker=ticker)
-                _q = data_quality.quality_level(_facts, tolerant=True)
+                _q = data_quality.quality_level(_facts, tolerant=True, source=_meta['source'], blocked=tradier_blocked(ticker))
                 quality = {
                     'state': 'ok' if _facts.get('state') == 'ok' else 'error',
                     'reason': _facts.get('reason'),

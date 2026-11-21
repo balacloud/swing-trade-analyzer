@@ -40,6 +40,7 @@ be reached after TwelveData and yfinance have both already failed.
 import os
 import sys
 import threading
+import time
 import traceback
 import pandas as pd
 from datetime import datetime
@@ -59,6 +60,7 @@ from .alphavantage_provider import AlphaVantageProvider
 from .yfinance_provider import YFinanceProvider
 from .stooq_provider import StooqProvider
 from .tradier_provider import TradierProvider
+from .fallback_policy import tradier_blocked
 
 # Import existing cache_manager (add parent to path if needed)
 _backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -71,6 +73,12 @@ try:
 except ImportError:
     CACHE_AVAILABLE = False
     print("⚠️ cache_manager not available - DataProvider running without cache")
+
+
+# Day 129: a blocked (leveraged) ticker whose whole chain just failed. Without a Tradier fill the cache stays empty and the ~5 Analyze
+# routes waiting on the per-ticker lock would each re-run Twelve Data and Yahoo (8 calls a minute): answer the same error for a minute.
+CHAIN_FAILURE_MEMO_SECONDS = 60
+_chain_failures = {}          # ticker -> (monotonic time, error text)
 
 
 class DataProvider:
@@ -164,8 +172,16 @@ class DataProvider:
                 return self._deliver(ticker, cached)
 
         # 2. Try provider chain
+        blocked = tradier_blocked(ticker)
+        if blocked:
+            memo = _chain_failures.get(ticker)
+            if memo and time.monotonic() - memo[0] < CHAIN_FAILURE_MEMO_SECONDS:
+                raise ProviderError('all', f"All OHLCV providers failed (repeat within {CHAIN_FAILURE_MEMO_SECONDS}s, not retried): {memo[1]}", ticker)
         errors = []
         for provider in self._ohlcv_chain:
+            if blocked and getattr(provider, 'name', '') == 'tradier':
+                print(f"⛔ OHLCV {ticker}: Tradier skipped (leveraged fund, Tradier has split errors on it)")
+                continue
             try:
                 result = provider.get_ohlcv(ticker, period)
                 df = result.df
@@ -196,6 +212,8 @@ class DataProvider:
 
         # 4. All failed
         error_summary = '; '.join(errors)
+        if blocked:
+            _chain_failures[ticker] = (time.monotonic(), error_summary)
         raise ProviderError('all', f"All OHLCV providers failed: {error_summary}", ticker)
 
     # =========================================================================
@@ -437,6 +455,9 @@ class DataProvider:
             return None
         try:
             df, meta = cache_manager.read_ohlcv_entry(ticker)
+            if df is not None and meta and tradier_blocked(ticker) and meta.get('source') == 'tradier':
+                print(f"⛔ stale OHLCV for {ticker} came from Tradier (split errors on leveraged funds); not serving it")
+                return None
             if df is not None and meta:
                 need = cache_manager._period_to_min_rows(period)
                 covers = cache_manager._period_to_min_rows(meta.get('period')) >= need if meta.get('period') else False

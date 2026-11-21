@@ -319,8 +319,15 @@ def grade(sym, frames, tab):
         q = per.get(used)
         fails = [k for k in ('C4', 'C5') if q and q[k][0] == 'FAIL']
         fails_any = [f'{s} {k}' for s in chain for k in ('C4', 'C5') if per[s][k][0] == 'FAIL']
-        if fails:
-            res['C8'] = ('FAIL', claim + f' but {used} fails {"/".join(fails)}: the tab shows no warning')
+        shown = tab.get('quality_checks')          # Day 129: the WARN/FAIL checks the tab really lists (None = old saved claim: unknown)
+        tab_map = {'C4': 'integrity', 'C5': 'jumps'}
+        if used == 'tradier' and shown is not None and 'source' not in shown:
+            res['C8'] = ('FAIL', claim + ': Tradier served this ticker but the tab does not say it is the backup source')
+        elif fails and shown is not None and all(tab_map[k] in shown for k in fails):
+            res['C8'] = ('WARN', claim + f' and {used} fails {"/".join(fails)}; the tab already lists: {", ".join(tab_map[k] for k in fails)}')
+        elif fails:
+            res['C8'] = ('FAIL', claim + f' but {used} fails {"/".join(fails)}: the tab does not list it' if shown is not None
+                         else claim + f' but {used} fails {"/".join(fails)}: the tab shows no warning')
         elif tab_src and tab_src != chain[0]:
             res['C8'] = ('WARN', claim + f'; the chain order says {chain[0]} first, so STA fell through to {tab_src} (every source in the chain matters)'
                          + (f'; a source later in the chain fails: {", ".join(fails_any)}' if fails_any else ''))
@@ -343,7 +350,11 @@ def tab_claim(sym, saved=None):
     try:
         urllib.request.urlopen(f'http://localhost:5001/api/stock/{sym}', timeout=60).read()
         with urllib.request.urlopen(f'http://localhost:5001/api/provenance/{sym}', timeout=30) as r:
-            return json.loads(r.read())['ohlcv']
+            prov = json.loads(r.read())
+        out = dict(prov['ohlcv'])
+        checks = ((prov.get('quality') or {}).get('checks')) or {}
+        out['quality_checks'] = sorted(k for k, v in checks.items() if isinstance(v, dict) and v.get('level') in ('WARN', 'FAIL'))
+        return out
     except Exception as e:
         return None
 

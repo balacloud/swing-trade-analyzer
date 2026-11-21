@@ -19,6 +19,7 @@ const CHECK_LABEL = {
   integrity: 'Bar integrity',
   history: 'History length',
   jumps: 'One-day moves over 40%',
+  source: 'Data source',
 };
 
 const isObj = (x) => x && typeof x === 'object';

@@ -188,7 +188,7 @@ def _jumps_check(facts):
     return {'level': level, 'note': ' | '.join(parts)}
 
 
-def quality_level(facts, tolerant=True):
+def quality_level(facts, tolerant=True, source=None, blocked=False):
     """The tab's summary of check_history() facts: {'level', 'checks': {name: {'level', 'note'}}}.
     Jumps: see _jumps_check (a split-like jump that the table does not cover is a FAIL; other big moves WARN)."""
     if facts.get('state') != 'ok':
@@ -206,6 +206,10 @@ def quality_level(facts, tolerant=True):
                                  f"; {facts['nan_closes']} bar(s) with no price" if facts['nan_closes'] else '')}
     c['history'] = {'level': level_history(facts['bars']), 'note': f"{facts['bars']} bars from {facts['first_date']}"}
     c['jumps'] = _jumps_check(facts)
+    if source == 'tradier':      # Day 129: only Tradier gets a row (a PASS row for every other source would just be noise)
+        c['source'] = ({'level': 'FAIL', 'note': 'Saved prices came from Tradier, which has split errors on this fund. The app no longer asks Tradier for it; refresh to replace them.'}
+                       if blocked else
+                       {'level': 'WARN', 'note': 'Served by Tradier, the backup source. Prices are not adjusted for dividends, so older prices can sit a little above the other sources; a few bars may be malformed.'})
     return {'level': worst([v['level'] for v in c.values()]), 'checks': c}
 
 

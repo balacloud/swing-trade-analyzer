@@ -21,7 +21,7 @@ run() {   # run NAME CMD... : fails on a non-zero exit code or any output line t
 
 echo "== backend tests"
 cd "$PROJECT/backend"
-for t in test_price_basis test_forming_bar_routes test_sr_volume_unavailable test_live_quote test_tradier_errors test_empty_price_row test_audit_statements test_audit_cards test_audit_cards2 test_rrg test_sector_rotation test_sub_industry_rotation; do
+for t in test_price_basis test_forming_bar_routes test_sr_volume_unavailable test_live_quote test_tradier_errors test_tradier_fallback_rule test_empty_price_row test_audit_statements test_audit_cards test_audit_cards2 test_rrg test_sector_rotation test_sub_industry_rotation; do
   [ -f "$t.py" ] && run "$t" "$PY" "$t.py"
 done
 run test_review_gate bash "$PROJECT/.claude/hooks/test_three_pass_check.sh"
