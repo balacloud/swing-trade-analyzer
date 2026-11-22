@@ -1,6 +1,6 @@
 # ENGINEER — The Surgeon's Lens
 
-**Last Updated:** 2026-11-22 (Day 129, session close)
+**Last Updated:** 2026-11-22 (Day 129, all-days check added)
 
 PERSONA.md is the trader's lens (is this a good decision?). This file is the engineer's lens (is this change correct, complete and proven?). Load it at session start and again before any plan or code change. It is built from real misses in this project, not from generic advice.
 
@@ -129,6 +129,20 @@ Each line is a miss that happened here, the habit that would have caught it, and
 | Result priced at a fill nobody could get | 60 |
 | Process written down but not enforced | 41, 64 |
 | React falsy `0` rendering; zero treated as null | Day 68, Day 53 |
+| Backtest honesty: reused out-of-sample window; re-tuning after seeing a result; a fixed seed on a list that changed; a prediction that reasoned about one term of a gate | 18, 20, 45, 56 |
+| Live and backtest logic assumed the same from a name or comment; second copy written before sharing the logic | 21, 35 |
+| A live replay recomputed values that should have been read back from entry | 27 (numbered 29 in the file, see note) |
+| Backgrounded server lost its stdout with the terminal (every `print()` became a 500) | 23 |
+| A wider candidate pool tripped a rate limit; a fixed sort order made the same tail fail every run | 25 |
+| Scheduled-job "local time" comment never checked against the machine | 33 |
+| A cited source did not exist; a secondhand summary was trusted | 37 |
+| One column silently meant two things | 38 |
+| One empty glyph hid four different states (never checked, failed, errored, neutral) | 44 |
+| Design locked without challenging own reasoning, without checking which view is the default or who else reads the value | 49, 50, 51 |
+| A broker id found by searching the symbol gave the wrong fund | 58 |
+| Units guessed by magnitude instead of converted per provider | 61 |
+
+Note (Day 129 check of all days): the file has no Golden Rule 27 (numbering jumps 26 to 28). The "replay reads stored entry values" rule is numbered 29 in `GOLDEN_RULES.md` but cited as "Rule 27" in `CLAUDE_CONTEXT.md` (Day 91) and the ROADMAP. Not renumbered, because rules are cited by number all over; the header count of 68 is really 67 rules.
 
 ## Before you say "done" (the last gate)
 - [ ] Every changed file re-read; every caller and copy grepped.
