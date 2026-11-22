@@ -1,0 +1,102 @@
+{
+  "meta": {
+    "universe_size": 30,
+    "universe": [
+      "AGR",
+      "AHCO",
+      "AJIA",
+      "AKYA",
+      "AVDL",
+      "AXL",
+      "BBXIA",
+      "BFS",
+      "BXP",
+      "CPSR",
+      "CUE",
+      "CVRX",
+      "DAN",
+      "DKS",
+      "ENB",
+      "INR",
+      "MAT",
+      "MTBC",
+      "NDSN",
+      "NWE",
+      "OM",
+      "PLSE",
+      "PRCP",
+      "RAIN",
+      "RPHM",
+      "SBUX",
+      "SKGR",
+      "SLGG",
+      "SLNO",
+      "WTTR"
+    ],
+    "sample_seed": 42,
+    "simfin_total_coverage": 3745,
+    "momentum_tickers_processed": 16,
+    "momentum_tickers_skipped": 14,
+    "mr_tickers_skipped": 0,
+    "mr_skipped_list": [],
+    "start": "2020-01-01",
+    "end": "2025-12-31",
+    "scan_interval": 2,
+    "timestamp": "2026-09-03T16:43:08.226609"
+  },
+  "momentum_config_c": {
+    "total_trades": 3,
+    "wins": 0,
+    "losses": 3,
+    "breakevens": 0,
+    "win_rate": 0.0,
+    "avg_return_pct": -10.1707,
+    "avg_winner_pct": 0,
+    "avg_loser_pct": -10.1707,
+    "expectancy_pct": -10.1707,
+    "expectancy_dollar": -1017.07,
+    "profit_factor": 0.0,
+    "sharpe_ratio": -432.1786,
+    "sortino_ratio": -1.6339,
+    "max_drawdown_pct": 27.5139,
+    "sequential_100pct_equity_dd_pct": 27.5139,
+    "max_drawdown_fixed_risk_pct": 6.1693,
+    "avg_r_multiple": -1.0501,
+    "median_r_multiple": -1.0,
+    "r_distribution": {
+      "big_loss_below_neg2": 0,
+      "loss_neg2_to_neg1": 1,
+      "small_loss_neg1_to_0": 2,
+      "breakeven_0_to_0.5": 0,
+      "small_win_0.5_to_1": 0,
+      "win_1_to_2": 0,
+      "big_win_2_to_3": 0,
+      "home_run_above_3": 0
+    },
+    "max_consecutive_wins": 0,
+    "max_consecutive_losses": 3,
+    "avg_days_held": 6.0,
+    "exit_reasons": {
+      "stop_hit_gap": 1,
+      "stop_hit": 2
+    },
+    "regime_breakdown": {
+      "bull": {
+        "trades": 3,
+        "win_rate": 0.0,
+        "avg_return": -10.1707,
+        "total_return": -30.512
+      }
+    },
+    "trades_per_year_actual": 1.5,
+    "t_statistic": null,
+    "t_pvalue": null,
+    "t_pvalue_iid_assumption": null,
+    "t_pvalue_block_bootstrap": 1.0,
+    "t_significant": null,
+    "warnings": [
+      "Only 3 trades \u2014 insufficient for statistical significance"
+    ]
+  },
+  "mr": null
+}

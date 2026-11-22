@@ -1,0 +1,194 @@
+{
+  "meta": {
+    "universe_size": 400,
+    "sample_seed": 42,
+    "start": "2020-01-01",
+    "end": "2025-12-31",
+    "timestamp": "2026-08-13T20:21:07.078599"
+  },
+  "config_c": {
+    "total_trades": 75,
+    "wins": 34,
+    "losses": 37,
+    "breakevens": 4,
+    "win_rate": 45.33,
+    "avg_return_pct": -0.0861,
+    "avg_winner_pct": 6.8509,
+    "avg_loser_pct": -6.4624,
+    "expectancy_pct": -0.0861,
+    "expectancy_dollar": -8.61,
+    "profit_factor": 0.9731,
+    "sharpe_ratio": -0.2025,
+    "sortino_ratio": -0.201,
+    "max_drawdown_pct": 62.2314,
+    "sequential_100pct_equity_dd_pct": 62.2314,
+    "max_drawdown_fixed_risk_pct": 21.1623,
+    "avg_r_multiple": 0.0065,
+    "median_r_multiple": -0.0399,
+    "r_distribution": {
+      "big_loss_below_neg2": 1,
+      "loss_neg2_to_neg1": 8,
+      "small_loss_neg1_to_0": 30,
+      "breakeven_0_to_0.5": 10,
+      "small_win_0.5_to_1": 18,
+      "win_1_to_2": 6,
+      "big_win_2_to_3": 1,
+      "home_run_above_3": 1
+    },
+    "max_consecutive_wins": 4,
+    "max_consecutive_losses": 5,
+    "avg_days_held": 11.0,
+    "exit_reasons": {
+      "max_hold": 31,
+      "target_hit": 16,
+      "stop_hit": 11,
+      "stop_hit_gap": 9,
+      "trailing_ema_exit": 5,
+      "target_hit_gap": 3
+    },
+    "regime_breakdown": {
+      "bull": {
+        "trades": 61,
+        "win_rate": 45.9,
+        "avg_return": -0.054,
+        "total_return": -3.2923
+      },
+      "sideways": {
+        "trades": 14,
+        "win_rate": 42.86,
+        "avg_return": -0.2258,
+        "total_return": -3.1618
+      }
+    },
+    "trades_per_year_actual": 16.4,
+    "t_statistic": -0.0954,
+    "t_pvalue": 0.924253,
+    "t_pvalue_iid_assumption": 0.924253,
+    "t_pvalue_block_bootstrap": 0.535,
+    "t_significant": false,
+    "warnings": []
+  },
+  "config_f": {
+    "total_trades": 5,
+    "wins": 2,
+    "losses": 3,
+    "breakevens": 0,
+    "win_rate": 40.0,
+    "avg_return_pct": -2.6201,
+    "avg_winner_pct": 7.1566,
+    "avg_loser_pct": -9.1379,
+    "expectancy_pct": -2.6201,
+    "expectancy_dollar": -262.01,
+    "profit_factor": 0.5221,
+    "sharpe_ratio": -0.8122,
+    "sortino_ratio": -0.7932,
+    "max_drawdown_pct": 16.5881,
+    "sequential_100pct_equity_dd_pct": 16.5881,
+    "max_drawdown_fixed_risk_pct": 3.96,
+    "avg_r_multiple": -0.2843,
+    "median_r_multiple": -1.0,
+    "r_distribution": {
+      "big_loss_below_neg2": 0,
+      "loss_neg2_to_neg1": 0,
+      "small_loss_neg1_to_0": 3,
+      "breakeven_0_to_0.5": 0,
+      "small_win_0.5_to_1": 2,
+      "win_1_to_2": 0,
+      "big_win_2_to_3": 0,
+      "home_run_above_3": 0
+    },
+    "max_consecutive_wins": 1,
+    "max_consecutive_losses": 1,
+    "avg_days_held": 10.0,
+    "exit_reasons": {
+      "stop_hit": 3,
+      "max_hold": 1,
+      "target_hit": 1
+    },
+    "regime_breakdown": {
+      "sideways": {
+        "trades": 2,
+        "win_rate": 0.0,
+        "avg_return": -8.6878,
+        "total_return": -17.3755
+      },
+      "bull": {
+        "trades": 3,
+        "win_rate": 66.67,
+        "avg_return": 1.4251,
+        "total_return": 4.2752
+      }
+    },
+    "trades_per_year_actual": 1.4,
+    "t_statistic": null,
+    "t_pvalue": null,
+    "t_pvalue_iid_assumption": null,
+    "t_pvalue_block_bootstrap": 0.6952,
+    "t_significant": null,
+    "warnings": [
+      "Only 5 trades \u2014 insufficient for statistical significance"
+    ]
+  },
+  "config_g": {
+    "total_trades": 74,
+    "wins": 34,
+    "losses": 36,
+    "breakevens": 4,
+    "win_rate": 45.95,
+    "avg_return_pct": -0.0241,
+    "avg_winner_pct": 6.8509,
+    "avg_loser_pct": -6.5122,
+    "expectancy_pct": -0.0241,
+    "expectancy_dollar": -2.41,
+    "profit_factor": 0.9924,
+    "sharpe_ratio": -0.1706,
+    "sortino_ratio": -0.1686,
+    "max_drawdown_pct": 60.3811,
+    "sequential_100pct_equity_dd_pct": 60.3811,
+    "max_drawdown_fixed_risk_pct": 19.5534,
+    "avg_r_multiple": 0.0201,
+    "median_r_multiple": -0.023,
+    "r_distribution": {
+      "big_loss_below_neg2": 1,
+      "loss_neg2_to_neg1": 8,
+      "small_loss_neg1_to_0": 29,
+      "breakeven_0_to_0.5": 10,
+      "small_win_0.5_to_1": 18,
+      "win_1_to_2": 6,
+      "big_win_2_to_3": 1,
+      "home_run_above_3": 1
+    },
+    "max_consecutive_wins": 4,
+    "max_consecutive_losses": 5,
+    "avg_days_held": 11.0,
+    "exit_reasons": {
+      "max_hold": 31,
+      "target_hit": 16,
+      "stop_hit": 10,
+      "stop_hit_gap": 9,
+      "trailing_ema_exit": 5,
+      "target_hit_gap": 3
+    },
+    "regime_breakdown": {
+      "bull": {
+        "trades": 60,
+        "win_rate": 46.67,
+        "avg_return": 0.023,
+        "total_return": 1.378
+      },
+      "sideways": {
+        "trades": 14,
+        "win_rate": 42.86,
+        "avg_return": -0.2258,
+        "total_return": -3.1618
+      }
+    },
+    "trades_per_year_actual": 16.2,
+    "t_statistic": -0.0264,
+    "t_pvalue": 0.978988,
+    "t_pvalue_iid_assumption": 0.978988,
+    "t_pvalue_block_bootstrap": 0.5085,
+    "t_significant": false,
+    "warnings": []
+  }
+}

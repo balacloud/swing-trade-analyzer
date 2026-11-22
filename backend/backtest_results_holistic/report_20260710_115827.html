@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html><head><title>v4.16 Holistic Backtest Report</title>
+<style>
+body { font-family: -apple-system, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
+h1 { color: #1a1a2e; border-bottom: 3px solid #16213e; padding-bottom: 10px; }
+h2 { color: #16213e; margin-top: 30px; }
+.card { background: white; border-radius: 8px; padding: 20px; margin: 15px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+th, td { padding: 8px 12px; text-align: right; border-bottom: 1px solid #eee; }
+th { background: #16213e; color: white; text-align: right; }
+th:first-child, td:first-child { text-align: left; }
+.green { color: #27ae60; font-weight: bold; }
+.red { color: #e74c3c; font-weight: bold; }
+.yellow { color: #f39c12; font-weight: bold; }
+.warning { background: #fff3cd; border: 1px solid #ffc107; padding: 10px; border-radius: 4px; margin: 5px 0; }
+.meta { color: #666; font-size: 0.9em; }
+</style></head>
+<body>
+<h1>v4.16 Holistic 3-Layer Backtest Report</h1>
+<div class="meta">
+Generated: 2026-07-10T11:58:26.815386<br>
+Period: 2023-07-01 to 2025-12-31<br>
+Tickers: 59 processed (20 with trades)<br>
+Elapsed: 363.2s
+</div>
+
+<h2>Config Comparison</h2>
+<div class="card">
+<p><b>Config A:</b> Categorical BUY + ADX &ge; 20 (assessment only)</p>
+<p><b>Config B:</b> A + Pattern &ge; 60% confidence (adds pattern layer)</p>
+<p><b>Config C:</b> B + Trade Viable + R:R &ge; 1.2 (full 3-layer system, mixed pattern status)</p>
+<p><b>Config D:</b> C but breakout-confirmed only &mdash; pattern status must be <code>broken_out</code> AND volume-confirmed (Day 81, Breakout Enhancement Plan Task 0.1)</p>
+<p><b>Config E:</b> C but anticipatory only &mdash; pattern status restricted to <code>at_pivot</code>/<code>forming</code> (complement of D, Day 81)</p>
+<table>
+<tr><th>Config / Period</th><th>Trades</th><th>Win Rate</th><th>Avg Return</th>
+<th>Profit Factor</th><th>Avg R</th><th>Sharpe</th><th>Max DD (100% eq.)</th><th>Max DD (2% risk)</th>
+<th>T-stat</th><th>p (i.i.d.)</th><th>p (block bootstrap)</th></tr>
+<tr>
+<td>C_standard</td>
+<td>42</td>
+<td class="yellow">52.38%</td>
+<td>1.3347%</td>
+<td class="green">1.6371</td>
+<td>0.2433</td>
+<td>0.7383</td>
+<td>24.551%</td>
+<td>6.4616%</td>
+<td>1.3755</td>
+<td>0.176436</td>
+<td>0.0723</td>
+</tr><tr>
+<td>D_standard</td>
+<td>0</td>
+<td class="red">0%</td>
+<td>0%</td>
+<td class="red">0</td>
+<td>0</td>
+<td>None</td>
+<td>0%</td>
+<td>None%</td>
+<td>None</td>
+<td>None</td>
+<td>None</td>
+</tr><tr>
+<td>E_standard</td>
+<td>38</td>
+<td class="yellow">47.37%</td>
+<td>0.8814%</td>
+<td class="yellow">1.3806</td>
+<td>0.1882</td>
+<td>0.3793</td>
+<td>24.551%</td>
+<td>6.5921%</td>
+<td>0.8485</td>
+<td>0.401613</td>
+<td>0.1911</td>
+</tr></table>
+<p class="meta">Day 78 (Fable Remediation Task 2.3): Sharpe now uses actual observed trades/year
+(not a hardcoded 25). Max DD shown two ways — sequential 100%-equity (a modeling artifact,
+kept for continuity) and a fixed 2%-risk-per-trade version (more honest). p-values shown two
+ways — i.i.d. t-test (overstates significance when trades cluster by regime/ticker) and a
+block bootstrap resampling whole calendar-month blocks (robust to that clustering).</p>
+</div><h2>Sanity Warnings</h2><div class='card'><div class='warning'>[D_standard] No trades to analyze</div></div><h2>Regime Breakdown</h2><div class='card'><h3>C_standard</h3><table><tr><th>Regime</th><th>Trades</th><th>Win Rate</th><th>Avg Return</th></tr><tr><td>sideways</td><td>6</td><td>33.33%</td><td>0.9708%</td></tr><tr><td>bull</td><td>35</td><td>57.14%</td><td>1.4801%</td></tr><tr><td>bear</td><td>1</td><td>0.0%</td><td>-1.5696%</td></tr></table><h3>E_standard</h3><table><tr><th>Regime</th><th>Trades</th><th>Win Rate</th><th>Avg Return</th></tr><tr><td>sideways</td><td>6</td><td>33.33%</td><td>0.9708%</td></tr><tr><td>bull</td><td>31</td><td>51.61%</td><td>0.9432%</td></tr><tr><td>bear</td><td>1</td><td>0.0%</td><td>-1.5696%</td></tr></table></div>
+<h2>Known Limitations</h2>
+<div class="card">
+<ul>
+<li><b>Survivorship bias:</b> Only tests tickers that exist today. Delisted stocks not included.</li>
+<li><b>SimFin coverage:</b> Free tier has 5 years of data delayed 12 months. Some recent dates may lack fundamentals.</li>
+<li><b>Scan interval:</b> Default is daily scanning. Configurable via --scan-interval.</li>
+<li><b>No portfolio-level sizing:</b> Each trade evaluated independently (no position sizing optimization).</li>
+<li><b>All entries/exits at daily close:</b> No intraday execution modeling.</li>
+</ul>
+</div>
+
+</body></html>

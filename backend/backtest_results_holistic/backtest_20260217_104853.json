@@ -1,0 +1,175 @@
+{
+  "meta": {
+    "start_date": "2023-01-01",
+    "end_date": "2024-12-31",
+    "tickers": [
+      "AAPL",
+      "NVDA",
+      "JPM",
+      "XOM",
+      "PLTR"
+    ],
+    "tickers_processed": 5,
+    "tickers_with_trades": 4,
+    "configs": [
+      "A",
+      "B",
+      "C"
+    ],
+    "holding_periods": [
+      "standard"
+    ],
+    "scan_interval": 5,
+    "elapsed_seconds": 6.3,
+    "timestamp": "2026-02-17T10:48:53.570386"
+  },
+  "results": {
+    "A_standard": {
+      "total_trades": 44,
+      "wins": 24,
+      "losses": 19,
+      "breakevens": 1,
+      "win_rate": 54.55,
+      "avg_return_pct": 0.85,
+      "avg_winner_pct": 7.3824,
+      "avg_loser_pct": -7.3716,
+      "expectancy_pct": 0.85,
+      "expectancy_dollar": 85.0,
+      "profit_factor": 1.267,
+      "sharpe_ratio": 0.4127,
+      "sortino_ratio": 0.4134,
+      "max_drawdown_pct": 35.5536,
+      "avg_r_multiple": 0.0645,
+      "median_r_multiple": 0.2874,
+      "r_distribution": {
+        "big_loss_below_neg2": 0,
+        "loss_neg2_to_neg1": 0,
+        "small_loss_neg1_to_0": 19,
+        "breakeven_0_to_0.5": 6,
+        "small_win_0.5_to_1": 6,
+        "win_1_to_2": 13,
+        "big_win_2_to_3": 0,
+        "home_run_above_3": 0
+      },
+      "max_consecutive_wins": 6,
+      "max_consecutive_losses": 3,
+      "avg_days_held": 10.6,
+      "exit_reasons": {
+        "max_hold": 18,
+        "stop_hit": 13,
+        "target_hit": 13
+      },
+      "regime_breakdown": {
+        "sideways": {
+          "trades": 11,
+          "win_rate": 72.73,
+          "avg_return": 1.6804,
+          "total_return": 18.4846
+        },
+        "bull": {
+          "trades": 30,
+          "win_rate": 50.0,
+          "avg_return": 0.4956,
+          "total_return": 14.8674
+        },
+        "bear": {
+          "trades": 3,
+          "win_rate": 33.33,
+          "avg_return": 1.3499,
+          "total_return": 4.0498
+        }
+      },
+      "warnings": []
+    },
+    "B_standard": {
+      "total_trades": 6,
+      "wins": 3,
+      "losses": 3,
+      "breakevens": 0,
+      "win_rate": 50.0,
+      "avg_return_pct": -0.3747,
+      "avg_winner_pct": 3.9974,
+      "avg_loser_pct": -4.7468,
+      "expectancy_pct": -0.3747,
+      "expectancy_dollar": -37.47,
+      "profit_factor": 0.8421,
+      "sharpe_ratio": -0.557,
+      "sortino_ratio": -0.5409,
+      "max_drawdown_pct": 13.6562,
+      "avg_r_multiple": -0.042,
+      "median_r_multiple": 0.0974,
+      "r_distribution": {
+        "big_loss_below_neg2": 0,
+        "loss_neg2_to_neg1": 0,
+        "small_loss_neg1_to_0": 3,
+        "breakeven_0_to_0.5": 1,
+        "small_win_0.5_to_1": 2,
+        "win_1_to_2": 0,
+        "big_win_2_to_3": 0,
+        "home_run_above_3": 0
+      },
+      "max_consecutive_wins": 3,
+      "max_consecutive_losses": 3,
+      "avg_days_held": 12.8,
+      "exit_reasons": {
+        "max_hold": 4,
+        "stop_hit": 2
+      },
+      "regime_breakdown": {
+        "sideways": {
+          "trades": 2,
+          "win_rate": 50.0,
+          "avg_return": -0.7667,
+          "total_return": -1.5334
+        },
+        "bull": {
+          "trades": 3,
+          "win_rate": 66.67,
+          "avg_return": 0.3478,
+          "total_return": 1.0433
+        },
+        "bear": {
+          "trades": 1,
+          "win_rate": 0.0,
+          "avg_return": -1.7579,
+          "total_return": -1.7579
+        }
+      },
+      "warnings": [
+        "Only 6 trades \u2014 insufficient for statistical significance"
+      ]
+    },
+    "C_standard": {
+      "total_trades": 0,
+      "wins": 0,
+      "losses": 0,
+      "breakevens": 0,
+      "win_rate": 0,
+      "avg_return_pct": 0,
+      "avg_winner_pct": 0,
+      "avg_loser_pct": 0,
+      "expectancy_pct": 0,
+      "expectancy_dollar": 0,
+      "profit_factor": 0,
+      "sharpe_ratio": null,
+      "sortino_ratio": null,
+      "max_drawdown_pct": 0,
+      "avg_r_multiple": 0,
+      "median_r_multiple": 0,
+      "r_distribution": {},
+      "max_consecutive_wins": 0,
+      "max_consecutive_losses": 0,
+      "avg_days_held": 0,
+      "exit_reasons": {},
+      "regime_breakdown": {},
+      "warnings": [
+        "No trades to analyze"
+      ]
+    }
+  },
+  "trade_count": {
+    "A_standard": 44,
+    "B_standard": 6,
+    "C_standard": 0
+  }
+}

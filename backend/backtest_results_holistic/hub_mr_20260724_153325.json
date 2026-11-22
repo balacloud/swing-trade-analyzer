@@ -1,0 +1,294 @@
+{
+  "meta": {
+    "universe_size": 64,
+    "universe": [
+      "CEG",
+      "ETN",
+      "ANET",
+      "ALAB",
+      "MOD",
+      "GLW",
+      "APH",
+      "FN",
+      "DELL",
+      "HPE",
+      "HPQ",
+      "TMUS",
+      "KEYS",
+      "NOC",
+      "CGNX",
+      "ISRG",
+      "XYL",
+      "SMCI",
+      "ARM",
+      "ON",
+      "QCOM",
+      "TSM",
+      "AMAT",
+      "LRCX",
+      "KLAC",
+      "ASML",
+      "LSCC",
+      "CCJ",
+      "OKLO",
+      "BWXT",
+      "FCX",
+      "MP",
+      "TECK",
+      "WDC",
+      "SNOW",
+      "NET",
+      "SHOP",
+      "DDOG",
+      "PATH",
+      "GIB",
+      "HOOD",
+      "SOFI",
+      "AFRM",
+      "UPST",
+      "NIO",
+      "LI",
+      "XPEV",
+      "JD",
+      "GS",
+      "LUNR",
+      "RKLB",
+      "RIVN",
+      "ASTS",
+      "OXY",
+      "TRP",
+      "NFLX",
+      "POET",
+      "SMH",
+      "URA",
+      "XLF",
+      "XBI",
+      "GDX",
+      "SOXX",
+      "DRAM"
+    ],
+    "smoke_test": false,
+    "skipped": [
+      "DRAM"
+    ],
+    "start": "2020-01-01",
+    "end": "2025-12-31",
+    "distinct_entry_months": [
+      "2019-09",
+      "2019-10",
+      "2019-11",
+      "2019-12",
+      "2020-01",
+      "2020-02",
+      "2020-03",
+      "2020-04",
+      "2020-05",
+      "2020-06",
+      "2020-07",
+      "2020-08",
+      "2020-09",
+      "2020-10",
+      "2020-11",
+      "2020-12",
+      "2021-01",
+      "2021-02",
+      "2021-03",
+      "2021-04",
+      "2021-05",
+      "2021-06",
+      "2021-07",
+      "2021-08",
+      "2021-09",
+      "2021-10",
+      "2021-11",
+      "2021-12",
+      "2022-01",
+      "2022-02",
+      "2022-03",
+      "2022-04",
+      "2022-05",
+      "2022-06",
+      "2022-07",
+      "2022-08",
+      "2022-09",
+      "2022-10",
+      "2022-11",
+      "2022-12",
+      "2023-01",
+      "2023-02",
+      "2023-03",
+      "2023-04",
+      "2023-05",
+      "2023-06",
+      "2023-07",
+      "2023-08",
+      "2023-09",
+      "2023-10",
+      "2023-11",
+      "2023-12",
+      "2024-01",
+      "2024-02",
+      "2024-03",
+      "2024-04",
+      "2024-05",
+      "2024-06",
+      "2024-07",
+      "2024-08",
+      "2024-09",
+      "2024-10",
+      "2024-11",
+      "2024-12",
+      "2025-01",
+      "2025-02",
+      "2025-03",
+      "2025-04",
+      "2025-05",
+      "2025-06",
+      "2025-07",
+      "2025-08",
+      "2025-09",
+      "2025-10",
+      "2025-11",
+      "2025-12"
+    ],
+    "timestamp": "2026-07-24T15:33:25.346813",
+    "caveat": "SELECTION-BIASED: HUB_UNIVERSE is a hand-picked 2026 watchlist of names chosen because they already looked structurally strong. This result is NOT comparable to backtest_survivorship_free.py's random-400-ticker baseline (PF 1.16, Sharpe 1.30). Treat as an upper bound on this specific watchlist, not a generalizable edge."
+  },
+  "metrics": {
+    "total_trades": 1940,
+    "wins": 1121,
+    "losses": 724,
+    "breakevens": 95,
+    "win_rate": 57.78,
+    "avg_return_pct": 0.4745,
+    "avg_winner_pct": 3.9971,
+    "avg_loser_pct": -4.9281,
+    "expectancy_pct": 0.4745,
+    "expectancy_dollar": 47.45,
+    "profit_factor": 1.2574,
+    "sharpe_ratio": 1.5278,
+    "sortino_ratio": 1.6034,
+    "max_drawdown_pct": 94.4474,
+    "sequential_100pct_equity_dd_pct": 94.4474,
+    "max_drawdown_fixed_risk_pct": 65.4734,
+    "avg_r_multiple": 0.0949,
+    "median_r_multiple": 0.2606,
+    "r_distribution": {
+      "big_loss_below_neg2": 8,
+      "loss_neg2_to_neg1": 635,
+      "small_loss_neg1_to_0": 119,
+      "breakeven_0_to_0.5": 487,
+      "small_win_0.5_to_1": 430,
+      "win_1_to_2": 206,
+      "big_win_2_to_3": 41,
+      "home_run_above_3": 14
+    },
+    "max_consecutive_wins": 13,
+    "max_consecutive_losses": 10,
+    "avg_days_held": 0.0,
+    "exit_reasons": {
+      "rsi2_exit": 1269,
+      "time_exit": 24,
+      "stop_hit": 526,
+      "stop_hit_gap": 117,
+      "data_end": 4
+    },
+    "regime_breakdown": {
+      "unknown": {
+        "trades": 1940,
+        "win_rate": 57.78,
+        "avg_return": 0.4745,
+        "total_return": 920.554
+      }
+    },
+    "trades_per_year_actual": 308.8,
+    "t_statistic": 3.9651,
+    "t_pvalue": 7.6e-05,
+    "t_pvalue_iid_assumption": 7.6e-05,
+    "t_pvalue_block_bootstrap": 0.0311,
+    "t_significant": true,
+    "warnings": []
+  },
+  "theme_breakdown": {
+    "Semis": {
+      "trades": 344,
+      "profit_factor": 1.457
+    },
+    "Industrial": {
+      "trades": 250,
+      "profit_factor": 1.491
+    },
+    "ETF": {
+      "trades": 228,
+      "profit_factor": 1.381
+    },
+    "Cloud/SaaS": {
+      "trades": 161,
+      "profit_factor": 0.99
+    },
+    "Hardware": {
+      "trades": 160,
+      "profit_factor": 1.067
+    },
+    "Commodities": {
+      "trades": 101,
+      "profit_factor": 0.874
+    },
+    "Uranium/Nuclear": {
+      "trades": 96,
+      "profit_factor": 1.196
+    },
+    "China/EV": {
+      "trades": 83,
+      "profit_factor": 1.136
+    },
+    "Fintech": {
+      "trades": 81,
+      "profit_factor": 1.038
+    },
+    "Energy": {
+      "trades": 70,
+      "profit_factor": 1.136
+    },
+    "Networking/AI": {
+      "trades": 69,
+      "profit_factor": 1.336
+    },
+    "Media": {
+      "trades": 50,
+      "profit_factor": 1.22
+    },
+    "Healthcare": {
+      "trades": 44,
+      "profit_factor": 1.59
+    },
+    "Space": {
+      "trades": 43,
+      "profit_factor": 1.666
+    },
+    "Telecom": {
+      "trades": 40,
+      "profit_factor": 1.833
+    },
+    "Financials": {
+      "trades": 40,
+      "profit_factor": 1.611
+    },
+    "Defense": {
+      "trades": 37,
+      "profit_factor": 2.181
+    },
+    "Energy/Utility": {
+      "trades": 28,
+      "profit_factor": 1.155
+    },
+    "EV": {
+      "trades": 14,
+      "profit_factor": 1.868
+    },
+    "IT Services": {
+      "trades": 1,
+      "profit_factor": 0.0
+    }
+  }
+}

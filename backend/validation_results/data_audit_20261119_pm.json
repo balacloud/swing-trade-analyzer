@@ -1,0 +1,7428 @@
+{
+ "generated": "2026-11-19T16:33-05:00",
+ "rows": [
+  {
+   "class": "US stock",
+   "symbol": "CAT",
+   "why": "",
+   "used": "twelvedata",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:41.064233-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:18.355732",
+    "rows": 504,
+    "source": "twelvedata",
+    "status": "just_fetched",
+    "this_session": "twelvedata"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 1; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "twelvedata vs yfinance: max close diff 0.02%, volume x1.08 | twelvedata vs tradier: max close diff 0.02%, volume x1.08"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says twelvedata / 504 rows / just_fetched"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "BRK-B",
+   "why": "dash symbol",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:42.063567-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:17.490660",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.01%, volume x0.93 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "GOOGL",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:42.789007-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:16.739747",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.06%, volume x0.87 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "JPM",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:43.577919-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:16.013435",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.01%, volume x0.97 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "JNJ",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:44.296821-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:15.302091",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "FAIL",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "FAIL",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 4; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.00%, volume x0.85 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters); a source later in the chain fails: tradier C4"
+    }
+   }
+  },
+  {
+   "class": "CA stock",
+   "symbol": "RY.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:44.982339-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:14.585412",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / just_fetched"
+    }
+   }
+  },
+  {
+   "class": "CA stock",
+   "symbol": "CNR.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:45.653192-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:13.922655",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / just_fetched"
+    }
+   }
+  },
+  {
+   "class": "CA stock",
+   "symbol": "ATD.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:46.346863-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:13.260076",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / just_fetched"
+    }
+   }
+  },
+  {
+   "class": "CA stock",
+   "symbol": "CNQ.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:47.142292-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:12.424850",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / just_fetched"
+    }
+   }
+  },
+  {
+   "class": "CA stock",
+   "symbol": "CSU.TO",
+   "why": "CAD 3,000+",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:47.858850-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:11.767333",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / just_fetched"
+    }
+   }
+  },
+  {
+   "class": "CA ETF",
+   "symbol": "HXQ.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:48.455496-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:11.124103",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / just_fetched"
+    }
+   }
+  },
+  {
+   "class": "CA ETF",
+   "symbol": "VFV.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:49.135824-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:10.461486",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / just_fetched"
+    }
+   }
+  },
+  {
+   "class": "CA ETF",
+   "symbol": "XEQT.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:49.816907-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:09.729024",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / just_fetched"
+    }
+   }
+  },
+  {
+   "class": "CA ETF",
+   "symbol": "XCHP.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:50.516906-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:09.095968",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 1%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / just_fetched"
+    }
+   }
+  },
+  {
+   "class": "CA ETF",
+   "symbol": "FINN.NE",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:51.168731-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:08.411819",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "FAIL",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "FAIL",
+     "note": "yfinance: flat zero-volume 1%; bad OHLC rows 22; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "FAIL",
+     "note": "tab says yfinance / 503 rows / just_fetched but yfinance fails C4: the tab shows no warning"
+    }
+   }
+  },
+  {
+   "class": "CDR",
+   "symbol": "WDC.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:51.840688-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:07.771830",
+    "rows": 135,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "yfinance": 135
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 135 bars from 2026-05-08"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 135 rows / just_fetched"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "GEV",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:52.508564-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:07.093377",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.06%, volume x0.97 | yfinance vs tradier: max close diff 0.06%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "TSM",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:53.254462-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:06.297110",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 1; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.00%, volume x0.91 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "ETN",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:53.966221-05:00",
+    "expires_at": "2026-11-19T17:28:53.963748-05:00",
+    "expires_in": "0:44:59.431780",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "WARN",
+     "note": "tradier vs twelvedata: max close diff 0.31%, volume x0.96 | tradier vs yfinance: max close diff 0.31%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "VRT",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:55.068587-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:04.513229",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.03%, volume x0.96 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "CA stock",
+   "symbol": "CCO.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 19.8,
+    "cached": true,
+    "cached_at": "2026-11-18T20:58:39.182928-05:00",
+    "expires_at": "2026-11-19T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / live"
+    }
+   }
+  },
+  {
+   "class": "CDR",
+   "symbol": "ASML.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 19.8,
+    "cached": true,
+    "cached_at": "2026-11-18T20:58:47.406088-05:00",
+    "expires_at": "2026-11-19T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 279,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 280
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "280 bars from 2025-10-09"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 279 rows / live"
+    }
+   }
+  },
+  {
+   "class": "CDR",
+   "symbol": "ANET.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:57.146340-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:02.466144",
+    "rows": 229,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "yfinance": 229
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 229 bars from 2025-12-22"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 229 rows / just_fetched"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "CEG",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:57.770272-05:00",
+    "expires_at": "2026-11-19T17:28:57.765440-05:00",
+    "expires_in": "0:44:59.484690",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.18%, volume x0.96 | tradier vs yfinance: max close diff 0.15%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "ALAB",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:58.514829-05:00",
+    "expires_at": "2026-11-19T17:28:58.512566-05:00",
+    "expires_in": "0:44:59.512822",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.15%, volume x0.96 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "NVDA",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:43:59.244402-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:46:00.297319",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "WARN",
+     "note": "yfinance vs twelvedata: max close diff 0.01%, volume x0.70 (volume ratio outside 0.8-1.25) | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "AVGO",
+   "why": "",
+   "used": "twelvedata",
+   "tab": {
+    "age_hours": 0.2,
+    "cached": true,
+    "cached_at": "2026-11-19T16:32:35.065012-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:59.841089",
+    "rows": 504,
+    "source": "twelvedata",
+    "status": "cached",
+    "this_session": "cache"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "twelvedata vs yfinance: max close diff 0.03%, volume x1.09 | twelvedata vs tradier: max close diff 0.03%, volume x1.09"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says twelvedata / 504 rows / cached"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "KEYS",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:00.382783-05:00",
+    "expires_at": "2026-11-19T17:29:00.381292-05:00",
+    "expires_in": "0:44:59.513470",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.12%, volume x0.95 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "CDR",
+   "symbol": "MU.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 19.5,
+    "cached": true,
+    "cached_at": "2026-11-18T21:15:57.464056-05:00",
+    "expires_at": "2026-11-19T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 276,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 277,
+    "eodhd": 251
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "277 bars from 2025-10-15"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs eodhd: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 276 rows / live"
+    }
+   }
+  },
+  {
+   "class": "CA stock",
+   "symbol": "GIB-A.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 19.5,
+    "cached": true,
+    "cached_at": "2026-11-18T21:16:10.010237-05:00",
+    "expires_at": "2026-11-19T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / live"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "MRVL",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:02.558706-05:00",
+    "expires_at": "2026-11-19T17:29:02.556714-05:00",
+    "expires_in": "0:44:59.474117",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.08%, volume x0.96 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "ONTO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:03.345046-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:56.044009",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.08%, volume x0.96 | yfinance vs tradier: max close diff 0.00%, volume x0.99"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "CAMT",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:04.201300-05:00",
+    "expires_at": "2026-11-19T17:29:04.198912-05:00",
+    "expires_in": "0:44:59.396905",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.05%, volume x1.04 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "AMD",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:05.083375-05:00",
+    "expires_at": "2026-11-19T17:29:05.081353-05:00",
+    "expires_in": "0:44:59.530512",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "WARN",
+     "note": "tradier vs twelvedata: max close diff 0.01%, volume x0.69 (volume ratio outside 0.8-1.25) | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "ORCL",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:05.780997-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:53.780855",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.05%, volume x0.97 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "FCX",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:06.447341-05:00",
+    "expires_at": "2026-11-19T17:29:06.445337-05:00",
+    "expires_in": "0:44:59.502666",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.08%, volume x0.88 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "QCOM",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:07.177256-05:00",
+    "expires_at": "2026-11-19T17:29:07.174826-05:00",
+    "expires_in": "0:44:59.548729",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "twelvedata": "ERROR: [twelvedata] HTTP 429 - rate limited (ticker=QCOM)",
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 2 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 2 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 2 sources in the chain)"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "501 bars from 2024-11-20 (all 2 sources in the chain)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says yfinance first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "CDR",
+   "symbol": "SNDK.TO",
+   "why": "short history",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:07.852980-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:51.779586",
+    "rows": 135,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "yfinance": 135,
+    "eodhd": 135
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 135 bars from 2026-05-08"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs eodhd: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 135 rows / just_fetched"
+    }
+   }
+  },
+  {
+   "class": "CDR",
+   "symbol": "GEV.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 18.7,
+    "cached": true,
+    "cached_at": "2026-11-18T21:59:52.819038-05:00",
+    "expires_at": "2026-11-19T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 228,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "yfinance": 229
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 229 bars from 2025-12-22"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 228 rows / live"
+    }
+   }
+  },
+  {
+   "class": "CDR",
+   "symbol": "AVGO.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 46.0,
+    "cached": true,
+    "cached_at": "2026-11-17T18:41:52.421246-05:00",
+    "expires_at": "2026-11-18T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 227,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "yfinance": 229
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 229 bars from 2025-12-22"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 227 rows / live"
+    }
+   }
+  },
+  {
+   "class": "CDR",
+   "symbol": "AMD.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 18.5,
+    "cached": true,
+    "cached_at": "2026-11-18T22:16:01.811519-05:00",
+    "expires_at": "2026-11-19T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503,
+    "eodhd": 251
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs eodhd: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / live"
+    }
+   }
+  },
+  {
+   "class": "CA ETF",
+   "symbol": "HURA.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 18.1,
+    "cached": true,
+    "cached_at": "2026-11-18T22:38:57.274048-05:00",
+    "expires_at": "2026-11-19T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / live"
+    }
+   }
+  },
+  {
+   "class": "CA ETF",
+   "symbol": "XGD.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 18.1,
+    "cached": true,
+    "cached_at": "2026-11-18T22:39:05.873798-05:00",
+    "expires_at": "2026-11-19T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / live"
+    }
+   }
+  },
+  {
+   "class": "CA ETF",
+   "symbol": "MTRX.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 18.1,
+    "cached": true,
+    "cached_at": "2026-11-18T22:39:14.601485-05:00",
+    "expires_at": "2026-11-19T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 210,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "yfinance": 211
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 211 bars from 2026-01-20"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 210 rows / live"
+    }
+   }
+  },
+  {
+   "class": "CA ETF",
+   "symbol": "ORBX.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 18.1,
+    "cached": true,
+    "cached_at": "2026-11-18T22:39:24.493514-05:00",
+    "expires_at": "2026-11-19T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 141,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "yfinance": 142
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 142 bars from 2026-04-29"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 141 rows / live"
+    }
+   }
+  },
+  {
+   "class": "CA ETF",
+   "symbol": "RBOT.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 18.1,
+    "cached": true,
+    "cached_at": "2026-11-18T22:39:32.675033-05:00",
+    "expires_at": "2026-11-19T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "yfinance: flat zero-volume 2%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / live"
+    }
+   }
+  },
+  {
+   "class": "CA ETF",
+   "symbol": "XDRV.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:14.330251-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:45.178067",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "FAIL",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "FAIL",
+     "note": "yfinance: flat zero-volume 82%; bad OHLC rows 0; zero-volume in last 5: 2"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "FAIL",
+     "note": "tab says yfinance / 503 rows / just_fetched but yfinance fails C4: the tab shows no warning"
+    }
+   }
+  },
+  {
+   "class": "CA ETF",
+   "symbol": "CARS.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 18.1,
+    "cached": true,
+    "cached_at": "2026-11-18T22:39:48.793822-05:00",
+    "expires_at": "2026-11-19T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "WARN",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "WARN",
+     "note": "yfinance: last bar 2026-11-18, expected 2026-11-19 (1 session behind)"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "yfinance: flat zero-volume 12%; bad OHLC rows 0; zero-volume in last 5: 1"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "502 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / live"
+    }
+   }
+  },
+  {
+   "class": "CA ETF",
+   "symbol": "COPP.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 18.1,
+    "cached": true,
+    "cached_at": "2026-11-18T22:39:56.904423-05:00",
+    "expires_at": "2026-11-19T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "yfinance: flat zero-volume 2%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / live"
+    }
+   }
+  },
+  {
+   "class": "US ETF",
+   "symbol": "UFO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:16.559594-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:43.012324",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.00%, volume x1.00 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US ETF",
+   "symbol": "QTUM",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:17.207664-05:00",
+    "expires_at": "2026-11-19T17:29:17.205615-05:00",
+    "expires_in": "0:44:59.418315",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.00%, volume x1.00 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US ETF",
+   "symbol": "BOTZ",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:18.018475-05:00",
+    "expires_at": "2026-11-19T17:29:18.016999-05:00",
+    "expires_in": "0:44:59.450896",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.00%, volume x1.00 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US ETF",
+   "symbol": "DRIV",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:18.839749-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:40.784974",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.00%, volume x1.00 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US ETF",
+   "symbol": "GDX",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:19.465022-05:00",
+    "expires_at": "2026-11-19T17:29:19.462828-05:00",
+    "expires_in": "0:44:59.510332",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 1; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.01%, volume x1.01 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US ETF",
+   "symbol": "DRAM",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:20.187229-05:00",
+    "expires_at": "2026-11-19T17:29:20.186399-05:00",
+    "expires_in": "0:44:59.513421",
+    "rows": 161,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 161,
+    "yfinance": 161,
+    "tradier": 161
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "twelvedata: 161 bars from 2026-04-02 || yfinance: 161 bars from 2026-04-02 || tradier: 161 bars from 2026-04-02"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.01%, volume x0.85 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 161 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "CA ETF",
+   "symbol": "XETM.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:20.898149-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:38.709330",
+    "rows": 211,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "yfinance": 211
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 211 bars from 2026-01-20"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 211 rows / just_fetched"
+    }
+   }
+  },
+  {
+   "class": "US ETF",
+   "symbol": "SETM",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:21.571484-05:00",
+    "expires_at": "2026-11-19T17:29:21.569728-05:00",
+    "expires_in": "0:44:59.485462",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.19%, volume x1.06 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US ETF",
+   "symbol": "SMH",
+   "why": "no fundamentals",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:22.336091-05:00",
+    "expires_at": "2026-11-19T17:29:22.333748-05:00",
+    "expires_in": "0:44:59.524337",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.00%, volume x1.00 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US ETF",
+   "symbol": "GRID",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:23.118766-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:36.451842",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.00%, volume x1.00 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US ETF",
+   "symbol": "URA",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:23.840921-05:00",
+    "expires_at": "2026-11-19T17:29:23.838564-05:00",
+    "expires_in": "0:44:59.441202",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 2; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.03%, volume x1.00 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US ETF",
+   "symbol": "AIPO",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:24.681061-05:00",
+    "expires_at": "2026-11-19T17:29:24.679327-05:00",
+    "expires_in": "0:44:59.517331",
+    "rows": 334,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "twelvedata": 334,
+    "yfinance": 334,
+    "tradier": 334
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "334 bars from 2025-07-25 (all 3 sources in the chain)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.00%, volume x1.00 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 334 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US ETF",
+   "symbol": "COPX",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:25.405343-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:34.202913",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 2; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.00%, volume x0.88 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US ETF",
+   "symbol": "SOXX",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:26.014259-05:00",
+    "expires_at": "2026-11-19T17:29:26.011711-05:00",
+    "expires_in": "0:44:59.501443",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.00%, volume x1.00 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "CA ETF",
+   "symbol": "SGRD.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 21.8,
+    "cached": true,
+    "cached_at": "2026-11-18T18:59:09.324689-05:00",
+    "expires_at": "2026-11-19T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 147,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "yfinance": 148
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "yfinance: flat zero-volume 3%; bad OHLC rows 0; zero-volume in last 5: 1"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 148 bars from 2026-04-21"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 147 rows / live"
+    }
+   }
+  },
+  {
+   "class": "US leveraged",
+   "symbol": "SOXL",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:27.572752-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:32.030755",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "WARN",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "WARN",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "WARN",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "WARN",
+     "note": "twelvedata: 2025-04-09 +55%: also in yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2025-04-09 +55%: also in twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR) || tradier: 2025-04-09 +55%: also in twelvedata,yfinance (real move, or unadjusted everywhere: needs IBKR)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.00%, volume x0.87 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "CA leveraged",
+   "symbol": "SOXL.NE",
+   "why": "known bad: Cboe Canada only",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 21.2,
+    "cached": true,
+    "cached_at": "2026-11-18T19:30:26.446445-05:00",
+    "expires_at": "2026-11-19T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 314,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "FAIL",
+     "C5": "WARN",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 315,
+    "eodhd": 251
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "FAIL",
+     "note": "yfinance: flat zero-volume 100%; bad OHLC rows 0; zero-volume in last 5: 4"
+    },
+    "C5": {
+     "level": "WARN",
+     "note": "yfinance: 2026-05-25 -67%: also in eodhd (real move, or unadjusted everywhere: needs IBKR)"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "315 bars from 2025-08-18"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs eodhd: max close diff 0.17%, volume x0.00"
+    },
+    "C8": {
+     "level": "FAIL",
+     "note": "tab says yfinance / 314 rows / live but yfinance fails C4: the tab shows no warning"
+    }
+   }
+  },
+  {
+   "class": "CA stock",
+   "symbol": "MDA.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 21.2,
+    "cached": true,
+    "cached_at": "2026-11-18T19:30:34.640154-05:00",
+    "expires_at": "2026-11-19T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / live"
+    }
+   }
+  },
+  {
+   "class": "CA stock",
+   "symbol": "NTR.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:29.727142-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:29.824387",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / just_fetched"
+    }
+   }
+  },
+  {
+   "class": "CA stock",
+   "symbol": "ASTL.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 21.2,
+    "cached": true,
+    "cached_at": "2026-11-18T19:30:50.590461-05:00",
+    "expires_at": "2026-11-19T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / live"
+    }
+   }
+  },
+  {
+   "class": "CA stock",
+   "symbol": "BDT.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 21.2,
+    "cached": true,
+    "cached_at": "2026-11-18T19:30:57.979908-05:00",
+    "expires_at": "2026-11-19T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / live"
+    }
+   }
+  },
+  {
+   "class": "CA stock",
+   "symbol": "PNG.V",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:31.725601-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:27.876690",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / just_fetched"
+    }
+   }
+  },
+  {
+   "class": "CA stock",
+   "symbol": "CGY.TO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 20.8,
+    "cached": true,
+    "cached_at": "2026-11-18T19:57:27.100426-05:00",
+    "expires_at": "2026-11-19T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "NA",
+     "note": "only one source available"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / live"
+    }
+   }
+  },
+  {
+   "class": "US leveraged",
+   "symbol": "QPUX",
+   "why": "1:3 reverse split 2026-03-23",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:33.075218-05:00",
+    "expires_at": "2026-11-19T17:29:33.073313-05:00",
+    "expires_in": "0:44:59.549738",
+    "rows": 325,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "WARN",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "WARN",
+     "C6": "PASS"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "FAIL",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "twelvedata": 325,
+    "yfinance": 325,
+    "tradier": 325
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "FAIL",
+     "note": "twelvedata: 2026-05-21 +48%: also in yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2026-05-21 +48%: also in twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR) || tradier: 2026-03-20 -69%: ONLY here; twelvedata,yfinance are continuous -> tradier has a split error | 2026-05-21 +48%: also in twelvedata,yfinance (real move, or unadjusted everywhere: needs IBKR)"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "325 bars from 2025-08-07 (all 3 sources in the chain)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.01%, volume x1.01 | tradier vs yfinance: max close diff 0.01%, volume x1.01"
+    },
+    "C8": {
+     "level": "FAIL",
+     "note": "tab says tradier / 325 rows / just_fetched but tradier fails C5: the tab shows no warning"
+    }
+   }
+  },
+  {
+   "class": "US leveraged",
+   "symbol": "DRAL",
+   "why": "~100 days",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:33.801282-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:25.834848",
+    "rows": 104,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 104,
+    "yfinance": 104,
+    "tradier": 104
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "twelvedata: 104 bars from 2026-06-25 || yfinance: 104 bars from 2026-06-25 || tradier: 104 bars from 2026-06-25"
+    },
+    "C9": {
+     "level": "FAIL",
+     "note": "yfinance vs twelvedata: max close diff 2.21%, volume x1.15 | yfinance vs tradier: max close diff 0.12%, volume x0.99"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 104 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US leveraged",
+   "symbol": "SPCL",
+   "why": "~154 days",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:34.424001-05:00",
+    "expires_at": "2026-11-19T17:29:34.422442-05:00",
+    "expires_in": "0:44:59.422913",
+    "rows": 158,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "WARN",
+     "C6": "WARN"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "WARN",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "WARN",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 154,
+    "yfinance": 158,
+    "tradier": 158
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "WARN",
+     "note": "twelvedata: 2026-06-12 +57%: also in yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2026-06-12 +57%: also in twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR) || tradier: 2026-06-12 +57%: also in twelvedata,yfinance (real move, or unadjusted everywhere: needs IBKR)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "twelvedata: 154 bars from 2026-04-14; starts 6 days after yfinance (2026-04-08, 158 bars); starts 6 days after tradier (2026-04-08, 158 bars) || yfinance: 158 bars from 2026-04-08 || tradier: 158 bars from 2026-04-08"
+    },
+    "C9": {
+     "level": "WARN",
+     "note": "tradier vs twelvedata: max close diff 0.62%, volume x1.08 | tradier vs yfinance: max close diff 0.06%, volume x1.02"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 158 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US leveraged",
+   "symbol": "URAA",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:35.271637-05:00",
+    "expires_at": "2026-11-19T17:29:35.269219-05:00",
+    "expires_in": "0:44:59.522793",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 1; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.00%, volume x1.01 | tradier vs yfinance: max close diff 0.00%, volume x1.01"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US leveraged",
+   "symbol": "UBOT",
+   "why": "control",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:35.979042-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:23.637095",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 1; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.00%, volume x1.00 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US leveraged",
+   "symbol": "COPZ",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:36.605824-05:00",
+    "expires_at": "2026-11-19T17:29:36.604707-05:00",
+    "expires_in": "0:44:59.489491",
+    "rows": 192,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 194,
+    "yfinance": 192,
+    "tradier": 192
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 1%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "twelvedata: 194 bars from 2024-07-10 || yfinance: 192 bars from 2026-02-18; starts 588 days after twelvedata (2024-07-10, 194 bars) || tradier: 192 bars from 2026-02-18; starts 588 days after twelvedata (2024-07-10, 194 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.06%, volume x1.00 | tradier vs yfinance: max close diff 0.06%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 192 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "CA leveraged",
+   "symbol": "GDXU.TO",
+   "why": "control (3:1 split 2026-05-25)",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 19.8,
+    "cached": true,
+    "cached_at": "2026-11-18T20:58:31.159027-05:00",
+    "expires_at": "2026-11-19T16:30:00-05:00",
+    "expires_in": "EXPIRED",
+    "rows": 503,
+    "source": "yfinance",
+    "status": "live",
+    "this_session": "stale_cache"
+   },
+   "per_source": {
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "yfinance": 503,
+    "eodhd": 251
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40%"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "503 bars from 2024-11-19"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs eodhd: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "PASS",
+     "note": "tab says yfinance / 503 rows / live"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "AAPL",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:38.071461-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:21.568387",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.03%, volume x0.93 | yfinance vs tradier: max close diff 0.08%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "MSFT",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:38.658241-05:00",
+    "expires_at": "2026-11-19T17:29:38.656758-05:00",
+    "expires_in": "0:44:59.485583",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.20%, volume x0.92 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "META",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:39.447321-05:00",
+    "expires_at": "2026-11-19T17:29:39.446224-05:00",
+    "expires_in": "0:44:59.423739",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.01%, volume x0.95 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "NFLX",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:40.327763-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:19.038548",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.02%, volume x0.96 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "AMZN",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:41.220042-05:00",
+    "expires_at": "2026-11-19T17:29:41.219204-05:00",
+    "expires_in": "0:44:59.544543",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.09%, volume x0.88 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "TSLA",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:41.925672-05:00",
+    "expires_at": "2026-11-19T17:29:41.923077-05:00",
+    "expires_in": "0:44:59.502211",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.01%, volume x0.88 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "HD",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:42.716375-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:16.875022",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 3; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.05%, volume x0.97 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "V",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:43.375881-05:00",
+    "expires_at": "2026-11-19T17:29:43.373515-05:00",
+    "expires_in": "0:44:59.502063",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.18%, volume x0.92 | tradier vs yfinance: max close diff 0.19%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "LLY",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:44.088673-05:00",
+    "expires_at": "2026-11-19T17:29:44.086367-05:00",
+    "expires_in": "0:44:59.501150",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.12%, volume x0.97 | tradier vs yfinance: max close diff 0.12%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "ABBV",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:44.891169-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:14.706551",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 1; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.01%, volume x0.93 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "WMT",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:45.520659-05:00",
+    "expires_at": "2026-11-19T17:29:45.518286-05:00",
+    "expires_in": "0:44:59.503935",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 3; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.01%, volume x0.95 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "COST",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:46.242370-05:00",
+    "expires_at": "2026-11-19T17:29:46.239898-05:00",
+    "expires_in": "0:44:59.531585",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.15%, volume x0.97 | tradier vs yfinance: max close diff 0.15%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "PG",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:47.000269-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:12.583080",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.04%, volume x0.96 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "XOM",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:47.642093-05:00",
+    "expires_at": "2026-11-19T17:29:47.639739-05:00",
+    "expires_in": "0:44:59.538291",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 3; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "WARN",
+     "note": "tradier vs twelvedata: max close diff 0.63%, volume x0.96 | tradier vs yfinance: max close diff 0.63%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "CVX",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:48.368183-05:00",
+    "expires_at": "2026-11-19T17:29:48.365642-05:00",
+    "expires_in": "0:44:59.505039",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 3; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "WARN",
+     "note": "tradier vs twelvedata: max close diff 0.03%, volume x0.93 | tradier vs yfinance: max close diff 0.83%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "COP",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:49.239114-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:10.302123",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 3; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "WARN",
+     "note": "yfinance vs twelvedata: max close diff 0.01%, volume x0.98 | yfinance vs tradier: max close diff 0.65%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "LIN",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:49.970578-05:00",
+    "expires_at": "2026-11-19T17:29:49.968232-05:00",
+    "expires_in": "0:44:59.479753",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.02%, volume x0.97 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "NEM",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:50.736574-05:00",
+    "expires_at": "2026-11-19T17:29:50.734244-05:00",
+    "expires_in": "0:44:59.471638",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 1; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.07%, volume x0.95 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "GE",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:51.556886-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:08.000846",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.03%, volume x0.96 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "RTX",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:52.225352-05:00",
+    "expires_at": "2026-11-19T17:29:52.223106-05:00",
+    "expires_in": "0:44:59.550765",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 2; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.01%, volume x0.96 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "NEE",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:52.898983-05:00",
+    "expires_at": "2026-11-19T17:29:52.896700-05:00",
+    "expires_in": "0:44:59.534097",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "FAIL",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "FAIL",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 4; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.00%, volume x0.97 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "FAIL",
+     "note": "tab says tradier / 502 rows / just_fetched but tradier fails C4: the tab shows no warning"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "SO",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:53.674710-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:05.936859",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "FAIL",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "FAIL",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 4; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "WARN",
+     "note": "yfinance vs twelvedata: max close diff 0.01%, volume x0.96 | yfinance vs tradier: max close diff 0.81%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters); a source later in the chain fails: tradier C4"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "DUK",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:54.352187-05:00",
+    "expires_at": "2026-11-19T17:29:54.349772-05:00",
+    "expires_in": "0:44:59.449019",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "FAIL",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "FAIL",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 5; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "WARN",
+     "note": "tradier vs twelvedata: max close diff 0.84%, volume x0.97 | tradier vs yfinance: max close diff 0.85%, volume x1.00"
+    },
+    "C8": {
+     "level": "FAIL",
+     "note": "tab says tradier / 502 rows / just_fetched but tradier fails C4: the tab shows no warning"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "WELL",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:55.184229-05:00",
+    "expires_at": "2026-11-19T17:29:55.181823-05:00",
+    "expires_in": "0:44:59.486294",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 1; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "WARN",
+     "note": "tradier vs twelvedata: max close diff 0.34%, volume x0.94 | tradier vs yfinance: max close diff 0.34%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "PLD",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:55.952371-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:03.626639",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "FAIL",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "FAIL",
+     "note": "tradier: flat zero-volume 0%; bad OHLC rows 4; zero-volume in last 5: 0"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.00%, volume x0.95 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters); a source later in the chain fails: tradier C4"
+    }
+   }
+  },
+  {
+   "class": "US stock",
+   "symbol": "EQIX",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:56.609743-05:00",
+    "expires_at": "2026-11-19T17:29:56.607434-05:00",
+    "expires_in": "0:44:59.513823",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "WARN",
+     "note": "tradier vs twelvedata: max close diff 0.51%, volume x0.97 | tradier vs yfinance: max close diff 0.50%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US leveraged",
+   "symbol": "NVDL",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:57.336843-05:00",
+    "expires_at": "2026-11-19T17:29:57.333885-05:00",
+    "expires_in": "0:44:59.522429",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "FAIL",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "FAIL",
+     "note": "tradier: 2026-06-25 +191%: ONLY here; twelvedata,yfinance are continuous -> tradier has a split error"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.00%, volume x1.00 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "FAIL",
+     "note": "tab says tradier / 502 rows / just_fetched but tradier fails C5: the tab shows no warning"
+    }
+   }
+  },
+  {
+   "class": "US leveraged",
+   "symbol": "AAPU",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:58.094262-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:45:01.450807",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.12%, volume x0.97 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US leveraged",
+   "symbol": "MSFU",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:58.792086-05:00",
+    "expires_at": "2026-11-19T17:29:58.789606-05:00",
+    "expires_in": "0:44:59.528442",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.00%, volume x1.00 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US leveraged",
+   "symbol": "METU",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:44:59.578806-05:00",
+    "expires_at": "2026-11-19T17:29:59.576458-05:00",
+    "expires_in": "0:44:59.462021",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.00%, volume x1.00 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US leveraged",
+   "symbol": "GGLL",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:45:00.384592-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:44:59.261682",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.00%, volume x1.00 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US leveraged",
+   "symbol": "NFXL",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:45:00.975283-05:00",
+    "expires_at": "2026-11-19T17:30:00.972678-05:00",
+    "expires_in": "0:44:59.512809",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.00%, volume x1.00 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US leveraged",
+   "symbol": "AMZU",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:45:01.694443-05:00",
+    "expires_at": "2026-11-19T17:30:01.692127-05:00",
+    "expires_in": "0:44:59.552930",
+    "rows": 502,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.00%, volume x1.00 | tradier vs yfinance: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 502 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US leveraged",
+   "symbol": "TSLL",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:45:02.417417-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:44:57.211774",
+    "rows": 501,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "WARN",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "WARN",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "WARN",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 504,
+    "yfinance": 501,
+    "tradier": 502
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "WARN",
+     "note": "twelvedata: 2025-04-09 +45%: also in yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2025-04-09 +45%: also in twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR) || tradier: 2025-04-09 +45%: also in twelvedata,yfinance (real move, or unadjusted everywhere: needs IBKR)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 501 bars from 2024-11-20; starts 5 days after twelvedata (2024-11-15, 504 bars) || tradier: 502 bars from 2024-11-19; starts 4 days after twelvedata (2024-11-15, 504 bars)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.00%, volume x1.00 | yfinance vs tradier: max close diff 0.00%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 501 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US leveraged",
+   "symbol": "BRKU",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:45:03.049185-05:00",
+    "expires_at": "2026-11-19T17:30:03.046826-05:00",
+    "expires_in": "0:44:59.366755",
+    "rows": 487,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "WARN",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 492,
+    "yfinance": 487,
+    "tradier": 487
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "WARN",
+     "note": "twelvedata: flat zero-volume 1%; bad OHLC rows 0; zero-volume in last 5: 5"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "yfinance: 487 bars from 2024-12-11; starts 7 days after twelvedata (2024-12-04, 492 bars) || tradier: 487 bars from 2024-12-11; starts 7 days after twelvedata (2024-12-04, 492 bars)"
+    },
+    "C9": {
+     "level": "WARN",
+     "note": "tradier vs twelvedata: max close diff 0.33%, volume xnan | tradier vs yfinance: max close diff 0.00%, volume x1.01"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 487 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US leveraged",
+   "symbol": "ELIL",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:45:03.957933-05:00",
+    "expires_at": "2026-11-19T17:30:03.955901-05:00",
+    "expires_in": "0:44:59.420645",
+    "rows": 417,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "twelvedata": 417,
+    "yfinance": 416,
+    "tradier": 417
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "417 bars from 2025-03-26 (all 3 sources in the chain)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.00%, volume x1.01 | tradier vs yfinance: max close diff 0.00%, volume x1.01"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 417 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US leveraged",
+   "symbol": "COTG",
+   "why": "",
+   "used": "yfinance",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:45:04.802237-05:00",
+    "expires_at": "2026-11-20T16:30:00-05:00",
+    "expires_in": "23:44:54.779387",
+    "rows": 296,
+    "source": "yfinance",
+    "status": "just_fetched",
+    "this_session": "yfinance"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "PASS"
+    }
+   },
+   "sources": {
+    "twelvedata": 296,
+    "yfinance": 296,
+    "tradier": 296
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "PASS",
+     "note": "296 bars from 2025-09-18 (all 3 sources in the chain)"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "yfinance vs twelvedata: max close diff 0.00%, volume x1.00 | yfinance vs tradier: max close diff 0.00%, volume x0.99"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says yfinance / 296 rows / just_fetched; the chain order says twelvedata first, so STA fell through to yfinance (every source in the chain matters)"
+    }
+   }
+  },
+  {
+   "class": "US leveraged",
+   "symbol": "AVGC",
+   "why": "",
+   "used": "tradier",
+   "tab": {
+    "age_hours": 0.0,
+    "cached": true,
+    "cached_at": "2026-11-19T16:45:05.449820-05:00",
+    "expires_at": "2026-11-19T17:30:05.449043-05:00",
+    "expires_in": "0:44:59.531333",
+    "rows": 101,
+    "source": "tradier",
+    "status": "just_fetched",
+    "this_session": "tradier"
+   },
+   "per_source": {
+    "twelvedata": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "yfinance": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    },
+    "tradier": {
+     "C2": "PASS",
+     "C4": "PASS",
+     "C5": "PASS",
+     "C6": "WARN"
+    }
+   },
+   "sources": {
+    "twelvedata": 101,
+    "yfinance": 101,
+    "tradier": 101
+   },
+   "checks": {
+    "C2": {
+     "level": "PASS",
+     "note": "last bar 2026-11-19, expected 2026-11-19 (all 3 sources in the chain)"
+    },
+    "C4": {
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
+    },
+    "C6": {
+     "level": "WARN",
+     "note": "twelvedata: 101 bars from 2026-06-30 || yfinance: 101 bars from 2026-06-30 || tradier: 101 bars from 2026-06-30"
+    },
+    "C9": {
+     "level": "PASS",
+     "note": "tradier vs twelvedata: max close diff 0.06%, volume x1.07 | tradier vs yfinance: max close diff 0.03%, volume x1.00"
+    },
+    "C8": {
+     "level": "WARN",
+     "note": "tab says tradier / 101 rows / just_fetched; the chain order says twelvedata first, so STA fell through to tradier (every source in the chain matters)"
+    }
+   }
+  }
+ ]
+}

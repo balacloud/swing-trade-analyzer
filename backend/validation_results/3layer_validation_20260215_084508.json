@@ -1,0 +1,1548 @@
+{
+  "timestamp": "20260215_084508",
+  "tickers_tested": 10,
+  "total_checks": 192,
+  "passed": 172,
+  "failed": 20,
+  "pass_rate": "89.6%",
+  "criticals": 0,
+  "warnings": 20,
+  "results": [
+    {
+      "ticker": "AAPL",
+      "layer": "L1:Assessment",
+      "test": "data_available",
+      "passed": true,
+      "detail": "Stock data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AAPL",
+      "layer": "L1:Assessment",
+      "test": "price_valid",
+      "passed": true,
+      "detail": "Price: $255.78",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AAPL",
+      "layer": "L1:Assessment",
+      "test": "fundamentals_quality",
+      "passed": false,
+      "detail": "Only 0/4 fundamental fields",
+      "severity": "WARNING"
+    },
+    {
+      "ticker": "AAPL",
+      "layer": "L1:Assessment",
+      "test": "adx_present",
+      "passed": true,
+      "detail": "ADX: 23.1",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AAPL",
+      "layer": "L1:Assessment",
+      "test": "rs_input_data",
+      "passed": true,
+      "detail": "52W range: $169.21-$288.62",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AAPL",
+      "layer": "L1:Assessment",
+      "test": "sentiment_input",
+      "passed": true,
+      "detail": "F&G: 36.3",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AAPL",
+      "layer": "L1:Assessment",
+      "test": "risk_macro_input",
+      "passed": true,
+      "detail": "VIX: 20.6, SPY>200: True",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AAPL",
+      "layer": "L2:Patterns",
+      "test": "data_available",
+      "passed": true,
+      "detail": "Patterns data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AAPL",
+      "layer": "L2:Patterns",
+      "test": "trend_template_valid",
+      "passed": true,
+      "detail": "Trend Template: 7/8",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AAPL",
+      "layer": "L2:Patterns",
+      "test": "stage2_consistency",
+      "passed": true,
+      "detail": "Stage 2: True (criteria: 7/8)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AAPL",
+      "layer": "L2:Patterns",
+      "test": "pattern_vcp_valid",
+      "passed": true,
+      "detail": "vcp: 70% confidence",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AAPL",
+      "layer": "L2:Patterns",
+      "test": "summary_count_match",
+      "passed": true,
+      "detail": "1 patterns detected",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AAPL",
+      "layer": "L3:TradeSetup",
+      "test": "data_available",
+      "passed": true,
+      "detail": "S&R data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AAPL",
+      "layer": "L3:TradeSetup",
+      "test": "support_present",
+      "passed": true,
+      "detail": "5 support levels",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AAPL",
+      "layer": "L3:TradeSetup",
+      "test": "support_below_price",
+      "passed": true,
+      "detail": "Support $250.00 < Price $255.78",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AAPL",
+      "layer": "L3:TradeSetup",
+      "test": "atr_reasonable",
+      "passed": true,
+      "detail": "ATR: $7.14 (2.8% of price)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AAPL",
+      "layer": "L3:TradeSetup",
+      "test": "viability_consistency",
+      "passed": true,
+      "detail": "Viable=YES, support_dist=2.3%",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AAPL",
+      "layer": "L3:TradeSetup",
+      "test": "rr_positive",
+      "passed": true,
+      "detail": "R:R Pullback=0.51, Mom=0.09",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AAPL",
+      "layer": "Cross:L1xL2",
+      "test": "adx_vs_template",
+      "passed": true,
+      "detail": "ADX 23, TT 7/8 - consistent",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AAPL",
+      "layer": "Cross:L1xL3",
+      "test": "viability_vs_rr",
+      "passed": false,
+      "detail": "Backend viable=YES but R:R fails (PB=0.51, MOM=0.09) \u2014 Bug #8 pattern",
+      "severity": "WARNING"
+    },
+    {
+      "ticker": "NVDA",
+      "layer": "L1:Assessment",
+      "test": "data_available",
+      "passed": true,
+      "detail": "Stock data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "NVDA",
+      "layer": "L1:Assessment",
+      "test": "price_valid",
+      "passed": true,
+      "detail": "Price: $182.81",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "NVDA",
+      "layer": "L1:Assessment",
+      "test": "fundamentals_quality",
+      "passed": false,
+      "detail": "Only 0/4 fundamental fields",
+      "severity": "WARNING"
+    },
+    {
+      "ticker": "NVDA",
+      "layer": "L1:Assessment",
+      "test": "adx_present",
+      "passed": true,
+      "detail": "ADX: 11.7",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "NVDA",
+      "layer": "L1:Assessment",
+      "test": "rs_input_data",
+      "passed": true,
+      "detail": "52W range: $86.62-$212.19",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "NVDA",
+      "layer": "L1:Assessment",
+      "test": "sentiment_input",
+      "passed": true,
+      "detail": "F&G: 36.3",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "NVDA",
+      "layer": "L1:Assessment",
+      "test": "risk_macro_input",
+      "passed": true,
+      "detail": "VIX: 20.6, SPY>200: True",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "NVDA",
+      "layer": "L2:Patterns",
+      "test": "data_available",
+      "passed": true,
+      "detail": "Patterns data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "NVDA",
+      "layer": "L2:Patterns",
+      "test": "trend_template_valid",
+      "passed": true,
+      "detail": "Trend Template: 7/8",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "NVDA",
+      "layer": "L2:Patterns",
+      "test": "stage2_consistency",
+      "passed": true,
+      "detail": "Stage 2: True (criteria: 7/8)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "NVDA",
+      "layer": "L2:Patterns",
+      "test": "summary_count_match",
+      "passed": true,
+      "detail": "0 patterns detected",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "NVDA",
+      "layer": "L3:TradeSetup",
+      "test": "data_available",
+      "passed": true,
+      "detail": "S&R data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "NVDA",
+      "layer": "L3:TradeSetup",
+      "test": "support_present",
+      "passed": true,
+      "detail": "3 support levels",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "NVDA",
+      "layer": "L3:TradeSetup",
+      "test": "support_below_price",
+      "passed": true,
+      "detail": "Support $176.76 < Price $182.81",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "NVDA",
+      "layer": "L3:TradeSetup",
+      "test": "atr_reasonable",
+      "passed": true,
+      "detail": "ATR: $7.00 (3.8% of price)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "NVDA",
+      "layer": "L3:TradeSetup",
+      "test": "viability_consistency",
+      "passed": true,
+      "detail": "Viable=YES, support_dist=3.3%",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "NVDA",
+      "layer": "L3:TradeSetup",
+      "test": "rr_positive",
+      "passed": true,
+      "detail": "R:R Pullback=0.66, Mom=0.19",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "NVDA",
+      "layer": "Cross:L1xL2",
+      "test": "adx_vs_template",
+      "passed": false,
+      "detail": "ADX 12 (no trend) but TT 7/8 (strong)",
+      "severity": "WARNING"
+    },
+    {
+      "ticker": "NVDA",
+      "layer": "Cross:L1xL3",
+      "test": "viability_vs_rr",
+      "passed": false,
+      "detail": "Backend viable=YES but R:R fails (PB=0.66, MOM=0.19) \u2014 Bug #8 pattern",
+      "severity": "WARNING"
+    },
+    {
+      "ticker": "JNJ",
+      "layer": "L1:Assessment",
+      "test": "data_available",
+      "passed": true,
+      "detail": "Stock data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "JNJ",
+      "layer": "L1:Assessment",
+      "test": "price_valid",
+      "passed": true,
+      "detail": "Price: $243.45",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "JNJ",
+      "layer": "L1:Assessment",
+      "test": "fundamentals_quality",
+      "passed": false,
+      "detail": "Only 0/4 fundamental fields",
+      "severity": "WARNING"
+    },
+    {
+      "ticker": "JNJ",
+      "layer": "L1:Assessment",
+      "test": "adx_present",
+      "passed": true,
+      "detail": "ADX: 39.9",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "JNJ",
+      "layer": "L1:Assessment",
+      "test": "rs_input_data",
+      "passed": true,
+      "detail": "52W range: $141.50-$246.35",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "JNJ",
+      "layer": "L1:Assessment",
+      "test": "sentiment_input",
+      "passed": true,
+      "detail": "F&G: 36.3",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "JNJ",
+      "layer": "L1:Assessment",
+      "test": "risk_macro_input",
+      "passed": true,
+      "detail": "VIX: 20.6, SPY>200: True",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "JNJ",
+      "layer": "L2:Patterns",
+      "test": "data_available",
+      "passed": true,
+      "detail": "Patterns data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "JNJ",
+      "layer": "L2:Patterns",
+      "test": "trend_template_valid",
+      "passed": true,
+      "detail": "Trend Template: 8/8",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "JNJ",
+      "layer": "L2:Patterns",
+      "test": "stage2_consistency",
+      "passed": true,
+      "detail": "Stage 2: True (criteria: 8/8)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "JNJ",
+      "layer": "L2:Patterns",
+      "test": "summary_count_match",
+      "passed": true,
+      "detail": "0 patterns detected",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "JNJ",
+      "layer": "L3:TradeSetup",
+      "test": "data_available",
+      "passed": true,
+      "detail": "S&R data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "JNJ",
+      "layer": "L3:TradeSetup",
+      "test": "support_present",
+      "passed": true,
+      "detail": "2 support levels",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "JNJ",
+      "layer": "L3:TradeSetup",
+      "test": "support_below_price",
+      "passed": true,
+      "detail": "Support $215.19 < Price $243.45",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "JNJ",
+      "layer": "L3:TradeSetup",
+      "test": "atr_reasonable",
+      "passed": true,
+      "detail": "ATR: $3.86 (1.6% of price)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "JNJ",
+      "layer": "L3:TradeSetup",
+      "test": "viability_consistency",
+      "passed": true,
+      "detail": "Viable=CAUTION, support_dist=11.6%",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "JNJ",
+      "layer": "L3:TradeSetup",
+      "test": "rr_positive",
+      "passed": true,
+      "detail": "R:R Pullback=5.72, Mom=0.47",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "JNJ",
+      "layer": "Cross:L1xL2",
+      "test": "adx_vs_template",
+      "passed": true,
+      "detail": "ADX 40, TT 8/8 - consistent",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "JNJ",
+      "layer": "Cross:L1xL3",
+      "test": "viability_vs_rr",
+      "passed": true,
+      "detail": "Viable=CAUTION, PB_RR=5.72, MOM_RR=0.47",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "F",
+      "layer": "L1:Assessment",
+      "test": "data_available",
+      "passed": true,
+      "detail": "Stock data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "F",
+      "layer": "L1:Assessment",
+      "test": "price_valid",
+      "passed": true,
+      "detail": "Price: $14.12",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "F",
+      "layer": "L1:Assessment",
+      "test": "fundamentals_quality",
+      "passed": false,
+      "detail": "Only 0/4 fundamental fields",
+      "severity": "WARNING"
+    },
+    {
+      "ticker": "F",
+      "layer": "L1:Assessment",
+      "test": "adx_present",
+      "passed": true,
+      "detail": "ADX: 12.8",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "F",
+      "layer": "L1:Assessment",
+      "test": "rs_input_data",
+      "passed": true,
+      "detail": "52W range: $8.44-$14.50",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "F",
+      "layer": "L1:Assessment",
+      "test": "sentiment_input",
+      "passed": true,
+      "detail": "F&G: 36.3",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "F",
+      "layer": "L1:Assessment",
+      "test": "risk_macro_input",
+      "passed": true,
+      "detail": "VIX: 20.6, SPY>200: True",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "F",
+      "layer": "L2:Patterns",
+      "test": "data_available",
+      "passed": true,
+      "detail": "Patterns data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "F",
+      "layer": "L2:Patterns",
+      "test": "trend_template_valid",
+      "passed": true,
+      "detail": "Trend Template: 8/8",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "F",
+      "layer": "L2:Patterns",
+      "test": "stage2_consistency",
+      "passed": true,
+      "detail": "Stage 2: True (criteria: 8/8)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "F",
+      "layer": "L2:Patterns",
+      "test": "pattern_vcp_valid",
+      "passed": true,
+      "detail": "vcp: 75% confidence",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "F",
+      "layer": "L2:Patterns",
+      "test": "summary_count_match",
+      "passed": true,
+      "detail": "1 patterns detected",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "F",
+      "layer": "L3:TradeSetup",
+      "test": "data_available",
+      "passed": true,
+      "detail": "S&R data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "F",
+      "layer": "L3:TradeSetup",
+      "test": "support_present",
+      "passed": true,
+      "detail": "7 support levels",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "F",
+      "layer": "L3:TradeSetup",
+      "test": "support_below_price",
+      "passed": true,
+      "detail": "Support $13.98 < Price $14.12",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "F",
+      "layer": "L3:TradeSetup",
+      "test": "atr_reasonable",
+      "passed": true,
+      "detail": "ATR: $0.31 (2.2% of price)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "F",
+      "layer": "L3:TradeSetup",
+      "test": "viability_consistency",
+      "passed": true,
+      "detail": "Viable=YES, support_dist=1.0%",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "F",
+      "layer": "L3:TradeSetup",
+      "test": "rr_positive",
+      "passed": true,
+      "detail": "R:R Pullback=0.65, Mom=0.43",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "F",
+      "layer": "Cross:L1xL2",
+      "test": "adx_vs_template",
+      "passed": false,
+      "detail": "ADX 13 (no trend) but TT 8/8 (strong)",
+      "severity": "WARNING"
+    },
+    {
+      "ticker": "F",
+      "layer": "Cross:L1xL3",
+      "test": "viability_vs_rr",
+      "passed": false,
+      "detail": "Backend viable=YES but R:R fails (PB=0.65, MOM=0.43) \u2014 Bug #8 pattern",
+      "severity": "WARNING"
+    },
+    {
+      "ticker": "PLTR",
+      "layer": "L1:Assessment",
+      "test": "data_available",
+      "passed": true,
+      "detail": "Stock data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "PLTR",
+      "layer": "L1:Assessment",
+      "test": "price_valid",
+      "passed": true,
+      "detail": "Price: $131.41",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "PLTR",
+      "layer": "L1:Assessment",
+      "test": "fundamentals_quality",
+      "passed": false,
+      "detail": "Only 0/4 fundamental fields",
+      "severity": "WARNING"
+    },
+    {
+      "ticker": "PLTR",
+      "layer": "L1:Assessment",
+      "test": "adx_present",
+      "passed": true,
+      "detail": "ADX: 31.3",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "PLTR",
+      "layer": "L1:Assessment",
+      "test": "rs_input_data",
+      "passed": true,
+      "detail": "52W range: $66.12-$207.52",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "PLTR",
+      "layer": "L1:Assessment",
+      "test": "sentiment_input",
+      "passed": true,
+      "detail": "F&G: 36.3",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "PLTR",
+      "layer": "L1:Assessment",
+      "test": "risk_macro_input",
+      "passed": true,
+      "detail": "VIX: 20.6, SPY>200: True",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "PLTR",
+      "layer": "L2:Patterns",
+      "test": "data_available",
+      "passed": true,
+      "detail": "Patterns data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "PLTR",
+      "layer": "L2:Patterns",
+      "test": "trend_template_valid",
+      "passed": true,
+      "detail": "Trend Template: 3/8",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "PLTR",
+      "layer": "L2:Patterns",
+      "test": "stage2_consistency",
+      "passed": true,
+      "detail": "Stage 2: False (criteria: 3/8)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "PLTR",
+      "layer": "L2:Patterns",
+      "test": "summary_count_match",
+      "passed": true,
+      "detail": "0 patterns detected",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "PLTR",
+      "layer": "L3:TradeSetup",
+      "test": "data_available",
+      "passed": true,
+      "detail": "S&R data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "PLTR",
+      "layer": "L3:TradeSetup",
+      "test": "support_present",
+      "passed": true,
+      "detail": "2 support levels",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "PLTR",
+      "layer": "L3:TradeSetup",
+      "test": "support_below_price",
+      "passed": true,
+      "detail": "Support $118.93 < Price $131.41",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "PLTR",
+      "layer": "L3:TradeSetup",
+      "test": "atr_reasonable",
+      "passed": true,
+      "detail": "ATR: $9.70 (7.4% of price)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "PLTR",
+      "layer": "L3:TradeSetup",
+      "test": "viability_consistency",
+      "passed": true,
+      "detail": "Viable=YES, support_dist=9.5%",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "PLTR",
+      "layer": "L3:TradeSetup",
+      "test": "rr_positive",
+      "passed": true,
+      "detail": "R:R Pullback=1.32, Mom=0.49",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "PLTR",
+      "layer": "Cross:L1xL2",
+      "test": "adx_vs_template",
+      "passed": false,
+      "detail": "ADX 31 (strong) but TT only 3/8",
+      "severity": "WARNING"
+    },
+    {
+      "ticker": "PLTR",
+      "layer": "Cross:L1xL3",
+      "test": "viability_vs_rr",
+      "passed": true,
+      "detail": "Viable=YES, PB_RR=1.32, MOM_RR=0.49",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "VZ",
+      "layer": "L1:Assessment",
+      "test": "data_available",
+      "passed": true,
+      "detail": "Stock data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "VZ",
+      "layer": "L1:Assessment",
+      "test": "price_valid",
+      "passed": true,
+      "detail": "Price: $49.01",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "VZ",
+      "layer": "L1:Assessment",
+      "test": "fundamentals_quality",
+      "passed": false,
+      "detail": "Only 0/4 fundamental fields",
+      "severity": "WARNING"
+    },
+    {
+      "ticker": "VZ",
+      "layer": "L1:Assessment",
+      "test": "adx_present",
+      "passed": true,
+      "detail": "ADX: 33.6",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "VZ",
+      "layer": "L1:Assessment",
+      "test": "rs_input_data",
+      "passed": true,
+      "detail": "52W range: $38.39-$50.24",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "VZ",
+      "layer": "L1:Assessment",
+      "test": "sentiment_input",
+      "passed": true,
+      "detail": "F&G: 36.3",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "VZ",
+      "layer": "L1:Assessment",
+      "test": "risk_macro_input",
+      "passed": true,
+      "detail": "VIX: 20.6, SPY>200: True",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "VZ",
+      "layer": "L2:Patterns",
+      "test": "data_available",
+      "passed": true,
+      "detail": "Patterns data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "VZ",
+      "layer": "L2:Patterns",
+      "test": "trend_template_valid",
+      "passed": true,
+      "detail": "Trend Template: 5/8",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "VZ",
+      "layer": "L2:Patterns",
+      "test": "stage2_consistency",
+      "passed": true,
+      "detail": "Stage 2: False (criteria: 5/8)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "VZ",
+      "layer": "L2:Patterns",
+      "test": "summary_count_match",
+      "passed": true,
+      "detail": "0 patterns detected",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "VZ",
+      "layer": "L3:TradeSetup",
+      "test": "data_available",
+      "passed": true,
+      "detail": "S&R data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "VZ",
+      "layer": "L3:TradeSetup",
+      "test": "support_present",
+      "passed": true,
+      "detail": "2 support levels",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "VZ",
+      "layer": "L3:TradeSetup",
+      "test": "support_below_price",
+      "passed": true,
+      "detail": "Support $39.66 < Price $49.01",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "VZ",
+      "layer": "L3:TradeSetup",
+      "test": "atr_reasonable",
+      "passed": true,
+      "detail": "ATR: $1.46 (3.0% of price)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "VZ",
+      "layer": "L3:TradeSetup",
+      "test": "viability_consistency",
+      "passed": true,
+      "detail": "Viable=CAUTION, support_dist=19.1%",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "VZ",
+      "layer": "L3:TradeSetup",
+      "test": "rr_positive",
+      "passed": true,
+      "detail": "R:R Pullback=7.32, Mom=1.04",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "VZ",
+      "layer": "Cross:L1xL2",
+      "test": "adx_vs_template",
+      "passed": true,
+      "detail": "ADX 34, TT 5/8 - consistent",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "VZ",
+      "layer": "Cross:L1xL3",
+      "test": "viability_vs_rr",
+      "passed": true,
+      "detail": "Viable=CAUTION, PB_RR=7.32, MOM_RR=1.04",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "COIN",
+      "layer": "L1:Assessment",
+      "test": "data_available",
+      "passed": true,
+      "detail": "Stock data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "COIN",
+      "layer": "L1:Assessment",
+      "test": "price_valid",
+      "passed": true,
+      "detail": "Price: $164.32",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "COIN",
+      "layer": "L1:Assessment",
+      "test": "fundamentals_quality",
+      "passed": false,
+      "detail": "Only 0/4 fundamental fields",
+      "severity": "WARNING"
+    },
+    {
+      "ticker": "COIN",
+      "layer": "L1:Assessment",
+      "test": "adx_present",
+      "passed": true,
+      "detail": "ADX: 45.1",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "COIN",
+      "layer": "L1:Assessment",
+      "test": "rs_input_data",
+      "passed": true,
+      "detail": "52W range: $139.36-$444.65",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "COIN",
+      "layer": "L1:Assessment",
+      "test": "sentiment_input",
+      "passed": true,
+      "detail": "F&G: 36.3",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "COIN",
+      "layer": "L1:Assessment",
+      "test": "risk_macro_input",
+      "passed": true,
+      "detail": "VIX: 20.6, SPY>200: True",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "COIN",
+      "layer": "L2:Patterns",
+      "test": "data_available",
+      "passed": true,
+      "detail": "Patterns data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "COIN",
+      "layer": "L2:Patterns",
+      "test": "trend_template_valid",
+      "passed": true,
+      "detail": "Trend Template: 2/8",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "COIN",
+      "layer": "L2:Patterns",
+      "test": "stage2_consistency",
+      "passed": true,
+      "detail": "Stage 2: False (criteria: 2/8)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "COIN",
+      "layer": "L2:Patterns",
+      "test": "summary_count_match",
+      "passed": true,
+      "detail": "0 patterns detected",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "COIN",
+      "layer": "L3:TradeSetup",
+      "test": "data_available",
+      "passed": true,
+      "detail": "S&R data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "COIN",
+      "layer": "L3:TradeSetup",
+      "test": "support_present",
+      "passed": true,
+      "detail": "3 support levels",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "COIN",
+      "layer": "L3:TradeSetup",
+      "test": "support_below_price",
+      "passed": true,
+      "detail": "Support $150.90 < Price $164.32",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "COIN",
+      "layer": "L3:TradeSetup",
+      "test": "atr_reasonable",
+      "passed": true,
+      "detail": "ATR: $13.42 (8.2% of price)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "COIN",
+      "layer": "L3:TradeSetup",
+      "test": "viability_consistency",
+      "passed": true,
+      "detail": "Viable=YES, support_dist=8.2%",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "COIN",
+      "layer": "L3:TradeSetup",
+      "test": "rr_positive",
+      "passed": true,
+      "detail": "R:R Pullback=0.62, Mom=0.10",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "COIN",
+      "layer": "Cross:L1xL2",
+      "test": "adx_vs_template",
+      "passed": false,
+      "detail": "ADX 45 (strong) but TT only 2/8",
+      "severity": "WARNING"
+    },
+    {
+      "ticker": "COIN",
+      "layer": "Cross:L1xL3",
+      "test": "viability_vs_rr",
+      "passed": false,
+      "detail": "Backend viable=YES but R:R fails (PB=0.62, MOM=0.10) \u2014 Bug #8 pattern",
+      "severity": "WARNING"
+    },
+    {
+      "ticker": "SPY",
+      "layer": "L1:Assessment",
+      "test": "data_available",
+      "passed": true,
+      "detail": "Stock data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SPY",
+      "layer": "L1:Assessment",
+      "test": "price_valid",
+      "passed": true,
+      "detail": "Price: $681.75",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SPY",
+      "layer": "L1:Assessment",
+      "test": "fundamentals_quality",
+      "passed": true,
+      "detail": "ETF - fundamentals N/A (expected)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SPY",
+      "layer": "L1:Assessment",
+      "test": "adx_present",
+      "passed": true,
+      "detail": "ADX: 12.5",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SPY",
+      "layer": "L1:Assessment",
+      "test": "rs_input_data",
+      "passed": true,
+      "detail": "52W range: $481.80-$697.84",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SPY",
+      "layer": "L1:Assessment",
+      "test": "sentiment_input",
+      "passed": true,
+      "detail": "F&G: 36.3",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SPY",
+      "layer": "L1:Assessment",
+      "test": "risk_macro_input",
+      "passed": true,
+      "detail": "VIX: 20.6, SPY>200: True",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SPY",
+      "layer": "L2:Patterns",
+      "test": "data_available",
+      "passed": true,
+      "detail": "Patterns data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SPY",
+      "layer": "L2:Patterns",
+      "test": "trend_template_valid",
+      "passed": true,
+      "detail": "Trend Template: 7/8",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SPY",
+      "layer": "L2:Patterns",
+      "test": "stage2_consistency",
+      "passed": true,
+      "detail": "Stage 2: True (criteria: 7/8)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SPY",
+      "layer": "L2:Patterns",
+      "test": "summary_count_match",
+      "passed": true,
+      "detail": "0 patterns detected",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SPY",
+      "layer": "L3:TradeSetup",
+      "test": "data_available",
+      "passed": true,
+      "detail": "S&R data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SPY",
+      "layer": "L3:TradeSetup",
+      "test": "support_present",
+      "passed": true,
+      "detail": "1 support levels",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SPY",
+      "layer": "L3:TradeSetup",
+      "test": "support_below_price",
+      "passed": true,
+      "detail": "Support $650.85 < Price $681.75",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SPY",
+      "layer": "L3:TradeSetup",
+      "test": "atr_reasonable",
+      "passed": true,
+      "detail": "ATR: $9.03 (1.3% of price)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SPY",
+      "layer": "L3:TradeSetup",
+      "test": "viability_consistency",
+      "passed": true,
+      "detail": "Viable=YES, support_dist=4.5%",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SPY",
+      "layer": "L3:TradeSetup",
+      "test": "rr_positive",
+      "passed": true,
+      "detail": "R:R Pullback=2.38, Mom=0.27",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SPY",
+      "layer": "Cross:L1xL2",
+      "test": "adx_vs_template",
+      "passed": false,
+      "detail": "ADX 12 (no trend) but TT 7/8 (strong)",
+      "severity": "WARNING"
+    },
+    {
+      "ticker": "SPY",
+      "layer": "Cross:L1xL3",
+      "test": "viability_vs_rr",
+      "passed": true,
+      "detail": "Viable=YES, PB_RR=2.38, MOM_RR=0.27",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SMCI",
+      "layer": "L1:Assessment",
+      "test": "data_available",
+      "passed": true,
+      "detail": "Stock data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SMCI",
+      "layer": "L1:Assessment",
+      "test": "price_valid",
+      "passed": true,
+      "detail": "Price: $30.54",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SMCI",
+      "layer": "L1:Assessment",
+      "test": "fundamentals_quality",
+      "passed": false,
+      "detail": "Only 0/4 fundamental fields",
+      "severity": "WARNING"
+    },
+    {
+      "ticker": "SMCI",
+      "layer": "L1:Assessment",
+      "test": "adx_present",
+      "passed": true,
+      "detail": "ADX: 15.1",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SMCI",
+      "layer": "L1:Assessment",
+      "test": "rs_input_data",
+      "passed": true,
+      "detail": "52W range: $27.60-$66.44",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SMCI",
+      "layer": "L1:Assessment",
+      "test": "sentiment_input",
+      "passed": true,
+      "detail": "F&G: 36.3",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SMCI",
+      "layer": "L1:Assessment",
+      "test": "risk_macro_input",
+      "passed": true,
+      "detail": "VIX: 20.6, SPY>200: True",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SMCI",
+      "layer": "L2:Patterns",
+      "test": "data_available",
+      "passed": true,
+      "detail": "Patterns data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SMCI",
+      "layer": "L2:Patterns",
+      "test": "trend_template_valid",
+      "passed": true,
+      "detail": "Trend Template: 0/8",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SMCI",
+      "layer": "L2:Patterns",
+      "test": "stage2_consistency",
+      "passed": true,
+      "detail": "Stage 2: False (criteria: 0/8)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SMCI",
+      "layer": "L2:Patterns",
+      "test": "summary_count_match",
+      "passed": true,
+      "detail": "0 patterns detected",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SMCI",
+      "layer": "L3:TradeSetup",
+      "test": "data_available",
+      "passed": true,
+      "detail": "S&R data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SMCI",
+      "layer": "L3:TradeSetup",
+      "test": "support_present",
+      "passed": true,
+      "detail": "5 support levels",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SMCI",
+      "layer": "L3:TradeSetup",
+      "test": "support_below_price",
+      "passed": true,
+      "detail": "Support $28.90 < Price $30.54",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SMCI",
+      "layer": "L3:TradeSetup",
+      "test": "atr_reasonable",
+      "passed": true,
+      "detail": "ATR: $2.27 (7.4% of price)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SMCI",
+      "layer": "L3:TradeSetup",
+      "test": "viability_consistency",
+      "passed": true,
+      "detail": "Viable=YES, support_dist=5.4%",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SMCI",
+      "layer": "L3:TradeSetup",
+      "test": "rr_positive",
+      "passed": true,
+      "detail": "R:R Pullback=1.03, Mom=0.61",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SMCI",
+      "layer": "Cross:L1xL2",
+      "test": "adx_vs_template",
+      "passed": true,
+      "detail": "ADX 15, TT 0/8 - consistent",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "SMCI",
+      "layer": "Cross:L1xL3",
+      "test": "viability_vs_rr",
+      "passed": true,
+      "detail": "Viable=YES, PB_RR=1.03, MOM_RR=0.61",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AFRM",
+      "layer": "L1:Assessment",
+      "test": "data_available",
+      "passed": true,
+      "detail": "Stock data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AFRM",
+      "layer": "L1:Assessment",
+      "test": "price_valid",
+      "passed": true,
+      "detail": "Price: $49.81",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AFRM",
+      "layer": "L1:Assessment",
+      "test": "fundamentals_quality",
+      "passed": false,
+      "detail": "Only 0/4 fundamental fields",
+      "severity": "WARNING"
+    },
+    {
+      "ticker": "AFRM",
+      "layer": "L1:Assessment",
+      "test": "adx_present",
+      "passed": true,
+      "detail": "ADX: 32.6",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AFRM",
+      "layer": "L1:Assessment",
+      "test": "rs_input_data",
+      "passed": true,
+      "detail": "52W range: $30.90-$100.00",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AFRM",
+      "layer": "L1:Assessment",
+      "test": "sentiment_input",
+      "passed": true,
+      "detail": "F&G: 36.3",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AFRM",
+      "layer": "L1:Assessment",
+      "test": "risk_macro_input",
+      "passed": true,
+      "detail": "VIX: 20.6, SPY>200: True",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AFRM",
+      "layer": "L2:Patterns",
+      "test": "data_available",
+      "passed": true,
+      "detail": "Patterns data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AFRM",
+      "layer": "L2:Patterns",
+      "test": "trend_template_valid",
+      "passed": true,
+      "detail": "Trend Template: 3/8",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AFRM",
+      "layer": "L2:Patterns",
+      "test": "stage2_consistency",
+      "passed": true,
+      "detail": "Stage 2: False (criteria: 3/8)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AFRM",
+      "layer": "L2:Patterns",
+      "test": "summary_count_match",
+      "passed": true,
+      "detail": "0 patterns detected",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AFRM",
+      "layer": "L3:TradeSetup",
+      "test": "data_available",
+      "passed": true,
+      "detail": "S&R data available",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AFRM",
+      "layer": "L3:TradeSetup",
+      "test": "support_present",
+      "passed": true,
+      "detail": "3 support levels",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AFRM",
+      "layer": "L3:TradeSetup",
+      "test": "support_below_price",
+      "passed": true,
+      "detail": "Support $46.71 < Price $49.81",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AFRM",
+      "layer": "L3:TradeSetup",
+      "test": "atr_reasonable",
+      "passed": true,
+      "detail": "ATR: $4.27 (8.6% of price)",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AFRM",
+      "layer": "L3:TradeSetup",
+      "test": "viability_consistency",
+      "passed": true,
+      "detail": "Viable=YES, support_dist=6.2%",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AFRM",
+      "layer": "L3:TradeSetup",
+      "test": "rr_positive",
+      "passed": true,
+      "detail": "R:R Pullback=0.95, Mom=0.52",
+      "severity": "INFO"
+    },
+    {
+      "ticker": "AFRM",
+      "layer": "Cross:L1xL2",
+      "test": "adx_vs_template",
+      "passed": false,
+      "detail": "ADX 33 (strong) but TT only 3/8",
+      "severity": "WARNING"
+    },
+    {
+      "ticker": "AFRM",
+      "layer": "Cross:L1xL3",
+      "test": "viability_vs_rr",
+      "passed": false,
+      "detail": "Backend viable=YES but R:R fails (PB=0.95, MOM=0.52) \u2014 Bug #8 pattern",
+      "severity": "WARNING"
+    }
+  ]
+}

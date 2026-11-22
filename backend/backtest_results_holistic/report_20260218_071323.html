@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html><head><title>v4.16 Holistic Backtest Report</title>
+<style>
+body { font-family: -apple-system, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
+h1 { color: #1a1a2e; border-bottom: 3px solid #16213e; padding-bottom: 10px; }
+h2 { color: #16213e; margin-top: 30px; }
+.card { background: white; border-radius: 8px; padding: 20px; margin: 15px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+th, td { padding: 8px 12px; text-align: right; border-bottom: 1px solid #eee; }
+th { background: #16213e; color: white; text-align: right; }
+th:first-child, td:first-child { text-align: left; }
+.green { color: #27ae60; font-weight: bold; }
+.red { color: #e74c3c; font-weight: bold; }
+.yellow { color: #f39c12; font-weight: bold; }
+.warning { background: #fff3cd; border: 1px solid #ffc107; padding: 10px; border-radius: 4px; margin: 5px 0; }
+.meta { color: #666; font-size: 0.9em; }
+</style></head>
+<body>
+<h1>v4.16 Holistic 3-Layer Backtest Report</h1>
+<div class="meta">
+Generated: 2026-02-18T07:13:23.341587<br>
+Period: 2023-07-01 to 2025-12-31<br>
+Tickers: 59 processed (46 with trades)<br>
+Elapsed: 308.2s
+</div>
+
+<h2>Config Comparison</h2>
+<div class="card">
+<p><b>Config A:</b> Categorical BUY + ADX &ge; 20 (assessment only)</p>
+<p><b>Config B:</b> A + Pattern &ge; 60% confidence (adds pattern layer)</p>
+<p><b>Config C:</b> B + Trade Viable + R:R &ge; 1.2 (full 3-layer system)</p>
+<table>
+<tr><th>Config / Period</th><th>Trades</th><th>Win Rate</th><th>Avg Return</th>
+<th>Profit Factor</th><th>Avg R</th><th>Sharpe</th><th>Max DD</th><th>T-stat</th><th>p-value</th></tr>
+<tr>
+<td>A_standard</td>
+<td>672</td>
+<td class="yellow">54.32%</td>
+<td>1.4367%</td>
+<td class="green">1.5976</td>
+<td>0.177</td>
+<td>0.8725</td>
+<td>83.4736%</td>
+<td>5.2553</td>
+<td>0.0</td>
+</tr><tr>
+<td>B_standard</td>
+<td>241</td>
+<td class="yellow">50.62%</td>
+<td>1.0539%</td>
+<td class="yellow">1.4895</td>
+<td>0.1562</td>
+<td>0.6735</td>
+<td>68.1741%</td>
+<td>2.581</td>
+<td>0.009851</td>
+</tr><tr>
+<td>C_standard</td>
+<td>140</td>
+<td class="yellow">54.29%</td>
+<td>1.66%</td>
+<td class="green">1.8044</td>
+<td>0.2686</td>
+<td>1.1066</td>
+<td>54.7349%</td>
+<td>2.9775</td>
+<td>0.002906</td>
+</tr></table></div><h2>Regime Breakdown</h2><div class='card'><h3>A_standard</h3><table><tr><th>Regime</th><th>Trades</th><th>Win Rate</th><th>Avg Return</th></tr><tr><td>bull</td><td>539</td><td>55.47%</td><td>1.628%</td></tr><tr><td>bear</td><td>47</td><td>63.83%</td><td>2.2899%</td></tr><tr><td>sideways</td><td>86</td><td>41.86%</td><td>-0.2285%</td></tr></table><h3>B_standard</h3><table><tr><th>Regime</th><th>Trades</th><th>Win Rate</th><th>Avg Return</th></tr><tr><td>bull</td><td>207</td><td>53.62%</td><td>1.2568%</td></tr><tr><td>bear</td><td>12</td><td>25.0%</td><td>-1.3669%</td></tr><tr><td>sideways</td><td>22</td><td>36.36%</td><td>0.4649%</td></tr></table><h3>C_standard</h3><table><tr><th>Regime</th><th>Trades</th><th>Win Rate</th><th>Avg Return</th></tr><tr><td>bear</td><td>6</td><td>16.67%</td><td>-1.7378%</td></tr><tr><td>bull</td><td>123</td><td>57.72%</td><td>1.8919%</td></tr><tr><td>sideways</td><td>11</td><td>36.36%</td><td>0.9198%</td></tr></table></div>
+<h2>Known Limitations</h2>
+<div class="card">
+<ul>
+<li><b>Survivorship bias:</b> Only tests tickers that exist today. Delisted stocks not included.</li>
+<li><b>SimFin coverage:</b> Free tier has 5 years of data delayed 12 months. Some recent dates may lack fundamentals.</li>
+<li><b>Scan interval:</b> Default is daily scanning. Configurable via --scan-interval.</li>
+<li><b>No portfolio-level sizing:</b> Each trade evaluated independently (no position sizing optimization).</li>
+<li><b>All entries/exits at daily close:</b> No intraday execution modeling.</li>
+</ul>
+</div>
+
+</body></html>

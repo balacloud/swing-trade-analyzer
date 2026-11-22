@@ -1,0 +1,238 @@
+{
+  "meta": {
+    "start_date": "2020-01-01",
+    "end_date": "2025-12-31",
+    "tickers": [
+      "AAPL",
+      "MSFT",
+      "GOOGL",
+      "AMZN",
+      "META",
+      "NVDA",
+      "TSLA",
+      "JPM",
+      "V",
+      "MA",
+      "GS",
+      "BAC",
+      "UNH",
+      "JNJ",
+      "LLY",
+      "ABBV",
+      "PG",
+      "HD",
+      "WMT",
+      "KO",
+      "PEP",
+      "MCD",
+      "CAT",
+      "HON",
+      "UPS",
+      "DE",
+      "XOM",
+      "CVX",
+      "COP",
+      "CRM",
+      "NOW",
+      "SHOP",
+      "SQ",
+      "DDOG",
+      "PANW",
+      "CRWD",
+      "SNOW",
+      "COST",
+      "NKE",
+      "LULU",
+      "CMG",
+      "ABNB",
+      "UBER",
+      "ROKU",
+      "COIN",
+      "AFRM",
+      "PLTR",
+      "AMD",
+      "AVGO",
+      "MU",
+      "MRVL",
+      "ON",
+      "T",
+      "VZ",
+      "NEE",
+      "AMT",
+      "BRK-B",
+      "DIS",
+      "F",
+      "GM"
+    ],
+    "tickers_processed": 59,
+    "tickers_with_trades": 49,
+    "configs": [
+      "A",
+      "B",
+      "C"
+    ],
+    "holding_periods": [
+      "standard"
+    ],
+    "scan_interval": 1,
+    "elapsed_seconds": 642.8,
+    "timestamp": "2026-02-18T06:17:37.353220"
+  },
+  "results": {
+    "A_standard": {
+      "total_trades": 1107,
+      "wins": 571,
+      "losses": 468,
+      "breakevens": 68,
+      "win_rate": 51.58,
+      "avg_return_pct": 1.0345,
+      "avg_winner_pct": 6.8648,
+      "avg_loser_pct": -5.9318,
+      "expectancy_pct": 1.0345,
+      "expectancy_dollar": 103.45,
+      "profit_factor": 1.4113,
+      "sharpe_ratio": 0.5979,
+      "sortino_ratio": 0.6357,
+      "max_drawdown_pct": 63.9293,
+      "avg_r_multiple": 0.1357,
+      "median_r_multiple": 0.107,
+      "r_distribution": {
+        "big_loss_below_neg2": 0,
+        "loss_neg2_to_neg1": 0,
+        "small_loss_neg1_to_0": 498,
+        "breakeven_0_to_0.5": 203,
+        "small_win_0.5_to_1": 100,
+        "win_1_to_2": 292,
+        "big_win_2_to_3": 10,
+        "home_run_above_3": 4
+      },
+      "max_consecutive_wins": 10,
+      "max_consecutive_losses": 7,
+      "avg_days_held": 11.7,
+      "exit_reasons": {
+        "max_hold": 589,
+        "target_hit": 280,
+        "stop_hit": 238
+      },
+      "regime_breakdown": {
+        "bull": {
+          "trades": 844,
+          "win_rate": 50.59,
+          "avg_return": 0.9265,
+          "total_return": 781.9294
+        },
+        "sideways": {
+          "trades": 190,
+          "win_rate": 52.63,
+          "avg_return": 1.3192,
+          "total_return": 250.6539
+        },
+        "bear": {
+          "trades": 73,
+          "win_rate": 60.27,
+          "avg_return": 1.5428,
+          "total_return": 112.627
+        }
+      },
+      "t_statistic": 4.9324,
+      "t_pvalue": 1e-06,
+      "t_significant": "True",
+      "warnings": []
+    },
+    "B_standard": {
+      "total_trades": 405,
+      "wins": 210,
+      "losses": 171,
+      "breakevens": 24,
+      "win_rate": 51.85,
+      "avg_return_pct": 0.949,
+      "avg_winner_pct": 6.0314,
+      "avg_loser_pct": -5.158,
+      "expectancy_pct": 0.949,
+      "expectancy_dollar": 94.9,
+      "profit_factor": 1.4345,
+      "sharpe_ratio": 0.5988,
+      "sortino_ratio": 0.6434,
+      "max_drawdown_pct": 46.8849,
+      "avg_r_multiple": 0.1272,
+      "median_r_multiple": 0.1104,
+      "r_distribution": {
+        "big_loss_below_neg2": 0,
+        "loss_neg2_to_neg1": 0,
+        "small_loss_neg1_to_0": 182,
+        "breakeven_0_to_0.5": 90,
+        "small_win_0.5_to_1": 46,
+        "win_1_to_2": 82,
+        "big_win_2_to_3": 3,
+        "home_run_above_3": 2
+      },
+      "max_consecutive_wins": 8,
+      "max_consecutive_losses": 6,
+      "avg_days_held": 12.4,
+      "exit_reasons": {
+        "max_hold": 245,
+        "target_hit": 71,
+        "stop_hit": 89
+      },
+      "regime_breakdown": {
+        "bull": {
+          "trades": 312,
+          "win_rate": 50.96,
+          "avg_return": 0.7214,
+          "total_return": 225.0699
+        },
+        "bear": {
+          "trades": 24,
+          "win_rate": 37.5,
+          "avg_return": -0.0946,
+          "total_return": -2.2708
+        },
+        "sideways": {
+          "trades": 69,
+          "win_rate": 60.87,
+          "avg_return": 2.3413,
+          "total_return": 161.5489
+        }
+      },
+      "t_statistic": 3.0538,
+      "t_pvalue": 0.00226,
+      "t_significant": "True",
+      "warnings": []
+    },
+    "C_standard": {
+      "total_trades": 0,
+      "wins": 0,
+      "losses": 0,
+      "breakevens": 0,
+      "win_rate": 0,
+      "avg_return_pct": 0,
+      "avg_winner_pct": 0,
+      "avg_loser_pct": 0,
+      "expectancy_pct": 0,
+      "expectancy_dollar": 0,
+      "profit_factor": 0,
+      "sharpe_ratio": null,
+      "sortino_ratio": null,
+      "max_drawdown_pct": 0,
+      "avg_r_multiple": 0,
+      "median_r_multiple": 0,
+      "r_distribution": {},
+      "max_consecutive_wins": 0,
+      "max_consecutive_losses": 0,
+      "avg_days_held": 0,
+      "exit_reasons": {},
+      "regime_breakdown": {},
+      "t_statistic": null,
+      "t_pvalue": null,
+      "t_significant": null,
+      "warnings": [
+        "No trades to analyze"
+      ]
+    }
+  },
+  "trade_count": {
+    "A_standard": 1107,
+    "B_standard": 405,
+    "C_standard": 0
+  }
+}

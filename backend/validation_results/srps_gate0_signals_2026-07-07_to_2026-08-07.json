@@ -1,0 +1,159 @@
+{
+  "window": {
+    "start": "2026-07-07",
+    "end": "2026-08-07",
+    "trading_days": 22
+  },
+  "zero_regime_days": 0,
+  "signal_days": 16,
+  "signal_instances": 24,
+  "annualized_rate": 265.5,
+  "verdict": "VIABLE (>= 60/year) \u2014 proceed to backtest (Section 6)",
+  "rule6_earnings_applied": false,
+  "signals": [
+    {
+      "date": "2026-07-07",
+      "ticker": "URI",
+      "sector": "Financials",
+      "rsRatio": 1.263
+    },
+    {
+      "date": "2026-07-08",
+      "ticker": "URI",
+      "sector": "Financials",
+      "rsRatio": 1.293
+    },
+    {
+      "date": "2026-07-08",
+      "ticker": "GOOG",
+      "sector": "Communication Services",
+      "rsRatio": 1.042
+    },
+    {
+      "date": "2026-07-09",
+      "ticker": "MGM",
+      "sector": "Consumer Discretionary",
+      "rsRatio": 1.123
+    },
+    {
+      "date": "2026-07-09",
+      "ticker": "GOOG",
+      "sector": "Communication Services",
+      "rsRatio": 1.016
+    },
+    {
+      "date": "2026-07-10",
+      "ticker": "TTWO",
+      "sector": "Communication Services",
+      "rsRatio": 1.103
+    },
+    {
+      "date": "2026-07-10",
+      "ticker": "GOOG",
+      "sector": "Communication Services",
+      "rsRatio": 1.009
+    },
+    {
+      "date": "2026-07-13",
+      "ticker": "URI",
+      "sector": "Financials",
+      "rsRatio": 1.275
+    },
+    {
+      "date": "2026-07-14",
+      "ticker": "GOOG",
+      "sector": "Communication Services",
+      "rsRatio": 1.02
+    },
+    {
+      "date": "2026-07-16",
+      "ticker": "LYV",
+      "sector": "Communication Services",
+      "rsRatio": 1.073
+    },
+    {
+      "date": "2026-07-16",
+      "ticker": "TTWO",
+      "sector": "Communication Services",
+      "rsRatio": 1.04
+    },
+    {
+      "date": "2026-07-17",
+      "ticker": "LYV",
+      "sector": "Communication Services",
+      "rsRatio": 1.057
+    },
+    {
+      "date": "2026-07-17",
+      "ticker": "TTWO",
+      "sector": "Communication Services",
+      "rsRatio": 1.042
+    },
+    {
+      "date": "2026-07-20",
+      "ticker": "MNST",
+      "sector": "Consumer Staples",
+      "rsRatio": 1.188
+    },
+    {
+      "date": "2026-07-20",
+      "ticker": "TTWO",
+      "sector": "Communication Services",
+      "rsRatio": 1.076
+    },
+    {
+      "date": "2026-07-21",
+      "ticker": "LYV",
+      "sector": "Communication Services",
+      "rsRatio": 1.076
+    },
+    {
+      "date": "2026-07-21",
+      "ticker": "TTWO",
+      "sector": "Communication Services",
+      "rsRatio": 1.028
+    },
+    {
+      "date": "2026-07-22",
+      "ticker": "MNST",
+      "sector": "Consumer Staples",
+      "rsRatio": 1.194
+    },
+    {
+      "date": "2026-07-22",
+      "ticker": "NUE",
+      "sector": "Materials",
+      "rsRatio": 1.068
+    },
+    {
+      "date": "2026-07-24",
+      "ticker": "MNST",
+      "sector": "Consumer Staples",
+      "rsRatio": 1.153
+    },
+    {
+      "date": "2026-07-27",
+      "ticker": "D",
+      "sector": "Utilities",
+      "rsRatio": 1.093
+    },
+    {
+      "date": "2026-07-28",
+      "ticker": "D",
+      "sector": "Utilities",
+      "rsRatio": 1.099
+    },
+    {
+      "date": "2026-07-29",
+      "ticker": "D",
+      "sector": "Utilities",
+      "rsRatio": 1.103
+    },
+    {
+      "date": "2026-08-05",
+      "ticker": "BBY",
+      "sector": "Consumer Discretionary",
+      "rsRatio": 1.402
+    }
+  ]
+}

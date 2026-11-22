@@ -1,0 +1,2762 @@
+date,etf,sector,rsRatio,rsMomentum,quadrant
+2025-08-06,XLK,Technology,107.95,0.96,Leading
+2025-08-06,XLF,Financials,93.21,-1.76,Lagging
+2025-08-06,XLV,Health Care,85.66,-3.22,Lagging
+2025-08-06,XLI,Industrials,99.78,-1.42,Lagging
+2025-08-06,XLY,Consumer Discretionary,99.45,0.55,Improving
+2025-08-06,XLP,Consumer Staples,89.18,0.51,Improving
+2025-08-06,XLE,Energy,93.75,-2.75,Lagging
+2025-08-06,XLB,Materials,93.46,-3.76,Lagging
+2025-08-06,XLU,Utilities,94.4,1.7,Improving
+2025-08-06,XLRE,Real Estate,88.94,-2.68,Lagging
+2025-08-06,XLC,Communication Services,97.98,-0.56,Lagging
+2025-08-07,XLK,Technology,107.86,1.35,Leading
+2025-08-07,XLF,Financials,92.12,-2.98,Lagging
+2025-08-07,XLV,Health Care,86.11,-4.29,Lagging
+2025-08-07,XLI,Industrials,99.05,-2.04,Lagging
+2025-08-07,XLY,Consumer Discretionary,99.03,0.1,Improving
+2025-08-07,XLP,Consumer Staples,90.67,1.5,Improving
+2025-08-07,XLE,Energy,92.89,-2.25,Lagging
+2025-08-07,XLB,Materials,93.35,-3.99,Lagging
+2025-08-07,XLU,Utilities,96.95,2.99,Improving
+2025-08-07,XLRE,Real Estate,90.42,-1.9,Lagging
+2025-08-07,XLC,Communication Services,98.1,0.43,Improving
+2025-08-08,XLK,Technology,108.1,0.71,Leading
+2025-08-08,XLF,Financials,92.15,-2.2,Lagging
+2025-08-08,XLV,Health Care,87.04,-3.46,Lagging
+2025-08-08,XLI,Industrials,98.16,-2.43,Lagging
+2025-08-08,XLY,Consumer Discretionary,97.84,-1.09,Lagging
+2025-08-08,XLP,Consumer Staples,90.64,1.97,Improving
+2025-08-08,XLE,Energy,91.73,-3.45,Lagging
+2025-08-08,XLB,Materials,92.74,-2.85,Lagging
+2025-08-08,XLU,Utilities,95.5,2.8,Improving
+2025-08-08,XLRE,Real Estate,88.34,-1.75,Lagging
+2025-08-08,XLC,Communication Services,98.04,0.5,Improving
+2025-08-11,XLK,Technology,106.2,-0.1,Weakening
+2025-08-11,XLF,Financials,93.45,-1.85,Lagging
+2025-08-11,XLV,Health Care,88.01,-2.89,Lagging
+2025-08-11,XLI,Industrials,98.25,-1.68,Lagging
+2025-08-11,XLY,Consumer Discretionary,96.73,-0.21,Lagging
+2025-08-11,XLP,Consumer Staples,93.6,1.29,Improving
+2025-08-11,XLE,Energy,91.79,-5.22,Lagging
+2025-08-11,XLB,Materials,93.6,-2.79,Lagging
+2025-08-11,XLU,Utilities,99.14,1.43,Improving
+2025-08-11,XLRE,Real Estate,90.82,-3.95,Lagging
+2025-08-11,XLC,Communication Services,99.92,1.8,Improving
+2025-08-12,XLK,Technology,105.14,0.04,Leading
+2025-08-12,XLF,Financials,93.82,-1.65,Lagging
+2025-08-12,XLV,Health Care,91.0,-3.29,Lagging
+2025-08-12,XLI,Industrials,98.18,-1.34,Lagging
+2025-08-12,XLY,Consumer Discretionary,96.09,0.27,Improving
+2025-08-12,XLP,Consumer Staples,94.75,1.28,Improving
+2025-08-12,XLE,Energy,90.59,-4.45,Lagging
+2025-08-12,XLB,Materials,94.92,-0.75,Lagging
+2025-08-12,XLU,Utilities,99.3,-0.04,Lagging
+2025-08-12,XLRE,Real Estate,91.84,-3.61,Lagging
+2025-08-12,XLC,Communication Services,100.45,2.2,Leading
+2025-08-13,XLK,Technology,104.28,0.1,Leading
+2025-08-13,XLF,Financials,94.41,-1.2,Lagging
+2025-08-13,XLV,Health Care,94.48,0.15,Improving
+2025-08-13,XLI,Industrials,98.82,-1.69,Lagging
+2025-08-13,XLY,Consumer Discretionary,96.83,1.66,Improving
+2025-08-13,XLP,Consumer Staples,95.06,1.42,Improving
+2025-08-13,XLE,Energy,92.0,-3.59,Lagging
+2025-08-13,XLB,Materials,97.39,1.58,Improving
+2025-08-13,XLU,Utilities,99.75,-1.08,Lagging
+2025-08-13,XLRE,Real Estate,93.04,-2.02,Lagging
+2025-08-13,XLC,Communication Services,100.49,1.38,Leading
+2025-08-14,XLK,Technology,104.41,0.41,Leading
+2025-08-14,XLF,Financials,94.68,-0.55,Lagging
+2025-08-14,XLV,Health Care,94.18,-1.45,Lagging
+2025-08-14,XLI,Industrials,97.34,-2.71,Lagging
+2025-08-14,XLY,Consumer Discretionary,97.4,2.3,Improving
+2025-08-14,XLP,Consumer Staples,92.76,-1.43,Lagging
+2025-08-14,XLE,Energy,91.97,-3.47,Lagging
+2025-08-14,XLB,Materials,95.86,0.07,Improving
+2025-08-14,XLU,Utilities,97.45,-3.56,Lagging
+2025-08-14,XLRE,Real Estate,91.15,-3.94,Lagging
+2025-08-14,XLC,Communication Services,100.65,1.01,Leading
+2025-08-15,XLK,Technology,104.33,-0.66,Weakening
+2025-08-15,XLF,Financials,93.95,-0.82,Lagging
+2025-08-15,XLV,Health Care,94.68,0.43,Improving
+2025-08-15,XLI,Industrials,96.63,-2.32,Lagging
+2025-08-15,XLY,Consumer Discretionary,97.09,2.61,Improving
+2025-08-15,XLP,Consumer Staples,92.65,-0.11,Lagging
+2025-08-15,XLE,Energy,92.91,-1.63,Lagging
+2025-08-15,XLB,Materials,95.71,0.48,Improving
+2025-08-15,XLU,Utilities,96.6,-3.83,Lagging
+2025-08-15,XLRE,Real Estate,91.4,-2.48,Lagging
+2025-08-15,XLC,Communication Services,101.1,1.1,Leading
+2025-08-18,XLK,Technology,104.84,-0.08,Weakening
+2025-08-18,XLF,Financials,94.09,-0.83,Lagging
+2025-08-18,XLV,Health Care,93.68,0.11,Improving
+2025-08-18,XLI,Industrials,96.81,-2.22,Lagging
+2025-08-18,XLY,Consumer Discretionary,97.84,2.43,Improving
+2025-08-18,XLP,Consumer Staples,92.38,-0.59,Lagging
+2025-08-18,XLE,Energy,93.7,-2.81,Lagging
+2025-08-18,XLB,Materials,95.04,-1.21,Lagging
+2025-08-18,XLU,Utilities,95.9,-3.65,Lagging
+2025-08-18,XLRE,Real Estate,90.47,-4.11,Lagging
+2025-08-18,XLC,Communication Services,100.51,0.78,Leading
+2025-08-19,XLK,Technology,103.61,-1.72,Weakening
+2025-08-19,XLF,Financials,94.98,0.13,Improving
+2025-08-19,XLV,Health Care,94.25,3.31,Improving
+2025-08-19,XLI,Industrials,97.57,-0.8,Lagging
+2025-08-19,XLY,Consumer Discretionary,98.51,1.67,Improving
+2025-08-19,XLP,Consumer Staples,93.19,0.25,Improving
+2025-08-19,XLE,Energy,94.8,-0.65,Lagging
+2025-08-19,XLB,Materials,95.98,1.65,Improving
+2025-08-19,XLU,Utilities,96.75,-0.55,Lagging
+2025-08-19,XLRE,Real Estate,92.76,-0.49,Lagging
+2025-08-19,XLC,Communication Services,100.4,1.14,Leading
+2025-08-20,XLK,Technology,103.39,-2.34,Weakening
+2025-08-20,XLF,Financials,96.07,1.86,Improving
+2025-08-20,XLV,Health Care,95.62,5.07,Improving
+2025-08-20,XLI,Industrials,97.75,-0.57,Lagging
+2025-08-20,XLY,Consumer Discretionary,98.14,0.91,Improving
+2025-08-20,XLP,Consumer Staples,93.47,0.24,Improving
+2025-08-20,XLE,Energy,96.0,0.69,Improving
+2025-08-20,XLB,Materials,95.97,1.49,Improving
+2025-08-20,XLU,Utilities,97.25,-1.33,Lagging
+2025-08-20,XLRE,Real Estate,94.29,-0.33,Lagging
+2025-08-20,XLC,Communication Services,99.42,1.44,Improving
+2025-08-21,XLK,Technology,103.44,-2.53,Weakening
+2025-08-21,XLF,Financials,96.3,1.8,Improving
+2025-08-21,XLV,Health Care,96.48,5.08,Improving
+2025-08-21,XLI,Industrials,97.85,0.15,Improving
+2025-08-21,XLY,Consumer Discretionary,97.57,1.3,Improving
+2025-08-21,XLP,Consumer Staples,93.43,0.23,Improving
+2025-08-21,XLE,Energy,97.47,1.88,Improving
+2025-08-21,XLB,Materials,96.78,2.43,Improving
+2025-08-21,XLU,Utilities,98.41,-0.44,Lagging
+2025-08-21,XLRE,Real Estate,94.69,1.22,Improving
+2025-08-21,XLC,Communication Services,99.97,2.16,Improving
+2025-08-22,XLK,Technology,103.7,-2.21,Weakening
+2025-08-22,XLF,Financials,96.1,1.75,Improving
+2025-08-22,XLV,Health Care,95.3,4.11,Improving
+2025-08-22,XLI,Industrials,97.59,0.37,Improving
+2025-08-22,XLY,Consumer Discretionary,99.22,2.31,Improving
+2025-08-22,XLP,Consumer Staples,91.05,-1.28,Lagging
+2025-08-22,XLE,Energy,96.97,2.91,Improving
+2025-08-22,XLB,Materials,96.73,2.86,Improving
+2025-08-22,XLU,Utilities,95.63,-1.27,Lagging
+2025-08-22,XLRE,Real Estate,94.06,1.61,Improving
+2025-08-22,XLC,Communication Services,99.65,1.37,Improving
+2025-08-25,XLK,Technology,103.62,-2.49,Weakening
+2025-08-25,XLF,Financials,96.27,1.48,Improving
+2025-08-25,XLV,Health Care,95.0,3.53,Improving
+2025-08-25,XLI,Industrials,97.35,-0.15,Lagging
+2025-08-25,XLY,Consumer Discretionary,98.62,2.53,Improving
+2025-08-25,XLP,Consumer Staples,90.93,-1.73,Lagging
+2025-08-25,XLE,Energy,98.83,4.18,Improving
+2025-08-25,XLB,Materials,96.93,2.54,Improving
+2025-08-25,XLU,Utilities,96.22,-1.34,Lagging
+2025-08-25,XLRE,Real Estate,94.41,2.38,Improving
+2025-08-25,XLC,Communication Services,100.7,1.15,Leading
+2025-08-26,XLK,Technology,103.49,-2.12,Weakening
+2025-08-26,XLF,Financials,96.69,1.6,Improving
+2025-08-26,XLV,Health Care,95.13,2.57,Improving
+2025-08-26,XLI,Industrials,97.86,0.4,Improving
+2025-08-26,XLY,Consumer Discretionary,99.0,1.59,Improving
+2025-08-26,XLP,Consumer Staples,90.06,-2.39,Lagging
+2025-08-26,XLE,Energy,98.95,2.86,Improving
+2025-08-26,XLB,Materials,97.57,0.96,Improving
+2025-08-26,XLU,Utilities,96.83,-1.42,Lagging
+2025-08-26,XLRE,Real Estate,93.2,1.43,Improving
+2025-08-26,XLC,Communication Services,99.28,-0.14,Lagging
+2025-08-27,XLK,Technology,104.04,-1.56,Weakening
+2025-08-27,XLF,Financials,96.55,1.13,Improving
+2025-08-27,XLV,Health Care,94.6,1.84,Improving
+2025-08-27,XLI,Industrials,97.92,1.04,Improving
+2025-08-27,XLY,Consumer Discretionary,99.14,1.51,Improving
+2025-08-27,XLP,Consumer Staples,90.11,-1.49,Lagging
+2025-08-27,XLE,Energy,99.48,3.83,Improving
+2025-08-27,XLB,Materials,97.61,2.0,Improving
+2025-08-27,XLU,Utilities,96.35,-0.92,Lagging
+2025-08-27,XLRE,Real Estate,92.91,2.25,Improving
+2025-08-27,XLC,Communication Services,100.42,-0.27,Weakening
+2025-08-28,XLK,Technology,104.71,-0.56,Weakening
+2025-08-28,XLF,Financials,96.02,1.68,Improving
+2025-08-28,XLV,Health Care,93.59,-0.64,Lagging
+2025-08-28,XLI,Industrials,97.58,1.08,Improving
+2025-08-28,XLY,Consumer Discretionary,99.39,1.34,Improving
+2025-08-28,XLP,Consumer Staples,88.35,-2.71,Lagging
+2025-08-28,XLE,Energy,100.67,4.04,Leading
+2025-08-28,XLB,Materials,97.14,1.43,Improving
+2025-08-28,XLU,Utilities,94.2,-1.91,Lagging
+2025-08-28,XLRE,Real Estate,92.14,0.87,Improving
+2025-08-28,XLC,Communication Services,99.92,-0.73,Lagging
+2025-08-29,XLK,Technology,103.39,-1.79,Weakening
+2025-08-29,XLF,Financials,97.36,2.43,Improving
+2025-08-29,XLV,Health Care,95.32,0.81,Improving
+2025-08-29,XLI,Industrials,97.93,0.37,Improving
+2025-08-29,XLY,Consumer Discretionary,99.28,0.49,Improving
+2025-08-29,XLP,Consumer Staples,89.91,-1.51,Lagging
+2025-08-29,XLE,Energy,101.07,5.71,Leading
+2025-08-29,XLB,Materials,97.84,2.68,Improving
+2025-08-29,XLU,Utilities,94.65,-1.3,Lagging
+2025-08-29,XLRE,Real Estate,93.59,2.78,Improving
+2025-08-29,XLC,Communication Services,100.39,0.26,Leading
+2025-09-02,XLK,Technology,102.16,-0.79,Weakening
+2025-09-02,XLF,Financials,97.72,1.74,Improving
+2025-09-02,XLV,Health Care,96.44,0.49,Improving
+2025-09-02,XLI,Industrials,97.53,-0.59,Lagging
+2025-09-02,XLY,Consumer Discretionary,99.31,-0.0,Improving
+2025-09-02,XLP,Consumer Staples,91.04,-2.44,Lagging
+2025-09-02,XLE,Energy,101.35,6.02,Leading
+2025-09-02,XLB,Materials,97.39,1.57,Improving
+2025-09-02,XLU,Utilities,95.33,-2.38,Lagging
+2025-09-02,XLRE,Real Estate,93.55,-0.25,Lagging
+2025-09-02,XLC,Communication Services,101.83,0.86,Leading
+2025-09-03,XLK,Technology,102.04,-0.31,Weakening
+2025-09-03,XLF,Financials,97.56,0.3,Improving
+2025-09-03,XLV,Health Care,95.26,-1.25,Lagging
+2025-09-03,XLI,Industrials,96.43,-1.77,Lagging
+2025-09-03,XLY,Consumer Discretionary,99.41,0.58,Improving
+2025-09-03,XLP,Consumer Staples,91.09,-3.8,Lagging
+2025-09-03,XLE,Energy,100.48,2.21,Leading
+2025-09-03,XLB,Materials,95.83,0.06,Improving
+2025-09-03,XLU,Utilities,96.24,-3.56,Lagging
+2025-09-03,XLRE,Real Estate,92.49,-1.6,Lagging
+2025-09-03,XLC,Communication Services,102.3,2.03,Leading
+2025-09-04,XLK,Technology,101.49,-0.69,Weakening
+2025-09-04,XLF,Financials,97.56,0.42,Improving
+2025-09-04,XLV,Health Care,94.5,-1.74,Lagging
+2025-09-04,XLI,Industrials,96.31,-1.53,Lagging
+2025-09-04,XLY,Consumer Discretionary,102.49,1.79,Leading
+2025-09-04,XLP,Consumer Staples,90.83,-4.04,Lagging
+2025-09-04,XLE,Energy,99.92,0.96,Improving
+2025-09-04,XLB,Materials,95.5,-1.05,Lagging
+2025-09-04,XLU,Utilities,95.02,-4.17,Lagging
+2025-09-04,XLRE,Real Estate,91.92,-1.78,Lagging
+2025-09-04,XLC,Communication Services,101.73,1.79,Leading
+2025-09-05,XLK,Technology,101.95,-0.13,Weakening
+2025-09-05,XLF,Financials,95.84,-1.19,Lagging
+2025-09-05,XLV,Health Care,95.17,-0.47,Lagging
+2025-09-05,XLI,Industrials,96.41,-1.7,Lagging
+2025-09-05,XLY,Consumer Discretionary,102.49,0.57,Leading
+2025-09-05,XLP,Consumer Staples,92.0,-2.1,Lagging
+2025-09-05,XLE,Energy,97.45,-1.16,Lagging
+2025-09-05,XLB,Materials,97.18,-0.52,Lagging
+2025-09-05,XLU,Utilities,95.55,-3.24,Lagging
+2025-09-05,XLRE,Real Estate,93.8,-0.64,Lagging
+2025-09-05,XLC,Communication Services,102.31,2.72,Leading
+2025-09-08,XLK,Technology,102.05,0.16,Leading
+2025-09-08,XLF,Financials,96.29,-1.23,Lagging
+2025-09-08,XLV,Health Care,95.15,0.21,Improving
+2025-09-08,XLI,Industrials,96.56,-1.18,Lagging
+2025-09-08,XLY,Consumer Discretionary,101.91,0.47,Leading
+2025-09-08,XLP,Consumer Staples,91.64,-1.47,Lagging
+2025-09-08,XLE,Energy,96.89,-2.32,Lagging
+2025-09-08,XLB,Materials,96.47,-0.56,Lagging
+2025-09-08,XLU,Utilities,95.04,-3.79,Lagging
+2025-09-08,XLRE,Real Estate,93.07,-1.44,Lagging
+2025-09-08,XLC,Communication Services,102.57,1.99,Leading
+2025-09-09,XLK,Technology,102.02,0.08,Leading
+2025-09-09,XLF,Financials,96.92,-1.38,Lagging
+2025-09-09,XLV,Health Care,94.9,0.3,Improving
+2025-09-09,XLI,Industrials,96.65,-2.67,Lagging
+2025-09-09,XLY,Consumer Discretionary,100.9,0.05,Leading
+2025-09-09,XLP,Consumer Staples,91.92,-0.51,Lagging
+2025-09-09,XLE,Energy,95.97,-1.49,Lagging
+2025-09-09,XLB,Materials,94.63,-2.21,Lagging
+2025-09-09,XLU,Utilities,95.79,-3.17,Lagging
+2025-09-09,XLRE,Real Estate,92.52,-1.03,Lagging
+2025-09-09,XLC,Communication Services,102.2,3.17,Leading
+2025-09-10,XLK,Technology,103.51,1.31,Leading
+2025-09-10,XLF,Financials,96.15,-1.96,Lagging
+2025-09-10,XLV,Health Care,93.45,-0.56,Lagging
+2025-09-10,XLI,Industrials,96.76,-1.99,Lagging
+2025-09-10,XLY,Consumer Discretionary,99.91,-1.24,Lagging
+2025-09-10,XLP,Consumer Staples,90.81,-1.73,Lagging
+2025-09-10,XLE,Energy,95.71,-0.95,Lagging
+2025-09-10,XLB,Materials,95.2,-2.35,Lagging
+2025-09-10,XLU,Utilities,96.81,-1.6,Lagging
+2025-09-10,XLRE,Real Estate,92.45,-1.53,Lagging
+2025-09-10,XLC,Communication Services,101.1,2.18,Leading
+2025-09-11,XLK,Technology,102.46,0.36,Leading
+2025-09-11,XLF,Financials,97.31,-0.98,Lagging
+2025-09-11,XLV,Health Care,93.93,0.98,Improving
+2025-09-11,XLI,Industrials,97.52,-1.71,Lagging
+2025-09-11,XLY,Consumer Discretionary,101.9,0.05,Leading
+2025-09-11,XLP,Consumer Staples,90.62,-0.84,Lagging
+2025-09-11,XLE,Energy,94.99,-2.11,Lagging
+2025-09-11,XLB,Materials,96.37,-0.81,Lagging
+2025-09-11,XLU,Utilities,95.75,-0.78,Lagging
+2025-09-11,XLRE,Real Estate,93.04,-0.23,Lagging
+2025-09-11,XLC,Communication Services,103.05,2.9,Leading
+2025-09-12,XLK,Technology,102.72,1.29,Leading
+2025-09-12,XLF,Financials,97.84,-2.23,Lagging
+2025-09-12,XLV,Health Care,92.3,-1.31,Lagging
+2025-09-12,XLI,Industrials,96.5,-2.13,Lagging
+2025-09-12,XLY,Consumer Discretionary,102.26,1.05,Leading
+2025-09-12,XLP,Consumer Staples,90.44,-2.26,Lagging
+2025-09-12,XLE,Energy,91.8,-3.65,Lagging
+2025-09-12,XLB,Materials,95.48,-2.47,Lagging
+2025-09-12,XLU,Utilities,95.74,-0.49,Lagging
+2025-09-12,XLRE,Real Estate,92.37,-1.68,Lagging
+2025-09-12,XLC,Communication Services,103.83,3.38,Leading
+2025-09-15,XLK,Technology,102.42,1.93,Leading
+2025-09-15,XLF,Financials,96.92,-2.96,Lagging
+2025-09-15,XLV,Health Care,92.18,-3.41,Lagging
+2025-09-15,XLI,Industrials,96.69,-1.99,Lagging
+2025-09-15,XLY,Consumer Discretionary,102.47,1.39,Leading
+2025-09-15,XLP,Consumer Staples,89.49,-4.34,Lagging
+2025-09-15,XLE,Energy,92.14,-5.36,Lagging
+2025-09-15,XLB,Materials,94.31,-3.74,Lagging
+2025-09-15,XLU,Utilities,96.84,-1.19,Lagging
+2025-09-15,XLRE,Real Estate,92.55,-1.38,Lagging
+2025-09-15,XLC,Communication Services,103.95,3.68,Leading
+2025-09-16,XLK,Technology,102.05,1.66,Leading
+2025-09-16,XLF,Financials,96.56,-2.33,Lagging
+2025-09-16,XLV,Health Care,93.05,-2.34,Lagging
+2025-09-16,XLI,Industrials,96.44,-1.11,Lagging
+2025-09-16,XLY,Consumer Discretionary,104.16,2.33,Leading
+2025-09-16,XLP,Consumer Staples,90.02,-3.23,Lagging
+2025-09-16,XLE,Energy,92.15,-0.97,Lagging
+2025-09-16,XLB,Materials,94.26,-2.71,Lagging
+2025-09-16,XLU,Utilities,95.18,-2.04,Lagging
+2025-09-16,XLRE,Real Estate,91.72,-1.04,Lagging
+2025-09-16,XLC,Communication Services,103.7,2.28,Leading
+2025-09-17,XLK,Technology,101.69,1.77,Leading
+2025-09-17,XLF,Financials,97.65,-1.48,Lagging
+2025-09-17,XLV,Health Care,93.5,-1.61,Lagging
+2025-09-17,XLI,Industrials,96.33,-1.72,Lagging
+2025-09-17,XLY,Consumer Discretionary,103.96,1.19,Leading
+2025-09-17,XLP,Consumer Staples,90.77,-1.87,Lagging
+2025-09-17,XLE,Energy,93.08,-0.49,Lagging
+2025-09-17,XLB,Materials,94.86,-1.95,Lagging
+2025-09-17,XLU,Utilities,95.27,-0.77,Lagging
+2025-09-17,XLRE,Real Estate,91.6,-0.82,Lagging
+2025-09-17,XLC,Communication Services,104.03,2.61,Leading
+2025-09-18,XLK,Technology,103.18,2.68,Leading
+2025-09-18,XLF,Financials,96.78,-0.31,Lagging
+2025-09-18,XLV,Health Care,93.47,-2.47,Lagging
+2025-09-18,XLI,Industrials,96.57,-1.06,Lagging
+2025-09-18,XLY,Consumer Discretionary,102.65,-0.04,Weakening
+2025-09-18,XLP,Consumer Staples,88.7,-3.58,Lagging
+2025-09-18,XLE,Energy,91.21,0.33,Improving
+2025-09-18,XLB,Materials,94.84,-3.36,Lagging
+2025-09-18,XLU,Utilities,94.42,-1.12,Lagging
+2025-09-18,XLRE,Real Estate,91.04,-2.38,Lagging
+2025-09-18,XLC,Communication Services,104.02,1.37,Leading
+2025-09-19,XLK,Technology,103.56,2.7,Leading
+2025-09-19,XLF,Financials,96.26,-0.4,Lagging
+2025-09-19,XLV,Health Care,93.68,-2.8,Lagging
+2025-09-19,XLI,Industrials,95.98,-1.28,Lagging
+2025-09-19,XLY,Consumer Discretionary,101.53,-0.3,Weakening
+2025-09-19,XLP,Consumer Staples,87.94,-3.62,Lagging
+2025-09-19,XLE,Energy,92.78,-0.93,Lagging
+2025-09-19,XLB,Materials,94.21,-3.71,Lagging
+2025-09-19,XLU,Utilities,94.29,0.22,Improving
+2025-09-19,XLRE,Real Estate,89.72,-2.42,Lagging
+2025-09-19,XLC,Communication Services,103.65,1.42,Leading
+2025-09-22,XLK,Technology,103.87,3.74,Leading
+2025-09-22,XLF,Financials,95.31,-1.18,Lagging
+2025-09-22,XLV,Health Care,93.1,-3.56,Lagging
+2025-09-22,XLI,Industrials,96.1,-0.54,Lagging
+2025-09-22,XLY,Consumer Discretionary,101.27,-0.73,Weakening
+2025-09-22,XLP,Consumer Staples,87.58,-5.04,Lagging
+2025-09-22,XLE,Energy,94.49,-1.75,Lagging
+2025-09-22,XLB,Materials,93.99,-2.38,Lagging
+2025-09-22,XLU,Utilities,95.39,0.26,Improving
+2025-09-22,XLRE,Real Estate,90.16,-2.31,Lagging
+2025-09-22,XLC,Communication Services,102.61,0.23,Leading
+2025-09-23,XLK,Technology,102.72,1.87,Leading
+2025-09-23,XLF,Financials,95.78,-0.48,Lagging
+2025-09-23,XLV,Health Care,93.79,-1.68,Lagging
+2025-09-23,XLI,Industrials,97.57,-0.42,Lagging
+2025-09-23,XLY,Consumer Discretionary,102.13,0.38,Leading
+2025-09-23,XLP,Consumer Staples,89.75,-2.99,Lagging
+2025-09-23,XLE,Energy,97.12,-1.0,Lagging
+2025-09-23,XLB,Materials,95.17,-2.09,Lagging
+2025-09-23,XLU,Utilities,97.77,-0.08,Lagging
+2025-09-23,XLRE,Real Estate,93.7,-0.8,Lagging
+2025-09-23,XLC,Communication Services,103.1,1.69,Leading
+2025-09-24,XLK,Technology,102.51,2.06,Leading
+2025-09-24,XLF,Financials,95.86,-1.21,Lagging
+2025-09-24,XLV,Health Care,94.22,-2.64,Lagging
+2025-09-24,XLI,Industrials,97.09,-0.73,Lagging
+2025-09-24,XLY,Consumer Discretionary,103.03,0.3,Leading
+2025-09-24,XLP,Consumer Staples,91.02,-2.51,Lagging
+2025-09-24,XLE,Energy,98.07,1.36,Improving
+2025-09-24,XLB,Materials,94.0,-4.16,Lagging
+2025-09-24,XLU,Utilities,98.73,1.22,Improving
+2025-09-24,XLRE,Real Estate,94.36,-2.24,Lagging
+2025-09-24,XLC,Communication Services,102.19,0.45,Leading
+2025-09-25,XLK,Technology,103.44,2.4,Leading
+2025-09-25,XLF,Financials,96.25,-0.64,Lagging
+2025-09-25,XLV,Health Care,93.75,-2.7,Lagging
+2025-09-25,XLI,Industrials,96.39,-0.19,Lagging
+2025-09-25,XLY,Consumer Discretionary,100.88,-1.23,Weakening
+2025-09-25,XLP,Consumer Staples,90.59,-2.68,Lagging
+2025-09-25,XLE,Energy,100.43,3.27,Leading
+2025-09-25,XLB,Materials,93.55,-4.02,Lagging
+2025-09-25,XLU,Utilities,98.53,0.2,Improving
+2025-09-25,XLRE,Real Estate,94.7,-1.64,Lagging
+2025-09-25,XLC,Communication Services,101.63,-0.3,Weakening
+2025-09-26,XLK,Technology,102.65,1.74,Leading
+2025-09-26,XLF,Financials,96.06,0.24,Improving
+2025-09-26,XLV,Health Care,94.02,-0.95,Lagging
+2025-09-26,XLI,Industrials,96.69,0.19,Improving
+2025-09-26,XLY,Consumer Discretionary,102.87,-0.67,Weakening
+2025-09-26,XLP,Consumer Staples,90.25,-1.42,Lagging
+2025-09-26,XLE,Energy,101.84,4.51,Leading
+2025-09-26,XLB,Materials,94.64,-2.18,Lagging
+2025-09-26,XLU,Utilities,99.64,1.53,Improving
+2025-09-26,XLRE,Real Estate,94.85,-0.62,Lagging
+2025-09-26,XLC,Communication Services,101.72,-0.78,Weakening
+2025-09-29,XLK,Technology,103.8,2.23,Leading
+2025-09-29,XLF,Financials,95.71,0.53,Improving
+2025-09-29,XLV,Health Care,92.68,-1.05,Lagging
+2025-09-29,XLI,Industrials,96.36,0.37,Improving
+2025-09-29,XLY,Consumer Discretionary,102.55,-1.28,Weakening
+2025-09-29,XLP,Consumer Staples,89.03,-2.02,Lagging
+2025-09-29,XLE,Energy,98.9,0.59,Improving
+2025-09-29,XLB,Materials,92.32,-1.87,Lagging
+2025-09-29,XLU,Utilities,99.27,3.17,Improving
+2025-09-29,XLRE,Real Estate,94.1,-0.27,Lagging
+2025-09-29,XLC,Communication Services,102.46,-0.47,Weakening
+2025-09-30,XLK,Technology,103.35,2.62,Leading
+2025-09-30,XLF,Financials,95.4,-1.34,Lagging
+2025-09-30,XLV,Health Care,95.93,0.52,Improving
+2025-09-30,XLI,Industrials,97.08,1.06,Improving
+2025-09-30,XLY,Consumer Discretionary,101.34,-2.01,Weakening
+2025-09-30,XLP,Consumer Staples,89.14,-2.72,Lagging
+2025-09-30,XLE,Energy,96.27,-1.17,Lagging
+2025-09-30,XLB,Materials,91.47,-2.08,Lagging
+2025-09-30,XLU,Utilities,100.39,2.65,Leading
+2025-09-30,XLRE,Real Estate,94.37,-0.32,Lagging
+2025-09-30,XLC,Communication Services,102.67,-1.42,Weakening
+2025-10-01,XLK,Technology,103.47,2.0,Leading
+2025-10-01,XLF,Financials,93.95,-2.14,Lagging
+2025-10-01,XLV,Health Care,99.23,3.43,Improving
+2025-10-01,XLI,Industrials,96.42,-0.11,Lagging
+2025-10-01,XLY,Consumer Discretionary,101.88,-0.77,Weakening
+2025-10-01,XLP,Consumer Staples,89.44,-1.95,Lagging
+2025-10-01,XLE,Energy,96.59,-0.75,Lagging
+2025-10-01,XLB,Materials,90.98,-2.93,Lagging
+2025-10-01,XLU,Utilities,101.05,3.66,Leading
+2025-10-01,XLRE,Real Estate,94.75,-0.27,Lagging
+2025-10-01,XLC,Communication Services,101.13,-2.8,Weakening
+2025-10-02,XLK,Technology,103.96,1.92,Leading
+2025-10-02,XLF,Financials,93.98,-2.06,Lagging
+2025-10-02,XLV,Health Care,99.02,3.73,Improving
+2025-10-02,XLI,Industrials,96.18,0.28,Improving
+2025-10-02,XLY,Consumer Discretionary,101.56,-1.51,Weakening
+2025-10-02,XLP,Consumer Staples,88.4,-1.76,Lagging
+2025-10-02,XLE,Energy,95.71,-0.07,Lagging
+2025-10-02,XLB,Materials,92.13,-1.48,Lagging
+2025-10-02,XLU,Utilities,99.79,3.19,Improving
+2025-10-02,XLRE,Real Estate,94.16,0.07,Improving
+2025-10-02,XLC,Communication Services,101.01,-3.07,Weakening
+2025-10-03,XLK,Technology,102.83,0.38,Leading
+2025-10-03,XLF,Financials,95.43,-0.84,Lagging
+2025-10-03,XLV,Health Care,99.64,5.3,Improving
+2025-10-03,XLI,Industrials,96.28,0.54,Improving
+2025-10-03,XLY,Consumer Discretionary,101.2,-1.35,Weakening
+2025-10-03,XLP,Consumer Staples,89.28,-0.24,Lagging
+2025-10-03,XLE,Energy,93.65,0.98,Improving
+2025-10-03,XLB,Materials,91.48,-0.85,Lagging
+2025-10-03,XLU,Utilities,101.98,3.91,Leading
+2025-10-03,XLRE,Real Estate,94.63,0.59,Improving
+2025-10-03,XLC,Communication Services,101.11,-2.27,Weakening
+2025-10-06,XLK,Technology,103.5,1.38,Leading
+2025-10-06,XLF,Financials,95.27,-1.31,Lagging
+2025-10-06,XLV,Health Care,99.02,3.74,Improving
+2025-10-06,XLI,Industrials,96.29,0.09,Improving
+2025-10-06,XLY,Consumer Discretionary,101.71,-0.44,Weakening
+2025-10-06,XLP,Consumer Staples,89.42,-2.17,Lagging
+2025-10-06,XLE,Energy,94.82,-1.02,Lagging
+2025-10-06,XLB,Materials,91.07,-1.46,Lagging
+2025-10-06,XLU,Utilities,102.25,3.47,Leading
+2025-10-06,XLRE,Real Estate,93.96,-1.97,Lagging
+2025-10-06,XLC,Communication Services,101.19,-2.95,Weakening
+2025-10-07,XLK,Technology,103.82,1.39,Leading
+2025-10-07,XLF,Financials,95.46,-0.87,Lagging
+2025-10-07,XLV,Health Care,99.13,4.25,Improving
+2025-10-07,XLI,Industrials,95.84,0.1,Improving
+2025-10-07,XLY,Consumer Discretionary,99.48,-2.87,Lagging
+2025-10-07,XLP,Consumer Staples,90.52,-1.5,Lagging
+2025-10-07,XLE,Energy,94.87,-2.06,Lagging
+2025-10-07,XLB,Materials,90.82,-0.65,Lagging
+2025-10-07,XLU,Utilities,102.55,3.28,Leading
+2025-10-07,XLRE,Real Estate,93.8,-1.23,Lagging
+2025-10-07,XLC,Communication Services,101.81,-2.45,Weakening
+2025-10-08,XLK,Technology,105.11,2.29,Leading
+2025-10-08,XLF,Financials,95.09,-2.1,Lagging
+2025-10-08,XLV,Health Care,99.21,5.02,Improving
+2025-10-08,XLI,Industrials,96.1,0.56,Improving
+2025-10-08,XLY,Consumer Discretionary,98.81,-2.18,Lagging
+2025-10-08,XLP,Consumer Staples,89.55,-2.03,Lagging
+2025-10-08,XLE,Energy,93.01,-4.46,Lagging
+2025-10-08,XLB,Materials,91.19,0.07,Improving
+2025-10-08,XLU,Utilities,102.43,3.86,Leading
+2025-10-08,XLRE,Real Estate,92.54,-2.46,Lagging
+2025-10-08,XLC,Communication Services,101.08,-3.61,Weakening
+2025-10-09,XLK,Technology,105.52,2.7,Leading
+2025-10-09,XLF,Financials,94.51,-2.3,Lagging
+2025-10-09,XLV,Health Care,99.59,4.68,Improving
+2025-10-09,XLI,Industrials,94.63,-0.89,Lagging
+2025-10-09,XLY,Consumer Discretionary,98.43,-3.29,Lagging
+2025-10-09,XLP,Consumer Staples,90.19,-1.18,Lagging
+2025-10-09,XLE,Energy,93.21,-5.87,Lagging
+2025-10-09,XLB,Materials,90.88,-1.46,Lagging
+2025-10-09,XLU,Utilities,102.26,2.86,Leading
+2025-10-09,XLRE,Real Estate,91.94,-3.0,Lagging
+2025-10-09,XLC,Communication Services,100.01,-4.28,Weakening
+2025-10-10,XLK,Technology,102.68,0.95,Leading
+2025-10-10,XLF,Financials,96.26,-2.03,Lagging
+2025-10-10,XLV,Health Care,102.29,6.04,Leading
+2025-10-10,XLI,Industrials,95.41,-0.44,Lagging
+2025-10-10,XLY,Consumer Discretionary,99.38,-3.54,Lagging
+2025-10-10,XLP,Consumer Staples,93.31,1.49,Improving
+2025-10-10,XLE,Energy,93.99,-4.0,Lagging
+2025-10-10,XLB,Materials,93.01,-0.96,Lagging
+2025-10-10,XLU,Utilities,105.22,5.29,Leading
+2025-10-10,XLRE,Real Estate,94.27,-1.4,Lagging
+2025-10-10,XLC,Communication Services,101.46,-3.46,Weakening
+2025-10-13,XLK,Technology,103.62,1.69,Leading
+2025-10-13,XLF,Financials,95.37,-1.73,Lagging
+2025-10-13,XLV,Health Care,99.72,2.41,Improving
+2025-10-13,XLI,Industrials,94.93,-1.28,Lagging
+2025-10-13,XLY,Consumer Discretionary,100.22,-1.99,Weakening
+2025-10-13,XLP,Consumer Staples,91.58,-0.19,Lagging
+2025-10-13,XLE,Energy,94.96,-2.79,Lagging
+2025-10-13,XLB,Materials,93.12,-1.02,Lagging
+2025-10-13,XLU,Utilities,104.73,4.71,Leading
+2025-10-13,XLRE,Real Estate,92.68,-2.31,Lagging
+2025-10-13,XLC,Communication Services,100.89,-3.52,Weakening
+2025-10-14,XLK,Technology,102.11,-0.17,Weakening
+2025-10-14,XLF,Financials,96.21,0.63,Improving
+2025-10-14,XLV,Health Care,101.89,0.15,Leading
+2025-10-14,XLI,Industrials,95.87,0.54,Improving
+2025-10-14,XLY,Consumer Discretionary,100.82,-1.96,Weakening
+2025-10-14,XLP,Consumer Staples,92.85,1.84,Improving
+2025-10-14,XLE,Energy,95.06,-2.35,Lagging
+2025-10-14,XLB,Materials,94.07,1.33,Improving
+2025-10-14,XLU,Utilities,106.0,5.17,Leading
+2025-10-14,XLRE,Real Estate,94.34,-1.0,Lagging
+2025-10-14,XLC,Communication Services,101.94,-0.92,Weakening
+2025-10-15,XLK,Technology,102.66,-0.05,Weakening
+2025-10-15,XLF,Financials,95.66,0.38,Improving
+2025-10-15,XLV,Health Care,102.2,0.17,Leading
+2025-10-15,XLI,Industrials,95.19,-0.42,Lagging
+2025-10-15,XLY,Consumer Discretionary,99.57,-1.38,Lagging
+2025-10-15,XLP,Consumer Staples,92.79,2.06,Improving
+2025-10-15,XLE,Energy,95.29,-1.75,Lagging
+2025-10-15,XLB,Materials,92.95,-0.48,Lagging
+2025-10-15,XLU,Utilities,105.07,6.27,Leading
+2025-10-15,XLRE,Real Estate,94.94,0.55,Improving
+2025-10-15,XLC,Communication Services,102.6,-0.31,Weakening
+2025-10-16,XLK,Technology,103.5,1.25,Leading
+2025-10-16,XLF,Financials,94.08,-2.31,Lagging
+2025-10-16,XLV,Health Care,103.51,-0.47,Weakening
+2025-10-16,XLI,Industrials,95.9,-0.53,Lagging
+2025-10-16,XLY,Consumer Discretionary,99.0,-1.02,Lagging
+2025-10-16,XLP,Consumer Staples,92.96,1.95,Improving
+2025-10-16,XLE,Energy,95.96,-2.8,Lagging
+2025-10-16,XLB,Materials,92.6,-0.69,Lagging
+2025-10-16,XLU,Utilities,104.5,4.68,Leading
+2025-10-16,XLRE,Real Estate,95.11,0.52,Improving
+2025-10-16,XLC,Communication Services,101.05,-0.65,Weakening
+2025-10-17,XLK,Technology,104.08,0.18,Leading
+2025-10-17,XLF,Financials,93.8,-1.69,Lagging
+2025-10-17,XLV,Health Care,101.74,0.5,Leading
+2025-10-17,XLI,Industrials,95.23,-1.09,Lagging
+2025-10-17,XLY,Consumer Discretionary,98.31,-1.22,Lagging
+2025-10-17,XLP,Consumer Staples,92.84,3.61,Improving
+2025-10-17,XLE,Energy,95.76,-2.68,Lagging
+2025-10-17,XLB,Materials,90.66,-0.96,Lagging
+2025-10-17,XLU,Utilities,102.31,3.09,Leading
+2025-10-17,XLRE,Real Estate,93.58,1.84,Improving
+2025-10-17,XLC,Communication Services,100.94,-0.28,Weakening
+2025-10-20,XLK,Technology,104.45,0.57,Leading
+2025-10-20,XLF,Financials,93.97,-2.06,Lagging
+2025-10-20,XLV,Health Care,100.56,0.06,Leading
+2025-10-20,XLI,Industrials,94.47,-0.76,Lagging
+2025-10-20,XLY,Consumer Discretionary,98.43,-0.08,Lagging
+2025-10-20,XLP,Consumer Staples,92.55,1.42,Improving
+2025-10-20,XLE,Energy,95.11,-3.16,Lagging
+2025-10-20,XLB,Materials,91.26,-0.8,Lagging
+2025-10-20,XLU,Utilities,102.86,1.2,Leading
+2025-10-20,XLRE,Real Estate,94.11,1.8,Improving
+2025-10-20,XLC,Communication Services,101.33,-0.17,Weakening
+2025-10-21,XLK,Technology,104.1,-0.56,Weakening
+2025-10-21,XLF,Financials,93.95,-1.13,Lagging
+2025-10-21,XLV,Health Care,101.21,0.7,Leading
+2025-10-21,XLI,Industrials,95.51,-0.18,Lagging
+2025-10-21,XLY,Consumer Discretionary,101.35,1.44,Leading
+2025-10-21,XLP,Consumer Staples,92.48,1.99,Improving
+2025-10-21,XLE,Energy,94.25,-2.22,Lagging
+2025-10-21,XLB,Materials,91.89,-1.11,Lagging
+2025-10-21,XLU,Utilities,101.98,0.06,Leading
+2025-10-21,XLRE,Real Estate,93.99,2.53,Improving
+2025-10-21,XLC,Communication Services,101.56,1.2,Leading
+2025-10-22,XLK,Technology,103.81,-1.18,Weakening
+2025-10-22,XLF,Financials,93.65,-1.11,Lagging
+2025-10-22,XLV,Health Care,102.21,1.75,Leading
+2025-10-22,XLI,Industrials,94.23,0.21,Improving
+2025-10-22,XLY,Consumer Discretionary,100.58,1.38,Leading
+2025-10-22,XLP,Consumer Staples,93.72,2.46,Improving
+2025-10-22,XLE,Energy,96.72,0.53,Improving
+2025-10-22,XLB,Materials,91.4,0.1,Improving
+2025-10-22,XLU,Utilities,102.44,0.32,Leading
+2025-10-22,XLRE,Real Estate,95.31,3.62,Improving
+2025-10-22,XLC,Communication Services,102.59,1.15,Leading
+2025-10-23,XLK,Technology,103.64,0.97,Leading
+2025-10-23,XLF,Financials,93.92,-2.0,Lagging
+2025-10-23,XLV,Health Care,102.53,-0.1,Weakening
+2025-10-23,XLI,Industrials,95.11,0.36,Improving
+2025-10-23,XLY,Consumer Discretionary,99.83,1.28,Improving
+2025-10-23,XLP,Consumer Staples,93.66,-1.17,Lagging
+2025-10-23,XLE,Energy,96.31,1.41,Improving
+2025-10-23,XLB,Materials,93.28,0.04,Improving
+2025-10-23,XLU,Utilities,102.83,-2.8,Weakening
+2025-10-23,XLRE,Real Estate,96.3,1.48,Improving
+2025-10-23,XLC,Communication Services,102.16,-0.7,Weakening
+2025-10-24,XLK,Technology,104.12,0.82,Leading
+2025-10-24,XLF,Financials,94.4,-1.21,Lagging
+2025-10-24,XLV,Health Care,102.08,0.73,Leading
+2025-10-24,XLI,Industrials,95.26,0.13,Improving
+2025-10-24,XLY,Consumer Discretionary,99.15,-0.51,Lagging
+2025-10-24,XLP,Consumer Staples,91.75,-0.49,Lagging
+2025-10-24,XLE,Energy,93.41,-0.17,Lagging
+2025-10-24,XLB,Materials,92.25,-1.15,Lagging
+2025-10-24,XLU,Utilities,101.75,-1.61,Weakening
+2025-10-24,XLRE,Real Estate,94.03,1.9,Improving
+2025-10-24,XLC,Communication Services,102.21,-0.65,Weakening
+2025-10-27,XLK,Technology,104.44,2.69,Leading
+2025-10-27,XLF,Financials,93.74,-3.09,Lagging
+2025-10-27,XLV,Health Care,101.17,-0.63,Weakening
+2025-10-27,XLI,Industrials,95.03,-1.69,Lagging
+2025-10-27,XLY,Consumer Discretionary,99.91,-0.59,Lagging
+2025-10-27,XLP,Consumer Staples,91.52,-3.02,Lagging
+2025-10-27,XLE,Energy,93.76,-1.16,Lagging
+2025-10-27,XLB,Materials,92.9,-3.38,Lagging
+2025-10-27,XLU,Utilities,99.97,-3.54,Lagging
+2025-10-27,XLRE,Real Estate,94.34,0.01,Improving
+2025-10-27,XLC,Communication Services,101.98,-1.23,Weakening
+2025-10-28,XLK,Technology,105.57,2.9,Leading
+2025-10-28,XLF,Financials,93.14,-3.52,Lagging
+2025-10-28,XLV,Health Care,102.78,-1.27,Weakening
+2025-10-28,XLI,Industrials,93.74,-1.78,Lagging
+2025-10-28,XLY,Consumer Discretionary,100.09,-0.53,Weakening
+2025-10-28,XLP,Consumer Staples,90.81,-3.95,Lagging
+2025-10-28,XLE,Energy,92.69,-1.91,Lagging
+2025-10-28,XLB,Materials,93.61,-2.67,Lagging
+2025-10-28,XLU,Utilities,97.17,-6.28,Lagging
+2025-10-28,XLRE,Real Estate,93.29,-3.32,Lagging
+2025-10-28,XLC,Communication Services,99.92,-2.24,Lagging
+2025-10-29,XLK,Technology,106.85,2.85,Leading
+2025-10-29,XLF,Financials,91.71,-3.11,Lagging
+2025-10-29,XLV,Health Care,99.49,-2.83,Lagging
+2025-10-29,XLI,Industrials,93.8,-1.61,Lagging
+2025-10-29,XLY,Consumer Discretionary,100.0,-1.12,Weakening
+2025-10-29,XLP,Consumer Staples,86.76,-5.99,Lagging
+2025-10-29,XLE,Energy,93.54,-0.77,Lagging
+2025-10-29,XLB,Materials,91.27,-4.47,Lagging
+2025-10-29,XLU,Utilities,95.35,-5.83,Lagging
+2025-10-29,XLRE,Real Estate,89.48,-6.19,Lagging
+2025-10-29,XLC,Communication Services,99.19,-2.13,Lagging
+2025-10-30,XLK,Technology,106.17,3.09,Leading
+2025-10-30,XLF,Financials,93.46,-2.08,Lagging
+2025-10-30,XLV,Health Care,100.9,-1.61,Weakening
+2025-10-30,XLI,Industrials,95.16,-0.35,Lagging
+2025-10-30,XLY,Consumer Discretionary,99.16,-2.6,Lagging
+2025-10-30,XLP,Consumer Staples,88.53,-5.88,Lagging
+2025-10-30,XLE,Energy,95.66,-0.53,Lagging
+2025-10-30,XLB,Materials,91.23,-3.97,Lagging
+2025-10-30,XLU,Utilities,95.77,-4.25,Lagging
+2025-10-30,XLRE,Real Estate,91.59,-4.79,Lagging
+2025-10-30,XLC,Communication Services,98.2,-2.83,Lagging
+2025-10-31,XLK,Technology,106.27,2.78,Leading
+2025-10-31,XLF,Financials,93.31,-2.26,Lagging
+2025-10-31,XLV,Health Care,100.41,-1.99,Weakening
+2025-10-31,XLI,Industrials,94.79,-0.56,Lagging
+2025-10-31,XLY,Consumer Discretionary,100.81,-0.06,Weakening
+2025-10-31,XLP,Consumer Staples,87.63,-5.35,Lagging
+2025-10-31,XLE,Energy,95.44,-0.17,Lagging
+2025-10-31,XLB,Materials,89.31,-4.88,Lagging
+2025-10-31,XLU,Utilities,95.33,-4.18,Lagging
+2025-10-31,XLRE,Real Estate,90.57,-5.01,Lagging
+2025-10-31,XLC,Communication Services,98.57,-2.83,Lagging
+2025-11-03,XLK,Technology,106.12,2.95,Leading
+2025-11-03,XLF,Financials,93.01,-2.72,Lagging
+2025-11-03,XLV,Health Care,102.68,-2.34,Weakening
+2025-11-03,XLI,Industrials,94.86,-2.0,Lagging
+2025-11-03,XLY,Consumer Discretionary,100.26,-0.53,Weakening
+2025-11-03,XLP,Consumer Staples,86.21,-5.73,Lagging
+2025-11-03,XLE,Energy,96.89,-0.12,Lagging
+2025-11-03,XLB,Materials,90.25,-5.34,Lagging
+2025-11-03,XLU,Utilities,96.8,-3.35,Lagging
+2025-11-03,XLRE,Real Estate,91.7,-5.12,Lagging
+2025-11-03,XLC,Communication Services,97.71,-4.43,Lagging
+2025-11-04,XLK,Technology,104.38,1.87,Leading
+2025-11-04,XLF,Financials,95.6,-1.08,Lagging
+2025-11-04,XLV,Health Care,105.5,-1.81,Weakening
+2025-11-04,XLI,Industrials,94.94,-1.22,Lagging
+2025-11-04,XLY,Consumer Discretionary,99.72,-0.75,Lagging
+2025-11-04,XLP,Consumer Staples,86.87,-5.3,Lagging
+2025-11-04,XLE,Energy,97.3,-1.77,Lagging
+2025-11-04,XLB,Materials,90.41,-4.89,Lagging
+2025-11-04,XLU,Utilities,96.48,-2.8,Lagging
+2025-11-04,XLRE,Real Estate,92.62,-4.69,Lagging
+2025-11-04,XLC,Communication Services,98.54,-3.6,Lagging
+2025-11-05,XLK,Technology,104.2,1.23,Leading
+2025-11-05,XLF,Financials,95.45,-0.72,Lagging
+2025-11-05,XLV,Health Care,105.42,-1.19,Weakening
+2025-11-05,XLI,Industrials,95.64,-1.82,Lagging
+2025-11-05,XLY,Consumer Discretionary,101.2,0.26,Leading
+2025-11-05,XLP,Consumer Staples,86.93,-4.69,Lagging
+2025-11-05,XLE,Energy,97.35,-2.58,Lagging
+2025-11-05,XLB,Materials,90.88,-5.26,Lagging
+2025-11-05,XLU,Utilities,97.33,-2.48,Lagging
+2025-11-05,XLRE,Real Estate,93.76,-4.44,Lagging
+2025-11-05,XLC,Communication Services,99.17,-2.47,Lagging
+2025-11-06,XLK,Technology,103.71,-0.51,Weakening
+2025-11-06,XLF,Financials,95.98,-0.29,Lagging
+2025-11-06,XLV,Health Care,106.46,1.03,Leading
+2025-11-06,XLI,Industrials,96.42,-0.46,Lagging
+2025-11-06,XLY,Consumer Discretionary,99.48,0.11,Improving
+2025-11-06,XLP,Consumer Staples,87.38,-3.1,Lagging
+2025-11-06,XLE,Energy,99.97,1.25,Improving
+2025-11-06,XLB,Materials,91.44,-3.56,Lagging
+2025-11-06,XLU,Utilities,98.07,-2.21,Lagging
+2025-11-06,XLRE,Real Estate,94.68,-3.45,Lagging
+2025-11-06,XLC,Communication Services,98.64,-1.73,Lagging
+2025-11-07,XLK,Technology,102.76,-1.65,Weakening
+2025-11-07,XLF,Financials,96.42,1.02,Improving
+2025-11-07,XLV,Health Care,106.89,2.06,Leading
+2025-11-07,XLI,Industrials,96.82,0.5,Improving
+2025-11-07,XLY,Consumer Discretionary,99.54,-0.08,Lagging
+2025-11-07,XLP,Consumer Staples,89.29,-1.0,Lagging
+2025-11-07,XLE,Energy,101.89,3.53,Leading
+2025-11-07,XLB,Materials,92.23,-1.39,Lagging
+2025-11-07,XLU,Utilities,99.96,-0.05,Lagging
+2025-11-07,XLRE,Real Estate,96.69,-1.36,Lagging
+2025-11-07,XLC,Communication Services,97.47,-2.27,Lagging
+2025-11-10,XLK,Technology,104.08,-1.39,Weakening
+2025-11-10,XLF,Financials,95.06,0.74,Improving
+2025-11-10,XLV,Health Care,104.76,2.15,Leading
+2025-11-10,XLI,Industrials,95.83,0.49,Improving
+2025-11-10,XLY,Consumer Discretionary,98.29,-0.09,Lagging
+2025-11-10,XLP,Consumer Staples,87.89,-1.56,Lagging
+2025-11-10,XLE,Energy,100.41,4.12,Leading
+2025-11-10,XLB,Materials,90.29,-1.8,Lagging
+2025-11-10,XLU,Utilities,98.52,0.29,Improving
+2025-11-10,XLRE,Real Estate,94.84,-0.48,Lagging
+2025-11-10,XLC,Communication Services,96.55,-2.0,Lagging
+2025-11-11,XLK,Technology,103.19,-3.23,Weakening
+2025-11-11,XLF,Financials,94.83,2.59,Improving
+2025-11-11,XLV,Health Care,106.41,5.38,Leading
+2025-11-11,XLI,Industrials,96.5,0.09,Improving
+2025-11-11,XLY,Consumer Discretionary,98.43,0.79,Improving
+2025-11-11,XLP,Consumer Staples,89.65,1.55,Improving
+2025-11-11,XLE,Energy,101.6,4.53,Leading
+2025-11-11,XLB,Materials,91.99,0.79,Improving
+2025-11-11,XLU,Utilities,99.04,0.2,Improving
+2025-11-11,XLRE,Real Estate,96.37,3.03,Improving
+2025-11-11,XLC,Communication Services,97.05,-1.14,Lagging
+2025-11-12,XLK,Technology,104.0,-2.84,Weakening
+2025-11-12,XLF,Financials,96.38,2.1,Improving
+2025-11-12,XLV,Health Care,105.83,5.38,Leading
+2025-11-12,XLI,Industrials,96.76,-0.69,Lagging
+2025-11-12,XLY,Consumer Discretionary,97.72,1.22,Improving
+2025-11-12,XLP,Consumer Staples,89.12,0.48,Improving
+2025-11-12,XLE,Energy,99.89,2.55,Improving
+2025-11-12,XLB,Materials,92.37,1.6,Improving
+2025-11-12,XLU,Utilities,99.27,-0.3,Lagging
+2025-11-12,XLRE,Real Estate,94.7,0.63,Improving
+2025-11-12,XLC,Communication Services,95.96,-1.16,Lagging
+2025-11-13,XLK,Technology,102.88,-3.47,Weakening
+2025-11-13,XLF,Financials,96.65,2.52,Improving
+2025-11-13,XLV,Health Care,107.79,7.49,Leading
+2025-11-13,XLI,Industrials,96.47,-0.5,Lagging
+2025-11-13,XLY,Consumer Discretionary,96.48,-1.83,Lagging
+2025-11-13,XLP,Consumer Staples,90.73,2.54,Improving
+2025-11-13,XLE,Energy,102.42,4.13,Leading
+2025-11-13,XLB,Materials,93.83,3.38,Improving
+2025-11-13,XLU,Utilities,99.97,1.0,Improving
+2025-11-13,XLRE,Real Estate,95.93,1.25,Improving
+2025-11-13,XLC,Communication Services,96.77,-1.03,Lagging
+2025-11-14,XLK,Technology,104.72,-3.17,Weakening
+2025-11-14,XLF,Financials,95.0,2.12,Improving
+2025-11-14,XLV,Health Care,105.9,6.83,Leading
+2025-11-14,XLI,Industrials,95.76,0.12,Improving
+2025-11-14,XLY,Consumer Discretionary,95.55,-3.0,Lagging
+2025-11-14,XLP,Consumer Staples,89.27,3.29,Improving
+2025-11-14,XLE,Energy,103.58,6.02,Leading
+2025-11-14,XLB,Materials,91.93,3.23,Improving
+2025-11-14,XLU,Utilities,98.57,1.22,Improving
+2025-11-14,XLRE,Real Estate,94.03,1.84,Improving
+2025-11-14,XLC,Communication Services,96.28,-0.31,Lagging
+2025-11-17,XLK,Technology,104.48,-2.26,Weakening
+2025-11-17,XLF,Financials,93.33,-0.41,Lagging
+2025-11-17,XLV,Health Care,105.95,6.05,Leading
+2025-11-17,XLI,Industrials,95.55,0.05,Improving
+2025-11-17,XLY,Consumer Discretionary,96.24,-2.55,Lagging
+2025-11-17,XLP,Consumer Staples,88.79,2.15,Improving
+2025-11-17,XLE,Energy,101.52,4.93,Leading
+2025-11-17,XLB,Materials,91.07,2.06,Improving
+2025-11-17,XLU,Utilities,100.02,2.22,Leading
+2025-11-17,XLRE,Real Estate,93.68,0.74,Improving
+2025-11-17,XLC,Communication Services,97.09,-0.03,Lagging
+2025-11-18,XLK,Technology,103.61,-3.13,Weakening
+2025-11-18,XLF,Financials,93.9,0.23,Improving
+2025-11-18,XLV,Health Care,107.4,7.53,Leading
+2025-11-18,XLI,Industrials,95.88,0.39,Improving
+2025-11-18,XLY,Consumer Discretionary,95.45,-4.39,Lagging
+2025-11-18,XLP,Consumer Staples,90.38,3.66,Improving
+2025-11-18,XLE,Energy,102.08,6.61,Leading
+2025-11-18,XLB,Materials,91.28,2.67,Improving
+2025-11-18,XLU,Utilities,100.78,3.01,Leading
+2025-11-18,XLRE,Real Estate,94.78,2.22,Improving
+2025-11-18,XLC,Communication Services,98.18,1.16,Improving
+2025-11-19,XLK,Technology,104.12,-1.81,Weakening
+2025-11-19,XLF,Financials,93.78,-0.45,Lagging
+2025-11-19,XLV,Health Care,107.56,5.69,Leading
+2025-11-19,XLI,Industrials,95.74,-0.31,Lagging
+2025-11-19,XLY,Consumer Discretionary,93.7,-3.46,Lagging
+2025-11-19,XLP,Consumer Staples,90.72,2.11,Improving
+2025-11-19,XLE,Energy,99.88,2.91,Improving
+2025-11-19,XLB,Materials,90.76,2.02,Improving
+2025-11-19,XLU,Utilities,100.53,1.16,Leading
+2025-11-19,XLRE,Real Estate,93.63,0.57,Improving
+2025-11-19,XLC,Communication Services,97.35,0.07,Improving
+2025-11-20,XLK,Technology,102.19,-3.04,Weakening
+2025-11-20,XLF,Financials,94.53,-0.41,Lagging
+2025-11-20,XLV,Health Care,109.66,6.73,Leading
+2025-11-20,XLI,Industrials,96.13,-0.84,Lagging
+2025-11-20,XLY,Consumer Discretionary,93.51,-3.47,Lagging
+2025-11-20,XLP,Consumer Staples,93.98,3.0,Improving
+2025-11-20,XLE,Energy,99.57,2.0,Improving
+2025-11-20,XLB,Materials,90.89,1.07,Improving
+2025-11-20,XLU,Utilities,102.27,0.92,Leading
+2025-11-20,XLRE,Real Estate,94.8,0.55,Improving
+2025-11-20,XLC,Communication Services,97.19,0.83,Improving
+2025-11-21,XLK,Technology,101.53,-4.69,Weakening
+2025-11-21,XLF,Financials,94.3,0.81,Improving
+2025-11-21,XLV,Health Care,110.64,8.71,Leading
+2025-11-21,XLI,Industrials,95.76,0.32,Improving
+2025-11-21,XLY,Consumer Discretionary,94.37,-2.34,Lagging
+2025-11-21,XLP,Consumer Staples,95.08,4.86,Improving
+2025-11-21,XLE,Energy,99.79,2.28,Improving
+2025-11-21,XLB,Materials,92.14,2.74,Improving
+2025-11-21,XLU,Utilities,101.61,1.66,Leading
+2025-11-21,XLRE,Real Estate,95.77,2.38,Improving
+2025-11-21,XLC,Communication Services,98.76,2.07,Improving
+2025-11-24,XLK,Technology,102.12,-2.62,Weakening
+2025-11-24,XLF,Financials,93.35,-0.37,Lagging
+2025-11-24,XLV,Health Care,109.8,5.47,Leading
+2025-11-24,XLI,Industrials,94.83,-0.64,Lagging
+2025-11-24,XLY,Consumer Discretionary,94.43,-2.49,Lagging
+2025-11-24,XLP,Consumer Staples,92.56,1.43,Improving
+2025-11-24,XLE,Energy,97.2,-0.49,Lagging
+2025-11-24,XLB,Materials,90.97,0.86,Improving
+2025-11-24,XLU,Utilities,101.48,1.5,Leading
+2025-11-24,XLRE,Real Estate,94.33,0.3,Improving
+2025-11-24,XLC,Communication Services,98.35,1.04,Improving
+2025-11-25,XLK,Technology,101.0,-3.55,Weakening
+2025-11-25,XLF,Financials,93.84,-0.85,Lagging
+2025-11-25,XLV,Health Care,112.08,5.52,Leading
+2025-11-25,XLI,Industrials,95.32,-0.36,Lagging
+2025-11-25,XLY,Consumer Discretionary,95.73,-0.67,Lagging
+2025-11-25,XLP,Consumer Staples,93.88,2.03,Improving
+2025-11-25,XLE,Energy,95.3,-0.58,Lagging
+2025-11-25,XLB,Materials,91.79,0.77,Improving
+2025-11-25,XLU,Utilities,101.28,-0.01,Weakening
+2025-11-25,XLRE,Real Estate,94.79,0.98,Improving
+2025-11-25,XLC,Communication Services,98.52,1.85,Improving
+2025-11-26,XLK,Technology,102.47,-2.19,Weakening
+2025-11-26,XLF,Financials,93.13,-1.11,Lagging
+2025-11-26,XLV,Health Care,109.6,2.73,Leading
+2025-11-26,XLI,Industrials,95.53,-0.58,Lagging
+2025-11-26,XLY,Consumer Discretionary,96.14,0.15,Improving
+2025-11-26,XLP,Consumer Staples,93.09,0.84,Improving
+2025-11-26,XLE,Energy,94.28,-2.35,Lagging
+2025-11-26,XLB,Materials,91.6,0.33,Improving
+2025-11-26,XLU,Utilities,101.69,0.34,Leading
+2025-11-26,XLRE,Real Estate,93.47,0.4,Improving
+2025-11-26,XLC,Communication Services,97.59,1.07,Improving
+2025-11-28,XLK,Technology,103.06,-2.46,Weakening
+2025-11-28,XLF,Financials,93.28,-0.03,Lagging
+2025-11-28,XLV,Health Care,107.57,2.2,Leading
+2025-11-28,XLI,Industrials,95.77,-0.57,Lagging
+2025-11-28,XLY,Consumer Discretionary,96.22,0.66,Improving
+2025-11-28,XLP,Consumer Staples,92.58,0.92,Improving
+2025-11-28,XLE,Energy,94.16,-3.27,Lagging
+2025-11-28,XLB,Materials,91.63,1.18,Improving
+2025-11-28,XLU,Utilities,101.44,0.4,Leading
+2025-11-28,XLRE,Real Estate,94.33,0.05,Improving
+2025-11-28,XLC,Communication Services,97.29,1.82,Improving
+2025-12-01,XLK,Technology,103.53,-1.27,Weakening
+2025-12-01,XLF,Financials,93.6,0.55,Improving
+2025-12-01,XLV,Health Care,107.53,0.18,Leading
+2025-12-01,XLI,Industrials,95.8,-1.51,Lagging
+2025-12-01,XLY,Consumer Discretionary,96.85,1.17,Improving
+2025-12-01,XLP,Consumer Staples,93.48,0.99,Improving
+2025-12-01,XLE,Energy,98.22,-1.08,Lagging
+2025-12-01,XLB,Materials,92.95,1.93,Improving
+2025-12-01,XLU,Utilities,100.31,-3.42,Weakening
+2025-12-01,XLRE,Real Estate,94.19,-1.11,Lagging
+2025-12-01,XLC,Communication Services,96.2,1.03,Improving
+2025-12-02,XLK,Technology,104.76,0.44,Leading
+2025-12-02,XLF,Financials,93.14,-0.35,Lagging
+2025-12-02,XLV,Health Care,107.17,-2.21,Weakening
+2025-12-02,XLI,Industrials,96.17,-1.23,Lagging
+2025-12-02,XLY,Consumer Discretionary,95.67,1.88,Improving
+2025-12-02,XLP,Consumer Staples,93.42,-0.99,Lagging
+2025-12-02,XLE,Energy,96.93,-4.17,Lagging
+2025-12-02,XLB,Materials,92.35,0.07,Improving
+2025-12-02,XLU,Utilities,100.36,-4.84,Weakening
+2025-12-02,XLRE,Real Estate,93.94,-2.67,Lagging
+2025-12-02,XLC,Communication Services,96.27,-0.18,Lagging
+2025-12-03,XLK,Technology,104.25,0.0,Leading
+2025-12-03,XLF,Financials,95.55,0.6,Improving
+2025-12-03,XLV,Health Care,106.62,-1.47,Weakening
+2025-12-03,XLI,Industrials,96.83,-0.61,Lagging
+2025-12-03,XLY,Consumer Discretionary,96.11,2.93,Improving
+2025-12-03,XLP,Consumer Staples,92.63,-0.16,Lagging
+2025-12-03,XLE,Energy,100.06,-1.02,Weakening
+2025-12-03,XLB,Materials,91.76,0.51,Improving
+2025-12-03,XLU,Utilities,99.72,-4.22,Lagging
+2025-12-03,XLRE,Real Estate,92.6,-1.67,Lagging
+2025-12-03,XLC,Communication Services,95.07,0.31,Improving
+2025-12-04,XLK,Technology,104.04,2.01,Leading
+2025-12-04,XLF,Financials,95.84,0.1,Improving
+2025-12-04,XLV,Health Care,106.03,-3.39,Weakening
+2025-12-04,XLI,Industrials,97.28,-0.02,Lagging
+2025-12-04,XLY,Consumer Discretionary,95.56,2.48,Improving
+2025-12-04,XLP,Consumer Staples,92.69,-2.8,Lagging
+2025-12-04,XLE,Energy,100.88,-1.07,Weakening
+2025-12-04,XLB,Materials,91.31,-0.12,Lagging
+2025-12-04,XLU,Utilities,100.71,-5.64,Weakening
+2025-12-04,XLRE,Real Estate,93.22,-3.05,Lagging
+2025-12-04,XLC,Communication Services,95.67,0.37,Improving
+2025-12-05,XLK,Technology,104.65,3.19,Leading
+2025-12-05,XLF,Financials,95.5,-0.14,Lagging
+2025-12-05,XLV,Health Care,105.07,-5.21,Weakening
+2025-12-05,XLI,Industrials,97.71,-0.7,Lagging
+2025-12-05,XLY,Consumer Discretionary,96.26,1.94,Improving
+2025-12-05,XLP,Consumer Staples,92.55,-3.06,Lagging
+2025-12-05,XLE,Energy,100.03,-1.3,Weakening
+2025-12-05,XLB,Materials,92.55,-1.75,Lagging
+2025-12-05,XLU,Utilities,99.12,-5.86,Lagging
+2025-12-05,XLRE,Real Estate,93.28,-3.56,Lagging
+2025-12-05,XLC,Communication Services,96.28,0.58,Improving
+2025-12-08,XLK,Technology,104.12,3.29,Leading
+2025-12-08,XLF,Financials,96.03,0.78,Improving
+2025-12-08,XLV,Health Care,105.39,-5.07,Weakening
+2025-12-08,XLI,Industrials,97.45,0.66,Improving
+2025-12-08,XLY,Consumer Discretionary,96.58,0.97,Improving
+2025-12-08,XLP,Consumer Staples,93.24,-1.09,Lagging
+2025-12-08,XLE,Energy,97.81,-0.34,Lagging
+2025-12-08,XLB,Materials,91.64,-1.57,Lagging
+2025-12-08,XLU,Utilities,96.71,-6.45,Lagging
+2025-12-08,XLRE,Real Estate,93.3,-2.59,Lagging
+2025-12-08,XLC,Communication Services,96.84,0.61,Improving
+2025-12-09,XLK,Technology,105.0,4.34,Leading
+2025-12-09,XLF,Financials,94.99,0.21,Improving
+2025-12-09,XLV,Health Care,103.52,-7.38,Weakening
+2025-12-09,XLI,Industrials,96.7,-0.29,Lagging
+2025-12-09,XLY,Consumer Discretionary,95.6,-0.09,Lagging
+2025-12-09,XLP,Consumer Staples,93.55,-1.2,Lagging
+2025-12-09,XLE,Energy,99.3,1.89,Improving
+2025-12-09,XLB,Materials,90.4,-2.16,Lagging
+2025-12-09,XLU,Utilities,97.15,-4.96,Lagging
+2025-12-09,XLRE,Real Estate,92.11,-2.91,Lagging
+2025-12-09,XLC,Communication Services,96.36,0.61,Improving
+2025-12-10,XLK,Technology,104.84,3.66,Leading
+2025-12-10,XLF,Financials,95.82,0.58,Improving
+2025-12-10,XLV,Health Care,105.52,-5.63,Weakening
+2025-12-10,XLI,Industrials,98.57,0.94,Improving
+2025-12-10,XLY,Consumer Discretionary,95.83,0.68,Improving
+2025-12-10,XLP,Consumer Staples,93.49,-1.92,Lagging
+2025-12-10,XLE,Energy,100.24,2.22,Leading
+2025-12-10,XLB,Materials,92.46,-1.51,Lagging
+2025-12-10,XLU,Utilities,95.95,-6.26,Lagging
+2025-12-10,XLRE,Real Estate,92.06,-3.11,Lagging
+2025-12-10,XLC,Communication Services,95.45,1.04,Improving
+2025-12-11,XLK,Technology,103.68,2.56,Leading
+2025-12-11,XLF,Financials,98.08,1.95,Improving
+2025-12-11,XLV,Health Care,107.75,-3.79,Weakening
+2025-12-11,XLI,Industrials,99.47,1.73,Improving
+2025-12-11,XLY,Consumer Discretionary,95.67,0.76,Improving
+2025-12-11,XLP,Consumer Staples,95.56,-1.51,Lagging
+2025-12-11,XLE,Energy,100.4,0.77,Leading
+2025-12-11,XLB,Materials,95.35,0.09,Improving
+2025-12-11,XLU,Utilities,96.7,-5.97,Lagging
+2025-12-11,XLRE,Real Estate,92.95,-2.78,Lagging
+2025-12-11,XLC,Communication Services,94.2,0.36,Improving
+2025-12-12,XLK,Technology,101.99,0.14,Leading
+2025-12-12,XLF,Financials,99.37,3.52,Improving
+2025-12-12,XLV,Health Care,109.11,-1.11,Weakening
+2025-12-12,XLI,Industrials,100.07,3.17,Leading
+2025-12-12,XLY,Consumer Discretionary,96.4,1.71,Improving
+2025-12-12,XLP,Consumer Staples,96.79,-0.05,Lagging
+2025-12-12,XLE,Energy,98.71,-0.54,Lagging
+2025-12-12,XLB,Materials,96.61,0.99,Improving
+2025-12-12,XLU,Utilities,98.95,-3.52,Lagging
+2025-12-12,XLRE,Real Estate,94.27,-0.99,Lagging
+2025-12-12,XLC,Communication Services,95.27,1.18,Improving
+2025-12-15,XLK,Technology,101.38,-1.55,Weakening
+2025-12-15,XLF,Financials,98.51,3.96,Improving
+2025-12-15,XLV,Health Care,110.37,1.36,Leading
+2025-12-15,XLI,Industrials,100.72,2.83,Leading
+2025-12-15,XLY,Consumer Discretionary,97.49,2.92,Improving
+2025-12-15,XLP,Consumer Staples,96.5,1.17,Improving
+2025-12-15,XLE,Energy,97.81,0.37,Improving
+2025-12-15,XLB,Materials,96.35,2.11,Improving
+2025-12-15,XLU,Utilities,99.63,-1.54,Lagging
+2025-12-15,XLRE,Real Estate,94.71,-0.07,Lagging
+2025-12-15,XLC,Communication Services,95.06,1.2,Improving
+2025-12-16,XLK,Technology,100.58,-0.97,Weakening
+2025-12-16,XLF,Financials,98.52,2.67,Improving
+2025-12-16,XLV,Health Care,109.53,0.09,Leading
+2025-12-16,XLI,Industrials,99.8,1.91,Improving
+2025-12-16,XLY,Consumer Discretionary,98.82,2.68,Improving
+2025-12-16,XLP,Consumer Staples,97.63,1.27,Improving
+2025-12-16,XLE,Energy,95.83,-3.87,Lagging
+2025-12-16,XLB,Materials,96.81,1.79,Improving
+2025-12-16,XLU,Utilities,99.88,-1.02,Lagging
+2025-12-16,XLRE,Real Estate,94.51,-0.51,Lagging
+2025-12-16,XLC,Communication Services,95.76,1.94,Improving
+2025-12-17,XLK,Technology,98.93,-2.4,Lagging
+2025-12-17,XLF,Financials,99.87,3.64,Improving
+2025-12-17,XLV,Health Care,111.24,2.03,Leading
+2025-12-17,XLI,Industrials,99.53,0.95,Improving
+2025-12-17,XLY,Consumer Discretionary,98.88,3.04,Improving
+2025-12-17,XLP,Consumer Staples,99.87,3.37,Improving
+2025-12-17,XLE,Energy,100.87,-1.02,Weakening
+2025-12-17,XLB,Materials,98.83,3.92,Improving
+2025-12-17,XLU,Utilities,100.19,-0.28,Weakening
+2025-12-17,XLRE,Real Estate,96.94,1.21,Improving
+2025-12-17,XLC,Communication Services,96.21,1.84,Improving
+2025-12-18,XLK,Technology,98.72,-2.15,Lagging
+2025-12-18,XLF,Financials,99.56,2.89,Improving
+2025-12-18,XLV,Health Care,111.04,1.96,Leading
+2025-12-18,XLI,Industrials,99.56,1.31,Improving
+2025-12-18,XLY,Consumer Discretionary,100.42,3.46,Leading
+2025-12-18,XLP,Consumer Staples,100.13,2.26,Leading
+2025-12-18,XLE,Energy,99.24,-2.64,Lagging
+2025-12-18,XLB,Materials,98.54,3.65,Improving
+2025-12-18,XLU,Utilities,99.92,1.07,Improving
+2025-12-18,XLRE,Real Estate,95.76,0.1,Improving
+2025-12-18,XLC,Communication Services,96.82,0.76,Improving
+2025-12-19,XLK,Technology,100.27,-1.95,Weakening
+2025-12-19,XLF,Financials,99.11,2.6,Improving
+2025-12-19,XLV,Health Care,109.93,2.65,Leading
+2025-12-19,XLI,Industrials,98.95,1.08,Improving
+2025-12-19,XLY,Consumer Discretionary,99.52,3.3,Improving
+2025-12-19,XLP,Consumer Staples,97.69,1.35,Improving
+2025-12-19,XLE,Energy,96.16,-2.66,Lagging
+2025-12-19,XLB,Materials,97.87,4.22,Improving
+2025-12-19,XLU,Utilities,96.73,-0.06,Lagging
+2025-12-19,XLRE,Real Estate,93.3,-0.81,Lagging
+2025-12-19,XLC,Communication Services,95.61,0.36,Improving
+2025-12-22,XLK,Technology,100.49,-2.4,Weakening
+2025-12-22,XLF,Financials,99.67,3.48,Improving
+2025-12-22,XLV,Health Care,110.06,3.64,Leading
+2025-12-22,XLI,Industrials,99.63,2.2,Improving
+2025-12-22,XLY,Consumer Discretionary,98.49,3.17,Improving
+2025-12-22,XLP,Consumer Staples,96.23,0.1,Improving
+2025-12-22,XLE,Energy,95.01,-2.92,Lagging
+2025-12-22,XLB,Materials,99.31,4.92,Improving
+2025-12-22,XLU,Utilities,95.5,-0.45,Lagging
+2025-12-22,XLRE,Real Estate,94.07,-0.22,Lagging
+2025-12-22,XLC,Communication Services,95.93,-0.0,Improving
+2025-12-23,XLK,Technology,100.29,-2.12,Weakening
+2025-12-23,XLF,Financials,99.21,2.75,Improving
+2025-12-23,XLV,Health Care,110.67,2.11,Leading
+2025-12-23,XLI,Industrials,99.35,0.58,Improving
+2025-12-23,XLY,Consumer Discretionary,98.84,1.84,Improving
+2025-12-23,XLP,Consumer Staples,95.81,-0.45,Lagging
+2025-12-23,XLE,Energy,93.91,-3.06,Lagging
+2025-12-23,XLB,Materials,99.88,3.45,Improving
+2025-12-23,XLU,Utilities,95.88,0.13,Improving
+2025-12-23,XLRE,Real Estate,93.41,-0.24,Lagging
+2025-12-23,XLC,Communication Services,95.97,0.23,Improving
+2025-12-24,XLK,Technology,100.45,-1.47,Weakening
+2025-12-24,XLF,Financials,99.24,1.41,Improving
+2025-12-24,XLV,Health Care,110.37,1.52,Leading
+2025-12-24,XLI,Industrials,99.0,-0.27,Lagging
+2025-12-24,XLY,Consumer Discretionary,97.96,1.66,Improving
+2025-12-24,XLP,Consumer Staples,96.55,-0.52,Lagging
+2025-12-24,XLE,Energy,92.99,-2.97,Lagging
+2025-12-24,XLB,Materials,99.15,1.6,Improving
+2025-12-24,XLU,Utilities,94.98,-0.25,Lagging
+2025-12-24,XLRE,Real Estate,93.3,-0.25,Lagging
+2025-12-24,XLC,Communication Services,95.83,0.9,Improving
+2025-12-26,XLK,Technology,100.36,0.57,Leading
+2025-12-26,XLF,Financials,98.84,0.02,Improving
+2025-12-26,XLV,Health Care,110.54,0.18,Leading
+2025-12-26,XLI,Industrials,98.8,-0.89,Lagging
+2025-12-26,XLY,Consumer Discretionary,97.38,-0.23,Lagging
+2025-12-26,XLP,Consumer Staples,96.78,-2.2,Lagging
+2025-12-26,XLE,Energy,94.64,-3.48,Lagging
+2025-12-26,XLB,Materials,99.64,1.07,Improving
+2025-12-26,XLU,Utilities,94.91,-0.87,Lagging
+2025-12-26,XLRE,Real Estate,93.58,-0.96,Lagging
+2025-12-26,XLC,Communication Services,95.7,-0.01,Lagging
+2025-12-29,XLK,Technology,100.1,1.29,Leading
+2025-12-29,XLF,Financials,99.51,-0.39,Lagging
+2025-12-29,XLV,Health Care,108.57,-1.2,Weakening
+2025-12-29,XLI,Industrials,98.55,-1.06,Lagging
+2025-12-29,XLY,Consumer Discretionary,97.59,-1.84,Lagging
+2025-12-29,XLP,Consumer Staples,97.23,-2.22,Lagging
+2025-12-29,XLE,Energy,97.28,-1.72,Lagging
+2025-12-29,XLB,Materials,99.08,0.54,Improving
+2025-12-29,XLU,Utilities,95.63,-1.37,Lagging
+2025-12-29,XLRE,Real Estate,94.14,-0.88,Lagging
+2025-12-29,XLC,Communication Services,96.48,0.11,Improving
+2025-12-30,XLK,Technology,99.28,0.64,Improving
+2025-12-30,XLF,Financials,100.61,-0.16,Weakening
+2025-12-30,XLV,Health Care,105.72,-0.02,Weakening
+2025-12-30,XLI,Industrials,99.0,-0.91,Lagging
+2025-12-30,XLY,Consumer Discretionary,97.03,-2.54,Lagging
+2025-12-30,XLP,Consumer Staples,97.67,-2.1,Lagging
+2025-12-30,XLE,Energy,98.47,1.9,Improving
+2025-12-30,XLB,Materials,100.57,0.64,Leading
+2025-12-30,XLU,Utilities,95.37,-0.89,Lagging
+2025-12-30,XLRE,Real Estate,94.79,0.02,Improving
+2025-12-30,XLC,Communication Services,98.64,0.23,Improving
+2025-12-31,XLK,Technology,98.61,1.5,Improving
+2025-12-31,XLF,Financials,100.8,-1.26,Weakening
+2025-12-31,XLV,Health Care,106.23,-0.82,Weakening
+2025-12-31,XLI,Industrials,98.77,-0.47,Lagging
+2025-12-31,XLY,Consumer Discretionary,97.8,-2.55,Lagging
+2025-12-31,XLP,Consumer Staples,98.3,-3.56,Lagging
+2025-12-31,XLE,Energy,99.78,-1.16,Lagging
+2025-12-31,XLB,Materials,99.44,-0.98,Lagging
+2025-12-31,XLU,Utilities,95.77,-1.22,Lagging
+2025-12-31,XLRE,Real Estate,95.24,-1.63,Lagging
+2025-12-31,XLC,Communication Services,99.24,0.11,Improving
+2026-01-02,XLK,Technology,99.15,0.79,Improving
+2026-01-02,XLF,Financials,100.22,-0.22,Weakening
+2026-01-02,XLV,Health Care,105.32,0.19,Leading
+2026-01-02,XLI,Industrials,100.27,1.26,Leading
+2026-01-02,XLY,Consumer Discretionary,97.38,-4.38,Lagging
+2026-01-02,XLP,Consumer Staples,98.02,-2.37,Lagging
+2026-01-02,XLE,Energy,101.15,2.94,Leading
+2026-01-02,XLB,Materials,100.77,1.32,Leading
+2026-01-02,XLU,Utilities,95.58,-0.51,Lagging
+2026-01-02,XLRE,Real Estate,94.75,-0.42,Lagging
+2026-01-02,XLC,Communication Services,98.41,-0.58,Lagging
+2026-01-05,XLK,Technology,98.07,-0.86,Lagging
+2026-01-05,XLF,Financials,102.13,1.65,Leading
+2026-01-05,XLV,Health Care,105.19,-0.58,Weakening
+2026-01-05,XLI,Industrials,100.68,1.82,Leading
+2026-01-05,XLY,Consumer Discretionary,97.85,-2.1,Lagging
+2026-01-05,XLP,Consumer Staples,98.01,-2.05,Lagging
+2026-01-05,XLE,Energy,103.07,5.88,Leading
+2026-01-05,XLB,Materials,101.56,2.12,Leading
+2026-01-05,XLU,Utilities,93.32,-0.12,Lagging
+2026-01-05,XLRE,Real Estate,95.53,0.28,Improving
+2026-01-05,XLC,Communication Services,98.72,0.33,Improving
+2026-01-06,XLK,Technology,99.16,0.01,Improving
+2026-01-06,XLF,Financials,101.51,0.93,Leading
+2026-01-06,XLV,Health Care,106.15,0.81,Leading
+2026-01-06,XLI,Industrials,101.64,2.11,Leading
+2026-01-06,XLY,Consumer Discretionary,99.27,-2.06,Lagging
+2026-01-06,XLP,Consumer Staples,96.33,-1.5,Lagging
+2026-01-06,XLE,Energy,99.2,2.13,Improving
+2026-01-06,XLB,Materials,102.98,2.96,Leading
+2026-01-06,XLU,Utilities,92.46,0.02,Improving
+2026-01-06,XLRE,Real Estate,95.54,0.24,Improving
+2026-01-06,XLC,Communication Services,97.81,-0.43,Lagging
+2026-01-07,XLK,Technology,98.27,0.16,Improving
+2026-01-07,XLF,Financials,101.5,0.09,Leading
+2026-01-07,XLV,Health Care,107.99,2.91,Leading
+2026-01-07,XLI,Industrials,99.78,1.01,Improving
+2026-01-07,XLY,Consumer Discretionary,99.74,-1.29,Lagging
+2026-01-07,XLP,Consumer Staples,96.63,-1.35,Lagging
+2026-01-07,XLE,Energy,99.58,1.16,Improving
+2026-01-07,XLB,Materials,101.59,1.79,Leading
+2026-01-07,XLU,Utilities,90.43,-1.84,Lagging
+2026-01-07,XLRE,Real Estate,95.58,-0.32,Lagging
+2026-01-07,XLC,Communication Services,98.91,-0.49,Lagging
+2026-01-08,XLK,Technology,96.62,-1.26,Lagging
+2026-01-08,XLF,Financials,102.1,0.44,Leading
+2026-01-08,XLV,Health Care,106.88,1.7,Leading
+2026-01-08,XLI,Industrials,101.76,1.82,Leading
+2026-01-08,XLY,Consumer Discretionary,101.63,0.4,Leading
+2026-01-08,XLP,Consumer Staples,98.33,0.52,Improving
+2026-01-08,XLE,Energy,103.83,4.99,Leading
+2026-01-08,XLB,Materials,104.52,3.78,Leading
+2026-01-08,XLU,Utilities,90.66,-1.65,Lagging
+2026-01-08,XLRE,Real Estate,96.47,0.12,Improving
+2026-01-08,XLC,Communication Services,99.54,-0.39,Lagging
+2026-01-09,XLK,Technology,98.65,-0.8,Lagging
+2026-01-09,XLF,Financials,100.58,-0.35,Weakening
+2026-01-09,XLV,Health Care,104.28,0.27,Leading
+2026-01-09,XLI,Industrials,101.68,2.43,Leading
+2026-01-09,XLY,Consumer Discretionary,102.24,1.39,Leading
+2026-01-09,XLP,Consumer Staples,95.95,0.72,Improving
+2026-01-09,XLE,Energy,103.62,4.95,Leading
+2026-01-09,XLB,Materials,104.79,4.12,Leading
+2026-01-09,XLU,Utilities,89.08,-1.05,Lagging
+2026-01-09,XLRE,Real Estate,94.41,-0.56,Lagging
+2026-01-09,XLC,Communication Services,98.38,-0.59,Lagging
+2026-01-12,XLK,Technology,98.05,-0.42,Lagging
+2026-01-12,XLF,Financials,100.2,-1.12,Weakening
+2026-01-12,XLV,Health Care,105.88,-0.06,Weakening
+2026-01-12,XLI,Industrials,102.8,2.92,Leading
+2026-01-12,XLY,Consumer Discretionary,101.47,1.94,Leading
+2026-01-12,XLP,Consumer Staples,98.74,1.32,Improving
+2026-01-12,XLE,Energy,102.9,2.77,Leading
+2026-01-12,XLB,Materials,105.13,4.97,Leading
+2026-01-12,XLU,Utilities,89.77,-1.55,Lagging
+2026-01-12,XLRE,Real Estate,95.46,-1.04,Lagging
+2026-01-12,XLC,Communication Services,98.52,-1.33,Lagging
+2026-01-13,XLK,Technology,99.19,-0.24,Lagging
+2026-01-13,XLF,Financials,97.28,-2.68,Lagging
+2026-01-13,XLV,Health Care,105.25,-0.32,Weakening
+2026-01-13,XLI,Industrials,102.21,3.77,Leading
+2026-01-13,XLY,Consumer Discretionary,101.09,2.17,Leading
+2026-01-13,XLP,Consumer Staples,98.39,2.66,Improving
+2026-01-13,XLE,Energy,104.46,3.55,Leading
+2026-01-13,XLB,Materials,104.63,5.48,Leading
+2026-01-13,XLU,Utilities,89.61,-1.11,Lagging
+2026-01-13,XLRE,Real Estate,95.35,-0.44,Lagging
+2026-01-13,XLC,Communication Services,97.4,-2.14,Lagging
+2026-01-14,XLK,Technology,97.94,-0.71,Lagging
+2026-01-14,XLF,Financials,98.05,-2.35,Lagging
+2026-01-14,XLV,Health Care,106.83,0.77,Leading
+2026-01-14,XLI,Industrials,103.77,4.57,Leading
+2026-01-14,XLY,Consumer Discretionary,100.28,1.12,Leading
+2026-01-14,XLP,Consumer Staples,100.5,4.39,Leading
+2026-01-14,XLE,Energy,107.89,6.28,Leading
+2026-01-14,XLB,Materials,106.13,6.18,Leading
+2026-01-14,XLU,Utilities,89.95,-0.1,Lagging
+2026-01-14,XLRE,Real Estate,95.94,1.25,Improving
+2026-01-14,XLC,Communication Services,97.41,-2.12,Lagging
+2026-01-15,XLK,Technology,97.45,-0.51,Lagging
+2026-01-15,XLF,Financials,100.3,-2.38,Weakening
+2026-01-15,XLV,Health Care,105.39,-0.41,Weakening
+2026-01-15,XLI,Industrials,104.41,3.59,Leading
+2026-01-15,XLY,Consumer Discretionary,100.67,2.28,Leading
+2026-01-15,XLP,Consumer Staples,100.42,4.45,Leading
+2026-01-15,XLE,Energy,107.15,3.05,Leading
+2026-01-15,XLB,Materials,106.37,4.84,Leading
+2026-01-15,XLU,Utilities,90.99,-0.3,Lagging
+2026-01-15,XLRE,Real Estate,96.03,1.81,Improving
+2026-01-15,XLC,Communication Services,97.17,-1.87,Lagging
+2026-01-16,XLK,Technology,98.02,0.12,Improving
+2026-01-16,XLF,Financials,100.27,-3.71,Weakening
+2026-01-16,XLV,Health Care,104.55,-0.13,Weakening
+2026-01-16,XLI,Industrials,105.71,3.89,Leading
+2026-01-16,XLY,Consumer Discretionary,100.13,1.07,Leading
+2026-01-16,XLP,Consumer Staples,99.42,5.23,Improving
+2026-01-16,XLE,Energy,107.15,1.19,Leading
+2026-01-16,XLB,Materials,106.65,4.02,Leading
+2026-01-16,XLU,Utilities,91.44,0.94,Improving
+2026-01-16,XLRE,Real Estate,97.21,3.57,Improving
+2026-01-16,XLC,Communication Services,96.28,-2.72,Lagging
+2026-01-20,XLK,Technology,97.38,-1.23,Lagging
+2026-01-20,XLF,Financials,99.9,-3.83,Lagging
+2026-01-20,XLV,Health Care,106.47,0.38,Leading
+2026-01-20,XLI,Industrials,105.58,3.13,Leading
+2026-01-20,XLY,Consumer Discretionary,99.8,0.45,Improving
+2026-01-20,XLP,Consumer Staples,102.95,8.1,Leading
+2026-01-20,XLE,Energy,109.15,6.65,Leading
+2026-01-20,XLB,Materials,107.61,3.72,Leading
+2026-01-20,XLU,Utilities,93.41,2.03,Improving
+2026-01-20,XLRE,Real Estate,97.32,3.61,Improving
+2026-01-20,XLC,Communication Services,96.74,-1.23,Lagging
+2026-01-21,XLK,Technology,97.56,-1.24,Lagging
+2026-01-21,XLF,Financials,99.35,-3.37,Lagging
+2026-01-21,XLV,Health Care,106.94,-0.29,Weakening
+2026-01-21,XLI,Industrials,105.25,5.29,Leading
+2026-01-21,XLY,Consumer Discretionary,99.33,1.01,Improving
+2026-01-21,XLP,Consumer Staples,102.35,7.8,Leading
+2026-01-21,XLE,Energy,110.77,8.85,Leading
+2026-01-21,XLB,Materials,109.11,6.3,Leading
+2026-01-21,XLU,Utilities,93.42,3.05,Improving
+2026-01-21,XLRE,Real Estate,96.86,3.85,Improving
+2026-01-21,XLC,Communication Services,96.27,-1.47,Lagging
+2026-01-22,XLK,Technology,98.23,0.51,Improving
+2026-01-22,XLF,Financials,99.53,-3.79,Lagging
+2026-01-22,XLV,Health Care,105.25,0.19,Leading
+2026-01-22,XLI,Industrials,104.98,3.46,Leading
+2026-01-22,XLY,Consumer Discretionary,100.07,-0.17,Weakening
+2026-01-22,XLP,Consumer Staples,100.51,4.75,Leading
+2026-01-22,XLE,Energy,108.59,5.32,Leading
+2026-01-22,XLB,Materials,108.93,4.52,Leading
+2026-01-22,XLU,Utilities,92.0,1.62,Improving
+2026-01-22,XLRE,Real Estate,94.48,1.68,Improving
+2026-01-22,XLC,Communication Services,97.46,-0.96,Lagging
+2026-01-23,XLK,Technology,97.69,-0.03,Lagging
+2026-01-23,XLF,Financials,98.5,-4.22,Lagging
+2026-01-23,XLV,Health Care,105.24,0.85,Leading
+2026-01-23,XLI,Industrials,103.46,2.15,Leading
+2026-01-23,XLY,Consumer Discretionary,100.59,-0.34,Weakening
+2026-01-23,XLP,Consumer Staples,102.35,5.2,Leading
+2026-01-23,XLE,Energy,108.37,6.27,Leading
+2026-01-23,XLB,Materials,109.22,4.47,Leading
+2026-01-23,XLU,Utilities,92.26,0.75,Improving
+2026-01-23,XLRE,Real Estate,95.35,2.39,Improving
+2026-01-23,XLC,Communication Services,98.94,-0.11,Lagging
+2026-01-26,XLK,Technology,97.15,-0.13,Lagging
+2026-01-26,XLF,Financials,98.37,-3.11,Lagging
+2026-01-26,XLV,Health Care,105.98,0.85,Leading
+2026-01-26,XLI,Industrials,103.79,1.12,Leading
+2026-01-26,XLY,Consumer Discretionary,100.54,-1.45,Weakening
+2026-01-26,XLP,Consumer Staples,102.84,3.58,Leading
+2026-01-26,XLE,Energy,109.88,6.79,Leading
+2026-01-26,XLB,Materials,110.14,3.7,Leading
+2026-01-26,XLU,Utilities,92.14,0.94,Improving
+2026-01-26,XLRE,Real Estate,95.24,1.71,Improving
+2026-01-26,XLC,Communication Services,99.67,0.53,Improving
+2026-01-27,XLK,Technology,97.43,0.79,Improving
+2026-01-27,XLF,Financials,97.97,-2.52,Lagging
+2026-01-27,XLV,Health Care,104.77,-1.13,Weakening
+2026-01-27,XLI,Industrials,104.44,0.41,Leading
+2026-01-27,XLY,Consumer Discretionary,100.19,-1.49,Weakening
+2026-01-27,XLP,Consumer Staples,103.95,2.31,Leading
+2026-01-27,XLE,Energy,111.49,5.73,Leading
+2026-01-27,XLB,Materials,110.94,2.51,Leading
+2026-01-27,XLU,Utilities,93.81,1.02,Improving
+2026-01-27,XLRE,Real Estate,95.85,0.51,Improving
+2026-01-27,XLC,Communication Services,98.34,-0.24,Lagging
+2026-01-28,XLK,Technology,97.51,2.27,Improving
+2026-01-28,XLF,Financials,98.85,-2.9,Lagging
+2026-01-28,XLV,Health Care,104.95,-3.2,Weakening
+2026-01-28,XLI,Industrials,104.89,-0.85,Weakening
+2026-01-28,XLY,Consumer Discretionary,99.68,-1.13,Lagging
+2026-01-28,XLP,Consumer Staples,104.22,-0.65,Weakening
+2026-01-28,XLE,Energy,113.83,3.72,Leading
+2026-01-28,XLB,Materials,111.03,1.87,Leading
+2026-01-28,XLU,Utilities,95.42,-0.34,Lagging
+2026-01-28,XLRE,Real Estate,97.34,-2.01,Lagging
+2026-01-28,XLC,Communication Services,98.97,-0.63,Lagging
+2026-01-29,XLK,Technology,95.52,0.67,Improving
+2026-01-29,XLF,Financials,101.87,-1.83,Weakening
+2026-01-29,XLV,Health Care,105.95,-2.44,Weakening
+2026-01-29,XLI,Industrials,105.98,-0.22,Weakening
+2026-01-29,XLY,Consumer Discretionary,100.28,-1.51,Weakening
+2026-01-29,XLP,Consumer Staples,106.76,-0.59,Weakening
+2026-01-29,XLE,Energy,114.31,6.28,Leading
+2026-01-29,XLB,Materials,113.65,2.07,Leading
+2026-01-29,XLU,Utilities,95.69,-0.87,Lagging
+2026-01-29,XLRE,Real Estate,101.6,-1.08,Weakening
+2026-01-29,XLC,Communication Services,102.05,2.79,Leading
+2026-01-30,XLK,Technology,93.98,-1.18,Lagging
+2026-01-30,XLF,Financials,100.58,-1.93,Weakening
+2026-01-30,XLV,Health Care,105.49,-0.73,Weakening
+2026-01-30,XLI,Industrials,105.12,-0.98,Weakening
+2026-01-30,XLY,Consumer Discretionary,101.76,-1.0,Weakening
+2026-01-30,XLP,Consumer Staples,107.79,1.76,Leading
+2026-01-30,XLE,Energy,115.29,7.54,Leading
+2026-01-30,XLB,Materials,112.6,1.3,Leading
+2026-01-30,XLU,Utilities,95.15,-0.35,Lagging
+2026-01-30,XLRE,Real Estate,100.36,-1.94,Weakening
+2026-01-30,XLC,Communication Services,103.22,4.18,Leading
+2026-02-02,XLK,Technology,94.63,-0.2,Lagging
+2026-02-02,XLF,Financials,101.24,-1.07,Weakening
+2026-02-02,XLV,Health Care,106.0,-2.59,Weakening
+2026-02-02,XLI,Industrials,106.02,-0.19,Weakening
+2026-02-02,XLY,Consumer Discretionary,99.62,-0.23,Lagging
+2026-02-02,XLP,Consumer Staples,109.2,-0.04,Weakening
+2026-02-02,XLE,Energy,112.02,2.68,Leading
+2026-02-02,XLB,Materials,113.93,0.44,Leading
+2026-02-02,XLU,Utilities,94.26,-3.25,Lagging
+2026-02-02,XLRE,Real Estate,99.01,-3.7,Lagging
+2026-02-02,XLC,Communication Services,102.26,2.75,Leading
+2026-02-03,XLK,Technology,93.14,-1.7,Lagging
+2026-02-03,XLF,Financials,101.78,-0.48,Weakening
+2026-02-03,XLV,Health Care,105.86,-3.51,Weakening
+2026-02-03,XLI,Industrials,108.49,1.01,Leading
+2026-02-03,XLY,Consumer Discretionary,98.92,-0.93,Lagging
+2026-02-03,XLP,Consumer Staples,113.01,3.86,Leading
+2026-02-03,XLE,Energy,116.84,5.94,Leading
+2026-02-03,XLB,Materials,118.29,2.71,Leading
+2026-02-03,XLU,Utilities,96.57,-0.09,Lagging
+2026-02-03,XLRE,Real Estate,99.84,-2.42,Lagging
+2026-02-03,XLC,Communication Services,102.75,2.11,Leading
+2026-02-04,XLK,Technology,92.35,-4.13,Lagging
+2026-02-04,XLF,Financials,101.35,0.69,Leading
+2026-02-04,XLV,Health Care,105.95,-1.1,Weakening
+2026-02-04,XLI,Industrials,109.28,2.94,Leading
+2026-02-04,XLY,Consumer Discretionary,99.15,-1.67,Lagging
+2026-02-04,XLP,Consumer Staples,113.22,6.58,Leading
+2026-02-04,XLE,Energy,119.91,9.35,Leading
+2026-02-04,XLB,Materials,120.81,5.98,Leading
+2026-02-04,XLU,Utilities,95.88,1.21,Improving
+2026-02-04,XLRE,Real Estate,100.45,1.18,Leading
+2026-02-04,XLC,Communication Services,101.91,0.89,Leading
+2026-02-05,XLK,Technology,91.79,-4.75,Lagging
+2026-02-05,XLF,Financials,101.36,2.12,Leading
+2026-02-05,XLV,Health Care,106.43,0.01,Leading
+2026-02-05,XLI,Industrials,109.95,4.52,Leading
+2026-02-05,XLY,Consumer Discretionary,97.39,-2.94,Lagging
+2026-02-05,XLP,Consumer Staples,115.03,7.16,Leading
+2026-02-05,XLE,Energy,120.1,8.85,Leading
+2026-02-05,XLB,Materials,118.77,3.23,Leading
+2026-02-05,XLU,Utilities,97.45,2.84,Improving
+2026-02-05,XLRE,Real Estate,101.53,1.66,Leading
+2026-02-05,XLC,Communication Services,102.48,1.08,Leading
+2026-02-06,XLK,Technology,94.61,-3.02,Lagging
+2026-02-06,XLF,Financials,100.54,1.88,Leading
+2026-02-06,XLV,Health Care,105.02,0.06,Leading
+2026-02-06,XLI,Industrials,110.21,5.92,Leading
+2026-02-06,XLY,Consumer Discretionary,97.17,-3.26,Lagging
+2026-02-06,XLP,Consumer Staples,113.47,6.98,Leading
+2026-02-06,XLE,Energy,117.75,9.24,Leading
+2026-02-06,XLB,Materials,118.17,3.74,Leading
+2026-02-06,XLU,Utilities,95.56,1.35,Improving
+2026-02-06,XLRE,Real Estate,100.86,2.15,Leading
+2026-02-06,XLC,Communication Services,99.99,-1.43,Lagging
+2026-02-09,XLK,Technology,96.06,-2.93,Lagging
+2026-02-09,XLF,Financials,98.87,1.94,Improving
+2026-02-09,XLV,Health Care,103.56,0.8,Leading
+2026-02-09,XLI,Industrials,109.58,5.68,Leading
+2026-02-09,XLY,Consumer Discretionary,96.28,-3.99,Lagging
+2026-02-09,XLP,Consumer Staples,110.76,5.64,Leading
+2026-02-09,XLE,Energy,116.49,8.86,Leading
+2026-02-09,XLB,Materials,117.84,5.22,Leading
+2026-02-09,XLU,Utilities,94.17,0.32,Improving
+2026-02-09,XLRE,Real Estate,99.77,2.58,Improving
+2026-02-09,XLC,Communication Services,100.83,0.21,Leading
+2026-02-10,XLK,Technology,94.85,-3.97,Lagging
+2026-02-10,XLF,Financials,99.59,1.51,Improving
+2026-02-10,XLV,Health Care,103.97,1.17,Leading
+2026-02-10,XLI,Industrials,111.09,6.74,Leading
+2026-02-10,XLY,Consumer Discretionary,97.41,-2.36,Lagging
+2026-02-10,XLP,Consumer Staples,112.83,6.76,Leading
+2026-02-10,XLE,Energy,117.42,8.26,Leading
+2026-02-10,XLB,Materials,120.53,7.28,Leading
+2026-02-10,XLU,Utilities,97.51,2.37,Improving
+2026-02-10,XLRE,Real Estate,103.09,5.26,Leading
+2026-02-10,XLC,Communication Services,102.22,1.2,Leading
+2026-02-11,XLK,Technology,96.19,-2.33,Lagging
+2026-02-11,XLF,Financials,97.89,-1.21,Lagging
+2026-02-11,XLV,Health Care,102.49,1.9,Leading
+2026-02-11,XLI,Industrials,111.94,6.07,Leading
+2026-02-11,XLY,Consumer Discretionary,96.95,-2.52,Lagging
+2026-02-11,XLP,Consumer Staples,113.26,8.35,Leading
+2026-02-11,XLE,Energy,119.24,10.02,Leading
+2026-02-11,XLB,Materials,121.2,8.52,Leading
+2026-02-11,XLU,Utilities,98.57,3.07,Improving
+2026-02-11,XLRE,Real Estate,102.11,3.71,Leading
+2026-02-11,XLC,Communication Services,100.93,-2.33,Weakening
+2026-02-12,XLK,Technology,94.88,-1.67,Lagging
+2026-02-12,XLF,Financials,96.66,-1.73,Lagging
+2026-02-12,XLV,Health Care,102.53,2.4,Leading
+2026-02-12,XLI,Industrials,112.29,6.41,Leading
+2026-02-12,XLY,Consumer Discretionary,97.82,-2.67,Lagging
+2026-02-12,XLP,Consumer Staples,116.32,9.12,Leading
+2026-02-12,XLE,Energy,120.66,8.31,Leading
+2026-02-12,XLB,Materials,120.5,9.86,Leading
+2026-02-12,XLU,Utilities,101.41,5.98,Leading
+2026-02-12,XLRE,Real Estate,104.77,5.09,Leading
+2026-02-12,XLC,Communication Services,101.31,-3.17,Weakening
+2026-02-13,XLK,Technology,95.87,-1.96,Lagging
+2026-02-13,XLF,Financials,96.15,-2.45,Lagging
+2026-02-13,XLV,Health Care,101.89,3.26,Leading
+2026-02-13,XLI,Industrials,113.01,6.44,Leading
+2026-02-13,XLY,Consumer Discretionary,98.63,-2.88,Lagging
+2026-02-13,XLP,Consumer Staples,114.69,8.55,Leading
+2026-02-13,XLE,Energy,119.08,11.58,Leading
+2026-02-13,XLB,Materials,120.28,10.46,Leading
+2026-02-13,XLU,Utilities,103.85,10.53,Leading
+2026-02-13,XLRE,Real Estate,105.86,8.14,Leading
+2026-02-13,XLC,Communication Services,100.94,-2.41,Weakening
+2026-02-17,XLK,Technology,95.13,-0.83,Lagging
+2026-02-17,XLF,Financials,97.98,-1.52,Lagging
+2026-02-17,XLV,Health Care,102.12,3.09,Leading
+2026-02-17,XLI,Industrials,113.39,5.04,Leading
+2026-02-17,XLY,Consumer Discretionary,98.81,-3.22,Lagging
+2026-02-17,XLP,Consumer Staples,112.9,4.05,Leading
+2026-02-17,XLE,Energy,115.59,5.55,Leading
+2026-02-17,XLB,Materials,119.79,5.66,Leading
+2026-02-17,XLU,Utilities,103.3,7.93,Leading
+2026-02-17,XLRE,Real Estate,106.43,8.54,Leading
+2026-02-17,XLC,Communication Services,101.14,-1.94,Weakening
+2026-02-18,XLK,Technology,96.23,1.89,Improving
+2026-02-18,XLF,Financials,99.2,-2.6,Lagging
+2026-02-18,XLV,Health Care,100.94,1.04,Leading
+2026-02-18,XLI,Industrials,112.85,3.63,Leading
+2026-02-18,XLY,Consumer Discretionary,99.16,-2.62,Lagging
+2026-02-18,XLP,Consumer Staples,111.8,1.32,Leading
+2026-02-18,XLE,Energy,118.28,4.19,Leading
+2026-02-18,XLB,Materials,120.63,2.55,Leading
+2026-02-18,XLU,Utilities,99.24,5.49,Improving
+2026-02-18,XLRE,Real Estate,104.18,4.53,Leading
+2026-02-18,XLC,Communication Services,100.0,-1.94,Weakening
+2026-02-19,XLK,Technology,96.78,2.21,Improving
+2026-02-19,XLF,Financials,97.95,-3.15,Lagging
+2026-02-19,XLV,Health Care,99.52,0.54,Improving
+2026-02-19,XLI,Industrials,113.54,4.03,Leading
+2026-02-19,XLY,Consumer Discretionary,99.77,-2.11,Lagging
+2026-02-19,XLP,Consumer Staples,110.21,-0.16,Weakening
+2026-02-19,XLE,Energy,117.52,5.2,Leading
+2026-02-19,XLB,Materials,119.41,4.11,Leading
+2026-02-19,XLU,Utilities,100.13,5.59,Leading
+2026-02-19,XLRE,Real Estate,102.84,3.7,Leading
+2026-02-19,XLC,Communication Services,99.34,-1.94,Lagging
+2026-02-20,XLK,Technology,96.24,-0.0,Improving
+2026-02-20,XLF,Financials,97.9,-3.13,Lagging
+2026-02-20,XLV,Health Care,99.07,-0.39,Lagging
+2026-02-20,XLI,Industrials,113.35,2.78,Leading
+2026-02-20,XLY,Consumer Discretionary,100.46,-0.29,Weakening
+2026-02-20,XLP,Consumer Staples,110.97,0.13,Leading
+2026-02-20,XLE,Energy,118.02,3.7,Leading
+2026-02-20,XLB,Materials,119.0,3.46,Leading
+2026-02-20,XLU,Utilities,101.12,6.67,Leading
+2026-02-20,XLRE,Real Estate,104.17,3.93,Leading
+2026-02-20,XLC,Communication Services,100.99,1.07,Leading
+2026-02-23,XLK,Technology,97.2,-1.71,Lagging
+2026-02-23,XLF,Financials,94.96,-4.33,Lagging
+2026-02-23,XLV,Health Care,100.25,3.05,Leading
+2026-02-23,XLI,Industrials,113.14,2.6,Leading
+2026-02-23,XLY,Consumer Discretionary,99.34,-0.52,Lagging
+2026-02-23,XLP,Consumer Staples,110.96,3.74,Leading
+2026-02-23,XLE,Energy,119.36,5.2,Leading
+2026-02-23,XLB,Materials,120.18,3.74,Leading
+2026-02-23,XLU,Utilities,101.88,8.57,Leading
+2026-02-23,XLRE,Real Estate,104.12,4.93,Leading
+2026-02-23,XLC,Communication Services,100.34,0.37,Leading
+2026-02-24,XLK,Technology,98.35,-0.87,Lagging
+2026-02-24,XLF,Financials,94.65,-4.09,Lagging
+2026-02-24,XLV,Health Care,98.03,2.24,Improving
+2026-02-24,XLI,Industrials,113.46,2.74,Leading
+2026-02-24,XLY,Consumer Discretionary,99.18,-0.66,Lagging
+2026-02-24,XLP,Consumer Staples,111.01,3.95,Leading
+2026-02-24,XLE,Energy,118.82,4.07,Leading
+2026-02-24,XLB,Materials,118.76,1.81,Leading
+2026-02-24,XLU,Utilities,103.14,7.22,Leading
+2026-02-24,XLRE,Real Estate,103.33,2.8,Leading
+2026-02-24,XLC,Communication Services,99.56,-0.52,Lagging
+2026-02-25,XLK,Technology,98.51,-0.14,Lagging
+2026-02-25,XLF,Financials,96.49,-1.79,Lagging
+2026-02-25,XLV,Health Care,98.2,0.82,Improving
+2026-02-25,XLI,Industrials,113.0,0.3,Leading
+2026-02-25,XLY,Consumer Discretionary,98.77,-0.74,Lagging
+2026-02-25,XLP,Consumer Staples,112.09,0.58,Leading
+2026-02-25,XLE,Energy,119.39,-0.45,Weakening
+2026-02-25,XLB,Materials,118.59,-1.46,Weakening
+2026-02-25,XLU,Utilities,102.97,5.86,Leading
+2026-02-25,XLRE,Real Estate,103.13,1.34,Leading
+2026-02-25,XLC,Communication Services,99.48,-0.38,Lagging
+2026-02-26,XLK,Technology,98.33,0.11,Improving
+2026-02-26,XLF,Financials,97.91,0.37,Improving
+2026-02-26,XLV,Health Care,97.22,-0.26,Lagging
+2026-02-26,XLI,Industrials,113.96,1.23,Leading
+2026-02-26,XLY,Consumer Discretionary,98.13,-0.38,Lagging
+2026-02-26,XLP,Consumer Staples,112.04,-1.77,Weakening
+2026-02-26,XLE,Energy,122.35,0.96,Leading
+2026-02-26,XLB,Materials,118.47,-1.01,Weakening
+2026-02-26,XLU,Utilities,104.52,3.09,Leading
+2026-02-26,XLRE,Real Estate,104.3,0.61,Leading
+2026-02-26,XLC,Communication Services,100.03,0.62,Leading
+2026-02-27,XLK,Technology,96.76,-1.16,Lagging
+2026-02-27,XLF,Financials,96.29,-1.01,Lagging
+2026-02-27,XLV,Health Care,100.32,0.97,Leading
+2026-02-27,XLI,Industrials,114.92,1.22,Leading
+2026-02-27,XLY,Consumer Discretionary,98.44,-0.04,Lagging
+2026-02-27,XLP,Consumer Staples,113.59,-0.07,Weakening
+2026-02-27,XLE,Energy,124.81,2.75,Leading
+2026-02-27,XLB,Materials,119.33,-0.52,Weakening
+2026-02-27,XLU,Utilities,105.58,2.08,Leading
+2026-02-27,XLRE,Real Estate,105.58,0.17,Leading
+2026-02-27,XLC,Communication Services,102.22,2.39,Leading
+2026-03-02,XLK,Technology,96.94,-0.46,Lagging
+2026-03-02,XLF,Financials,95.83,-2.19,Lagging
+2026-03-02,XLV,Health Care,100.25,0.22,Leading
+2026-03-02,XLI,Industrials,115.95,1.89,Leading
+2026-03-02,XLY,Consumer Discretionary,97.1,-1.03,Lagging
+2026-03-02,XLP,Consumer Staples,111.84,0.07,Leading
+2026-03-02,XLE,Energy,126.27,6.67,Leading
+2026-03-02,XLB,Materials,118.87,0.62,Leading
+2026-03-02,XLU,Utilities,104.55,1.66,Leading
+2026-03-02,XLRE,Real Estate,105.77,-0.6,Weakening
+2026-03-02,XLC,Communication Services,101.73,2.48,Leading
+2026-03-03,XLK,Technology,95.89,-1.52,Lagging
+2026-03-03,XLF,Financials,96.87,-1.75,Lagging
+2026-03-03,XLV,Health Care,101.06,0.28,Leading
+2026-03-03,XLI,Industrials,115.89,1.27,Leading
+2026-03-03,XLY,Consumer Discretionary,96.57,-1.39,Lagging
+2026-03-03,XLP,Consumer Staples,111.21,0.59,Leading
+2026-03-03,XLE,Energy,124.46,4.88,Leading
+2026-03-03,XLB,Materials,116.73,-1.39,Weakening
+2026-03-03,XLU,Utilities,106.83,4.21,Leading
+2026-03-03,XLRE,Real Estate,107.19,1.78,Leading
+2026-03-03,XLC,Communication Services,102.73,3.8,Leading
+2026-03-04,XLK,Technology,96.03,-0.35,Lagging
+2026-03-04,XLF,Financials,97.0,-1.32,Lagging
+2026-03-04,XLV,Health Care,101.34,-0.23,Weakening
+2026-03-04,XLI,Industrials,114.64,-0.35,Weakening
+2026-03-04,XLY,Consumer Discretionary,97.84,0.03,Improving
+2026-03-04,XLP,Consumer Staples,110.63,-0.75,Weakening
+2026-03-04,XLE,Energy,124.71,2.13,Leading
+2026-03-04,XLB,Materials,117.15,-2.17,Weakening
+2026-03-04,XLU,Utilities,107.5,2.54,Leading
+2026-03-04,XLRE,Real Estate,107.04,1.27,Leading
+2026-03-04,XLC,Communication Services,102.58,3.06,Leading
+2026-03-05,XLK,Technology,96.91,0.66,Improving
+2026-03-05,XLF,Financials,96.08,-1.2,Lagging
+2026-03-05,XLV,Health Care,99.75,-0.69,Lagging
+2026-03-05,XLI,Industrials,112.05,-2.01,Weakening
+2026-03-05,XLY,Consumer Discretionary,97.81,0.41,Improving
+2026-03-05,XLP,Consumer Staples,109.31,-1.85,Weakening
+2026-03-05,XLE,Energy,124.16,4.94,Leading
+2026-03-05,XLB,Materials,114.92,-3.41,Weakening
+2026-03-05,XLU,Utilities,107.97,2.57,Leading
+2026-03-05,XLRE,Real Estate,106.77,0.72,Leading
+2026-03-05,XLC,Communication Services,103.29,2.63,Leading
+2026-03-06,XLK,Technology,95.88,0.56,Improving
+2026-03-06,XLF,Financials,95.98,1.11,Improving
+2026-03-06,XLV,Health Care,101.12,-2.33,Weakening
+2026-03-06,XLI,Industrials,111.64,-1.53,Weakening
+2026-03-06,XLY,Consumer Discretionary,97.73,0.97,Improving
+2026-03-06,XLP,Consumer Staples,111.86,-2.46,Weakening
+2026-03-06,XLE,Energy,125.57,4.95,Leading
+2026-03-06,XLB,Materials,114.98,-5.36,Weakening
+2026-03-06,XLU,Utilities,109.33,1.74,Leading
+2026-03-06,XLRE,Real Estate,107.32,-0.2,Weakening
+2026-03-06,XLC,Communication Services,103.28,3.33,Leading
+2026-03-09,XLK,Technology,96.24,0.89,Improving
+2026-03-09,XLF,Financials,94.84,0.04,Improving
+2026-03-09,XLV,Health Care,101.89,-1.01,Weakening
+2026-03-09,XLI,Industrials,111.85,-2.42,Weakening
+2026-03-09,XLY,Consumer Discretionary,96.66,-0.51,Lagging
+2026-03-09,XLP,Consumer Staples,111.33,-3.35,Weakening
+2026-03-09,XLE,Energy,124.68,4.31,Leading
+2026-03-09,XLB,Materials,114.87,-6.12,Weakening
+2026-03-09,XLU,Utilities,109.88,0.64,Leading
+2026-03-09,XLRE,Real Estate,106.84,-0.43,Weakening
+2026-03-09,XLC,Communication Services,101.49,2.53,Leading
+2026-03-10,XLK,Technology,95.43,0.03,Improving
+2026-03-10,XLF,Financials,94.55,-1.16,Lagging
+2026-03-10,XLV,Health Care,102.23,-0.7,Weakening
+2026-03-10,XLI,Industrials,111.22,-1.0,Weakening
+2026-03-10,XLY,Consumer Discretionary,97.82,0.04,Improving
+2026-03-10,XLP,Consumer Staples,111.78,-1.62,Weakening
+2026-03-10,XLE,Energy,124.27,4.46,Leading
+2026-03-10,XLB,Materials,116.07,-4.55,Weakening
+2026-03-10,XLU,Utilities,110.52,0.69,Leading
+2026-03-10,XLRE,Real Estate,107.2,1.2,Leading
+2026-03-10,XLC,Communication Services,101.95,3.1,Leading
+2026-03-11,XLK,Technology,95.68,1.41,Improving
+2026-03-11,XLF,Financials,94.14,-3.55,Lagging
+2026-03-11,XLV,Health Care,103.07,-1.08,Weakening
+2026-03-11,XLI,Industrials,111.74,-2.56,Weakening
+2026-03-11,XLY,Consumer Discretionary,97.61,-0.61,Lagging
+2026-03-11,XLP,Consumer Staples,110.09,-3.38,Weakening
+2026-03-11,XLE,Energy,126.62,6.59,Leading
+2026-03-11,XLB,Materials,116.26,-5.04,Weakening
+2026-03-11,XLU,Utilities,109.56,-0.29,Weakening
+2026-03-11,XLRE,Real Estate,106.6,-1.0,Weakening
+2026-03-11,XLC,Communication Services,101.55,2.15,Leading
+2026-03-12,XLK,Technology,95.53,2.16,Improving
+2026-03-12,XLF,Financials,93.59,-2.12,Lagging
+2026-03-12,XLV,Health Care,102.02,-3.66,Weakening
+2026-03-12,XLI,Industrials,109.35,-4.47,Weakening
+2026-03-12,XLY,Consumer Discretionary,96.07,-1.68,Lagging
+2026-03-12,XLP,Consumer Staples,111.75,-4.17,Weakening
+2026-03-12,XLE,Energy,129.27,7.23,Leading
+2026-03-12,XLB,Materials,116.18,-5.09,Weakening
+2026-03-12,XLU,Utilities,112.85,0.38,Leading
+2026-03-12,XLRE,Real Estate,108.05,-1.09,Weakening
+2026-03-12,XLC,Communication Services,101.67,0.57,Leading
+2026-03-13,XLK,Technology,96.07,1.52,Improving
+2026-03-13,XLF,Financials,92.77,-1.16,Lagging
+2026-03-13,XLV,Health Care,101.62,-2.15,Weakening
+2026-03-13,XLI,Industrials,108.67,-5.26,Weakening
+2026-03-13,XLY,Consumer Discretionary,95.9,-0.44,Lagging
+2026-03-13,XLP,Consumer Staples,112.47,-1.14,Weakening
+2026-03-13,XLE,Energy,131.36,6.06,Leading
+2026-03-13,XLB,Materials,113.69,-5.06,Weakening
+2026-03-13,XLU,Utilities,114.05,3.04,Leading
+2026-03-13,XLRE,Real Estate,108.61,-0.33,Weakening
+2026-03-13,XLC,Communication Services,101.98,0.64,Leading
+2026-03-16,XLK,Technology,98.28,2.52,Improving
+2026-03-16,XLF,Financials,91.47,-1.97,Lagging
+2026-03-16,XLV,Health Care,100.02,-2.07,Weakening
+2026-03-16,XLI,Industrials,108.01,-4.21,Weakening
+2026-03-16,XLY,Consumer Discretionary,94.63,-0.22,Lagging
+2026-03-16,XLP,Consumer Staples,109.59,-1.68,Weakening
+2026-03-16,XLE,Energy,130.37,5.22,Leading
+2026-03-16,XLB,Materials,111.74,-3.79,Weakening
+2026-03-16,XLU,Utilities,112.95,2.32,Leading
+2026-03-16,XLRE,Real Estate,107.33,-0.99,Weakening
+2026-03-16,XLC,Communication Services,100.86,-0.59,Weakening
+2026-03-17,XLK,Technology,99.37,1.87,Improving
+2026-03-17,XLF,Financials,91.51,-1.59,Lagging
+2026-03-17,XLV,Health Care,97.41,-2.68,Lagging
+2026-03-17,XLI,Industrials,107.68,-3.74,Weakening
+2026-03-17,XLY,Consumer Discretionary,94.26,-0.64,Lagging
+2026-03-17,XLP,Consumer Staples,108.47,-0.81,Weakening
+2026-03-17,XLE,Energy,132.12,7.89,Leading
+2026-03-17,XLB,Materials,111.62,-2.96,Weakening
+2026-03-17,XLU,Utilities,111.16,2.0,Leading
+2026-03-17,XLRE,Real Estate,106.81,-0.31,Weakening
+2026-03-17,XLC,Communication Services,100.47,-0.81,Weakening
+2026-03-18,XLK,Technology,99.18,1.34,Improving
+2026-03-18,XLF,Financials,92.04,-1.44,Lagging
+2026-03-18,XLV,Health Care,98.15,-1.52,Lagging
+2026-03-18,XLI,Industrials,108.69,-1.22,Weakening
+2026-03-18,XLY,Consumer Discretionary,92.98,-2.17,Lagging
+2026-03-18,XLP,Consumer Staples,107.53,-0.36,Weakening
+2026-03-18,XLE,Energy,137.65,8.48,Leading
+2026-03-18,XLB,Materials,110.82,-1.98,Weakening
+2026-03-18,XLU,Utilities,111.94,2.87,Leading
+2026-03-18,XLRE,Real Estate,107.2,-0.14,Weakening
+2026-03-18,XLC,Communication Services,100.03,-1.17,Weakening
+2026-03-19,XLK,Technology,100.91,2.7,Leading
+2026-03-19,XLF,Financials,91.3,-1.18,Lagging
+2026-03-19,XLV,Health Care,97.13,-2.14,Lagging
+2026-03-19,XLI,Industrials,108.79,-1.79,Weakening
+2026-03-19,XLY,Consumer Discretionary,92.53,-2.19,Lagging
+2026-03-19,XLP,Consumer Staples,105.25,-2.83,Weakening
+2026-03-19,XLE,Energy,135.64,8.79,Leading
+2026-03-19,XLB,Materials,107.74,-2.68,Weakening
+2026-03-19,XLU,Utilities,111.25,1.61,Leading
+2026-03-19,XLRE,Real Estate,105.56,-0.42,Weakening
+2026-03-19,XLC,Communication Services,99.44,-1.87,Lagging
+2026-03-20,XLK,Technology,99.28,0.94,Improving
+2026-03-20,XLF,Financials,93.65,1.57,Improving
+2026-03-20,XLV,Health Care,98.35,-1.74,Lagging
+2026-03-20,XLI,Industrials,108.87,-1.5,Weakening
+2026-03-20,XLY,Consumer Discretionary,91.52,-1.81,Lagging
+2026-03-20,XLP,Consumer Staples,107.32,-1.51,Weakening
+2026-03-20,XLE,Energy,140.57,12.58,Leading
+2026-03-20,XLB,Materials,108.42,-2.2,Weakening
+2026-03-20,XLU,Utilities,108.05,-0.66,Weakening
+2026-03-20,XLRE,Real Estate,105.13,-1.61,Weakening
+2026-03-20,XLC,Communication Services,100.26,-0.44,Weakening
+2026-03-23,XLK,Technology,98.36,1.07,Improving
+2026-03-23,XLF,Financials,93.85,1.79,Improving
+2026-03-23,XLV,Health Care,97.58,-2.19,Lagging
+2026-03-23,XLI,Industrials,109.02,-0.99,Weakening
+2026-03-23,XLY,Consumer Discretionary,93.97,-0.61,Lagging
+2026-03-23,XLP,Consumer Staples,108.18,-2.05,Weakening
+2026-03-23,XLE,Energy,142.05,14.35,Leading
+2026-03-23,XLB,Materials,109.59,-1.48,Weakening
+2026-03-23,XLU,Utilities,110.37,-0.22,Weakening
+2026-03-23,XLRE,Real Estate,106.16,-1.97,Weakening
+2026-03-23,XLC,Communication Services,100.82,-0.75,Weakening
+2026-03-24,XLK,Technology,98.19,0.23,Improving
+2026-03-24,XLF,Financials,93.62,2.76,Improving
+2026-03-24,XLV,Health Care,97.88,-1.77,Lagging
+2026-03-24,XLI,Industrials,109.49,0.22,Leading
+2026-03-24,XLY,Consumer Discretionary,93.93,-0.54,Lagging
+2026-03-24,XLP,Consumer Staples,109.51,-0.47,Weakening
+2026-03-24,XLE,Energy,144.83,14.33,Leading
+2026-03-24,XLB,Materials,111.42,0.92,Leading
+2026-03-24,XLU,Utilities,111.79,1.71,Leading
+2026-03-24,XLRE,Real Estate,105.52,-1.33,Weakening
+2026-03-24,XLC,Communication Services,99.92,-1.63,Lagging
+2026-03-25,XLK,Technology,98.0,0.45,Improving
+2026-03-25,XLF,Financials,93.46,2.47,Improving
+2026-03-25,XLV,Health Care,98.96,-1.11,Lagging
+2026-03-25,XLI,Industrials,110.16,1.44,Leading
+2026-03-25,XLY,Consumer Discretionary,94.86,0.58,Improving
+2026-03-25,XLP,Consumer Staples,110.46,-1.8,Weakening
+2026-03-25,XLE,Energy,143.11,9.62,Leading
+2026-03-25,XLB,Materials,113.31,1.15,Leading
+2026-03-25,XLU,Utilities,111.68,-1.01,Weakening
+2026-03-25,XLRE,Real Estate,105.39,-2.93,Weakening
+2026-03-25,XLC,Communication Services,99.48,-1.94,Lagging
+2026-03-26,XLK,Technology,96.78,-0.69,Lagging
+2026-03-26,XLF,Financials,94.42,2.97,Improving
+2026-03-26,XLV,Health Care,100.25,0.03,Leading
+2026-03-26,XLI,Industrials,109.59,0.62,Leading
+2026-03-26,XLY,Consumer Discretionary,94.94,0.67,Improving
+2026-03-26,XLP,Consumer Staples,111.48,-1.6,Weakening
+2026-03-26,XLE,Energy,148.95,13.39,Leading
+2026-03-26,XLB,Materials,114.8,2.95,Leading
+2026-03-26,XLU,Utilities,113.8,-0.54,Weakening
+2026-03-26,XLRE,Real Estate,107.05,-1.86,Weakening
+2026-03-26,XLC,Communication Services,98.66,-2.37,Lagging
+2026-03-27,XLK,Technology,96.38,-1.34,Lagging
+2026-03-27,XLF,Financials,93.8,2.35,Improving
+2026-03-27,XLV,Health Care,100.08,0.23,Leading
+2026-03-27,XLI,Industrials,110.25,1.26,Leading
+2026-03-27,XLY,Consumer Discretionary,94.2,-0.66,Lagging
+2026-03-27,XLP,Consumer Staples,114.14,2.05,Leading
+2026-03-27,XLE,Energy,154.67,19.51,Leading
+2026-03-27,XLB,Materials,115.67,5.13,Leading
+2026-03-27,XLU,Utilities,116.51,2.52,Leading
+2026-03-27,XLRE,Real Estate,107.92,-0.5,Weakening
+2026-03-27,XLC,Communication Services,98.83,-2.05,Lagging
+2026-03-30,XLK,Technology,94.99,-3.1,Lagging
+2026-03-30,XLF,Financials,95.38,3.51,Improving
+2026-03-30,XLV,Health Care,100.6,2.12,Leading
+2026-03-30,XLI,Industrials,108.67,-0.17,Weakening
+2026-03-30,XLY,Consumer Discretionary,95.09,-0.94,Lagging
+2026-03-30,XLP,Consumer Staples,114.18,3.22,Leading
+2026-03-30,XLE,Energy,151.71,17.25,Leading
+2026-03-30,XLB,Materials,117.01,6.0,Leading
+2026-03-30,XLU,Utilities,117.11,4.35,Leading
+2026-03-30,XLRE,Real Estate,108.15,0.33,Leading
+2026-03-30,XLC,Communication Services,99.72,-0.63,Lagging
+2026-03-31,XLK,Technology,96.41,-2.14,Lagging
+2026-03-31,XLF,Financials,94.74,2.56,Improving
+2026-03-31,XLV,Health Care,99.62,1.45,Improving
+2026-03-31,XLI,Industrials,109.23,-0.45,Weakening
+2026-03-31,XLY,Consumer Discretionary,95.58,0.16,Improving
+2026-03-31,XLP,Consumer Staples,111.14,1.3,Leading
+2026-03-31,XLE,Energy,144.48,9.5,Leading
+2026-03-31,XLB,Materials,115.63,5.52,Leading
+2026-03-31,XLU,Utilities,113.32,0.34,Leading
+2026-03-31,XLRE,Real Estate,106.35,-0.84,Weakening
+2026-03-31,XLC,Communication Services,99.05,-0.75,Lagging
+2026-04-01,XLK,Technology,97.38,-2.0,Lagging
+2026-04-01,XLF,Financials,94.17,1.72,Improving
+2026-04-01,XLV,Health Care,99.46,1.57,Improving
+2026-04-01,XLI,Industrials,110.33,1.02,Leading
+2026-04-01,XLY,Consumer Discretionary,95.63,0.68,Improving
+2026-04-01,XLP,Consumer Staples,109.45,0.39,Leading
+2026-04-01,XLE,Energy,137.79,0.57,Leading
+2026-04-01,XLB,Materials,116.0,7.2,Leading
+2026-04-01,XLU,Utilities,112.89,0.21,Leading
+2026-04-01,XLRE,Real Estate,106.04,-1.33,Weakening
+2026-04-01,XLC,Communication Services,98.39,-0.94,Lagging
+2026-04-02,XLK,Technology,98.02,-0.46,Lagging
+2026-04-02,XLF,Financials,94.15,0.29,Improving
+2026-04-02,XLV,Health Care,98.48,0.31,Improving
+2026-04-02,XLI,Industrials,108.0,0.49,Leading
+2026-04-02,XLY,Consumer Discretionary,95.12,-0.51,Lagging
+2026-04-02,XLP,Consumer Staples,110.12,0.2,Leading
+2026-04-02,XLE,Energy,135.72,-0.77,Weakening
+2026-04-02,XLB,Materials,114.05,7.05,Leading
+2026-04-02,XLU,Utilities,112.27,3.64,Leading
+2026-04-02,XLRE,Real Estate,107.77,2.17,Leading
+2026-04-02,XLC,Communication Services,99.58,-1.27,Lagging
+2026-04-06,XLK,Technology,98.56,-0.66,Lagging
+2026-04-06,XLF,Financials,92.97,0.64,Improving
+2026-04-06,XLV,Health Care,98.61,0.49,Improving
+2026-04-06,XLI,Industrials,107.49,0.44,Leading
+2026-04-06,XLY,Consumer Discretionary,94.53,-1.45,Lagging
+2026-04-06,XLP,Consumer Staples,111.86,1.41,Leading
+2026-04-06,XLE,Energy,133.34,-0.61,Weakening
+2026-04-06,XLB,Materials,112.72,5.41,Leading
+2026-04-06,XLU,Utilities,113.33,2.82,Leading
+2026-04-06,XLRE,Real Estate,108.23,2.38,Leading
+2026-04-06,XLC,Communication Services,99.11,-1.38,Lagging
+2026-04-07,XLK,Technology,98.2,0.02,Improving
+2026-04-07,XLF,Financials,93.03,0.27,Improving
+2026-04-07,XLV,Health Care,97.43,0.29,Improving
+2026-04-07,XLI,Industrials,106.42,-0.8,Weakening
+2026-04-07,XLY,Consumer Discretionary,93.35,-2.53,Lagging
+2026-04-07,XLP,Consumer Staples,110.4,-0.82,Weakening
+2026-04-07,XLE,Energy,138.86,-2.87,Weakening
+2026-04-07,XLB,Materials,110.83,2.62,Leading
+2026-04-07,XLU,Utilities,113.64,1.87,Leading
+2026-04-07,XLRE,Real Estate,108.0,2.74,Leading
+2026-04-07,XLC,Communication Services,100.06,-0.3,Weakening
+2026-04-08,XLK,Technology,98.49,0.65,Improving
+2026-04-08,XLF,Financials,94.14,0.77,Improving
+2026-04-08,XLV,Health Care,95.76,-0.54,Lagging
+2026-04-08,XLI,Industrials,109.38,0.33,Leading
+2026-04-08,XLY,Consumer Discretionary,93.44,-2.65,Lagging
+2026-04-08,XLP,Consumer Staples,110.53,-1.48,Weakening
+2026-04-08,XLE,Energy,131.71,-9.73,Weakening
+2026-04-08,XLB,Materials,113.28,1.96,Leading
+2026-04-08,XLU,Utilities,114.45,0.51,Leading
+2026-04-08,XLRE,Real Estate,108.28,2.53,Leading
+2026-04-08,XLC,Communication Services,99.2,-0.77,Lagging
+2026-04-09,XLK,Technology,99.74,1.7,Improving
+2026-04-09,XLF,Financials,93.34,-0.67,Lagging
+2026-04-09,XLV,Health Care,95.91,-2.75,Lagging
+2026-04-09,XLI,Industrials,109.03,1.4,Leading
+2026-04-09,XLY,Consumer Discretionary,92.95,-1.62,Lagging
+2026-04-09,XLP,Consumer Staples,108.2,-2.68,Weakening
+2026-04-09,XLE,Energy,125.37,-16.42,Weakening
+2026-04-09,XLB,Materials,110.5,-0.15,Weakening
+2026-04-09,XLU,Utilities,114.36,-1.52,Weakening
+2026-04-09,XLRE,Real Estate,107.58,0.67,Leading
+2026-04-09,XLC,Communication Services,98.69,-0.36,Lagging
+2026-04-10,XLK,Technology,99.54,2.38,Improving
+2026-04-10,XLF,Financials,93.28,-0.85,Lagging
+2026-04-10,XLV,Health Care,95.79,-4.03,Lagging
+2026-04-10,XLI,Industrials,108.21,0.59,Leading
+2026-04-10,XLY,Consumer Discretionary,92.62,-0.29,Lagging
+2026-04-10,XLP,Consumer Staples,106.48,-6.8,Weakening
+2026-04-10,XLE,Energy,125.1,-22.18,Weakening
+2026-04-10,XLB,Materials,110.17,-0.95,Weakening
+2026-04-10,XLU,Utilities,113.32,-4.57,Weakening
+2026-04-10,XLRE,Real Estate,108.43,-0.13,Weakening
+2026-04-10,XLC,Communication Services,98.76,-0.65,Lagging
+2026-04-13,XLK,Technology,100.36,4.95,Leading
+2026-04-13,XLF,Financials,94.9,-1.55,Lagging
+2026-04-13,XLV,Health Care,95.39,-5.27,Lagging
+2026-04-13,XLI,Industrials,107.27,1.68,Leading
+2026-04-13,XLY,Consumer Discretionary,92.63,-0.64,Lagging
+2026-04-13,XLP,Consumer Staples,103.35,-9.31,Weakening
+2026-04-13,XLE,Energy,125.34,-22.29,Weakening
+2026-04-13,XLB,Materials,109.17,-2.31,Weakening
+2026-04-13,XLU,Utilities,110.86,-8.28,Weakening
+2026-04-13,XLRE,Real Estate,107.73,-1.59,Weakening
+2026-04-13,XLC,Communication Services,99.01,-2.06,Lagging
+2026-04-14,XLK,Technology,100.75,4.1,Leading
+2026-04-14,XLF,Financials,95.62,-1.73,Lagging
+2026-04-14,XLV,Health Care,94.99,-4.93,Lagging
+2026-04-14,XLI,Industrials,105.6,0.39,Leading
+2026-04-14,XLY,Consumer Discretionary,93.58,0.05,Improving
+2026-04-14,XLP,Consumer Staples,100.63,-7.5,Weakening
+2026-04-14,XLE,Energy,119.38,-20.2,Weakening
+2026-04-14,XLB,Materials,106.81,-2.77,Weakening
+2026-04-14,XLU,Utilities,108.8,-5.93,Weakening
+2026-04-14,XLRE,Real Estate,106.42,-0.42,Weakening
+2026-04-14,XLC,Communication Services,99.66,-1.56,Lagging
+2026-04-15,XLK,Technology,102.3,4.21,Leading
+2026-04-15,XLF,Financials,95.25,-1.17,Lagging
+2026-04-15,XLV,Health Care,92.45,-6.28,Lagging
+2026-04-15,XLI,Industrials,102.79,-2.68,Weakening
+2026-04-15,XLY,Consumer Discretionary,95.28,0.72,Improving
+2026-04-15,XLP,Consumer Staples,97.51,-7.17,Lagging
+2026-04-15,XLE,Energy,114.87,-14.9,Weakening
+2026-04-15,XLB,Materials,104.13,-5.11,Weakening
+2026-04-15,XLU,Utilities,105.59,-7.42,Weakening
+2026-04-15,XLRE,Real Estate,103.86,-0.8,Weakening
+2026-04-15,XLC,Communication Services,99.29,-1.24,Lagging
+2026-04-16,XLK,Technology,102.95,4.42,Leading
+2026-04-16,XLF,Financials,94.64,-1.75,Lagging
+2026-04-16,XLV,Health Care,92.28,-6.58,Lagging
+2026-04-16,XLI,Industrials,101.37,-2.91,Weakening
+2026-04-16,XLY,Consumer Discretionary,94.51,1.54,Improving
+2026-04-16,XLP,Consumer Staples,97.81,-7.43,Lagging
+2026-04-16,XLE,Energy,117.69,-14.17,Weakening
+2026-04-16,XLB,Materials,104.46,-4.41,Weakening
+2026-04-16,XLU,Utilities,105.3,-7.33,Weakening
+2026-04-16,XLRE,Real Estate,104.06,-1.68,Weakening
+2026-04-16,XLC,Communication Services,100.93,-0.57,Weakening
+2026-04-17,XLK,Technology,103.08,4.63,Leading
+2026-04-17,XLF,Financials,94.03,-2.38,Lagging
+2026-04-17,XLV,Health Care,93.19,-5.54,Lagging
+2026-04-17,XLI,Industrials,101.26,-2.27,Weakening
+2026-04-17,XLY,Consumer Discretionary,95.82,2.3,Improving
+2026-04-17,XLP,Consumer Staples,98.1,-7.88,Lagging
+2026-04-17,XLE,Energy,112.79,-19.06,Weakening
+2026-04-17,XLB,Materials,103.98,-4.5,Weakening
+2026-04-17,XLU,Utilities,104.06,-8.11,Weakening
+2026-04-17,XLRE,Real Estate,103.04,-1.22,Weakening
+2026-04-17,XLC,Communication Services,100.77,-1.14,Weakening
+2026-04-20,XLK,Technology,104.03,4.58,Leading
+2026-04-20,XLF,Financials,94.81,-1.79,Lagging
+2026-04-20,XLV,Health Care,90.82,-6.26,Lagging
+2026-04-20,XLI,Industrials,101.68,-1.59,Weakening
+2026-04-20,XLY,Consumer Discretionary,96.14,3.21,Improving
+2026-04-20,XLP,Consumer Staples,95.92,-5.79,Lagging
+2026-04-20,XLE,Energy,111.03,-19.37,Weakening
+2026-04-20,XLB,Materials,103.8,-3.2,Weakening
+2026-04-20,XLU,Utilities,102.25,-8.93,Weakening
+2026-04-20,XLRE,Real Estate,103.5,-0.49,Weakening
+2026-04-20,XLC,Communication Services,100.1,-1.24,Weakening
+2026-04-21,XLK,Technology,104.56,4.81,Leading
+2026-04-21,XLF,Financials,95.46,-1.87,Lagging
+2026-04-21,XLV,Health Care,89.88,-6.14,Lagging
+2026-04-21,XLI,Industrials,100.33,-3.56,Weakening
+2026-04-21,XLY,Consumer Discretionary,95.33,2.84,Improving
+2026-04-21,XLP,Consumer Staples,96.92,-5.18,Lagging
+2026-04-21,XLE,Energy,111.99,-9.2,Weakening
+2026-04-21,XLB,Materials,102.52,-4.22,Weakening
+2026-04-21,XLU,Utilities,102.15,-8.57,Weakening
+2026-04-21,XLRE,Real Estate,102.98,-0.99,Weakening
+2026-04-21,XLC,Communication Services,99.54,-1.17,Lagging
+2026-04-22,XLK,Technology,105.55,6.33,Leading
+2026-04-22,XLF,Financials,94.22,-2.68,Lagging
+2026-04-22,XLV,Health Care,89.71,-6.02,Lagging
+2026-04-22,XLI,Industrials,100.13,-5.31,Weakening
+2026-04-22,XLY,Consumer Discretionary,93.89,0.79,Improving
+2026-04-22,XLP,Consumer Staples,96.97,-6.12,Lagging
+2026-04-22,XLE,Energy,112.41,-6.82,Weakening
+2026-04-22,XLB,Materials,101.57,-4.35,Weakening
+2026-04-22,XLU,Utilities,102.21,-10.14,Weakening
+2026-04-22,XLRE,Real Estate,102.74,-2.92,Weakening
+2026-04-22,XLC,Communication Services,98.28,-1.38,Lagging
+2026-04-23,XLK,Technology,104.34,4.78,Leading
+2026-04-23,XLF,Financials,95.19,-2.09,Lagging
+2026-04-23,XLV,Health Care,90.47,-4.55,Lagging
+2026-04-23,XLI,Industrials,103.13,-2.82,Weakening
+2026-04-23,XLY,Consumer Discretionary,92.96,0.03,Improving
+2026-04-23,XLP,Consumer Staples,98.24,-2.83,Lagging
+2026-04-23,XLE,Energy,113.12,-4.74,Weakening
+2026-04-23,XLB,Materials,101.04,-4.62,Weakening
+2026-04-23,XLU,Utilities,105.8,-6.6,Weakening
+2026-04-23,XLRE,Real Estate,104.09,-1.63,Weakening
+2026-04-23,XLC,Communication Services,97.69,-1.18,Lagging
+2026-04-24,XLK,Technology,106.26,5.77,Leading
+2026-04-24,XLF,Financials,93.64,-4.25,Lagging
+2026-04-24,XLV,Health Care,88.61,-6.02,Lagging
+2026-04-24,XLI,Industrials,101.81,-4.29,Weakening
+2026-04-24,XLY,Consumer Discretionary,94.08,0.12,Improving
+2026-04-24,XLP,Consumer Staples,97.84,-1.92,Lagging
+2026-04-24,XLE,Energy,112.54,-5.06,Weakening
+2026-04-24,XLB,Materials,100.87,-4.64,Weakening
+2026-04-24,XLU,Utilities,104.96,-4.76,Weakening
+2026-04-24,XLRE,Real Estate,103.58,-2.21,Weakening
+2026-04-24,XLC,Communication Services,95.24,-3.25,Lagging
+2026-04-27,XLK,Technology,105.32,5.39,Leading
+2026-04-27,XLF,Financials,95.29,-2.78,Lagging
+2026-04-27,XLV,Health Care,89.87,-6.14,Lagging
+2026-04-27,XLI,Industrials,101.65,-3.54,Weakening
+2026-04-27,XLY,Consumer Discretionary,93.34,-1.64,Lagging
+2026-04-27,XLP,Consumer Staples,96.57,-1.83,Lagging
+2026-04-27,XLE,Energy,111.57,-1.67,Weakening
+2026-04-27,XLB,Materials,100.92,-3.47,Weakening
+2026-04-27,XLU,Utilities,103.87,-3.75,Weakening
+2026-04-27,XLRE,Real Estate,102.94,-2.92,Weakening
+2026-04-27,XLC,Communication Services,96.39,-3.52,Lagging
+2026-04-28,XLK,Technology,103.2,3.29,Leading
+2026-04-28,XLF,Financials,95.84,-2.21,Lagging
+2026-04-28,XLV,Health Care,91.21,-4.07,Lagging
+2026-04-28,XLI,Industrials,101.79,-1.83,Weakening
+2026-04-28,XLY,Consumer Discretionary,93.83,-2.53,Lagging
+2026-04-28,XLP,Consumer Staples,98.9,0.78,Improving
+2026-04-28,XLE,Energy,113.1,1.99,Leading
+2026-04-28,XLB,Materials,100.72,-1.65,Weakening
+2026-04-28,XLU,Utilities,104.74,-1.23,Weakening
+2026-04-28,XLRE,Real Estate,105.45,-0.55,Weakening
+2026-04-28,XLC,Communication Services,96.92,-3.0,Lagging
+2026-04-29,XLK,Technology,105.51,3.28,Leading
+2026-04-29,XLF,Financials,94.79,-1.54,Lagging
+2026-04-29,XLV,Health Care,90.7,-3.71,Lagging
+2026-04-29,XLI,Industrials,99.94,-1.65,Lagging
+2026-04-29,XLY,Consumer Discretionary,93.97,-1.97,Lagging
+2026-04-29,XLP,Consumer Staples,98.76,0.4,Improving
+2026-04-29,XLE,Energy,114.42,3.2,Leading
+2026-04-29,XLB,Materials,99.58,-2.97,Lagging
+2026-04-29,XLU,Utilities,103.26,-3.0,Weakening
+2026-04-29,XLRE,Real Estate,103.3,-1.87,Weakening
+2026-04-29,XLC,Communication Services,93.91,-4.25,Lagging
+2026-04-30,XLK,Technology,106.58,2.2,Leading
+2026-04-30,XLF,Financials,94.15,-1.68,Lagging
+2026-04-30,XLV,Health Care,90.97,-2.86,Lagging
+2026-04-30,XLI,Industrials,101.61,-0.59,Weakening
+2026-04-30,XLY,Consumer Discretionary,93.98,-2.78,Lagging
+2026-04-30,XLP,Consumer Staples,97.49,1.0,Improving
+2026-04-30,XLE,Energy,112.93,7.52,Leading
+2026-04-30,XLB,Materials,100.76,-2.02,Weakening
+2026-04-30,XLU,Utilities,104.74,0.3,Leading
+2026-04-30,XLRE,Real Estate,103.6,-1.43,Weakening
+2026-04-30,XLC,Communication Services,93.47,-3.22,Lagging
+2026-05-01,XLK,Technology,107.37,3.12,Leading
+2026-05-01,XLF,Financials,92.95,-2.86,Lagging
+2026-05-01,XLV,Health Care,90.09,-2.94,Lagging
+2026-05-01,XLI,Industrials,99.63,-2.23,Lagging
+2026-05-01,XLY,Consumer Discretionary,93.79,-2.58,Lagging
+2026-05-01,XLP,Consumer Staples,96.4,0.45,Improving
+2026-05-01,XLE,Energy,113.89,5.52,Leading
+2026-05-01,XLB,Materials,99.97,-3.42,Lagging
+2026-05-01,XLU,Utilities,105.84,0.07,Leading
+2026-05-01,XLRE,Real Estate,104.83,-2.53,Weakening
+2026-05-01,XLC,Communication Services,94.16,-3.25,Lagging
+2026-05-04,XLK,Technology,109.37,2.9,Leading
+2026-05-04,XLF,Financials,92.76,-3.16,Lagging
+2026-05-04,XLV,Health Care,90.32,-2.54,Lagging
+2026-05-04,XLI,Industrials,97.2,-2.19,Lagging
+2026-05-04,XLY,Consumer Discretionary,93.37,-2.86,Lagging
+2026-05-04,XLP,Consumer Staples,93.7,0.09,Improving
+2026-05-04,XLE,Energy,110.8,4.5,Leading
+2026-05-04,XLB,Materials,96.1,-4.07,Lagging
+2026-05-04,XLU,Utilities,103.42,1.18,Leading
+2026-05-04,XLRE,Real Estate,104.14,-1.34,Weakening
+2026-05-04,XLC,Communication Services,94.74,-2.76,Lagging
+2026-05-05,XLK,Technology,113.52,3.25,Leading
+2026-05-05,XLF,Financials,90.86,-2.72,Lagging
+2026-05-05,XLV,Health Care,88.41,-2.23,Lagging
+2026-05-05,XLI,Industrials,96.51,-0.92,Lagging
+2026-05-05,XLY,Consumer Discretionary,93.14,-2.34,Lagging
+2026-05-05,XLP,Consumer Staples,91.88,0.55,Improving
+2026-05-05,XLE,Energy,107.09,3.44,Leading
+2026-05-05,XLB,Materials,94.31,-2.22,Lagging
+2026-05-05,XLU,Utilities,102.48,1.56,Leading
+2026-05-05,XLRE,Real Estate,101.41,-0.13,Weakening
+2026-05-05,XLC,Communication Services,93.9,-3.52,Lagging
+2026-05-06,XLK,Technology,115.59,5.85,Leading
+2026-05-06,XLF,Financials,90.04,-3.15,Lagging
+2026-05-06,XLV,Health Care,86.83,-3.63,Lagging
+2026-05-06,XLI,Industrials,97.01,-1.88,Lagging
+2026-05-06,XLY,Consumer Discretionary,94.13,-1.64,Lagging
+2026-05-06,XLP,Consumer Staples,89.75,-2.38,Lagging
+2026-05-06,XLE,Energy,101.19,-3.59,Weakening
+2026-05-06,XLB,Materials,96.0,-2.3,Lagging
+2026-05-06,XLU,Utilities,98.35,-4.37,Lagging
+2026-05-06,XLRE,Real Estate,100.6,-1.79,Weakening
+2026-05-06,XLC,Communication Services,93.29,-3.37,Lagging
+2026-05-07,XLK,Technology,113.34,3.68,Leading
+2026-05-07,XLF,Financials,89.9,-1.99,Lagging
+2026-05-07,XLV,Health Care,86.74,-1.81,Lagging
+2026-05-07,XLI,Industrials,94.86,-1.49,Lagging
+2026-05-07,XLY,Consumer Discretionary,95.84,-1.39,Lagging
+2026-05-07,XLP,Consumer Staples,90.41,-1.41,Lagging
+2026-05-07,XLE,Energy,99.56,-4.14,Lagging
+2026-05-07,XLB,Materials,94.36,-3.31,Lagging
+2026-05-07,XLU,Utilities,98.67,-4.81,Lagging
+2026-05-07,XLRE,Real Estate,100.22,-1.16,Weakening
+2026-05-07,XLC,Communication Services,95.77,-0.83,Lagging
+2026-05-08,XLK,Technology,115.02,6.49,Leading
+2026-05-08,XLF,Financials,89.59,-3.84,Lagging
+2026-05-08,XLV,Health Care,86.48,-2.7,Lagging
+2026-05-08,XLI,Industrials,93.82,-2.56,Lagging
+2026-05-08,XLY,Consumer Discretionary,96.13,-1.07,Lagging
+2026-05-08,XLP,Consumer Staples,90.84,-0.8,Lagging
+2026-05-08,XLE,Energy,98.06,-5.02,Lagging
+2026-05-08,XLB,Materials,93.18,-3.28,Lagging
+2026-05-08,XLU,Utilities,97.17,-6.34,Lagging
+2026-05-08,XLRE,Real Estate,99.28,-1.0,Lagging
+2026-05-08,XLC,Communication Services,94.17,-2.02,Lagging
+2026-05-11,XLK,Technology,116.65,9.12,Leading
+2026-05-11,XLF,Financials,89.69,-4.7,Lagging
+2026-05-11,XLV,Health Care,86.33,-3.85,Lagging
+2026-05-11,XLI,Industrials,94.23,-1.39,Lagging
+2026-05-11,XLY,Consumer Discretionary,94.37,-1.72,Lagging
+2026-05-11,XLP,Consumer Staples,89.82,-3.16,Lagging
+2026-05-11,XLE,Energy,100.27,-4.87,Weakening
+2026-05-11,XLB,Materials,92.63,-2.01,Lagging
+2026-05-11,XLU,Utilities,96.02,-6.18,Lagging
+2026-05-11,XLRE,Real Estate,97.79,-2.29,Lagging
+2026-05-11,XLC,Communication Services,92.07,-3.71,Lagging
+2026-05-12,XLK,Technology,114.7,6.64,Leading
+2026-05-12,XLF,Financials,91.9,-4.06,Lagging
+2026-05-12,XLV,Health Care,87.62,-1.4,Lagging
+2026-05-12,XLI,Industrials,93.48,-1.04,Lagging
+2026-05-12,XLY,Consumer Discretionary,94.09,-2.32,Lagging
+2026-05-12,XLP,Consumer Staples,89.8,-1.68,Lagging
+2026-05-12,XLE,Energy,98.53,-6.28,Lagging
+2026-05-12,XLB,Materials,91.31,-1.27,Lagging
+2026-05-12,XLU,Utilities,95.4,-4.64,Lagging
+2026-05-12,XLRE,Real Estate,98.03,-1.52,Lagging
+2026-05-12,XLC,Communication Services,93.07,-3.0,Lagging
+2026-05-13,XLK,Technology,116.42,7.97,Leading
+2026-05-13,XLF,Financials,90.75,-5.08,Lagging
+2026-05-13,XLV,Health Care,86.43,-2.41,Lagging
+2026-05-13,XLI,Industrials,92.25,-3.56,Lagging
+2026-05-13,XLY,Consumer Discretionary,93.76,-2.78,Lagging
+2026-05-13,XLP,Consumer Staples,87.41,-2.44,Lagging
+2026-05-13,XLE,Energy,98.35,-6.8,Lagging
+2026-05-13,XLB,Materials,90.59,-1.92,Lagging
+2026-05-13,XLU,Utilities,90.99,-7.58,Lagging
+2026-05-13,XLRE,Real Estate,95.02,-3.55,Lagging
+2026-05-13,XLC,Communication Services,93.52,-2.87,Lagging
+2026-05-14,XLK,Technology,117.03,7.46,Leading
+2026-05-14,XLF,Financials,90.7,-4.62,Lagging
+2026-05-14,XLV,Health Care,84.86,-2.36,Lagging
+2026-05-14,XLI,Industrials,91.31,-2.64,Lagging
+2026-05-14,XLY,Consumer Discretionary,93.01,-3.52,Lagging
+2026-05-14,XLP,Consumer Staples,86.76,-2.45,Lagging
+2026-05-14,XLE,Energy,97.73,-5.09,Lagging
+2026-05-14,XLB,Materials,88.47,-2.81,Lagging
+2026-05-14,XLU,Utilities,88.36,-6.75,Lagging
+2026-05-14,XLRE,Real Estate,92.35,-4.42,Lagging
+2026-05-14,XLC,Communication Services,93.18,-3.24,Lagging
+2026-05-15,XLK,Technology,116.57,6.24,Leading
+2026-05-15,XLF,Financials,90.65,-3.55,Lagging
+2026-05-15,XLV,Health Care,85.3,-2.29,Lagging
+2026-05-15,XLI,Industrials,90.45,-2.44,Lagging
+2026-05-15,XLY,Consumer Discretionary,92.7,-3.71,Lagging
+2026-05-15,XLP,Consumer Staples,88.91,-1.43,Lagging
+2026-05-15,XLE,Energy,102.55,-2.93,Weakening
+2026-05-15,XLB,Materials,88.32,-3.24,Lagging
+2026-05-15,XLU,Utilities,87.75,-7.73,Lagging
+2026-05-15,XLRE,Real Estate,91.25,-4.54,Lagging
+2026-05-15,XLC,Communication Services,93.78,-2.78,Lagging
+2026-05-18,XLK,Technology,114.8,3.51,Leading
+2026-05-18,XLF,Financials,91.63,-1.61,Lagging
+2026-05-18,XLV,Health Care,85.99,-1.51,Lagging
+2026-05-18,XLI,Industrials,90.64,-2.76,Lagging
+2026-05-18,XLY,Consumer Discretionary,92.29,-3.31,Lagging
+2026-05-18,XLP,Consumer Staples,90.91,0.12,Improving
+2026-05-18,XLE,Energy,103.14,-0.16,Weakening
+2026-05-18,XLB,Materials,88.16,-4.16,Lagging
+2026-05-18,XLU,Utilities,89.89,-6.92,Lagging
+2026-05-18,XLRE,Real Estate,94.14,-2.86,Lagging
+2026-05-18,XLC,Communication Services,94.89,-0.83,Lagging
+2026-05-19,XLK,Technology,115.09,2.15,Leading
+2026-05-19,XLF,Financials,91.63,-1.31,Lagging
+2026-05-19,XLV,Health Care,87.51,1.15,Improving
+2026-05-19,XLI,Industrials,89.27,-4.29,Lagging
+2026-05-19,XLY,Consumer Discretionary,92.25,-3.87,Lagging
+2026-05-19,XLP,Consumer Staples,91.87,1.99,Improving
+2026-05-19,XLE,Energy,104.01,7.29,Leading
+2026-05-19,XLB,Materials,86.74,-5.95,Lagging
+2026-05-19,XLU,Utilities,90.09,-2.77,Lagging
+2026-05-19,XLRE,Real Estate,95.26,-1.72,Lagging
+2026-05-19,XLC,Communication Services,93.91,-1.2,Lagging
+2026-05-20,XLK,Technology,116.77,3.43,Leading
+2026-05-20,XLF,Financials,91.76,-1.01,Lagging
+2026-05-20,XLV,Health Care,87.38,0.3,Improving
+2026-05-20,XLI,Industrials,89.6,-2.92,Lagging
+2026-05-20,XLY,Consumer Discretionary,93.33,-2.79,Lagging
+2026-05-20,XLP,Consumer Staples,90.76,0.46,Improving
+2026-05-20,XLE,Energy,101.73,5.29,Leading
+2026-05-20,XLB,Materials,87.47,-4.15,Lagging
+2026-05-20,XLU,Utilities,89.74,-2.43,Lagging
+2026-05-20,XLRE,Real Estate,95.24,-1.19,Lagging
+2026-05-20,XLC,Communication Services,92.49,-2.26,Lagging
+2026-05-21,XLK,Technology,118.29,1.24,Leading
+2026-05-21,XLF,Financials,93.91,0.25,Improving
+2026-05-21,XLV,Health Care,85.97,2.13,Improving
+2026-05-21,XLI,Industrials,89.62,-2.03,Lagging
+2026-05-21,XLY,Consumer Discretionary,94.77,-1.86,Lagging
+2026-05-21,XLP,Consumer Staples,87.68,-0.11,Lagging
+2026-05-21,XLE,Energy,98.88,5.09,Improving
+2026-05-21,XLB,Materials,86.93,-3.35,Lagging
+2026-05-21,XLU,Utilities,88.95,-0.06,Lagging
+2026-05-21,XLRE,Real Estate,94.13,-0.46,Lagging
+2026-05-21,XLC,Communication Services,92.51,-1.31,Lagging
+2026-05-22,XLK,Technology,118.33,0.65,Leading
+2026-05-22,XLF,Financials,94.14,0.58,Improving
+2026-05-22,XLV,Health Care,87.64,3.29,Improving
+2026-05-22,XLI,Industrials,89.48,-2.49,Lagging
+2026-05-22,XLY,Consumer Discretionary,94.04,-0.96,Lagging
+2026-05-22,XLP,Consumer Staples,87.36,0.74,Improving
+2026-05-22,XLE,Energy,99.9,3.07,Improving
+2026-05-22,XLB,Materials,87.03,-4.18,Lagging
+2026-05-22,XLU,Utilities,88.95,-0.35,Lagging
+2026-05-22,XLRE,Real Estate,94.31,-0.83,Lagging
+2026-05-22,XLC,Communication Services,91.67,-0.88,Lagging
+2026-05-26,XLK,Technology,119.38,4.51,Leading
+2026-05-26,XLF,Financials,92.53,-1.07,Lagging
+2026-05-26,XLV,Health Care,87.01,0.12,Improving
+2026-05-26,XLI,Industrials,91.67,-1.57,Lagging
+2026-05-26,XLY,Consumer Discretionary,94.14,-0.65,Lagging
+2026-05-26,XLP,Consumer Staples,87.02,-2.32,Lagging
+2026-05-26,XLE,Energy,97.73,-1.16,Lagging
+2026-05-26,XLB,Materials,88.9,-3.53,Lagging
+2026-05-26,XLU,Utilities,88.76,-1.21,Lagging
+2026-05-26,XLRE,Real Estate,95.43,-1.32,Lagging
+2026-05-26,XLC,Communication Services,91.64,-1.79,Lagging
+2026-05-27,XLK,Technology,119.95,3.67,Leading
+2026-05-27,XLF,Financials,90.18,-0.23,Lagging
+2026-05-27,XLV,Health Care,86.93,0.27,Improving
+2026-05-27,XLI,Industrials,90.61,-0.64,Lagging
+2026-05-27,XLY,Consumer Discretionary,95.31,1.2,Improving
+2026-05-27,XLP,Consumer Staples,87.68,-1.11,Lagging
+2026-05-27,XLE,Energy,95.45,-2.13,Lagging
+2026-05-27,XLB,Materials,88.85,-2.52,Lagging
+2026-05-27,XLU,Utilities,88.25,-0.04,Lagging
+2026-05-27,XLRE,Real Estate,94.33,-0.14,Lagging
+2026-05-27,XLC,Communication Services,91.53,-1.4,Lagging
+2026-05-28,XLK,Technology,122.23,3.8,Leading
+2026-05-28,XLF,Financials,90.84,-0.82,Lagging
+2026-05-28,XLV,Health Care,85.74,1.7,Improving
+2026-05-28,XLI,Industrials,89.2,-1.13,Lagging
+2026-05-28,XLY,Consumer Discretionary,94.88,1.84,Improving
+2026-05-28,XLP,Consumer Staples,85.52,-1.3,Lagging
+2026-05-28,XLE,Energy,92.93,-2.64,Lagging
+2026-05-28,XLB,Materials,87.57,-1.29,Lagging
+2026-05-28,XLU,Utilities,85.36,-1.25,Lagging
+2026-05-28,XLRE,Real Estate,92.46,0.26,Improving
+2026-05-28,XLC,Communication Services,89.89,-1.11,Lagging
+2026-05-29,XLK,Technology,124.02,6.9,Leading
+2026-05-29,XLF,Financials,91.45,-1.27,Lagging
+2026-05-29,XLV,Health Care,85.67,0.56,Improving
+2026-05-29,XLI,Industrials,87.81,-1.16,Lagging
+2026-05-29,XLY,Consumer Discretionary,94.95,1.27,Improving
+2026-05-29,XLP,Consumer Staples,85.05,-3.81,Lagging
+2026-05-29,XLE,Energy,89.88,-7.25,Lagging
+2026-05-29,XLB,Materials,87.3,-0.56,Lagging
+2026-05-29,XLU,Utilities,85.44,-0.92,Lagging
+2026-05-29,XLRE,Real Estate,91.24,-0.52,Lagging
+2026-05-29,XLC,Communication Services,89.1,-2.39,Lagging
+2026-06-01,XLK,Technology,127.5,10.88,Leading
+2026-06-01,XLF,Financials,90.29,-2.99,Lagging
+2026-06-01,XLV,Health Care,84.71,-1.03,Lagging
+2026-06-01,XLI,Industrials,88.14,-1.51,Lagging
+2026-06-01,XLY,Consumer Discretionary,92.63,-0.99,Lagging
+2026-06-01,XLP,Consumer Staples,84.09,-6.34,Lagging
+2026-06-01,XLE,Energy,91.27,-7.82,Lagging
+2026-06-01,XLB,Materials,88.08,-1.13,Lagging
+2026-06-01,XLU,Utilities,82.47,-3.87,Lagging
+2026-06-01,XLRE,Real Estate,89.16,-3.42,Lagging
+2026-06-01,XLC,Communication Services,87.94,-3.44,Lagging
+2026-06-02,XLK,Technology,127.66,12.15,Leading
+2026-06-02,XLF,Financials,90.35,-2.53,Lagging
+2026-06-02,XLV,Health Care,84.2,-3.51,Lagging
+2026-06-02,XLI,Industrials,89.29,-0.25,Lagging
+2026-06-02,XLY,Consumer Discretionary,91.06,-1.15,Lagging
+2026-06-02,XLP,Consumer Staples,84.93,-7.57,Lagging
+2026-06-02,XLE,Energy,93.39,-8.84,Lagging
+2026-06-02,XLB,Materials,89.66,1.31,Improving
+2026-06-02,XLU,Utilities,84.13,-3.84,Lagging
+2026-06-02,XLRE,Real Estate,90.0,-4.13,Lagging
+2026-06-02,XLC,Communication Services,86.28,-4.83,Lagging
+2026-06-03,XLK,Technology,126.26,10.29,Leading
+2026-06-03,XLF,Financials,89.91,-3.0,Lagging
+2026-06-03,XLV,Health Care,86.72,-1.27,Lagging
+2026-06-03,XLI,Industrials,91.38,0.17,Improving
+2026-06-03,XLY,Consumer Discretionary,90.41,-2.54,Lagging
+2026-06-03,XLP,Consumer Staples,87.14,-5.15,Lagging
+2026-06-03,XLE,Energy,94.25,-3.43,Lagging
+2026-06-03,XLB,Materials,91.91,1.85,Improving
+2026-06-03,XLU,Utilities,84.54,-3.06,Lagging
+2026-06-03,XLRE,Real Estate,91.05,-3.55,Lagging
+2026-06-03,XLC,Communication Services,85.52,-4.62,Lagging
+2026-06-04,XLK,Technology,124.77,7.18,Leading
+2026-06-04,XLF,Financials,91.88,-0.95,Lagging
+2026-06-04,XLV,Health Care,88.57,0.62,Improving
+2026-06-04,XLI,Industrials,92.07,1.22,Improving
+2026-06-04,XLY,Consumer Discretionary,90.93,-2.9,Lagging
+2026-06-04,XLP,Consumer Staples,85.18,-4.42,Lagging
+2026-06-04,XLE,Energy,92.58,-2.4,Lagging
+2026-06-04,XLB,Materials,92.1,1.13,Improving
+2026-06-04,XLU,Utilities,83.85,-3.68,Lagging
+2026-06-04,XLRE,Real Estate,92.3,-2.0,Lagging
+2026-06-04,XLC,Communication Services,85.56,-3.96,Lagging
+2026-06-05,XLK,Technology,118.46,1.23,Leading
+2026-06-05,XLF,Financials,95.79,1.69,Improving
+2026-06-05,XLV,Health Care,91.34,2.83,Improving
+2026-06-05,XLI,Industrials,93.71,2.3,Improving
+2026-06-05,XLY,Consumer Discretionary,92.11,-2.43,Lagging
+2026-06-05,XLP,Consumer Staples,89.51,-0.47,Lagging
+2026-06-05,XLE,Energy,94.52,-1.93,Lagging
+2026-06-05,XLB,Materials,93.3,1.63,Improving
+2026-06-05,XLU,Utilities,87.43,-1.0,Lagging
+2026-06-05,XLRE,Real Estate,96.02,1.34,Improving
+2026-06-05,XLC,Communication Services,87.4,-1.99,Lagging
+2026-06-08,XLK,Technology,120.54,1.21,Leading
+2026-06-08,XLF,Financials,95.33,1.66,Improving
+2026-06-08,XLV,Health Care,91.43,3.83,Improving
+2026-06-08,XLI,Industrials,93.56,1.06,Improving
+2026-06-08,XLY,Consumer Discretionary,92.3,-1.8,Lagging
+2026-06-08,XLP,Consumer Staples,89.03,0.76,Improving
+2026-06-08,XLE,Energy,96.47,2.24,Improving
+2026-06-08,XLB,Materials,91.91,-0.47,Lagging
+2026-06-08,XLU,Utilities,85.99,-2.22,Lagging
+2026-06-08,XLRE,Real Estate,94.35,-0.01,Lagging
+2026-06-08,XLC,Communication Services,86.74,-2.12,Lagging
+2026-06-09,XLK,Technology,117.95,-0.24,Weakening
+2026-06-09,XLF,Financials,97.21,3.63,Improving
+2026-06-09,XLV,Health Care,92.92,5.07,Improving
+2026-06-09,XLI,Industrials,95.08,2.39,Improving
+2026-06-09,XLY,Consumer Discretionary,93.09,-2.82,Lagging
+2026-06-09,XLP,Consumer Staples,91.49,1.12,Improving
+2026-06-09,XLE,Energy,92.77,2.29,Improving
+2026-06-09,XLB,Materials,93.63,0.93,Improving
+2026-06-09,XLU,Utilities,87.78,-0.71,Lagging
+2026-06-09,XLRE,Real Estate,97.69,2.47,Improving
+2026-06-09,XLC,Communication Services,87.47,-2.12,Lagging
+2026-06-10,XLK,Technology,117.48,-1.99,Weakening
+2026-06-10,XLF,Financials,98.44,5.54,Improving
+2026-06-10,XLV,Health Care,93.59,4.78,Improving
+2026-06-10,XLI,Industrials,94.28,1.43,Improving
+2026-06-10,XLY,Consumer Discretionary,93.37,-3.17,Lagging
+2026-06-10,XLP,Consumer Staples,93.44,4.73,Improving
+2026-06-10,XLE,Energy,93.35,5.61,Improving
+2026-06-10,XLB,Materials,91.82,0.42,Improving
+2026-06-10,XLU,Utilities,87.25,2.17,Improving
+2026-06-10,XLRE,Real Estate,98.42,5.02,Improving
+2026-06-10,XLC,Communication Services,88.46,-0.92,Lagging
+2026-06-11,XLK,Technology,120.05,-2.02,Weakening
+2026-06-11,XLF,Financials,96.85,4.26,Improving
+2026-06-11,XLV,Health Care,92.47,4.99,Improving
+2026-06-11,XLI,Industrials,95.5,3.44,Improving
+2026-06-11,XLY,Consumer Discretionary,94.11,-1.28,Lagging
+2026-06-11,XLP,Consumer Staples,90.59,4.69,Improving
+2026-06-11,XLE,Energy,89.21,3.47,Improving
+2026-06-11,XLB,Materials,93.64,2.44,Improving
+2026-06-11,XLU,Utilities,84.57,1.4,Improving
+2026-06-11,XLRE,Real Estate,95.82,4.31,Improving
+2026-06-11,XLC,Communication Services,87.98,-0.55,Lagging
+2026-06-12,XLK,Technology,119.93,-4.3,Weakening
+2026-06-12,XLF,Financials,97.82,5.59,Improving
+2026-06-12,XLV,Health Care,91.99,5.53,Improving
+2026-06-12,XLI,Industrials,95.7,4.13,Improving
+2026-06-12,XLY,Consumer Discretionary,93.67,0.82,Improving
+2026-06-12,XLP,Consumer Staples,91.35,5.97,Improving
+2026-06-12,XLE,Energy,89.99,2.37,Improving
+2026-06-12,XLB,Materials,95.44,4.37,Improving
+2026-06-12,XLU,Utilities,85.35,4.57,Improving
+2026-06-12,XLRE,Real Estate,96.47,6.48,Improving
+2026-06-12,XLC,Communication Services,87.36,-1.1,Lagging
+2026-06-15,XLK,Technology,121.96,-3.3,Weakening
+2026-06-15,XLF,Financials,96.27,4.35,Improving
+2026-06-15,XLV,Health Care,90.92,4.4,Improving
+2026-06-15,XLI,Industrials,95.37,2.98,Improving
+2026-06-15,XLY,Consumer Discretionary,93.03,1.34,Improving
+2026-06-15,XLP,Consumer Staples,89.94,4.38,Improving
+2026-06-15,XLE,Energy,84.69,-3.12,Lagging
+2026-06-15,XLB,Materials,94.38,2.34,Improving
+2026-06-15,XLU,Utilities,84.72,2.11,Improving
+2026-06-15,XLRE,Real Estate,93.96,3.7,Improving
+2026-06-15,XLC,Communication Services,86.46,-0.52,Lagging
+2026-06-16,XLK,Technology,118.95,-5.6,Weakening
+2026-06-16,XLF,Financials,98.07,6.76,Improving
+2026-06-16,XLV,Health Care,91.75,3.69,Improving
+2026-06-16,XLI,Industrials,95.99,3.58,Improving
+2026-06-16,XLY,Consumer Discretionary,94.37,1.86,Improving
+2026-06-16,XLP,Consumer Staples,91.56,4.12,Improving
+2026-06-16,XLE,Energy,83.84,-4.61,Lagging
+2026-06-16,XLB,Materials,96.03,2.47,Improving
+2026-06-16,XLU,Utilities,85.36,2.99,Improving
+2026-06-16,XLRE,Real Estate,94.99,3.82,Improving
+2026-06-16,XLC,Communication Services,87.15,0.64,Improving
+2026-06-17,XLK,Technology,119.34,-2.09,Weakening
+2026-06-17,XLF,Financials,98.48,5.41,Improving
+2026-06-17,XLV,Health Care,91.66,1.14,Improving
+2026-06-17,XLI,Industrials,97.49,3.9,Improving
+2026-06-17,XLY,Consumer Discretionary,93.68,0.59,Improving
+2026-06-17,XLP,Consumer Staples,91.17,3.69,Improving
+2026-06-17,XLE,Energy,82.32,-4.26,Lagging
+2026-06-17,XLB,Materials,97.2,2.8,Improving
+2026-06-17,XLU,Utilities,85.43,2.8,Improving
+2026-06-17,XLRE,Real Estate,93.77,1.1,Improving
+2026-06-17,XLC,Communication Services,85.99,-1.18,Lagging
+2026-06-18,XLK,Technology,122.74,5.4,Leading
+2026-06-18,XLF,Financials,95.04,0.86,Improving
+2026-06-18,XLV,Health Care,89.42,-3.54,Lagging
+2026-06-18,XLI,Industrials,97.21,2.21,Improving
+2026-06-18,XLY,Consumer Discretionary,94.39,0.46,Improving
+2026-06-18,XLP,Consumer Staples,89.27,-1.5,Lagging
+2026-06-18,XLE,Energy,79.05,-7.01,Lagging
+2026-06-18,XLB,Materials,95.96,0.77,Improving
+2026-06-18,XLU,Utilities,87.45,-0.5,Lagging
+2026-06-18,XLRE,Real Estate,94.24,-3.25,Lagging
+2026-06-18,XLC,Communication Services,84.75,-3.02,Lagging
+2026-06-22,XLK,Technology,123.36,4.13,Leading
+2026-06-22,XLF,Financials,96.05,2.53,Improving
+2026-06-22,XLV,Health Care,91.43,-2.06,Lagging
+2026-06-22,XLI,Industrials,98.16,3.74,Improving
+2026-06-22,XLY,Consumer Discretionary,91.84,-1.06,Lagging
+2026-06-22,XLP,Consumer Staples,89.51,-1.21,Lagging
+2026-06-22,XLE,Energy,80.19,-6.54,Lagging
+2026-06-22,XLB,Materials,95.69,2.54,Improving
+2026-06-22,XLU,Utilities,88.26,2.09,Improving
+2026-06-22,XLRE,Real Estate,96.0,-0.1,Lagging
+2026-06-22,XLC,Communication Services,83.47,-3.91,Lagging
+2026-06-23,XLK,Technology,120.29,2.63,Leading
+2026-06-23,XLF,Financials,97.44,3.1,Improving
+2026-06-23,XLV,Health Care,93.76,-0.85,Lagging
+2026-06-23,XLI,Industrials,96.71,1.82,Improving
+2026-06-23,XLY,Consumer Discretionary,92.3,-1.32,Lagging
+2026-06-23,XLP,Consumer Staples,92.31,0.42,Improving
+2026-06-23,XLE,Energy,80.07,-3.52,Lagging
+2026-06-23,XLB,Materials,93.6,0.73,Improving
+2026-06-23,XLU,Utilities,89.34,2.9,Improving
+2026-06-23,XLRE,Real Estate,99.26,0.35,Improving
+2026-06-23,XLC,Communication Services,85.95,-2.95,Lagging
+2026-06-24,XLK,Technology,119.73,2.79,Leading
+2026-06-24,XLF,Financials,97.62,1.77,Improving
+2026-06-24,XLV,Health Care,94.1,-0.53,Lagging
+2026-06-24,XLI,Industrials,97.76,4.72,Improving
+2026-06-24,XLY,Consumer Discretionary,93.03,0.24,Improving
+2026-06-24,XLP,Consumer Staples,93.2,-1.76,Lagging
+2026-06-24,XLE,Energy,79.59,-7.48,Lagging
+2026-06-24,XLB,Materials,92.86,1.97,Improving
+2026-06-24,XLU,Utilities,90.49,2.45,Improving
+2026-06-24,XLRE,Real Estate,99.62,-1.53,Lagging
+2026-06-24,XLC,Communication Services,85.64,-4.55,Lagging
+2026-06-25,XLK,Technology,122.21,1.3,Leading
+2026-06-25,XLF,Financials,95.82,2.02,Improving
+2026-06-25,XLV,Health Care,93.98,1.54,Improving
+2026-06-25,XLI,Industrials,100.29,5.32,Leading
+2026-06-25,XLY,Consumer Discretionary,91.45,-1.99,Lagging
+2026-06-25,XLP,Consumer Staples,91.28,-0.61,Lagging
+2026-06-25,XLE,Energy,77.6,-3.59,Lagging
+2026-06-25,XLB,Materials,92.88,1.65,Improving
+2026-06-25,XLU,Utilities,89.2,4.23,Improving
+2026-06-25,XLRE,Real Estate,97.83,0.34,Improving
+2026-06-25,XLC,Communication Services,85.25,-4.85,Lagging
+2026-06-26,XLK,Technology,121.09,-0.51,Weakening
+2026-06-26,XLF,Financials,97.55,2.18,Improving
+2026-06-26,XLV,Health Care,97.53,5.75,Improving
+2026-06-26,XLI,Industrials,98.99,4.39,Improving
+2026-06-26,XLY,Consumer Discretionary,94.08,-0.24,Lagging
+2026-06-26,XLP,Consumer Staples,90.49,0.78,Improving
+2026-06-26,XLE,Energy,75.2,-3.44,Lagging
+2026-06-26,XLB,Materials,91.87,0.67,Improving
+2026-06-26,XLU,Utilities,88.48,4.98,Improving
+2026-06-26,XLRE,Real Estate,98.96,2.04,Improving
+2026-06-26,XLC,Communication Services,86.29,-2.88,Lagging
+2026-06-29,XLK,Technology,123.85,-2.09,Weakening
+2026-06-29,XLF,Financials,94.83,2.1,Improving
+2026-06-29,XLV,Health Care,95.49,6.49,Improving
+2026-06-29,XLI,Industrials,99.52,3.99,Improving
+2026-06-29,XLY,Consumer Discretionary,94.48,0.53,Improving
+2026-06-29,XLP,Consumer Staples,88.26,0.86,Improving
+2026-06-29,XLE,Energy,74.09,-0.97,Lagging
+2026-06-29,XLB,Materials,88.12,-1.42,Lagging
+2026-06-29,XLU,Utilities,85.8,4.22,Improving
+2026-06-29,XLRE,Real Estate,95.86,2.19,Improving
+2026-06-29,XLC,Communication Services,85.23,-1.78,Lagging
+2026-06-30,XLK,Technology,124.67,3.08,Leading
+2026-06-30,XLF,Financials,94.65,-0.76,Lagging
+2026-06-30,XLV,Health Care,94.42,4.0,Improving
+2026-06-30,XLI,Industrials,99.73,3.34,Improving
+2026-06-30,XLY,Consumer Discretionary,93.67,-0.55,Lagging
+2026-06-30,XLP,Consumer Staples,88.63,-1.86,Lagging
+2026-06-30,XLE,Energy,75.85,-2.48,Lagging
+2026-06-30,XLB,Materials,88.69,-2.76,Lagging
+2026-06-30,XLU,Utilities,86.37,1.26,Improving
+2026-06-30,XLRE,Real Estate,94.49,-1.25,Lagging
+2026-06-30,XLC,Communication Services,84.16,-3.66,Lagging
+2026-07-01,XLK,Technology,120.72,-1.07,Weakening
+2026-07-01,XLF,Financials,97.44,0.77,Improving
+2026-07-01,XLV,Health Care,95.06,4.84,Improving
+2026-07-01,XLI,Industrials,97.97,1.38,Improving
+2026-07-01,XLY,Consumer Discretionary,94.44,1.43,Improving
+2026-07-01,XLP,Consumer Staples,90.24,-0.6,Lagging
+2026-07-01,XLE,Energy,79.05,-2.94,Lagging
+2026-07-01,XLB,Materials,88.94,-2.22,Lagging
+2026-07-01,XLU,Utilities,85.63,0.37,Improving
+2026-07-01,XLRE,Real Estate,95.38,0.42,Improving
+2026-07-01,XLC,Communication Services,86.68,-0.13,Lagging
+2026-07-02,XLK,Technology,116.78,-6.54,Weakening
+2026-07-02,XLF,Financials,98.98,4.23,Improving
+2026-07-02,XLV,Health Care,98.39,9.25,Improving
+2026-07-02,XLI,Industrials,98.87,2.11,Improving
+2026-07-02,XLY,Consumer Discretionary,95.3,0.41,Improving
+2026-07-02,XLP,Consumer Staples,91.79,2.68,Improving
+2026-07-02,XLE,Energy,79.46,-0.04,Lagging
+2026-07-02,XLB,Materials,90.96,0.92,Improving
+2026-07-02,XLU,Utilities,87.29,2.67,Improving
+2026-07-02,XLRE,Real Estate,95.14,2.8,Improving
+2026-07-02,XLC,Communication Services,86.4,0.57,Improving
+2026-07-06,XLK,Technology,117.55,-6.63,Weakening
+2026-07-06,XLF,Financials,98.81,3.42,Improving
+2026-07-06,XLV,Health Care,97.29,6.31,Improving
+2026-07-06,XLI,Industrials,98.86,1.11,Improving
+2026-07-06,XLY,Consumer Discretionary,94.87,1.61,Improving
+2026-07-06,XLP,Consumer Staples,89.62,1.24,Improving
+2026-07-06,XLE,Energy,78.44,-2.11,Lagging
+2026-07-06,XLB,Materials,90.89,-0.21,Lagging
+2026-07-06,XLU,Utilities,86.38,0.32,Improving
+2026-07-06,XLRE,Real Estate,93.6,-0.29,Lagging
+2026-07-06,XLC,Communication Services,86.49,1.85,Improving
+2026-07-07,XLK,Technology,114.79,-5.48,Weakening
+2026-07-07,XLF,Financials,99.16,2.0,Improving
+2026-07-07,XLV,Health Care,99.1,5.62,Improving
+2026-07-07,XLI,Industrials,97.87,0.43,Improving
+2026-07-07,XLY,Consumer Discretionary,95.98,1.18,Improving
+2026-07-07,XLP,Consumer Staples,92.47,-0.51,Lagging
+2026-07-07,XLE,Energy,80.45,-1.28,Lagging
+2026-07-07,XLB,Materials,90.79,-0.6,Lagging
+2026-07-07,XLU,Utilities,87.41,-0.46,Lagging
+2026-07-07,XLRE,Real Estate,95.45,-1.3,Lagging
+2026-07-07,XLC,Communication Services,87.54,1.33,Improving
+2026-07-08,XLK,Technology,115.95,-3.0,Weakening
+2026-07-08,XLF,Financials,97.46,0.64,Improving
+2026-07-08,XLV,Health Care,98.52,3.89,Improving
+2026-07-08,XLI,Industrials,95.99,-1.48,Lagging
+2026-07-08,XLY,Consumer Discretionary,94.3,-1.37,Lagging
+2026-07-08,XLP,Consumer Staples,92.86,-1.6,Lagging
+2026-07-08,XLE,Energy,87.26,1.79,Improving
+2026-07-08,XLB,Materials,88.01,-3.24,Lagging
+2026-07-08,XLU,Utilities,88.27,-1.82,Lagging
+2026-07-08,XLRE,Real Estate,94.93,-2.36,Lagging
+2026-07-08,XLC,Communication Services,87.23,0.92,Improving
+2026-07-09,XLK,Technology,117.84,-2.29,Weakening
+2026-07-09,XLF,Financials,97.96,1.45,Improving
+2026-07-09,XLV,Health Care,98.41,1.73,Improving
+2026-07-09,XLI,Industrials,95.12,-3.87,Lagging
+2026-07-09,XLY,Consumer Discretionary,93.69,0.65,Improving
+2026-07-09,XLP,Consumer Staples,90.57,-2.97,Lagging
+2026-07-09,XLE,Energy,86.89,-0.88,Lagging
+2026-07-09,XLB,Materials,88.08,-4.92,Lagging
+2026-07-09,XLU,Utilities,86.9,-3.48,Lagging
+2026-07-09,XLRE,Real Estate,94.2,-3.02,Lagging
+2026-07-09,XLC,Communication Services,87.47,1.92,Improving
+2026-07-10,XLK,Technology,117.08,-1.12,Weakening
+2026-07-10,XLF,Financials,98.85,0.41,Improving
+2026-07-10,XLV,Health Care,98.45,-3.19,Lagging
+2026-07-10,XLI,Industrials,95.45,-3.01,Lagging
+2026-07-10,XLY,Consumer Discretionary,93.41,-0.96,Lagging
+2026-07-10,XLP,Consumer Staples,92.31,-3.96,Lagging
+2026-07-10,XLE,Energy,87.46,-1.08,Lagging
+2026-07-10,XLB,Materials,88.25,-4.42,Lagging
+2026-07-10,XLU,Utilities,87.36,-4.68,Lagging
+2026-07-10,XLRE,Real Estate,94.0,-5.08,Lagging
+2026-07-10,XLC,Communication Services,88.18,1.33,Improving
+2026-07-13,XLK,Technology,113.86,-3.88,Weakening
+2026-07-13,XLF,Financials,99.49,3.12,Improving
+2026-07-13,XLV,Health Care,100.08,-0.68,Weakening
+2026-07-13,XLI,Industrials,95.62,-2.34,Lagging
+2026-07-13,XLY,Consumer Discretionary,93.23,-1.91,Lagging
+2026-07-13,XLP,Consumer Staples,95.41,-0.8,Lagging
+2026-07-13,XLE,Energy,91.41,4.14,Improving
+2026-07-13,XLB,Materials,88.86,-1.12,Lagging
+2026-07-13,XLU,Utilities,90.6,-1.6,Lagging
+2026-07-13,XLRE,Real Estate,95.74,-1.53,Lagging
+2026-07-13,XLC,Communication Services,89.01,2.01,Improving
+2026-07-14,XLK,Technology,114.49,-5.11,Weakening
+2026-07-14,XLF,Financials,100.31,3.94,Leading
+2026-07-14,XLV,Health Care,98.42,-0.9,Lagging
+2026-07-14,XLI,Industrials,96.14,-3.22,Lagging
+2026-07-14,XLY,Consumer Discretionary,91.89,-1.72,Lagging
+2026-07-14,XLP,Consumer Staples,94.99,-0.24,Lagging
+2026-07-14,XLE,Energy,94.45,5.77,Improving
+2026-07-14,XLB,Materials,90.04,-0.95,Lagging
+2026-07-14,XLU,Utilities,91.16,0.09,Improving
+2026-07-14,XLRE,Real Estate,95.19,0.32,Improving
+2026-07-14,XLC,Communication Services,88.32,2.85,Improving
+2026-07-15,XLK,Technology,111.87,-3.88,Weakening
+2026-07-15,XLF,Financials,100.63,1.98,Leading
+2026-07-15,XLV,Health Care,99.51,-2.0,Lagging
+2026-07-15,XLI,Industrials,97.53,-2.99,Lagging
+2026-07-15,XLY,Consumer Discretionary,91.75,-1.98,Lagging
+2026-07-15,XLP,Consumer Staples,95.9,-0.97,Lagging
+2026-07-15,XLE,Energy,94.4,5.09,Improving
+2026-07-15,XLB,Materials,91.25,-2.06,Lagging
+2026-07-15,XLU,Utilities,91.46,-0.19,Lagging
+2026-07-15,XLRE,Real Estate,95.77,-0.34,Lagging
+2026-07-15,XLC,Communication Services,89.59,1.82,Improving
+2026-07-16,XLK,Technology,108.99,-2.77,Weakening
+2026-07-16,XLF,Financials,102.04,1.23,Leading
+2026-07-16,XLV,Health Care,103.34,-2.07,Weakening
+2026-07-16,XLI,Industrials,98.84,-2.87,Lagging
+2026-07-16,XLY,Consumer Discretionary,93.18,-0.57,Lagging
+2026-07-16,XLP,Consumer Staples,98.92,0.16,Improving
+2026-07-16,XLE,Energy,94.63,5.6,Improving
+2026-07-16,XLB,Materials,92.02,-2.78,Lagging
+2026-07-16,XLU,Utilities,92.04,-1.33,Lagging
+2026-07-16,XLRE,Real Estate,97.58,0.91,Improving
+2026-07-16,XLC,Communication Services,88.61,1.71,Improving
+2026-07-17,XLK,Technology,108.54,-3.73,Weakening
+2026-07-17,XLF,Financials,102.61,1.31,Leading
+2026-07-17,XLV,Health Care,103.62,0.55,Leading
+2026-07-17,XLI,Industrials,98.78,-2.3,Lagging
+2026-07-17,XLY,Consumer Discretionary,91.54,-1.04,Lagging
+2026-07-17,XLP,Consumer Staples,99.13,2.31,Improving
+2026-07-17,XLE,Energy,100.62,8.92,Leading
+2026-07-17,XLB,Materials,93.16,-1.65,Lagging
+2026-07-17,XLU,Utilities,93.85,0.73,Improving
+2026-07-17,XLRE,Real Estate,98.16,3.46,Improving
+2026-07-17,XLC,Communication Services,88.76,1.29,Improving
+2026-07-20,XLK,Technology,108.42,-1.31,Weakening
+2026-07-20,XLF,Financials,101.79,0.75,Leading
+2026-07-20,XLV,Health Care,103.36,-2.57,Weakening
+2026-07-20,XLI,Industrials,97.81,-1.59,Lagging
+2026-07-20,XLY,Consumer Discretionary,91.26,-1.51,Lagging
+2026-07-20,XLP,Consumer Staples,98.79,0.74,Improving
+2026-07-20,XLE,Energy,100.95,6.46,Leading
+2026-07-20,XLB,Materials,91.59,-2.0,Lagging
+2026-07-20,XLU,Utilities,94.17,-0.87,Lagging
+2026-07-20,XLRE,Real Estate,97.36,1.46,Improving
+2026-07-20,XLC,Communication Services,89.11,0.49,Improving
+2026-07-21,XLK,Technology,109.81,-0.8,Weakening
+2026-07-21,XLF,Financials,101.04,1.67,Leading
+2026-07-21,XLV,Health Care,103.52,-1.73,Weakening
+2026-07-21,XLI,Industrials,98.04,-1.35,Lagging
+2026-07-21,XLY,Consumer Discretionary,90.8,-0.69,Lagging
+2026-07-21,XLP,Consumer Staples,97.07,-0.76,Lagging
+2026-07-21,XLE,Energy,98.98,4.54,Improving
+2026-07-21,XLB,Materials,91.16,-0.46,Lagging
+2026-07-21,XLU,Utilities,94.39,-1.29,Lagging
+2026-07-21,XLRE,Real Estate,97.74,1.9,Improving
+2026-07-21,XLC,Communication Services,88.37,0.12,Improving
+2026-07-22,XLK,Technology,108.36,-2.42,Weakening
+2026-07-22,XLF,Financials,102.25,1.51,Leading
+2026-07-22,XLV,Health Care,103.83,-1.18,Weakening
+2026-07-22,XLI,Industrials,99.49,-0.68,Lagging
+2026-07-22,XLY,Consumer Discretionary,91.17,-1.73,Lagging
+2026-07-22,XLP,Consumer Staples,98.21,1.93,Improving
+2026-07-22,XLE,Energy,100.09,7.94,Leading
+2026-07-22,XLB,Materials,93.41,1.56,Improving
+2026-07-22,XLU,Utilities,97.77,2.25,Improving
+2026-07-22,XLRE,Real Estate,99.16,2.28,Improving
+2026-07-22,XLC,Communication Services,88.15,-0.55,Lagging
+2026-07-23,XLK,Technology,109.74,-1.97,Weakening
+2026-07-23,XLF,Financials,103.53,2.52,Leading
+2026-07-23,XLV,Health Care,106.14,2.74,Leading
+2026-07-23,XLI,Industrials,100.3,2.24,Leading
+2026-07-23,XLY,Consumer Discretionary,88.6,-4.79,Lagging
+2026-07-23,XLP,Consumer Staples,96.08,1.11,Improving
+2026-07-23,XLE,Energy,100.48,9.35,Leading
+2026-07-23,XLB,Materials,93.26,0.98,Improving
+2026-07-23,XLU,Utilities,96.55,3.74,Improving
+2026-07-23,XLRE,Real Estate,98.74,3.27,Improving
+2026-07-23,XLC,Communication Services,86.16,-3.09,Lagging
+2026-07-24,XLK,Technology,105.92,-1.76,Weakening
+2026-07-24,XLF,Financials,105.9,1.89,Leading
+2026-07-24,XLV,Health Care,109.14,2.26,Leading
+2026-07-24,XLI,Industrials,102.31,2.66,Leading
+2026-07-24,XLY,Consumer Discretionary,89.01,-4.1,Lagging
+2026-07-24,XLP,Consumer Staples,98.09,0.81,Improving
+2026-07-24,XLE,Energy,101.76,6.24,Leading
+2026-07-24,XLB,Materials,95.5,2.55,Improving
+2026-07-24,XLU,Utilities,97.22,2.51,Improving
+2026-07-24,XLRE,Real Estate,101.92,4.13,Leading
+2026-07-24,XLC,Communication Services,88.89,-3.15,Lagging
+2026-07-27,XLK,Technology,104.89,-3.74,Weakening
+2026-07-27,XLF,Financials,106.33,3.09,Leading
+2026-07-27,XLV,Health Care,110.41,5.27,Leading
+2026-07-27,XLI,Industrials,102.75,3.26,Leading
+2026-07-27,XLY,Consumer Discretionary,90.96,-2.54,Lagging
+2026-07-27,XLP,Consumer Staples,100.75,3.96,Leading
+2026-07-27,XLE,Energy,99.93,4.07,Improving
+2026-07-27,XLB,Materials,96.15,3.01,Improving
+2026-07-27,XLU,Utilities,96.06,1.61,Improving
+2026-07-27,XLRE,Real Estate,102.44,4.55,Leading
+2026-07-27,XLC,Communication Services,89.96,-1.59,Lagging
+2026-07-28,XLK,Technology,103.98,-4.34,Weakening
+2026-07-28,XLF,Financials,106.81,3.87,Leading
+2026-07-28,XLV,Health Care,111.91,7.96,Leading
+2026-07-28,XLI,Industrials,102.52,3.23,Leading
+2026-07-28,XLY,Consumer Discretionary,92.29,-1.93,Lagging
+2026-07-28,XLP,Consumer Staples,101.1,5.96,Leading
+2026-07-28,XLE,Energy,96.27,3.54,Improving
+2026-07-28,XLB,Materials,97.93,5.19,Improving
+2026-07-28,XLU,Utilities,94.91,2.37,Improving
+2026-07-28,XLRE,Real Estate,101.28,5.0,Leading
+2026-07-28,XLC,Communication Services,91.02,-1.34,Lagging
+2026-07-29,XLK,Technology,101.98,-3.63,Weakening
+2026-07-29,XLF,Financials,106.59,2.89,Leading
+2026-07-29,XLV,Health Care,113.74,6.17,Leading
+2026-07-29,XLI,Industrials,101.4,0.93,Leading
+2026-07-29,XLY,Consumer Discretionary,93.13,-2.01,Lagging
+2026-07-29,XLP,Consumer Staples,103.22,4.7,Leading
+2026-07-29,XLE,Energy,97.37,5.39,Improving
+2026-07-29,XLB,Materials,99.16,4.39,Improving
+2026-07-29,XLU,Utilities,96.27,1.56,Improving
+2026-07-29,XLRE,Real Estate,103.37,4.02,Leading
+2026-07-29,XLC,Communication Services,92.66,0.04,Improving
+2026-07-30,XLK,Technology,106.61,0.31,Leading
+2026-07-30,XLF,Financials,106.04,1.6,Leading
+2026-07-30,XLV,Health Care,108.73,1.85,Leading
+2026-07-30,XLI,Industrials,99.0,-0.35,Lagging
+2026-07-30,XLY,Consumer Discretionary,91.96,-2.29,Lagging
+2026-07-30,XLP,Consumer Staples,98.66,0.53,Improving
+2026-07-30,XLE,Energy,96.22,2.29,Improving
+2026-07-30,XLB,Materials,97.33,2.3,Improving
+2026-07-30,XLU,Utilities,92.72,-0.86,Lagging
+2026-07-30,XLRE,Real Estate,99.47,-0.05,Lagging
+2026-07-30,XLC,Communication Services,88.64,-3.19,Lagging
+2026-07-31,XLK,Technology,104.36,-0.91,Weakening
+2026-07-31,XLF,Financials,105.89,0.98,Leading
+2026-07-31,XLV,Health Care,108.22,1.49,Leading
+2026-07-31,XLI,Industrials,100.29,0.3,Leading
+2026-07-31,XLY,Consumer Discretionary,94.35,0.58,Improving
+2026-07-31,XLP,Consumer Staples,97.9,-0.43,Lagging
+2026-07-31,XLE,Energy,98.07,2.02,Improving
+2026-07-31,XLB,Materials,94.85,0.13,Improving
+2026-07-31,XLU,Utilities,92.26,-1.85,Lagging
+2026-07-31,XLRE,Real Estate,98.71,-1.01,Lagging
+2026-07-31,XLC,Communication Services,89.46,-2.73,Lagging
+2026-08-03,XLK,Technology,103.97,-2.92,Weakening
+2026-08-03,XLF,Financials,105.52,1.04,Leading
+2026-08-03,XLV,Health Care,106.42,-0.01,Weakening
+2026-08-03,XLI,Industrials,101.5,1.25,Leading
+2026-08-03,XLY,Consumer Discretionary,95.1,1.53,Improving
+2026-08-03,XLP,Consumer Staples,96.68,-0.29,Lagging
+2026-08-03,XLE,Energy,94.24,-0.71,Lagging
+2026-08-03,XLB,Materials,95.55,0.53,Improving
+2026-08-03,XLU,Utilities,91.0,-2.31,Lagging
+2026-08-03,XLRE,Real Estate,97.73,-1.27,Lagging
+2026-08-03,XLC,Communication Services,90.88,-0.06,Lagging
+2026-08-04,XLK,Technology,105.74,0.49,Leading
+2026-08-04,XLF,Financials,105.37,0.07,Leading
+2026-08-04,XLV,Health Care,104.87,-1.57,Weakening
+2026-08-04,XLI,Industrials,101.44,0.99,Leading
+2026-08-04,XLY,Consumer Discretionary,93.95,0.49,Improving
+2026-08-04,XLP,Consumer Staples,95.71,-1.92,Lagging
+2026-08-04,XLE,Energy,92.79,-4.08,Lagging
+2026-08-04,XLB,Materials,94.8,-0.81,Lagging
+2026-08-04,XLU,Utilities,89.6,-6.68,Lagging
+2026-08-04,XLRE,Real Estate,96.55,-2.74,Lagging
+2026-08-04,XLC,Communication Services,90.92,-0.53,Lagging
+2026-08-05,XLK,Technology,104.09,-0.1,Weakening
+2026-08-05,XLF,Financials,106.75,-0.41,Weakening
+2026-08-05,XLV,Health Care,107.83,-2.75,Weakening
+2026-08-05,XLI,Industrials,100.43,-1.82,Weakening
+2026-08-05,XLY,Consumer Discretionary,94.3,4.15,Improving
+2026-08-05,XLP,Consumer Staples,96.98,-1.64,Lagging
+2026-08-05,XLE,Energy,96.29,-7.75,Lagging
+2026-08-05,XLB,Materials,95.86,0.36,Improving
+2026-08-05,XLU,Utilities,91.4,-9.44,Lagging
+2026-08-05,XLRE,Real Estate,96.9,-3.59,Lagging
+2026-08-05,XLC,Communication Services,90.07,0.79,Improving

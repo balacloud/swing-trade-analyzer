@@ -1,0 +1,228 @@
+{
+  "mode": "quick",
+  "tickers": [
+    "AAPL",
+    "MSFT",
+    "NVDA",
+    "JPM",
+    "AMZN"
+  ],
+  "period": "2023-01-01 to 2024-12-31",
+  "timestamp": "2026-03-18T15:31:38.183588",
+  "parameters": {
+    "rs_threshold": {
+      "description": "RS 52-week threshold for Strong technical (categorical_engine line 51)",
+      "current": 1.0,
+      "values": [
+        0.9,
+        0.95,
+        1.0,
+        1.05,
+        1.1
+      ],
+      "profit_factors": [
+        1.1028,
+        1.122,
+        1.122,
+        1.2045,
+        1.2262
+      ],
+      "win_rates": [
+        44.87,
+        45.45,
+        45.45,
+        49.25,
+        51.67
+      ],
+      "trade_counts": [
+        78,
+        77,
+        77,
+        67,
+        60
+      ],
+      "avg_returns": [
+        0.2429,
+        0.2874,
+        0.2874,
+        0.4809,
+        0.5368
+      ],
+      "stable": true,
+      "fragile_at": []
+    },
+    "rsi_low": {
+      "description": "RSI lower bound for Strong technical",
+      "current": 50,
+      "values": [
+        45,
+        48,
+        50,
+        52,
+        55
+      ],
+      "profit_factors": [
+        1.1255,
+        1.1869,
+        1.122,
+        1.063,
+        0.8275
+      ],
+      "win_rates": [
+        45.88,
+        46.99,
+        45.45,
+        44.0,
+        39.29
+      ],
+      "trade_counts": [
+        85,
+        83,
+        77,
+        75,
+        56
+      ],
+      "avg_returns": [
+        0.3065,
+        0.4444,
+        0.2874,
+        0.1507,
+        -0.4634
+      ],
+      "stable": false,
+      "fragile_at": [
+        55
+      ]
+    },
+    "rsi_high": {
+      "description": "RSI upper bound for Strong technical",
+      "current": 70,
+      "values": [
+        65,
+        68,
+        70,
+        72,
+        75
+      ],
+      "profit_factors": [
+        1.4301,
+        1.0854,
+        1.122,
+        1.1087,
+        1.3366
+      ],
+      "win_rates": [
+        50.82,
+        44.59,
+        45.45,
+        44.44,
+        48.28
+      ],
+      "trade_counts": [
+        61,
+        74,
+        77,
+        81,
+        87
+      ],
+      "avg_returns": [
+        0.9455,
+        0.2049,
+        0.2874,
+        0.2558,
+        0.7438
+      ],
+      "stable": true,
+      "fragile_at": []
+    },
+    "pattern_confidence": {
+      "description": "Minimum pattern confidence for actionable signal",
+      "current": 60,
+      "values": [
+        50,
+        55,
+        60,
+        65,
+        70
+      ],
+      "profit_factors": [
+        1.122,
+        1.122,
+        1.122,
+        1.122,
+        1.122
+      ],
+      "win_rates": [
+        45.45,
+        45.45,
+        45.45,
+        45.45,
+        45.45
+      ],
+      "trade_counts": [
+        77,
+        77,
+        77,
+        77,
+        77
+      ],
+      "avg_returns": [
+        0.2874,
+        0.2874,
+        0.2874,
+        0.2874,
+        0.2874
+      ],
+      "stable": true,
+      "fragile_at": []
+    },
+    "stop_atr_multiple": {
+      "description": "ATR multiplier for stop-loss calculation",
+      "current": 2.0,
+      "values": [
+        1.5,
+        1.75,
+        2.0,
+        2.25,
+        2.5
+      ],
+      "profit_factors": [
+        0.9804,
+        1.1429,
+        1.122,
+        1.1722,
+        1.1795
+      ],
+      "win_rates": [
+        37.66,
+        42.86,
+        45.45,
+        48.05,
+        49.35
+      ],
+      "trade_counts": [
+        77,
+        77,
+        77,
+        77,
+        77
+      ],
+      "avg_returns": [
+        -0.0485,
+        0.3184,
+        0.2874,
+        0.4004,
+        0.4235
+      ],
+      "stable": false,
+      "fragile_at": [
+        1.5
+      ]
+    }
+  },
+  "summary": {
+    "stable": 3,
+    "fragile": 2,
+    "total": 5
+  }
+}

@@ -1,0 +1,6 @@
+Statement audit summary: validation_results/midsession_20261118
+  REPORT.md          PASS  4085 WRONG   1 MISLEADING   8 UNVERIFIED  246
+  REPORT_CARDS.md    PASS  4100 WRONG   2 MISLEADING  21 UNVERIFIED    9
+  REPORT_CARDS2.md   PASS  3687 WRONG   0 MISLEADING   1 UNVERIFIED  146
+WRONG rows: 3 (1 new since Universe_Audit_run3)
+  PLD        TS-inv       structural invariants on the zones (low<=high, width<=1 ATR, | shown "11 zones" vs "all hold"

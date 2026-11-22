@@ -1,0 +1,11 @@
+$SPY: possibly delisted; no price data found  (1d 2024-11-01 -> 2026-11-19)
+Traceback (most recent call last):
+  File "/Users/balajik/projects/swing-trade-analyzer/backend/audit_cards2.py", line 362, in <module>
+    sys.exit(main())
+  File "/Users/balajik/projects/swing-trade-analyzer/backend/audit_cards2.py", line 346, in main
+    for d in dumps: rows += CardAudit2(d, out).run_cards2().rows
+  File "/Users/balajik/projects/swing-trade-analyzer/backend/audit_cards2.py", line 84, in run_cards2
+    self.backdrop(); self.fundamentals(); self.mr(); return self
+  File "/Users/balajik/projects/swing-trade-analyzer/backend/audit_cards2.py", line 277, in mr
+    self.addc('MR-dv', 'average dollar volume = 20-bar mean of close x volume (completed bars)', f'{mr["avg_dollar_volume"]:,}', f'{adv:,.0f}', 'PASS' if near(mr['avg_dollar_volume'] / adv, 1.0, 0.01) else 'WRONG')
+TypeError: unsupported format string passed to NoneType.__format__

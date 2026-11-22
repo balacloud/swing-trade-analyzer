@@ -1,0 +1,945 @@
+{
+  "window": {
+    "start": "2025-08-07",
+    "end": "2026-08-07",
+    "trading_days": 250
+  },
+  "zero_regime_days": 12,
+  "signal_days": 98,
+  "signal_instances": 155,
+  "annualized_rate": 143.1,
+  "verdict": "VIABLE (>= 60/year) \u2014 proceed to backtest (Section 6)",
+  "rule6_earnings_applied": false,
+  "signals": [
+    {
+      "date": "2025-08-07",
+      "ticker": "CCL",
+      "sector": "Consumer Discretionary",
+      "rsRatio": 1.304
+    },
+    {
+      "date": "2025-08-07",
+      "ticker": "NKE",
+      "sector": "Consumer Staples",
+      "rsRatio": 1.13
+    },
+    {
+      "date": "2025-08-07",
+      "ticker": "AES",
+      "sector": "Utilities",
+      "rsRatio": 1.119
+    },
+    {
+      "date": "2025-08-08",
+      "ticker": "NKE",
+      "sector": "Consumer Staples",
+      "rsRatio": 1.121
+    },
+    {
+      "date": "2025-08-11",
+      "ticker": "EL",
+      "sector": "Consumer Staples",
+      "rsRatio": 1.3
+    },
+    {
+      "date": "2025-08-11",
+      "ticker": "NKE",
+      "sector": "Consumer Staples",
+      "rsRatio": 1.131
+    },
+    {
+      "date": "2025-08-11",
+      "ticker": "RL",
+      "sector": "Consumer Staples",
+      "rsRatio": 1.03
+    },
+    {
+      "date": "2025-08-11",
+      "ticker": "VST",
+      "sector": "Utilities",
+      "rsRatio": 1.306
+    },
+    {
+      "date": "2025-08-11",
+      "ticker": "CEG",
+      "sector": "Utilities",
+      "rsRatio": 1.082
+    },
+    {
+      "date": "2025-08-12",
+      "ticker": "NKE",
+      "sector": "Consumer Staples",
+      "rsRatio": 1.09
+    },
+    {
+      "date": "2025-08-20",
+      "ticker": "CVX",
+      "sector": "Energy",
+      "rsRatio": 1.045
+    },
+    {
+      "date": "2025-08-21",
+      "ticker": "HOOD",
+      "sector": "Financials",
+      "rsRatio": 1.522
+    },
+    {
+      "date": "2025-08-21",
+      "ticker": "IQV",
+      "sector": "Health Care",
+      "rsRatio": 1.235
+    },
+    {
+      "date": "2025-08-21",
+      "ticker": "NKE",
+      "sector": "Consumer Staples",
+      "rsRatio": 1.169
+    },
+    {
+      "date": "2025-08-21",
+      "ticker": "HSY",
+      "sector": "Consumer Staples",
+      "rsRatio": 1.092
+    },
+    {
+      "date": "2025-08-21",
+      "ticker": "NUE",
+      "sector": "Materials",
+      "rsRatio": 1.177
+    },
+    {
+      "date": "2025-08-21",
+      "ticker": "WBD",
+      "sector": "Communication Services",
+      "rsRatio": 1.184
+    },
+    {
+      "date": "2025-08-21",
+      "ticker": "META",
+      "sector": "Communication Services",
+      "rsRatio": 1.064
+    },
+    {
+      "date": "2025-08-22",
+      "ticker": "WBD",
+      "sector": "Communication Services",
+      "rsRatio": 1.204
+    },
+    {
+      "date": "2025-08-22",
+      "ticker": "META",
+      "sector": "Communication Services",
+      "rsRatio": 1.069
+    },
+    {
+      "date": "2025-08-25",
+      "ticker": "HOOD",
+      "sector": "Financials",
+      "rsRatio": 1.536
+    },
+    {
+      "date": "2025-08-26",
+      "ticker": "GNRC",
+      "sector": "Industrials",
+      "rsRatio": 1.372
+    },
+    {
+      "date": "2025-08-28",
+      "ticker": "HOOD",
+      "sector": "Financials",
+      "rsRatio": 1.47
+    },
+    {
+      "date": "2025-08-28",
+      "ticker": "GNRC",
+      "sector": "Industrials",
+      "rsRatio": 1.364
+    },
+    {
+      "date": "2025-08-29",
+      "ticker": "HOOD",
+      "sector": "Financials",
+      "rsRatio": 1.433
+    },
+    {
+      "date": "2025-09-02",
+      "ticker": "ALB",
+      "sector": "Materials",
+      "rsRatio": 1.341
+    },
+    {
+      "date": "2025-09-03",
+      "ticker": "ALB",
+      "sector": "Materials",
+      "rsRatio": 1.306
+    },
+    {
+      "date": "2025-09-04",
+      "ticker": "HOOD",
+      "sector": "Financials",
+      "rsRatio": 1.303
+    },
+    {
+      "date": "2025-09-25",
+      "ticker": "AES",
+      "sector": "Utilities",
+      "rsRatio": 1.133
+    },
+    {
+      "date": "2025-09-26",
+      "ticker": "URI",
+      "sector": "Financials",
+      "rsRatio": 1.168
+    },
+    {
+      "date": "2025-09-29",
+      "ticker": "URI",
+      "sector": "Financials",
+      "rsRatio": 1.165
+    },
+    {
+      "date": "2025-09-29",
+      "ticker": "AES",
+      "sector": "Utilities",
+      "rsRatio": 1.177
+    },
+    {
+      "date": "2025-09-30",
+      "ticker": "INCY",
+      "sector": "Health Care",
+      "rsRatio": 1.141
+    },
+    {
+      "date": "2025-10-07",
+      "ticker": "LITE",
+      "sector": "Industrials",
+      "rsRatio": 1.616
+    },
+    {
+      "date": "2025-10-09",
+      "ticker": "INCY",
+      "sector": "Health Care",
+      "rsRatio": 1.145
+    },
+    {
+      "date": "2025-10-13",
+      "ticker": "INCY",
+      "sector": "Health Care",
+      "rsRatio": 1.162
+    },
+    {
+      "date": "2025-10-14",
+      "ticker": "LITE",
+      "sector": "Industrials",
+      "rsRatio": 1.479
+    },
+    {
+      "date": "2025-10-15",
+      "ticker": "HOOD",
+      "sector": "Financials",
+      "rsRatio": 1.198
+    },
+    {
+      "date": "2025-10-15",
+      "ticker": "MO",
+      "sector": "Consumer Staples",
+      "rsRatio": 1.07
+    },
+    {
+      "date": "2025-10-15",
+      "ticker": "SPG",
+      "sector": "Real Estate",
+      "rsRatio": 1.044
+    },
+    {
+      "date": "2025-10-16",
+      "ticker": "CBRE",
+      "sector": "Real Estate",
+      "rsRatio": 1.056
+    },
+    {
+      "date": "2025-10-16",
+      "ticker": "SPG",
+      "sector": "Real Estate",
+      "rsRatio": 1.04
+    },
+    {
+      "date": "2025-10-17",
+      "ticker": "CBRE",
+      "sector": "Real Estate",
+      "rsRatio": 1.048
+    },
+    {
+      "date": "2025-10-17",
+      "ticker": "SPG",
+      "sector": "Real Estate",
+      "rsRatio": 1.039
+    },
+    {
+      "date": "2025-10-21",
+      "ticker": "SPG",
+      "sector": "Real Estate",
+      "rsRatio": 1.028
+    },
+    {
+      "date": "2025-10-22",
+      "ticker": "LITE",
+      "sector": "Industrials",
+      "rsRatio": 1.456
+    },
+    {
+      "date": "2025-10-22",
+      "ticker": "APA",
+      "sector": "Energy",
+      "rsRatio": 1.136
+    },
+    {
+      "date": "2025-10-22",
+      "ticker": "CRH",
+      "sector": "Materials",
+      "rsRatio": 1.141
+    },
+    {
+      "date": "2025-10-22",
+      "ticker": "SPG",
+      "sector": "Real Estate",
+      "rsRatio": 1.046
+    },
+    {
+      "date": "2025-10-23",
+      "ticker": "CRH",
+      "sector": "Materials",
+      "rsRatio": 1.114
+    },
+    {
+      "date": "2025-11-11",
+      "ticker": "TSLA",
+      "sector": "Consumer Discretionary",
+      "rsRatio": 1.22
+    },
+    {
+      "date": "2025-11-11",
+      "ticker": "XEL",
+      "sector": "Utilities",
+      "rsRatio": 1.056
+    },
+    {
+      "date": "2025-11-12",
+      "ticker": "HOOD",
+      "sector": "Financials",
+      "rsRatio": 1.13
+    },
+    {
+      "date": "2025-11-12",
+      "ticker": "TSLA",
+      "sector": "Consumer Discretionary",
+      "rsRatio": 1.208
+    },
+    {
+      "date": "2025-11-14",
+      "ticker": "XEL",
+      "sector": "Utilities",
+      "rsRatio": 1.074
+    },
+    {
+      "date": "2025-11-17",
+      "ticker": "RL",
+      "sector": "Consumer Staples",
+      "rsRatio": 1.092
+    },
+    {
+      "date": "2025-11-18",
+      "ticker": "RL",
+      "sector": "Consumer Staples",
+      "rsRatio": 1.109
+    },
+    {
+      "date": "2025-11-18",
+      "ticker": "NEM",
+      "sector": "Materials",
+      "rsRatio": 1.214
+    },
+    {
+      "date": "2025-11-20",
+      "ticker": "RL",
+      "sector": "Consumer Staples",
+      "rsRatio": 1.132
+    },
+    {
+      "date": "2025-11-20",
+      "ticker": "STLD",
+      "sector": "Materials",
+      "rsRatio": 1.142
+    },
+    {
+      "date": "2025-11-20",
+      "ticker": "PLD",
+      "sector": "Real Estate",
+      "rsRatio": 1.091
+    },
+    {
+      "date": "2025-11-21",
+      "ticker": "MPC",
+      "sector": "Energy",
+      "rsRatio": 1.082
+    },
+    {
+      "date": "2025-11-25",
+      "ticker": "FOXA",
+      "sector": "Communication Services",
+      "rsRatio": 1.044
+    },
+    {
+      "date": "2025-12-01",
+      "ticker": "HOOD",
+      "sector": "Financials",
+      "rsRatio": 1.147
+    },
+    {
+      "date": "2025-12-09",
+      "ticker": "EXE",
+      "sector": "Energy",
+      "rsRatio": 1.165
+    },
+    {
+      "date": "2025-12-09",
+      "ticker": "EQT",
+      "sector": "Energy",
+      "rsRatio": 1.092
+    },
+    {
+      "date": "2025-12-12",
+      "ticker": "GOOG",
+      "sector": "Communication Services",
+      "rsRatio": 1.193
+    },
+    {
+      "date": "2025-12-15",
+      "ticker": "GOOG",
+      "sector": "Communication Services",
+      "rsRatio": 1.19
+    },
+    {
+      "date": "2025-12-16",
+      "ticker": "VTR",
+      "sector": "Financials",
+      "rsRatio": 1.133
+    },
+    {
+      "date": "2025-12-16",
+      "ticker": "WELL",
+      "sector": "Financials",
+      "rsRatio": 1.116
+    },
+    {
+      "date": "2025-12-16",
+      "ticker": "GOOG",
+      "sector": "Communication Services",
+      "rsRatio": 1.193
+    },
+    {
+      "date": "2025-12-18",
+      "ticker": "NEE",
+      "sector": "Utilities",
+      "rsRatio": 1.124
+    },
+    {
+      "date": "2025-12-18",
+      "ticker": "TRGP",
+      "sector": "Utilities",
+      "rsRatio": 1.073
+    },
+    {
+      "date": "2025-12-18",
+      "ticker": "PLD",
+      "sector": "Real Estate",
+      "rsRatio": 1.112
+    },
+    {
+      "date": "2025-12-18",
+      "ticker": "GOOG",
+      "sector": "Communication Services",
+      "rsRatio": 1.168
+    },
+    {
+      "date": "2025-12-22",
+      "ticker": "VTR",
+      "sector": "Financials",
+      "rsRatio": 1.123
+    },
+    {
+      "date": "2025-12-23",
+      "ticker": "NEE",
+      "sector": "Utilities",
+      "rsRatio": 1.042
+    },
+    {
+      "date": "2025-12-24",
+      "ticker": "VTR",
+      "sector": "Financials",
+      "rsRatio": 1.118
+    },
+    {
+      "date": "2025-12-26",
+      "ticker": "VTR",
+      "sector": "Financials",
+      "rsRatio": 1.111
+    },
+    {
+      "date": "2025-12-30",
+      "ticker": "FANG",
+      "sector": "Energy",
+      "rsRatio": 1.029
+    },
+    {
+      "date": "2025-12-30",
+      "ticker": "EXE",
+      "sector": "Energy",
+      "rsRatio": 1.024
+    },
+    {
+      "date": "2025-12-30",
+      "ticker": "VTR",
+      "sector": "Real Estate",
+      "rsRatio": 1.089
+    },
+    {
+      "date": "2025-12-30",
+      "ticker": "HST",
+      "sector": "Real Estate",
+      "rsRatio": 1.039
+    },
+    {
+      "date": "2026-01-06",
+      "ticker": "TRGP",
+      "sector": "Utilities",
+      "rsRatio": 1.066
+    },
+    {
+      "date": "2026-01-06",
+      "ticker": "VTR",
+      "sector": "Real Estate",
+      "rsRatio": 1.071
+    },
+    {
+      "date": "2026-01-12",
+      "ticker": "RL",
+      "sector": "Consumer Staples",
+      "rsRatio": 1.102
+    },
+    {
+      "date": "2026-01-14",
+      "ticker": "VTR",
+      "sector": "Real Estate",
+      "rsRatio": 1.089
+    },
+    {
+      "date": "2026-01-14",
+      "ticker": "HST",
+      "sector": "Real Estate",
+      "rsRatio": 1.085
+    },
+    {
+      "date": "2026-01-15",
+      "ticker": "VTR",
+      "sector": "Real Estate",
+      "rsRatio": 1.076
+    },
+    {
+      "date": "2026-01-20",
+      "ticker": "WBD",
+      "sector": "Consumer Discretionary",
+      "rsRatio": 1.518
+    },
+    {
+      "date": "2026-01-21",
+      "ticker": "WBD",
+      "sector": "Consumer Discretionary",
+      "rsRatio": 1.521
+    },
+    {
+      "date": "2026-01-26",
+      "ticker": "VTR",
+      "sector": "Real Estate",
+      "rsRatio": 1.061
+    },
+    {
+      "date": "2026-01-26",
+      "ticker": "WBD",
+      "sector": "Communication Services",
+      "rsRatio": 1.285
+    },
+    {
+      "date": "2026-01-27",
+      "ticker": "VTR",
+      "sector": "Real Estate",
+      "rsRatio": 1.054
+    },
+    {
+      "date": "2026-03-05",
+      "ticker": "MU",
+      "sector": "Technology",
+      "rsRatio": 1.654
+    },
+    {
+      "date": "2026-03-06",
+      "ticker": "IRM",
+      "sector": "Financials",
+      "rsRatio": 1.279
+    },
+    {
+      "date": "2026-03-10",
+      "ticker": "TPR",
+      "sector": "Consumer Discretionary",
+      "rsRatio": 1.291
+    },
+    {
+      "date": "2026-03-10",
+      "ticker": "CMCSA",
+      "sector": "Consumer Discretionary",
+      "rsRatio": 1.24
+    },
+    {
+      "date": "2026-03-12",
+      "ticker": "MU",
+      "sector": "Technology",
+      "rsRatio": 1.643
+    },
+    {
+      "date": "2026-04-14",
+      "ticker": "TGT",
+      "sector": "Consumer Discretionary",
+      "rsRatio": 1.136
+    },
+    {
+      "date": "2026-04-28",
+      "ticker": "DECK",
+      "sector": "Consumer Staples",
+      "rsRatio": 1.033
+    },
+    {
+      "date": "2026-05-18",
+      "ticker": "TSN",
+      "sector": "Consumer Staples",
+      "rsRatio": 0.985
+    },
+    {
+      "date": "2026-05-19",
+      "ticker": "TSN",
+      "sector": "Consumer Staples",
+      "rsRatio": 0.973
+    },
+    {
+      "date": "2026-05-21",
+      "ticker": "APA",
+      "sector": "Energy",
+      "rsRatio": 1.23
+    },
+    {
+      "date": "2026-05-22",
+      "ticker": "APA",
+      "sector": "Energy",
+      "rsRatio": 1.241
+    },
+    {
+      "date": "2026-05-22",
+      "ticker": "VLO",
+      "sector": "Energy",
+      "rsRatio": 1.147
+    },
+    {
+      "date": "2026-05-26",
+      "ticker": "UNH",
+      "sector": "Health Care",
+      "rsRatio": 1.266
+    },
+    {
+      "date": "2026-05-27",
+      "ticker": "EBAY",
+      "sector": "Consumer Discretionary",
+      "rsRatio": 1.195
+    },
+    {
+      "date": "2026-05-28",
+      "ticker": "EQIX",
+      "sector": "Real Estate",
+      "rsRatio": 1.033
+    },
+    {
+      "date": "2026-06-05",
+      "ticker": "JBL",
+      "sector": "Industrials",
+      "rsRatio": 1.332
+    },
+    {
+      "date": "2026-06-08",
+      "ticker": "APA",
+      "sector": "Energy",
+      "rsRatio": 1.064
+    },
+    {
+      "date": "2026-06-09",
+      "ticker": "ADM",
+      "sector": "Materials",
+      "rsRatio": 1.065
+    },
+    {
+      "date": "2026-06-10",
+      "ticker": "JBL",
+      "sector": "Industrials",
+      "rsRatio": 1.283
+    },
+    {
+      "date": "2026-06-10",
+      "ticker": "APA",
+      "sector": "Energy",
+      "rsRatio": 1.079
+    },
+    {
+      "date": "2026-06-11",
+      "ticker": "APA",
+      "sector": "Energy",
+      "rsRatio": 0.992
+    },
+    {
+      "date": "2026-06-11",
+      "ticker": "ETR",
+      "sector": "Utilities",
+      "rsRatio": 0.952
+    },
+    {
+      "date": "2026-06-12",
+      "ticker": "APA",
+      "sector": "Energy",
+      "rsRatio": 0.963
+    },
+    {
+      "date": "2026-06-12",
+      "ticker": "ETR",
+      "sector": "Utilities",
+      "rsRatio": 0.942
+    },
+    {
+      "date": "2026-06-15",
+      "ticker": "ETR",
+      "sector": "Utilities",
+      "rsRatio": 0.93
+    },
+    {
+      "date": "2026-06-16",
+      "ticker": "GOOG",
+      "sector": "Communication Services",
+      "rsRatio": 1.07
+    },
+    {
+      "date": "2026-06-17",
+      "ticker": "IRM",
+      "sector": "Real Estate",
+      "rsRatio": 1.063
+    },
+    {
+      "date": "2026-06-24",
+      "ticker": "NUE",
+      "sector": "Materials",
+      "rsRatio": 1.318
+    },
+    {
+      "date": "2026-06-25",
+      "ticker": "NUE",
+      "sector": "Materials",
+      "rsRatio": 1.349
+    },
+    {
+      "date": "2026-06-25",
+      "ticker": "STLD",
+      "sector": "Materials",
+      "rsRatio": 1.295
+    },
+    {
+      "date": "2026-06-30",
+      "ticker": "D",
+      "sector": "Utilities",
+      "rsRatio": 0.941
+    },
+    {
+      "date": "2026-07-02",
+      "ticker": "MGM",
+      "sector": "Consumer Discretionary",
+      "rsRatio": 1.124
+    },
+    {
+      "date": "2026-07-02",
+      "ticker": "HST",
+      "sector": "Real Estate",
+      "rsRatio": 1.114
+    },
+    {
+      "date": "2026-07-02",
+      "ticker": "GOOG",
+      "sector": "Communication Services",
+      "rsRatio": 1.061
+    },
+    {
+      "date": "2026-07-06",
+      "ticker": "AMAT",
+      "sector": "Industrials",
+      "rsRatio": 1.483
+    },
+    {
+      "date": "2026-07-06",
+      "ticker": "MGM",
+      "sector": "Consumer Discretionary",
+      "rsRatio": 1.113
+    },
+    {
+      "date": "2026-07-06",
+      "ticker": "TRGP",
+      "sector": "Utilities",
+      "rsRatio": 0.944
+    },
+    {
+      "date": "2026-07-07",
+      "ticker": "URI",
+      "sector": "Financials",
+      "rsRatio": 1.263
+    },
+    {
+      "date": "2026-07-08",
+      "ticker": "URI",
+      "sector": "Financials",
+      "rsRatio": 1.293
+    },
+    {
+      "date": "2026-07-08",
+      "ticker": "GOOG",
+      "sector": "Communication Services",
+      "rsRatio": 1.042
+    },
+    {
+      "date": "2026-07-09",
+      "ticker": "MGM",
+      "sector": "Consumer Discretionary",
+      "rsRatio": 1.123
+    },
+    {
+      "date": "2026-07-09",
+      "ticker": "GOOG",
+      "sector": "Communication Services",
+      "rsRatio": 1.016
+    },
+    {
+      "date": "2026-07-10",
+      "ticker": "TTWO",
+      "sector": "Communication Services",
+      "rsRatio": 1.103
+    },
+    {
+      "date": "2026-07-10",
+      "ticker": "GOOG",
+      "sector": "Communication Services",
+      "rsRatio": 1.009
+    },
+    {
+      "date": "2026-07-13",
+      "ticker": "URI",
+      "sector": "Financials",
+      "rsRatio": 1.275
+    },
+    {
+      "date": "2026-07-14",
+      "ticker": "GOOG",
+      "sector": "Communication Services",
+      "rsRatio": 1.02
+    },
+    {
+      "date": "2026-07-16",
+      "ticker": "LYV",
+      "sector": "Communication Services",
+      "rsRatio": 1.073
+    },
+    {
+      "date": "2026-07-16",
+      "ticker": "TTWO",
+      "sector": "Communication Services",
+      "rsRatio": 1.04
+    },
+    {
+      "date": "2026-07-17",
+      "ticker": "LYV",
+      "sector": "Communication Services",
+      "rsRatio": 1.057
+    },
+    {
+      "date": "2026-07-17",
+      "ticker": "TTWO",
+      "sector": "Communication Services",
+      "rsRatio": 1.042
+    },
+    {
+      "date": "2026-07-20",
+      "ticker": "MNST",
+      "sector": "Consumer Staples",
+      "rsRatio": 1.188
+    },
+    {
+      "date": "2026-07-20",
+      "ticker": "TTWO",
+      "sector": "Communication Services",
+      "rsRatio": 1.076
+    },
+    {
+      "date": "2026-07-21",
+      "ticker": "LYV",
+      "sector": "Communication Services",
+      "rsRatio": 1.076
+    },
+    {
+      "date": "2026-07-21",
+      "ticker": "TTWO",
+      "sector": "Communication Services",
+      "rsRatio": 1.028
+    },
+    {
+      "date": "2026-07-22",
+      "ticker": "MNST",
+      "sector": "Consumer Staples",
+      "rsRatio": 1.194
+    },
+    {
+      "date": "2026-07-22",
+      "ticker": "NUE",
+      "sector": "Materials",
+      "rsRatio": 1.068
+    },
+    {
+      "date": "2026-07-24",
+      "ticker": "MNST",
+      "sector": "Consumer Staples",
+      "rsRatio": 1.153
+    },
+    {
+      "date": "2026-07-27",
+      "ticker": "D",
+      "sector": "Utilities",
+      "rsRatio": 1.093
+    },
+    {
+      "date": "2026-07-28",
+      "ticker": "D",
+      "sector": "Utilities",
+      "rsRatio": 1.099
+    },
+    {
+      "date": "2026-07-29",
+      "ticker": "D",
+      "sector": "Utilities",
+      "rsRatio": 1.103
+    },
+    {
+      "date": "2026-08-05",
+      "ticker": "BBY",
+      "sector": "Consumer Discretionary",
+      "rsRatio": 1.402
+    }
+  ]
+}

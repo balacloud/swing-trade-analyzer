@@ -1,0 +1,91 @@
+{
+  "meta": {
+    "start_date": "2023-01-01",
+    "end_date": "2024-12-31",
+    "tickers": [
+      "AAPL",
+      "NVDA",
+      "JPM",
+      "XOM",
+      "PLTR"
+    ],
+    "tickers_processed": 5,
+    "tickers_with_trades": 3,
+    "configs": [
+      "C"
+    ],
+    "holding_periods": [
+      "standard"
+    ],
+    "scan_interval": 1,
+    "elapsed_seconds": 14.7,
+    "timestamp": "2026-07-06T09:22:33.188715"
+  },
+  "results": {
+    "C_standard": {
+      "total_trades": 4,
+      "wins": 3,
+      "losses": 1,
+      "breakevens": 0,
+      "win_rate": 75.0,
+      "avg_return_pct": 2.0394,
+      "avg_winner_pct": 5.2468,
+      "avg_loser_pct": -7.5826,
+      "expectancy_pct": 2.0394,
+      "expectancy_dollar": 203.94,
+      "profit_factor": 2.0758,
+      "sharpe_ratio": 0.0596,
+      "sortino_ratio": 0.0526,
+      "max_drawdown_pct": 7.5826,
+      "sequential_100pct_equity_dd_pct": 7.5826,
+      "max_drawdown_fixed_risk_pct": 2.0,
+      "avg_r_multiple": 0.2269,
+      "median_r_multiple": 0.5171,
+      "r_distribution": {
+        "big_loss_below_neg2": 0,
+        "loss_neg2_to_neg1": 0,
+        "small_loss_neg1_to_0": 1,
+        "breakeven_0_to_0.5": 1,
+        "small_win_0.5_to_1": 2,
+        "win_1_to_2": 0,
+        "big_win_2_to_3": 0,
+        "home_run_above_3": 0
+      },
+      "max_consecutive_wins": 2,
+      "max_consecutive_losses": 1,
+      "avg_days_held": 10.2,
+      "exit_reasons": {
+        "max_hold": 2,
+        "stop_hit": 1,
+        "target_hit": 1
+      },
+      "regime_breakdown": {
+        "sideways": {
+          "trades": 2,
+          "win_rate": 100.0,
+          "avg_return": 6.0,
+          "total_return": 12.0
+        },
+        "bull": {
+          "trades": 2,
+          "win_rate": 50.0,
+          "avg_return": -1.9212,
+          "total_return": -3.8423
+        }
+      },
+      "trades_per_year_actual": 2.8,
+      "t_statistic": null,
+      "t_pvalue": null,
+      "t_pvalue_iid_assumption": null,
+      "t_pvalue_block_bootstrap": 0.232,
+      "t_significant": null,
+      "warnings": [
+        "Win rate 75.0% > 70% \u2014 likely overfitting",
+        "Only 4 trades \u2014 insufficient for statistical significance"
+      ]
+    }
+  },
+  "trade_count": {
+    "C_standard": 4
+  }
+}

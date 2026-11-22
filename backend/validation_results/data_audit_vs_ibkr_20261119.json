@@ -1,0 +1,2027 @@
+[
+ {
+  "symbol": "JPM",
+  "class": "US stock",
+  "conid": 1520593,
+  "ibkr": "JPMORGAN CHASE & CO",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x2.09"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x2.09"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "CAT",
+  "class": "US stock",
+  "conid": 5437,
+  "ibkr": "CATERPILLAR INC",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.68"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.68"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "BRK-B",
+  "class": "US stock",
+  "conid": 72063691,
+  "ibkr": "BERKSHIRE HATHAWAY INC-CL B",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.80"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.80"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "SMH",
+  "class": "US ETF",
+  "conid": 229725622,
+  "ibkr": "VANECK SEMICONDUCTOR ETF",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.45"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.45"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "SOXX",
+  "class": "US ETF",
+  "conid": 12658194,
+  "ibkr": "ISHARES SEMICONDUCTOR ETF",
+  "ibkr_splits": [
+   {
+    "date": "2026-11-05",
+    "value": 3.0
+   }
+  ],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-11-05 x3"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.40"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-11-05 x3"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.40"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "GDX",
+  "class": "US ETF",
+  "conid": 229726316,
+  "ibkr": "VANECK GOLD MINERS ETF",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.68"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.68"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "DRAL",
+  "class": "US leveraged",
+  "conid": 895506712,
+  "ibkr": "DEF DLY TGT 2X LG DRAM ETF",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.15"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.15"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "SPCL",
+  "class": "US leveraged",
+  "conid": 871422657,
+  "ibkr": "DEFIANC DAILY 2X SPC ETF-USD",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.62"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.62"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "UBOT",
+  "class": "US leveraged",
+  "conid": 416854785,
+  "ibkr": "DD RA INT & AUTO IB 2X ETF-U",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.21"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.21"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "QPUX",
+  "class": "US leveraged",
+  "conid": 866508540,
+  "ibkr": "DFINC 2X D LNG PURE QUNT ETF",
+  "ibkr_splits": [
+   {
+    "date": "2026-03-23",
+    "value": 0.333333
+   }
+  ],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.03% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-03-23 x0.333333"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.18"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.03% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-03-23 x0.333333"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.18"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "RY.TO",
+  "class": "CA stock",
+  "conid": 4458964,
+  "ibkr": "ROYAL BANK OF CANADA (CAD)",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x3.01"
+    }
+   },
+   "eodhd": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume eodhd/IBKR x3.01"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "CNR.TO",
+  "class": "CA stock",
+  "conid": 4458894,
+  "ibkr": "CANADIAN NATL RAILWAY CO (CAD)",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.83"
+    }
+   },
+   "eodhd": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume eodhd/IBKR x1.83"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "ATD.TO",
+  "class": "CA stock",
+  "conid": 583257700,
+  "ibkr": "ALIMENTATION COUCHE-TARD INC (CAD)",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.27"
+    }
+   },
+   "eodhd": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume eodhd/IBKR x1.27"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "CSU.TO",
+  "class": "CA stock",
+  "conid": 39194759,
+  "ibkr": "CONSTELLATION SOFTWARE INC (CAD)",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.38"
+    }
+   },
+   "eodhd": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume eodhd/IBKR x1.38"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "SOXL.NE",
+  "class": "CA leveraged",
+  "conid": 805995437,
+  "ibkr": "BETAPRO 3X SC DAILY LEV BA (CAD)",
+  "ibkr_splits": [
+   {
+    "date": "2026-05-25",
+    "value": 3.0
+   }
+  ],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "WARN",
+     "note": "max close diff 0.34% over the 4 settled days; last day 4.22% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "raw yfinance: 2025-11: yfinance 31.81 vs IBKR 10.54 (x3.02); after STA split adjustment (3-for-1 on 2026-05-25): month-end levels match IBKR | IBKR splits in range: 2026-05-25 x3"
+    },
+    "C7": {
+     "level": "FAIL",
+     "note": "source volume is zero"
+    }
+   },
+   "eodhd": {
+    "C3": {
+     "level": "WARN",
+     "note": "max close diff 0.34% over the 4 settled days; last day 4.22% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "raw eodhd: 2025-11: eodhd 31.81 vs IBKR 10.54 (x3.02); after STA split adjustment (3-for-1 on 2026-05-25): month-end levels match IBKR | IBKR splits in range: 2026-05-25 x3"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume eodhd/IBKR x0.95"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "XEQT.TO",
+  "class": "CA ETF",
+  "conid": 378605923,
+  "ibkr": "ISHARES CORE EQUITY ETF PORT (CAD)",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.88"
+    }
+   },
+   "eodhd": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume eodhd/IBKR x0.88"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "VFV.TO",
+  "class": "CA ETF",
+  "conid": 116763367,
+  "ibkr": "VANGUARD S&P 500 INDEX ETF (CAD)",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.86"
+    }
+   },
+   "eodhd": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume eodhd/IBKR x0.86"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "HXQ.TO",
+  "class": "CA ETF",
+  "conid": 700079680,
+  "ibkr": "GLOBAL X NASDAQ-100 INDEX (CAD)",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "WARN",
+     "note": "volume yfinance/IBKR x0.78"
+    }
+   },
+   "eodhd": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "WARN",
+     "note": "volume eodhd/IBKR x0.78"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "XCHP.TO",
+  "class": "CA ETF",
+  "conid": 653041476,
+  "ibkr": "ISHARES SEMICONDUCTOR ETF (CAD)",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.83"
+    }
+   },
+   "eodhd": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume eodhd/IBKR x0.83"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "GDXU.TO",
+  "class": "CA leveraged",
+  "conid": 393460407,
+  "ibkr": "BETAPRO CANADIAN GOLD MINERS (CAD)",
+  "ibkr_splits": [
+   {
+    "date": "2026-05-25",
+    "value": 3.0
+   }
+  ],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-05-25 x3"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.86"
+    }
+   },
+   "eodhd": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-05-25 x3"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume eodhd/IBKR x0.86"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "AMD.TO",
+  "class": "CDR",
+  "conid": 530091921,
+  "ibkr": "ADVANCED MICRO DEVICES CDR (CAD)",
+  "ibkr_splits": [
+   {
+    "date": "2026-10-16",
+    "value": 7.0
+   }
+  ],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-10-16 x7"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.94"
+    }
+   },
+   "eodhd": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-10-16 x7"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume eodhd/IBKR x0.94"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "AVGO.TO",
+  "class": "CDR",
+  "conid": 655603356,
+  "ibkr": "BROADCOM INC-CDR (CAD)",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "2025-11: no data"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.92"
+    }
+   },
+   "eodhd": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume eodhd/IBKR x0.92"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "MU.TO",
+  "class": "CDR",
+  "conid": 729376050,
+  "ibkr": "MICRON TECHNOLOGY CDR (CAD)",
+  "ibkr_splits": [
+   {
+    "date": "2026-03-10",
+    "value": 5.0
+   }
+  ],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-03-10 x5"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.93"
+    }
+   },
+   "eodhd": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted) | IBKR splits in range: 2026-03-10 x5"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume eodhd/IBKR x0.93"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "SNDK.TO",
+  "class": "CDR",
+  "conid": 881153038,
+  "ibkr": "SANDISK CORP CDR (CAD)",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.94"
+    }
+   },
+   "eodhd": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume eodhd/IBKR x0.94"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "FINN.NE",
+  "class": "CA ETF",
+  "conid": 633289925,
+  "ibkr": "FINN",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x2.12"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "CNQ.TO",
+  "class": "CA stock",
+  "conid": 5027019,
+  "ibkr": "CNQ",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x3.11"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "WDC.TO",
+  "class": "CDR",
+  "conid": 881153055,
+  "ibkr": "WDC",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.88"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "CCO.TO",
+  "class": "CA stock",
+  "conid": 13464841,
+  "ibkr": "CCO",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.17"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "ASML.TO",
+  "class": "CDR",
+  "conid": 762277717,
+  "ibkr": "ASML",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.00"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "ANET.TO",
+  "class": "CDR",
+  "conid": 759136211,
+  "ibkr": "ANET",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "2025-11: no data"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.83"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "GIB-A.TO",
+  "class": "CA stock",
+  "conid": 350074672,
+  "ibkr": "GIB.A",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.41"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "GEV.TO",
+  "class": "CDR",
+  "conid": 780710890,
+  "ibkr": "GEV",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "2025-11: no data"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.85"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "HURA.TO",
+  "class": "CA ETF",
+  "conid": 700079737,
+  "ibkr": "HURA",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.19% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.94"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "XGD.TO",
+  "class": "CA ETF",
+  "conid": 74580664,
+  "ibkr": "XGD",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.85"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "MTRX.TO",
+  "class": "CA ETF",
+  "conid": 762280434,
+  "ibkr": "MTRX",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "WARN",
+     "note": "max close diff 0.61% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "2025-11: no data"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.89"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "RBOT.TO",
+  "class": "CA ETF",
+  "conid": 700079762,
+  "ibkr": "RBOT",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.94"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "XDRV.TO",
+  "class": "CA ETF",
+  "conid": 613363675,
+  "ibkr": "XDRV",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "FAIL",
+     "note": "max close diff 2.15% over the 4 settled days; last day 0.41% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "WARN",
+     "note": "volume yfinance/IBKR x0.75"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "CARS.TO",
+  "class": "CA ETF",
+  "conid": 290879740,
+  "ibkr": "CARS",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "FAIL",
+     "note": "max close diff 2.64% over the 4 settled days; last day 0.10% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.95"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "COPP.TO",
+  "class": "CA ETF",
+  "conid": 700079802,
+  "ibkr": "COPP",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "WARN",
+     "note": "volume yfinance/IBKR x0.66"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "XETM.TO",
+  "class": "CA ETF",
+  "conid": 653041473,
+  "ibkr": "XETM",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.11% over the 4 settled days; last day 0.01% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "2025-11: no data"
+    },
+    "C7": {
+     "level": "WARN",
+     "note": "volume yfinance/IBKR x0.76"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "MDA.TO",
+  "class": "CA stock",
+  "conid": 702882675,
+  "ibkr": "MDA",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.37"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "NTR.TO",
+  "class": "CA stock",
+  "conid": 301035664,
+  "ibkr": "NTR",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.55"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "ASTL.TO",
+  "class": "CA stock",
+  "conid": 522147451,
+  "ibkr": "ASTL",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.01"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "BDT.TO",
+  "class": "CA stock",
+  "conid": 82371888,
+  "ibkr": "BDT",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.99"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "PNG.V",
+  "class": "CA stock",
+  "conid": 290283075,
+  "ibkr": "PNG",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.86"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "CGY.TO",
+  "class": "CA stock",
+  "conid": 228158957,
+  "ibkr": "CGY",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x0.99"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "ORBX.TO",
+  "class": "CA ETF",
+  "conid": 877927380,
+  "ibkr": "ORBX",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.20% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.00"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "SOXL",
+  "class": "US leveraged",
+  "conid": 73340487,
+  "ibkr": "SOXL",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.60"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.60"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "URAA",
+  "class": "US leveraged",
+  "conid": 712146384,
+  "ibkr": "URAA",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "WARN",
+     "note": "2025-11: twelvedata 32.38 vs IBKR 35.15 (x0.92)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.15"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "WARN",
+     "note": "2025-11: yfinance 32.25 vs IBKR 35.15 (x0.92)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.15"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "COPZ",
+  "class": "US leveraged",
+  "conid": 854950287,
+  "ibkr": "COPZ",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.10% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.22"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.10% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.22"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "NVDL",
+  "class": "US leveraged",
+  "conid": 602261424,
+  "ibkr": "NVDL",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.36"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.36"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "AAPU",
+  "class": "US leveraged",
+  "conid": 578561419,
+  "ibkr": "AAPU",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "WARN",
+     "note": "2025-11: twelvedata 35.22 vs IBKR 38.08 (x0.93)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.23"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "WARN",
+     "note": "2025-11: yfinance 35.10 vs IBKR 38.08 (x0.92)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.23"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "MSFU",
+  "class": "US leveraged",
+  "conid": 583996502,
+  "ibkr": "MSFU",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "WARN",
+     "note": "2025-11: twelvedata 42.82 vs IBKR 46.15 (x0.93)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.28"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "WARN",
+     "note": "2025-11: yfinance 42.70 vs IBKR 46.15 (x0.93)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.28"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "METU",
+  "class": "US leveraged",
+  "conid": 707923160,
+  "ibkr": "METU",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.26"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.26"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "GGLL",
+  "class": "US leveraged",
+  "conid": 583996488,
+  "ibkr": "GGLL",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.40"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.40"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "NFXL",
+  "class": "US leveraged",
+  "conid": 733168177,
+  "ibkr": "NFXL",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "WARN",
+     "note": "2025-11: twelvedata 40.39 vs IBKR 43.03 (x0.94)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.09"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "WARN",
+     "note": "2025-11: yfinance 40.32 vs IBKR 43.03 (x0.94)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.09"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "AMZU",
+  "class": "US leveraged",
+  "conid": 583996487,
+  "ibkr": "AMZU",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.23"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.23"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "TSLL",
+  "class": "US leveraged",
+  "conid": 578561429,
+  "ibkr": "TSLL",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.10"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.10"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "BRKU",
+  "class": "US leveraged",
+  "conid": 747569063,
+  "ibkr": "BRKU",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.23% over the 4 settled days; last day 0.05% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "FAIL",
+     "note": "source volume is zero"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.54"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "ELIL",
+  "class": "US leveraged",
+  "conid": 771551303,
+  "ibkr": "ELIL",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.01% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "WARN",
+     "note": "2025-11: twelvedata 28.55 vs IBKR 31.99 (x0.89)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.28"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.01% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "WARN",
+     "note": "2025-11: yfinance 28.24 vs IBKR 31.99 (x0.88)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.28"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "COTG",
+  "class": "US leveraged",
+  "conid": 815036792,
+  "ibkr": "COTG",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.03% over the 4 settled days; last day 0.01% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.15"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.03% over the 4 settled days; last day 0.01% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.15"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "AVGC",
+  "class": "US leveraged",
+  "conid": 896724329,
+  "ibkr": "AVGC",
+  "ibkr_splits": [],
+  "per_source": {
+   "twelvedata": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume twelvedata/IBKR x1.28"
+    }
+   },
+   "yfinance": {
+    "C3": {
+     "level": "PASS",
+     "note": "max close diff 0.00% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "PASS",
+     "note": "volume yfinance/IBKR x1.28"
+    }
+   }
+  }
+ },
+ {
+  "symbol": "SGRD.TO",
+  "class": "CA ETF",
+  "conid": 875271486,
+  "ibkr": "SGRD",
+  "ibkr_splits": [],
+  "per_source": {
+   "yfinance": {
+    "C3": {
+     "level": "WARN",
+     "note": "max close diff 0.65% over the 4 settled days; last day 0.00% (IBKR final history bar can be 15 min stale)"
+    },
+    "C5": {
+     "level": "PASS",
+     "note": "month-end levels match IBKR (adjusted)"
+    },
+    "C7": {
+     "level": "WARN",
+     "note": "volume yfinance/IBKR x0.62"
+    }
+   }
+  }
+ }
+]

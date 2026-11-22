@@ -1,0 +1,374 @@
+{
+ "GOOGL": {
+  "quote_type": "EQUITY",
+  "name": "Alphabet Inc."
+ },
+ "JNJ": {
+  "quote_type": "EQUITY",
+  "name": "Johnson & Johnson"
+ },
+ "CNQ.TO": {
+  "quote_type": "EQUITY",
+  "name": "CDN NATURAL RES"
+ },
+ "FINN.NE": {
+  "quote_type": "ETF",
+  "name": "FIDELITY GLOBAL INNOVATORS ETF"
+ },
+ "WDC.TO": {
+  "quote_type": "ETF",
+  "name": "WESTERN DIGITAL CDR (CAD HEDGED"
+ },
+ "GEV": {
+  "quote_type": "EQUITY",
+  "name": "GE Vernova Inc."
+ },
+ "TSM": {
+  "quote_type": "EQUITY",
+  "name": "Taiwan Semiconductor Manufactur"
+ },
+ "ETN": {
+  "quote_type": "EQUITY",
+  "name": "Eaton Corporation, PLC"
+ },
+ "VRT": {
+  "quote_type": "EQUITY",
+  "name": "Vertiv Holdings, LLC"
+ },
+ "CCO.TO": {
+  "quote_type": "EQUITY",
+  "name": "CAMECO CORP"
+ },
+ "ASML.TO": {
+  "quote_type": "ETF",
+  "name": "ASML CDR (CAD HEDGED)"
+ },
+ "ANET.TO": {
+  "quote_type": "ETF",
+  "name": "ARISTA NETWORKS CDR (CAD HEDGED"
+ },
+ "CEG": {
+  "quote_type": "EQUITY",
+  "name": "Constellation Energy Corporatio"
+ },
+ "ALAB": {
+  "quote_type": "EQUITY",
+  "name": "Astera Labs, Inc."
+ },
+ "NVDA": {
+  "quote_type": "EQUITY",
+  "name": "NVIDIA Corporation"
+ },
+ "AVGO": {
+  "quote_type": "EQUITY",
+  "name": "Broadcom Inc."
+ },
+ "KEYS": {
+  "quote_type": "EQUITY",
+  "name": "Keysight Technologies Inc."
+ },
+ "GIB-A.TO": {
+  "quote_type": "EQUITY",
+  "name": "CGI INC"
+ },
+ "MRVL": {
+  "quote_type": "EQUITY",
+  "name": "Marvell Technology, Inc."
+ },
+ "ONTO": {
+  "quote_type": "EQUITY",
+  "name": "Onto Innovation Inc."
+ },
+ "CAMT": {
+  "quote_type": "EQUITY",
+  "name": "Camtek Ltd."
+ },
+ "AMD": {
+  "quote_type": "EQUITY",
+  "name": "Advanced Micro Devices, Inc."
+ },
+ "ORCL": {
+  "quote_type": "EQUITY",
+  "name": "Oracle Corporation"
+ },
+ "FCX": {
+  "quote_type": "EQUITY",
+  "name": "Freeport-McMoRan, Inc."
+ },
+ "QCOM": {
+  "quote_type": "EQUITY",
+  "name": "QUALCOMM Incorporated"
+ },
+ "GEV.TO": {
+  "quote_type": "ETF",
+  "name": "GE VERNOVA CDR (CAD HEDGED)"
+ },
+ "HURA.TO": {
+  "quote_type": "ETF",
+  "name": "GLOBAL X URANIUM INDEX ETF"
+ },
+ "XGD.TO": {
+  "quote_type": "ETF",
+  "name": "iSHARES S&P/TSX GLOBAL GOLD IND"
+ },
+ "MTRX.TO": {
+  "quote_type": "ETF",
+  "name": "GLOBAL X ARTIFICIAL INTEL INFRA"
+ },
+ "ORBX.TO": {
+  "quote_type": "ETF",
+  "name": "GLOBAL X SPACE TECH INDEX ETF"
+ },
+ "RBOT.TO": {
+  "quote_type": "ETF",
+  "name": "GLOBAL X ROBOTICS AND AI INDEX "
+ },
+ "XDRV.TO": {
+  "quote_type": "ETF",
+  "name": "iSHARES GLBL ELECTRIC AUTONOMOU"
+ },
+ "CARS.TO": {
+  "quote_type": "ETF",
+  "name": "EVOLVE AUTOMOBILE INNOVATION ID"
+ },
+ "COPP.TO": {
+  "quote_type": "ETF",
+  "name": "GLOBAL X COPPER PRODUCERS INDEX"
+ },
+ "UFO": {
+  "quote_type": "ETF",
+  "name": "Procure Space ETF"
+ },
+ "QTUM": {
+  "quote_type": "ETF",
+  "name": "Defiance Quantum ETF"
+ },
+ "BOTZ": {
+  "quote_type": "ETF",
+  "name": "Global X Robotics & Artificial "
+ },
+ "DRIV": {
+  "quote_type": "ETF",
+  "name": "Global X Autonomous & Electric "
+ },
+ "DRAM": {
+  "quote_type": "ETF",
+  "name": "Roundhill Memory ETF"
+ },
+ "XETM.TO": {
+  "quote_type": "ETF",
+  "name": "iSHARES SP TSX ENGY TRANS MATLS"
+ },
+ "SETM": {
+  "quote_type": "ETF",
+  "name": "Sprott Critical Materials ETF"
+ },
+ "COPX": {
+  "quote_type": "ETF",
+  "name": "Global X Copper Miners ETF"
+ },
+ "BDT.TO": {
+  "quote_type": "EQUITY",
+  "name": "BIRD CONSTRUCTION INC."
+ },
+ "MSFT": {
+  "quote_type": "EQUITY",
+  "name": "Microsoft Corporation"
+ },
+ "V": {
+  "quote_type": "EQUITY",
+  "name": "Visa Inc."
+ },
+ "XOM": {
+  "quote_type": "EQUITY",
+  "name": "ExxonMobil Holdings Corporation"
+ },
+ "RTX": {
+  "quote_type": "EQUITY",
+  "name": "RTX Corporation"
+ },
+ "EQIX": {
+  "quote_type": "EQUITY",
+  "name": "Equinix, Inc."
+ },
+ "NFXL": {
+  "quote_type": "ETF",
+  "name": "Direxion Daily NFLX Bull 2X ETF"
+ },
+ "AVGC": {
+  "quote_type": "ETF",
+  "name": "Corgi AVGO 2x Daily ETF"
+ },
+ "GRID": {
+  "quote_type": "ETF",
+  "name": "First Trust NASDAQ Clean Edge S"
+ },
+ "URA": {
+  "quote_type": "ETF",
+  "name": "Global X Uranium ETF"
+ },
+ "AIPO": {
+  "quote_type": "ETF",
+  "name": "Defiance AI & Power Infrastruct"
+ },
+ "SGRD.TO": {
+  "quote_type": "ETF",
+  "name": "FIRST TRUST NSDQ CLN EDG SMR GR"
+ },
+ "SOXL": {
+  "quote_type": "ETF",
+  "name": "Direxion Daily Semiconductor Bu"
+ },
+ "MDA.TO": {
+  "quote_type": "EQUITY",
+  "name": "MDA SPACE LTD"
+ },
+ "NTR.TO": {
+  "quote_type": "EQUITY",
+  "name": "NUTRIEN LTD"
+ },
+ "ASTL.TO": {
+  "quote_type": "EQUITY",
+  "name": "ALGOMA STEEL GROUP INC"
+ },
+ "PNG.V": {
+  "quote_type": "EQUITY",
+  "name": "KRAKEN ROBOTICS INC"
+ },
+ "CGY.TO": {
+  "quote_type": "EQUITY",
+  "name": "CALIAN GROUP LTD"
+ },
+ "URAA": {
+  "quote_type": "ETF",
+  "name": "Direxion Daily Uranium Industry"
+ },
+ "COPZ": {
+  "quote_type": "ETF",
+  "name": "Defiance Daily Target 2X Long C"
+ },
+ "AAPL": {
+  "quote_type": "EQUITY",
+  "name": "Apple Inc."
+ },
+ "META": {
+  "quote_type": "EQUITY",
+  "name": "Meta Platforms, Inc."
+ },
+ "NFLX": {
+  "quote_type": "EQUITY",
+  "name": "Netflix, Inc."
+ },
+ "AMZN": {
+  "quote_type": "EQUITY",
+  "name": "Amazon.com, Inc."
+ },
+ "TSLA": {
+  "quote_type": "EQUITY",
+  "name": "Tesla, Inc."
+ },
+ "HD": {
+  "quote_type": "EQUITY",
+  "name": "Home Depot, Inc. (The)"
+ },
+ "LLY": {
+  "quote_type": "EQUITY",
+  "name": "Eli Lilly and Company"
+ },
+ "ABBV": {
+  "quote_type": "EQUITY",
+  "name": "AbbVie Inc."
+ },
+ "WMT": {
+  "quote_type": "EQUITY",
+  "name": "Walmart Inc."
+ },
+ "COST": {
+  "quote_type": "EQUITY",
+  "name": "Costco Wholesale Corporation"
+ },
+ "PG": {
+  "quote_type": "EQUITY",
+  "name": "Procter & Gamble Company (The)"
+ },
+ "CVX": {
+  "quote_type": "EQUITY",
+  "name": "Chevron Corporation"
+ },
+ "COP": {
+  "quote_type": "EQUITY",
+  "name": "ConocoPhillips"
+ },
+ "LIN": {
+  "quote_type": "EQUITY",
+  "name": "Linde plc"
+ },
+ "NEM": {
+  "quote_type": "EQUITY",
+  "name": "Newmont Corporation"
+ },
+ "GE": {
+  "quote_type": "EQUITY",
+  "name": "GE Aerospace"
+ },
+ "NEE": {
+  "quote_type": "EQUITY",
+  "name": "NextEra Energy, Inc."
+ },
+ "SO": {
+  "quote_type": "EQUITY",
+  "name": "Southern Company (The)"
+ },
+ "DUK": {
+  "quote_type": "EQUITY",
+  "name": "Duke Energy Corporation (Holdin"
+ },
+ "WELL": {
+  "quote_type": "EQUITY",
+  "name": "Welltower Inc."
+ },
+ "PLD": {
+  "quote_type": "EQUITY",
+  "name": "Prologis, Inc."
+ },
+ "NVDL": {
+  "quote_type": "ETF",
+  "name": "GraniteShares 2x Long NVDA Dail"
+ },
+ "AAPU": {
+  "quote_type": "ETF",
+  "name": "Direxion Daily AAPL Bull 2X ETF"
+ },
+ "MSFU": {
+  "quote_type": "ETF",
+  "name": "Direxion Daily MSFT Bull 2X ETF"
+ },
+ "METU": {
+  "quote_type": "ETF",
+  "name": "Direxion Daily META Bull 2X ETF"
+ },
+ "GGLL": {
+  "quote_type": "ETF",
+  "name": "Direxion Daily GOOGL Bull 2X ET"
+ },
+ "AMZU": {
+  "quote_type": "ETF",
+  "name": "Direxion Daily AMZN Bull 2X ETF"
+ },
+ "TSLL": {
+  "quote_type": "ETF",
+  "name": "Direxion Daily TSLA Bull 2X ETF"
+ },
+ "BRKU": {
+  "quote_type": "ETF",
+  "name": "Direxion Daily BRKB Bull 2X ETF"
+ },
+ "ELIL": {
+  "quote_type": "ETF",
+  "name": "Direxion Daily LLY Bull 2X ETF"
+ },
+ "COTG": {
+  "quote_type": "ETF",
+  "name": "Leverage Shares 2X Long COST Da"
+ }
+}
