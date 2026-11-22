@@ -9,7 +9,7 @@ Run the three review passes on everything that changed in `frontend/src`, `front
 
 If the argument is `skip`: only allowed for a trivial change with no logic: dead-code deletion, a docstring, a label or wording fix, a rename with no callers, or a version number. Say plainly what changed, then run `bash .claude/hooks/three_pass_check.sh --stamp "text-only skip" --trivial "<kind>: <reason>"` (kind is one of dead-code, docstring, label, wording, rename, version; the reason is at least 8 characters; it is logged and listed at session close) and stop.
 
-Otherwise do the passes in order. Each one must dig deeper than the last, and each must find something or say why it could not:
+Otherwise do the passes in order, using the checklists in `docs/claude/stable/ENGINEER.md` (data, keys, exceptions, testing, performance, edge cases) as the list of things to try to break. Each one must dig deeper than the last, and each must find something or say why it could not:
 
 1. **Read the diff.** Read every changed file as a reviewer: wrong logic, wrong wording, unused or leftover code, callers not updated (grep every caller, Golden Rule 54), parity between JS and Python copies (Golden Rules 19/21).
 2. **Edge cases.** Try to break it: missing, null, NaN, empty, one item, many items, very large or very small numbers, short history, tz-aware dates. Add a test for each real bug found.

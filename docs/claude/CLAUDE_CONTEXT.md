@@ -52,6 +52,7 @@
 1. READ FILES (in this exact order):
    □ GOLDEN_RULES.md
    □ PERSONA.md (trading-judgment lens — Golden Rule 34)
+   □ ENGINEER.md (the surgeon's lens: evidence before claim, checklists for data, keys, exceptions, testing, performance, edge cases; Day 129)
    □ ROADMAP.md
    □ PROJECT_STATUS_DAY[N]_SHORT.md
    □ KNOWN_ISSUES_DAY[N].md
@@ -187,6 +188,7 @@ pick deliberately based on what the user actually wants next, not backlog order.
 ├── stable/                        <- Rarely change
 │   ├── GOLDEN_RULES.md           <- Core rules + lessons learned
 │   ├── PERSONA.md                <- Trading-judgment lens (30yr veteran persona) + Feedback Log
+│   ├── ENGINEER.md               <- Engineer's lens (surgical developer persona) + the table of what has been missed + Feedback Log
 │   ├── ROADMAP.md                <- Canonical roadmap
 │   └── MASTER_AUDIT_FRAMEWORK.md <- Canonical audit protocol (5 types)
 ├── design/                        <- Feature design specs + audit reports

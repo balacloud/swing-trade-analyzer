@@ -14,13 +14,14 @@ Extract from it:
 
 ## Step 2: Read the 5 required files
 
-Read all five — do not skip any:
+Read all six — do not skip any:
 
 1. `docs/claude/stable/GOLDEN_RULES.md`
 2. `docs/claude/stable/PERSONA.md` — the trading-judgment persona (30-year veteran trader lens). Load it as an active decision-making filter for this session, not just background reading — apply it to any threshold decision, backtest/live result interpretation, or "can we speed this up" request.
-3. `docs/claude/stable/ROADMAP.md`
-4. `docs/claude/status/PROJECT_STATUS_DAY[N]_SHORT.md` — use the Day N you found in Step 1
-5. `docs/claude/versioned/KNOWN_ISSUES_DAY[N].md` — use the Day N you found in Step 1
+3. `docs/claude/stable/ENGINEER.md` — the surgeon's lens (engineer persona, Day 129). Load it as an active filter for every plan and code change: evidence before claim, read what the check reads, find every copy, break it before the user does, and re-read its "what has been missed" table before planning.
+4. `docs/claude/stable/ROADMAP.md`
+5. `docs/claude/status/PROJECT_STATUS_DAY[N]_SHORT.md` — use the Day N you found in Step 1
+6. `docs/claude/versioned/KNOWN_ISSUES_DAY[N].md` — use the Day N you found in Step 1
 
 ## Step 3: Count open bugs
 
