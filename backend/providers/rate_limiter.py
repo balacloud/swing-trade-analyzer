@@ -205,6 +205,8 @@ PROVIDER_LIMITS = {
     # Day 83: observed 120/min on Tradier's market-data endpoints; 100 is a
     # conservative margin under that ceiling.
     'tradier':       {'rate_per_minute': 100, 'daily_limit': 0},
+    # Day 129: Alpaca Basic (free) is 200/min; 150 leaves a margin.
+    'alpaca':        {'rate_per_minute': 150, 'daily_limit': 0},
 }
 
 

@@ -297,7 +297,7 @@ def get_cached_ohlcv(ticker: str, period: str = '2y') -> Optional[pd.DataFrame]:
         conn.close()
 
 
-def set_cached_ohlcv(ticker: str, df: pd.DataFrame, period: str = '2y', source: str = 'yfinance'):
+def set_cached_ohlcv(ticker: str, df: pd.DataFrame, period: str = '2y', source: str = 'yfinance', now=None):
     """Store OHLCV data in cache. Day 51: Added source parameter for provenance."""
     ticker = ticker.upper()
     conn = get_db_connection()
@@ -318,6 +318,17 @@ def set_cached_ohlcv(ticker: str, df: pd.DataFrame, period: str = '2y', source: 
         if newest_close_missing(df):
             expires_at = min(expires_at, datetime.now(ET) + timedelta(minutes=EMPTY_NEWEST_BAR_TTL_MIN))
             print(f"⚠️ OHLCV for {ticker}: newest bar has no close price, cache kept only {EMPTY_NEWEST_BAR_TTL_MIN} min")
+
+        # Day 129 (Alpaca plan, Opus review): a frame whose newest bar is TODAY and was fetched before 16:30 ET holds a bar that may still be
+        # forming (Alpaca's free data ends 15 minutes back, so a 16:05 fetch can miss the closing auction). calculate_ohlcv_expiry() rolls
+        # anything fetched after 16:00 to TOMORROW 16:30, which would serve that partial bar as a finished day. Every source: expire at 16:30 today.
+        try:
+            from market_time import is_forming_bar
+            _now = now or datetime.now(ET)
+            if len(df) and is_forming_bar(df.index[-1].strftime('%Y-%m-%d'), _now):
+                expires_at = min(expires_at, _now.replace(hour=16, minute=30, second=0, microsecond=0))
+        except Exception as _e:                                   # never let the safety rule break a cache write
+            print(f"⚠️ forming-bar expiry cap failed for {ticker}: {_e}")
 
         # Day 126: a shorter fetch (e.g. the MR route's 1y) must not overwrite a FRESH longer entry (a 2y frame)
         cursor.execute("SELECT period, expires_at FROM ohlcv_cache WHERE ticker = ?", (ticker,))

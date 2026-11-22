@@ -30,7 +30,7 @@ from providers.exceptions import DataNotFoundError
 MAX_TRADE_AGE_MIN = 20       # regular session: older than this = "no recent trades"
 LIVE_LABEL_MAX_MIN = 2       # at or under this reads "Live"
 FUTURE_SKEW_MIN = 2          # a trade stamped further ahead than this is a bad clock
-CANADIAN_SUFFIXES = ('.TO', '.NE', '.V')
+from providers.coverage import CANADIAN_SUFFIXES   # Day 129: one copy of the Canada rule (adds .NEO, .CN)
 CACHE_TTL_HOURS = 45 / 3600.0   # 45 seconds
 
 

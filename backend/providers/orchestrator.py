@@ -9,7 +9,7 @@ THE CORE: Routes data requests through fallback chains with:
   - Provenance tracking (which provider supplied which data)
 
 Fallback Chains:
-  OHLCV:         TwelveData → yfinance → Tradier → stale cache
+  OHLCV:         Alpaca (US) → TwelveData → yfinance → Tradier → stale cache   (Canada: yfinance; leveraged funds never Tradier)
   Intraday:      TwelveData → yfinance
   Fundamentals:  Finnhub → AlphaVantage (growth gaps) → yfinance  (field-level merge)
   Quote (VIX):   Cache (1h) → yfinance → Finnhub → Tradier → stale cache
@@ -35,6 +35,9 @@ the gap Stooq's removal left. Uses the user's Tradier brokerage API key
 module docstring for the full Day 82 evaluation this was built against —
 notably, OHLCV is split- but NOT dividend-adjusted, so this should only ever
 be reached after TwelveData and yfinance have both already failed.
+
+Day 129: AlpacaProvider is now FIRST for US tickers (free plan, 200/min, adjusted bars matched Twelve Data and Yahoo within 0.04%);
+Twelve Data stays primary for intraday. See alpaca_provider.py and docs/claude/design/ALPACA_PROVIDER_PLAN_DAY129.md.
 """
 
 import os
@@ -60,6 +63,7 @@ from .alphavantage_provider import AlphaVantageProvider
 from .yfinance_provider import YFinanceProvider
 from .stooq_provider import StooqProvider
 from .tradier_provider import TradierProvider
+from .alpaca_provider import AlpacaProvider
 from .fallback_policy import tradier_blocked
 
 # Import existing cache_manager (add parent to path if needed)
@@ -96,9 +100,10 @@ class DataProvider:
         self.yfinance     = YFinanceProvider()
         self.stooq        = StooqProvider()  # kept for status reporting; NOT in _ohlcv_chain (Day 82: dead, bot-blocked)
         self.tradier      = TradierProvider()  # Day 83: last-resort OHLCV/quote fallback
+        self.alpaca       = AlpacaProvider()   # Day 129: first US daily-price source
 
         # Fallback chain definitions
-        self._ohlcv_chain         = [self.twelvedata, self.yfinance, self.tradier]
+        self._ohlcv_chain         = [self.alpaca, self.twelvedata, self.yfinance, self.tradier]
         self._intraday_chain      = [self.twelvedata, self.yfinance]
         self._fundamentals_chain  = [self.finnhub, self.alphavantage, self.yfinance]
         self._quote_chain         = [self.yfinance, self.finnhub, self.tradier]
@@ -149,7 +154,7 @@ class DataProvider:
         Get OHLCV data with cache-first strategy and provider fallback.
         Returns DataFrame with lowercase columns (open, high, low, close, volume).
 
-        Strategy: Cache → TwelveData → yfinance → Tradier → Stale Cache → Error
+        Strategy: Cache → Alpaca (US) → TwelveData → yfinance → Tradier → Stale Cache → Error
         """
         ticker = ticker.upper()
 
@@ -533,10 +538,17 @@ class DataProvider:
                 return -1
 
         providers = {
+            'alpaca': {
+                'configured': bool(self.alpaca.api_key),
+                'type': 'OHLCV (US daily)',
+                'role': 'primary',   # Day 129: first source for US daily prices
+                'health': _provider_health('alpaca'),
+                'daily_remaining': -1,  # no daily cap (200/min)
+            },
             'twelvedata': {
                 'configured': bool(self.twelvedata.api_key),
                 'type': 'OHLCV + Intraday',
-                'role': 'primary',
+                'role': 'fallback (OHLCV), primary (intraday)',
                 'health': _provider_health('twelvedata'),
                 'daily_remaining': _daily_remaining('twelvedata'),
             },

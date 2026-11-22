@@ -9,7 +9,7 @@
  */
 
 const DISPLAY = {
-  twelvedata: 'Twelve Data', yfinance: 'Yahoo (yfinance)', tradier: 'Tradier',
+  alpaca: 'Alpaca', twelvedata: 'Twelve Data', yfinance: 'Yahoo (yfinance)', tradier: 'Tradier',
   finnhub: 'Finnhub', alphavantage: 'Alpha Vantage', fmp: 'FMP', stooq: 'Stooq', eodhd: 'EODHD',
 };
 export const providerLabel = (name) => DISPLAY[name] || name;

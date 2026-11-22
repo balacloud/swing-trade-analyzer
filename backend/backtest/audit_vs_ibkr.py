@@ -162,7 +162,7 @@ def main():
     os.makedirs(d, exist_ok=True)
     L = [f'# Data source audit vs IBKR truth ({a.date})\n',
          'Script `backend/backtest/audit_vs_ibkr.py`. Truth: IBKR (user\'s own contracts), last 5 daily closes and volumes, three month-end closes (split-adjusted) and corporate actions. '
-         'Sources graded: every source step 1 fetched (Twelve Data, Yahoo, Tradier for US; Yahoo for Canada; EODHD where the free quota allowed).',
+         'Sources graded: every source step 1 fetched (Alpaca, Twelve Data, Yahoo, Tradier for US; Yahoo for Canada; EODHD where the free quota allowed).',
          '**C3** close accuracy (last 5 days), **C5** history level vs IBKR month-ends (catches unadjusted splits), **C7** volume plausibility. '
          'Volume is not expected to equal IBKR\'s (it counts a subset of trades); only zero or wildly off volume is flagged.\n',
          '## Matrix (worst result across the sources that can serve the ticker)\n',
@@ -183,11 +183,11 @@ def main():
                 L.append(f"- {ICON[v['level']]} {src} {k}: {v['note']}")
             L.append('')
     L.append('## Volume ratios (source ÷ IBKR, last 5 sessions)\n')
-    L.append('| Class | Ticker | ' + ' | '.join(['twelvedata', 'yfinance', 'tradier', 'eodhd']) + ' |')
+    L.append('| Class | Ticker | ' + ' | '.join(['alpaca', 'twelvedata', 'yfinance', 'tradier', 'eodhd']) + ' |')
     L.append('|---|---|---|---|---|---|')
     for r in rows:
         cells = []
-        for s in ['twelvedata', 'yfinance', 'tradier', 'eodhd']:
+        for s in ['alpaca', 'twelvedata', 'yfinance', 'tradier', 'eodhd']:
             n = r['per_source'].get(s, {}).get('C7', {}).get('note', '')
             cells.append(n.split('x')[-1] if 'x' in n else '—')
         L.append(f"| {r['class']} | `{r['symbol']}` | " + ' | '.join(cells) + ' |')

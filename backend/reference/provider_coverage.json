@@ -7,6 +7,12 @@
   "Cboe Canada"
  ],
  "providers": {
+  "alpaca": {
+   "US": "works",
+   "Toronto": "no",
+   "Cboe Canada": "no",
+   "note": "First US daily-price source since Day 129 (free plan, 200 calls a minute, adjusted bars). Measured 2026-11-21: closes within 0.04% of Twelve Data and Yahoo over the whole 2y history on AAPL, JNJ, NEE, NVDL, QPUX; no split error on NVDL or QPUX; volume x0.85-1.01 of Twelve Data. Bars with zero volume are not emitted, so thin funds can miss sessions."
+  },
   "twelvedata": {
    "US": "works",
    "Toronto": "no",

@@ -12,8 +12,8 @@ For each Wave-1 ticker it fetches the daily history from EVERY source that can s
   C9  Cross-source last 20 closes of the source STA uses vs each other source; volume ratio
 Not here (needs IBKR truth, step 2): C1 identity, C3 close accuracy vs broker, C7 volume vs broker.
 
-"STA uses" = the first source in STA's real chain that returned data: US Twelve Data -> Yahoo -> Tradier;
-Canada Yahoo (Twelve Data and Tradier have no Canada).
+"STA uses" = the first source in STA's real chain that returned data: US Alpaca -> Twelve Data -> Yahoo -> Tradier (Day 129: Alpaca added);
+Canada Yahoo (Alpaca, Twelve Data and Tradier have no Canada).
 Rate limits (Golden Rule 25): Twelve Data 8/min, EODHD free 20/day (budget read live), Alpha Vantage not used.
 Raw frames are cached on disk, so a re-run costs no provider calls.
 
@@ -120,7 +120,8 @@ def universe_from_file(path, offline=False):
 
 
 def is_ca(sym):
-    return sym.endswith(('.TO', '.NE', '.V'))
+    from providers.coverage import is_canadian      # Day 129: one copy of the Canada rule
+    return is_canadian(sym)
 
 
 def norm(df):
@@ -189,14 +190,16 @@ def fetch_all(budget, offline=False):
             if sym in EODHD_PRIORITY[:max(budget, 0)] or 'eodhd' in got:
                 plan.append(('eodhd', sym))
         else:
-            plan = [('twelvedata', sym.replace('-', '.')), ('yfinance', sym), ('tradier', sym.replace('-', '/'))]
+            plan = [('alpaca', sym.replace('-', '.')), ('twelvedata', sym.replace('-', '.')), ('yfinance', sym), ('tradier', sym.replace('-', '/'))]
         for src, s in plan:
             if src in got:
                 continue
             if offline:        # replay mode: never touch a provider
                 continue
             try:
-                if src == 'twelvedata':
+                if src == 'alpaca':
+                    got[src] = norm(dp.alpaca.get_ohlcv(s, '2y').df); time.sleep(0.4)    # 200/min allowance
+                elif src == 'twelvedata':
                     wait = 8.0 - (time.time() - td_last[0])
                     if wait > 0:
                         time.sleep(wait)
@@ -223,8 +226,8 @@ ICON = dq.ICON
 
 def chain_sources(sym):
     """Every source that STA's real chain can fall through to for this ticker. Any of them can serve a request
-    (Twelve Data is rate-limited all day, so Yahoo and Tradier serve most US fetches), so ALL must be clean."""
-    return ['yfinance'] if is_ca(sym) else ['twelvedata', 'yfinance', 'tradier']
+    (Twelve Data is rate-limited all day, so Yahoo and Tradier serve many US fetches; Alpaca is first since Day 129), so ALL must be clean."""
+    return ['yfinance'] if is_ca(sym) else ['alpaca', 'twelvedata', 'yfinance', 'tradier']
 
 
 def source_checks(name, h, others):
