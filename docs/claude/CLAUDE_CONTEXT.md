@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 129 — 2026-11-22
+> **Last Updated:** Day 130 — 2026-11-22
 
 ---
 
@@ -11,15 +11,20 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 129 |
+| Current Day | 130 |
 | Version | v4.69 (Backend v2.58, Frontend v4.65) |
-| Latest Status | PROJECT_STATUS_DAY129_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY129.md |
+| Latest Status | PROJECT_STATUS_DAY130_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY130.md |
 | Latest API | API_CONTRACTS_DAY129.md |
-| Focus | **Data Source Audit Round 2, about 60% done (Day 129):** Alpaca is the first US source, leveraged funds never use Tradier, Twelve Data 404/key-leak fixed, 16:30 cache cap. Next: check Alpaca's in-session bar on a market day; refresh `data_audit_latest.json`; thin ETFs / SOXL.NE / FINN.NE / BRKU; Data Sources tab statement audit; other tabs; then playbook research (#21). Open for the user: Alpaca terms of use, Twelve Data key rotation, clear US cache at rollout. |
+| Focus | **Day 130 was docs-only (v4.69 unchanged).** **Data Source Audit Round 2, about 60% done (Day 129):** Alpaca is the first US source, leveraged funds never use Tradier, Twelve Data 404/key-leak fixed, 16:30 cache cap. Next: check Alpaca's in-session bar on a market day; refresh `data_audit_latest.json`; thin ETFs / SOXL.NE / FINN.NE / BRKU; Data Sources tab statement audit; other tabs; then playbook research (#21). Open for the user: Alpaca terms of use, Twelve Data key rotation, clear US cache at rollout. |
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 130 Summary (docs-only, v4.69 unchanged)
+- **Engineer persona checked against all days:** `ENGINEER.md`'s "missed" table now covers Days 1-129 (12 new themes from Golden Rules 18-61), not just 127-129. Found `GOLDEN_RULES.md` has no Rule 27 (the replay rule is numbered 29, cited as 27 elsewhere); logged, not renumbered.
+- **Pushed 1,212 untracked files** (research, audit, backtest). Left out: another project's `.venv` / `node_modules` (about 200 MB), `.db`, logs, `.playwright-mcp/`, `.vscode/`. Secrets scan clean.
+- Nothing else changed; Day 129's priorities stand. Alpaca's in-session bar needs a market day (Mon Nov 23 or later).
 
 ### Day 129 Summary (Data Source Audit Round 2 continued, Alpaca first — v4.69, Golden Rules 67-68)
 - **Tradier rule:** leveraged funds are never served by Tradier (`providers/fallback_policy.py`); a 60 s failure memo; the Data Sources tab warns when Tradier served a price; audit C8 reads the tab. 32 tests.
@@ -32,12 +37,6 @@
 - **Tradier 400 (Golden Rule 65):** one HTTP code meant over-limit, unknown ticker and our own bug; now classified by body, unknown tickers no longer open the breaker. 61 tests. Tradier also stalls on about 1 call in 6-8 (open item).
 - **Empty price row (Golden Rule 66):** 15 cached Yahoo tickers had a newest bar with no prices; `/api/sr` sent invalid JSON. Rows are dropped when served (cache stays raw, 30-minute expiry), the Data Sources tab and audit FAIL it, `/api/stock` never answers 0, page checker A14. 44 tests. Opus reviewed both plans and changed both.
 - User asked for plain English and a straight answer to the narrow question; no layout plan exists (ROADMAP #26).
-
-### Day 127 Summary (Audit follow-through and data-source plan — v4.67)
-- **Audit follow-through:** universe audit 177 → ~2 WRONG; one price basis, cache rules, 503 vs 404, fundamentals retry. `run_all_checks.sh` and a nightly universe audit (no new rules, no slow hooks).
-- **Buy fix (persona decision):** the zone price is inside is the nearest support; when the last completed close is inside it, the Buy is that close (`meta.entryBasis`, one function `sr_plan.plan_entry`). AMD R:R 0.2 → 0.53. Opus review applied.
-- **Data Source Audit Round 2:** plan + Opus review; step 0 built (audit scripts take any ticker list; 117 classified). Tradier: live quote already first for US; history stays dividend-adjusted.
-- **Playbook research prompt** (macro → sector → stock, tested against the 117) drafted, not run.
 
 ## SESSION START PROTOCOL
 
@@ -112,6 +111,7 @@ places and manages every trade themselves. Every item below is available to work
 pick deliberately based on what the user actually wants next, not backlog order.
 
 **Next up (each: plan → Fable review → build → sign-off):**
+(Day 130 was docs-only; the list below is unchanged. Item 0(a) needs a market day, Mon Nov 23 or later.)
 0. **Data Source Audit Round 2 (ROADMAP #20), about 60% done (Day 129).** Done: audit scripts, inventory (draft), truth-free audit (mid-session + after close), Tradier 400 fix, empty-price-row fix, IBKR truth (63 of 117), Tradier leveraged-fund rule, Alpaca first US source, Twelve Data 404/key fixes, 16:30 cache cap. Next, in order: (a) Alpaca in-session bar on a market day; (b) refresh `backend/reference/data_audit_latest.json`; (c) thin ETFs (XDRV.TO, CARS.TO), SOXL.NE, FINN.NE, BRKU volume; (d) Data Sources tab statement audit + rare states; (e) other tabs, 117-ticker page audit, framework Part 8. Open for the user: Alpaca terms, Twelve Data key rotation, clear US cache at rollout.
 0-. **Playbook research (ROADMAP #21):** the user reviews `PLAYBOOK_RESEARCH_PROMPT_DAY127.md`; runs after #20. The user's open "fork question" from Day 127 was not asked yet.
 0a. **Day 126 follow-ups, all optional (ROADMAP #19):** weekly watchlist-wide split scan, Tradier 40% jump
@@ -169,7 +169,7 @@ pick deliberately based on what the user actually wants next, not backlog order.
     orchestrator its two newer siblings use (Day 108) — the `fetchSectorRotation()` half of
     this was fixed Day 108 (Golden Rule 47); the backend half remains.
 
-**Full detail on every open item:** `docs/claude/versioned/KNOWN_ISSUES_DAY128.md`.
+**Full detail on every open item:** `docs/claude/versioned/KNOWN_ISSUES_DAY130.md`.
 
 ---
 
@@ -285,6 +285,7 @@ sqlite3 backend/validation_results/paper_trading_ledger.db "SELECT MAX(run_date)
 | 124 | **Analyze Page Redesign complete** (Steps 7–8): facts-only Market backdrop first, Full Analysis default, No Trade wording, one VIX band, MR next-open on Forward Test, page checker rewritten (40/40), header price dated. Golden Rule 62. v4.64. |
 | 128 | **Data Source Audit Round 2 started:** truth-free audit on 117 tickers, Tradier 400 handling (Golden Rule 65), empty price row dropped when served + audit FAIL + page checker A14 (Golden Rule 66). Opus reviewed both plans. v4.68. |
 | 129 | **Alpaca first US source, Tradier leveraged-fund rule, Twelve Data 404/key-leak fix, 16:30 cache cap, ENGINEER.md** (Golden Rules 67-68). v4.69. |
+| 130 | Docs-only: ENGINEER.md missed-table covers all days (12 themes), Golden Rule 27 numbering note, 1,212 untracked files pushed (venv/logs left out). v4.69 unchanged. |
 
 ---
 

@@ -106,7 +106,7 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
 
 <div class="wrap">
   <header>
-    <span class="eyebrow">Swing Trade Analyzer · updated at every session close · last updated Day 129, Nov 22, 2026</span>
+    <span class="eyebrow">Swing Trade Analyzer · updated at every session close · last updated Day 130, Nov 22, 2026</span>
     <h1>STA Status Board</h1>
     <p class="muted">Where the project stands, what's next, and which published pages you can still trust. Numbers come from the live paper-trading report and the repo's status files, not from older pages.</p>
   </header>
@@ -165,7 +165,7 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
   </section>
 
   <section>
-    <div class="shead"><h2>Open bugs, Medium and above</h2><span class="src">KNOWN_ISSUES_DAY129.md</span></div>
+    <div class="shead"><h2>Open bugs, Medium and above</h2><span class="src">KNOWN_ISSUES_DAY130.md</span></div>
     <ul class="bugs">
       <li><span class="sev med">Medium</span>New Day 129: Alpaca's daily bar for today during a market session has not been seen yet. The 16:30 cache cap is the safety net; check it on the next market day.</li>
       <li><span class="sev med">Medium</span>New Day 129: after the Alpaca rollout old Yahoo or Twelve Data copies stay in the cache until they expire (AAPL still showed Yahoo). One cache clear fixes it; needs your go-ahead.</li>
@@ -193,18 +193,18 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
       <table>
         <thead><tr><th>Day</th><th>Date</th><th>What happened</th></tr></thead>
         <tbody>
+          <tr><td class="n">130</td><td class="n">Nov 22</td><td>Docs-only session. The engineer persona's list of past misses now covers every earlier day (12 new themes), not just Days 127–129. Found a numbering gap in the Golden Rules (no Rule 27; one rule is numbered 29 but cited as 27). Pushed 1,212 research, audit and backtest files, leaving out another project's libraries, logs and local tool folders. Nothing in the app changed (v4.69).</td></tr>
           <tr><td class="n">129</td><td class="n">Nov 20–22</td><td>Data source audit continued. Leveraged funds are never served by Tradier, and the Data Sources tab says when Tradier served a price. Alpaca is the first US price source: every close within 0.5% of Yahoo on 79 US stocks. Fixed: Twelve Data's "no such symbol" answer counted as a failure, its key was written to a local log, and a 4:00–4:30pm cache gap. A new engineer persona was written. Parked: the "Data Trail" visual.</td></tr>
           <tr><td class="n">128</td><td class="n">Nov 19</td><td>Data source audit started. First audit of the price data on all 117 stocks: clean for US stocks, Canadian stocks and CDRs, with five real problems found. Tradier's "HTTP 400" meant three different things; they are now told apart (Golden Rule 65). Yahoo had given 15 stocks a newest price row with no prices and the page showed an invalid price; such rows are now dropped, the audit and Data Sources tab fail them, and the page checker catches an unreadable price (Golden Rule 66). Opus reviewed both plans and changed both. v4.67 → v4.68.</td></tr>
           <tr><td class="n">127</td><td class="n">Nov 17–19</td><td>Audit follow-through: 177 problems on the 117-stock watchlist down to about 2. One price basis, safer cache rules, a nearest-support fix, and the Buy is now the last close when price is already inside the support zone (it was above the market). One command runs all checks; a nightly audit is scheduled. Planned the Data Source Audit (page audit cannot catch a wrong provider price) and drafted a "why stocks move" research prompt.</td></tr>
           <tr><td class="n">126</td><td class="n">Nov 14–16</td><td>Data trust and facts-only cards. The indicator table now matches the code (tested). SOXL.NE's 3-for-1 split is fixed by a verified split table that adjusts the provider's history. Validate tab deleted, Forward Test hidden. Technical Read and volume cards list facts instead of Strong/Weak or Yes/Mixed/No; the price ruler marks the 21, 50 and 200-day averages. A hook now forces three review passes on every code change.</td></tr>
-          <tr><td class="n">125</td><td class="n">Nov 12</td><td>Analyze page trimmed, card by card. Trade Setup ends with the nearest Resistance and Support. Breakout uses common trader rules (a close above the 60-day high, 1.5× volume, no more than 5% above) and says "not tested". Price Structure, Pattern Detection, the P/E guide and the MR track-record box were removed. Simple S&amp;R engine planned, reviewed by Fable and checked against Reddit. No in-app chart. Golden Rule 63: one label, one number. v4.64 → v4.65.</td></tr>
 </tbody>
       </table>
     </div>
   </section>
 
   <section>
-    <div class="shead"><h2>Artifact map</h2><span class="src">checked Nov 19, 2026</span></div>
+    <div class="shead"><h2>Artifact map</h2><span class="src">checked Nov 22, 2026</span></div>
     <p class="note">Every published page that relates to STA, with whether you can still trust it. "Snapshot" means it was accurate on the date shown and hasn't been rechecked since.</p>
     <div class="filters" role="group" aria-label="Filter pages">
       <button type="button" id="f-all" data-f="all" aria-pressed="true">All</button>
