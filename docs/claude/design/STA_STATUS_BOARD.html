@@ -106,20 +106,20 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
 
 <div class="wrap">
   <header>
-    <span class="eyebrow">Swing Trade Analyzer · updated at every session close · last updated Day 128, Nov 19, 2026</span>
+    <span class="eyebrow">Swing Trade Analyzer · updated at every session close · last updated Day 129, Nov 22, 2026</span>
     <h1>STA Status Board</h1>
     <p class="muted">Where the project stands, what's next, and which published pages you can still trust. Numbers come from the live paper-trading report and the repo's status files, not from older pages.</p>
   </header>
 
   <div class="strip">
     <div class="tile"><span class="k">Mode</span><span class="v">Analysis only</span><span class="s">You place every trade. Paper trading stopped Sep 12.</span></div>
-    <div class="tile"><span class="k">Version</span><span class="v">v4.68</span><span class="s">Backend v2.57 · Frontend v4.64. Price rows with no price are dropped before any card sees them; Tradier errors are told apart.</span></div>
-    <div class="tile"><span class="k">Open bugs</span><span class="v">14 Medium+</span><span class="s">1 High, 13 Medium. New Day 128: Twelve Data keeps running out (the app uses Yahoo for most US tickers) and Tradier stalls on random calls.</span></div>
-    <div class="tile"><span class="k">Next project</span><span class="v">Data source audit</span><span class="s">About 40% done. First audit of all 117 tickers ran; Tradier and empty-price-row fixes built. Next: re-run after the close, then compare with IBKR.</span></div>
+    <div class="tile"><span class="k">Version</span><span class="v">v4.69</span><span class="s">Backend v2.58 · Frontend v4.65. Alpaca is now the first US price source; leveraged funds never use Tradier.</span></div>
+    <div class="tile"><span class="k">Open bugs</span><span class="v">17 Medium+</span><span class="s">1 High, 16 Medium. New Day 129: check Alpaca's in-session bar, old sources left in the cache at rollout, and two decisions for you (Alpaca terms, Twelve Data key).</span></div>
+    <div class="tile"><span class="k">Next project</span><span class="v">Data source audit</span><span class="s">About 60% done. Alpaca first, Tradier rule, Twelve Data fixes built. Next: check Alpaca during a market day, refresh the Data Sources tab file.</span></div>
   </div>
 
   <section>
-    <div class="shead"><h2>Forward-test final results</h2><span class="src">daily_job.py --report · pulled Nov 19, 2026 (last job run Nov 18) · next-open column from mr_open_entry_retest.py</span></div>
+    <div class="shead"><h2>Forward-test final results</h2><span class="src">daily_job.py --report · pulled Nov 22, 2026 (last job run Nov 20) · next-open column from mr_open_entry_retest.py</span></div>
     <div class="tablewrap">
       <table>
         <thead><tr><th>Track</th><th>Closed</th><th>Win rate</th><th>PF (ledger)</th><th>PF at next open</th><th>Avg R</th><th>Verdict</th></tr></thead>
@@ -137,8 +137,8 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
   <section>
     <div class="shead"><h2>Next priorities</h2><span class="src">CLAUDE_CONTEXT.md</span></div>
     <ol class="pri">
-      <li><span class="sev med">Next</span><strong>Data Source Audit Round 2 (about 40% done):</strong> re-run the audit after the 4pm close; compare the 117 tickers with IBKR (first list the ones with no watchlist contract id); fix FINN.NE, XDRV.TO and SOXL.NE (QPUX and DRAL were cleared: they only differed on the unfinished day); then the Data Sources tab and the other tabs. The playbook research runs after it.</li>
-      <li><span class="sev med">Next</span><strong>Twelve Data keeps running out, and Tradier stalls.</strong> Remove the unused 4-hour RSI call that uses the same allowance, and decide on one retry when Tradier stalls. Each needs a small plan and an Opus review first.</li>
+      <li><span class="sev med">Next</span><strong>Data Source Audit Round 2 (about 60% done):</strong> check Alpaca's daily bar during a market day; refresh the Data Sources tab's reference file with the after-close and Alpaca results; decide the thin funds (XDRV.TO, CARS.TO), SOXL.NE, FINN.NE and BRKU volume; then the Data Sources tab and the other tabs. Your calls: Alpaca terms of use, rotating the Twelve Data key, clearing the US cache. The playbook research runs after it.</li>
+      <li><span class="sev med">Next</span><strong>Twelve Data and Tradier.</strong> Alpaca now goes first, so re-measure how often Twelve Data runs out before removing the unused 4-hour RSI call; decide on one retry for Tradier stalls.</li>
       <li><span class="sev med">Optional</span><strong>Page layout review.</strong> No layout plan exists yet. You name the 2 or 3 least intuitive screens and we go screen by screen, like the Analyze redesign.</li>
       <li><span class="sev med">Optional</span><strong>Your next questions.</strong> After every code change, <code>/three-pass</code> runs the three review passes (a hook now requires it).</li>
       <li><span class="sev med">Optional</span><strong>Day 126 follow-ups:</strong> a weekly scan of the whole watchlist for unadjusted splits, a guard against Tradier's wrong-way reverse split, deleting the dead validation routes, and retiring verdict labels no card shows any more.</li>
@@ -165,9 +165,12 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
   </section>
 
   <section>
-    <div class="shead"><h2>Open bugs, Medium and above</h2><span class="src">KNOWN_ISSUES_DAY128.md</span></div>
+    <div class="shead"><h2>Open bugs, Medium and above</h2><span class="src">KNOWN_ISSUES_DAY129.md</span></div>
     <ul class="bugs">
-      <li><span class="sev med">Medium</span>New Day 128: Twelve Data keeps hitting its limit (its breaker opened 82 times), so the app uses Yahoo for 61 of 97 US tickers. Likely relief: remove the unused 4-hour RSI call.</li>
+      <li><span class="sev med">Medium</span>New Day 129: Alpaca's daily bar for today during a market session has not been seen yet. The 16:30 cache cap is the safety net; check it on the next market day.</li>
+      <li><span class="sev med">Medium</span>New Day 129: after the Alpaca rollout old Yahoo or Twelve Data copies stay in the cache until they expire (AAPL still showed Yahoo). One cache clear fixes it; needs your go-ahead.</li>
+      <li><span class="sev med">Medium</span>New Day 129, your decision: Alpaca terms of use (no Alpaca prices in shared pages) and whether to rotate the Twelve Data key (it sits in old lines of the local log).</li>
+      <li><span class="sev med">Medium</span>Day 128: Twelve Data kept hitting its limit, so the app used Yahoo for 61 of 97 US tickers. Alpaca now goes first, so this should be much smaller; not re-measured yet.</li>
       <li><span class="sev med">Medium</span>New Day 128: Tradier stalls on about 1 call in 6 to 8, which trips its breaker. A retry is a design choice, not made yet.</li>
       <li><span class="sev med">Medium</span>Day 127, about 40% done: the page audit proves the maths, not the data. The data audit found FINN.NE, XDRV.TO and SOXL.NE to fix (QPUX and DRAL turned out fine); the IBKR comparison and the Data Sources tab audit are still to do.</li>
       <li><span class="sev med">Medium</span>New Day 126: the stock-split table is kept by hand. A split is adjusted only after someone verifies it; an unknown one shows as a FAIL on the Data Sources tab only for tickers you open.</li>
@@ -190,11 +193,11 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
       <table>
         <thead><tr><th>Day</th><th>Date</th><th>What happened</th></tr></thead>
         <tbody>
+          <tr><td class="n">129</td><td class="n">Nov 20–22</td><td>Data source audit continued. Leveraged funds are never served by Tradier, and the Data Sources tab says when Tradier served a price. Alpaca is the first US price source: every close within 0.5% of Yahoo on 79 US stocks. Fixed: Twelve Data's "no such symbol" answer counted as a failure, its key was written to a local log, and a 4:00–4:30pm cache gap. A new engineer persona was written. Parked: the "Data Trail" visual.</td></tr>
           <tr><td class="n">128</td><td class="n">Nov 19</td><td>Data source audit started. First audit of the price data on all 117 stocks: clean for US stocks, Canadian stocks and CDRs, with five real problems found. Tradier's "HTTP 400" meant three different things; they are now told apart (Golden Rule 65). Yahoo had given 15 stocks a newest price row with no prices and the page showed an invalid price; such rows are now dropped, the audit and Data Sources tab fail them, and the page checker catches an unreadable price (Golden Rule 66). Opus reviewed both plans and changed both. v4.67 → v4.68.</td></tr>
           <tr><td class="n">127</td><td class="n">Nov 17–19</td><td>Audit follow-through: 177 problems on the 117-stock watchlist down to about 2. One price basis, safer cache rules, a nearest-support fix, and the Buy is now the last close when price is already inside the support zone (it was above the market). One command runs all checks; a nightly audit is scheduled. Planned the Data Source Audit (page audit cannot catch a wrong provider price) and drafted a "why stocks move" research prompt.</td></tr>
           <tr><td class="n">126</td><td class="n">Nov 14–16</td><td>Data trust and facts-only cards. The indicator table now matches the code (tested). SOXL.NE's 3-for-1 split is fixed by a verified split table that adjusts the provider's history. Validate tab deleted, Forward Test hidden. Technical Read and volume cards list facts instead of Strong/Weak or Yes/Mixed/No; the price ruler marks the 21, 50 and 200-day averages. A hook now forces three review passes on every code change.</td></tr>
           <tr><td class="n">125</td><td class="n">Nov 12</td><td>Analyze page trimmed, card by card. Trade Setup ends with the nearest Resistance and Support. Breakout uses common trader rules (a close above the 60-day high, 1.5× volume, no more than 5% above) and says "not tested". Price Structure, Pattern Detection, the P/E guide and the MR track-record box were removed. Simple S&amp;R engine planned, reviewed by Fable and checked against Reddit. No in-app chart. Golden Rule 63: one label, one number. v4.64 → v4.65.</td></tr>
-          <tr><td class="n">124</td><td class="n">Nov 12</td><td>Analyze page redesign finished. The market card shows facts only (you dropped the verdict) and comes first; Full Analysis opens by default; "PASS" became "No Trade". One VIX wording on every screen. The page checker was rewritten and passes 40/40. Your AVGO question was a bounce, not a contradiction, and it showed the header price needed its date (fixed). Golden Rule 62: explain in simple English. v4.63 → v4.64.</td></tr>
 </tbody>
       </table>
     </div>
@@ -241,11 +244,12 @@ const GROUPS = [
 ];
 // s: current | snap | stale | hist
 const ITEMS = [
-  {g:"status", t:"STA Status Board", id:"", u:"Nov 19", s:"current", w:"This page. Status, results, priorities, bugs, and this map.", self:true},
+  {g:"status", t:"STA Status Board", id:"", u:"Nov 22", s:"current", w:"This page. Status, results, priorities, bugs, and this map.", self:true},
   {g:"status", t:"STA vs. 100 Years of Trading Principles", id:"SGUQPDct284KF4uGnPZGrE", u:"Nov 12", s:"current", w:"STA checked against 9 classic trading principles (7 match, 2 partial), plus a side-by-side with Reddit swing-trading advice.", why:"Row 03 corrected Day 123: MR PF 1.50 at the next open. Gallery name: artifact-cc9d82c6…. Source copy: docs/claude/design/artifacts_src/principles_100yr/index.html"},
   {g:"status", t:"Leveraged ETF Board", id:"HdErxTqUhq8KYs6McSU5V7", u:"Nov 2", s:"current", w:"Live IBKR data for the 8 funds on your AI_Leveraged watchlist (Canadian SOXL and GDXU, DRAL and others), counted against your adopted rules (trend, pullback, S&R, consolidation) plus background reads.", why:"Pulls fresh data each time you open it. Source: docs/claude/design/LEVERAGED_ETF_BOARD.html. Formulas match STA's Python (parity-checked Nov 2)."},
   {g:"explain", t:"Beginner Trading Starter Playbook", id:"CfnNDEEs8jS112MuTU4HPp", u:"Nov 4", s:"current", w:"8-tab beginner guide for a friend: trader types, US–Canada macro, Reddit rules, 100-year canon, coding rules, live data and gamification, and building it with Claude Code.", why:"Shared with anyone who has the link. Macro numbers are a Nov 3 snapshot, mostly from secondary sources; Canada 5Y is unchecked."},
   {g:"hist", t:"Swing Trading Starter Playbook (Claude Docs)", id:"LdDnS6HvtMi5GjQPao9Fpt", u:"Nov 3", s:"hist", w:"First version of the friend's playbook.", why:"Replaced by the Beginner Trading Starter Playbook."},
+  {g:"audit", t:"Data Trail (mockup)", id:"CywKP2TrX2vv728AnCnoGR", u:"Nov 22", s:"snap", w:"Mockup of a visual showing where each price came from (source, fallbacks, checks).", why:"Parked at your direction (Day 129): the Data Sources tab covers it for now. A design, not built; uses example numbers."},
   {g:"redesign", t:"Analyze Page Redesign: Decision Map", id:"8ih9hWm6N8Sq6vy7VjHq6A", u:"Nov 12", s:"current", w:"All redesign decisions mapped to the trading principles, with locked and open items.", why:"Gallery name: index. Synced Day 125: item 11 simplified (Price Structure / Pattern Detection removed, nearest Resistance/Support, breakout on trader rules). Source: docs/claude/design/artifacts_src/decision_map/index.html. Update when a build step changes a decision's status."},
   {g:"redesign", t:"Analyze Page Redesign: Mockup", id:"WacHXh9VioxQgzwsPGdX1X", u:"Nov 12", s:"snap", w:"What the redesigned Analyze page looks like. A design, not the live app (all 8 steps now built to it).", why:"Snapshot Day 126: the Technical Read and volume cards now show plain facts and a ruler of the 21/50/200-day averages; the mockup still shows the verdict headline. Gallery name: analyze_page_redesign_mockup. v0.17, Day 125: nearest Resistance/Support rows, Breakout card on trader rules; P/E guide and MR track record removed. Source: docs/claude/design/mockups/analyze_page_redesign_mockup.html."},
   {g:"redesign", t:"Fundamentals & Sentiment: Card Visual Design", id:"WEJYGp2cWK3EmfRZApfp2j", u:"Aug 22", s:"snap", w:"Mockup of the Fear & Greed gauge and the fundamentals red-flag card.", why:"The Fundamentals card was built Day 123 from the redesign mockup, not this page; this is the August design."},

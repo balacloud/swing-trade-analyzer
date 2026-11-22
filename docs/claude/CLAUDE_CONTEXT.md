@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 128 — 2026-11-19
+> **Last Updated:** Day 129 — 2026-11-22
 
 ---
 
@@ -11,15 +11,21 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 128 |
-| Version | v4.68 (Backend v2.57, Frontend v4.64) |
-| Latest Status | PROJECT_STATUS_DAY128_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY128.md |
-| Latest API | API_CONTRACTS_DAY128.md |
-| Focus | **Data Source Audit Round 2, about 40% done (Day 128):** truth-free audit on the 117 ran, Tradier 400 handling and the empty-price-row fix are built. Next: re-run the audit after the 4pm close, IBKR truth for the 117 (list tickers without a watchlist contract id first), fix FINN.NE / XDRV.TO / SOXL.NE (QPUX / DRAL cleared: only the unfinished day differed), Twelve Data running out, Data Sources tab audit. `DATA_SOURCE_AUDIT_ROUND2_PLAN_DAY127.md`. |
+| Current Day | 129 |
+| Version | v4.69 (Backend v2.58, Frontend v4.65) |
+| Latest Status | PROJECT_STATUS_DAY129_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY129.md |
+| Latest API | API_CONTRACTS_DAY129.md |
+| Focus | **Data Source Audit Round 2, about 60% done (Day 129):** Alpaca is the first US source, leveraged funds never use Tradier, Twelve Data 404/key-leak fixed, 16:30 cache cap. Next: check Alpaca's in-session bar on a market day; refresh `data_audit_latest.json`; thin ETFs / SOXL.NE / FINN.NE / BRKU; Data Sources tab statement audit; other tabs; then playbook research (#21). Open for the user: Alpaca terms of use, Twelve Data key rotation, clear US cache at rollout. |
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 129 Summary (Data Source Audit Round 2 continued, Alpaca first — v4.69, Golden Rules 67-68)
+- **Tradier rule:** leveraged funds are never served by Tradier (`providers/fallback_policy.py`); a 60 s failure memo; the Data Sources tab warns when Tradier served a price; audit C8 reads the tab. 32 tests.
+- **Alpaca first US source:** chain Alpaca -> Twelve Data -> Yahoo -> Tradier (Canada Yahoo only). 79 US tickers: 100% of closes within 0.5% of Yahoo, 96% of Twelve Data. 66 tests. The Opus review also found Twelve Data's 404 counted as a failure, its key written to `backend.log` (324 lines), and the 4:00-4:30pm cache hole; all fixed.
+- **Engineer persona:** `ENGINEER.md` (checklists + table of past misses), 3rd required read at `/sta-start`.
+- **Open for the user:** Alpaca terms of use, rotate the Twelve Data key, clear the US cache at rollout. "Data Trail" visual parked. User: "i dont want to go in to rabit holes".
 
 ### Day 128 Summary (Data Source Audit Round 2 started — v4.68, Golden Rules 65-66)
 - **Audit of the data itself (user: "if the data is wrong the whole compute is wrong").** Truth-free audit on all 117 tickers: clean for US stocks, Canadian stocks, CDRs; real problems FINN.NE, XDRV.TO, SOXL.NE (QPUX/DRAL looked bad only on the unfinished day; cleared against IBKR). Draft fetched-vs-computed inventory. The app falls back to Yahoo for 61 of 97 US tickers because Twelve Data's breaker keeps opening (82 times).
@@ -32,19 +38,6 @@
 - **Buy fix (persona decision):** the zone price is inside is the nearest support; when the last completed close is inside it, the Buy is that close (`meta.entryBasis`, one function `sr_plan.plan_entry`). AMD R:R 0.2 → 0.53. Opus review applied.
 - **Data Source Audit Round 2:** plan + Opus review; step 0 built (audit scripts take any ticker list; 117 classified). Tradier: live quote already first for US; history stays dividend-adjusted.
 - **Playbook research prompt** (macro → sector → stock, tested against the 117) drafted, not run.
-
-### Day 126 Summary (Data trust and facts-only cards — v4.66, Golden Rule 64)
-- **User rule: "I make the decision as a human, you just help with data."** Verdict words left the Technical Read
-  and volume cards; they list facts (trend checks, RSI, vs S&P 500, ADX, "N volume signals: a up, b down"),
-  with rules of thumb labelled "not tested by STA". The engine verdict is unchanged (parity 86,400).
-- **Indicator audit:** the Data Sources indicator table was wrong; rebuilt from `indicator_catalog.py`, 36 tests,
-  no live number changed (816-value golden snapshot).
-- **Stock-split mechanism:** SOXL.NE split 3-for-1 on 2026-05-25 and the providers left old prices unadjusted.
-  Hand-verified table + one classifier + one adjuster at the single data exit; the tab FAILs uncovered
-  split-sized jumps; sweep of 74 histories found no other. Real-path bug found live (tz-aware timestamps).
-- **Tabs:** Validate Data deleted, Forward Test hidden. **Ruler:** real 21/50/200-day averages.
-- **Process:** passes were skipped on small edits until asked, so Golden Rule 64 + a Stop hook and `/three-pass`
-  now enforce them. Simple S&R engine (Priority #18) is live.
 
 ## SESSION START PROTOCOL
 
@@ -119,7 +112,7 @@ places and manages every trade themselves. Every item below is available to work
 pick deliberately based on what the user actually wants next, not backlog order.
 
 **Next up (each: plan → Fable review → build → sign-off):**
-0. **Data Source Audit Round 2 (ROADMAP #20), about 40% done (Day 128).** Done: step 0, Analyze-page inventory (draft), truth-free audit on the 117 (run mid-session), Tradier 400 fix, empty-price-row fix + audit checks. Next, in order: (a) re-run the truth-free audit AFTER the 4pm close (freshness; Tradier) and count which provider serves each of the 117; (b) IBKR truth DONE (63 of 117 compared; real findings XDRV.TO, CARS.TO, SOXL.NE volume, BRKU volume; FINN.NE is not an IBKR mismatch, only its bad bars) so next is deciding fixes; (c) Twelve Data running out (ROADMAP #22: remove the unused 4-hour RSI call, plan + Opus first) and Tradier stalls (#23); (d) Data Sources tab statement audit + Playwright rare states, then Scan / Sectors / Context, then the 117-ticker page audit; framework Part 8. After each code change run `/three-pass` (Golden Rule 64) and `./run_all_checks.sh --quick`.
+0. **Data Source Audit Round 2 (ROADMAP #20), about 60% done (Day 129).** Done: audit scripts, inventory (draft), truth-free audit (mid-session + after close), Tradier 400 fix, empty-price-row fix, IBKR truth (63 of 117), Tradier leveraged-fund rule, Alpaca first US source, Twelve Data 404/key fixes, 16:30 cache cap. Next, in order: (a) Alpaca in-session bar on a market day; (b) refresh `backend/reference/data_audit_latest.json`; (c) thin ETFs (XDRV.TO, CARS.TO), SOXL.NE, FINN.NE, BRKU volume; (d) Data Sources tab statement audit + rare states; (e) other tabs, 117-ticker page audit, framework Part 8. Open for the user: Alpaca terms, Twelve Data key rotation, clear US cache at rollout.
 0-. **Playbook research (ROADMAP #21):** the user reviews `PLAYBOOK_RESEARCH_PROMPT_DAY127.md`; runs after #20. The user's open "fork question" from Day 127 was not asked yet.
 0a. **Day 126 follow-ups, all optional (ROADMAP #19):** weekly watchlist-wide split scan, Tradier 40% jump
    guard, delete the dead `/api/validation/*` routes, retire the engine verdict labels no card shows any more.
@@ -291,6 +284,7 @@ sqlite3 backend/validation_results/paper_trading_ledger.db "SELECT MAX(run_date)
 | 125 | **Analyze cleanup:** nearest Resistance/Support only, breakout on trader rules (not tested, completed bars, 7 states), Price Structure / Pattern Detection / P/E guide / MR track record removed. Simple S&R engine planned + Fable-reviewed; no in-app chart. Golden Rule 63. v4.65. |
 | 124 | **Analyze Page Redesign complete** (Steps 7–8): facts-only Market backdrop first, Full Analysis default, No Trade wording, one VIX band, MR next-open on Forward Test, page checker rewritten (40/40), header price dated. Golden Rule 62. v4.64. |
 | 128 | **Data Source Audit Round 2 started:** truth-free audit on 117 tickers, Tradier 400 handling (Golden Rule 65), empty price row dropped when served + audit FAIL + page checker A14 (Golden Rule 66). Opus reviewed both plans. v4.68. |
+| 129 | **Alpaca first US source, Tradier leveraged-fund rule, Twelve Data 404/key-leak fix, 16:30 cache cap, ENGINEER.md** (Golden Rules 67-68). v4.69. |
 
 ---
 
