@@ -2374,7 +2374,7 @@ function App() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>v4.64 - Multi-Source Data Intelligence</p>
+          <p>v4.70 - Multi-Source Data Intelligence</p>
         </div>
       </div>
     </div>

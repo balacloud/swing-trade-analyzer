@@ -20,6 +20,8 @@ DeMiguel et al. (2009): equal weights beat optimized weights out-of-sample.
 238 trades is insufficient to optimize 4+ weights without overfitting.
 """
 
+import math
+
 
 def assess_technical(trend_template_score, rsi, rs_52w=None, rs_blended=None, adx=None, total_criteria=8):
     """
@@ -65,17 +67,27 @@ def assess_technical(trend_template_score, rsi, rs_52w=None, rs_blended=None, ad
     }
 
     pass_count = trend_template_score or 0
-    rsi_val = rsi if rsi is not None else 50
+    # Day 131: a missing RSI (None or non-finite) is missing, never a fake 50.
+    # It cannot make a stock Strong; it may still be Decent when TT >= 5 (same
+    # precedent as missing RS, Day 78). A real RSI of 0 is kept. Mirrored in
+    # categoricalAssessment.js assessTechnical (parity-tested). Missing is
+    # checked BEFORE any comparison (None < 30 raises in Python).
+    rsi_available = rsi is not None and math.isfinite(rsi)
+    rsi_val = rsi if rsi_available else None
+    data['rsi_available'] = rsi_available
 
     # Strong: 7-8/8 trend template, RSI 50-70, good RS (RS must be available)
-    if pass_count >= 7 and 50 <= rsi_val <= 70 and rs_available and rs >= 1.0:
+    if pass_count >= 7 and rsi_available and 50 <= rsi_val <= 70 and rs_available and rs >= 1.0:
         assessment = 'Strong'
         rs_label = 'RS_blend' if rs_blended is not None else 'RS_52w'
         reasons.append(f"TT {pass_count}/8, RSI {rsi_val:.1f} (50-70), {rs_label} {rs:.2f}")
     # Decent: 5-6/8 trend template, RSI 40-80
-    elif pass_count >= 5 and 40 <= rsi_val <= 80:
+    elif pass_count >= 5 and (not rsi_available or 40 <= rsi_val <= 80):
         assessment = 'Decent'
-        reasons.append(f"TT {pass_count}/8 (needs 7+ for Strong), RSI {rsi_val:.1f}")
+        if rsi_available:
+            reasons.append(f"TT {pass_count}/8 (needs 7+ for Strong), RSI {rsi_val:.1f}")
+        else:
+            reasons.append(f"TT {pass_count}/8 (needs 7+ for Strong), RSI unavailable (Strong needs RSI 50-70)")
         if not rs_available:
             reasons.append("RS data unavailable — Strong rating requires RS >= 1.0")
     # Weak
@@ -83,7 +95,9 @@ def assess_technical(trend_template_score, rsi, rs_52w=None, rs_blended=None, ad
         assessment = 'Weak'
         if pass_count < 5:
             reasons.append(f"TT {pass_count}/8 (needs 5+ for Decent)")
-        if rsi_val < 30:
+        if not rsi_available:
+            reasons.append("RSI unavailable (Strong needs RSI 50-70)")
+        elif rsi_val < 30:
             reasons.append(f"RSI {rsi_val:.1f} deeply oversold")
         elif rsi_val < 40:
             reasons.append(f"RSI {rsi_val:.1f} oversold")
@@ -209,7 +223,10 @@ def assess_risk_macro(vix, spy_above_200sma, spy_50sma_declining=False):
 
     Args:
         vix: VIX value (float or None)
-        spy_above_200sma: bool — is SPY above its 200-day SMA?
+        spy_above_200sma: bool — is SPY above its 200-day SMA? None = unknown
+            (Day 131): still Unfavorable (no BUY while the market trend is
+            unknown) but described as unavailable, not as "below". Test `is None`
+            only: the backtest passes a numpy bool here.
         spy_50sma_declining: bool — is SPY 50 SMA declining > 1%?
 
     Returns:
@@ -226,7 +243,10 @@ def assess_risk_macro(vix, spy_above_200sma, spy_50sma_declining=False):
     if vix is None:
         if not spy_above_200sma:
             assessment = 'Unfavorable'
-            reasons.append('VIX unavailable, SPY below 200 SMA (Bear regime)')
+            if spy_above_200sma is None:
+                reasons.append('VIX unavailable, SPY trend unavailable (treated cautiously)')
+            else:
+                reasons.append('VIX unavailable, SPY below 200 SMA (Bear regime)')
         elif spy_50sma_declining:
             assessment = 'Neutral'
             reasons.append('VIX unavailable, SPY 50 SMA declining (early weakness)')
@@ -238,7 +258,9 @@ def assess_risk_macro(vix, spy_above_200sma, spy_50sma_declining=False):
         assessment = 'Unfavorable'
         if vix > 30:
             reasons.append(f"VIX {vix:.1f} > 30 (extreme volatility)")
-        if not spy_above_200sma:
+        if spy_above_200sma is None:
+            reasons.append('SPY trend unavailable, treated cautiously (no BUY until it loads)')
+        elif not spy_above_200sma:
             reasons.append('SPY below 200 SMA (Bear regime)')
     # Day 56: SPY 50 SMA declining — cap at Neutral even with low VIX
     elif spy_50sma_declining:

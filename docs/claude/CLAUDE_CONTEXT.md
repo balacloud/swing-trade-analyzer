@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 130 — 2026-11-22
+> **Last Updated:** Day 131 — 2026-11-23
 
 ---
 
@@ -11,15 +11,20 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 130 |
-| Version | v4.69 (Backend v2.58, Frontend v4.65) |
-| Latest Status | PROJECT_STATUS_DAY130_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY130.md |
+| Current Day | 131 |
+| Version | v4.70 (Backend v2.58, Frontend v4.66) |
+| Latest Status | PROJECT_STATUS_DAY131_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY131.md |
 | Latest API | API_CONTRACTS_DAY129.md |
-| Focus | **Day 130 was docs-only (v4.69 unchanged).** **Data Source Audit Round 2, about 60% done (Day 129):** Alpaca is the first US source, leveraged funds never use Tradier, Twelve Data 404/key-leak fixed, 16:30 cache cap. Next: check Alpaca's in-session bar on a market day; refresh `data_audit_latest.json`; thin ETFs / SOXL.NE / FINN.NE / BRKU; Data Sources tab statement audit; other tabs; then playbook research (#21). Open for the user: Alpaca terms of use, Twelve Data key rotation, clear US cache at rollout. |
+| Focus | **Day 131: the two Medium engine bugs are fixed (v4.70):** a missing RSI is no longer a fake 50, and a missing SPY is described honestly (still no BUY). The "MR route reads Yahoo directly" note was wrong (corrected; Golden Rule 69). **Data Source Audit Round 2, about 60% done:** next, check Alpaca's in-session bar on a market day; DRAL RS1 smoke-audit row; refresh `data_audit_latest.json`; thin ETFs / SOXL.NE / FINN.NE / BRKU; Data Sources tab statement audit; then playbook research (#21). Open for the user: Alpaca terms, Twelve Data key rotation, clear US cache at rollout. |
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 131 Summary (engine bugs fixed — v4.70, Golden Rule 69)
+- **Missing RSI** no longer counts as 50 (cannot be Strong; may be Decent with 5+ trend checks; a real 0 is kept). **Missing SPY** still gives Unfavorable (no BUY, user's choice) but says "SPY trend unavailable" instead of "below its 200-day". JS and Python changed together; parity grid 172,800 rows, 0 mismatches; original rows unchanged; mutation-checked; two false Technical Read texts fixed. Plan + Opus review: `ENGINE_MISSING_INPUTS_PLAN_DAY131.md`.
+- **My own wrong claim corrected:** "the MR route reads Yahoo directly" (stale Known Issues line, Days 128-130) was false; it uses the provider chain first. No code change. Golden Rule 69.
+- Version strings in code (footer v4.64, backend 2.57) brought up to the docs. Found, not fixed: smoke audit DRAL RS1 row (predates today).
 
 ### Day 130 Summary (docs-only, v4.69 unchanged)
 - **Engineer persona checked against all days:** `ENGINEER.md`'s "missed" table now covers Days 1-129 (12 new themes from Golden Rules 18-61), not just 127-129. Found `GOLDEN_RULES.md` has no Rule 27 (the replay rule is numbered 29, cited as 27 elsewhere); logged, not renumbered.
@@ -31,12 +36,6 @@
 - **Alpaca first US source:** chain Alpaca -> Twelve Data -> Yahoo -> Tradier (Canada Yahoo only). 79 US tickers: 100% of closes within 0.5% of Yahoo, 96% of Twelve Data. 66 tests. The Opus review also found Twelve Data's 404 counted as a failure, its key written to `backend.log` (324 lines), and the 4:00-4:30pm cache hole; all fixed.
 - **Engineer persona:** `ENGINEER.md` (checklists + table of past misses), 3rd required read at `/sta-start`.
 - **Open for the user:** Alpaca terms of use, rotate the Twelve Data key, clear the US cache at rollout. "Data Trail" visual parked. User: "i dont want to go in to rabit holes".
-
-### Day 128 Summary (Data Source Audit Round 2 started — v4.68, Golden Rules 65-66)
-- **Audit of the data itself (user: "if the data is wrong the whole compute is wrong").** Truth-free audit on all 117 tickers: clean for US stocks, Canadian stocks, CDRs; real problems FINN.NE, XDRV.TO, SOXL.NE (QPUX/DRAL looked bad only on the unfinished day; cleared against IBKR). Draft fetched-vs-computed inventory. The app falls back to Yahoo for 61 of 97 US tickers because Twelve Data's breaker keeps opening (82 times).
-- **Tradier 400 (Golden Rule 65):** one HTTP code meant over-limit, unknown ticker and our own bug; now classified by body, unknown tickers no longer open the breaker. 61 tests. Tradier also stalls on about 1 call in 6-8 (open item).
-- **Empty price row (Golden Rule 66):** 15 cached Yahoo tickers had a newest bar with no prices; `/api/sr` sent invalid JSON. Rows are dropped when served (cache stays raw, 30-minute expiry), the Data Sources tab and audit FAIL it, `/api/stock` never answers 0, page checker A14. 44 tests. Opus reviewed both plans and changed both.
-- User asked for plain English and a straight answer to the narrow question; no layout plan exists (ROADMAP #26).
 
 ## SESSION START PROTOCOL
 
@@ -111,15 +110,14 @@ places and manages every trade themselves. Every item below is available to work
 pick deliberately based on what the user actually wants next, not backlog order.
 
 **Next up (each: plan → Fable review → build → sign-off):**
-(Day 130 was docs-only; the list below is unchanged. Item 0(a) needs a market day, Mon Nov 23 or later.)
+(Day 131 fixed the two engine bugs (old 0b) and corrected the MR-route note. Item 0(a) needs a market day: Nov 23 was one but not checked.)
+00. **DRAL RS1 smoke-audit row (Low-Medium, Day 131):** the page shows a 52-week RS from 105 bars; the audit wants N/A. Predates Day 131; small, needs a plan.
 0. **Data Source Audit Round 2 (ROADMAP #20), about 60% done (Day 129).** Done: audit scripts, inventory (draft), truth-free audit (mid-session + after close), Tradier 400 fix, empty-price-row fix, IBKR truth (63 of 117), Tradier leveraged-fund rule, Alpaca first US source, Twelve Data 404/key fixes, 16:30 cache cap. Next, in order: (a) Alpaca in-session bar on a market day; (b) refresh `backend/reference/data_audit_latest.json`; (c) thin ETFs (XDRV.TO, CARS.TO), SOXL.NE, FINN.NE, BRKU volume; (d) Data Sources tab statement audit + rare states; (e) other tabs, 117-ticker page audit, framework Part 8. Open for the user: Alpaca terms, Twelve Data key rotation, clear US cache at rollout.
 0-. **Playbook research (ROADMAP #21):** the user reviews `PLAYBOOK_RESEARCH_PROMPT_DAY127.md`; runs after #20. The user's open "fork question" from Day 127 was not asked yet.
 0a. **Day 126 follow-ups, all optional (ROADMAP #19):** weekly watchlist-wide split scan, Tradier 40% jump
    guard, delete the dead `/api/validation/*` routes, retire the engine verdict labels no card shows any more.
    The simple S&R engine (Priority #18) is DONE and live.
-0b. **Two engine bugs (Medium, Day 123):** `assessTechnical` RSI `|| 50` counts as a pass;
-   `assessRiskMacro` treats missing SPY as below its 200-day. Each is a parity-tested JS +
-   Python change (Golden Rule 59) that changes verdicts, so plan first.
+0b. ~~Two engine bugs~~ **fixed Day 131.**
 0c. **`/api/stock` doesn't drop today's unfinished bar (Medium, Day 124).** Check first that a
    mid-day cache miss really returns a partial bar; then apply `market_time.drop_forming_bar`.
 
@@ -169,7 +167,7 @@ pick deliberately based on what the user actually wants next, not backlog order.
     orchestrator its two newer siblings use (Day 108) — the `fetchSectorRotation()` half of
     this was fixed Day 108 (Golden Rule 47); the backend half remains.
 
-**Full detail on every open item:** `docs/claude/versioned/KNOWN_ISSUES_DAY130.md`.
+**Full detail on every open item:** `docs/claude/versioned/KNOWN_ISSUES_DAY131.md`.
 
 ---
 
@@ -286,6 +284,7 @@ sqlite3 backend/validation_results/paper_trading_ledger.db "SELECT MAX(run_date)
 | 128 | **Data Source Audit Round 2 started:** truth-free audit on 117 tickers, Tradier 400 handling (Golden Rule 65), empty price row dropped when served + audit FAIL + page checker A14 (Golden Rule 66). Opus reviewed both plans. v4.68. |
 | 129 | **Alpaca first US source, Tradier leveraged-fund rule, Twelve Data 404/key-leak fix, 16:30 cache cap, ENGINEER.md** (Golden Rules 67-68). v4.69. |
 | 130 | Docs-only: ENGINEER.md missed-table covers all days (12 themes), Golden Rule 27 numbering note, 1,212 untracked files pushed (venv/logs left out). v4.69 unchanged. |
+| 131 | **Engine bugs fixed:** missing RSI no longer 50, missing SPY described honestly (still no BUY); parity grid 172,800; MR-route note corrected (it was wrong); Golden Rule 69; version strings synced. v4.70. |
 
 ---
 

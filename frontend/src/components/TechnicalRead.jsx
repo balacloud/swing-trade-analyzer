@@ -74,7 +74,7 @@ function StrongTiles({ strong, historyBars = null, firstDate = null }) {
         <div className="text-xs text-gray-400 mt-1">
           {momentum.rsiAvailable
             ? `rule of thumb: ${STRONG_RULE.rsiMin}–${STRONG_RULE.rsiMax}`
-            : `RSI didn't load; the engine assumed ${momentum.rsi}, which counts as a pass`}
+            : `RSI didn't load, so this cannot count as Strong`}
         </div>
       </div>
 
@@ -278,7 +278,7 @@ export default function TechnicalRead({ ticker, technical, adxData, rsData, patt
 
   const missing = [];
   if (trendChecks.state !== 'ok') missing.push(trendChecks.reason === 'short_history' ? `trend template not computed (${trendChecks.bars ?? '?'} bars)` : '/api/patterns returned nothing');
-  if (strong.state === 'ok' && !strong.momentum.rsiAvailable) missing.push('RSI missing, engine assumed 50');
+  if (strong.state === 'ok' && !strong.momentum.rsiAvailable) missing.push('RSI missing (cannot count as Strong)');
   if (strong.state === 'ok' && !strong.consistent) missing.push(`tiles (allPass=${strong.allPass}) disagree with engine read (${technical?.assessment})`);
   if (timing.state === 'unavailable') missing.push(`timing: ${timing.reason}`);
   if (volume.state !== 'ok') missing.push(`volume: ${volume.reason}`);

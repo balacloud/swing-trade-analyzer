@@ -39,11 +39,11 @@ JS_SCRIPT_PATH = os.path.join(REPO_ROOT, 'frontend', 'scripts', 'verdict_grid.mj
 # ─── Grid Definition (per Fable Remediation Plan Task 2.4) ──────────────────
 
 TT_VALUES = [3, 5, 6, 7, 8]
-RSI_VALUES = [25, 45, 55, 65, 75, 85]
+RSI_VALUES = [0, 25, 45, 55, 65, 75, 85, None]  # Day 131: 0 (real, was turned into 50 by JS) and None (missing)
 RS_VALUES = [0.7, 0.95, 1.0, 1.05, 1.2]
 ADX_VALUES = [15, 22, 28]
 VIX_VALUES = [15, 25, 35, None]
-SPY_ABOVE_VALUES = [True, False]
+SPY_ABOVE_VALUES = [True, False, None]  # Day 131: None = SPY unavailable
 SPY_DECLINING_VALUES = [True, False]
 HOLDING_PERIODS = ['quick', 'standard', 'position']
 

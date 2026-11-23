@@ -88,9 +88,17 @@ export function assessTechnical(technicalData, trendTemplate, rsi) {
   data.trendTemplateAvailable = hasTrendTemplate;
   data.trendTemplatePassCount = passCount;  // Day 123: numeric, for the Strong tiles
 
-  // Get RSI value (prefer passed RSI, fallback to technicalData)
-  const rsiValue = rsi || technicalData?.indicators?.rsi || 50;
+  // Get RSI value (prefer passed RSI, fallback to technicalData).
+  // Day 131: a missing RSI is null, never a fake 50 (Golden Rule: return null,
+  // not a plausible fake). A real RSI of 0 is kept (the old `||` turned it into
+  // 50). Missing RSI cannot make a stock Strong; it may still be Decent when
+  // the trend checks are 5+ (same precedent as missing RS, Day 78).
+  // Mirrored in backend/backtest/categorical_engine.py assess_technical (parity-tested).
+  const rsiFound = [rsi, technicalData?.indicators?.rsi].find((v) => typeof v === 'number' && Number.isFinite(v));
+  const rsiAvailable = rsiFound !== undefined;
+  const rsiValue = rsiAvailable ? rsiFound : null;
   data.rsi = rsiValue;
+  data.rsiAvailable = rsiAvailable;
 
   // Get price vs MA status from technical scoring
   const trendScore = technicalData?.details?.trendStructure?.score || 0;
@@ -119,7 +127,7 @@ export function assessTechnical(technicalData, trendTemplate, rsi) {
   // Strong: 7-8/8 trend template, RSI 50-70, good RS (RS must be available)
   // Day 123: literals moved to STRONG_RULE so deriveStrongCriteria() (the
   // Technical Read tiles) reads the same numbers. Values unchanged.
-  if (passCount >= STRONG_RULE.minTrendChecks && rsiValue >= STRONG_RULE.rsiMin && rsiValue <= STRONG_RULE.rsiMax
+  if (passCount >= STRONG_RULE.minTrendChecks && rsiAvailable && rsiValue >= STRONG_RULE.rsiMin && rsiValue <= STRONG_RULE.rsiMax
       && rs52WeekAvailable && rs52Week >= STRONG_RULE.rsMin) {
     assessment = 'Strong';
     reasons.push(`Trend Template: ${passCount}/8 Minervini criteria passed`);
@@ -129,17 +137,22 @@ export function assessTechnical(technicalData, trendTemplate, rsi) {
     }
   }
   // Decent: 5-6/8 trend template, RSI 40-80
-  else if (passCount >= 5 && rsiValue >= 40 && rsiValue <= 80) {
+  else if (passCount >= 5 && (!rsiAvailable || (rsiValue >= 40 && rsiValue <= 80))) {
     assessment = 'Decent';
     reasons.push(`Trend Template: ${passCount}/8 criteria passed (needs 7+ for Strong)`);
+    if (!rsiAvailable) {
+      reasons.push('RSI unavailable — Strong rating requires RSI 50-70');
+    }
     if (!rs52WeekAvailable) {
       reasons.push('RS data unavailable — Strong rating requires RS ≥ 1.0');
-    } else if (rsiValue < 50) {
-      reasons.push(`RSI ${rsiValue.toFixed(1)} slightly weak but acceptable`);
-    } else if (rsiValue > 70) {
-      reasons.push(`RSI ${rsiValue.toFixed(1)} elevated - watch for reversal`);
-    } else {
-      reasons.push(`RSI ${rsiValue.toFixed(1)} in good range`);
+    } else if (rsiAvailable) {
+      if (rsiValue < 50) {
+        reasons.push(`RSI ${rsiValue.toFixed(1)} slightly weak but acceptable`);
+      } else if (rsiValue > 70) {
+        reasons.push(`RSI ${rsiValue.toFixed(1)} elevated - watch for reversal`);
+      } else {
+        reasons.push(`RSI ${rsiValue.toFixed(1)} in good range`);
+      }
     }
   }
   // Weak: Below thresholds - provide detailed feedback
@@ -156,8 +169,10 @@ export function assessTechnical(technicalData, trendTemplate, rsi) {
       reasons.push(`Trend Template: Only ${passCount}/8 criteria passed (needs 5+ for Decent)`);
     }
 
-    // RSI issues
-    if (rsiValue < 30) {
+    // RSI issues (missing RSI is checked FIRST: `null < 30` is true in JS)
+    if (!rsiAvailable) {
+      reasons.push('RSI unavailable — Strong rating requires RSI 50-70');
+    } else if (rsiValue < 30) {
       reasons.push(`RSI ${rsiValue.toFixed(1)} deeply oversold - avoid catching falling knives`);
     } else if (rsiValue < 40) {
       reasons.push(`RSI ${rsiValue.toFixed(1)} oversold - weak momentum`);
@@ -429,19 +444,21 @@ export function assessRiskMacro(vixData, spyData) {
   const data = {};
 
   const vix = vixData?.current != null ? vixData.current : null;
+  // Day 131: a missing SPY reading still acts as "not above" (Unfavorable, so no
+  // BUY while the market trend is unknown, user decision) but is no longer
+  // DESCRIBED as "below its 200-day". Mirrored in categorical_engine.py.
+  const spyAvailable = spyData?.aboveSma200 != null;
   const spyAbove200EMA = spyData?.aboveSma200 || false;
+  const spyUnavailableReason = 'SPY trend unavailable, treated cautiously (no BUY until it loads)';
   // Day 57: Early bear detection — mirrors backtest categorical_engine.assess_risk_macro()
   const sma50Declining = spyData?.sma50Declining || false;
 
   data.vix = vix;
   data.vixRegime = vixData?.regime || 'unknown';
-  data.spyAbove200EMA = spyAbove200EMA;
+  data.spyAbove200EMA = spyAvailable ? spyAbove200EMA : null;  // null = unknown, not false
   data.sma50Declining = sma50Declining;
   data.vixUnavailable = vix === null;
-  // Day 123: additive, display only. A missing SPY reading becomes `false`
-  // above and so reads as "below its 200-day" (engine bug logged; verdict
-  // unchanged). The Regime band uses this to say the data is missing.
-  data.spyAvailable = spyData?.aboveSma200 != null;
+  data.spyAvailable = spyAvailable;
 
   let assessment = 'Neutral';
 
@@ -450,8 +467,12 @@ export function assessRiskMacro(vixData, spyData) {
     reasons.push('VIX data unavailable');
     if (!spyAbove200EMA) {
       assessment = 'Unfavorable';
-      reasons.push('SPY below 200 SMA (Bear regime)');
-      reasons.push('Caution: Most pullback setups fail in bear markets');
+      if (!spyAvailable) {
+        reasons.push(spyUnavailableReason);
+      } else {
+        reasons.push('SPY below 200 SMA (Bear regime)');
+        reasons.push('Caution: Most pullback setups fail in bear markets');
+      }
     } else {
       assessment = 'Neutral';
       reasons.push('SPY above 200 SMA (Bull regime intact)');
@@ -464,7 +485,9 @@ export function assessRiskMacro(vixData, spyData) {
     if (vix > 30) {
       reasons.push(`VIX at ${vix.toFixed(1)} (Extreme volatility > 30)`);
     }
-    if (!spyAbove200EMA) {
+    if (!spyAvailable) {
+      reasons.push(spyUnavailableReason);
+    } else if (!spyAbove200EMA) {
       reasons.push('SPY below 200 SMA (Bear regime)');
       reasons.push('Caution: Most pullback setups fail in bear markets');
     }
@@ -762,16 +785,14 @@ export function runCategoricalAssessment(
   adxData = null,
   holdingPeriod = 'standard'
 ) {
-  // Get RSI from technical indicators or calculate
-  const rsi = technicalResult?.indicators?.rsi || stockData?.technicals?.rsi14 || 50;
+  // Get RSI from technical indicators or calculate. Day 131: missing stays null
+  // (assessTechnical decides what a missing RSI means); a real 0 is kept.
+  const rsi = [technicalResult?.indicators?.rsi, stockData?.technicals?.rsi14]
+    .find((v) => typeof v === 'number' && Number.isFinite(v)) ?? null;
 
   // Run individual assessments (these don't change with holding period)
   const technical = assessTechnical(technicalResult, trendTemplate, rsi);
-  // Day 123: additive. The `|| 50` above hides a missing RSI from the display;
-  // record it so the Technical Read can say "RSI unavailable, engine assumed
-  // 50" instead of showing 50 as real. Engine behavior unchanged (logged as a
-  // known issue: the assumed 50 counts as a pass toward Strong).
-  technical.data.rsiAvailable = Boolean(technicalResult?.indicators?.rsi || stockData?.technicals?.rsi14);
+  // Day 131: technical.data.rsiAvailable is set inside assessTechnical() from the same value.
   const fundamental = assessFundamental(fundamentalResult || stockData?.fundamentals, ticker);
   const sentiment = assessSentiment(fearGreedData);
   const riskMacro = assessRiskMacro(vixData, spyData);
@@ -880,8 +901,8 @@ export function deriveTechnicalRead(technicalAssessment, adxData = null) {
 /**
  * "Strong needs all three" tiles (Day 123). Splits the Strong rule in
  * assessTechnical() into its three parts using the same STRONG_RULE numbers
- * and the same engine values (data.rsi is the engine's RSI, including its
- * assumed 50 when RSI is missing). `consistent` is false if the tiles would
+ * and the same engine values (data.rsi is the engine's RSI; null when RSI is
+ * missing, Day 131) `consistent` is false if the tiles would
  * disagree with the engine's own Strong call — the card then warns rather
  * than show tiles that contradict the read.
  *
