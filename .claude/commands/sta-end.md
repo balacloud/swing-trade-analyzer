@@ -31,12 +31,14 @@ Include:
 
 ## Step 2: Create KNOWN_ISSUES_DAY[N+1].md
 
-Create `docs/claude/versioned/KNOWN_ISSUES_DAY[N+1].md`.
+Create `docs/claude/versioned/KNOWN_ISSUES_DAY[N+1].md` (if it already exists, the Day 133 layering created it: edit it, do not recreate it).
 
-Include:
-- "Changes from Day N" section (what was resolved, what was added)
-- All open issues carried forward from Day N, updated as needed
-- Any new issues discovered this session
+This file holds **open issues at Medium or above only** (plus any Low-Medium item that is a next-session priority). It is layer L1 and is read in full every session.
+- Open Medium+ issues carried forward from Day N, updated as needed, each heading word for word
+- Any new Medium+ issue found this session
+- Do NOT write a "Changes from Day N" history here. Put this session's resolved items, new Low/Info items and per-day change notes into `docs/claude/history/KNOWN_ISSUES_LOW_AND_RESOLVED.md` as a new `## Day N+1` section (append only).
+- Triage each heading, not each section: open items can hide under "Changes from" or "New open issues" headings. "Low-Medium" does not count as Medium+.
+- Count check before moving on: every heading of the old file is in exactly one of the two files (open file or history file).
 
 ## Step 3: Create API_CONTRACTS (conditional)
 
@@ -46,21 +48,22 @@ Create `docs/claude/versioned/API_CONTRACTS_DAY[N+1].md` with updated endpoint d
 ## Step 4: Update GOLDEN_RULES.md (conditional)
 
 Only if new lessons were learned:
-- Update `docs/claude/stable/GOLDEN_RULES.md`
-- Update "Last Updated" date in the header to today's date
+- Add the full rule text to the right cluster file in `docs/claude/stable/rules/<cluster>.md` (clusters: process, claims-verification, backtest-honesty, engine-parity, data-providers, cache-time-audit, display-consumers). Add its number to that file's `rules:` frontmatter list.
+- Add one index line to `docs/claude/stable/GOLDEN_RULES.md` (number, short title, "read when:" trigger words; not a restatement). Only a rule that applies to every session goes in full in `GOLDEN_RULES.md`.
+- Update "Last Updated" date in the header of every `stable/` file touched (Rule 14)
 
 ## Step 5: Update ROADMAP.md and README.md (conditional)
 
 Only if roadmap changed (items completed, new items, priority shifts):
-- Update `docs/claude/stable/ROADMAP.md` — update "Last Updated" date in header
-- Update `README.md` in the project root to mirror ROADMAP changes (external-facing)
+- Update `docs/claude/stable/ROADMAP.md` — update "Last Updated" date in header, and the "Current Version" line on every version bump. ROADMAP holds **open priorities only**: move any priority closed this session, with its row text word for word, to `docs/claude/history/ROADMAP_HISTORY.md` under a new `## Day N+1` section. Do not edit code comments that cite closed priorities (the numbers resolve in history).
+- Update `README.md` in the project root so it mirrors the open priorities (external-facing)
 - Both files must be updated together — never one without the other
 
 ## Step 5b: Update PERSONA.md's Feedback Log (conditional)
 
 Only if the persona lens caught, confirmed, or reframed something this session (per the Step 0 question):
-- Append a new dated entry (most recent first) to `docs/claude/stable/PERSONA.md`'s "Feedback Log" section — what the persona lens caught/confirmed, tied to the specific decision it applied to
-- Update the "Last Updated" date in the header
+- Append a new dated entry (most recent first) to the top of the list in `docs/claude/history/PERSONA_LOG.md` — what the persona lens caught/confirmed, tied to the specific decision it applied to
+- Update the "Last Updated" date in the header of `docs/claude/stable/PERSONA.md` only if its core text changed
 - If nothing to log, skip this step entirely — do not force an entry just to have one
 
 ## Step 6: Update CLAUDE_CONTEXT.md
@@ -68,8 +71,9 @@ Only if the persona lens caught, confirmed, or reframed something this session (
 Always. Update all of the following:
 
 - **CURRENT STATE table**: Day → N+1, Version → new version, Latest Status/Issues/API file names → Day N+1, Focus → one line summary of next priority
-- **RECENT DAY SUMMARIES**: Add Day N+1 summary at top. Keep last 3 days only — move the oldest out (it goes to archive, not deleted)
-- **NEXT SESSION PRIORITIES**: Update to reflect what's actually next
+- **RECENT DAY SUMMARIES**: Add Day N+1 summary at top. Keep last 3 days only — append the oldest, word for word, to `docs/claude/history/CLAUDE_CONTEXT_LOG.md` under a `## Day N` heading (not deleted)
+- **NEXT SESSION PRIORITIES**: One-line references only (detail lives in the status file and ROADMAP). Update to reflect what's actually next
+- **ENGINEER.md**: new "what has been missed" rows and the Feedback Log entry go in `docs/claude/history/ENGINEER_LOG.md`; edit `stable/ENGINEER.md` only for its themes table or checklists
 - **"Last Updated" header**: Update to today's date
 
 ## Step 6b: Update and republish the STA Status Board
@@ -96,12 +100,16 @@ a new session, or the publish creates a duplicate page.
    was published.
 4. Republish with the Artifact tool (`file_path` above plus `url`).
 
+## Step 6c: Layer completeness check (fast, not a hook)
+
+Run `python3 .claude/check_context_layers.py`. It confirms every Golden Rule number in the index is in exactly one `rules/*.md` file (and the reverse), the `history/` files exist, and the L1 core files are under 85 KB. Fix every PROBLEM line before continuing. Also confirm by eye that the Step 2 KNOWN_ISSUES heading count check passed.
+
 ## Step 7: Update memory files (conditional)
 
 Only if this session produced new information worth persisting across future conversations:
 - New user feedback or corrected behavior → write/update a `feedback_*.md` file in memory
 - New project facts (decisions, dates, milestones) → write/update a `project_*.md` file in memory
-- Update `MEMORY.md` index if any memory file was added or changed
+- Update `MEMORY.md` index if any memory file was added or changed. Keep `MEMORY.md` an index only (one line per memory); old day history goes in `project_history_compacted.md`.
 
 ## Step 8: Archive old files
 
@@ -109,7 +117,7 @@ Check these two directories for files older than 15 days from today:
 - `docs/claude/status/` — move old PROJECT_STATUS files to `docs/claude/status/archive/`
 - `docs/claude/versioned/` — move old KNOWN_ISSUES and API_CONTRACTS files to `docs/claude/versioned/archive/`
 
-Do not delete — move only.
+Do not delete — move only. Never archive `docs/claude/history/` or `docs/claude/stable/rules/` (they are layers L3 and L2, not old copies).
 
 ## Step 9: Git commit and push
 
@@ -129,6 +137,6 @@ Confirm to the user: "Session closed. Day [N+1] status files created and pushed.
 - Never ask the user to run git commands or update files manually
 - Never skip archiving — stale files accumulate silently
 - Never commit without pushing — the session is not closed until it's pushed
-- README.md only changes if ROADMAP.md changes — they are always updated as a pair
+- README.md only changes if ROADMAP.md changes — they are always updated as a pair (README mirrors the open priorities)
 - MEMORY.md (auto-memory) is separate from project docs — update it independently in Step 7
-- PERSONA.md's Feedback Log is append-only — never edit or remove a prior dated entry, only add new ones
+- `history/PERSONA_LOG.md` (the Feedback Log) and the other `history/` files are append-only — never edit or remove a prior dated entry, only add new ones

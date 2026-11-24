@@ -178,8 +178,8 @@ See README's [Project Structure](README.md#project-structure) section for the fu
 
 Unusually for a personal project, development history here is tracked in structured, day-numbered docs under `docs/claude/` — originally built as session-continuity notes for AI-assisted development, but they double as a genuinely useful project changelog and rationale record. Worth knowing about even if you never touch that workflow yourself:
 
-- **`docs/claude/stable/GOLDEN_RULES.md`** — accumulated engineering lessons, each with a *why* (usually a real bug that was found and fixed) and a *how to apply*. Skim it once; it'll save you from re-discovering bugs this project already paid to learn about.
-- **`docs/claude/stable/ROADMAP.md`** — canonical current state: what's shipped, what's deliberately deferred and why, what the active priority is right now.
+- **`docs/claude/stable/GOLDEN_RULES.md`** — accumulated engineering lessons, each with a *why* (usually a real bug that was found and fixed) and a *how to apply*. Skim it once; it'll save you from re-discovering bugs this project already paid to learn about. Since Day 133 this file is an index (rules 1-15 and the always-read rules in full, one line for each of the rest); the full text is in `docs/claude/stable/rules/<cluster>.md`.
+- **`docs/claude/stable/ROADMAP.md`** — canonical current state: the open priorities right now. Since Day 133, closed priorities, completed features and older version notes are in `docs/claude/history/ROADMAP_HISTORY.md`.
 - **`docs/claude/stable/MASTER_AUDIT_FRAMEWORK.md`** — the methodology this project uses to validate its own claims (5 audit types: Claim, Coherence, Behavioral, Design, External-LLM). If you're doing your own validation of the trading logic, **this is the right starting point** — it's designed for exactly that.
 - **`docs/claude/versioned/`** — day-stamped API contracts and known-issues trackers, most recent ~15 days kept active, older ones archived.
 

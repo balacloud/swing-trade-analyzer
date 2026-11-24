@@ -1,0 +1,370 @@
+---
+type: history
+name: persona-log
+description: PERSONA.md Feedback Log (what the trader lens caught each day), moved out on Day 133. Append-only; newest first.
+last_updated: Day 133 (2026-11-24)
+---
+
+# PERSONA FEEDBACK LOG (L3, append-only, most recent session first)
+
+> Moved word for word from `PERSONA.md` on Day 133. `/sta-end` Step 5b adds new entries at the top of the list below.
+
+## Feedback Log (append-only, most recent session first)
+
+### Day 128
+**A clean audit result from a check that cannot see the fault is false comfort. The fault was in the copy, not the download.**
+The user's Day 127 worry ("if the data is wrong, the whole compute is wrong") was tested for the first time. The audit downloaded each
+provider fresh and graded it clean; the live app was sending invalid prices for 15 stocks, because Yahoo's after-hours bar had no prices,
+the cache kept it until the close, and the Data Sources tab called it "fresh" (it took "last bar" from the empty row). It surfaced only
+because the page checker printed a warning and still passed. The lens: a check should read what the user is shown, and a checker that only
+warns is the same as no checker. The honest fix kept the cache raw (so an audit can still see the hole) and cleaned the data once, where it is served.
+**Second lesson: Claude's own explanations went through the same filter and two were wrong.** (1) "The Yahoo share is partly my own audit using
+up Twelve Data's limit": the cache and the log showed the app already fell back to Yahoo for 61 of 97 US tickers before the audit ran.
+(2) "Nothing checks for an empty row": a check existed but read the wrong "last bar". Both were corrected in plain view, and the Opus review's
+five corrections were applied, not argued. A confident story about a cause is a hypothesis until the data is read (Core Principle 3, Golden Rule 26).
+**Third: the user's question was narrower than the answer.** "Was the math perfect?" got a long list of data and card issues. The lens
+for a trader's assistant: answer the question that was asked first, then offer the rest.
+
+### Day 127
+**A buy order above the market is not a plan.** The Statement Audit showed that when price already sits inside the
+support zone, the Trade Setup's Buy was the zone's top: above the market on five audited tickers (up to +8.9%).
+The card said "wait for a dip, then buy", a Buy above price fills at once, and risk and reward were measured from a
+price you cannot get, then passed to "Size this plan". The lens said: sizing matters more than entry, and the page
+must tell one story. **Decision (user, after the persona read): the Buy is the last completed close when that close is
+inside the zone**, stop unchanged at 2 ATR below the Buy. Rejected the zone LOW: it would flatter the reward:risk by
+assuming a deeper dip that may never come ("illusion of control"). The honest number is lower (AMD 0.2 -> 0.53 after
+the fix because the old Buy also misstated the stop), and that is the card telling the truth rather than flattering.
+Architect's Lens applied: the Buy rule lived in four copies, so it now lives in one backend function. **Lesson:** a
+precise-looking plan number is only worth showing if you could actually trade it.
+**Second lesson, same day (user's challenge):** "audit the data source first, or the audit will not sit right." The page
+audit recomputed from the same bars the page received, so a wrong provider close would have passed as PASS: a clean
+result from a check that cannot see the fault is false comfort. Check the inputs before trusting a check that reads them.
+
+### Day 125
+**Accepted convention over proof, on purpose, and said so on the page.** The user wanted the
+breakout and support/resistance reads rebuilt on "what most traders agree on" and said
+backtesting them was a rabbit hole. That cuts against this persona's "first-principles, not
+folklore" trait, so it was weighed rather than waved through. It was accepted for three reasons.
+These cards describe a state and gate nothing, so the price of being wrong is a misleading label,
+not a lost trade. The project's one tested edge (MR) stays the only thing called an edge. And
+every such card now says "Common trader rules, not tested", so convention is never dressed up as
+proof. Where the rule did matter, it was applied: volume is judged on the breakout bar, not today;
+the pivot excludes the breakout bars; the levels' "N touches" became "near it on N days" because
+that is what the engine counts. **Second call: no chart in the app.** The user asked whether a
+chart would help or add decision fatigue, and how Claude would use it. Honest answer: Claude
+reads the numbers, and the user already reads charts in TradingView. A second chart is a second
+place to look and a new question when they disagree. **Lesson:** a veteran's tool should remove
+work from the decision, not add another screen to reconcile.
+
+### Day 124
+**Reframed a "contradiction" as bounce vs trend.** The user saw AVGO up from ~$290 to ~$362 in a
+week (Google) while STA's Technical Read said "Weak" (below the 200-day, 200-day not rising,
+30% off the high, lagging the S&P), and asked whether STA was contradicting the market. The
+lens said no: a +24% week after a −41% fall is a counter-trend bounce until proven otherwise.
+Checked with data before answering: even at the live $362, AVGO was still below its 200-day
+(~$366) with that average flat. Only the 50-day check flipped. The tests a veteran uses: does it
+reclaim the 200-day and hold it for weeks, does the 200-day turn up, is the next pullback a
+higher low, is volume heavier on up days, is it beating the market, and how fast did it move.
+Don't chase; wait for a hold above the 200-day or a calm pullback that holds. The same question
+exposed one real gap on STA's side, which was fixed the same day: the header price ($345.45,
+yesterday's close) had no date and read as live. **Lesson:** when a slow lens and a fast chart
+disagree, first check they're answering the same question and looking at the same day.
+
+### Day 123
+**"Too good to be true" caught the project's headline number.** MR (broad) had been quoted as
+PF 2.00 / 70.5% wins since Day 120, and as "the one confirmed edge". When the Mean-Reversion
+Read card was about to tell the user "buy at the next open" next to that number, the Fable plan
+review asked where the simulator actually bought. It bought at the entry day's close, a price
+nobody acting on the signal could get. The lens question was: would a 30-year trader accept a
+number earned at a fill they couldn't take? No. The user chose to re-test rather than relabel.
+With the prediction pre-registered (PF 1.5–1.7), the same 241 trades at the next open came out
+**PF 1.50, 63.5% wins, +0.70%/trade**. That is still positive, but half the edge per trade;
+HUB-65 fell to PF 1.07, break-even. The prediction held only at its bottom edge. The card shows
+the open-basis numbers, the 2020–25 backtest PF 1.16, and a note on why the older figure was
+higher. Lesson: the more a result anchors decisions, the more its entry and exit prices need
+checking against what a person can actually do (Golden Rule 60). Also reframed this session:
+the user cut the Holding Period selector, the Assessment Breakdown and BUY/HOLD/AVOID from every
+screen. The lens agreed: the verdict was a blend the cards now explain item by item, and the
+holding period only re-weighted that blend, not any plan, stop or size.
+
+### Day 122
+**The trader lens missed a consistency problem; adding an architect lens caught it.** Claude
+judged Trend Template checks 5–8 (the 150-day checks and "30% above the 52-week low") as
+Minervini-only, backed by neither the canon nor Reddit, and suggested dropping them from the
+frontend. As a trading judgment that held up. As a system change it was wrong: the 7-of-8 rule
+lives in 4 places, and a frontend-only change would let the verdict and the Stage 2 badge
+disagree on the same screen and orphan the quoted backtest numbers. The user asked "what does
+our architect persona say?", and the recommendation reversed to option 1: engine keeps all 8,
+the card shows 4 plus a full-score line. Lesson: a call can be right on trading merits and
+still be wrong to ship; before recommending any rule, threshold or label change, run the
+Architect's Lens (added above) as well as the trading lens. Now enforced by Golden Rule 59 and
+the verdict parity hook. Also confirmed this session: an "identical to the share" result
+(TwelveData vs yfinance volume) was treated as too good to be true and checked against a third
+source (IBKR) rather than accepted.
+
+### Day 120
+**The user set the persona's limits on their own leveraged-ETF trading, and the lens accepted
+them rather than arguing.** The user trades leveraged funds (Canadian BetaPro SOXL/GDXU, DRAL and
+others) by their own adopted rules. The veteran reflex is to object about decay, missing
+backtests, holding period and how many rules must agree before entry. The user ruled that out:
+Claude watches for splits and explains stops and sizing, and the user owns the rule count, with
+no nagging about fundamentals, holding period or backtests. The board was built to match: a
+plain "X of 4 checkable rules" count with no verdict label, and untested thresholds disclosed as
+first-principles rather than presented as validated. The lesson for this lens: once the user has
+drawn a scope line on their own money, judgment belongs inside that line (splits, sizing, data
+correctness, such as the wrong-fund conid caught that day, Golden Rule 58), not in reopening
+the line itself. This doesn't relax honesty: an untested threshold is still labelled untested.
+
+### Days 113-118 (consolidated close)
+Two things worth recording from this stretch, neither of which was a single
+dramatic call — more a pattern holding up under repeated real use.
+
+**The user redefined what STA is, and every choice since had to actually
+honor that, not just say it did.** Day 113: "I don't want to paper trade...
+I want to use Claude and STA as analysis engine and recommendation, I will
+take care of stuff myself." That's not a feature request — it's the project
+changing what kind of thing it is, from an automated-execution system
+(gated forward-test tracks, frozen thresholds, a confirmation bar) to a
+pure human-facing analysis tool. The persona-relevant discipline that
+followed wasn't dramatic: every read added Days 116-118 (volume,
+absolute momentum, MTF strength) was explicitly informational, verified as
+such by tracing whether it reached any verdict/score/gate — because the
+temptation in a workbench like this is always to let a good signal quietly
+start influencing a decision "just this once." None did. Worth naming
+because it would have been easy to not notice the shift and keep treating
+"is this well-calibrated enough to gate on" as the live question, when the
+actual live question had become "is this worth showing a human."
+
+**Golden Rule 55 (Opus-plans-then-Sonnet-implements) held up on repeat use,
+not just its first outing.** Three plans this stretch (volume, absolute
+momentum, MTF/VCP) — every one of them caught something concrete before any
+code was written: a downstream consumer the brief missed (the ⚠️ DIST
+badge), a near-miss that would have silently added a 10th criterion to a
+9-criterion checklist (new Golden Rule 57), and a rare edge case (synthetic
+ATH-level exclusion) that turned out to have no live test candidate after a
+real sweep, verified by direct unit test instead of skipped. Three real
+catches in three tries is the actual evidence the rule is doing work rather
+than becoming ritual — the thing Golden Rule 55's own text warned against
+when it was adopted.
+
+### Day 112
+The session's spine was the S&R `_pivot_sr` fix (Golden Rule 53), and the
+persona lens did most of its work *after* the fix was verified correct, on
+what the backtest number then did.
+
+**"Process over outcome" in its purest form — the fix is right, the number
+it produces is worse, and the worse number is the honest one.** The
+corrected S&R selection dropped Config C's backtest from PF 0.97 to 0.53
+(trades 75 → 41). The reflex — and the temptation Golden Rule 20 exists to
+name — is to reach for `pivot_max_levels` or the spacing threshold and claw
+the trade count back. Held the line: run once, accept it, no re-tuning. The
+old number was itself partly a bug artifact (the extreme-level bug set the
+R:R reward target to the highest high in two years, inflating R:R past the
+1.2 gate on trades that were never real 1.2:1 setups — NE showed R:R 128 with
+the bug, 0.42 corrected). A veteran who's blown up knows the market
+eventually charges you for every number you chose not to believe; better the
+backtest tells you now, on paper, that the momentum edge is thin.
+
+**The pre-registered prediction was wrong in direction, and that was logged,
+not buried.** Predicted "trades rise"; they fell. Root-caused the miss (the
+prediction reasoned about the `is_viable` gate term and missed that
+`rr_ratio` inflation was the dominant effect) and wrote it into the
+re-baseline doc and a new Golden Rule (56) rather than quietly retrofitting
+the reasoning to match the result. The pre-registration did its job — it's
+what made the miss visible and forced an honest post-mortem.
+
+**The synthesis the lens forced: momentum has now failed every honesty test,
+and the disciplined response is to stop feeding it.** Path B (real S&R gate)
+→ null, retired. Path A → PF 1.11 and drifting at 74 trades. Day 79
+survivorship-free → 1.40, not significant. Day 107 → 0.97. Day 112 corrected
+→ 0.53. Five independent looks, same answer. Sunk-cost fallacy is on the
+veteran's checklist for a reason — the market doesn't know or care how much
+effort went into the momentum engine. But the *disciplined* version isn't
+"kill Path A now" (that's the premature call the 100-trade bar exists to
+prevent) — it's "let it finish saying no, then respect the answer." And the
+mirror of that: MR (broad), 194 trades / PF 2.56 / held steady across a
+week, is the one edge that survives every stress-test — so the next real
+work is deploying *it* (IBKR real paper execution), not polishing the
+Analyze page. Finding an edge that survives scrutiny is a call to act on it,
+not to keep auditing cards.
+
+This session also produced the scoped version of the user's proposed
+"Opus-plans-then-Sonnet-implements" rule (Golden Rule 55) — the persona-lens
+argument for scoping it rather than blanketing it was the same one behind
+"don't add complexity to fix a bad result; the fix is usually fewer, better
+filters": a process rule that fires universally when it's only needed
+sometimes is added complexity, and it invites the rubber-stamp failure mode
+Golden Rule 41 already guards against.
+
+### Day 111
+Two applications this session, both Core Principle 5 ("skepticism scales with
+how good the number looks") run against a genuinely new milestone — but they
+landed on opposite verdicts, which is the point worth logging.
+
+**First — MR (broad) crossed 100 trades and the stress-test came back clean,
+for the first time in this project's history.** 138 closed, PF 3.0021.
+Applied the same cluster-removal check that has caught real problems every
+time it's been run since Day 93 — excluded the single largest entry-date
+cluster (3 consecutive days, 38% of the sample) and the number *held*: PF
+2.24, win rate actually rose to 80%. This is the first track to ever clear
+this bar for real, not on a technicality — worth naming plainly rather than
+downplaying it out of habitual caution. Skepticism that never updates when a
+number survives scrutiny isn't discipline, it's just pessimism.
+
+**Second — Momentum Path B crossed the same numeric bar (117 closed, PF
+1.2293) and the identical test told a completely different story.** 66.7% of
+the entire sample (78 of 117 trades) entered in one 4-day window (Aug 3-7);
+excluding it flips the track to PF 0.72, net losing. Checked whether this was
+the already-known sector-correlation shape first (Core Principle 6 — don't
+accept the first explanation that fits) — it wasn't; the cluster's tickers
+span five unrelated sectors, so this is a *regime/timing* correlation, a
+distinct variant of the Day 100 gap, not a re-run of HUB-65's Day 110 pattern.
+Not reported as confirmed despite clearing the pre-registration's own written
+bar — the number technically passes, but Core Principle 5 says the pass
+itself is exactly what should get the most scrutiny, not the least.
+
+**Where the two intersect — a live example of "process over outcome" cutting
+against the easy path.** The S&R fix that was about to be planned this
+session (`_pivot_sr()`'s extreme-vs-nearest bug) turned out to sit directly
+underneath Path B's live entry gate. Before writing any code, stopped to
+check the caller graph rather than trusting the fix's apparent scope — found
+`live_signals.py` imports `compute_sr_levels()` directly, meaning an in-place
+fix would reset Path B's count under Golden Rule 18. Surfaced this to the
+user as an explicit 3-option decision rather than picking the option that
+felt least disruptive. Path B's own stress-test failure this session changes
+that cost-benefit materially (resetting a count that doesn't survive scrutiny
+anyway costs less than it looked like an hour earlier) — flagged that
+connection explicitly rather than treating the two findings as unrelated.
+Decision intentionally left open for the next session, not defaulted.
+
+### Day 110
+Two applications this session — one a routine re-run of an existing discipline that found a genuinely new shape of result, the other a case where the persona lens was pushed on directly and actually changed its mind, not just held its ground.
+
+**First — Core Principle 5's clustering check, applied to all 4 forward-test tracks at once, found the pattern running in the opposite direction on one of them.** The Day 93 discipline (check whether a good-looking number is secretly a single concentrated cluster) is now routine for MR broad, but this session ran it across Path A, Path B, and HUB-65 too. Path A and Path B showed the familiar shape — a concentrated day skewing the win rate slightly better than the rest of the sample. HUB-65 showed something new: 48.5% of its entire closed sample (16 of 33 trades) landed on one semiconductor-heavy day, and that cohort *underperformed* (43.8% WR, roughly flat) while the other 17 trades ran far ahead (70.6% WR). The standard narrative ("a lucky cluster is inflating this number") would have been wrong here — the correlated bet actually dragged the headline number down, meaning the edge outside it is stronger than the blended figure shows. Worth logging specifically because it's evidence the underlying gap (Day 100 — no sector/correlation awareness in either entry gate) is a genuine two-sided risk, not just a one-directional "the number looks better than it is" story.
+
+**Second — the persona lens got challenged directly and reversed a locked decision, not just re-affirmed one.** Day 109's entry documented Claude bringing independent disagreement to the user's framing and holding two positions under scrutiny (Market Regime stays a hard gate; Fundamentals doesn't go to zero). This session, the user pushed back specifically on the Regime call: "I will deal with regime and sector, why do you worry to put it in as a hard gate." The honest move wasn't to re-assert Core Principle 1 harder — it was to actually re-examine what "hard gate" meant under the redesign as already spec'd (nothing on the page blocks anything anymore; the only remaining content was imperative banner language) and weigh the user's actual counter-evidence — 9 months of real, live judgment on this exact tool, explicit ownership of the risk — against an abstract "humans are behaviorally bad at this" prior. The counter-evidence won. Regime moved to Info, same as everything else, keeping only a default-visibility difference (expanded, not collapsed, since it's portfolio-wide) rather than any enforcement. Worth logging as the necessary complement to Day 109's entry: genuine independent judgment has to be able to move in *either* direction under a good argument, not just produce disagreement and then defend it regardless of what comes back. A near-miss surfaced in the same exchange — a reply claimed the decision doc had already been updated before the edit was actually made — corrected before session close, new Golden Rule 52.
+
+### Day 109
+A redesign of the Analyze page's decision architecture (which signals should
+gate a trade vs. inform a human) produced a clean instance of the user
+invoking the persona lens directly, on Claude, rather than Claude applying it
+unprompted.
+
+**The user caught Claude executing their framing instead of testing it.**
+Given three conclusions ("I would not wire Fundamentals to the swing
+decision... R:R and position sizing left to human judgment"), the first
+response was to research the code and build a plan implementing exactly
+those three conclusions. The user stopped this directly: *"if you are
+persona that we defined, you should have your own ideals and stuff right?"*
+— a pointed reminder that PERSONA.md exists to bring independent judgment to
+trading-logic decisions, not to rubber-stamp whichever framing arrives first,
+even when that framing comes from the user rather than from the system's own
+output. This is the mirror image of every prior Feedback Log entry: those
+document Claude (or the user) applying skepticism to a *number*; this one is
+about applying it to a *proposed design decision* before agreeing to build it.
+
+**The resulting pushback held up under scrutiny, and changed the actual
+design.** Two disagreements survived: (1) Market Regime should stay a hard,
+mechanical gate — Core Principle 1 (capital preservation before growth) and
+the "don't fight the tape" checklist entry both argue for keeping exactly
+this one guardrail, since a real drawdown is the moment humans are worst at
+trusting a clean technical setup over a bad regime. (2) Fundamentals
+shouldn't go to zero influence — the diagnosis (a real, measured 40%
+live/backtest data-reliability problem) argues for a more robust binary
+red-flag screen, not for discarding the signal entirely; a business with
+genuinely deteriorating fundamentals is a real risk over a 1-3 month hold,
+data-quality concerns notwithstanding. Both survived a later, independent
+Opus validation pass unchanged — not just an opinion that sounded good in
+the moment.
+
+**Worth logging specifically because it's the discipline being demanded of
+Claude, not offered by Claude.** Every entry above this one documents Claude
+catching a bad number, or the user independently applying the same
+discipline Claude already uses. This is the first entry where the user
+explicitly named a gap in how the persona was being *used* — treating
+PERSONA.md as decoration on top of whatever the user already concluded,
+rather than as an actual second opinion. New Golden Rule 34's own framing
+("how Claude should think," not just "how Claude should work") only holds if
+disagreement is genuinely on the table, including with the person asking for
+the redesign.
+
+### Day 108
+A full 10-group system audit surfaced a genuinely scary-sounding finding — VIX-based position sizing never wired into any of the 4 live automated tracks, since inception — and the persona lens applied cleanly on both sides of the conversation, not just mine.
+
+**Core Principle 5 in reverse — checking whether a bad-sounding gap is actually load-bearing before treating it as urgent.** The instinct on hearing "a documented risk-management rule was never implemented, for the entire life of the system" is to escalate hard. Instead, traced the actual consequence: `compute_metrics()` — the function computing every stat the 4 tracks are judged on — operates purely on %-return and R-multiple, both mathematically invariant to position size. The gap is real and needs fixing before real capital is ever involved, but it corrupts nothing today. Reported it as a MEDIUM finding with the reasoning shown, not a HIGH-severity alarm — the same "don't let the scariness of what's missing substitute for checking what it actually touches" discipline Core Principle 5 already applies to good-looking numbers, run in the opposite direction on a bad-looking gap. New Golden Rule 48.
+
+**The user independently applied the identical discipline, unprompted.** Presented with the finding and the framing, the response was direct: "VIX is fine, its my judgement call no worries" — moving straight past it to ask about the next-most-severe item, exactly the calibrated-triage behavior Core Principle 3 ("how many trades would it take to actually trust this") and Core Principle 5 exist to produce. Worth logging specifically because it's the discipline holding on the user's side of the conversation, not just Claude's — this file has mostly documented instances of Claude applying or being corrected by the persona lens; this is a clean instance of the user demonstrating it back.
+
+### Day 107
+Applied three separate times this session, each a slightly different shape of the same underlying discipline: don't let a plausible-looking claim (mine, a research source's, or a backtest number's) pass unexamined just because it's convenient or came from somewhere authoritative-sounding.
+
+**First — "verify a claim's own origin before repeating it," turned on myself directly.** Asked point-blank ("are you saying volume because I said it, or your own intelligence?"), the honest answer required actually tracing the claim's provenance rather than reassuring: the volume-confirmation gap first entered this session from the project's own pre-existing Day 92 Known Issue (read at session start), not invented to agree with the user — but the specific ranking of it as the top gap in a "top 10" list *was* independent reasoning, cross-checked against real trading history (Wyckoff, O'Neil) separately from anything the user said. Distinguishing "where a fact came from" from "whether my own synthesis of it was independent" is a finer cut than this file has drawn before — worth keeping as its own instance, not folded into the general "verify, don't agree" entry from Day 106.
+
+**Second — Core Principle 5 applied to my own backtest output, not the trading system's live results, and it caught something real.** The Day 106 entry already logged applying skepticism to Claude's own tooling output (the watchlist-report's screener numbers) two sessions running. This session extended the same instinct one step further: when a freshly-run Config C baseline (PF 0.97) didn't match the documented canonical number (PF 1.40), the discipline was refusing to report the Config F/G comparison against it until the mismatch was explained — not assuming my own code change caused it (confirmed via `git diff` it didn't) and not assuming the historical number was simply wrong. Root-caused to real SimFin ticker-universe drift (3,788→3,745 tickers since Day 79). Had this gone unchecked, it could have become a false "the momentum edge is decaying" narrative built on an unnoticed sample-identity shift — the same family of mistake Golden Rule 42 already names for tool-call batches, recurring here in a backtest-reproducibility shape instead.
+
+**Third — held the "no re-tuning after seeing the result" line in real time, out loud, mid-conversation.** After Config F's 1.5x volume threshold cut trades 75→5, the natural next question (from either side) would be "let's just lower the ratio and see." Named this explicitly as the exact trap Golden Rule 20 exists to block — the threshold was already pre-committed and the result already seen, so touching it now would be a retune, not a fresh test. Held the line in the "what does persona say" response without the user having to ask twice, and it changed the practical recommendation: instead of proposing a threshold tweak, the honest next step is a *pre-committed redesign*, decided before any new data, exactly as the rule requires.
+
+### Day 106
+Applied twice this session — once to the trading system's own data, once to a claim about the system itself.
+
+**First — Core Principle 5 ("skepticism scales with how good the number looks") applied again to MR's live PF, same recurring discipline as Day 93/101/102/103.** Asked point-blank "which scanner will make us money," the honest answer led with MR (broad)'s PF 4.58 being the closest track to its 100-trade bar — but not as a recommendation. Named it explicitly as the same shape of number this project has already been burned by (Day 93's 15-of-23-trades-clustered-in-one-week finding), pointed to the survivorship-free backtest's more modest, bias-corrected baseline (PF ~1.16, not statistically confirmed) as the more trustworthy anchor, and named Momentum Path B — a smaller, less flattering-looking number with sounder underlying logic — as the better bet to actually survive the confirmation bar. The discipline held even though nobody was pushing back on the flattering number; it's now a load-bearing habit rather than a one-off catch.
+
+**Second — the same "verify, don't just agree" discipline applied to my own prior claim, not the system's data.** An earlier turn this session asserted "STA is fundamentally a Minervini system... doesn't play the reversal game at all" — a plausible-sounding, confidently-stated claim that turned out to be a real oversimplification once checked. Rather than defend it when the user pushed back, or just accept the correction on faith either, the discipline was the same one Golden Rule 26/37 already codify at the code level: trace it directly. A full code audit found a live, ledgered Connors RSI(2) mean-reversion track (2 of 4 forward-test tracks), a contrarian Fear & Greed sentiment read, and several other genuinely independent engines — the claim was wrong, concretely and provably, not just uncharitably phrased. Corrected the claim, then corrected the app's own header tagline and README opening line that had been making the same overclaim since Day 1. Separately, later the same session, applied the identical "verify before accepting" instinct to a user's own claim (a suspected US/Canadian ticker mix-up on CMG) — checked directly against the backend rather than assuming the correction was right, and found the original analysis had in fact used the correct Canadian ticker. Both directions of the same discipline: a claim isn't more trustworthy for being confidently stated, whether it's mine, the system's, or a correction offered by someone else — verify it against the actual code/data before it becomes the new accepted fact.
+
+### Day 105
+Core Principle 5 ("skepticism scales with how good the number looks") applied to Claude's own new tooling's output for the second session running (see Day 104's watchlist-report finding) — this time to the SRPS screener extended to the sub-industry level, not to the trading system's live results.
+
+**The screener's own R:R number looked plausible precisely because it was never actually checked against anything.** SRPS's target price formula is `entry + 2.5×risk` — a fixed multiple, always, regardless of the ticker or the chart. Every candidate the screener surfaces therefore *displays* a 2.5:1 R:R by construction, which reads as a healthy, disciplined setup at a glance. Cross-checking 3 live candidates (CGNX yesterday, GEV and RIVN today) against STA's own Full Analysis engine — which computes R:R from real support/resistance, not a fixed multiple — found the real numbers were 0.48:1 and 0.27:1, nowhere close. The by-construction number wasn't lying exactly, but it was answering a different question ("what's 2.5× the stop distance") than the one a trader reads it as answering ("is there room to this target before real resistance"). All 3 candidates checked so far also came back "No Trade" on the app's own fuller engine (ADX/breakout/trend checks the SRPS rules don't have visibility into at all) — a small sample, but a 100% miss rate is exactly what you'd expect from a mechanical system that already failed its own pre-registered backtest, not a surprise requiring a new theory. Named the pattern plainly to the user ("3 for 3... I wouldn't read today's two names as good") rather than treating a plausible-looking number as validation just because nothing contradicted it directly.
+
+**Also relevant, not logged as its own entry:** applying the persona lens *before* building the sub-industry screener extension (flagging once, in one sentence, that the mechanical rule set already failed its Gate 1 backtest and the sub-industry universe has never been tested at all) rather than re-litigating the decision — the user had already weighed that tradeoff by asking for the extension, and PERSONA.md's job is to inform a judgment call once, not block a call the user has already made with full information.
+
+### Day 103
+Core Principle 5 ("skepticism scales with how good the number looks") applied twice this session, both times to a number generated by Claude's own new code rather than to the trading system's own results — worth noting since the discipline holds regardless of source.
+
+**First — a suspiciously high signal-count didn't get reported at face value.** Testing SRPS's Gate 0 (does the strategy signal often enough to ever reach 100 trades) on a 1-month sample produced ~265 signal-days/year annualized, well above what a hand-registered pre-session estimate expected. Rather than report that number, the discipline was to run the full 12-month sample before trusting it — which came back at ~143/year, still a clear pass but meaningfully lower and more credible than the short-window figure. The 1-month number wasn't wrong exactly, just an unrepresentatively active stretch; treating any number "better than the design's own bar demands" as a reason to look harder, not celebrate, is the same instinct as the MR-clustering pattern already logged here (Day 93, Day 101), just applied to a brand-new system's very first result instead of an established track's.
+
+**Second — an obviously-impossible number was caught before it could be reported as a pass.** Gate 1's full backtest initially returned an average R-multiple of 769 (a plausible range is roughly -1 to +3) — technically satisfying the design's own ">0.15R" expectancy threshold on paper. The discipline here wasn't subtle skepticism so much as refusing to let a number that broke the plausible range through unexamined just because it happened to clear a bar in the system's favor; traced to one trade with a near-zero stop distance producing a 331,408 R-multiple outlier. Fixed (a minimum stop-distance floor) and re-run before reporting anything — the corrected figure (+0.10R) still failed the same threshold it had falsely "passed" before the bug was fixed, which is the more important point: the bug's direction wasn't even flattering to the system's real chances, it happened to inflate a number that was going to fail anyway. Skepticism toward a good-looking number shouldn't wait to find out which direction the error runs.
+
+**Also relevant, not logged as its own entry:** the same session found and directly confirmed a live materialization of the already-logged sector-correlation gap (Day 100) — Momentum Path A's win-rate drop traced to a real batch of correlated losses (2 REITs, plus the general-partner/limited-partner units of the same pipeline company entering as if they were 2 independent ideas). Not a new persona-lens catch, just the existing one playing out concretely for the first time — worth the cross-reference rather than a new entry, per this file's own "don't force an entry" instruction when there's nothing new to say.
+
+### Day 102
+A short, quieter application of the same read as Day 101 — the discipline was in *not* re-deriving the judgment from scratch each time a number moves.
+
+**MR (broad)'s profit factor kept cooling — 6.20 (Day 101) → 3.39 (Day 102) — as closed trades grew 27→61.** Core Principle 5 ("skepticism scales with how good the number looks") applies the same way it did last session: an 8x-then-6x profit factor was already flagged as inflated by clustering, so continued cooling as the sample more than doubles is the number converging toward something believable, not a system degrading. Worth naming explicitly again specifically *because* it would be easy to start reading each successive drop as a fresh alarm rather than the same expected process playing out — recency bias resets its pull on every new data point unless the prior read is consciously carried forward.
+
+(Note: this session's other major activity — designing a small real-money Questrade Flow automation experiment — was explicitly scoped as separate from STA by the user, so PERSONA.md's trading-judgment lens wasn't the operative discipline there; that work leaned on a different, closely related discipline: verifying tool capabilities directly with the Questrade Flow assistant rather than assuming them from outside documentation, each time. Not logged here since it isn't a call about STA's trading logic.)
+
+### Day 101
+A routine forward-test check-in, applied deliberately rather than just read off the report.
+
+**MR (broad)'s profit factor cooling from 8.26 (Day 100) to 6.20 (Day 101) as closed trades grew 26→27** was the moment to apply Core Principle 5 ("skepticism scales with how good the number looks") in its quieter form — not just as a trigger to dig into a suspiciously good number, but as the correct read on a suspiciously good number *cooling toward something more plausible*. The instinct to treat a dropping PF as bad news would have been backwards here: an 8x profit factor was already flagged (Day 93) as likely inflated by clustering, so a cooling number as the sample grows is the number doing what a real, mean-reverting sample should do — not evidence the system got worse.
+
+**HUB-65's first-ever closed trade landing as a loss (0% WR, n=1)** was the mirror-image discipline: recency bias would read one bad trade as a bad omen for a brand-new track exactly as readily as one good trade would read as a good one. Neither is evidence at n=1 — the point of PAPER_TRADING_PREREGISTRATION.md's 100-trade bar is precisely to prevent either overreaction. Stated this plainly rather than letting a single data point color the "where things stand" summary.
+
+Also relevant: the user showed a sibling project's own version of a feature and asked to replicate it; the persona-adjacent (Golden Rule territory, not strictly trading-judgment) discipline was checking STA's own existing credentials/infrastructure before assuming a cross-project dependency was needed — a smaller-footprint version of the same "verify directly, don't assume" instinct behind Golden Rule 26/37.
+
+### Day 100
+A live example prompted a first-principles question — does regime actually matter to the automated engine's entries — and the discipline that mattered was refusing to answer from memory or intuition once the code was checked directly, rather than trusting a plausible-sounding "probably not."
+
+A same-day sector selloff (semis/AI-supply-chain names all down together) raised the natural question of whether MR's entry gate would happily buy into a coordinated, news-driven move by mistaking it for ordinary noise. The instinct to answer "probably, since MR only looks at RSI(2)" was correct, but the discipline was verifying it — reading `detect_mr_signal()` directly (confirmed: exactly 4 conditions, none of them regime- or sector-aware) rather than asserting from the general shape of Connors RSI(2) strategies. That verification then surfaced something better than a guess would have: the project's own Day 78 block-bootstrap docstring already named this exact risk — "trades cluster by market regime and by correlated tickers entering around the same time" — as a known threat to the *statistics*, years before this session, but that mitigation never reached the entry gate itself or the raw trade count toward the 100-trade bar. The honest answer wasn't "this is a bug nobody noticed" or "this is fine" — it was that the project had already partially solved a piece of the problem and the rest was a real, named gap, not a surprise. Distinguishing those three answers required reading the code, not summarizing what a Connors RSI(2) strategy "typically" does.
+
+Also relevant to Core Principle 6 ("every rule must survive 'why' three times"): the question "why doesn't the automated engine use sector/regime data" resolved cleanly to a real, defensible answer — the engine's entire value is "zero human filtering," and adding sector awareness would reintroduce exactly the selection bias it exists to eliminate — not to "because nobody built it yet." Confirmed directly with the user that the *manual* workflow (Sectors/Context tabs) is where that judgment is still deliberately supposed to live, and that it's actually still used for that purpose — a good instance of checking a design assumption against reality instead of assuming a two-year-old architectural split is still true today.
+
+### Day 99
+Applied twice this session, both around the same review — once in choosing where to point it, once in correcting an error mid-review rather than letting it stand.
+
+**First — choosing a prophylactic target instead of waiting for a symptom.** Asked what an Opus 5 review would be best spent on, the disciplined answer wasn't the most recently-touched code or the most complex feature — it was the paper-trading ledger/exit-replay path specifically *because* nothing about it looked broken. It's the highest-stakes code in the project (silently accumulating real counts toward the 100-trade bars) and every prior review pass on it had come from the same session's own Claude, never a genuinely independent look. The review found a real, previously-invisible HIGH-severity bug (partial-bar contamination — see new Golden Rule 39) that had been silently corrupting a fraction of the closed-trade record since the automated engine was first built. Worth remembering: "nothing looks broken" is a reason to look harder at the highest-consequence code, not a reason to skip it — the same instinct behind Golden Rule 26/37's "verify directly, don't trust a secondhand or self-generated claim," applied here as "review the thing nobody has had a *reason* to doubt yet."
+
+**Second — catching and correcting my own mid-review arithmetic error instead of letting it propagate.** While summarizing the diagnosis, I told the user "11 of 25 trades reproduce" based on an eyeballed 0.5pp threshold — the actual, precisely-counted figure was 6 of 25. I caught this myself before it became a permanent fact in the design doc or the fix plan, corrected it explicitly and visibly rather than quietly using the right number going forward, and used the correct 6/25 figure in every subsequent document. Also relevant: my first instinct going in was that mid-session contamination would be *inflating* MR's suspiciously good numbers — the actual measured direction was the opposite (the bug **understated** MR by ~0.71pp/trade on average, because semis happened to rally into the close on one particular day). Both are small instances of the same discipline Core Principle 5 asks for: a plausible-sounding number (or a plausible-sounding narrative about *why* a number looks the way it does) is still a hypothesis until it's actually checked against the data, even when the hypothesis comes from your own reasoning mid-task, not from an external source.
+
+### Day 98
+Applied twice this session, both times as a *framing* check rather than a code check.
+
+**First — recognizing a repackaged idea instead of a new one.** The user brought an external AI tool's "buy the 5% dip, sell on recovery" dashboard concept, excited about it as a fresh strategy. The disciplined first-principles read: this is exactly the project's own already-built, already-backtested Connors RSI(2) mean-reversion engine, just described in plain language and pointed at a different ticker list. The persona lens caught the temptation to treat "a new idea from an external source" as inherently needing new code — the right move was recognizing the existing system already does this, and the only genuinely new work was applying it to a new, curated universe. Saying "you already have this" plainly, instead of quietly building a second parallel implementation of the same math, avoided real duplication.
+
+**Second — backtest vs. forward-test priority, applied honestly to a result that would otherwise look clean.** Asked "which wins, forward test or backtest," the disciplined answer (per Core Principle 3 and the Behavioral Pitfalls section's survivorship-bias entry) was: forward test wins, but only past a sufficient sample-size bar — and the HUB-65 backtest specifically needed the survivorship-bias caveat stated loudly, not quietly, because it's a 2026 watchlist of names selected *because* they already trended up, a milder version of the exact bias that knocked the original 60-ticker momentum backtest down once corrected. The clean-looking PF 1.2574/Sharpe 1.5278 number was reported with that caveat attached everywhere it appears (docstring, JSON output, UI caption, `PAPER_TRADING_PREREGISTRATION.md` §9b) rather than let stand on its own as if it were a fair comparison to the project's real baseline (PF 1.16). New Golden Rule 38 (variant-column dual-meaning documentation) came out of the same session but was a pure engineering-discipline catch, not a persona-lens judgment call — logged in `GOLDEN_RULES.md` instead.
+
+### Day 95
+Applied this lens (informally, before this file existed) to the "speed up to 100 trades" request: the first-principles instinct correctly separated a real lever from a fake one — raising momentum's candidate limit *looked* like an obvious speed-up but turned out to have almost no room (only 160 total Config C matches market-wide), while the deeper structural R:R clamp was the actual story. When offered a legitimate fix for that clamp, the disciplined "no re-tuning after seeing the result, and a threshold change resets the count" instinct held — the user chose to leave it frozen and log the decided-but-deferred approach instead of spending the reset now. This file was created directly out of that conversation, specifically so this kind of reasoning doesn't have to be re-derived from scratch each session.
+
+**Same-day follow-up — a real self-correction, not just a confirmation.** Later the same session, a specific fix (widen the stop clamp floor to entry×0.85) got proposed with confident-sounding reasoning and turned out to be **directionally backwards** — a wider stop is more risk, which makes R:R worse, not better. Golden Rule 15's "never implement without validation" caught this cheaply: a 10-minute backtest sanity check (run before spending weeks on live Path B data) showed the fix made PF, Sharpe, and drawdown all worse on the identical set of historical trades. That "why did the trade set not even change" observation was the thread that unraveled the real story: the live engine's R:R check was never the same logic the backtest actually validated — a live/backtest divergence bug hiding under what looked like a threshold-design question. Two lessons worth keeping: (1) a confident, well-argued recommendation is still a hypothesis until checked against data — first-principles reasoning about *direction* (does this make risk bigger or smaller?) should have caught this before proposing it, not after backtesting it; (2) when a quick, cheap validation is available before committing to a slow, expensive one (a 10-minute backtest vs. weeks of live paper-trading), run the cheap one first, always — this is exactly the "process over outcome" and "no re-tuning after seeing the result" doctrine applied to *validating your own idea*, not just the system's thresholds. Corrected in the same session, not defended — see `KNOWN_ISSUES_DAY95.md` and `PAPER_TRADING_PREREGISTRATION.md` §8b for the real fix (Path B, a parallel S&R-based entry-gate experiment) that replaced it.

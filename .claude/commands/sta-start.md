@@ -12,16 +12,18 @@ Extract from it:
 - The Day N summary (1-line description of last session)
 - Next Session Priorities list
 
-## Step 2: Read the 5 required files
+## Step 2: Read the layer-1 files (layered docs, Day 133)
 
-Read all six — do not skip any:
+Read all six — do not skip any. These are layer L1, small on purpose. The full text of Golden Rules is layer L2 and history is layer L3: **do not read them now; open them when the task needs them** (see the rule below).
 
-1. `docs/claude/stable/GOLDEN_RULES.md`
+1. `docs/claude/stable/GOLDEN_RULES.md` — rules 1-15 and the always-read rules in full, plus one index line per other rule
 2. `docs/claude/stable/PERSONA.md` — the trading-judgment persona (30-year veteran trader lens). Load it as an active decision-making filter for this session, not just background reading — apply it to any threshold decision, backtest/live result interpretation, or "can we speed this up" request.
 3. `docs/claude/stable/ENGINEER.md` — the surgeon's lens (engineer persona, Day 129). Load it as an active filter for every plan and code change: evidence before claim, read what the check reads, find every copy, break it before the user does, and re-read its "what has been missed" table before planning.
-4. `docs/claude/stable/ROADMAP.md`
+4. `docs/claude/stable/ROADMAP.md` — open priorities only
 5. `docs/claude/status/PROJECT_STATUS_DAY[N]_SHORT.md` — use the Day N you found in Step 1
-6. `docs/claude/versioned/KNOWN_ISSUES_DAY[N].md` — use the Day N you found in Step 1
+6. `docs/claude/versioned/KNOWN_ISSUES_DAY[N].md` — use the Day N you found in Step 1 (open Medium+ only)
+
+**Layer rule (L2/L3):** when the task matches an index line in `GOLDEN_RULES.md`, open that cluster file `docs/claude/stable/rules/<cluster>.md` and read the full rule BEFORE acting. Closed priorities, old day notes, the persona and engineer logs, and Low or resolved known issues are in `docs/claude/history/` (read on request). `CLAUDE_CONTEXT.md` has a "when the task is about X, read Y" map.
 
 ## Step 3: Count open bugs
 
@@ -64,6 +66,7 @@ Then ask: "What would you like to focus on?"
 ## Rules
 
 - MEMORY.md is auto-loaded — do not re-read it manually
+- Do not read `docs/claude/stable/rules/*` or `docs/claude/history/*` at session start; they are layers L2 and L3
 - README.md is external-facing — not part of session start
 - If PROJECT_STATUS or KNOWN_ISSUES file for Day N is missing, say so explicitly — do not guess or fabricate content
 - Do not begin any work until the user responds to "What would you like to focus on?"
