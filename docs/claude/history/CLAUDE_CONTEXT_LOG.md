@@ -205,3 +205,10 @@ pick deliberately based on what the user actually wants next, not backlog order.
 *This file replaces the need for SESSION_START.md + SESSION_PROMPT_TEMPLATE.md*
 *User only needs to reference this ONE file in Claude context*
 *For core rules and lessons learned → see GOLDEN_RULES.md*
+
+## Day 130 (summary rotated out at the Day 133 close)
+
+### Day 130 Summary (docs-only, v4.69 unchanged)
+- **Engineer persona checked against all days:** `ENGINEER.md`'s "missed" table now covers Days 1-129 (12 new themes from Golden Rules 18-61), not just 127-129. Found `GOLDEN_RULES.md` has no Rule 27 (the replay rule is numbered 29, cited as 27 elsewhere); logged, not renumbered.
+- **Pushed 1,212 untracked files** (research, audit, backtest). Left out: another project's `.venv` / `node_modules` (about 200 MB), `.db`, logs, `.playwright-mcp/`, `.vscode/`. Secrets scan clean.
+- Nothing else changed; Day 129's priorities stand. Alpaca's in-session bar needs a market day (Mon Nov 23 or later).

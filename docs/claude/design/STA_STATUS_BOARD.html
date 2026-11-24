@@ -106,7 +106,7 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
 
 <div class="wrap">
   <header>
-    <span class="eyebrow">Swing Trade Analyzer · updated at every session close · last updated Day 132, Nov 24, 2026</span>
+    <span class="eyebrow">Swing Trade Analyzer · updated at every session close · last updated Day 133, Nov 24, 2026</span>
     <h1>STA Status Board</h1>
     <p class="muted">Where the project stands, what's next, and which published pages you can still trust. Numbers come from the live paper-trading report and the repo's status files, not from older pages.</p>
   </header>
@@ -114,7 +114,7 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
   <div class="strip">
     <div class="tile"><span class="k">Mode</span><span class="v">Analysis only</span><span class="s">You place every trade. Paper trading stopped Sep 12.</span></div>
     <div class="tile"><span class="k">Version</span><span class="v">v4.70</span><span class="s">Backend v2.58 · Frontend v4.66. Two engine bugs fixed (a missing RSI is no longer a fake 50; a missing S&amp;P 500 reading is described honestly).</span></div>
-    <div class="tile"><span class="k">Open bugs</span><span class="v">16 Medium+</span><span class="s">1 High, 15 Medium. New Day 131: the DRAL smoke-audit row. Day 129: check Alpaca's in-session bar, old sources left in the cache at rollout, and two decisions for you (Alpaca terms, Twelve Data key).</span></div>
+    <div class="tile"><span class="k">Open bugs</span><span class="v">14 Medium+</span><span class="s">1 High, 13 Medium (recounted Day 133 from the slimmed open-issues file). Also open: the DRAL smoke-audit row (Low-Medium). Day 129: check Alpaca's in-session bar, old sources left in the cache at rollout, and two decisions for you (Alpaca terms, Twelve Data key).</span></div>
     <div class="tile"><span class="k">Next project</span><span class="v">Data source audit</span><span class="s">About 60% done. Alpaca first, Tradier rule, Twelve Data fixes built. Next: check Alpaca during a market day, refresh the Data Sources tab file.</span></div>
   </div>
 
@@ -165,7 +165,7 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
   </section>
 
   <section>
-    <div class="shead"><h2>Open bugs, Medium and above</h2><span class="src">KNOWN_ISSUES_DAY132.md</span></div>
+    <div class="shead"><h2>Open bugs, Medium and above</h2><span class="src">KNOWN_ISSUES_DAY133.md</span></div>
     <ul class="bugs">
       <li><span class="sev med">Medium</span>New Day 129: Alpaca's daily bar for today during a market session has not been seen yet. The 16:30 cache cap is the safety net; check it on the next market day.</li>
       <li><span class="sev med">Medium</span>New Day 129: after the Alpaca rollout old Yahoo or Twelve Data copies stay in the cache until they expire (AAPL still showed Yahoo). One cache clear fixes it; needs your go-ahead.</li>
@@ -194,6 +194,7 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
       <table>
         <thead><tr><th>Day</th><th>Date</th><th>What happened</th></tr></thead>
         <tbody>
+          <tr><td class="n">133</td><td class="n">Nov 24</td><td>Docs-only. The project notes are now in three layers: a small set read every session (about 77 KB, down from 391 KB), full rule text opened only when needed, and history on request. Nothing deleted; a cold-start test answered 5 of 5 questions. STA work is unchanged: Alpaca bar check next.</td></tr>
           <tr><td class="n">132</td><td class="n">Nov 23–24</td><td>No STA code change. Next for STA is unchanged: check Alpaca's daily bar once the market is open, then the DRAL row and the Data Sources tab file.</td></tr>
           <tr><td class="n">131</td><td class="n">Nov 23</td><td>Two engine bugs fixed. A missing RSI no longer counts as 50 (it cannot make a stock Strong), and a missing S&amp;P 500 reading still blocks BUY but is described honestly. Both copies of the rules changed together; a 172,800-case check shows they agree and nothing else moved. The "mean-reversion route skips the data chain" note was wrong and is corrected (new Golden Rule 69). One older smoke-audit row (DRAL) found, not fixed.</td></tr>
           <tr><td class="n">130</td><td class="n">Nov 22</td><td>Docs-only session. The engineer persona's list of past misses now covers every earlier day (12 new themes), not just Days 127–129. Found a numbering gap in the Golden Rules (no Rule 27; one rule is numbered 29 but cited as 27). Pushed 1,212 research, audit and backtest files, leaving out another project's libraries, logs and local tool folders. Nothing in the app changed (v4.69).</td></tr>

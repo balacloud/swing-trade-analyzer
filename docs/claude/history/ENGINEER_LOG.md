@@ -43,3 +43,12 @@ last_updated: Day 133 (2026-11-24)
 - **Day 131:** first use of the plan-mode flow end to end on a verdict-engine change. What worked: Opus caught two false on-card texts, the `null < 30` trap, and the missing RSI-0 grid row; the baseline-by-input comparison and the mutation check proved nothing moved where inputs are present. What I missed: repeating a stale Known Issues line before reading the code (Rule 69). The user's steer: "we need to see light at the end of the tunnel" (keep fixes small and finished).
 - **Day 129 close:** the persona was written mid-session, so this close is its first use. Misses it would have caught earlier, now in Golden Rules 67-68: a provider's "not covered" answer counted as a health failure and the key printed in an error text (found only by the Opus review asking "what does the existing provider do with the same case?"); an audit check (C8) that never read the page it was grading; a cache expiry rule written for one source instead of at the one write point. Process: a "completed" background notification was read as "audit done" without checking `pgrep` and timestamps. The user's reaction to the session: asked for this persona, and said "i dont want to go in to rabit holes" (keep fixes surgical, no side quests).
 - **Day 129:** Created. The user asked for "a fantastic coding developer persona who is very surgical and does not miss things", covering data keys, exception handling, testing, performance and edge cases. The misses table above is the Day 127-129 record: the Opus reviews of the Tradier plan (7 changes) and the Alpaca plan (11 changes) caught things this checklist is meant to catch before review.
+
+## Day 133
+
+| Miss | Habit that catches it |
+|---|---|
+| Layering plan v1 assumed the open priorities were in ROADMAP's header, that KNOWN_ISSUES splits by section, and that the session protocol lived in one place; the Opus review found all three wrong (open priorities sat in a table marked HISTORICAL; open items hid under "Changes from" headings; the protocol was copied in six files) | Read the whole file before planning a move of it (I had read ROADMAP lines 1-268 of 1,104); grep for every copy of a rule before moving it (Rule 59) |
+
+- **Day 133:** docs layering. What worked: Opus plan review before any move; nothing-lost scripts (byte-identical rules, line counts in = out); a cold-start agent as the probe test, which found a vague pointer and a wrong count that no checker would.
+

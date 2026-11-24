@@ -8,7 +8,7 @@
 
 ---
 
-## CORE RULES (69 Golden Rules; no Rule 27, see ENGINEER.md note)
+## CORE RULES (1-15, full text; 68 Golden Rules in all, numbered 1-69, no Rule 27)
 
 
 ## HOW THIS FILE WORKS (layered, Day 133)
