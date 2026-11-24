@@ -106,7 +106,7 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
 
 <div class="wrap">
   <header>
-    <span class="eyebrow">Swing Trade Analyzer · updated at every session close · last updated Day 131, Nov 23, 2026</span>
+    <span class="eyebrow">Swing Trade Analyzer · updated at every session close · last updated Day 132, Nov 24, 2026</span>
     <h1>STA Status Board</h1>
     <p class="muted">Where the project stands, what's next, and which published pages you can still trust. Numbers come from the live paper-trading report and the repo's status files, not from older pages.</p>
   </header>
@@ -119,7 +119,7 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
   </div>
 
   <section>
-    <div class="shead"><h2>Forward-test final results</h2><span class="src">daily_job.py --report · pulled Nov 23, 2026 (last job run Nov 20) · next-open column from mr_open_entry_retest.py</span></div>
+    <div class="shead"><h2>Forward-test final results</h2><span class="src">daily_job.py --report · pulled Nov 24, 2026 (last job run Nov 23) · next-open column from mr_open_entry_retest.py</span></div>
     <div class="tablewrap">
       <table>
         <thead><tr><th>Track</th><th>Closed</th><th>Win rate</th><th>PF (ledger)</th><th>PF at next open</th><th>Avg R</th><th>Verdict</th></tr></thead>
@@ -165,7 +165,7 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
   </section>
 
   <section>
-    <div class="shead"><h2>Open bugs, Medium and above</h2><span class="src">KNOWN_ISSUES_DAY131.md</span></div>
+    <div class="shead"><h2>Open bugs, Medium and above</h2><span class="src">KNOWN_ISSUES_DAY132.md</span></div>
     <ul class="bugs">
       <li><span class="sev med">Medium</span>New Day 129: Alpaca's daily bar for today during a market session has not been seen yet. The 16:30 cache cap is the safety net; check it on the next market day.</li>
       <li><span class="sev med">Medium</span>New Day 129: after the Alpaca rollout old Yahoo or Twelve Data copies stay in the cache until they expire (AAPL still showed Yahoo). One cache clear fixes it; needs your go-ahead.</li>
@@ -194,17 +194,17 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
       <table>
         <thead><tr><th>Day</th><th>Date</th><th>What happened</th></tr></thead>
         <tbody>
+          <tr><td class="n">132</td><td class="n">Nov 23–24</td><td>No STA code change. Next for STA is unchanged: check Alpaca's daily bar once the market is open, then the DRAL row and the Data Sources tab file.</td></tr>
           <tr><td class="n">131</td><td class="n">Nov 23</td><td>Two engine bugs fixed. A missing RSI no longer counts as 50 (it cannot make a stock Strong), and a missing S&amp;P 500 reading still blocks BUY but is described honestly. Both copies of the rules changed together; a 172,800-case check shows they agree and nothing else moved. The "mean-reversion route skips the data chain" note was wrong and is corrected (new Golden Rule 69). One older smoke-audit row (DRAL) found, not fixed.</td></tr>
           <tr><td class="n">130</td><td class="n">Nov 22</td><td>Docs-only session. The engineer persona's list of past misses now covers every earlier day (12 new themes), not just Days 127–129. Found a numbering gap in the Golden Rules (no Rule 27; one rule is numbered 29 but cited as 27). Pushed 1,212 research, audit and backtest files, leaving out another project's libraries, logs and local tool folders. Nothing in the app changed (v4.69).</td></tr>
           <tr><td class="n">129</td><td class="n">Nov 20–22</td><td>Data source audit continued. Leveraged funds are never served by Tradier, and the Data Sources tab says when Tradier served a price. Alpaca is the first US price source: every close within 0.5% of Yahoo on 79 US stocks. Fixed: Twelve Data's "no such symbol" answer counted as a failure, its key was written to a local log, and a 4:00–4:30pm cache gap. A new engineer persona was written. Parked: the "Data Trail" visual.</td></tr>
-          <tr><td class="n">128</td><td class="n">Nov 19</td><td>Data source audit started. First audit of the price data on all 117 stocks: clean for US stocks, Canadian stocks and CDRs, with five real problems found. Tradier's "HTTP 400" meant three different things; they are now told apart (Golden Rule 65). Yahoo had given 15 stocks a newest price row with no prices and the page showed an invalid price; such rows are now dropped, the audit and Data Sources tab fail them, and the page checker catches an unreadable price (Golden Rule 66). Opus reviewed both plans and changed both. v4.67 → v4.68.</td></tr>
 </tbody>
       </table>
     </div>
   </section>
 
   <section>
-    <div class="shead"><h2>Artifact map</h2><span class="src">checked Nov 23, 2026</span></div>
+    <div class="shead"><h2>Artifact map</h2><span class="src">checked Nov 24, 2026</span></div>
     <p class="note">Every published page that relates to STA, with whether you can still trust it. "Snapshot" means it was accurate on the date shown and hasn't been rechecked since.</p>
     <div class="filters" role="group" aria-label="Filter pages">
       <button type="button" id="f-all" data-f="all" aria-pressed="true">All</button>
@@ -244,7 +244,7 @@ const GROUPS = [
 ];
 // s: current | snap | stale | hist
 const ITEMS = [
-  {g:"status", t:"STA Status Board", id:"", u:"Nov 23", s:"current", w:"This page. Status, results, priorities, bugs, and this map.", self:true},
+  {g:"status", t:"STA Status Board", id:"", u:"Nov 24", s:"current", w:"This page. Status, results, priorities, bugs, and this map.", self:true},
   {g:"status", t:"STA vs. 100 Years of Trading Principles", id:"SGUQPDct284KF4uGnPZGrE", u:"Nov 12", s:"current", w:"STA checked against 9 classic trading principles (7 match, 2 partial), plus a side-by-side with Reddit swing-trading advice.", why:"Row 03 corrected Day 123: MR PF 1.50 at the next open. Gallery name: artifact-cc9d82c6…. Source copy: docs/claude/design/artifacts_src/principles_100yr/index.html"},
   {g:"status", t:"Leveraged ETF Board", id:"HdErxTqUhq8KYs6McSU5V7", u:"Nov 2", s:"current", w:"Live IBKR data for the 8 funds on your AI_Leveraged watchlist (Canadian SOXL and GDXU, DRAL and others), counted against your adopted rules (trend, pullback, S&R, consolidation) plus background reads.", why:"Pulls fresh data each time you open it. Source: docs/claude/design/LEVERAGED_ETF_BOARD.html. Formulas match STA's Python (parity-checked Nov 2)."},
   {g:"explain", t:"Beginner Trading Starter Playbook", id:"CfnNDEEs8jS112MuTU4HPp", u:"Nov 4", s:"current", w:"8-tab beginner guide for a friend: trader types, US–Canada macro, Reddit rules, 100-year canon, coding rules, live data and gamification, and building it with Claude Code.", why:"Shared with anyone who has the link. Macro numbers are a Nov 3 snapshot, mostly from secondary sources; Canada 5Y is unchecked."},

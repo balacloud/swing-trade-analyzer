@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 131 — 2026-11-23
+> **Last Updated:** Day 132 — 2026-11-24
 
 ---
 
@@ -11,15 +11,20 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 131 |
+| Current Day | 132 |
 | Version | v4.70 (Backend v2.58, Frontend v4.66) |
-| Latest Status | PROJECT_STATUS_DAY131_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY131.md |
+| Latest Status | PROJECT_STATUS_DAY132_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY132.md |
 | Latest API | API_CONTRACTS_DAY129.md |
-| Focus | **Day 131: the two Medium engine bugs are fixed (v4.70):** a missing RSI is no longer a fake 50, and a missing SPY is described honestly (still no BUY). The "MR route reads Yahoo directly" note was wrong (corrected; Golden Rule 69). **Data Source Audit Round 2, about 60% done:** next, check Alpaca's in-session bar on a market day; DRAL RS1 smoke-audit row; refresh `data_audit_latest.json`; thin ETFs / SOXL.NE / FINN.NE / BRKU; Data Sources tab statement audit; then playbook research (#21). Open for the user: Alpaca terms, Twelve Data key rotation, clear US cache at rollout. |
+| Focus | **Day 132: no STA code change. Next: Alpaca in-session bar check once the market is open (09:30 ET).** Day 131: the two Medium engine bugs are fixed (v4.70):** a missing RSI is no longer a fake 50, and a missing SPY is described honestly (still no BUY). The "MR route reads Yahoo directly" note was wrong (corrected; Golden Rule 69). **Data Source Audit Round 2, about 60% done:** next, check Alpaca's in-session bar on a market day; DRAL RS1 smoke-audit row; refresh `data_audit_latest.json`; thin ETFs / SOXL.NE / FINN.NE / BRKU; Data Sources tab statement audit; then playbook research (#21). Open for the user: Alpaca terms, Twelve Data key rotation, clear US cache at rollout. |
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in status/archive/)
+
+### Day 132 Summary (no STA code change — v4.70 unchanged)
+- Most of the session went on a non-STA task (kept out of the repo on purpose).
+- Corrected my own overclaim (a "match" that used an estimated input); added a row to `ENGINEER.md`.
+- STA priorities unchanged: Alpaca in-session bar (needs market hours), DRAL RS1 row, refresh `data_audit_latest.json`. Waiting on the user: Alpaca terms, Twelve Data key rotation, US cache clear.
 
 ### Day 131 Summary (engine bugs fixed — v4.70, Golden Rule 69)
 - **Missing RSI** no longer counts as 50 (cannot be Strong; may be Decent with 5+ trend checks; a real 0 is kept). **Missing SPY** still gives Unfavorable (no BUY, user's choice) but says "SPY trend unavailable" instead of "below its 200-day". JS and Python changed together; parity grid 172,800 rows, 0 mismatches; original rows unchanged; mutation-checked; two false Technical Read texts fixed. Plan + Opus review: `ENGINE_MISSING_INPUTS_PLAN_DAY131.md`.
@@ -30,12 +35,6 @@
 - **Engineer persona checked against all days:** `ENGINEER.md`'s "missed" table now covers Days 1-129 (12 new themes from Golden Rules 18-61), not just 127-129. Found `GOLDEN_RULES.md` has no Rule 27 (the replay rule is numbered 29, cited as 27 elsewhere); logged, not renumbered.
 - **Pushed 1,212 untracked files** (research, audit, backtest). Left out: another project's `.venv` / `node_modules` (about 200 MB), `.db`, logs, `.playwright-mcp/`, `.vscode/`. Secrets scan clean.
 - Nothing else changed; Day 129's priorities stand. Alpaca's in-session bar needs a market day (Mon Nov 23 or later).
-
-### Day 129 Summary (Data Source Audit Round 2 continued, Alpaca first — v4.69, Golden Rules 67-68)
-- **Tradier rule:** leveraged funds are never served by Tradier (`providers/fallback_policy.py`); a 60 s failure memo; the Data Sources tab warns when Tradier served a price; audit C8 reads the tab. 32 tests.
-- **Alpaca first US source:** chain Alpaca -> Twelve Data -> Yahoo -> Tradier (Canada Yahoo only). 79 US tickers: 100% of closes within 0.5% of Yahoo, 96% of Twelve Data. 66 tests. The Opus review also found Twelve Data's 404 counted as a failure, its key written to `backend.log` (324 lines), and the 4:00-4:30pm cache hole; all fixed.
-- **Engineer persona:** `ENGINEER.md` (checklists + table of past misses), 3rd required read at `/sta-start`.
-- **Open for the user:** Alpaca terms of use, rotate the Twelve Data key, clear the US cache at rollout. "Data Trail" visual parked. User: "i dont want to go in to rabit holes".
 
 ## SESSION START PROTOCOL
 
@@ -110,7 +109,7 @@ places and manages every trade themselves. Every item below is available to work
 pick deliberately based on what the user actually wants next, not backlog order.
 
 **Next up (each: plan → Fable review → build → sign-off):**
-(Day 131 fixed the two engine bugs (old 0b) and corrected the MR-route note. Item 0(a) needs a market day: Nov 23 was one but not checked.)
+(Day 131 fixed the two engine bugs (old 0b) and corrected the MR-route note. Item 0(a) needs a market day: Nov 23 was one but not checked; Day 132 did no STA work, so do it after 09:30 ET on a trading day.)
 00. **DRAL RS1 smoke-audit row (Low-Medium, Day 131):** the page shows a 52-week RS from 105 bars; the audit wants N/A. Predates Day 131; small, needs a plan.
 0. **Data Source Audit Round 2 (ROADMAP #20), about 60% done (Day 129).** Done: audit scripts, inventory (draft), truth-free audit (mid-session + after close), Tradier 400 fix, empty-price-row fix, IBKR truth (63 of 117), Tradier leveraged-fund rule, Alpaca first US source, Twelve Data 404/key fixes, 16:30 cache cap. Next, in order: (a) Alpaca in-session bar on a market day; (b) refresh `backend/reference/data_audit_latest.json`; (c) thin ETFs (XDRV.TO, CARS.TO), SOXL.NE, FINN.NE, BRKU volume; (d) Data Sources tab statement audit + rare states; (e) other tabs, 117-ticker page audit, framework Part 8. Open for the user: Alpaca terms, Twelve Data key rotation, clear US cache at rollout.
 0-. **Playbook research (ROADMAP #21):** the user reviews `PLAYBOOK_RESEARCH_PROMPT_DAY127.md`; runs after #20. The user's open "fork question" from Day 127 was not asked yet.
