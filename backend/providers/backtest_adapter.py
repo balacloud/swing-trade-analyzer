@@ -22,11 +22,8 @@ if _backend_dir not in sys.path:
     sys.path.insert(0, _backend_dir)
 
 # Load API keys
-try:
-    from dotenv import load_dotenv
-    load_dotenv(os.path.join(_backend_dir, '.env'))
-except ImportError:
-    pass
+from env_loader import load_env  # Day 135: one loader for .env
+load_env()
 
 
 def download_ohlcv(ticker: str, start: str = None, end: str = None, period: str = '2y') -> pd.DataFrame:

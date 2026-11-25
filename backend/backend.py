@@ -83,7 +83,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 # /api/sectors/pullback-screen endpoint (SRPS discretionary screener).
 # Day 105: bumped to 2.46 for the new /api/sectors/sub-industry-pullback-screen
 # endpoint + the shared _srps_true_rs()/_srps_evaluate_candidate() refactor.
-BACKEND_VERSION = '2.58'
+BACKEND_VERSION = '2.59'
 
 # Day 116: market-hours test for "is /api/sr's last bar still forming?" Mirrors
 # paper_trading/live_signals.py's _prepare_ohlcv() guard (Day 99, Golden Rule 33 —
@@ -121,11 +121,8 @@ from srps_constants import (  # SRPS pullback screener (Day 102) — see srps_co
 )
 
 # Day 51: Load environment variables for API keys
-try:
-    from dotenv import load_dotenv
-    load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
-except ImportError:
-    print("⚠️ python-dotenv not installed - API keys must be set in environment")
+from env_loader import load_env, overridden_keys  # Day 135: .env wins over a stale launch environment (one rule, one place)
+load_env()
 
 # Day 51: Multi-Source Data Intelligence (v4.14)
 try:
@@ -738,6 +735,7 @@ def health_check():
         'validation_available': VALIDATION_AVAILABLE,
         'sqlite_cache_available': SQLITE_CACHE_AVAILABLE,
         'data_provider_available': DATA_PROVIDER_AVAILABLE,
+        'env_overridden': overridden_keys(),   # Day 135: key NAMES where .env replaced a stale launch value (never values)
         'cache': cache_stats
     }
 

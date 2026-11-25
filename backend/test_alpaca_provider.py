@@ -10,6 +10,7 @@ import pandas as pd
 import requests
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+os.environ['STA_ENV_OVERRIDE'] = '0'   # Day 135: keep the fake test keys below; .env must not replace them
 os.environ['ALPACA_API_KEY'] = 'AKTESTNOTREAL'
 os.environ['ALPACA_SECRET_KEY'] = 'secret-not-real'
 os.environ['TWELVEDATA_API_KEY'] = 'td-key-not-real'

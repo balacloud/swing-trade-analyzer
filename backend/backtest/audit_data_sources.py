@@ -458,7 +458,7 @@ def write_report(rows, d, suffix=''):
 
 
 if __name__ == '__main__':
-    from dotenv import load_dotenv
-    load_dotenv(os.path.join(BACKEND, '.env'))
+    from env_loader import load_env
+    load_env()
     main()
 

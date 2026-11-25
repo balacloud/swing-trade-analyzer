@@ -14,10 +14,10 @@
 | Field | Value |
 |-------|-------|
 | Current Day | 134 |
-| Version | v4.71 (Backend v2.58, Frontend v4.67) |
+| Version | v4.71 (Backend v2.59, Frontend v4.67) |
 | Latest Status | PROJECT_STATUS_DAY134_SHORT.md |
 | Latest Issues | KNOWN_ISSUES_DAY134.md |
-| Latest API | API_CONTRACTS_DAY129.md |
+| Latest API | API_CONTRACTS_DAY135.md |
 | Focus | **Next: refresh `data_audit_latest.json` (run the 117-ticker audit in the background, read the summary only), then the Alpaca startup warning (ROADMAP #29), thin tickers in one question, Data Sources tab statement audit (ROADMAP #20).** Day 134: void-plan banner on Trade Setup (v4.71), Alpaca fixed by a full restart, two stale US cache frames cleared. Open for the user: Alpaca terms, Twelve Data key rotation. |
 
 ---

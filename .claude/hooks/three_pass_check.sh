@@ -20,7 +20,8 @@ changed_files() {
   { git diff --name-only HEAD -- frontend/src frontend/scripts backend 2>/dev/null
     git ls-files -o --exclude-standard -- frontend/src frontend/scripts backend 2>/dev/null; } | sort -u \
   | grep -E '\.(js|jsx|mjs|py)$|^backend/reference/.*\.json$' \
-  | grep -Ev '(^|/)(venv|node_modules|__pycache__|build|data|logs|validation_results[^/]*|backtest_results[^/]*)/'
+  | grep -Ev '(^|/)(venv|node_modules|__pycache__|build|data|logs|validation_results[^/]*|backtest_results[^/]*)/' \
+  | grep -Ev '^backend/reference/data_audit_latest\.json$'   # Day 135: generated audit report, only displayed by the Data Sources tab, no logic reads it. Other reference/*.json (known_splits.json) stay counted.
 }
 
 fingerprint() {

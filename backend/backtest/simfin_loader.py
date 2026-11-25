@@ -13,11 +13,12 @@ import os
 import pandas as pd
 import numpy as np
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env'))
-except ImportError:
-    pass
+import sys
+_backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _backend_dir not in sys.path:      # Day 135: scripts run from backtest/ must still find env_loader
+    sys.path.insert(0, _backend_dir)
+from env_loader import load_env  # Day 135: one loader for .env
+load_env()
 
 # Lazy-loaded SimFin data (module-level cache)
 _income_df = None

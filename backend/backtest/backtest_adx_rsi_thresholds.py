@@ -30,11 +30,8 @@ warnings.filterwarnings('ignore')
 
 # Day 51: Use DataProvider instead of direct yfinance
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-try:
-    from dotenv import load_dotenv
-    load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env'))
-except ImportError:
-    pass
+from env_loader import load_env  # Day 135: one loader for .env
+load_env()
 
 try:
     from providers.backtest_adapter import download_ohlcv

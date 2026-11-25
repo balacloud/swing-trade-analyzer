@@ -30,6 +30,14 @@ echo "$out" | grep -q 'Opus review'; check "block message names the Opus review 
 echo "$out" | grep -q -- '--trivial'; check "block message names the trivial exemption" $?
 [ "$(echo '{"stop_hook_active": true}' | bash $G)" = "" ]; check "second Stop in a row is let through (never loops)" $?
 
+# 2b. generated audit report is not code; other reference JSON still is (Day 135)
+git checkout -q -- backend/a.py 2>/dev/null; mkdir -p backend/reference; rm -f .claude/.three_pass_done
+echo '{}' > backend/reference/data_audit_latest.json
+out=$(echo '{}' | bash $G); [ -z "$out" ]; check "data_audit_latest.json alone does not block" $?
+echo '{}' > backend/reference/known_splits.json
+out=$(echo '{}' | bash $G); echo "$out" | grep -q '"decision": "block"'; check "known_splits.json still counts as code" $?
+rm -f backend/reference/known_splits.json backend/reference/data_audit_latest.json; echo "x = 2" >> backend/a.py
+
 # 3. refusals
 before=$(cat .claude/.three_pass_done 2>/dev/null)
 bash $G --stamp "three passes done" >/dev/null 2>&1; [ $? -ne 0 ]; check "stamp with no plan and no trivial is refused" $?

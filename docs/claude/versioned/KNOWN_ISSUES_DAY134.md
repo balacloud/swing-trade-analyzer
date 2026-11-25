@@ -62,7 +62,8 @@ three functional headings (Efficiency & Quality, Valuation, Cash Generation). Fr
 ### Medium: Alpaca's in-session daily bar is only partly checked (Day 129, updated Day 134)
 Day 133 (market open): the running app was NOT using Alpaca (HTTP 401, breaker open, stale keys in the long-lived parent process); a full `./stop.sh` and `./start.sh` fixed it. After the restart 97 of 138 cached frames are Alpaca, and the page checker passed 52/52 on live prices. Still open: look at today's bar itself (missing, partial, complete) and the Data Sources tab for 3 tickers; the 16:30 ET forming-bar cap and `drop_forming_bar` stay the safety net.
 
-### Medium (new Day 134): a stale `.env` or launch environment can silently drop Alpaca again
+### FIXED Day 135 (was Medium, Day 134): a stale `.env` or launch environment can silently drop Alpaca again
+**Fixed:** `backend/env_loader.py` now loads `.env` for all 6 callers; `.env` wins and the replaced key names are logged and shown in `/api/health` (`env_overridden`). Plan: `ENV_OVERRIDE_PLAN_DAY135.md`. Original note:
 `load_dotenv` does not override variables already in the environment, so keys in an old parent process win over a fixed `.env`. Alpaca returned 401, the breaker opened, and the chain fell through to Twelve Data with no loud sign (found Day 133, about 4 days after rollout). Not fixed. Planned: a startup warning when the `.env` keys differ from the launch environment, or an explicit override. Needs a plan, an Opus review and the stamp.
 
 ### Medium (user decision): Alpaca terms of use and the Twelve Data key (Day 129)
@@ -70,3 +71,6 @@ No Alpaca-specific data terms were found; exchange agreements limit non-professi
 
 ### Low-Medium: `backend/reference/data_audit_latest.json` is stale (Day 129)
 The Data Sources tab's reference file holds the Day 128 IBKR run (63 tickers); it has not been refreshed with the after-close or Alpaca results (needs plan + stamp).
+
+### Medium (new Day 135, user decision): an old FRED key value is committed in git history
+`docs/claude/versioned/archive/KNOWN_ISSUES_DAY62.md` line 88 holds what looks like a real `FRED_API_KEY` (not compared with the current `.env` key). Rotating it is the user's call.
