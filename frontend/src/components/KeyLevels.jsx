@@ -37,7 +37,9 @@ function Row({ label, side, isCeiling, nearHigh52w }) {
   );
 }
 
-export default function KeyLevels({ srData, trendTemplate }) {
+// Day 133: `stalePriceNote` (string|null) is set by App.jsx only when the Trade Setup plan is already behind the live price. It is its own line ABOVE the
+// "Price is ..." row, so that row's text (read by audit_cards.py) is unchanged.
+export default function KeyLevels({ srData, trendTemplate, stalePriceNote = null }) {
   const levels = describeKeyLevels(srData);
   const unavailable = !!levels && levels.unavailable === true;
   // No silent failure: an old-format /api/sr response (no meta.zones) is logged and shown.
@@ -59,6 +61,7 @@ export default function KeyLevels({ srData, trendTemplate }) {
   );
   return (
     <div data-testid="key-levels" className="mt-4 pt-3 border-t border-gray-700 space-y-1.5 text-sm">
+      {stalePriceNote && <p data-testid="key-levels-stale-note" className="text-xs text-gray-500">{stalePriceNote}</p>}
       {state && (
         <div className="flex gap-3">
           <span className="w-20 shrink-0 text-gray-500">Price is</span>

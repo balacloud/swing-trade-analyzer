@@ -67,6 +67,7 @@ const DOM = {
   shortTexts: [{ text: '$271.00', card: 'card-stock-header' }, { text: 'INFO', card: 'card-market-backdrop' }, { text: 'BUY', card: 'card-trade-setup' }],
   fullText: 'Market backdrop ... Technical Read ... Fundamentals ...',
   earningsBadge: false,
+  planLive: { voidText: null, factText: null, tickCount: 0, labelText: null, sizeOff: null, sizeBtn: true, staleNote: null },
   planBuy: '$262.10',
   levelRows: {
     support: 'Support $260.50 – $262.10 · 3.3% below · turned here 3×',
@@ -357,6 +358,65 @@ mustFail('A14', '/api/sr currentPrice is a string', null, a => { a.sr.body.curre
 mustFail('A14', '/api/sr was not captured', null, a => { a.sr = { status: null, body: null }; });
 mustPass('A14', 'a failed (non-200) answer is left to the error-banner checks', null, a => { a.sr = { status: 500, body: { error: 'x' } }; });
 mustPass('A14', 'both answers are valid with real prices');
+
+
+// ---------- A15 Trade Setup live-price note (Day 133) ----------
+// Fixture: AAPL zone 260.50 - 262.10, Buy 262.10, ATR 14.07 -> stop 233.96, last close (sr currentPrice) 270.50, header trade time 2:51pm ET.
+const A15_BANNER = 'Last trade $250.00 (2:51pm ET) is below the support zone ($260.50 – $262.10). This plan was set at the last close ($270.50, Nov 13); its Buy is above the price now.';
+const A15_VOID_DOM = (d) => { d.planLive = { voidText: A15_BANNER, factText: null, tickCount: 1, labelText: 'last trade 2:51pm ET', sizeOff: 'Sizing is off: the Buy is above the live price.', sizeBtn: false, staleNote: 'Measured at the last close ($270.50), not the live price.' }; };
+const A15_QUOTE = (price, session = 'regular') => (a) => { a.quote.body.price = price; a.quote.body.session = session; };
+mustPass('A15', 'live 520.10 is above the zone: no note, none expected');
+mustPass('A15', 'live 250.00 below the zone, full void note', A15_VOID_DOM, A15_QUOTE(250.00));
+mustFail('A15', 'live 250.00 below the zone but no note on the card', null, A15_QUOTE(250.00));
+mustFail('A15', 'a void note while the live price is above the zone', d => { A15_VOID_DOM(d); });
+mustFail('A15', 'void note but "Size this plan" is still offered', d => { A15_VOID_DOM(d); d.planLive.sizeBtn = true; }, A15_QUOTE(250.00));
+mustFail('A15', 'void note but the "Sizing is off" line is missing', d => { A15_VOID_DOM(d); d.planLive.sizeOff = null; }, A15_QUOTE(250.00));
+mustFail('A15', 'void note but no live tick', d => { A15_VOID_DOM(d); d.planLive.tickCount = 0; }, A15_QUOTE(250.00));
+mustFail('A15', 'void note but two live ticks', d => { A15_VOID_DOM(d); d.planLive.tickCount = 2; }, A15_QUOTE(250.00));
+mustFail('A15', 'void note but the Key Levels note is missing', d => { A15_VOID_DOM(d); d.planLive.staleNote = null; }, A15_QUOTE(250.00));
+mustFail('A15', 'Key Levels note quotes the wrong price', d => { A15_VOID_DOM(d); d.planLive.staleNote = 'Measured at the last close ($271.00), not the live price.'; }, A15_QUOTE(250.00));
+mustFail('A15', 'note quotes a zone that is not the nearest support zone', d => { A15_VOID_DOM(d); d.planLive.voidText = A15_BANNER.replace('$260.50', '$255.00'); }, A15_QUOTE(250.00));
+mustFail('A15', 'note quotes a live price that is not the quote price', d => { A15_VOID_DOM(d); d.planLive.voidText = A15_BANNER.replace('$250.00', '$251.00'); }, A15_QUOTE(250.00));
+mustFail('A15', 'note quotes a last close that is not the card\'s', d => { A15_VOID_DOM(d); d.planLive.voidText = A15_BANNER.replace('$270.50', '$271.50'); }, A15_QUOTE(250.00));
+mustFail('A15', 'note trade time differs from the header time', d => { A15_VOID_DOM(d); d.planLive.voidText = A15_BANNER.replace('2:51pm', '2:55pm'); }, A15_QUOTE(250.00));
+mustFail('A15', 'verdict wording in the note (facts only)', d => { A15_VOID_DOM(d); d.planLive.voidText = A15_BANNER + ' Support has broken, so this plan no longer applies.'; }, A15_QUOTE(250.00));
+mustFail('A15', '"its Buy is above the price now" missing although the Buy (262.10) is above 250', d => { A15_VOID_DOM(d); d.planLive.voidText = A15_BANNER.replace('; its Buy is above the price now', ''); }, A15_QUOTE(250.00));
+mustFail('A15', 'closed market but a void note is shown', d => { A15_VOID_DOM(d); }, a => { a.quote.body.session = 'closed'; a.quote.body.price = null; });
+mustFail('A15', 'quote unavailable but a void note is shown', d => { A15_VOID_DOM(d); }, a => { a.quote.body = { available: false, reason: 'no recent trades', ticker: 'AAPL' }; });
+mustFail('A15', '/api/quote not captured', null, a => { a.quote = { status: null, body: null }; });
+mustPass('A15', 'live price equal to the zone low (260.50): not below, no note', null, A15_QUOTE(260.50));
+// pre-market / after hours: a muted fact line only, never a void note
+const A15_FACT = (who) => `${who} $250.00 (2:51pm ET) is below the support zone ($260.50 – $262.10).`;
+mustPass('A15', 'pre-market 250.00: fact line only', d => { d.planLive.factText = A15_FACT('Pre-market price'); }, A15_QUOTE(250.00, 'pre'));
+mustPass('A15', 'after hours 250.00: fact line only', d => { d.planLive.factText = A15_FACT('After-hours price'); }, A15_QUOTE(250.00, 'post'));
+mustFail('A15', 'pre-market 250.00 but no fact line', null, A15_QUOTE(250.00, 'pre'));
+mustFail('A15', 'pre-market 250.00 marked void', d => { A15_VOID_DOM(d); }, A15_QUOTE(250.00, 'pre'));
+mustFail('A15', 'pre-market 250.00 turned sizing off', d => { d.planLive.factText = A15_FACT('Pre-market price'); d.planLive.sizeOff = 'Sizing is off'; }, A15_QUOTE(250.00, 'pre'));
+// below the stop as well (stop = 262.10 - 2 x 14.07 = 233.96)
+const A15_BELOW_STOP = 'Last trade $230.00 (2:51pm ET) is below the support zone ($260.50 – $262.10). It is also below the stop ($233.96). This plan was set at the last close ($270.50, Nov 13); its Buy is above the price now.';
+mustPass('A15', 'live 230.00 below the zone and the stop: note says both', d => { A15_VOID_DOM(d); d.planLive.voidText = A15_BELOW_STOP; }, A15_QUOTE(230.00));
+mustFail('A15', 'live 230.00 below the stop but the note leaves the stop out', d => { A15_VOID_DOM(d); d.planLive.voidText = A15_BANNER.replace('$250.00', '$230.00'); }, A15_QUOTE(230.00));
+mustFail('A15', 'note says "also below the stop" but live 250.00 is above 233.96', d => { A15_VOID_DOM(d); d.planLive.voidText = A15_BELOW_STOP.replace('$230.00', '$250.00'); }, A15_QUOTE(250.00));
+// no support zone in the payload: the stop rule
+mustPass('A15', 'no zone, live 230.00 below the stop: stop note', d => { A15_VOID_DOM(d); d.planLive.voidText = 'Last trade $230.00 (2:51pm ET) is below this plan\'s stop ($233.96). This plan was set at the last close ($270.50, Nov 13); its Buy is above the price now.'; },
+  a => { a.quote.body.price = 230.00; a.sr.body.meta.zones = []; });
+mustPass('A15', 'no zone, live 240.00 above the stop: no note', null, a => { a.quote.body.price = 240.00; a.sr.body.meta.zones = []; });
+// a forming bar: the card's last close is prevBar.close
+mustPass('A15', 'forming bar: the note quotes prevBar.close as the last close', d => { A15_VOID_DOM(d); d.planLive.voidText = A15_BANNER.replace('$270.50, Nov 13', '$268.00, Nov 12'); },
+  a => { a.quote.body.price = 250.00; a.sr.body.meta.candle = { barComplete: false, date: '2026-11-13' }; a.sr.body.meta.prevBar = { close: 268.00, date: '2026-11-12' }; });
+mustFail('A15', 'forming bar but the note quotes the forming price', d => { A15_VOID_DOM(d); },
+  a => { a.quote.body.price = 250.00; a.sr.body.meta.candle = { barComplete: false, date: '2026-11-13' }; a.sr.body.meta.prevBar = { close: 268.00, date: '2026-11-12' }; });
+mustFail('A15', 'page reader returned no planLive', d => { delete d.planLive; });
+// edge pass (Day 133): states where the card shows no full plan
+const A15_NO_ATR = a => { a.quote.body.price = 250.00; a.sr.body.meta.atr = null; };
+mustPass('A15', 'no ATR, live below the zone: note + Key Levels note, no tick, no sizing line (card returns early)',
+  d => { A15_VOID_DOM(d); d.planLive.tickCount = 0; d.planLive.labelText = null; d.planLive.sizeOff = null; d.planLive.sizeBtn = false; }, A15_NO_ATR);
+mustFail('A15', 'no ATR but a live tick is drawn', d => { A15_VOID_DOM(d); d.planLive.sizeOff = null; d.planLive.sizeBtn = false; }, A15_NO_ATR);
+mustFail('A15', 'no ATR and the banner is missing', null, A15_NO_ATR);
+mustPass('A15', 'no support in /api/sr: the card shows "no plan", so no note is expected', null, a => { a.quote.body.price = 250.00; a.sr.body.support = []; });
+mustFail('A15', 'no support in /api/sr but a note is shown', d => { A15_VOID_DOM(d); }, a => { a.quote.body.price = 250.00; a.sr.body.support = []; });
+mustPass('A15', 'no usable last close (currentPrice null): "no plan", no note expected', null, a => { a.quote.body.price = 250.00; a.sr.body.currentPrice = null; });
+mustFail('A15', 'Key Levels note shown next to "no plan"', d => { d.planLive.staleNote = 'Measured at the last close ($270.50), not the live price.'; }, a => { a.quote.body.price = 250.00; a.sr.body.support = []; });
 
 // ---------- never throws ----------
 {

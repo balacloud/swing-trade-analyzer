@@ -52,3 +52,14 @@ last_updated: Day 133 (2026-11-24)
 
 - **Day 133:** docs layering. What worked: Opus plan review before any move; nothing-lost scripts (byte-identical rules, line counts in = out); a cold-start agent as the probe test, which found a vague pointer and a wrong count that no checker would.
 
+## Day 134
+
+| Miss | Habit that catches it |
+|---|---|
+| Alpaca was "rolled out" Day 129 but the running app never used it for about 4 days: stale keys in the long-lived parent environment beat the fixed `.env` (`load_dotenv` does not override), so Alpaca returned 401 and the chain fell through quietly | After any key or provider change, make one real call through the running process and read which source answered; restart the parent, not only the child |
+| A same-size source edit made and reverted inside one second kept a stale Python bytecode cache, so a mutation test showed false failures | Make mutations change the file size, or delete `__pycache__` before trusting a mutant result |
+| Two cards used two "now" prices (live quote vs last completed close) and the plan stayed on screen after price fell through it | When two cards show the same idea with different inputs, check the case where the inputs disagree most |
+| The Key Levels note appeared beside "no pullback plan" and the page check demanded a tick the card does not draw in the no-ATR state (found in the edge pass) | Drive every card state, including the empty ones, on the real page before calling the build done |
+
+- **Day 134:** void-plan build. What worked: plan and Opus review first (the review forced the "no tuned numbers" rule and the pre/post fact-only split); an independent mirror of the rule in the audit and the page checker, not a copy; 13 edge scenarios on the real page at both widths; mutation checks on the boundary, the quote-state gate, the Size rule and the audit claims. What I missed: the stale-bytecode false alarm (above), and the Alpaca miss which sat unseen for days.
+

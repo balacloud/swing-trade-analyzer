@@ -96,6 +96,29 @@ ok({x.sid: x for x in ca.rows}['TS4w'].verdict == 'MISLEADING', '"at its 52-week
 ca = C.CardAudit(d); ca.cards['card-trade-setup'] = txt.replace('is at its 52-week high', 'is near its 52-week high (within 3%)'); ca.use('card-trade-setup'); ca.trade_setup()
 ok({x.sid: x for x in ca.rows}['TS4w'].verdict == 'MISLEADING', '"near (within 3%)" is also flagged when the real gap is 4%')
 
+# Day 133: the live-price void banner, the Key Levels "Measured at" note and the bar's live label (planStatus.js). Planted page: live $97.50 is below the 98.00 - 98.50 zone.
+BAN = 'Last trade $97.50 (2:51pm ET) is below the support zone ($98.00 – $98.50). This plan was set at the last close ($100.00, Nov 23); its Buy is above the price now. '
+NOTE = 'Measured at the last close ($100.00), not the live price. '
+VOID = BAN + GOOD.replace('Size this plan →', 'Sizing is off: the Buy is above the live price. last trade 2:51pm ET') + ' ' + NOTE
+rv = rows(VOID)
+ok(all(rv[k].verdict == 'PASS' for k in ('TS-V1', 'TS-V2', 'TS-V3', 'TS-V4')), 'void banner + note + label with the right numbers: every TS-V row passes')
+ok(all(rv[k].verdict == 'PASS' for k in ('TS1', 'TS3', 'TS4', 'TS5', 'TS6')), 'the plan arithmetic is still audited (and passes) with a banner on the card')
+ok('U-TS' not in rv, 'the banner, note and live label numbers are claimed: no unclaimed-number row')
+ok('TS-V1' not in rows(GOOD), 'no banner on the card: no TS-V rows (the audit is unchanged for a normal card)')
+ok(rows(VOID.replace('($98.00 – $98.50)', '($97.00 – $98.50)'))['TS-V1'].verdict == 'WRONG', 'a banner quoting a zone that is not the payload\'s nearest support zone is caught')
+ok(rows(VOID.replace('Last trade $97.50', 'Last trade $98.20'))['TS-V1'].verdict == 'WRONG', 'a banner whose live price is NOT below the zone low is caught')
+ok(rows(VOID.replace('($100.00, Nov 23)', '($101.00, Nov 23)'))['TS-V2'].verdict == 'WRONG', 'a banner quoting a last close that is not the last completed close is caught')
+ok(rows(VOID.replace('last trade 2:51pm ET', 'last trade 2:58pm ET'))['TS-V4'].verdict == 'WRONG', 'a bar label time that differs from the note time is caught (one quote)')
+ok(rows(VOID.replace('Measured at the last close ($100.00)', 'Measured at the last close ($99.00)'))['TS-V3'].verdict == 'WRONG', 'a "Measured at" price that is not the /api/sr price is caught')
+BAN_STOP = BAN.replace('($98.00 – $98.50).', '($98.00 – $98.50). It is also below the stop ($96.50).').replace('$97.50', '$95.00')
+rs = rows(BAN_STOP + GOOD.replace('Size this plan →', 'Sizing is off: the Buy is above the live price.') + ' ' + NOTE)
+ok(rs['TS-V1s'].verdict == 'PASS' and rs['TS-V1'].verdict == 'PASS', '"also below the stop ($96.50)" = buy - 2 x ATR, live $95.00 below it: passes')
+ok(rows(BAN_STOP.replace('($96.50)', '($96.00)') + GOOD + ' ' + NOTE)['TS-V1s'].verdict == 'WRONG', 'a wrong stop quoted in the banner is caught')
+rp = rows('Pre-market price $97.50 (4:12am ET) is below the support zone ($98.00 – $98.50). ' + GOOD)
+ok(rp['TS-V1'].verdict == 'PASS' and 'U-TS' not in rp and 'TS-V2' not in rp, 'a pre-market fact line passes, is claimed, and carries no last-close sentence')
+NOZONE = 'Last trade $95.00 (2:51pm ET) is below this plan\'s stop ($96.50). This plan was set at the last close ($100.00, Nov 23); its Buy is above the price now. '
+ok(rows(NOZONE + GOOD, zones=[ZONES[1]], support=(98.5,))['TS-V1'].verdict == 'PASS', 'no support zone in the payload: the stop rule note passes')
+
 # ---- breakout status re-derivation on a planted climb
 bo_close = [100.0 + 0.1 * i for i in range(120)]
 bph = [{'date': f'd{i:03d}', 'open': x, 'high': x + 0.5, 'low': x - 0.5, 'close': x, 'volume': 1000000 if i != 115 else 3000000} for i, x in enumerate(bo_close)]

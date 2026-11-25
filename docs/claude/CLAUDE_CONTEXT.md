@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 133 — 2026-11-24
+> **Last Updated:** Day 134 — 2026-11-25
 
 ---
 
@@ -13,16 +13,21 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 133 |
-| Version | v4.70 (Backend v2.58, Frontend v4.66) |
-| Latest Status | PROJECT_STATUS_DAY133_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY133.md |
+| Current Day | 134 |
+| Version | v4.71 (Backend v2.58, Frontend v4.67) |
+| Latest Status | PROJECT_STATUS_DAY134_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY134.md |
 | Latest API | API_CONTRACTS_DAY129.md |
-| Focus | **Next: Alpaca in-session daily-bar check on a market day (after 09:30 ET), then the DRAL RS1 smoke-audit row, then refresh `data_audit_latest.json` (ROADMAP #20). Day 133: docs layered into L1/L2/L3 (see below).** Open for the user: Alpaca terms, Twelve Data key rotation, go-ahead to clear the US OHLCV cache once. The old long Focus text is in `history/CLAUDE_CONTEXT_LOG.md`. |
+| Focus | **Next: refresh `data_audit_latest.json` (run the 117-ticker audit in the background, read the summary only), then the Alpaca startup warning (ROADMAP #29), thin tickers in one question, Data Sources tab statement audit (ROADMAP #20).** Day 134: void-plan banner on Trade Setup (v4.71), Alpaca fixed by a full restart, two stale US cache frames cleared. Open for the user: Alpaca terms, Twelve Data key rotation. |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in history/CLAUDE_CONTEXT_LOG.md)
+
+### Day 134 Summary (v4.71, Trade Setup void-plan banner)
+- **Alpaca was not serving the app** (401, stale env in the parent process); a full restart fixed it. 97 of 138 cached frames are Alpaca now; only RIVN and RSP needed their US cache frames cleared.
+- **Trade Setup void rule:** live price strictly below the support zone's low (or the plan stop when there is no zone) gives a plain-facts banner, muted numbers, a last-trade tick and "Sizing is off"; the plan numbers stay at the last close. Plan + Opus review `PLAN_VOID_BELOW_SUPPORT_PLAN_DAY133.md`; three passes, audit 124 PASS / 0 WRONG, page checker 52/52 (A15).
+- Priorities: refresh `data_audit_latest.json`, Alpaca startup warning (#29), thin tickers, Data Sources tab statement audit.
 
 ### Day 133 Summary (docs only, v4.70 unchanged)
 - **Layered the project docs** into L1 (read every session, about 77 KB, was 391 KB), L2 (`stable/rules/<cluster>.md`, full Golden Rule text) and L3 (`docs/claude/history/`). Plan with Opus review: `design/LAYERED_CONTEXT_PLAN_DAY133.md`. Nothing deleted; checked line by line. Commit `73358520`.
@@ -33,11 +38,6 @@
 - Most of the session went on a non-STA task (kept out of the repo on purpose).
 - Corrected my own overclaim (a "match" that used an estimated input); added a row to `ENGINEER.md`.
 - STA priorities unchanged: Alpaca in-session bar (needs market hours), DRAL RS1 row, refresh `data_audit_latest.json`. Waiting on the user: Alpaca terms, Twelve Data key rotation, US cache clear.
-
-### Day 131 Summary (engine bugs fixed — v4.70, Golden Rule 69)
-- **Missing RSI** no longer counts as 50 (cannot be Strong; may be Decent with 5+ trend checks; a real 0 is kept). **Missing SPY** still gives Unfavorable (no BUY, user's choice) but says "SPY trend unavailable" instead of "below its 200-day". JS and Python changed together; parity grid 172,800 rows, 0 mismatches; original rows unchanged; mutation-checked; two false Technical Read texts fixed. Plan + Opus review: `ENGINE_MISSING_INPUTS_PLAN_DAY131.md`.
-- **My own wrong claim corrected:** "the MR route reads Yahoo directly" (stale Known Issues line, Days 128-130) was false; it uses the provider chain first. No code change. Golden Rule 69.
-- Version strings in code (footer v4.64, backend 2.57) brought up to the docs. Found, not fixed: smoke audit DRAL RS1 row (predates today).
 
 ## HOW THE DOCS ARE LAYERED (Day 133)
 
@@ -96,9 +96,9 @@ Single source: `.claude/commands/sta-end.md`. Claude runs every step and never a
 
 No freeze, no live gates. STA is an on-demand analysis tool (paper trading discontinued Day 113). Pick by what the user wants. Source of truth: the latest `PROJECT_STATUS_DAY[N]_SHORT.md` "Next Session Priorities" and `ROADMAP.md` "OPEN PRIORITIES".
 
-1. Alpaca in-session daily bar check on a market day, then the Data Sources tab for 3 tickers (ROADMAP #20, #27).
-2. DRAL RS1 smoke-audit row (KNOWN_ISSUES, Low-Medium).
-3. Refresh `backend/reference/data_audit_latest.json` (ROADMAP #20).
+1. Refresh `backend/reference/data_audit_latest.json` (ROADMAP #20); Alpaca in-session bar and Data Sources tab for 3 tickers (#27).
+2. Alpaca startup warning for a stale `.env` (ROADMAP #29).
+3. DRAL RS1 smoke-audit row (KNOWN_ISSUES, Low-Medium).
 4. Thin ETFs (XDRV.TO, CARS.TO), SOXL.NE, FINN.NE, BRKU volume (ROADMAP #20).
 5. Twelve Data re-measure, `rsi_4h` (ROADMAP #22), Tradier stall retry (#23).
 6. Data Sources tab statement audit, then Scan, Sectors, Context; 117-ticker page audit (ROADMAP #20).

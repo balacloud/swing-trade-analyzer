@@ -212,3 +212,11 @@ pick deliberately based on what the user actually wants next, not backlog order.
 - **Engineer persona checked against all days:** `ENGINEER.md`'s "missed" table now covers Days 1-129 (12 new themes from Golden Rules 18-61), not just 127-129. Found `GOLDEN_RULES.md` has no Rule 27 (the replay rule is numbered 29, cited as 27 elsewhere); logged, not renumbered.
 - **Pushed 1,212 untracked files** (research, audit, backtest). Left out: another project's `.venv` / `node_modules` (about 200 MB), `.db`, logs, `.playwright-mcp/`, `.vscode/`. Secrets scan clean.
 - Nothing else changed; Day 129's priorities stand. Alpaca's in-session bar needs a market day (Mon Nov 23 or later).
+
+
+## Day 131 (summary rotated out at the Day 134 close)
+
+### Day 131 Summary (engine bugs fixed — v4.70, Golden Rule 69)
+- **Missing RSI** no longer counts as 50 (cannot be Strong; may be Decent with 5+ trend checks; a real 0 is kept). **Missing SPY** still gives Unfavorable (no BUY, user's choice) but says "SPY trend unavailable" instead of "below its 200-day". JS and Python changed together; parity grid 172,800 rows, 0 mismatches; original rows unchanged; mutation-checked; two false Technical Read texts fixed. Plan + Opus review: `ENGINE_MISSING_INPUTS_PLAN_DAY131.md`.
+- **My own wrong claim corrected:** "the MR route reads Yahoo directly" (stale Known Issues line, Days 128-130) was false; it uses the provider chain first. No code change. Golden Rule 69.
+- Version strings in code (footer v4.64, backend 2.57) brought up to the docs. Found, not fixed: smoke audit DRAL RS1 row (predates today).

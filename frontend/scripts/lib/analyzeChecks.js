@@ -17,7 +17,8 @@
 // Day 126: A11 added with the Data Sources tab v2 (8 -> 9 checks).
 // Day 126: A12 added with the entry-timing ruler (9 -> 10 checks); A13 with the live price line (10 -> 11).
 // Day 127: A14 added (11 -> 12 checks) after /api/sr answered with NaN (invalid JSON) for 15 tickers and the runner only warned.
-const CHECK_IDS = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A9', 'A10', 'A11', 'A12', 'A13', 'A14'];
+// Day 133: A15 added (12 -> 13 checks) with the Trade Setup live-price note (plan behind the live price); plan PLAN_VOID_BELOW_SUPPORT_PLAN_DAY133.md.
+const CHECK_IDS = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A9', 'A10', 'A11', 'A12', 'A13', 'A14', 'A15'];
 const NAMES = {
   A1: 'Card order (backdrop first)',
   A2: 'Removed elements absent',
@@ -31,6 +32,7 @@ const NAMES = {
   A12: 'Entry gauge and ladder match the data',
   A13: 'Live price line matches /api/quote',
   A14: 'Price answers are valid JSON with a real price',
+  A15: 'Trade Setup says when the live price is below its support zone',
 };
 const ORDER = ['card-market-backdrop', 'card-stock-header', 'card-technical-read', 'card-mr-read', 'card-trade-setup', 'card-fundamentals', 'card-breakout'];
 // A6 measures each card's BODY: the text below its title row and subtitle, which carry
@@ -399,11 +401,93 @@ function checkA14(dom, api) {
   return result('A14', problems.length === 0, 'stock and S&R answers are valid JSON with a real current price', problems.join('; ') || 'ok');
 }
 
+// A15 (Day 133): when a usable regular-session live price is below the nearest support zone's low (or, with no zone, below the plan stop) the Trade Setup card
+// says so in numbers: a banner with the live price, the zone, the card's own last close; the plan is marked, Size is replaced by a muted line, one live tick, and the
+// Key Levels note says what price the levels were measured at. A pre-market / after-hours price only adds a muted fact line. Any other state: none of it appears.
+// The expectation is derived here from /api/quote and /api/sr (not from planStatus.js), so a bug in either place shows as a mismatch.
+function checkA15(dom, api, helpers) {
+  const P = dom.planLive;
+  if (!P) return result('A15', false, 'plan live-price reader', 'page reader did not return planLive');
+  if (!ok(api.quote)) return result('A15', false, 'quote captured', '/api/quote response not captured');
+  const qb = api.quote.body;
+  const price = qb.price;
+  const usable = qb.available === true && qb.session !== 'closed' && Number.isFinite(price) && price > 0;
+  const body = ok(api.sr) ? api.sr.body : null;
+  const supports = body && Array.isArray(body.support) ? body.support.filter(Number.isFinite) : [];
+  const meta = (body && body.meta) || {};
+  let want = null, zone = null, stop = null, entry = null;
+  // the card shows no plan (so no note) when /api/sr has no support or no usable last close (PullbackPlan.jsx no_support / no_price)
+  const lastCloseNow = body ? (meta.candle && meta.candle.barComplete === false && meta.prevBar && Number.isFinite(meta.prevBar.close) ? meta.prevBar.close : body.currentPrice) : null;
+  if (usable && body && supports.length && Number.isFinite(lastCloseNow)) {
+    zone = (Array.isArray(meta.zones) ? meta.zones : []).find(z => z && z.nearest === true && z.side === 'support' && Number.isFinite(z.low) && Number.isFinite(z.high)) || null;
+    entry = Number.isFinite(body.suggestedEntry) ? body.suggestedEntry : Math.max(...supports);
+    stop = Number.isFinite(meta.atr) && meta.atr > 0 ? Math.max(0.01, entry - 2 * meta.atr) : null;
+    const below = zone ? price < zone.low : (stop != null && price < stop);
+    if (below) want = qb.session === 'regular' ? 'void' : 'fact';
+  }
+  const problems = [];
+  const has = (v) => v != null && norm(v) !== '';
+  if (want == null) {
+    if (has(P.voidText)) problems.push(`void note shown without a reason: "${norm(P.voidText).slice(0, 60)}"`);
+    if (has(P.factText)) problems.push(`live-price fact line shown without a reason: "${norm(P.factText).slice(0, 60)}"`);
+    if (P.tickCount !== 0) problems.push(`${P.tickCount} plan live tick(s), expected none`);
+    if (has(P.sizeOff)) problems.push('"Sizing is off" shown although the live price is not below the plan');
+    if (has(P.staleNote)) problems.push('Key Levels "Measured at" note shown without a reason');
+    return result('A15', problems.length === 0, 'no live-price note unless a usable live price is below the support zone', problems.join('; ') || 'none shown, none expected');
+  }
+  const fz = (helpers && helpers.formatZoneRange) ? helpers.formatZoneRange(zone && zone.low, zone && zone.high) : null;
+  const where = zone ? `below the support zone (${fz})` : `below this plan's stop (${money2(stop)})`;
+  if (want === 'fact') {
+    const t = norm(P.factText);
+    if (!has(P.factText)) problems.push('pre/post-market price is below the zone but no fact line is shown');
+    else {
+      if (!t.startsWith(`${qb.session === 'pre' ? 'Pre-market price' : 'After-hours price'} ${money2(price)} (`)) problems.push(`fact line "${t.slice(0, 60)}" does not start with the ${qb.session} price ${money2(price)}`);
+      if (!t.includes(where)) problems.push(`fact line does not say "${where}"`);
+    }
+    if (has(P.voidText)) problems.push('a pre/post-market price must not mark the plan void');
+    if (P.tickCount !== 0) problems.push('a pre/post-market price must not draw the plan live tick');
+    if (has(P.sizeOff)) problems.push('a pre/post-market price must not turn sizing off');
+    return result('A15', problems.length === 0, 'pre/post-market: a muted fact line only', problems.join('; ') || `fact line: ${norm(P.factText).slice(0, 90)}`);
+  }
+  // want === 'void'
+  const t = norm(P.voidText);
+  if (!has(P.voidText)) return result('A15', false, `void note for live ${money2(price)} ${where}`, 'no void note on the card');
+  if (!t.startsWith(`Last trade ${money2(price)} (`)) problems.push(`note "${t.slice(0, 60)}" does not start with the live price ${money2(price)}`);
+  if (!t.includes(where)) problems.push(`note does not say "${where}"`);
+  if (zone && stop != null && price < stop && !t.includes(`also below the stop (${money2(stop)})`)) problems.push(`price is below the stop ${money2(stop)} but the note does not say so`);
+  if (zone && !(stop != null && price < stop) && /also below the stop/.test(t)) problems.push('note says "also below the stop" but the price is above the stop');
+  const lastClose = meta.candle && meta.candle.barComplete === false && meta.prevBar && Number.isFinite(meta.prevBar.close) ? meta.prevBar.close : body.currentPrice;
+  if (Number.isFinite(lastClose) && !t.includes(`set at the last close (${money2(lastClose)}`)) problems.push(`note does not quote the card's last close ${money2(lastClose)}`);
+  if (Number.isFinite(entry) && (entry > price) !== /its Buy is above the price now/.test(t)) problems.push('"its Buy is above the price now" disagrees with Buy vs live price');
+  // one quote (Golden Rule 63): the trade time in the note is the one in the page header
+  const nt = t.match(/\((\d{1,2}:\d{2}(?:am|pm) ET)\)/);
+  const ht = norm(dom.live && dom.live.statusText).match(/last trade (\d{1,2}:\d{2}(?:am|pm) ET)/);
+  if (!nt) problems.push('no trade time in the note');
+  else if (ht && nt[1] !== ht[1]) problems.push(`note trade time ${nt[1]} != header trade time ${ht[1]}`);
+  if (has(P.factText)) problems.push('both the void note and the fact line are shown');
+  // With no ATR the card shows the note and the buy/target text only (no stop, no bar, no sizing): no tick, no label, no sizing line
+  const noAtr = !(Number.isFinite(meta.atr) && meta.atr > 0);
+  if (noAtr) {
+    if (P.tickCount !== 0) problems.push(`${P.tickCount} plan live tick(s), expected none (no ATR, no bar is drawn)`);
+    if (P.sizeBtn) problems.push('"Size this plan" shown although there is no stop (no ATR)');
+  } else {
+    if (P.tickCount !== 1) problems.push(`${P.tickCount} plan live tick(s), expected 1`);
+    if (!has(P.labelText)) problems.push('the plan live tick has no label');
+    else if (/last trade/.test(norm(P.labelText)) && nt && !norm(P.labelText).includes(nt[1])) problems.push(`tick label "${norm(P.labelText)}" time differs from the note time`);
+    if (P.sizeBtn) problems.push('"Size this plan" is still offered for a plan the live price is below');
+    if (!has(P.sizeOff)) problems.push('the "Sizing is off" line is missing');
+  }
+  if (!has(P.staleNote) || !/^Measured at /.test(norm(P.staleNote))) problems.push('Key Levels "Measured at" note is missing');
+  else if (Number.isFinite(body.currentPrice) && !norm(P.staleNote).includes(money2(body.currentPrice))) problems.push(`Key Levels note does not quote the /api/sr price ${money2(body.currentPrice)}`);
+  if (/support has broken|no longer applies|plan is dead|broke/i.test(t)) problems.push('verdict wording in the note (facts only)');
+  return result('A15', problems.length === 0, 'void note with the live price, zone, last close, trade time; plan marked; sizing off; one tick; Key Levels note', problems.join('; ') || `void: ${t.slice(0, 100)}`);
+}
+
 function runChecks(dom, api, helpers) {
   const d = dom || {};
   const a = api || {};
   if (d.error) return CHECK_IDS.map(id => result(id, false, 'analysis loads', `error banner: ${norm(d.error).slice(0, 120)}`));
-  const fns = { A1: checkA1, A2: checkA2, A3: checkA3, A4: checkA4, A5: checkA5, A6: checkA6, A9: checkA9, A10: checkA10, A11: checkA11, A12: checkA12, A13: checkA13, A14: checkA14 };
+  const fns = { A1: checkA1, A2: checkA2, A3: checkA3, A4: checkA4, A5: checkA5, A6: checkA6, A9: checkA9, A10: checkA10, A11: checkA11, A12: checkA12, A13: checkA13, A14: checkA14, A15: checkA15 };
   return CHECK_IDS.map(id => {
     try { return fns[id](d, a, helpers || {}); }
     catch (err) { return result(id, false, 'check runs', `check threw: ${err.message}`); }

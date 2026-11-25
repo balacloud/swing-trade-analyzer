@@ -348,3 +348,20 @@ The quoted phrase ("overfitting disguised...") is not in `PERSONA.md`. Not cause
 
 ### Info (Day 133): code comments cite closed ROADMAP priorities
 `App.jsx:1579`, `live_signals.py:227`, `backtest_holistic.py:103`, `mean_reversion.py:151`. The numbers resolve in `history/ROADMAP_HISTORY.md` ("Closed priority rows"). Do not edit them (editing code would trigger the three-pass hook).
+
+## Day 134
+
+### Resolved Day 134: Alpaca rollout left old sources in the cache (was Medium, Day 129)
+Measured: of 138 cached OHLCV frames, 97 were Alpaca, 39 Yahoo, 2 Twelve Data. Only RIVN and RSP were old US frames (Twelve Data); the 37 other Yahoo frames are Canada tickers and `^VIX`, which use Yahoo by design. Cleared those two with `POST /api/cache/clear?ticker=X&type=ohlcv`; both refetched as Alpaca. AAPL, NVDA and SOXL had already refreshed.
+
+### Low (new Day 134): the void banner can disappear after about 16:20 ET for NEO tickers while the Trade Setup levels stay stale
+Once the quote state leaves `live` or `recent` the card goes back to the plain last-close plan, while `srData` is still the older bar. Facts-only fallback is the same as before the change; not fixed.
+
+### Low (new Day 134): the mirror case is not shown (live price above the plan's target)
+Same helper (`planStatus.js`) could take it later. Parked.
+
+### Low (new Day 134): the void banner does not name the next support zone below the price
+Optional. Only the broken zone is named. Parked.
+
+### Info (Day 134): page-level 390px horizontal overflow and SOXL.NE close-only history
+Existing items, unchanged by the void-plan work (verified at both widths).

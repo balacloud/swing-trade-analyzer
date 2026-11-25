@@ -212,6 +212,43 @@ class CardAudit(Audit):
                     r_txt = mk.group(1) or mk.group(3)
                     ok = r_txt == fm(risk) and (tgt is None or (mk.group(2) == fm(tgt - entry)))
                     self.addc('TS6', 'Risk $ (and reward $ per share)', mk.group(0), f'Risk ${fm(risk)}' + (f' to make ${fm(tgt - entry)}' if tgt is not None else ''), 'PASS' if ok else 'WRONG')
+        # Day 133 (PLAN_VOID_BELOW_SUPPORT_PLAN_DAY133.md): the live-price note (void banner, or the muted pre/post fact line), the Key Levels "Measured at" note and
+        # the bar's live label. Each number is re-derived independently from the payload and the bars, then claimed so the exhaustive scan stays clean.
+        entry_v = entry if sup else None
+        mv = re.search(r"(Last trade|Pre-market price|After-hours price) \$([\d,.]+) \(([^)]*)\) is below (?:the support zone \((\$[\d,.]+(?: – \$[\d,.]+)?)\)\.(?: It is also below the stop \(\$([\d,.]+)\)\.)?"
+                       r"|this plan's stop \(\$([\d,.]+)\)\.)(?: This plan was set at the last close \(\$([\d,.]+)(?:, [A-Za-z]{3} \d{1,2}(?:, \d{4})?)?\)(?:; its Buy is above the price now)?\.)?", self.text)
+        if mv:
+            live_px = float(mv.group(2).replace(',', ''))
+            nz = next((q for q in zones if q.get('nearest') and q.get('side') == 'support'), None)
+            stop_v = max(0.01, entry_v - 2 * atr_p) if (entry_v is not None and atr_p) else None
+            if mv.group(4):
+                lo_v, hi_v = (fm(nz['low']), fm(nz['high'])) if nz else (None, None)
+                exp_rng = (f'${lo_v}' if lo_v == hi_v else f'${lo_v} – ${hi_v}') if nz else 'no zone'
+                ok = nz is not None and live_px < nz['low'] and mv.group(4) == exp_rng
+                self.addc('TS-V1', 'live-price note: the live price is below the nearest support zone, and the range quoted is the payload\'s nearest support zone (same zone as the Support row)',
+                          f'${mv.group(2)} vs {mv.group(4)}', f'below {exp_rng}', 'PASS' if ok else 'WRONG')
+                if mv.group(5):
+                    ok = stop_v is not None and live_px < stop_v and mv.group(5) == fm(stop_v)
+                    self.addc('TS-V1s', 'live-price note: "also below the stop" = the live price is below buy - 2 x ATR, and that stop is quoted', f'${mv.group(2)} vs ${mv.group(5)}',
+                              f'below ${fm(stop_v) if stop_v is not None else "n/a"}', 'PASS' if ok else 'WRONG')
+            else:
+                ok = nz is None and stop_v is not None and live_px < stop_v and mv.group(6) == fm(stop_v)
+                self.addc('TS-V1', 'live-price note (no support zone in the payload): the live price is below the plan stop (buy - 2 x ATR) and that stop is quoted', f'${mv.group(2)} vs ${mv.group(6)}',
+                          f'below ${fm(stop_v) if stop_v is not None else "n/a"}', 'PASS' if ok else 'WRONG')
+            if mv.group(7):
+                self.addc('TS-V2', 'live-price note: "the last close ($X)" = the last completed bar close (the card\'s own basis)', f'${mv.group(7)}', f'${fm(last_close)}',
+                          'PASS' if mv.group(7) == fm(last_close) else 'WRONG')
+            self.work = self.work.replace(mv.group(0), ' § ', 1)
+            ml = re.search(r'last trade (\d{1,2}:\d{2}(?:am|pm) ET)', self.text)     # the bar's own label (lower case), same quote as the banner
+            if ml:
+                self.addc('TS-V4', 'bar label: the live trade time = the trade time in the note (one quote, Golden Rule 63)', ml.group(1), mv.group(3), 'PASS' if ml.group(1) == mv.group(3) else 'WRONG')
+                self.work = self.work.replace(ml.group(0), ' § ', 1)
+        mn = re.search(r'Measured at (?:the last close \(\$([\d,.]+)\)|\$([\d,.]+), the price when the levels loaded), not the live price\.', self.text)
+        if mn:
+            px = mn.group(1) or mn.group(2)
+            self.addc('TS-V3', 'Key Levels note: "measured at $X" = the /api/sr price the levels were placed with', f'${px}', f'${fm(price)}' if price is not None else 'n/a',
+                      'PASS' if price is not None and px == fm(price) else 'WRONG')
+            self.work = self.work.replace(mn.group(0), ' § ', 1)
         # key levels
         self.work = re.sub(r'\$[\d,.]+(?: CLOSE)? \$[\d,.]+ (?:\$[\d,.]+)?', ' § ', self.work)
         res_pct = round((meta.get('proximityFilter') or {}).get('resistancePct', .3) * 100); sup_pct = round((meta.get('proximityFilter') or {}).get('supportPct', .2) * 100)

@@ -46,6 +46,7 @@ import { formatMoney } from './utils/formatMoney';
 import { describePriceAsOf } from './utils/priceAsOf'; // Day 124: header price date label
 import { signedPct } from './utils/liveQuote'; // Day 126: live price line
 import useLiveQuote from './hooks/useLiveQuote'; // Day 126: display-only live price
+import { planStatusFromSr } from './utils/planStatus'; // Day 133: is the Trade Setup plan already behind the live price?
 import DataSourcesTab from './components/DataSourcesTab'; // Day 126: Data Sources tab v2 (quality, identity, real chains)
 import PullbackPlan from './components/PullbackPlan'; // Day 123: redesign Step 3, Trade Setup pullback plan
 import RegimeRead from './components/RegimeRead'; // Day 123: redesign Step 4
@@ -1235,15 +1236,29 @@ function App() {
                       </div>
                     </div>
                     <p data-card-head className="text-sm text-gray-400 mb-4">The pullback plan: a buy, stop and target from the nearest support and resistance zones. Plain arithmetic, not a tested system.</p>
-                    <PullbackPlan
-                      srData={srData}
-                      ticker={analysisResult.ticker}
-                      onSizePlan={(entry, stop) => autoFillPositionCalculator(analysisResult.ticker, entry, stop)}
-                    />
-                    {/* Day 123: levels need srData; when it failed, PullbackPlan above already says so. */}
-                    {/* Day 125: nearest floor/ceiling + one-line price state (KeyLevels) replace the
-                        S/R lists, MTF badge, Weekly Levels dropdown and the Price Structure card. */}
-                    <KeyLevels srData={srData} trendTemplate={patternsData?.trendTemplate} />
+                    {/* Day 133: one status for both cards (utils/planStatus.js): is the live price already below the plan's support zone? */}
+                    {(() => {
+                      const planSt = planStatusFromSr(srData, live);
+                      const staleNote = planSt.void && Number.isFinite(planSt.levelsPrice)
+                        ? (planSt.levelsAreCompletedBar
+                          ? `Measured at the last close (${formatMoney(planSt.levelsPrice)}), not the live price.`
+                          : `Measured at ${formatMoney(planSt.levelsPrice)}, the price when the levels loaded, not the live price.`)
+                        : null;
+                      return (
+                        <>
+                          <PullbackPlan
+                            srData={srData}
+                            ticker={analysisResult.ticker}
+                            status={planSt}
+                            onSizePlan={(entry, stop) => autoFillPositionCalculator(analysisResult.ticker, entry, stop)}
+                          />
+                          {/* Day 123: levels need srData; when it failed, PullbackPlan above already says so. */}
+                          {/* Day 125: nearest floor/ceiling + one-line price state (KeyLevels) replace the
+                              S/R lists, MTF badge, Weekly Levels dropdown and the Price Structure card. */}
+                          <KeyLevels srData={srData} trendTemplate={patternsData?.trendTemplate} stalePriceNote={staleNote} />
+                        </>
+                      );
+                    })()}
                   </div>
                 )}
 
@@ -2374,7 +2389,7 @@ function App() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>v4.70 - Multi-Source Data Intelligence</p>
+          <p>v4.71 - Multi-Source Data Intelligence</p>
         </div>
       </div>
     </div>

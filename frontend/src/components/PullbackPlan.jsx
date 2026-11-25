@@ -10,7 +10,7 @@
  */
 import React from 'react';
 import { calculateRiskReward } from '../utils/riskRewardCalc';
-import { zoneSpan } from '../utils/keyLevels';
+import { zoneSpan, formatZoneRange } from '../utils/keyLevels';
 import useMissingInputWarning from '../hooks/useMissingInputWarning';
 import { formatMoney, roundMoney } from '../utils/formatMoney';
 
@@ -27,8 +27,13 @@ const EMPTY_MESSAGES = {
 // Day 126: onSizePlan(entry, stop) opens the position-size calculator with this card's own
 // Buy and Stop (rounded to cents, Golden Rule 63). Moved here from the removed Simple Checklist,
 // where it only showed on a 9/9 TRADE. Shown whenever the plan has a buy and a stop; no verdict.
-export default function PullbackPlan({ srData, ticker, onSizePlan }) {
+// Day 133: `status` = utils/planStatus.planStatusFromSr(srData, live), computed once in App.jsx. When the live price is already below the
+// nearest support zone (or the stop), the plan is "void": the card says so in numbers, mutes the plan, and stops offering it for sizing.
+// The plan's own numbers never move with the live price (Day 126 decision). A pre-market / after-hours price only adds a muted fact line.
+export default function PullbackPlan({ srData, ticker, onSizePlan, status }) {
   const plan = calculateRiskReward(srData);
+  const voided = status?.void === true;
+  const factOnly = status?.factOnly === true;
   // Day 126 (Statement Audit): the card says "last close", so it measures from the last COMPLETED close. /api/sr's currentPrice is today's
   // live bar mid-session (it differed from the completed close for 5 of 7 audited tickers); prevBar is the last complete bar while today forms.
   const now = srData?.meta?.candle?.barComplete === false && Number.isFinite(srData?.meta?.prevBar?.close) ? srData.meta.prevBar.close : srData?.currentPrice;
@@ -50,9 +55,26 @@ export default function PullbackPlan({ srData, ticker, onSizePlan }) {
     );
   }
 
+  // The words are facts only (a print below a zone is not a confirmed break). They never start with "Price is" (audit_cards.py reads that as the Key Levels line).
+  let liveNote = null;
+  if ((voided || factOnly) && Number.isFinite(status?.livePrice)) {
+    const lead = voided ? 'Last trade' : (status.basis === 'pre-market' ? 'Pre-market price' : 'After-hours price');
+    const when = status.tradeTime ? ` (${status.tradeTime})` : '';
+    const where = status.reason === 'below_support'
+      ? ` is below the support zone (${formatZoneRange(status.zoneLow, status.zoneHigh)}).${status.belowStop && Number.isFinite(plan.stop) ? ` It is also below the stop (${money(plan.stop)}).` : ''}`
+      : ` is below this plan's stop (${money(plan.stop)}).`;
+    const closeText = Number.isFinite(status.close?.price) ? `${money(status.close.price)}${status.close.dateLabel ? `, ${status.close.dateLabel}` : ''}` : null;
+    const buyAbove = Number.isFinite(plan.entry) && plan.entry > status.livePrice;
+    const tail = voided && closeText ? ` This plan was set at the last close (${closeText})${buyAbove ? '; its Buy is above the price now' : ''}.` : '';
+    liveNote = voided
+      ? <div data-testid="plan-void" className="mb-3 p-3 rounded-lg text-sm bg-red-900/20 border border-red-500/40 text-red-200">{`${lead} ${money(status.livePrice)}${when}${where}${tail}`}</div>
+      : <div data-testid="plan-live-fact" className="mb-3 text-xs text-gray-400">{`${lead} ${money(status.livePrice)}${when}${where}`}</div>;
+  }
+
   if (state === 'no_atr') {
     return (
       <div className="mb-4 p-3 rounded-lg text-sm bg-gray-700/30 border border-gray-600 text-gray-300">
+        {liveNote}
         <div>Buy near support at <b className="text-gray-100">{money(plan.entry)}</b>
           {plan.target != null && <>, target <b className="text-gray-100">{money(plan.target)}</b></>}.</div>
         <div className="mt-1 text-gray-400">ATR (the stock's normal daily move) didn't load, so the stop can't be placed, there's no reward:risk, and the trade can't be sized.</div>
@@ -66,7 +88,9 @@ export default function PullbackPlan({ srData, ticker, onSizePlan }) {
   const targetPct = target != null ? ((target - entry) / entry) * 100 : null;
 
   // One price scale for the bar: lowest of stop, highest of target/now, 4% padding.
-  const lo = Math.min(stop, now);
+  // Day 133: when the plan is void, the live price joins the scale so the "now" tick shows where price fell to (below the stop/zone).
+  const liveTick = voided && Number.isFinite(status?.livePrice) ? status.livePrice : null;
+  const lo = Math.min(stop, now, liveTick ?? Infinity);
   const hi = Math.max(target ?? now, now, entry);
   const pad = (hi - lo) * 0.04 || 1;
   const pos = (v) => ((v - (lo - pad)) / ((hi + pad) - (lo - pad))) * 100;
@@ -85,21 +109,27 @@ export default function PullbackPlan({ srData, ticker, onSizePlan }) {
   const buyIsLastClose = srData?.meta?.entryBasis === 'last_close_inside_zone';
   const insideSupport = buyIsLastClose || (srData?.meta?.entryBasis == null && zones.some((z) => z.nearest && z.side === 'support' && z.insideZone === true));
   const nowNearEntry = Math.abs(pNow - pEntry) < 12;
+  const pLive = liveTick != null ? pos(liveTick) : null;
+  // keep the live label inside the bar: left-aligned near the left edge, right-aligned near the right edge
+  const liveAlign = pLive == null ? '' : pLive < 18 ? '' : pLive > 82 ? '-translate-x-full' : '-translate-x-1/2';
+  const muted = voided ? 'opacity-50' : '';
 
   return (
     <div className="mb-4">
+      {liveNote}
       <div className="flex justify-between items-baseline gap-2 flex-wrap">
         <span className="font-semibold text-gray-200">
-          Pullback plan <span className="font-normal text-gray-400 text-sm ml-1">{buyIsLastClose ? 'price is already at support' : 'wait for a dip to support'}</span>
+          Pullback plan <span className="font-normal text-gray-400 text-sm ml-1">{voided ? 'set at the last close' : buyIsLastClose ? 'price is already at support' : 'wait for a dip to support'}</span>
         </span>
-        <span className="font-mono text-lg text-gray-200">
+        <span className={`font-mono text-lg text-gray-200 ${muted}`}>
           {rr != null ? `${rr.toFixed(1)} : 1` : '—'}
           <span className="text-xs text-gray-400 ml-1.5">reward : risk</span>
         </span>
       </div>
 
       {/* risk (red) = stop → buy, reward (green) = buy → target, "now" tick */}
-      <div className="relative h-3 mt-8 mb-7 rounded-full bg-gray-700/50">
+      <div className={`relative mt-8 ${liveTick != null ? 'mb-12' : 'mb-7'}`}>
+      <div className={`relative h-3 rounded-full bg-gray-700/50 ${muted}`}>
         {supportBand && <span aria-hidden="true" className="absolute -top-1 -bottom-1 rounded-sm bg-green-400/25 border-x border-green-400/50" style={{ left: `${supportBand.left}%`, width: `${supportBand.width}%` }} />}
         {resistanceBand && <span aria-hidden="true" className="absolute -top-1 -bottom-1 rounded-sm bg-red-400/25 border-x border-red-400/50" style={{ left: `${resistanceBand.left}%`, width: `${resistanceBand.width}%` }} />}
         <span className="absolute inset-y-0 rounded-l-full bg-red-500/40" style={{ left: `${pStop}%`, width: `${pEntry - pStop}%` }} />
@@ -123,8 +153,18 @@ export default function PullbackPlan({ srData, ticker, onSizePlan }) {
           </span>
         )}
       </div>
+      {/* Day 133: the live-price tick and its label are an overlay AFTER the (muted) bar, so they stay bright and come LAST in the DOM: the audit's
+          BUY/CLOSE/stop/target text pattern still reads in order. The label sits on its own row below the stop/target labels, so it cannot overlap
+          them or the BUY label at 390 px. */}
+      {pLive != null && (
+        <div aria-hidden="true" className="absolute top-0 left-0 right-0 h-3 pointer-events-none">
+          <span data-testid="plan-live-tick" className="absolute -top-1.5 -bottom-1.5 w-0.5 bg-amber-400" style={{ left: `${pLive}%` }} />
+          <span data-testid="plan-live-label" className={`absolute top-9 whitespace-nowrap text-[10px] font-semibold text-amber-400 ${liveAlign}`} style={{ left: `${pLive}%` }}>{status.basis}</span>
+        </div>
+      )}
+      </div>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className={`grid grid-cols-3 gap-2 ${muted}`}>
         <div className="rounded-lg bg-gray-700/40 border border-gray-700 p-2.5">
           <div className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Buy</div>
           <div data-testid="plan-buy-value" className="font-mono text-gray-100 mt-0.5">{money(entry)}</div>
@@ -152,7 +192,10 @@ export default function PullbackPlan({ srData, ticker, onSizePlan }) {
         ) : (
           <>Risk <b className="text-gray-100">{money(risk)}</b> a share. {atHigh ? 'The stock is near its 52-week high (within 3%) with no resistance above, so no target is shown and there is no reward:risk.' : 'No resistance target was found, so there is no reward:risk to show.'}</>
         )}
-        {onSizePlan && (
+        {onSizePlan && voided && (
+          <span data-testid="size-plan-off" className="ml-2 text-gray-500">Sizing is off: the Buy is above the live price.</span>
+        )}
+        {onSizePlan && !voided && (
           <button
             type="button"
             data-testid="size-this-plan"

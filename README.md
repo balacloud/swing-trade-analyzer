@@ -1454,6 +1454,8 @@ TOLERANCES = {
 
 ## Roadmap
 
+> **Day 134 (v4.71):** the open priorities are mirrored in `docs/claude/stable/ROADMAP.md` (data-source audit round 2, Alpaca startup warning, thin tickers, Data Sources tab statement audit). Trade Setup now flags a plan the live price has already broken.
+
 ### Completed ✅
 
 - v1.0: Single stock analysis, 75-point scoring

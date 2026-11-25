@@ -11,6 +11,10 @@ last_updated: Day 133 (2026-11-24)
 
 ## Feedback Log (append-only, most recent session first)
 
+### Day 134
+**A plan that no longer applies must say so; a card must not offer a Buy the price already blew through.**
+SOXL.NE fell 22% in a day: Entry checks showed $8.54 while Trade Setup still said Buy $10.73, "wait for a dip to support". The lens: when price is below the whole support zone, support has broken and a "pullback buy" is a different trade. The honest fix states the facts (last trade, zone, last-close plan) and turns sizing off; it does not move the plan with every tick, and it adds no tuned threshold (principle 6): the rule uses only the plan's own zone and stop. Wording stays facts, not verdicts.
+
 ### Day 128
 **A clean audit result from a check that cannot see the fault is false comfort. The fault was in the copy, not the download.**
 The user's Day 127 worry ("if the data is wrong, the whole compute is wrong") was tested for the first time. The audit downloaded each

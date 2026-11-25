@@ -2,12 +2,13 @@
 
 > **Purpose:** Single source of truth for project roadmap - Claude reads this at session start
 > **Location:** Git `/docs/claude/stable/` (rarely changes)
-> **Last Updated:** Day 133 (2026-11-24)
+> **Last Updated:** Day 134 (2026-11-25)
 > **Note:** README.md roadmap should mirror this file for external users
 
 ---
 
-## Current Version: v4.70 (Backend v2.58, Frontend v4.66, Backtest v4.21, API Service v2.11)
+## Current Version: v4.71 (Backend v2.58, Frontend v4.67, Backtest v4.21, API Service v2.11)
+*Day 134: **Trade Setup now says when the live price has already broken its plan** (v4.71). A live price strictly below the nearest support zone (or, with no zone, below the plan stop) shows a plain-facts banner, mutes the plan numbers and turns off "Size this plan"; the plan itself still uses the last completed close. Alpaca found not serving (stale env), fixed by a full restart. Plan: `docs/claude/design/PLAN_VOID_BELOW_SUPPORT_PLAN_DAY133.md`.*
 *Day 131: **Two verdict-engine bugs fixed** (v4.70). (1) A missing RSI no longer counts as 50 (it cannot make a stock Strong; may be Decent with 5+ trend checks); a real RSI of 0 is kept. (2) A missing SPY reading still gives Unfavorable (no BUY) but the text says "SPY trend unavailable" instead of "below its 200-day" (user chose this over Neutral). JS and Python copies changed together; parity grid 86,400 -> 172,800 rows, 0 mismatches, original rows unchanged, mutation-checked; two false texts on the Technical Read card fixed. The "MR route reads Yahoo directly" note was WRONG (it uses the provider chain first); corrected, no code change. Version strings in code brought up to the docs. New Golden Rule 69. Found, not fixed: smoke audit row DRAL RS1 (short history, predates today). Plan: `ENGINE_MISSING_INPUTS_PLAN_DAY131.md`.*
 
 ---
@@ -57,7 +58,8 @@ Rows keep their old numbers because code comments, memory and other docs cite th
 | 23 | **Tradier stalls on random single calls (Day 128).** About 1 call in 6-8 hangs to the timeout, which trips the breaker. Decide: one retry on a timeout, and log per-call timing. Plan first. | small |
 | 24 | **Make every API answer NaN-safe** (a JSON encoder that sends null for NaN). Safety net behind the serve-time drop; wide blast radius, own plan. | medium |
 | 26 | **Page layout review (Day 128, user asked).** No layout plan exists; the Analyze redesign was about what cards SAY. Do it screen by screen like the Analyze redesign (Golden Rule 49) after the data audit; the user names the 2-3 least intuitive screens first. Known small item: page-level horizontal scroll at 390px (tab bar). | design session |
-| 27 | **Alpaca follow-ups (Day 129).** In-session daily bar check on a market day; user to confirm Alpaca's terms of use (never put Alpaca prices in shared Artifacts); clear the US OHLCV cache once at rollout or accept C8 WARNs; Golden Rule 54 note: backtests via the orchestrator now read Alpaca data. | small |
+| 27 | **Alpaca follow-ups (Day 129).** In-session daily bar check on a market day; user to confirm Alpaca's terms of use (never put Alpaca prices in shared Artifacts); US OHLCV cache cleared Day 134 (only RIVN and RSP were old); Golden Rule 54 note: backtests via the orchestrator now read Alpaca data. | small |
+| 29 | **Alpaca startup warning (Day 134).** A stale `.env` or launch environment silently dropped Alpaca for about 4 days (401, breaker open, fell through to Twelve Data). Add a loud startup warning when the `.env` keys differ from the launch environment, or an explicit override. Plan + Opus review + stamp first. | small |
 | 28 | **Parked idea: "Data Trail" visual** (where each price came from; mockup at claude.ai/artifact/CywKP2TrX2vv728AnCnoGR). User: not important while the Data Sources tab covers it. Build only if raised. | parked |
 
 **Closed rows (1, 7, 9, 11, 12, 13, 14, 17, 18, 25), the "Done as of Day N" notes, every COMPLETE section, per-day version paragraphs (Days 84-130), PLANNED / DEFERRED / RESEARCH items, the update log and the IBKR Screener research:** `docs/claude/history/ROADMAP_HISTORY.md` (read on request; it is long, so search it for the heading **"Closed priority rows"** for rows 1, 7, 9, 11-14, 17, 18, 25).
