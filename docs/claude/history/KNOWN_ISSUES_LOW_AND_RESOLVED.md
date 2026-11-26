@@ -365,3 +365,31 @@ Optional. Only the broken zone is named. Parked.
 
 ### Info (Day 134): page-level 390px horizontal overflow and SOXL.NE close-only history
 Existing items, unchanged by the void-plan work (verified at both widths).
+
+## Day 135
+
+Moved out of `KNOWN_ISSUES_DAY134.md` at the Day 135 close (resolved, or Info). Text word for word.
+
+### FIXED Day 135 (was Low-Medium, Day 131): smoke audit DRAL "RS1" row is WRONG
+**Fixed:** the audit was wrong, the page right. The card now adds a reason line between the RS rows ("Needs more than 200 days of price history (N loaded)..."), which broke the audit's adjacent-text pattern; it reported "a number" with no number on the card. `audit_cards.py` now allows the reason line, reports a number only when digits are captured, checks the quoted bar count, and reports UNVERIFIED for unknown text. Original note:
+`run_all_checks.sh` fails its smoke audit on one row: DRAL, "a history of 105 bars (<= 200) cannot give a 52-week RS, shown 'a number' vs 'N/A'". Reproduced on the UNCHANGED code (changes stashed), so it is not from Day 131. Same family as "short-history RS" below. Not fixed. Every other check passed (page checker 60/60, UI verify 48/48, parity 172,800).
+
+
+### FIXED Day 135 (was Medium, Day 134): a stale `.env` or launch environment can silently drop Alpaca again
+**Fixed:** `backend/env_loader.py` now loads `.env` for all 6 callers; `.env` wins and the replaced key names are logged and shown in `/api/health` (`env_overridden`). Plan: `ENV_OVERRIDE_PLAN_DAY135.md`. Original note:
+`load_dotenv` does not override variables already in the environment, so keys in an old parent process win over a fixed `.env`. Alpaca returned 401, the breaker opened, and the chain fell through to Twelve Data with no loud sign (found Day 133, about 4 days after rollout). Not fixed. Planned: a startup warning when the `.env` keys differ from the launch environment, or an explicit override. Needs a plan, an Opus review and the stamp.
+
+
+### Low-Medium: `backend/reference/data_audit_latest.json` is stale (Day 129)
+The Data Sources tab's reference file holds the Day 128 IBKR run (63 tickers); it has not been refreshed with the after-close or Alpaca results (needs plan + stamp).
+
+
+### Info (Day 135): leveraged-fund audit state
+After the Tradier fix and C11, no leveraged fund FAILs C5. Remaining: SOXL.NE C4 FAIL (Yahoo close-only, 100% flat zero-volume, known); NVDL and QPUX big jumps are real (NVDL +61.7% = 2 x NVDA +31.5%; QPUX +48% on 2026-05-21 matches IBKR). SPCL and QPUX have no matching underlying in the 117-ticker universe. GDXU.TO declared multiple unknown (fitted beta 1.9 vs GDX, corr 0.98). Map entries marked `measured` were identified by correlation, not by prospectus.
+
+
+### Info (Day 135, later): thin Canadian ETFs now say so in the header
+XDRV.TO (82% flat zero-volume bars), FINN.NE (28 malformed bars), SOXL.NE (close-only, no volume) and RBOT.TO, CARS.TO, COPP.TO, SGRD.TO (WARN) show the Data Sources integrity wording under the price. Data unchanged: Yahoo's close differs from IBKR by up to 2.15% (XDRV.TO) and 2.64% (CARS.TO) on settled days and no third source can say which is right; the fix needs the second Canada source (ROADMAP #30). FINN.NE's high/low are not repaired (closes match IBKR).
+
+
+*Resolved Day 135 note for the "data_audit_latest.json is stale" item above:* refreshed by the 117-ticker audit after the Nov 24 close (offline replay with `--now 2026-11-24T17:00`), then again with the leveraged-fund tracking facts.

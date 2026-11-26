@@ -2,7 +2,7 @@
 type: history
 name: persona-log
 description: PERSONA.md Feedback Log (what the trader lens caught each day), moved out on Day 133. Append-only; newest first.
-last_updated: Day 133 (2026-11-24)
+last_updated: Day 135 (2026-11-26)
 ---
 
 # PERSONA FEEDBACK LOG (L3, append-only, most recent session first)
@@ -10,6 +10,9 @@ last_updated: Day 133 (2026-11-24)
 > Moved word for word from `PERSONA.md` on Day 133. `/sta-end` Step 5b adds new entries at the top of the list below.
 
 ## Feedback Log (append-only, most recent session first)
+
+### Day 135
+- **Leveraged funds are a built-in second opinion on their own data.** The lens asked how successful traders treat 2x/3x funds: the thesis lives in the underlying, the fund is the instrument you are filled in, so stops and size are read on the fund's own price (a 3x fund's stop in % is about 3x wider; size by stop distance). Common practice, not tested here. It became a data check: the fund's daily move should equal its stated multiple x the underlying's move, measured on 503 days (NVDL vs NVDA corr 1.000; SOXL vs SOXX 0.999, vs SMH 0.984). A "suspiciously big" +62% NVDL day and QPUX +48% were treated as unproven until a second source said so (NVDL = 2 x NVDA; QPUX verified with IBKR). Also confirmed the skepticism rule: my own first SOXL.NE comparison (a "16% gap") was an artifact of a raw frame and a misaligned join, caught by running it on real data before believing it.
 
 ### Day 134
 **A plan that no longer applies must say so; a card must not offer a Buy the price already blew through.**

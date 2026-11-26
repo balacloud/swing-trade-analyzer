@@ -1068,3 +1068,11 @@ Market Cap ≥1B · AvgVol($) ≥5M · Price/EMA(200) 1.05–1.65 · Price/EMA(5
 
 *This is the canonical roadmap. README.md roadmap should mirror this.*
 *CLAUDE_CONTEXT.md includes this file in startup checklist.*
+
+## Day 135
+
+Priority closed this session, row text word for word (the number stays cited in code comments and memory):
+
+| 29 | **DONE Day 135 (v4.71, Backend v2.59): a stale launch environment can no longer silently beat `.env`.** New `backend/env_loader.py` (`load_env`) replaces all 6 `load_dotenv` calls; a non-empty `.env` value wins, the log and `/api/health` (`env_overridden`) name the replaced KEY NAMES only; `STA_ENV_OVERRIDE=0` keeps the old behaviour with a warning. Plan + Opus review: `docs/claude/design/ENV_OVERRIDE_PLAN_DAY135.md`. | done |
+
+*Closed by:* `backend/env_loader.py` (`.env` wins over a stale launch environment, key names logged and in `/api/health` `env_overridden`), plan `docs/claude/design/ENV_OVERRIDE_PLAN_DAY135.md`.

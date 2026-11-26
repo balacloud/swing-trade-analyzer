@@ -330,15 +330,22 @@ def tracking_check(sym, h, all_frames, jump_dates=()):
         parts.append('on big-move days: ' + ', '.join(f"{j['date']} fund {j['fund_pct']:+.1f}% vs " + (f"{j['expected_pct']:+.1f}%" if j['expected_pct'] is not None else f"{ref['reference']} {j['ref_pct']:+.1f}%") for j in f['jumps']))
     parts.append('facts only, not graded')
     return {'C11': ('NA', ' | '.join(parts)),
+            '_jumps': [{'date': j['date'], 'expected_pct': j['expected_pct'], 'reference': ref['reference'], 'multiple': mult} for j in f['jumps'] if j.get('expected_pct') is not None],
             '_tracking': {'reference': ref['reference'], 'multiple': mult, 'basis': ref.get('basis'), 'twin': bool(ref.get('twin')),
                           'corr': f['corr'], 'beta': f['beta'], 'n': f['n']}}
+
+
+def _split_jumps(tc):
+    """(tracking_check result without its private '_jumps', the jumps). grade() uses this on EVERY path so '_jumps' can never reach a check row."""
+    tc = dict(tc)
+    return tc, tc.pop('_jumps', [])
 
 
 def grade(sym, frames, tab, all_frames=None):
     """Returns {check: (level, note)} plus 'used' (the source the tab says served it, else the first in the chain)."""
     chain = [s for s in chain_sources(sym) if isinstance(frames.get(s), pd.DataFrame) and len(frames[s])]
     if not chain:
-        return {'used': None, **{k: ('FAIL', 'no source returned data') for k in ('C2', 'C4', 'C5', 'C6', 'C8', 'C9')}, **tracking_check(sym, None, all_frames)}
+        return {'used': None, **{k: ('FAIL', 'no source returned data') for k in ('C2', 'C4', 'C5', 'C6', 'C8', 'C9')}, **_split_jumps(tracking_check(sym, None, all_frames))[0]}
     extras = {s: f for s, f in frames.items() if isinstance(f, pd.DataFrame) and len(f)}   # incl. EODHD, a comparison only
     per = {s: source_checks(s, extras[s], {o: f for o, f in extras.items() if o != s}) for s in chain}
     res = {}
@@ -396,7 +403,10 @@ def grade(sym, frames, tab, all_frames=None):
     else:
         res['C8'] = ('NA', 'tab not queried')
     res['used'] = used
-    res.update(tracking_check(sym, h, all_frames, jump_dates=[j['date'] for j in dq.check_history(h, now=TODAY, ticker=sym).get('jumps', [])]))
+    tc, jumps_x = _split_jumps(tracking_check(sym, h, all_frames, jump_dates=[j['date'] for j in dq.check_history(h, now=TODAY, ticker=sym).get('jumps', [])]))
+    res.update(tc)
+    if jumps_x and 'C5' in res:   # Day 135: the reference's own move beside "needs IBKR"; the level is NOT touched
+        res['C5'] = (res['C5'][0], dq.annotate_jumps(res['C5'][1], jumps_x))
     res['per_source'] = {s: {k: per[s][k][0] for k in per[s]} for s in per}
     return res
 

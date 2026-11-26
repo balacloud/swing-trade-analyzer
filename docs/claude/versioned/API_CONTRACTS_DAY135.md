@@ -12,3 +12,4 @@
 - `/api/provenance/<ticker>` `quality` block is now built by the same `data_quality.cached_quality` (identical keys).
 - Audit (no API change): `data_audit_latest.json` ticker sections may carry a `tracking` object (no `level`), written by `audit_data_sources.py --update-reference`; `update_audit_reference(tracking=None)` leaves stored entries alone, a dict replaces and deletes. `leveraged_underlyings.json` gained `"twin": true` (SOXL.NE).
 - Audit only (no API change): new check **C11** "tracks its underlying" (facts, level `NA`), `backend/reference/leveraged_underlyings.json`; the audit no longer grades Tradier for Tradier-blocked leveraged funds.
+- Audit wording (no API change): the C5 big-move note in `data_audit_latest.json` (shown as the Data Sources tab's audit line) may now end `needs IBKR; NVDA x2 that day: +63.0%)` (`data_quality.annotate_jumps`, exact date, level unchanged).

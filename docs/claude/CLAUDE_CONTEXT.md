@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 134 — 2026-11-25
+> **Last Updated:** Day 135 — 2026-11-26
 
 ---
 
@@ -13,22 +13,22 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 134 |
+| Current Day | 135 |
 | Version | v4.73 (Backend v2.61, Frontend v4.69) |
-| Latest Status | PROJECT_STATUS_DAY134_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY134.md |
+| Latest Status | PROJECT_STATUS_DAY135_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY135.md |
 | Latest API | API_CONTRACTS_DAY135.md |
-| Focus | **Next: refresh `data_audit_latest.json` (run the 117-ticker audit in the background, read the summary only), then the Alpaca startup warning (ROADMAP #29), thin tickers in one question, Data Sources tab statement audit (ROADMAP #20).** Day 134: void-plan banner on Trade Setup (v4.71), Alpaca fixed by a full restart, two stale US cache frames cleared. Open for the user: Alpaca terms, Twelve Data key rotation. |
+| Focus | **Next: Data Sources tab statement audit + rare states (provider down, breaker open, empty/stale cache), then Scan/Sectors/Context data audit and the direct provider calls, then the second Canada source plan (ROADMAP #30).** Day 135: `.env` wins over a stale launch environment, saved-prices line, leveraged-fund audit (C11) and header data notes (v4.73). Thin-ETF close differences are NOT pursued (user). Open for the user: rotate the old FRED key in git history, Alpaca terms, Twelve Data key. |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in history/CLAUDE_CONTEXT_LOG.md)
 
 ### Day 135 Summary (v4.73, Backend v2.61)
-- **Data audit refreshed** (117 tickers, after the Nov 24 close; a pre-market run counts today as an expected session, so freshness needs `--now`). **`.env` now wins** over a stale launch environment (`backend/env_loader.py`, 6 callers, `/api/health` `env_overridden`); the stop hook ignores the generated `data_audit_latest.json`.
-- **VFV.TO showed saved prices** (Yahoo rate limit; Canada has one source): the header now says so (`priceFreshness`, A16). Second Canada source = ROADMAP #30.
-- **Header data notes (later):** thin-data line (7 of 117 tickers, the tab's own wording) and the leveraged comparison line (19 funds), no prices changed; the tab and the page now share one quality builder.
-- **Leveraged funds:** C11 compares each with its underlying; Tradier-only errors no longer fail blocked funds; DRAL/AVGC RS1 audit row fixed; QPUX +48% verified with IBKR; SOXL.NE tracks SOXL (corr 0.999 after the split table).
+- **Data audit refreshed** (117 tickers, after the Nov 24 close, offline replay with `--now`); the stop hook now ignores the generated `data_audit_latest.json`. **`.env` now wins** over a stale launch environment (`backend/env_loader.py`, `/api/health` `env_overridden`).
+- **Analyze header** says when prices are a saved copy (VFV.TO: Yahoo rate limit, Canada has one source; `priceFreshness`, A16) and carries two fact lines (`dataNotes`, A17): the Data Sources tab's own thin-data wording (7 of 117 tickers, one shared builder) and, for 19 leveraged funds, the audit's measured comparison with the underlying. No prices changed.
+- **Leveraged funds:** audit check C11 (facts only), `reference/leveraged_underlyings.json`, Tradier-blocked grading fixed (NVDL/QPUX no longer FAIL), DRAL/AVGC RS1 audit row fixed (the audit was wrong), QPUX +48% verified with IBKR, NVDL tab line now shows "NVDA x2 that day: +63.0%".
+- User decision: thin-ETF close differences (XDRV.TO, CARS.TO, FINN.NE) are not pursued. Data-source work about 85% done (estimate). Plans: `ENV_OVERRIDE`, `STALE_PRICE_AND_LEVERAGED`, `DATA_NOTES`, `NVDL_JUMP_NOTE` (all `_PLAN_DAY135.md`).
 
 ### Day 134 Summary (v4.71, Trade Setup void-plan banner)
 - **Alpaca was not serving the app** (401, stale env in the parent process); a full restart fixed it. 97 of 138 cached frames are Alpaca now; only RIVN and RSP needed their US cache frames cleared.
@@ -40,10 +40,6 @@
 - Cold-start probe passed 5 of 5; two weak spots found and fixed. `/sta-start` and `/sta-end` updated; `/sta-end` Step 6c runs `.claude/check_context_layers.py`.
 - STA priorities unchanged: Alpaca in-session bar (market day), DRAL RS1 row, refresh `data_audit_latest.json`.
 
-### Day 132 Summary (no STA code change — v4.70 unchanged)
-- Most of the session went on a non-STA task (kept out of the repo on purpose).
-- Corrected my own overclaim (a "match" that used an estimated input); added a row to `ENGINEER.md`.
-- STA priorities unchanged: Alpaca in-session bar (needs market hours), DRAL RS1 row, refresh `data_audit_latest.json`. Waiting on the user: Alpaca terms, Twelve Data key rotation, US cache clear.
 
 ## HOW THE DOCS ARE LAYERED (Day 133)
 
@@ -102,14 +98,13 @@ Single source: `.claude/commands/sta-end.md`. Claude runs every step and never a
 
 No freeze, no live gates. STA is an on-demand analysis tool (paper trading discontinued Day 113). Pick by what the user wants. Source of truth: the latest `PROJECT_STATUS_DAY[N]_SHORT.md` "Next Session Priorities" and `ROADMAP.md` "OPEN PRIORITIES".
 
-1. Refresh `backend/reference/data_audit_latest.json` (ROADMAP #20); Alpaca in-session bar and Data Sources tab for 3 tickers (#27).
-2. Alpaca startup warning for a stale `.env` (ROADMAP #29).
-3. DRAL RS1 smoke-audit row (KNOWN_ISSUES, Low-Medium).
-4. Thin ETFs (XDRV.TO, CARS.TO), SOXL.NE, FINN.NE, BRKU volume (ROADMAP #20).
-5. Twelve Data re-measure, `rsi_4h` (ROADMAP #22), Tradier stall retry (#23).
-6. Data Sources tab statement audit, then Scan, Sectors, Context; 117-ticker page audit (ROADMAP #20).
-7. Playbook research (ROADMAP #21), page-layout review (#26).
-8. Carried: per-ticker provenance (High, Day 108, ROADMAP #16).
+1. Data Sources tab statement audit + Playwright rare states (ROADMAP #20).
+2. Scan, Sectors, Context data audit; ~17 direct provider calls; 117-ticker page audit (#20).
+3. Second Canada source plan + Sectors batch Yahoo spacing (ROADMAP #30).
+4. Per-ticker provenance (High, Day 108, ROADMAP #16).
+5. Alpaca in-session bar check on a market day (#27); Twelve Data re-measure, `rsi_4h` (#22), Tradier stall retry (#23).
+6. Playbook research (#21), page-layout review (#26).
+7. Waiting on the user: rotate the old FRED key in git history, Alpaca terms, Twelve Data key.
 
 ## FILE STRUCTURE REFERENCE
 

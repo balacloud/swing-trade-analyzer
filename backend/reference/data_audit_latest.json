@@ -709,7 +709,7 @@
     "date": "2026-11-24",
     "report": "docs/test/DataSources_20261125/REPORT.md",
     "level": "WARN",
-    "line": "C5: alpaca: 2025-04-09 +55%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR)"
+    "line": "C5: alpaca: 2025-04-09 +55%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR; SOXX x3 that day: +55.7%)"
    },
    "tracking": {
     "reference": "SOXX",
@@ -781,7 +781,7 @@
     "date": "2026-11-24",
     "report": "docs/test/DataSources_20261125/REPORT.md",
     "level": "WARN",
-    "line": "C5: alpaca: 2026-11-23 +62%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR)"
+    "line": "C5: alpaca: 2026-11-23 +62%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR; NVDA x2 that day: +63.0%)"
    },
    "tracking": {
     "reference": "NVDA",
@@ -949,7 +949,7 @@
     "date": "2026-11-24",
     "report": "docs/test/DataSources_20261125/REPORT.md",
     "level": "WARN",
-    "line": "C5: alpaca: 2025-04-09 +45%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR)"
+    "line": "C5: alpaca: 2025-04-09 +45%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR; TSLA x2 that day: +45.4%)"
    },
    "tracking": {
     "reference": "TSLA",

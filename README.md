@@ -1454,6 +1454,8 @@ TOLERANCES = {
 
 ## Roadmap
 
+> **Day 135 (v4.73):** the Alpaca startup warning (ROADMAP #29) is done (`.env` now wins over a stale launch environment); the Analyze header says when prices are a saved copy and carries thin-data and leveraged-comparison notes; a second Canada price source (ROADMAP #30) is the main open data item, and thin-ETF close differences are not being pursued. Open priorities are mirrored in `docs/claude/stable/ROADMAP.md`.
+>
 > **Day 134 (v4.71):** the open priorities are mirrored in `docs/claude/stable/ROADMAP.md` (data-source audit round 2, Alpaca startup warning, thin tickers, Data Sources tab statement audit). Trade Setup now flags a plan the live price has already broken.
 
 ### Completed ✅

@@ -106,20 +106,20 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
 
 <div class="wrap">
   <header>
-    <span class="eyebrow">Swing Trade Analyzer · updated at every session close · last updated Day 134, Nov 25, 2026</span>
+    <span class="eyebrow">Swing Trade Analyzer · updated at every session close · last updated Day 135, Nov 26, 2026</span>
     <h1>STA Status Board</h1>
     <p class="muted">Where the project stands, what's next, and which published pages you can still trust. Numbers come from the live paper-trading report and the repo's status files, not from older pages.</p>
   </header>
 
   <div class="strip">
     <div class="tile"><span class="k">Mode</span><span class="v">Analysis only</span><span class="s">You place every trade. Paper trading stopped Sep 12.</span></div>
-    <div class="tile"><span class="k">Version</span><span class="v">v4.71</span><span class="s">Backend v2.58 · Frontend v4.67. Trade Setup now says when the live price has already fallen through its plan (facts only; sizing turns off).</span></div>
-    <div class="tile"><span class="k">Open bugs</span><span class="v">14 Medium+</span><span class="s">1 High, 13 Medium (recounted Day 133 from the slimmed open-issues file). Also open: the DRAL smoke-audit row (Low-Medium). New Day 134: a stale launch environment can silently drop Alpaca. Two decisions for you (Alpaca terms, Twelve Data key).</span></div>
-    <div class="tile"><span class="k">Next project</span><span class="v">Data source audit</span><span class="s">About 65% done. Alpaca is now really serving (it was silently off until a restart). Next: refresh the Data Sources tab file with a full audit, then the tab's statement audit.</span></div>
+    <div class="tile"><span class="k">Version</span><span class="v">v4.73</span><span class="s">Backend v2.61 · Frontend v4.69. The Analyze header now says when prices are a saved copy and carries thin-data and leveraged-fund comparison lines (facts only, no prices changed).</span></div>
+    <div class="tile"><span class="k">Open bugs</span><span class="v">15 Medium+</span><span class="s">1 High, 14 Medium. New Day 135: Canada has one price source (Yahoo), and an old FRED key sits in git history (your call). Three decisions for you: FRED key, Alpaca terms, Twelve Data key.</span></div>
+    <div class="tile"><span class="k">Next project</span><span class="v">Data source audit</span><span class="s">About 85% done (my estimate). Done: refresh, Alpaca fix, saved-prices line, leveraged-fund audit, header notes. Next: the Data Sources tab statement audit, then Scan, Sectors and Context. Thin-ETF close differences are not being pursued.</span></div>
   </div>
 
   <section>
-    <div class="shead"><h2>Forward-test final results</h2><span class="src">daily_job.py --report · pulled Nov 25, 2026 (last job run Nov 24) · next-open column from mr_open_entry_retest.py</span></div>
+    <div class="shead"><h2>Forward-test final results</h2><span class="src">daily_job.py --report · pulled Nov 26, 2026 (last job run Nov 25) · next-open column from mr_open_entry_retest.py</span></div>
     <div class="tablewrap">
       <table>
         <thead><tr><th>Track</th><th>Closed</th><th>Win rate</th><th>PF (ledger)</th><th>PF at next open</th><th>Avg R</th><th>Verdict</th></tr></thead>
@@ -137,12 +137,11 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
   <section>
     <div class="shead"><h2>Next priorities</h2><span class="src">CLAUDE_CONTEXT.md</span></div>
     <ol class="pri">
-      <li><span class="sev med">Next</span><strong>Data Source Audit Round 2 (about 65% done):</strong> refresh the Data Sources tab's reference file with a full 117-ticker audit now that Alpaca is serving; then add a startup warning so a stale launch environment cannot silently drop Alpaca again; decide the thin funds (XDRV.TO, CARS.TO), SOXL.NE, FINN.NE and BRKU volume; then the Data Sources tab and the other tabs. Your calls: Alpaca terms of use, rotating the Twelve Data key. (US cache cleared Day 134.) The playbook research runs after it.</li>
+      <li><span class="sev med">Next</span><strong>Data Source Audit Round 2 (about 85% done):</strong> audit what the Data Sources tab says against reality (and the rare states: provider down, breaker open, empty or stale cache), then Scan, Sectors and Context and the direct provider calls; then plan a second Canada price source (the weak spot behind the VFV.TO saved prices).</li>
       <li><span class="sev med">Next</span><strong>Twelve Data and Tradier.</strong> Alpaca now goes first, so re-measure how often Twelve Data runs out before removing the unused 4-hour RSI call; decide on one retry for Tradier stalls.</li>
       <li><span class="sev med">Optional</span><strong>Page layout review.</strong> No layout plan exists yet. You name the 2 or 3 least intuitive screens and we go screen by screen, like the Analyze redesign.</li>
       <li><span class="sev med">Optional</span><strong>Your next questions.</strong> After every code change, <code>/three-pass</code> runs the three review passes (a hook now requires it).</li>
       <li><span class="sev med">Optional</span><strong>Day 126 follow-ups:</strong> a weekly scan of the whole watchlist for unadjusted splits, a guard against Tradier's wrong-way reverse split, deleting the dead validation routes, and retiring verdict labels no card shows any more.</li>
-      <li><span class="sev med">Medium</span><strong>DRAL RS1 smoke-audit row (Day 131):</strong> with 105 days of history the page shows a 52-week RS; the audit wants N/A. It predates Day 131 and needs a small plan.</li>
       <li><span class="sev high">High</span>Per-ticker data tracking can't tell "never checked" from "just failed." Needs a written plan first.</li>
     </ol>
   </section>
@@ -165,15 +164,15 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
   </section>
 
   <section>
-    <div class="shead"><h2>Open bugs, Medium and above</h2><span class="src">KNOWN_ISSUES_DAY134.md</span></div>
+    <div class="shead"><h2>Open bugs, Medium and above</h2><span class="src">KNOWN_ISSUES_DAY135.md</span></div>
     <ul class="bugs">
-      <li><span class="sev med">Medium</span>New Day 134: a stale launch environment can silently turn Alpaca off (it did, for about 4 days; a full restart fixed it). A startup warning is planned.</li>
+      <li><span class="sev med">Medium</span>New Day 135: Canada has one price source (Yahoo). When it is rate-limited the app shows saved prices (VFV.TO did, Nov 24); the header now says so. A second source is the open fix.</li>
+      <li><span class="sev med">Medium</span>New Day 135, your decision: an old FRED API key value sits in committed file <code>KNOWN_ISSUES_DAY62.md</code> (rotation is your call).</li>
       <li><span class="sev med">Medium</span>Day 129, partly checked Day 134: Alpaca's daily bar for today during a market session still needs a direct look. The 16:30 cache cap is the safety net.</li>
             <li><span class="sev med">Medium</span>New Day 129, your decision: Alpaca terms of use (no Alpaca prices in shared pages) and whether to rotate the Twelve Data key (it sits in old lines of the local log).</li>
       <li><span class="sev med">Medium</span>Day 128: Twelve Data kept hitting its limit, so the app used Yahoo for 61 of 97 US tickers. Alpaca now goes first, so this should be much smaller; not re-measured yet.</li>
       <li><span class="sev med">Medium</span>New Day 128: Tradier stalls on about 1 call in 6 to 8, which trips its breaker. A retry is a design choice, not made yet.</li>
-      <li><span class="sev med">Medium</span>New Day 131: the smoke audit flags DRAL's 52-week RS (105 days of history, page shows a number, audit wants N/A). Predates today; not fixed.</li>
-      <li><span class="sev med">Medium</span>Day 127, about 40% done: the page audit proves the maths, not the data. The data audit found FINN.NE, XDRV.TO and SOXL.NE to fix (QPUX and DRAL turned out fine); the IBKR comparison and the Data Sources tab audit are still to do.</li>
+      <li><span class="sev med">Medium</span>Day 135, about 85% done: the data audit of the Analyze page is refreshed and the leveraged funds are checked against their underlyings. Still open: the Data Sources tab statement audit, Scan/Sectors/Context, direct provider calls. Thin-ETF close differences are not being pursued.</li>
       <li><span class="sev med">Medium</span>New Day 126: the stock-split table is kept by hand. A split is adjusted only after someone verifies it; an unknown one shows as a FAIL on the Data Sources tab only for tickers you open.</li>
       <li><span class="sev high">High</span>Per-ticker provenance can't distinguish "never checked" from "just failed."</li>
             
@@ -194,10 +193,10 @@ footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padd
       <table>
         <thead><tr><th>Day</th><th>Date</th><th>What happened</th></tr></thead>
         <tbody>
+          <tr><td class="n">135</td><td class="n">Nov 25–26</td><td>Refreshed the data audit (117 tickers). The app now lets <code>.env</code> win over a stale launch environment (the Alpaca trap). VFV.TO showed saved prices when Yahoo rate-limited; the header now says so. Leveraged funds are checked against their underlyings (NVDL = 2 x NVDA, SOXL.NE follows SOXL, QPUX +48% verified with IBKR). New header lines for thin data and leveraged comparisons. Thin-ETF close differences dropped by you.</td></tr>
           <tr><td class="n">134</td><td class="n">Nov 24–25</td><td>Found Alpaca was not actually serving the app (stale keys in the launch environment); a full restart fixed it. SOXL.NE showed Buy $10.73 while trading at $8.54: Trade Setup now says so in plain facts when the live price falls through the whole support zone (banner, muted numbers, sizing off); the plan numbers still use the last close. Checked on live SOXL.NE and NVDA; audit 124 pass, 0 wrong. Cleared two old US cache frames (RIVN, RSP). v4.71.</td></tr>
           <tr><td class="n">133</td><td class="n">Nov 24</td><td>Docs-only. The project notes are now in three layers: a small set read every session (about 77 KB, down from 391 KB), full rule text opened only when needed, and history on request. Nothing deleted; a cold-start test answered 5 of 5 questions. STA work is unchanged: Alpaca bar check next.</td></tr>
           <tr><td class="n">132</td><td class="n">Nov 23–24</td><td>No STA code change. Next for STA is unchanged: check Alpaca's daily bar once the market is open, then the DRAL row and the Data Sources tab file.</td></tr>
-          <tr><td class="n">131</td><td class="n">Nov 23</td><td>Two engine bugs fixed. A missing RSI no longer counts as 50 (it cannot make a stock Strong), and a missing S&amp;P 500 reading still blocks BUY but is described honestly. Both copies of the rules changed together; a 172,800-case check shows they agree and nothing else moved. The "mean-reversion route skips the data chain" note was wrong and is corrected (new Golden Rule 69). One older smoke-audit row (DRAL) found, not fixed.</td></tr>
           <tr><td class="n">130</td><td class="n">Nov 22</td><td>Docs-only session. The engineer persona's list of past misses now covers every earlier day (12 new themes), not just Days 127–129. Found a numbering gap in the Golden Rules (no Rule 27; one rule is numbered 29 but cited as 27). Pushed 1,212 research, audit and backtest files, leaving out another project's libraries, logs and local tool folders. Nothing in the app changed (v4.69).</td></tr>
           <tr><td class="n">129</td><td class="n">Nov 20–22</td><td>Data source audit continued. Leveraged funds are never served by Tradier, and the Data Sources tab says when Tradier served a price. Alpaca is the first US price source: every close within 0.5% of Yahoo on 79 US stocks. Fixed: Twelve Data's "no such symbol" answer counted as a failure, its key was written to a local log, and a 4:00–4:30pm cache gap. A new engineer persona was written. Parked: the "Data Trail" visual.</td></tr>
 </tbody>
@@ -246,7 +245,7 @@ const GROUPS = [
 ];
 // s: current | snap | stale | hist
 const ITEMS = [
-  {g:"status", t:"STA Status Board", id:"", u:"Nov 25", s:"current", w:"This page. Status, results, priorities, bugs, and this map.", self:true},
+  {g:"status", t:"STA Status Board", id:"", u:"Nov 26", s:"current", w:"This page. Status, results, priorities, bugs, and this map.", self:true},
   {g:"status", t:"STA vs. 100 Years of Trading Principles", id:"SGUQPDct284KF4uGnPZGrE", u:"Nov 12", s:"current", w:"STA checked against 9 classic trading principles (7 match, 2 partial), plus a side-by-side with Reddit swing-trading advice.", why:"Row 03 corrected Day 123: MR PF 1.50 at the next open. Gallery name: artifact-cc9d82c6…. Source copy: docs/claude/design/artifacts_src/principles_100yr/index.html"},
   {g:"status", t:"Leveraged ETF Board", id:"HdErxTqUhq8KYs6McSU5V7", u:"Nov 2", s:"current", w:"Live IBKR data for the 8 funds on your AI_Leveraged watchlist (Canadian SOXL and GDXU, DRAL and others), counted against your adopted rules (trend, pullback, S&R, consolidation) plus background reads.", why:"Pulls fresh data each time you open it. Source: docs/claude/design/LEVERAGED_ETF_BOARD.html. Formulas match STA's Python (parity-checked Nov 2)."},
   {g:"explain", t:"Beginner Trading Starter Playbook", id:"CfnNDEEs8jS112MuTU4HPp", u:"Nov 4", s:"current", w:"8-tab beginner guide for a friend: trader types, US–Canada macro, Reddit rules, 100-year canon, coding rules, live data and gamification, and building it with Claude Code.", why:"Shared with anyone who has the link. Macro numbers are a Nov 3 snapshot, mostly from secondary sources; Canada 5Y is unchecked."},

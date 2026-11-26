@@ -4398,7 +4398,7 @@
     },
     "C5": {
      "level": "WARN",
-     "note": "alpaca: 2025-04-09 +55%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2025-04-09 +55%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2025-04-09 +55%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR)"
+     "note": "alpaca: 2025-04-09 +55%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR; SOXX x3 that day: +55.7%) || twelvedata: 2025-04-09 +55%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR; SOXX x3 that day: +55.7%) || yfinance: 2025-04-09 +55%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR; SOXX x3 that day: +55.7%)"
     },
     "C6": {
      "level": "WARN",
@@ -4470,7 +4470,7 @@
     },
     "C5": {
      "level": "WARN",
-     "note": "yfinance: 2026-05-25 -67%: also in eodhd (real move, or unadjusted everywhere: needs IBKR) | 2026-11-23 +41%: also in eodhd (real move, or unadjusted everywhere: needs IBKR)"
+     "note": "yfinance: 2026-05-25 -67%: also in eodhd (real move, or unadjusted everywhere: needs IBKR) | 2026-11-23 +41%: also in eodhd (real move, or unadjusted everywhere: needs IBKR; SOXL x1 that day: +39.9%)"
     },
     "C6": {
      "level": "PASS",
@@ -7453,7 +7453,7 @@
     },
     "C5": {
      "level": "WARN",
-     "note": "alpaca: 2026-11-23 +62%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2026-11-23 +62%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2026-11-23 +62%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR)"
+     "note": "alpaca: 2026-11-23 +62%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR; NVDA x2 that day: +63.0%) || twelvedata: 2026-11-23 +62%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR; NVDA x2 that day: +63.0%) || yfinance: 2026-11-23 +62%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR; NVDA x2 that day: +63.0%)"
     },
     "C6": {
      "level": "WARN",
@@ -8036,7 +8036,7 @@
     },
     "C5": {
      "level": "WARN",
-     "note": "alpaca: 2025-04-09 +45%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2025-04-09 +45%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2025-04-09 +45%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR)"
+     "note": "alpaca: 2025-04-09 +45%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR; TSLA x2 that day: +45.4%) || twelvedata: 2025-04-09 +45%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR; TSLA x2 that day: +45.4%) || yfinance: 2025-04-09 +45%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR; TSLA x2 that day: +45.4%)"
     },
     "C6": {
      "level": "WARN",

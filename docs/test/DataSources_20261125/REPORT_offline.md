@@ -317,12 +317,12 @@ The fund's daily move compared with `declared multiple x the underlying's move`.
 - ⚠️ C6: yfinance: 151 bars from 2026-04-21
 
 **SOXL** (US leveraged); sources {'alpaca': 504, 'twelvedata': 504, 'yfinance': 501, 'tradier': 501}
-- ⚠️ C5: alpaca: 2025-04-09 +55%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2025-04-09 +55%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2025-04-09 +55%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR)
+- ⚠️ C5: alpaca: 2025-04-09 +55%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR; SOXX x3 that day: +55.7%) || twelvedata: 2025-04-09 +55%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR; SOXX x3 that day: +55.7%) || yfinance: 2025-04-09 +55%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR; SOXX x3 that day: +55.7%)
 - ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
 
 **SOXL.NE** (CA leveraged, known bad: Cboe Canada only); sources {'yfinance': 318, 'eodhd': 251}
 - ❌ C4: yfinance: flat zero-volume 100%; bad OHLC rows 0; zero-volume in last 5: 5
-- ⚠️ C5: yfinance: 2026-05-25 -67%: also in eodhd (real move, or unadjusted everywhere: needs IBKR) | 2026-11-23 +41%: also in eodhd (real move, or unadjusted everywhere: needs IBKR)
+- ⚠️ C5: yfinance: 2026-05-25 -67%: also in eodhd (real move, or unadjusted everywhere: needs IBKR) | 2026-11-23 +41%: also in eodhd (real move, or unadjusted everywhere: needs IBKR; SOXL x1 that day: +39.9%)
 - ⚠️ C8: tab says yfinance / 318 rows / cached and yfinance fails C4; the tab already lists: integrity
 
 **QPUX** (US leveraged, 1:3 reverse split 2026-03-23); sources {'alpaca': 328, 'twelvedata': 328, 'yfinance': 328, 'tradier': 328}
@@ -450,7 +450,7 @@ The fund's daily move compared with `declared multiple x the underlying's move`.
 - ⚠️ C9: alpaca vs twelvedata: max close diff 0.01%, volume x1.00 | alpaca vs yfinance: max close diff 0.00%, volume x1.00 | alpaca vs tradier: max close diff 0.50%, volume x1.00
 
 **NVDL** (US leveraged); sources {'alpaca': 504, 'twelvedata': 504, 'yfinance': 501, 'tradier': 501}
-- ⚠️ C5: alpaca: 2026-11-23 +62%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2026-11-23 +62%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2026-11-23 +62%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR)
+- ⚠️ C5: alpaca: 2026-11-23 +62%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR; NVDA x2 that day: +63.0%) || twelvedata: 2026-11-23 +62%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR; NVDA x2 that day: +63.0%) || yfinance: 2026-11-23 +62%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR; NVDA x2 that day: +63.0%)
 - ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
 
 **AAPU** (US leveraged); sources {'alpaca': 504, 'twelvedata': 504, 'yfinance': 501, 'tradier': 501}
@@ -472,7 +472,7 @@ The fund's daily move compared with `declared multiple x the underlying's move`.
 - ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
 
 **TSLL** (US leveraged); sources {'alpaca': 504, 'twelvedata': 504, 'yfinance': 501, 'tradier': 501}
-- ⚠️ C5: alpaca: 2025-04-09 +45%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2025-04-09 +45%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2025-04-09 +45%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR)
+- ⚠️ C5: alpaca: 2025-04-09 +45%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR; TSLA x2 that day: +45.4%) || twelvedata: 2025-04-09 +45%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR; TSLA x2 that day: +45.4%) || yfinance: 2025-04-09 +45%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR; TSLA x2 that day: +45.4%)
 - ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
 
 **BRKU** (US leveraged); sources {'alpaca': 490, 'twelvedata': 495, 'yfinance': 490, 'tradier': 490}

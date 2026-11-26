@@ -118,5 +118,51 @@ ok('not in this audit run' in A.tracking_check('NVDL', good, {'NVDL': frames})['
 ok(A.tracking_check('NVDL', None, {})['C11'][0] == 'NA', 'C11: no fund data -> NA, no exception')
 # C11 must never change the worst level used by the tab
 ok(dq.worst([g_lev[k][0] for k in ('C2', 'C4', 'C5', 'C6', 'C11')]) == dq.worst([g_lev[k][0] for k in ('C2', 'C4', 'C5', 'C6')]), 'C11 (NA) does not change the rolled-up level')
+# ---- annotate_jumps: the reference's own move beside "needs IBKR" (Day 135, plan NVDL_JUMP_NOTE_PLAN_DAY135.md)
+NVDL_SEG = '2026-11-23 +62%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR)'
+JMP = [{'date': '2026-11-23', 'expected_pct': 63.0, 'reference': 'NVDA', 'multiple': 2}]
+a1 = dq.annotate_jumps('alpaca: ' + NVDL_SEG, JMP)
+ok(a1 == 'alpaca: 2026-11-23 +62%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR; NVDA x2 that day: +63.0%)', 'the exact NVDL note gains the reference move (and keeps "needs IBKR")')
+ok(dq.annotate_jumps(a1, JMP) == a1, 'idempotent: a second pass changes nothing')
+two = 'alpaca: ' + NVDL_SEG + ' || twelvedata: ' + NVDL_SEG.replace('twelvedata,yfinance,tradier', 'alpaca,yfinance,tradier')
+ok(dq.annotate_jumps(two, JMP).count('NVDA x2 that day: +63.0%') == 2, 'two sources with the same exact date: both segments annotated')
+shifted = 'twelvedata: 2026-11-24 +62%: also in alpaca (real move, or unadjusted everywhere: needs IBKR)'
+ok(dq.annotate_jumps(shifted, JMP) == shifted, 'a segment one day off is NOT annotated (exact date only)')
+split_err = '2026-11-23 +62%: ONLY here; alpaca are continuous -> tradier has a split error'
+ok(dq.annotate_jumps(split_err, JMP) == split_err, 'a split-error (FAIL) segment is never annotated')
+lonely = '2026-11-23 +62%: no other source to compare'
+ok(dq.annotate_jumps(lonely, JMP) == lonely, 'a "no other source to compare" segment is not annotated')
+ok(dq.annotate_jumps('| '.join([NVDL_SEG, NVDL_SEG.replace('2026-11-23', '2026-06-25')]), JMP).count('NVDA x2') == 1, 'only the matching date of two jumps is annotated')
+ok(dq.annotate_jumps(NVDL_SEG, [{'date': '2026-11-23', 'expected_pct': None, 'reference': 'NVDA', 'multiple': 2}]) == NVDL_SEG, 'no reference move that day: unchanged')
+ok(dq.annotate_jumps(NVDL_SEG, [{'date': '2026-11-23', 'expected_pct': 63.0, 'reference': 'GDX', 'multiple': None}]) == NVDL_SEG, 'multiple unknown: unchanged')
+ok(dq.annotate_jumps(NVDL_SEG, []) == NVDL_SEG and dq.annotate_jumps(NVDL_SEG, None) == NVDL_SEG, 'no jumps: unchanged')
+ok(dq.annotate_jumps(None, JMP) is None, 'a None note does not raise')
+ok('x2 that day' in dq.annotate_jumps(NVDL_SEG, [dict(JMP[0], multiple=2.0)]) and 'x2.0' not in dq.annotate_jumps(NVDL_SEG, [dict(JMP[0], multiple=2.0)]), 'a float multiple prints as x2, never x2.0')
+ok('SOXL x1 that day: +1.0%' in dq.annotate_jumps(NVDL_SEG, [{'date': '2026-11-23', 'expected_pct': 1.04, 'reference': 'SOXL', 'multiple': 1}]), 'multiple 1 (SOXL.NE twin) reads "SOXL x1 that day"')
+ok('-33.5%' in dq.annotate_jumps(NVDL_SEG, [dict(JMP[0], expected_pct=-33.5)]), 'a negative move keeps its sign')
+# the tab line keeps the number: longest realistic case (BRK-B reference, 4 sources with eodhd, negative sign)
+long_seg = 'alpaca: 2026-11-23 -62%: also in twelvedata,yfinance,tradier,eodhd (real move, or unadjusted everywhere: needs IBKR)'
+long_note = dq.annotate_jumps(long_seg, [{'date': '2026-11-23', 'expected_pct': -63.0, 'reference': 'BRK-B', 'multiple': 2}])
+long_chk = os.path.join(tempfile.mkdtemp(), 'a.json')
+dq.update_audit_reference('truth_free', '2026-11-24T17:00', 'r.md', {'ZZ': [('C5', 'WARN', long_note)]}, path=long_chk)
+line = json.load(open(long_chk))['tickers']['ZZ']['truth_free']['line']
+ok('-63.0%' in line and len(line) <= 150, f'the longest realistic tab line keeps the reference number within 150 chars ({len(line)})')
+
+# grade() end to end: annotates C5, keeps its LEVEL, and never leaks the private '_jumps' key
+def step_frame(base, k, mult):
+    v = base.values.copy(); v[k:] = v[k:] * mult
+    return ohlcv(v)
+k = 150
+stepped = fund.copy(); stepped.iloc[k:] = stepped.iloc[k:] * 1.8                                    # all four sources share one +80% day
+ref_step = ref.copy(); ref_step.iloc[k:] = ref_step.iloc[k:] * 1.4                                 # the reference moves +40% that day
+fr = {'alpaca': ohlcv(stepped.values), 'twelvedata': ohlcv(stepped.values), 'yfinance': ohlcv(stepped.values), 'tradier': ohlcv(stepped.values)}
+g2 = A.grade('NVDL', fr, None, all_frames={'NVDL': fr, 'NVDA': {'alpaca': ohlcv(ref_step.values)}})
+ok('_jumps' not in g2 and '_tracking' in g2, "grade(): the private '_jumps' key never reaches the result ('_tracking' is the caller's)")
+ok(g2['C5'][0] == 'WARN' and 'needs IBKR; NVDA x2 that day: +' in g2['C5'][1], 'grade(): a shared jump gets the reference move and the level stays WARN')
+g3 = A.grade('NVDL', {}, None, all_frames={})
+ok('_jumps' not in g3 and g3['C5'][0] == 'FAIL', "grade(): the no-data path has no '_jumps' either and still FAILs")
+g4 = A.grade('NVDL', fr, None, all_frames={'NVDL': fr})
+ok('NVDA x2' not in g4['C5'][1] and g4['C5'][0] == 'WARN', 'grade(): reference missing from the run: C5 text unchanged')
+
 print(f'{passed} passed, {failed} failed')
 sys.exit(1 if failed else 0)

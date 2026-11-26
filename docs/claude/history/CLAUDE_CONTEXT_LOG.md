@@ -220,3 +220,10 @@ pick deliberately based on what the user actually wants next, not backlog order.
 - **Missing RSI** no longer counts as 50 (cannot be Strong; may be Decent with 5+ trend checks; a real 0 is kept). **Missing SPY** still gives Unfavorable (no BUY, user's choice) but says "SPY trend unavailable" instead of "below its 200-day". JS and Python changed together; parity grid 172,800 rows, 0 mismatches; original rows unchanged; mutation-checked; two false Technical Read texts fixed. Plan + Opus review: `ENGINE_MISSING_INPUTS_PLAN_DAY131.md`.
 - **My own wrong claim corrected:** "the MR route reads Yahoo directly" (stale Known Issues line, Days 128-130) was false; it uses the provider chain first. No code change. Golden Rule 69.
 - Version strings in code (footer v4.64, backend 2.57) brought up to the docs. Found, not fixed: smoke audit DRAL RS1 row (predates today).
+
+## Day 132
+
+### Day 132 Summary (no STA code change — v4.70 unchanged)
+- Most of the session went on a non-STA task (kept out of the repo on purpose).
+- Corrected my own overclaim (a "match" that used an estimated input); added a row to `ENGINEER.md`.
+- STA priorities unchanged: Alpaca in-session bar (needs market hours), DRAL RS1 row, refresh `data_audit_latest.json`. Waiting on the user: Alpaca terms, Twelve Data key rotation, US cache clear.

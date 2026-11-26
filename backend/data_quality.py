@@ -371,6 +371,27 @@ def tracking_facts(fund_close, ref_close, multiple=None, jump_dates=()):
         return {'state': 'error', 'reason': f'{type(e).__name__}: {str(e)[:100]}'}
 
 
+def annotate_jumps(note, jumps):
+    """Day 135 (plan NVDL_JUMP_NOTE_PLAN_DAY135.md): put the reference's own move beside the audit's "needs IBKR" note for a big one-day move.
+    `jumps` = [{'date': 'YYYY-MM-DD', 'expected_pct': float, 'reference': 'NVDA', 'multiple': 2}] (declared multiple x the reference's move that day).
+    Rewrites ONLY the exact segment "<date> <pct>%: also in <sources> (real move, or unadjusted everywhere: needs IBKR)" to
+    "... needs IBKR; NVDA x2 that day: +63.0%)" for every source's segment of that EXACT date (never +-1: a shifted segment from another source
+    stays as it is). Never touches a "ONLY here ... split error" segment, never changes a level, prints the reference move only (the audit's
+    C5 note is the raw frame; the fund move in C11 is split-adjusted, so the two could disagree). Idempotent. Never raises."""
+    try:
+        out = note
+        for j in jumps or []:
+            exp, ref, mult = j.get('expected_pct'), j.get('reference'), j.get('multiple')
+            if exp is None or not ref or mult is None or not j.get('date'):
+                continue
+            pat = re.compile(r'(\b' + re.escape(str(j['date'])) + r' [+-]\d+%: also in [^()|]*\(real move, or unadjusted everywhere: needs IBKR)\)')
+            out = pat.sub(lambda m: f"{m.group(1)}; {ref} x{mult:g} that day: {exp:+.1f}%)", out)
+        return out
+    except Exception as e:
+        logger.warning('annotate_jumps failed: %s', e)
+        return note
+
+
 def cached_quality(ticker):
     """Day 135 (plan DATA_NOTES_PLAN_DAY135.md): the Data Sources tab's quality block for one ticker, built from the RAW cached frame with no side effects
     and no provider calls. The ONE place it is built: /api/provenance (the tab) and /api/stock (the header note) both call it, so the page and the tab
