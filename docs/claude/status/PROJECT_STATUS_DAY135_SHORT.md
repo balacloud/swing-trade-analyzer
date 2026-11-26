@@ -50,10 +50,10 @@ No live forward-test gates (program discontinued Day 113). From `daily_job.py --
 | Path B | 232 | 42.24% | 0.87 | n/a (retired Day 112) |
 
 ## Next Session Priorities
-1. Data Sources tab statement audit (+ Playwright rare states: provider down, breaker open, empty or stale cache, quota 0).
+1. Data Sources tab statement audit (+ Playwright rare states: provider down, breaker open, empty or stale cache, quota 0), **merged with per-ticker provenance (item 4 below, ROADMAP #16): user decided Day 135 to do them together, since the rare states need the same per-provider attempt record.**
 2. Scan, Sectors, Context data audit and the ~17 direct provider calls that bypass the chain; the 117-ticker page audit.
 3. Second Canada source plan (ROADMAP #30: EODHD is 20 calls/day) and spacing Yahoo calls in the Sectors batch.
-4. Per-ticker provenance, "never checked" vs "just failed" (High, Day 108).
+4. Per-ticker provenance, "never checked" vs "just failed" (High, Day 108): merged into item 1.
 5. Alpaca in-session bar check on a market day (the Nov 25 session is complete now).
 6. Twelve Data re-measure and `rsi_4h` (#22); Tradier stall retry (#23); framework Part 8.
 7. Playbook research (#21), page-layout review (#26).

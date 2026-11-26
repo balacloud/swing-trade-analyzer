@@ -98,10 +98,10 @@ Single source: `.claude/commands/sta-end.md`. Claude runs every step and never a
 
 No freeze, no live gates. STA is an on-demand analysis tool (paper trading discontinued Day 113). Pick by what the user wants. Source of truth: the latest `PROJECT_STATUS_DAY[N]_SHORT.md` "Next Session Priorities" and `ROADMAP.md` "OPEN PRIORITIES".
 
-1. Data Sources tab statement audit + Playwright rare states (ROADMAP #20).
+1. Data Sources tab statement audit + Playwright rare states (ROADMAP #20), **merged with per-ticker provenance (#16, "never checked" vs "just failed"; user decision Day 135)**.
 2. Scan, Sectors, Context data audit; ~17 direct provider calls; 117-ticker page audit (#20).
 3. Second Canada source plan + Sectors batch Yahoo spacing (ROADMAP #30).
-4. Per-ticker provenance (High, Day 108, ROADMAP #16).
+4. (Per-ticker provenance, ROADMAP #16, is now part of item 1.)
 5. Alpaca in-session bar check on a market day (#27); Twelve Data re-measure, `rsi_4h` (#22), Tradier stall retry (#23).
 6. Playbook research (#21), page-layout review (#26).
 7. Waiting on the user: rotate the old FRED key in git history, Alpaca terms, Twelve Data key.
