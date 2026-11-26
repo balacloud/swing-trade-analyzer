@@ -213,7 +213,12 @@ class DataProvider:
             if stale is not None:
                 self._last_source[f'{ticker}_ohlcv'] = 'stale_cache'
                 print(f"📦 OHLCV for {ticker}: serving STALE cache (all providers failed)")
-                return self._deliver(ticker, stale)
+                out = self._deliver(ticker, stale)
+                # Day 135: the marker travels WITH the frame (set inside the per-ticker lock), so a route does not have to read the
+                # shared _last_source dict after the lock is gone. Plan STALE_PRICE_AND_LEVERAGED_PLAN_DAY135.md.
+                out.attrs['served_from'] = 'stale_cache'
+                out.attrs['cached_at'] = stale.attrs.get('cached_at')
+                return out
 
         # 4. All failed
         error_summary = '; '.join(errors)
@@ -469,6 +474,7 @@ class DataProvider:
                 if not (covers or len(df) >= int(need * cache_manager.OHLCV_ROW_TOLERANCE)):
                     print(f"⚠️ stale OHLCV for {ticker} is a {meta.get('period')} entry ({len(df)} rows), too short for period={period}; not serving it")
                     return None
+                df.attrs['cached_at'] = meta.get('cached_at')   # Day 135: when the saved copy was written (read by data_quality.price_freshness)
             return df
         except Exception as e:
             print(f"⚠️ stale OHLCV read failed for {ticker}: {e}")

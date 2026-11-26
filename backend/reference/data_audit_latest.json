@@ -88,8 +88,8 @@
    "truth_free": {
     "date": "2026-11-24",
     "report": "docs/test/DataSources_20261125/REPORT.md",
-    "level": "FAIL",
-    "line": "C5: tradier: 2026-03-20 -69%: ONLY here; alpaca,twelvedata,yfinance are continuous -> tradier has a split error"
+    "level": "WARN",
+    "line": "C5: alpaca: 2026-05-21 +48%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR)"
    },
    "vs_ibkr": {
     "date": "2026-11-19",
@@ -131,7 +131,7 @@
     "date": "2026-11-24",
     "report": "docs/test/DataSources_20261125/REPORT.md",
     "level": "WARN",
-    "line": "C4: tradier: flat zero-volume 0%; bad OHLC rows 1; zero-volume in last 5: 0"
+    "line": "C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
    },
    "vs_ibkr": {
     "date": "2026-11-19",
@@ -683,7 +683,7 @@
     "date": "2026-11-24",
     "report": "docs/test/DataSources_20261125/REPORT.md",
     "level": "WARN",
-    "line": "C4: tradier: flat zero-volume 0%; bad OHLC rows 1; zero-volume in last 5: 0"
+    "line": "C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
    }
   },
   "COPZ": {
@@ -710,8 +710,8 @@
    "truth_free": {
     "date": "2026-11-24",
     "report": "docs/test/DataSources_20261125/REPORT.md",
-    "level": "FAIL",
-    "line": "C5: tradier: 2026-06-25 +191%: ONLY here; alpaca,twelvedata,yfinance are continuous -> tradier has a split error"
+    "level": "WARN",
+    "line": "C5: alpaca: 2026-11-23 +62%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR)"
    }
   },
   "AAPU": {

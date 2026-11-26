@@ -4,7 +4,8 @@
 
 ## Open Issues
 
-### Low-Medium (new Day 131): smoke audit DRAL "RS1" row is WRONG
+### FIXED Day 135 (was Low-Medium, Day 131): smoke audit DRAL "RS1" row is WRONG
+**Fixed:** the audit was wrong, the page right. The card now adds a reason line between the RS rows ("Needs more than 200 days of price history (N loaded)..."), which broke the audit's adjacent-text pattern; it reported "a number" with no number on the card. `audit_cards.py` now allows the reason line, reports a number only when digits are captured, checks the quoted bar count, and reports UNVERIFIED for unknown text. Original note:
 `run_all_checks.sh` fails its smoke audit on one row: DRAL, "a history of 105 bars (<= 200) cannot give a 52-week RS, shown 'a number' vs 'N/A'". Reproduced on the UNCHANGED code (changes stashed), so it is not from Day 131. Same family as "short-history RS" below. Not fixed. Every other check passed (page checker 60/60, UI verify 48/48, parity 172,800).
 
 ### Medium: Data Source Audit Round 2, about 60% done (Day 129; ROADMAP #20)
@@ -74,3 +75,9 @@ The Data Sources tab's reference file holds the Day 128 IBKR run (63 tickers); i
 
 ### Medium (new Day 135, user decision): an old FRED key value is committed in git history
 `docs/claude/versioned/archive/KNOWN_ISSUES_DAY62.md` line 88 holds what looks like a real `FRED_API_KEY` (not compared with the current `.env` key). Rotating it is the user's call.
+
+### Medium (new Day 135): Canada has one price source, so Yahoo trouble means saved prices
+VFV.TO served the saved copy on Nov 24 at 6:02 pm (Yahoo "Rate limit exceeded" during the Sectors batch). The Analyze header now says so (v4.72). Open: a second Canada source and spacing Yahoo calls in the Sectors batch (ROADMAP #30). Not measured: how often a Canadian ticker the user opens hits a rate limit (the log has over 10,000 Yahoo rate-limit messages over its whole life).
+
+### Info (Day 135): leveraged-fund audit state
+After the Tradier fix and C11, no leveraged fund FAILs C5. Remaining: SOXL.NE C4 FAIL (Yahoo close-only, 100% flat zero-volume, known); NVDL and QPUX big jumps are real (NVDL +61.7% = 2 x NVDA +31.5%; QPUX +48% on 2026-05-21 matches IBKR). SPCL and QPUX have no matching underlying in the 117-ticker universe. GDXU.TO declared multiple unknown (fitted beta 1.9 vs GDX, corr 0.98). Map entries marked `measured` were identified by correlation, not by prospectus.

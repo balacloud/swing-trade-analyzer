@@ -80,11 +80,11 @@ Checks C2 fresh, C4 integrity, C5 jumps, C6 history, C8 tab honest, C9 cross-sou
 | CA stock | `BDT.TO` | yfinance | 502 | ✅ | ✅ | ✅ | ✅ | ✅ | — |
 | CA stock | `PNG.V` | yfinance | 502 | ✅ | ✅ | ✅ | ✅ | ✅ | — |
 | CA stock | `CGY.TO` | yfinance | 502 | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| US leveraged | `QPUX` | alpaca | 328 | ✅ | ✅ | ❌ | ✅ | ⚠️ | ✅ |
+| US leveraged | `QPUX` | alpaca | 328 | ✅ | ✅ | ⚠️ | ✅ | ✅ | ✅ |
 | US leveraged | `DRAL` | alpaca | 107 | ✅ | ✅ | ✅ | ⚠️ | ✅ | ✅ |
 | US leveraged | `SPCL` | alpaca | 161 | ✅ | ✅ | ⚠️ | ⚠️ | ✅ | ✅ |
-| US leveraged | `URAA` | alpaca | 504 | ✅ | ⚠️ | ✅ | ⚠️ | ✅ | ✅ |
-| US leveraged | `UBOT` | alpaca | 504 | ✅ | ⚠️ | ✅ | ⚠️ | ✅ | ✅ |
+| US leveraged | `URAA` | alpaca | 504 | ✅ | ✅ | ✅ | ⚠️ | ✅ | ✅ |
+| US leveraged | `UBOT` | alpaca | 504 | ✅ | ✅ | ✅ | ⚠️ | ✅ | ✅ |
 | US leveraged | `COPZ` | alpaca | 194 | ⚠️ | ✅ | ✅ | ⚠️ | ✅ | ✅ |
 | CA leveraged | `GDXU.TO` | yfinance | 502 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | US stock | `AAPL` | alpaca | 504 | ✅ | ✅ | ✅ | ⚠️ | ✅ | ✅ |
@@ -113,7 +113,7 @@ Checks C2 fresh, C4 integrity, C5 jumps, C6 history, C8 tab honest, C9 cross-sou
 | US stock | `WELL` | alpaca | 504 | ✅ | ⚠️ | ✅ | ⚠️ | ✅ | ⚠️ |
 | US stock | `PLD` | alpaca | 504 | ✅ | ❌ | ✅ | ⚠️ | ⚠️ | ✅ |
 | US stock | `EQIX` | alpaca | 504 | ✅ | ✅ | ✅ | ⚠️ | ✅ | ⚠️ |
-| US leveraged | `NVDL` | alpaca | 504 | ✅ | ✅ | ❌ | ⚠️ | ⚠️ | ✅ |
+| US leveraged | `NVDL` | alpaca | 504 | ✅ | ✅ | ⚠️ | ⚠️ | ✅ | ✅ |
 | US leveraged | `AAPU` | alpaca | 504 | ✅ | ✅ | ✅ | ⚠️ | ✅ | ✅ |
 | US leveraged | `MSFU` | alpaca | 504 | ✅ | ✅ | ✅ | ⚠️ | ✅ | ✅ |
 | US leveraged | `METU` | alpaca | 504 | ✅ | ✅ | ✅ | ⚠️ | ✅ | ✅ |
@@ -126,6 +126,32 @@ Checks C2 fresh, C4 integrity, C5 jumps, C6 history, C8 tab honest, C9 cross-sou
 | US leveraged | `COTG` | alpaca | 299 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | US leveraged | `AVGC` | alpaca | 104 | ✅ | ✅ | ✅ | ⚠️ | ✅ | ✅ |
 
+## Leveraged funds: tracks its underlying (C11, facts only, not graded)
+
+The fund's daily move compared with `declared multiple x the underlying's move`. Dates are joined first. The underlying map is `backend/reference/leveraged_underlyings.json` (some entries identified by measurement, not by prospectus).
+
+- `SOXL`: vs SOXX x3 (measured): 503 days, corr 0.999, fitted beta 2.96 (declared x3) | biggest gaps to the declared move: 2026-06-29 fund +9.7% vs +12.4%, 2026-06-26 fund -14.6% vs -16.9%, 2026-11-05 fund -38.7% vs -36.4% | on big-move days: 2025-04-09 fund +54.8% vs +55.7% | facts only, not graded
+- `SOXL.NE`: vs SOXL x1 (measured): 312 days, corr 0.999, fitted beta 1.01 (declared x1) | biggest gaps to the declared move: 2026-06-29 fund +12.4% vs +9.7%, 2026-06-26 fund -17.0% vs -14.6%, 2026-11-05 fund -36.6% vs -38.7% | on big-move days: 2026-11-23 fund +40.9% vs +39.9% | facts only, not graded
+- `QPUX`: no reference price: no matching price in the universe (best is QTUM, corr 0.70)
+- `DRAL`: vs DRAM x2 (measured): 106 days, corr 0.997, fitted beta 1.93 (declared x2) | biggest gaps to the declared move: 2026-11-06 fund +5.8% vs +12.3%, 2026-11-23 fund +33.2% vs +37.2%, 2026-11-05 fund -32.4% vs -35.9% | facts only, not graded
+- `SPCL`: no reference price: no matching price in the universe
+- `URAA`: vs URA x2 (measured): 503 days, corr 0.991, fitted beta 1.9 (declared x2) | biggest gaps to the declared move: 2025-09-19 fund +12.7% vs +16.2%, 2025-09-25 fund +5.4% vs +2.4%, 2025-04-21 fund -6.5% vs -3.7% | facts only, not graded
+- `UBOT`: vs BOTZ x2 (measured): 503 days, corr 0.998, fitted beta 1.98 (declared x2) | biggest gaps to the declared move: 2026-11-06 fund +1.8% vs +2.7%, 2025-04-09 fund +23.5% vs +24.3%, 2026-11-09 fund +6.2% vs +5.3% | facts only, not graded
+- `COPZ`: vs COPX x2 (measured): 193 days, corr 0.996, fitted beta 2.0 (declared x2) | biggest gaps to the declared move: 2026-07-06 fund +8.5% vs +4.8%, 2026-07-02 fund +1.0% vs +3.6%, 2026-07-10 fund +1.8% vs +3.0% | facts only, not graded
+- `GDXU.TO`: vs GDX (measured): 490 days, corr 0.98, fitted beta 1.9 | facts only, not graded
+- `NVDL`: vs NVDA x2 (stock): 503 days, corr 1.0, fitted beta 1.98 (declared x2) | biggest gaps to the declared move: 2025-04-09 fund +35.8% vs +37.4%, 2026-11-23 fund +61.7% vs +63.0%, 2025-04-01 fund +2.2% vs +3.3% | on big-move days: 2026-11-23 fund +61.7% vs +63.0% | facts only, not graded
+- `AAPU`: vs AAPL x2 (stock): 503 days, corr 0.999, fitted beta 1.98 (declared x2) | biggest gaps to the declared move: 2025-04-09 fund +29.5% vs +30.6%, 2026-06-26 fund +5.5% vs +6.3%, 2026-01-30 fund +0.4% vs +0.9% | facts only, not graded
+- `MSFU`: vs MSFT x2 (stock): 503 days, corr 0.999, fitted beta 1.98 (declared x2) | biggest gaps to the declared move: 2026-07-30 fund +30.1% vs +31.0%, 2026-06-26 fund +10.6% vs +11.4%, 2025-04-09 fund +19.5% vs +20.3% | facts only, not graded
+- `METU`: vs META x2 (stock): 503 days, corr 1.0, fitted beta 2.0 (declared x2) | biggest gaps to the declared move: 2025-04-30 fund -2.7% vs -2.0%, 2025-05-01 fund +9.1% vs +8.5%, 2025-01-29 fund +1.3% vs +0.6% | facts only, not graded
+- `GGLL`: vs GOOGL x2 (stock): 503 days, corr 1.0, fitted beta 2.0 (declared x2) | biggest gaps to the declared move: 2025-10-30 fund +4.4% vs +5.0%, 2026-01-30 fund +0.4% vs -0.1%, 2026-06-29 fund +10.2% vs +9.6% | facts only, not graded
+- `NFXL`: vs NFLX x2 (stock): 503 days, corr 0.999, fitted beta 1.99 (declared x2) | biggest gaps to the declared move: 2025-01-22 fund +18.2% vs +19.4%, 2024-11-22 fund -1.1% vs +0.1%, 2024-11-21 fund +4.2% vs +3.1% | facts only, not graded
+- `AMZU`: vs AMZN x2 (stock): 503 days, corr 0.999, fitted beta 1.99 (declared x2) | biggest gaps to the declared move: 2026-06-26 fund +2.8% vs +5.0%, 2026-06-29 fund +8.3% vs +6.4%, 2026-07-31 fund +29.7% vs +30.6% | facts only, not graded
+- `TSLL`: vs TSLA x2 (stock): 503 days, corr 1.0, fitted beta 1.99 (declared x2) | biggest gaps to the declared move: 2026-06-29 fund +17.4% vs +16.9%, 2026-06-30 fund +3.8% vs +4.3%, 2026-04-10 fund +1.5% vs +1.9% | on big-move days: 2025-04-09 fund +45.2% vs +45.4% | facts only, not graded
+- `BRKU`: vs BRK-B x2 (stock): 489 days, corr 0.995, fitted beta 1.95 (declared x2) | biggest gaps to the declared move: 2025-12-22 fund +1.2% vs +2.2%, 2026-06-11 fund -0.0% vs +0.9%, 2026-10-22 fund +2.1% vs +3.0% | facts only, not graded
+- `ELIL`: vs LLY x2 (measured): 419 days, corr 0.998, fitted beta 1.98 (declared x2) | biggest gaps to the declared move: 2026-05-19 fund +5.6% vs +6.7%, 2026-07-06 fund -1.1% vs -2.3%, 2025-04-30 fund +2.0% vs +3.1% | facts only, not graded
+- `COTG`: vs COST x2 (measured): 298 days, corr 0.987, fitted beta 2.0 (declared x2) | biggest gaps to the declared move: 2025-11-25 fund -1.6% vs +1.9%, 2025-11-24 fund +0.5% vs -2.9%, 2025-12-11 fund +0.2% vs +2.3% | facts only, not graded
+- `AVGC`: vs AVGO x2 (measured): 103 days, corr 0.997, fitted beta 1.99 (declared x2) | biggest gaps to the declared move: 2026-11-06 fund -1.0% vs +1.5%, 2026-11-05 fund -19.4% vs -20.9%, 2026-09-08 fund +4.8% vs +6.0% | facts only, not graded
+
 ## Verdict per class
 
 - **US stock** (47): FAILS: JNJ C4, COST C9, NEE C4, SO C4, DUK C4, PLD C4; warnings: CAT C4, CAT C6, BRK-B C6, GOOGL C6, JPM C6, JNJ C6, JNJ C9, JNJ C8, GEV C6, TSM C4, TSM C6, ETN C6, VRT C6, CEG C6, ALAB C6, NVDA C6, AVGO C6, KEYS C6, MRVL C6, ONTO C6, CAMT C6, AMD C6, ORCL C6, FCX C6, QCOM C6, AAPL C6, MSFT C6, META C6, NFLX C6, AMZN C6, TSLA C6, HD C4, HD C6, V C6, LLY C6, ABBV C4, ABBV C6, WMT C4, WMT C6, COST C6, PG C6, XOM C4, XOM C6, XOM C9, CVX C4, CVX C6, CVX C9, COP C4, COP C6, COP C9, LIN C6, NEM C4, NEM C6, GE C6, RTX C4, RTX C6, RTX C9, NEE C6, NEE C8, SO C6, SO C9, SO C8, DUK C6, DUK C9, DUK C8, WELL C4, WELL C6, WELL C9, PLD C6, PLD C8, EQIX C6, EQIX C9
@@ -133,7 +159,7 @@ Checks C2 fresh, C4 integrity, C5 jumps, C6 history, C8 tab honest, C9 cross-sou
 - **CA ETF** (15): FAILS: FINN.NE C4, XDRV.TO C4; warnings: FINN.NE C8, MTRX.TO C6, ORBX.TO C6, RBOT.TO C4, XDRV.TO C8, CARS.TO C4, COPP.TO C4, XETM.TO C6, SGRD.TO C4, SGRD.TO C6
 - **CDR** (8): no failures; warnings: WDC.TO C6, ANET.TO C6, SNDK.TO C6, GEV.TO C6, AVGO.TO C6
 - **US ETF** (13): no failures; warnings: UFO C6, QTUM C6, BOTZ C6, DRIV C6, GDX C4, GDX C6, DRAM C6, SETM C6, SMH C6, GRID C6, URA C4, URA C6, COPX C4, COPX C6, SOXX C6
-- **US leveraged** (19): FAILS: QPUX C5, NVDL C5; warnings: SOXL C5, SOXL C6, QPUX C8, DRAL C6, SPCL C5, SPCL C6, URAA C4, URAA C6, UBOT C4, UBOT C6, COPZ C2, COPZ C6, NVDL C6, NVDL C8, AAPU C6, MSFU C6, METU C6, GGLL C6, NFXL C6, AMZU C6, TSLL C5, TSLL C6, BRKU C4, BRKU C6, BRKU C9, AVGC C6
+- **US leveraged** (19): no failures; warnings: SOXL C5, SOXL C6, QPUX C5, DRAL C6, SPCL C5, SPCL C6, URAA C6, UBOT C6, COPZ C2, COPZ C6, NVDL C5, NVDL C6, AAPU C6, MSFU C6, METU C6, GGLL C6, NFXL C6, AMZU C6, TSLL C5, TSLL C6, BRKU C4, BRKU C6, BRKU C9, AVGC C6
 - **CA leveraged** (2): FAILS: SOXL.NE C4; warnings: SOXL.NE C5, SOXL.NE C8
 
 ## Every finding (warn and fail), with evidence
@@ -291,8 +317,8 @@ Checks C2 fresh, C4 integrity, C5 jumps, C6 history, C8 tab honest, C9 cross-sou
 - ⚠️ C6: yfinance: 151 bars from 2026-04-21
 
 **SOXL** (US leveraged); sources {'alpaca': 504, 'twelvedata': 504, 'yfinance': 501, 'tradier': 501}
-- ⚠️ C5: alpaca: 2025-04-09 +55%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2025-04-09 +55%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2025-04-09 +55%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR) || tradier: 2025-04-09 +55%: also in alpaca,twelvedata,yfinance (real move, or unadjusted everywhere: needs IBKR)
-- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
+- ⚠️ C5: alpaca: 2025-04-09 +55%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2025-04-09 +55%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2025-04-09 +55%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR)
+- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
 
 **SOXL.NE** (CA leveraged, known bad: Cboe Canada only); sources {'yfinance': 318, 'eodhd': 251}
 - ❌ C4: yfinance: flat zero-volume 100%; bad OHLC rows 0; zero-volume in last 5: 5
@@ -300,27 +326,24 @@ Checks C2 fresh, C4 integrity, C5 jumps, C6 history, C8 tab honest, C9 cross-sou
 - ⚠️ C8: tab says yfinance / 318 rows / cached and yfinance fails C4; the tab already lists: integrity
 
 **QPUX** (US leveraged, 1:3 reverse split 2026-03-23); sources {'alpaca': 328, 'twelvedata': 328, 'yfinance': 328, 'tradier': 328}
-- ❌ C5: alpaca: 2026-05-21 +48%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2026-05-21 +48%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2026-05-21 +48%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR) || tradier: 2026-03-20 -69%: ONLY here; alpaca,twelvedata,yfinance are continuous -> tradier has a split error | 2026-05-21 +48%: also in alpaca,twelvedata,yfinance (real move, or unadjusted everywhere: needs IBKR)
-- ⚠️ C8: tab says alpaca / 328 rows / cached; but another source STA can fall back to fails: tradier C5; the tab would not warn
+- ⚠️ C5: alpaca: 2026-05-21 +48%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2026-05-21 +48%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2026-05-21 +48%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR)
 
 **DRAL** (US leveraged, ~100 days); sources {'alpaca': 107, 'twelvedata': 107, 'yfinance': 107, 'tradier': 107}
-- ⚠️ C6: alpaca: 107 bars from 2026-06-25 || twelvedata: 107 bars from 2026-06-25 || yfinance: 107 bars from 2026-06-25 || tradier: 107 bars from 2026-06-25
+- ⚠️ C6: alpaca: 107 bars from 2026-06-25 || twelvedata: 107 bars from 2026-06-25 || yfinance: 107 bars from 2026-06-25
 
 **SPCL** (US leveraged, ~154 days); sources {'alpaca': 161, 'twelvedata': 157, 'yfinance': 161, 'tradier': 161}
-- ⚠️ C5: alpaca: 2026-06-12 +57%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2026-06-12 +57%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2026-06-12 +57%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR) || tradier: 2026-06-12 +57%: also in alpaca,twelvedata,yfinance (real move, or unadjusted everywhere: needs IBKR)
-- ⚠️ C6: alpaca: 161 bars from 2026-04-08 || twelvedata: 157 bars from 2026-04-14; starts 6 days after alpaca (2026-04-08, 161 bars); starts 6 days after yfinance (2026-04-08, 161 bars); starts 6 days after tradier (2026-04-08, 161 bars) || yfinance: 161 bars from 2026-04-08 || tradier: 161 bars from 2026-04-08
+- ⚠️ C5: alpaca: 2026-06-12 +57%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2026-06-12 +57%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2026-06-12 +57%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR)
+- ⚠️ C6: alpaca: 161 bars from 2026-04-08 || twelvedata: 157 bars from 2026-04-14; starts 6 days after alpaca (2026-04-08, 161 bars); starts 6 days after yfinance (2026-04-08, 161 bars); starts 6 days after tradier (2026-04-08, 161 bars) || yfinance: 161 bars from 2026-04-08
 
 **URAA** (US leveraged); sources {'alpaca': 504, 'twelvedata': 504, 'yfinance': 501, 'tradier': 501}
-- ⚠️ C4: tradier: flat zero-volume 0%; bad OHLC rows 1; zero-volume in last 5: 0
-- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
+- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
 
 **UBOT** (US leveraged, control); sources {'alpaca': 504, 'twelvedata': 504, 'yfinance': 501, 'tradier': 501}
-- ⚠️ C4: tradier: flat zero-volume 0%; bad OHLC rows 1; zero-volume in last 5: 0
-- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
+- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
 
 **COPZ** (US leveraged); sources {'alpaca': 194, 'twelvedata': 196, 'yfinance': 194, 'tradier': 194}
-- ⚠️ C2: alpaca: last bar 2026-11-23, expected 2026-11-24 (1 session behind) || twelvedata: last bar 2026-11-23, expected 2026-11-24 (1 session behind) || yfinance: last bar 2026-11-23, expected 2026-11-24 (1 session behind) || tradier: last bar 2026-11-23, expected 2026-11-24 (1 session behind)
-- ⚠️ C6: alpaca: 194 bars from 2026-02-18; starts 588 days after twelvedata (2024-07-10, 196 bars) || twelvedata: 196 bars from 2024-07-10 || yfinance: 194 bars from 2026-02-18; starts 588 days after twelvedata (2024-07-10, 196 bars) || tradier: 194 bars from 2026-02-18; starts 588 days after twelvedata (2024-07-10, 196 bars)
+- ⚠️ C2: alpaca: last bar 2026-11-23, expected 2026-11-24 (1 session behind) || twelvedata: last bar 2026-11-23, expected 2026-11-24 (1 session behind) || yfinance: last bar 2026-11-23, expected 2026-11-24 (1 session behind)
+- ⚠️ C6: alpaca: 194 bars from 2026-02-18; starts 588 days after twelvedata (2024-07-10, 196 bars) || twelvedata: 196 bars from 2024-07-10 || yfinance: 194 bars from 2026-02-18; starts 588 days after twelvedata (2024-07-10, 196 bars)
 
 **AAPL** (US stock); sources {'alpaca': 504, 'twelvedata': 504, 'yfinance': 501, 'tradier': 501}
 - ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
@@ -427,39 +450,38 @@ Checks C2 fresh, C4 integrity, C5 jumps, C6 history, C8 tab honest, C9 cross-sou
 - ⚠️ C9: alpaca vs twelvedata: max close diff 0.01%, volume x1.00 | alpaca vs yfinance: max close diff 0.00%, volume x1.00 | alpaca vs tradier: max close diff 0.50%, volume x1.00
 
 **NVDL** (US leveraged); sources {'alpaca': 504, 'twelvedata': 504, 'yfinance': 501, 'tradier': 501}
-- ❌ C5: alpaca: 2026-11-23 +62%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2026-11-23 +62%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2026-11-23 +62%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR) || tradier: 2026-06-25 +191%: ONLY here; alpaca,twelvedata,yfinance are continuous -> tradier has a split error | 2026-11-23 +62%: also in alpaca,twelvedata,yfinance (real move, or unadjusted everywhere: needs IBKR)
-- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
-- ⚠️ C8: tab says alpaca / 504 rows / cached; but another source STA can fall back to fails: tradier C5; the tab would not warn
+- ⚠️ C5: alpaca: 2026-11-23 +62%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2026-11-23 +62%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2026-11-23 +62%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR)
+- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
 
 **AAPU** (US leveraged); sources {'alpaca': 504, 'twelvedata': 504, 'yfinance': 501, 'tradier': 501}
-- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
+- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
 
 **MSFU** (US leveraged); sources {'alpaca': 504, 'twelvedata': 504, 'yfinance': 501, 'tradier': 501}
-- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
+- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
 
 **METU** (US leveraged); sources {'alpaca': 504, 'twelvedata': 504, 'yfinance': 501, 'tradier': 501}
-- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
+- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
 
 **GGLL** (US leveraged); sources {'alpaca': 504, 'twelvedata': 504, 'yfinance': 501, 'tradier': 501}
-- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
+- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
 
 **NFXL** (US leveraged); sources {'alpaca': 504, 'twelvedata': 504, 'yfinance': 501, 'tradier': 501}
-- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
+- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
 
 **AMZU** (US leveraged); sources {'alpaca': 504, 'twelvedata': 504, 'yfinance': 501, 'tradier': 501}
-- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
+- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
 
 **TSLL** (US leveraged); sources {'alpaca': 504, 'twelvedata': 504, 'yfinance': 501, 'tradier': 501}
-- ⚠️ C5: alpaca: 2025-04-09 +45%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2025-04-09 +45%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2025-04-09 +45%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR) || tradier: 2025-04-09 +45%: also in alpaca,twelvedata,yfinance (real move, or unadjusted everywhere: needs IBKR)
-- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
+- ⚠️ C5: alpaca: 2025-04-09 +45%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2025-04-09 +45%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2025-04-09 +45%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR)
+- ⚠️ C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)
 
 **BRKU** (US leveraged); sources {'alpaca': 490, 'twelvedata': 495, 'yfinance': 490, 'tradier': 490}
 - ⚠️ C4: twelvedata: flat zero-volume 1%; bad OHLC rows 0; zero-volume in last 5: 5
-- ⚠️ C6: alpaca: 490 bars from 2024-12-11; starts 7 days after twelvedata (2024-12-04, 495 bars) || yfinance: 490 bars from 2024-12-11; starts 7 days after twelvedata (2024-12-04, 495 bars) || tradier: 490 bars from 2024-12-11; starts 7 days after twelvedata (2024-12-04, 495 bars)
+- ⚠️ C6: alpaca: 490 bars from 2024-12-11; starts 7 days after twelvedata (2024-12-04, 495 bars) || yfinance: 490 bars from 2024-12-11; starts 7 days after twelvedata (2024-12-04, 495 bars)
 - ⚠️ C9: alpaca vs twelvedata: max close diff 0.33%, volume xnan | alpaca vs yfinance: max close diff 0.00%, volume x1.01 | alpaca vs tradier: max close diff 0.00%, volume x1.00
 
 **AVGC** (US leveraged); sources {'alpaca': 104, 'twelvedata': 104, 'yfinance': 104, 'tradier': 104}
-- ⚠️ C6: alpaca: 104 bars from 2026-06-30 || twelvedata: 104 bars from 2026-06-30 || yfinance: 104 bars from 2026-06-30 || tradier: 104 bars from 2026-06-30
+- ⚠️ C6: alpaca: 104 bars from 2026-06-30 || twelvedata: 104 bars from 2026-06-30 || yfinance: 104 bars from 2026-06-30
 
 
 ## Source errors (a source that could not serve a ticker)
@@ -472,5 +494,5 @@ Checks C2 fresh, C4 integrity, C5 jumps, C6 history, C8 tab honest, C9 cross-sou
 - **Canada has one source for most tickers.** Only the tickers listed with EODHD had a second opinion (free quota: 20 calls a day). The rest show `—` in C9, which means unchecked, not clean.
 - **Freshness ignores market holidays** (it uses weekdays).
 - **Tradier is not dividend-adjusted**, so its old closes differ slightly from Yahoo's on ex-dividend days; the close check only looks at the last 20 sessions.
-- Not run: identity/currency (C1), close accuracy vs the broker (C3), volume vs the broker (C7), fundamentals and classification (C10), Alpha Vantage.
+- Not run: identity/currency (C1), close accuracy vs the broker (C3), volume vs the broker (C7), fundamentals and classification (C10), Alpha Vantage. C11 (leveraged funds track their underlying) is facts only and not graded.
 

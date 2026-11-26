@@ -43,6 +43,7 @@ import { calculateScore } from './utils/scoringEngine';
 import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings, getVixPositionMultiplier } from './utils/positionSizing';
 import { runCategoricalAssessment } from './utils/categoricalAssessment';
 import { formatMoney } from './utils/formatMoney';
+import { describePriceFreshness } from './utils/priceFreshness';
 import { describePriceAsOf } from './utils/priceAsOf'; // Day 124: header price date label
 import { signedPct } from './utils/liveQuote'; // Day 126: live price line
 import useLiveQuote from './hooks/useLiveQuote'; // Day 126: display-only live price
@@ -1015,6 +1016,11 @@ function App() {
                             <span data-testid="live-status" className="text-gray-500 italic"> · {live.statusText}</span>
                           )}
                         </p>
+                        {/* Day 135: say so when the prices are a saved copy (every source failed) or far behind; facts only, nothing otherwise */}
+                        {(() => {
+                          const fresh = describePriceFreshness(rawAnalysisData?.stock?.priceFreshness, rawAnalysisData?.stock?.ticker);
+                          return fresh ? <p data-testid="price-freshness" className="text-xs text-amber-400 mt-1">{fresh}</p> : null;
+                        })()}
                         {/* Day 49: v4.10 Earnings Warning Badge */}
                         {earningsData?.hasUpcoming && (
                           <span
@@ -2389,7 +2395,7 @@ function App() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>v4.71 - Multi-Source Data Intelligence</p>
+          <p>v4.72 - Multi-Source Data Intelligence</p>
         </div>
       </div>
     </div>

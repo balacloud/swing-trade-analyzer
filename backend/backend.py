@@ -83,7 +83,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 # /api/sectors/pullback-screen endpoint (SRPS discretionary screener).
 # Day 105: bumped to 2.46 for the new /api/sectors/sub-industry-pullback-screen
 # endpoint + the shared _srps_true_rs()/_srps_evaluate_candidate() refactor.
-BACKEND_VERSION = '2.59'
+BACKEND_VERSION = '2.60'
 
 # Day 116: market-hours test for "is /api/sr's last bar still forming?" Mirrors
 # paper_trading/live_signals.py's _prepare_ohlcv() guard (Day 99, Golden Rule 33 —
@@ -1081,6 +1081,13 @@ def get_stock_data(ticker):
                 _provider_error = e
                 print(f"⚠️ DataProvider OHLCV failed for {ticker}: {e}")
 
+        # Day 135: the orchestrator marks a frame it served from an expired saved copy (every source failed). Read it HERE, before any slice.
+        # The legacy path below means the stale fallback also failed, so the marker does not apply to it.
+        _served_stale = bool(hist is not None and hist.attrs.get('served_from') == 'stale_cache')
+        _stale_cached_at = hist.attrs.get('cached_at') if _served_stale else None
+        if _served_stale:
+            print(f"⚠️ /api/stock {ticker}: showing saved prices (every price source failed), saved copy written {_stale_cached_at}")
+
         # Fallback to legacy path if DataProvider unavailable
         _legacy_path = hist is None
         if hist is None:
@@ -1113,6 +1120,9 @@ def get_stock_data(ticker):
         if hist is None or len(hist) == 0:
             print(f"⚠️ /api/stock {ticker}: no completed trading day yet (only today's forming bar)")
             return jsonify({'error': f'No completed trading day yet for {ticker}'}), 404
+
+        # Day 135: are these prices current? Facts only; the page decides whether to say anything (frontend/src/utils/priceFreshness.js).
+        _price_freshness = data_quality.price_freshness(hist, served_stale=_served_stale and not _legacy_path, cached_at=_stale_cached_at)
 
         # Get last 260 days (covers full 52 weeks of trading)
         hist_data = hist.tail(260)
@@ -1226,7 +1236,8 @@ def get_stock_data(ticker):
             'dataPoints': len(price_history),
             'oldestDate': price_history[0]['date'] if price_history else None,
             'newestDate': price_history[-1]['date'] if price_history else None,
-            'formingBarDropped': bool(forming_dropped)  # Day 126: today's unfinished bar was left out
+            'formingBarDropped': bool(forming_dropped),  # Day 126: today's unfinished bar was left out
+            'priceFreshness': _price_freshness            # Day 135: newestDate, expectedDate, sessionsBehind, behindLevel, servedFromStaleCache, maybePartial
         }
         
         return jsonify(response)

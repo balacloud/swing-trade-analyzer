@@ -54,7 +54,9 @@ export async function fetchStockData(ticker) {
       priceHistory: data.priceHistory,
       dataPoints: data.dataPoints,
       oldestDate: data.oldestDate,
-      newestDate: data.newestDate
+      newestDate: data.newestDate,
+      // Day 135: this object is rebuilt field by field (Golden Rule 30). Without this line the saved-prices facts never reach the page.
+      priceFreshness: data.priceFreshness ?? null
     };
     
   } catch (error) {

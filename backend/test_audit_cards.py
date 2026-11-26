@@ -148,5 +148,19 @@ if os.path.exists(os.path.join(FROZEN, 'baseline_rows.json')):
         for r in A.Audit(json.load(open(pth))).run().rows: now.append([r.ticker, r.sid, r.shown, r.expected, r.verdict])
     ok(now == base, f'phase-1 Technical Read rows are identical to the frozen baseline ({len(base)} rows)')
 
+
+# ---- Day 135: RS1 for a short-history fund (DRAL 105 bars, AVGC 104): the card says N/A plus a reason line
+def rs_rows(text, bars=105):
+    d = dump('x'); d['payloads']['stock']['body']['priceHistory'] = ph[:bars] if bars <= len(ph) else ph
+    d['cardTexts'] = {'card-relative-strength': text}
+    ca = C.CardAudit(d); ca.use('card-relative-strength'); ca.relative_strength(); return {r.sid: r for r in ca.rows}
+RS_REASON = 'Relative Strength RS vs S&P 500: N/A Needs more than 200 days of price history (105 loaded), so there is no 52-week comparison yet. Stock 52W Return: N/A S&P 52W Return: N/A'
+RS_OLD = 'Relative Strength RS vs S&P 500: N/A Stock 52W Return: N/A S&P 52W Return: N/A'
+ok(rs_rows(RS_REASON)['RS1'].verdict == 'PASS', 'RS1: N/A with the reason line passes (this was the false WRONG for DRAL and AVGC)')
+ok(rs_rows(RS_OLD)['RS1'].verdict == 'PASS', 'RS1: N/A without a reason line still passes')
+ok(rs_rows(RS_REASON.replace('(105 loaded)', '(99 loaded)'))['RS1'].verdict == 'WRONG', 'RS1: a reason line quoting the wrong bar count is caught')
+ok(rs_rows('Relative Strength RS vs S&P 500: 1.23 Stock 52W Return: +10.0% S&P 52W Return: +5.0%')['RS1'].verdict == 'WRONG', 'RS1: a real number on a short history is still caught')
+ok(rs_rows('Relative Strength something else entirely')['RS1'].verdict == 'UNVERIFIED', 'RS1: text in an unknown form is UNVERIFIED, never "a number" and never a pass')
+
 print(f'\n{passed} passed, {failed} failed')
 sys.exit(1 if failed else 0)

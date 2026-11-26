@@ -157,6 +157,7 @@ async function extractDom(page) {
         sizeBtn: !!q('size-this-plan'),
         staleNote: text(q('key-levels-stale-note')),
       },
+      freshText: text(q('price-freshness')),   // Day 135 (A16): the saved-prices line under the header price
       planBuy: text(q('plan-buy-value')),
       levelRows: { support: text(q('key-level-support')), resistance: text(q('key-level-resistance')) },
       backdrop: { rows, vix: text(backdropCard && backdropCard.querySelector('[data-testid="backdrop-vix"]')) },

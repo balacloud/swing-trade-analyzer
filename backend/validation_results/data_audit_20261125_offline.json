@@ -4315,12 +4315,6 @@
      "C4": "PASS",
      "C5": "WARN",
      "C6": "WARN"
-    },
-    "tradier": {
-     "C2": "PASS",
-     "C4": "PASS",
-     "C5": "WARN",
-     "C6": "WARN"
     }
    },
    "sources": {
@@ -4332,19 +4326,19 @@
    "checks": {
     "C2": {
      "level": "PASS",
-     "note": "last bar 2026-11-24, expected 2026-11-24 (all 4 sources in the chain)"
+     "note": "last bar 2026-11-24, expected 2026-11-24 (all 3 sources in the chain)"
     },
     "C4": {
      "level": "PASS",
-     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 4 sources in the chain)"
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
     },
     "C5": {
      "level": "WARN",
-     "note": "alpaca: 2025-04-09 +55%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2025-04-09 +55%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2025-04-09 +55%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR) || tradier: 2025-04-09 +55%: also in alpaca,twelvedata,yfinance (real move, or unadjusted everywhere: needs IBKR)"
+     "note": "alpaca: 2025-04-09 +55%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2025-04-09 +55%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2025-04-09 +55%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR)"
     },
     "C6": {
      "level": "WARN",
-     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
+     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
     },
     "C9": {
      "level": "PASS",
@@ -4353,6 +4347,10 @@
     "C8": {
      "level": "PASS",
      "note": "tab says alpaca / 504 rows / cached"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "vs SOXX x3 (measured): 503 days, corr 0.999, fitted beta 2.96 (declared x3) | biggest gaps to the declared move: 2026-06-29 fund +9.7% vs +12.4%, 2026-06-26 fund -14.6% vs -16.9%, 2026-11-05 fund -38.7% vs -36.4% | on big-move days: 2025-04-09 fund +54.8% vs +55.7% | facts only, not graded"
     }
    }
   },
@@ -4412,6 +4410,10 @@
     "C8": {
      "level": "WARN",
      "note": "tab says yfinance / 318 rows / cached and yfinance fails C4; the tab already lists: integrity"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "vs SOXL x1 (measured): 312 days, corr 0.999, fitted beta 1.01 (declared x1) | biggest gaps to the declared move: 2026-06-29 fund +12.4% vs +9.7%, 2026-06-26 fund -17.0% vs -14.6%, 2026-11-05 fund -36.6% vs -38.7% | on big-move days: 2026-11-23 fund +40.9% vs +39.9% | facts only, not graded"
     }
    }
   },
@@ -4782,12 +4784,6 @@
      "C4": "PASS",
      "C5": "WARN",
      "C6": "PASS"
-    },
-    "tradier": {
-     "C2": "PASS",
-     "C4": "PASS",
-     "C5": "FAIL",
-     "C6": "PASS"
     }
    },
    "sources": {
@@ -4799,27 +4795,31 @@
    "checks": {
     "C2": {
      "level": "PASS",
-     "note": "last bar 2026-11-24, expected 2026-11-24 (all 4 sources in the chain)"
+     "note": "last bar 2026-11-24, expected 2026-11-24 (all 3 sources in the chain)"
     },
     "C4": {
      "level": "PASS",
-     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 4 sources in the chain)"
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
     },
     "C5": {
-     "level": "FAIL",
-     "note": "alpaca: 2026-05-21 +48%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2026-05-21 +48%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2026-05-21 +48%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR) || tradier: 2026-03-20 -69%: ONLY here; alpaca,twelvedata,yfinance are continuous -> tradier has a split error | 2026-05-21 +48%: also in alpaca,twelvedata,yfinance (real move, or unadjusted everywhere: needs IBKR)"
+     "level": "WARN",
+     "note": "alpaca: 2026-05-21 +48%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2026-05-21 +48%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2026-05-21 +48%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR)"
     },
     "C6": {
      "level": "PASS",
-     "note": "328 bars from 2025-08-07 (all 4 sources in the chain)"
+     "note": "328 bars from 2025-08-07 (all 3 sources in the chain)"
     },
     "C9": {
      "level": "PASS",
      "note": "alpaca vs twelvedata: max close diff 0.01%, volume x1.01 | alpaca vs yfinance: max close diff 0.01%, volume x1.01 | alpaca vs tradier: max close diff 0.00%, volume x1.00"
     },
     "C8": {
-     "level": "WARN",
-     "note": "tab says alpaca / 328 rows / cached; but another source STA can fall back to fails: tradier C5; the tab would not warn"
+     "level": "PASS",
+     "note": "tab says alpaca / 328 rows / cached"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "no reference price: no matching price in the universe (best is QTUM, corr 0.70)"
     }
    }
   },
@@ -4860,12 +4860,6 @@
      "C4": "PASS",
      "C5": "PASS",
      "C6": "WARN"
-    },
-    "tradier": {
-     "C2": "PASS",
-     "C4": "PASS",
-     "C5": "PASS",
-     "C6": "WARN"
     }
    },
    "sources": {
@@ -4877,19 +4871,19 @@
    "checks": {
     "C2": {
      "level": "PASS",
-     "note": "last bar 2026-11-24, expected 2026-11-24 (all 4 sources in the chain)"
+     "note": "last bar 2026-11-24, expected 2026-11-24 (all 3 sources in the chain)"
     },
     "C4": {
      "level": "PASS",
-     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 4 sources in the chain)"
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
     },
     "C5": {
      "level": "PASS",
-     "note": "no one-day move over 40% (all 4 sources in the chain)"
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
     },
     "C6": {
      "level": "WARN",
-     "note": "alpaca: 107 bars from 2026-06-25 || twelvedata: 107 bars from 2026-06-25 || yfinance: 107 bars from 2026-06-25 || tradier: 107 bars from 2026-06-25"
+     "note": "alpaca: 107 bars from 2026-06-25 || twelvedata: 107 bars from 2026-06-25 || yfinance: 107 bars from 2026-06-25"
     },
     "C9": {
      "level": "PASS",
@@ -4898,6 +4892,10 @@
     "C8": {
      "level": "PASS",
      "note": "tab says alpaca / 107 rows / cached"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "vs DRAM x2 (measured): 106 days, corr 0.997, fitted beta 1.93 (declared x2) | biggest gaps to the declared move: 2026-11-06 fund +5.8% vs +12.3%, 2026-11-23 fund +33.2% vs +37.2%, 2026-11-05 fund -32.4% vs -35.9% | facts only, not graded"
     }
    }
   },
@@ -4939,12 +4937,6 @@
      "C4": "PASS",
      "C5": "WARN",
      "C6": "WARN"
-    },
-    "tradier": {
-     "C2": "PASS",
-     "C4": "PASS",
-     "C5": "WARN",
-     "C6": "WARN"
     }
    },
    "sources": {
@@ -4956,19 +4948,19 @@
    "checks": {
     "C2": {
      "level": "PASS",
-     "note": "last bar 2026-11-24, expected 2026-11-24 (all 4 sources in the chain)"
+     "note": "last bar 2026-11-24, expected 2026-11-24 (all 3 sources in the chain)"
     },
     "C4": {
      "level": "PASS",
-     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 4 sources in the chain)"
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
     },
     "C5": {
      "level": "WARN",
-     "note": "alpaca: 2026-06-12 +57%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2026-06-12 +57%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2026-06-12 +57%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR) || tradier: 2026-06-12 +57%: also in alpaca,twelvedata,yfinance (real move, or unadjusted everywhere: needs IBKR)"
+     "note": "alpaca: 2026-06-12 +57%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2026-06-12 +57%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2026-06-12 +57%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR)"
     },
     "C6": {
      "level": "WARN",
-     "note": "alpaca: 161 bars from 2026-04-08 || twelvedata: 157 bars from 2026-04-14; starts 6 days after alpaca (2026-04-08, 161 bars); starts 6 days after yfinance (2026-04-08, 161 bars); starts 6 days after tradier (2026-04-08, 161 bars) || yfinance: 161 bars from 2026-04-08 || tradier: 161 bars from 2026-04-08"
+     "note": "alpaca: 161 bars from 2026-04-08 || twelvedata: 157 bars from 2026-04-14; starts 6 days after alpaca (2026-04-08, 161 bars); starts 6 days after yfinance (2026-04-08, 161 bars); starts 6 days after tradier (2026-04-08, 161 bars) || yfinance: 161 bars from 2026-04-08"
     },
     "C9": {
      "level": "PASS",
@@ -4977,6 +4969,10 @@
     "C8": {
      "level": "PASS",
      "note": "tab says alpaca / 161 rows / cached"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "no reference price: no matching price in the universe"
     }
    }
   },
@@ -5015,12 +5011,6 @@
      "C4": "PASS",
      "C5": "PASS",
      "C6": "WARN"
-    },
-    "tradier": {
-     "C2": "PASS",
-     "C4": "WARN",
-     "C5": "PASS",
-     "C6": "WARN"
     }
    },
    "sources": {
@@ -5032,19 +5022,19 @@
    "checks": {
     "C2": {
      "level": "PASS",
-     "note": "last bar 2026-11-24, expected 2026-11-24 (all 4 sources in the chain)"
+     "note": "last bar 2026-11-24, expected 2026-11-24 (all 3 sources in the chain)"
     },
     "C4": {
-     "level": "WARN",
-     "note": "tradier: flat zero-volume 0%; bad OHLC rows 1; zero-volume in last 5: 0"
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
     },
     "C5": {
      "level": "PASS",
-     "note": "no one-day move over 40% (all 4 sources in the chain)"
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
     },
     "C6": {
      "level": "WARN",
-     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
+     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
     },
     "C9": {
      "level": "PASS",
@@ -5053,6 +5043,10 @@
     "C8": {
      "level": "PASS",
      "note": "tab says alpaca / 504 rows / cached"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "vs URA x2 (measured): 503 days, corr 0.991, fitted beta 1.9 (declared x2) | biggest gaps to the declared move: 2025-09-19 fund +12.7% vs +16.2%, 2025-09-25 fund +5.4% vs +2.4%, 2025-04-21 fund -6.5% vs -3.7% | facts only, not graded"
     }
    }
   },
@@ -5091,12 +5085,6 @@
      "C4": "PASS",
      "C5": "PASS",
      "C6": "WARN"
-    },
-    "tradier": {
-     "C2": "PASS",
-     "C4": "WARN",
-     "C5": "PASS",
-     "C6": "WARN"
     }
    },
    "sources": {
@@ -5108,19 +5096,19 @@
    "checks": {
     "C2": {
      "level": "PASS",
-     "note": "last bar 2026-11-24, expected 2026-11-24 (all 4 sources in the chain)"
+     "note": "last bar 2026-11-24, expected 2026-11-24 (all 3 sources in the chain)"
     },
     "C4": {
-     "level": "WARN",
-     "note": "tradier: flat zero-volume 0%; bad OHLC rows 1; zero-volume in last 5: 0"
+     "level": "PASS",
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
     },
     "C5": {
      "level": "PASS",
-     "note": "no one-day move over 40% (all 4 sources in the chain)"
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
     },
     "C6": {
      "level": "WARN",
-     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
+     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
     },
     "C9": {
      "level": "PASS",
@@ -5129,6 +5117,10 @@
     "C8": {
      "level": "PASS",
      "note": "tab says alpaca / 504 rows / cached"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "vs BOTZ x2 (measured): 503 days, corr 0.998, fitted beta 1.98 (declared x2) | biggest gaps to the declared move: 2026-11-06 fund +1.8% vs +2.7%, 2025-04-09 fund +23.5% vs +24.3%, 2026-11-09 fund +6.2% vs +5.3% | facts only, not graded"
     }
    }
   },
@@ -5169,12 +5161,6 @@
      "C4": "PASS",
      "C5": "PASS",
      "C6": "WARN"
-    },
-    "tradier": {
-     "C2": "WARN",
-     "C4": "PASS",
-     "C5": "PASS",
-     "C6": "WARN"
     }
    },
    "sources": {
@@ -5186,19 +5172,19 @@
    "checks": {
     "C2": {
      "level": "WARN",
-     "note": "alpaca: last bar 2026-11-23, expected 2026-11-24 (1 session behind) || twelvedata: last bar 2026-11-23, expected 2026-11-24 (1 session behind) || yfinance: last bar 2026-11-23, expected 2026-11-24 (1 session behind) || tradier: last bar 2026-11-23, expected 2026-11-24 (1 session behind)"
+     "note": "alpaca: last bar 2026-11-23, expected 2026-11-24 (1 session behind) || twelvedata: last bar 2026-11-23, expected 2026-11-24 (1 session behind) || yfinance: last bar 2026-11-23, expected 2026-11-24 (1 session behind)"
     },
     "C4": {
      "level": "PASS",
-     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 4 sources in the chain)"
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
     },
     "C5": {
      "level": "PASS",
-     "note": "no one-day move over 40% (all 4 sources in the chain)"
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
     },
     "C6": {
      "level": "WARN",
-     "note": "alpaca: 194 bars from 2026-02-18; starts 588 days after twelvedata (2024-07-10, 196 bars) || twelvedata: 196 bars from 2024-07-10 || yfinance: 194 bars from 2026-02-18; starts 588 days after twelvedata (2024-07-10, 196 bars) || tradier: 194 bars from 2026-02-18; starts 588 days after twelvedata (2024-07-10, 196 bars)"
+     "note": "alpaca: 194 bars from 2026-02-18; starts 588 days after twelvedata (2024-07-10, 196 bars) || twelvedata: 196 bars from 2024-07-10 || yfinance: 194 bars from 2026-02-18; starts 588 days after twelvedata (2024-07-10, 196 bars)"
     },
     "C9": {
      "level": "PASS",
@@ -5207,6 +5193,10 @@
     "C8": {
      "level": "PASS",
      "note": "tab says alpaca / 194 rows / cached"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "vs COPX x2 (measured): 193 days, corr 0.996, fitted beta 2.0 (declared x2) | biggest gaps to the declared move: 2026-07-06 fund +8.5% vs +4.8%, 2026-07-02 fund +1.0% vs +3.6%, 2026-07-10 fund +1.8% vs +3.0% | facts only, not graded"
     }
    }
   },
@@ -5263,6 +5253,10 @@
     "C8": {
      "level": "PASS",
      "note": "tab says yfinance / 502 rows / cached"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "vs GDX (measured): 490 days, corr 0.98, fitted beta 1.9 | facts only, not graded"
     }
    }
   },
@@ -7279,12 +7273,6 @@
      "C4": "PASS",
      "C5": "WARN",
      "C6": "WARN"
-    },
-    "tradier": {
-     "C2": "PASS",
-     "C4": "PASS",
-     "C5": "FAIL",
-     "C6": "WARN"
     }
    },
    "sources": {
@@ -7296,27 +7284,31 @@
    "checks": {
     "C2": {
      "level": "PASS",
-     "note": "last bar 2026-11-24, expected 2026-11-24 (all 4 sources in the chain)"
+     "note": "last bar 2026-11-24, expected 2026-11-24 (all 3 sources in the chain)"
     },
     "C4": {
      "level": "PASS",
-     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 4 sources in the chain)"
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
     },
     "C5": {
-     "level": "FAIL",
-     "note": "alpaca: 2026-11-23 +62%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2026-11-23 +62%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2026-11-23 +62%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR) || tradier: 2026-06-25 +191%: ONLY here; alpaca,twelvedata,yfinance are continuous -> tradier has a split error | 2026-11-23 +62%: also in alpaca,twelvedata,yfinance (real move, or unadjusted everywhere: needs IBKR)"
+     "level": "WARN",
+     "note": "alpaca: 2026-11-23 +62%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2026-11-23 +62%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2026-11-23 +62%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR)"
     },
     "C6": {
      "level": "WARN",
-     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
+     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
     },
     "C9": {
      "level": "PASS",
      "note": "alpaca vs twelvedata: max close diff 0.00%, volume x1.00 | alpaca vs yfinance: max close diff 0.00%, volume x1.00 | alpaca vs tradier: max close diff 0.00%, volume x1.00"
     },
     "C8": {
-     "level": "WARN",
-     "note": "tab says alpaca / 504 rows / cached; but another source STA can fall back to fails: tradier C5; the tab would not warn"
+     "level": "PASS",
+     "note": "tab says alpaca / 504 rows / cached"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "vs NVDA x2 (stock): 503 days, corr 1.0, fitted beta 1.98 (declared x2) | biggest gaps to the declared move: 2025-04-09 fund +35.8% vs +37.4%, 2026-11-23 fund +61.7% vs +63.0%, 2025-04-01 fund +2.2% vs +3.3% | on big-move days: 2026-11-23 fund +61.7% vs +63.0% | facts only, not graded"
     }
    }
   },
@@ -7355,12 +7347,6 @@
      "C4": "PASS",
      "C5": "PASS",
      "C6": "WARN"
-    },
-    "tradier": {
-     "C2": "PASS",
-     "C4": "PASS",
-     "C5": "PASS",
-     "C6": "WARN"
     }
    },
    "sources": {
@@ -7372,19 +7358,19 @@
    "checks": {
     "C2": {
      "level": "PASS",
-     "note": "last bar 2026-11-24, expected 2026-11-24 (all 4 sources in the chain)"
+     "note": "last bar 2026-11-24, expected 2026-11-24 (all 3 sources in the chain)"
     },
     "C4": {
      "level": "PASS",
-     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 4 sources in the chain)"
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
     },
     "C5": {
      "level": "PASS",
-     "note": "no one-day move over 40% (all 4 sources in the chain)"
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
     },
     "C6": {
      "level": "WARN",
-     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
+     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
     },
     "C9": {
      "level": "PASS",
@@ -7393,6 +7379,10 @@
     "C8": {
      "level": "PASS",
      "note": "tab says alpaca / 504 rows / cached"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "vs AAPL x2 (stock): 503 days, corr 0.999, fitted beta 1.98 (declared x2) | biggest gaps to the declared move: 2025-04-09 fund +29.5% vs +30.6%, 2026-06-26 fund +5.5% vs +6.3%, 2026-01-30 fund +0.4% vs +0.9% | facts only, not graded"
     }
    }
   },
@@ -7431,12 +7421,6 @@
      "C4": "PASS",
      "C5": "PASS",
      "C6": "WARN"
-    },
-    "tradier": {
-     "C2": "PASS",
-     "C4": "PASS",
-     "C5": "PASS",
-     "C6": "WARN"
     }
    },
    "sources": {
@@ -7448,19 +7432,19 @@
    "checks": {
     "C2": {
      "level": "PASS",
-     "note": "last bar 2026-11-24, expected 2026-11-24 (all 4 sources in the chain)"
+     "note": "last bar 2026-11-24, expected 2026-11-24 (all 3 sources in the chain)"
     },
     "C4": {
      "level": "PASS",
-     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 4 sources in the chain)"
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
     },
     "C5": {
      "level": "PASS",
-     "note": "no one-day move over 40% (all 4 sources in the chain)"
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
     },
     "C6": {
      "level": "WARN",
-     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
+     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
     },
     "C9": {
      "level": "PASS",
@@ -7469,6 +7453,10 @@
     "C8": {
      "level": "PASS",
      "note": "tab says alpaca / 504 rows / cached"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "vs MSFT x2 (stock): 503 days, corr 0.999, fitted beta 1.98 (declared x2) | biggest gaps to the declared move: 2026-07-30 fund +30.1% vs +31.0%, 2026-06-26 fund +10.6% vs +11.4%, 2025-04-09 fund +19.5% vs +20.3% | facts only, not graded"
     }
    }
   },
@@ -7507,12 +7495,6 @@
      "C4": "PASS",
      "C5": "PASS",
      "C6": "WARN"
-    },
-    "tradier": {
-     "C2": "PASS",
-     "C4": "PASS",
-     "C5": "PASS",
-     "C6": "WARN"
     }
    },
    "sources": {
@@ -7524,19 +7506,19 @@
    "checks": {
     "C2": {
      "level": "PASS",
-     "note": "last bar 2026-11-24, expected 2026-11-24 (all 4 sources in the chain)"
+     "note": "last bar 2026-11-24, expected 2026-11-24 (all 3 sources in the chain)"
     },
     "C4": {
      "level": "PASS",
-     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 4 sources in the chain)"
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
     },
     "C5": {
      "level": "PASS",
-     "note": "no one-day move over 40% (all 4 sources in the chain)"
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
     },
     "C6": {
      "level": "WARN",
-     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
+     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
     },
     "C9": {
      "level": "PASS",
@@ -7545,6 +7527,10 @@
     "C8": {
      "level": "PASS",
      "note": "tab says alpaca / 504 rows / cached"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "vs META x2 (stock): 503 days, corr 1.0, fitted beta 2.0 (declared x2) | biggest gaps to the declared move: 2025-04-30 fund -2.7% vs -2.0%, 2025-05-01 fund +9.1% vs +8.5%, 2025-01-29 fund +1.3% vs +0.6% | facts only, not graded"
     }
    }
   },
@@ -7583,12 +7569,6 @@
      "C4": "PASS",
      "C5": "PASS",
      "C6": "WARN"
-    },
-    "tradier": {
-     "C2": "PASS",
-     "C4": "PASS",
-     "C5": "PASS",
-     "C6": "WARN"
     }
    },
    "sources": {
@@ -7600,19 +7580,19 @@
    "checks": {
     "C2": {
      "level": "PASS",
-     "note": "last bar 2026-11-24, expected 2026-11-24 (all 4 sources in the chain)"
+     "note": "last bar 2026-11-24, expected 2026-11-24 (all 3 sources in the chain)"
     },
     "C4": {
      "level": "PASS",
-     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 4 sources in the chain)"
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
     },
     "C5": {
      "level": "PASS",
-     "note": "no one-day move over 40% (all 4 sources in the chain)"
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
     },
     "C6": {
      "level": "WARN",
-     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
+     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
     },
     "C9": {
      "level": "PASS",
@@ -7621,6 +7601,10 @@
     "C8": {
      "level": "PASS",
      "note": "tab says alpaca / 504 rows / cached"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "vs GOOGL x2 (stock): 503 days, corr 1.0, fitted beta 2.0 (declared x2) | biggest gaps to the declared move: 2025-10-30 fund +4.4% vs +5.0%, 2026-01-30 fund +0.4% vs -0.1%, 2026-06-29 fund +10.2% vs +9.6% | facts only, not graded"
     }
    }
   },
@@ -7659,12 +7643,6 @@
      "C4": "PASS",
      "C5": "PASS",
      "C6": "WARN"
-    },
-    "tradier": {
-     "C2": "PASS",
-     "C4": "PASS",
-     "C5": "PASS",
-     "C6": "WARN"
     }
    },
    "sources": {
@@ -7676,19 +7654,19 @@
    "checks": {
     "C2": {
      "level": "PASS",
-     "note": "last bar 2026-11-24, expected 2026-11-24 (all 4 sources in the chain)"
+     "note": "last bar 2026-11-24, expected 2026-11-24 (all 3 sources in the chain)"
     },
     "C4": {
      "level": "PASS",
-     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 4 sources in the chain)"
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
     },
     "C5": {
      "level": "PASS",
-     "note": "no one-day move over 40% (all 4 sources in the chain)"
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
     },
     "C6": {
      "level": "WARN",
-     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
+     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
     },
     "C9": {
      "level": "PASS",
@@ -7697,6 +7675,10 @@
     "C8": {
      "level": "PASS",
      "note": "tab says alpaca / 504 rows / cached"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "vs NFLX x2 (stock): 503 days, corr 0.999, fitted beta 1.99 (declared x2) | biggest gaps to the declared move: 2025-01-22 fund +18.2% vs +19.4%, 2024-11-22 fund -1.1% vs +0.1%, 2024-11-21 fund +4.2% vs +3.1% | facts only, not graded"
     }
    }
   },
@@ -7735,12 +7717,6 @@
      "C4": "PASS",
      "C5": "PASS",
      "C6": "WARN"
-    },
-    "tradier": {
-     "C2": "PASS",
-     "C4": "PASS",
-     "C5": "PASS",
-     "C6": "WARN"
     }
    },
    "sources": {
@@ -7752,19 +7728,19 @@
    "checks": {
     "C2": {
      "level": "PASS",
-     "note": "last bar 2026-11-24, expected 2026-11-24 (all 4 sources in the chain)"
+     "note": "last bar 2026-11-24, expected 2026-11-24 (all 3 sources in the chain)"
     },
     "C4": {
      "level": "PASS",
-     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 4 sources in the chain)"
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
     },
     "C5": {
      "level": "PASS",
-     "note": "no one-day move over 40% (all 4 sources in the chain)"
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
     },
     "C6": {
      "level": "WARN",
-     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
+     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
     },
     "C9": {
      "level": "PASS",
@@ -7773,6 +7749,10 @@
     "C8": {
      "level": "PASS",
      "note": "tab says alpaca / 504 rows / cached"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "vs AMZN x2 (stock): 503 days, corr 0.999, fitted beta 1.99 (declared x2) | biggest gaps to the declared move: 2026-06-26 fund +2.8% vs +5.0%, 2026-06-29 fund +8.3% vs +6.4%, 2026-07-31 fund +29.7% vs +30.6% | facts only, not graded"
     }
    }
   },
@@ -7813,12 +7793,6 @@
      "C4": "PASS",
      "C5": "WARN",
      "C6": "WARN"
-    },
-    "tradier": {
-     "C2": "PASS",
-     "C4": "PASS",
-     "C5": "WARN",
-     "C6": "WARN"
     }
    },
    "sources": {
@@ -7830,19 +7804,19 @@
    "checks": {
     "C2": {
      "level": "PASS",
-     "note": "last bar 2026-11-24, expected 2026-11-24 (all 4 sources in the chain)"
+     "note": "last bar 2026-11-24, expected 2026-11-24 (all 3 sources in the chain)"
     },
     "C4": {
      "level": "PASS",
-     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 4 sources in the chain)"
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
     },
     "C5": {
      "level": "WARN",
-     "note": "alpaca: 2025-04-09 +45%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2025-04-09 +45%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2025-04-09 +45%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR) || tradier: 2025-04-09 +45%: also in alpaca,twelvedata,yfinance (real move, or unadjusted everywhere: needs IBKR)"
+     "note": "alpaca: 2025-04-09 +45%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || twelvedata: 2025-04-09 +45%: also in alpaca,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR) || yfinance: 2025-04-09 +45%: also in alpaca,twelvedata,tradier (real move, or unadjusted everywhere: needs IBKR)"
     },
     "C6": {
      "level": "WARN",
-     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars) || tradier: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
+     "note": "yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
     },
     "C9": {
      "level": "PASS",
@@ -7851,6 +7825,10 @@
     "C8": {
      "level": "PASS",
      "note": "tab says alpaca / 504 rows / cached"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "vs TSLA x2 (stock): 503 days, corr 1.0, fitted beta 1.99 (declared x2) | biggest gaps to the declared move: 2026-06-29 fund +17.4% vs +16.9%, 2026-06-30 fund +3.8% vs +4.3%, 2026-04-10 fund +1.5% vs +1.9% | on big-move days: 2025-04-09 fund +45.2% vs +45.4% | facts only, not graded"
     }
    }
   },
@@ -7889,12 +7867,6 @@
      "C4": "PASS",
      "C5": "PASS",
      "C6": "WARN"
-    },
-    "tradier": {
-     "C2": "PASS",
-     "C4": "PASS",
-     "C5": "PASS",
-     "C6": "WARN"
     }
    },
    "sources": {
@@ -7906,7 +7878,7 @@
    "checks": {
     "C2": {
      "level": "PASS",
-     "note": "last bar 2026-11-24, expected 2026-11-24 (all 4 sources in the chain)"
+     "note": "last bar 2026-11-24, expected 2026-11-24 (all 3 sources in the chain)"
     },
     "C4": {
      "level": "WARN",
@@ -7914,11 +7886,11 @@
     },
     "C5": {
      "level": "PASS",
-     "note": "no one-day move over 40% (all 4 sources in the chain)"
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
     },
     "C6": {
      "level": "WARN",
-     "note": "alpaca: 490 bars from 2024-12-11; starts 7 days after twelvedata (2024-12-04, 495 bars) || yfinance: 490 bars from 2024-12-11; starts 7 days after twelvedata (2024-12-04, 495 bars) || tradier: 490 bars from 2024-12-11; starts 7 days after twelvedata (2024-12-04, 495 bars)"
+     "note": "alpaca: 490 bars from 2024-12-11; starts 7 days after twelvedata (2024-12-04, 495 bars) || yfinance: 490 bars from 2024-12-11; starts 7 days after twelvedata (2024-12-04, 495 bars)"
     },
     "C9": {
      "level": "WARN",
@@ -7927,6 +7899,10 @@
     "C8": {
      "level": "PASS",
      "note": "tab says alpaca / 490 rows / cached"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "vs BRK-B x2 (stock): 489 days, corr 0.995, fitted beta 1.95 (declared x2) | biggest gaps to the declared move: 2025-12-22 fund +1.2% vs +2.2%, 2026-06-11 fund -0.0% vs +0.9%, 2026-10-22 fund +2.1% vs +3.0% | facts only, not graded"
     }
    }
   },
@@ -7965,12 +7941,6 @@
      "C4": "PASS",
      "C5": "PASS",
      "C6": "PASS"
-    },
-    "tradier": {
-     "C2": "PASS",
-     "C4": "PASS",
-     "C5": "PASS",
-     "C6": "PASS"
     }
    },
    "sources": {
@@ -7982,19 +7952,19 @@
    "checks": {
     "C2": {
      "level": "PASS",
-     "note": "last bar 2026-11-24, expected 2026-11-24 (all 4 sources in the chain)"
+     "note": "last bar 2026-11-24, expected 2026-11-24 (all 3 sources in the chain)"
     },
     "C4": {
      "level": "PASS",
-     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 4 sources in the chain)"
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
     },
     "C5": {
      "level": "PASS",
-     "note": "no one-day move over 40% (all 4 sources in the chain)"
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
     },
     "C6": {
      "level": "PASS",
-     "note": "420 bars from 2025-03-26 (all 4 sources in the chain)"
+     "note": "420 bars from 2025-03-26 (all 3 sources in the chain)"
     },
     "C9": {
      "level": "PASS",
@@ -8003,6 +7973,10 @@
     "C8": {
      "level": "PASS",
      "note": "tab says alpaca / 420 rows / cached"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "vs LLY x2 (measured): 419 days, corr 0.998, fitted beta 1.98 (declared x2) | biggest gaps to the declared move: 2026-05-19 fund +5.6% vs +6.7%, 2026-07-06 fund -1.1% vs -2.3%, 2025-04-30 fund +2.0% vs +3.1% | facts only, not graded"
     }
    }
   },
@@ -8041,12 +8015,6 @@
      "C4": "PASS",
      "C5": "PASS",
      "C6": "PASS"
-    },
-    "tradier": {
-     "C2": "PASS",
-     "C4": "PASS",
-     "C5": "PASS",
-     "C6": "PASS"
     }
    },
    "sources": {
@@ -8058,19 +8026,19 @@
    "checks": {
     "C2": {
      "level": "PASS",
-     "note": "last bar 2026-11-24, expected 2026-11-24 (all 4 sources in the chain)"
+     "note": "last bar 2026-11-24, expected 2026-11-24 (all 3 sources in the chain)"
     },
     "C4": {
      "level": "PASS",
-     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 4 sources in the chain)"
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
     },
     "C5": {
      "level": "PASS",
-     "note": "no one-day move over 40% (all 4 sources in the chain)"
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
     },
     "C6": {
      "level": "PASS",
-     "note": "299 bars from 2025-09-18 (all 4 sources in the chain)"
+     "note": "299 bars from 2025-09-18 (all 3 sources in the chain)"
     },
     "C9": {
      "level": "PASS",
@@ -8079,6 +8047,10 @@
     "C8": {
      "level": "PASS",
      "note": "tab says alpaca / 299 rows / cached"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "vs COST x2 (measured): 298 days, corr 0.987, fitted beta 2.0 (declared x2) | biggest gaps to the declared move: 2025-11-25 fund -1.6% vs +1.9%, 2025-11-24 fund +0.5% vs -2.9%, 2025-12-11 fund +0.2% vs +2.3% | facts only, not graded"
     }
    }
   },
@@ -8119,12 +8091,6 @@
      "C4": "PASS",
      "C5": "PASS",
      "C6": "WARN"
-    },
-    "tradier": {
-     "C2": "PASS",
-     "C4": "PASS",
-     "C5": "PASS",
-     "C6": "WARN"
     }
    },
    "sources": {
@@ -8136,19 +8102,19 @@
    "checks": {
     "C2": {
      "level": "PASS",
-     "note": "last bar 2026-11-24, expected 2026-11-24 (all 4 sources in the chain)"
+     "note": "last bar 2026-11-24, expected 2026-11-24 (all 3 sources in the chain)"
     },
     "C4": {
      "level": "PASS",
-     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 4 sources in the chain)"
+     "note": "flat zero-volume 0%; bad OHLC rows 0; zero-volume in last 5: 0 (all 3 sources in the chain)"
     },
     "C5": {
      "level": "PASS",
-     "note": "no one-day move over 40% (all 4 sources in the chain)"
+     "note": "no one-day move over 40% (all 3 sources in the chain)"
     },
     "C6": {
      "level": "WARN",
-     "note": "alpaca: 104 bars from 2026-06-30 || twelvedata: 104 bars from 2026-06-30 || yfinance: 104 bars from 2026-06-30 || tradier: 104 bars from 2026-06-30"
+     "note": "alpaca: 104 bars from 2026-06-30 || twelvedata: 104 bars from 2026-06-30 || yfinance: 104 bars from 2026-06-30"
     },
     "C9": {
      "level": "PASS",
@@ -8157,6 +8123,10 @@
     "C8": {
      "level": "PASS",
      "note": "tab says alpaca / 104 rows / cached"
+    },
+    "C11": {
+     "level": "NA",
+     "note": "vs AVGO x2 (measured): 103 days, corr 0.997, fitted beta 1.99 (declared x2) | biggest gaps to the declared move: 2026-11-06 fund -1.0% vs +1.5%, 2026-11-05 fund -19.4% vs -20.9%, 2026-09-08 fund +4.8% vs +6.0% | facts only, not graded"
     }
    }
   }

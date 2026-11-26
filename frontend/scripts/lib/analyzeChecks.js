@@ -17,8 +17,9 @@
 // Day 126: A11 added with the Data Sources tab v2 (8 -> 9 checks).
 // Day 126: A12 added with the entry-timing ruler (9 -> 10 checks); A13 with the live price line (10 -> 11).
 // Day 127: A14 added (11 -> 12 checks) after /api/sr answered with NaN (invalid JSON) for 15 tickers and the runner only warned.
+// Day 135: A16 added (13 -> 14 checks): the saved-prices line under the header price; plan STALE_PRICE_AND_LEVERAGED_PLAN_DAY135.md.
 // Day 133: A15 added (12 -> 13 checks) with the Trade Setup live-price note (plan behind the live price); plan PLAN_VOID_BELOW_SUPPORT_PLAN_DAY133.md.
-const CHECK_IDS = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A9', 'A10', 'A11', 'A12', 'A13', 'A14', 'A15'];
+const CHECK_IDS = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A9', 'A10', 'A11', 'A12', 'A13', 'A14', 'A15', 'A16'];
 const NAMES = {
   A1: 'Card order (backdrop first)',
   A2: 'Removed elements absent',
@@ -33,6 +34,7 @@ const NAMES = {
   A13: 'Live price line matches /api/quote',
   A14: 'Price answers are valid JSON with a real price',
   A15: 'Trade Setup says when the live price is below its support zone',
+  A16: 'Saved or far-behind prices are said so under the header price',
 };
 const ORDER = ['card-market-backdrop', 'card-stock-header', 'card-technical-read', 'card-mr-read', 'card-trade-setup', 'card-fundamentals', 'card-breakout'];
 // A6 measures each card's BODY: the text below its title row and subtitle, which carry
@@ -483,11 +485,34 @@ function checkA15(dom, api, helpers) {
   return result('A15', problems.length === 0, 'void note with the live price, zone, last close, trade time; plan marked; sizing off; one tick; Key Levels note', problems.join('; ') || `void: ${t.slice(0, 100)}`);
 }
 
+// A16 (Day 135): when /api/stock says the bars are a saved copy (priceFreshness.servedFromStaleCache) or its freshness level is WARN/FAIL, the header says so, with the
+// newest bar's date; otherwise nothing appears. The expectation is derived here from the raw API fields (not from priceFreshness.js), so a bug in either place shows.
+function checkA16(dom, api) {
+  if (!ok(api.stock)) return result('A16', false, 'stock captured', '/api/stock response not captured');
+  const pf = api.stock.body.priceFreshness;
+  const text = norm(dom.freshText);
+  const shown = text.length > 0;
+  const stale = !!(pf && pf.servedFromStaleCache === true);
+  const behind = !!(pf && (pf.behindLevel === 'WARN' || pf.behindLevel === 'FAIL') && pf.newestDate);
+  if (!stale && !behind) {
+    return result('A16', !shown, 'no freshness line when the bars are current', shown ? `unexpected line: ${text.slice(0, 100)}` : 'none shown, none expected');
+  }
+  const problems = [];
+  if (!shown) problems.push('no line on the page');
+  else {
+    if (stale && !text.includes('Showing saved prices')) problems.push('saved copy but the line does not say "Showing saved prices"');
+    if (!stale && !text.includes('Latest price bar is')) problems.push('far-behind bars but the line does not say "Latest price bar is"');
+    const d = pf.newestDate ? new Date(`${pf.newestDate}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : null;
+    if (d && !text.includes(d)) problems.push(`the newest bar date ${d} is not in the line`);
+  }
+  return result('A16', problems.length === 0, `${stale ? 'saved-prices' : 'far-behind'} line with the newest bar date`, problems.join('; ') || `line: ${text.slice(0, 100)}`);
+}
+
 function runChecks(dom, api, helpers) {
   const d = dom || {};
   const a = api || {};
   if (d.error) return CHECK_IDS.map(id => result(id, false, 'analysis loads', `error banner: ${norm(d.error).slice(0, 120)}`));
-  const fns = { A1: checkA1, A2: checkA2, A3: checkA3, A4: checkA4, A5: checkA5, A6: checkA6, A9: checkA9, A10: checkA10, A11: checkA11, A12: checkA12, A13: checkA13, A14: checkA14, A15: checkA15 };
+  const fns = { A1: checkA1, A2: checkA2, A3: checkA3, A4: checkA4, A5: checkA5, A6: checkA6, A9: checkA9, A10: checkA10, A11: checkA11, A12: checkA12, A13: checkA13, A14: checkA14, A15: checkA15, A16: checkA16 };
   return CHECK_IDS.map(id => {
     try { return fns[id](d, a, helpers || {}); }
     catch (err) { return result(id, false, 'check runs', `check threw: ${err.message}`); }

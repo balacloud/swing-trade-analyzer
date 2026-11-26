@@ -84,6 +84,7 @@ const DOM = {
   timing: { present: true, unavailable: null, price: '$520.10', sentence: '$520.10 (now) is 1.5% below its 21-day average ($528.10)', basis: '(now)', ticks: [450.00, 510.00, 528.10], tickKeys: ['sma200', 'sma50', 'ema21'],
     ladder: [{ key: 'ema21', price: 528.10, gap: -1.5 }, { key: 'sma50', price: 510.00, gap: 2.0 }, { key: 'sma200', price: 450.00, gap: 15.6 }],
     nowRow: { price: 520.10, name: 'Now', index: 1 }, ladderOrder: [528.10, 520.10, 510.00, 450.00] },
+  freshText: '',
   live: { priceText: 'Now $520.10', changeText: ' (\u22120.74%)', statusText: ' \u00b7 Live \u00b7 last trade 2:51pm ET', closeText: 'Last close $523.88 \u00b7 Nov 13', tickCount: 0, timingNote: 'Last close $523.88 \u00b7 Nov 13' },
   ds: { present: true, error: false, symbol: 'AAPL', exchange: 'NasdaqGS', currency: 'USD', cls: 'Stock', dataFrom: 'Twelve Data', verdict: 'PASS',
     qualityRows: [], allPass: true,
@@ -359,6 +360,21 @@ mustFail('A14', '/api/sr was not captured', null, a => { a.sr = { status: null, 
 mustPass('A14', 'a failed (non-200) answer is left to the error-banner checks', null, a => { a.sr = { status: 500, body: { error: 'x' } }; });
 mustPass('A14', 'both answers are valid with real prices');
 
+
+// ---------- A16 saved or far-behind prices are said so (Day 135) ----------
+const A16_STALE = (a) => { a.stock.body.priceFreshness = { newestDate: '2026-11-24', expectedDate: '2026-11-25', sessionsBehind: 1, behindLevel: 'PASS', servedFromStaleCache: true, maybePartial: false }; };
+const A16_BEHIND = (a) => { a.stock.body.priceFreshness = { newestDate: '2026-11-19', expectedDate: '2026-11-25', sessionsBehind: 4, behindLevel: 'WARN', servedFromStaleCache: false, maybePartial: false }; };
+mustPass('A16', 'current bars, no line, no field', null, null);
+mustPass('A16', 'current bars with a PASS-level field, no line', null, (a) => { a.stock.body.priceFreshness = { newestDate: '2026-11-24', expectedDate: '2026-11-25', sessionsBehind: 1, behindLevel: 'PASS', servedFromStaleCache: false }; });
+mustPass('A16', 'saved copy: line with the date', d => { d.freshText = 'Showing saved prices up to Nov 24: every price source failed just now.'; }, A16_STALE);
+mustPass('A16', 'far-behind bars: line with the date', d => { d.freshText = 'Latest price bar is Nov 19, but the last completed trading day is Nov 25 (4 trading days behind).'; }, A16_BEHIND);
+mustFail('A16', 'saved copy but the page shows no line', null, A16_STALE);
+mustFail('A16', 'far-behind bars but the page shows no line', null, A16_BEHIND);
+mustFail('A16', 'a line is shown for current bars', d => { d.freshText = 'Showing saved prices up to Nov 24.'; }, null);
+mustFail('A16', 'saved copy line with the wrong date', d => { d.freshText = 'Showing saved prices up to Nov 20: every price source failed just now.'; }, A16_STALE);
+mustFail('A16', 'saved copy with the far-behind wording', d => { d.freshText = 'Latest price bar is Nov 24.'; }, A16_STALE);
+mustFail('A16', 'far-behind bars with the saved-copy wording', d => { d.freshText = 'Showing saved prices up to Nov 19: every price source failed just now.'; }, A16_BEHIND);
+mustFail('A16', '/api/stock not captured', null, (a) => { a.stock = { status: null, body: null }; });
 
 // ---------- A15 Trade Setup live-price note (Day 133) ----------
 // Fixture: AAPL zone 260.50 - 262.10, Buy 262.10, ATR 14.07 -> stop 233.96, last close (sr currentPrice) 270.50, header trade time 2:51pm ET.

@@ -37,6 +37,7 @@ REPO = os.path.dirname(BACKEND)
 sys.path.insert(0, BACKEND)
 
 from market_time import MARKET_TZ  # noqa: E402
+from providers.fallback_policy import tradier_blocked  # noqa: E402  (Day 135: the audit follows the same Tradier rule as the app)
 import data_quality as dq  # noqa: E402  (Day 126: the checks live in ONE place, shared with the Data Sources tab)
 
 TODAY = datetime.now(MARKET_TZ)
@@ -227,7 +228,12 @@ ICON = dq.ICON
 def chain_sources(sym):
     """Every source that STA's real chain can fall through to for this ticker. Any of them can serve a request
     (Twelve Data is rate-limited all day, so Yahoo and Tradier serve many US fetches; Alpaca is first since Day 129), so ALL must be clean."""
-    return ['yfinance'] if is_ca(sym) else ['alpaca', 'twelvedata', 'yfinance', 'tradier']
+    if is_ca(sym):
+        return ['yfinance']
+    chain = ['alpaca', 'twelvedata', 'yfinance', 'tradier']
+    # Day 135: the app NEVER serves a leveraged fund from Tradier (providers/fallback_policy.py, same rule as orchestrator.py), so a Tradier-only
+    # error cannot reach a user and must not turn the ticker red. Tradier stays in `frames` as a comparison only.
+    return [s for s in chain if not (s == 'tradier' and tradier_blocked(sym))]
 
 
 def source_checks(name, h, others):
@@ -281,11 +287,56 @@ def source_checks(name, h, others):
     return res
 
 
-def grade(sym, frames, tab):
+def _close_series(frames):
+    """Closes of the first source that has a frame (Alpaca first). Used for a reference ticker, where any clean source will do."""
+    for s in ('alpaca', 'twelvedata', 'yfinance', 'tradier'):
+        f = (frames or {}).get(s)
+        if isinstance(f, pd.DataFrame) and len(f):
+            return f['close']
+    return None
+
+
+def tracking_check(sym, h, all_frames, jump_dates=()):
+    """C11 'tracks its underlying' (Day 135, plan STALE_PRICE_AND_LEVERAGED_PLAN_DAY135.md). AUDIT ONLY: the Data Sources tab reads one cached frame
+    and the reference may not be cached. FACTS, never a grade: the level is 'NA' (not graded) with the numbers in the note, because no tolerance has been
+    tested. Empty dict for a ticker that is not a mapped leveraged fund."""
+    ref = dq.leveraged_reference(sym)
+    if ref is None:
+        return {}
+    if h is None:
+        return {'C11': ('NA', 'no data for the fund')}
+    if not ref.get('reference'):
+        return {'C11': ('NA', f"no reference price: {ref.get('note', 'not mapped')}")}
+    ref_close = _close_series((all_frames or {}).get(ref['reference']))
+    if ref_close is None:
+        return {'C11': ('NA', f"reference {ref['reference']} is not in this audit run")}
+    # Rule 66: compare the copy the app USES. The saved frames are raw (a split the app's table corrects, e.g. SOXL.NE 3:1 on 2026-05-25, is still
+    # unadjusted here), so apply the same split table first; otherwise a covered split shows up as a fake 60% gap.
+    fund_close = h['close']
+    try:
+        import split_adjust
+        fund_close = split_adjust.adjust_for_splits(h, sym)[0]['close']
+    except Exception as e:   # say so; fall back to raw rather than fail the audit
+        print(f'   ⚠️ C11 {sym}: split adjustment failed, using the raw frame: {e}')
+    f = dq.tracking_facts(fund_close, ref_close, ref.get('multiple'), jump_dates)
+    if f.get('state') != 'ok':
+        return {'C11': ('NA', f"vs {ref['reference']}: {f.get('reason')}")}
+    mult = ref.get('multiple')
+    parts = [f"vs {ref['reference']}{f' x{mult}' if mult is not None else ''} ({ref.get('basis')}): {f['n']} days, corr {f['corr']}, fitted beta {f['beta']}"
+             + ('' if mult is None else f' (declared x{mult})')]
+    if f['worst']:
+        parts.append('biggest gaps to the declared move: ' + ', '.join(f"{w['date']} fund {w['fund_pct']:+.1f}% vs {w['expected_pct']:+.1f}%" for w in f['worst']))
+    if f['jumps']:
+        parts.append('on big-move days: ' + ', '.join(f"{j['date']} fund {j['fund_pct']:+.1f}% vs " + (f"{j['expected_pct']:+.1f}%" if j['expected_pct'] is not None else f"{ref['reference']} {j['ref_pct']:+.1f}%") for j in f['jumps']))
+    parts.append('facts only, not graded')
+    return {'C11': ('NA', ' | '.join(parts))}
+
+
+def grade(sym, frames, tab, all_frames=None):
     """Returns {check: (level, note)} plus 'used' (the source the tab says served it, else the first in the chain)."""
     chain = [s for s in chain_sources(sym) if isinstance(frames.get(s), pd.DataFrame) and len(frames[s])]
     if not chain:
-        return {'used': None, **{k: ('FAIL', 'no source returned data') for k in ('C2', 'C4', 'C5', 'C6', 'C8', 'C9')}}
+        return {'used': None, **{k: ('FAIL', 'no source returned data') for k in ('C2', 'C4', 'C5', 'C6', 'C8', 'C9')}, **tracking_check(sym, None, all_frames)}
     extras = {s: f for s, f in frames.items() if isinstance(f, pd.DataFrame) and len(f)}   # incl. EODHD, a comparison only
     per = {s: source_checks(s, extras[s], {o: f for o, f in extras.items() if o != s}) for s in chain}
     res = {}
@@ -343,6 +394,7 @@ def grade(sym, frames, tab):
     else:
         res['C8'] = ('NA', 'tab not queried')
     res['used'] = used
+    res.update(tracking_check(sym, h, all_frames, jump_dates=[j['date'] for j in dq.check_history(h, now=TODAY, ticker=sym).get('jumps', [])]))
     res['per_source'] = {s: {k: per[s][k][0] for k in per[s]} for s in per}
     return res
 
@@ -397,7 +449,7 @@ def main():
     rows = []
     for cls, sym, why in UNIVERSE:
         tab = tab_claim(sym, saved_tabs)
-        g = grade(sym, cache.get(sym, {}), tab)
+        g = grade(sym, cache.get(sym, {}), tab, all_frames=cache)
         ps = g.pop('per_source', {})
         rows.append({'class': cls, 'symbol': sym, 'why': why, 'used': g.pop('used'), 'tab': tab, 'per_source': ps,
                      'sources': {s: (len(f) if isinstance(f, pd.DataFrame) else f) for s, f in cache.get(sym, {}).items()},
@@ -423,6 +475,12 @@ def write_report(rows, d, suffix=''):
         c = r['checks']
         n = r['sources'].get(r['used']) if r['used'] else '—'
         L.append(f"| {r['class']} | `{r['symbol']}` | {r['used'] or '—'} | {n} | " + ' | '.join(ICON[c[k]['level']] for k in ('C2', 'C4', 'C5', 'C6', 'C8', 'C9')) + ' |')
+    lev = [r for r in rows if 'C11' in r['checks']]
+    if lev:
+        L.append('\n## Leveraged funds: tracks its underlying (C11, facts only, not graded)\n')
+        L.append('The fund\'s daily move compared with `declared multiple x the underlying\'s move`. Dates are joined first. The underlying map is `backend/reference/leveraged_underlyings.json` (some entries identified by measurement, not by prospectus).\n')
+        for r in lev:
+            L.append(f"- `{r['symbol']}`: {r['checks']['C11']['note']}")
     L.append('\n## Verdict per class\n')
     by = {}
     for r in rows:
@@ -452,7 +510,7 @@ def write_report(rows, d, suffix=''):
 - **Canada has one source for most tickers.** Only the tickers listed with EODHD had a second opinion (free quota: 20 calls a day). The rest show `—` in C9, which means unchecked, not clean.
 - **Freshness ignores market holidays** (it uses weekdays).
 - **Tradier is not dividend-adjusted**, so its old closes differ slightly from Yahoo's on ex-dividend days; the close check only looks at the last 20 sessions.
-- Not run: identity/currency (C1), close accuracy vs the broker (C3), volume vs the broker (C7), fundamentals and classification (C10), Alpha Vantage.
+- Not run: identity/currency (C1), close accuracy vs the broker (C3), volume vs the broker (C7), fundamentals and classification (C10), Alpha Vantage. C11 (leveraged funds track their underlying) is facts only and not graded.
 ''')
     open(os.path.join(d, f'REPORT{suffix}.md'), 'w').write('\n'.join(L) + '\n')
 

@@ -19,7 +19,7 @@ import re
 import numpy as np
 import pandas as pd
 
-from market_time import MARKET_TZ, drop_forming_bar
+from market_time import MARKET_TZ, MARKET_CLOSE_HOUR, MARKET_CLOSE_MIN, drop_forming_bar
 
 logger = logging.getLogger(__name__)
 
@@ -128,6 +128,40 @@ def check_history(df, now=None, ticker=None):
     except Exception as e:   # never take the endpoint down; say what failed
         logger.warning('data_quality.check_history failed for %s: %s', ticker or '?', e)
         return {'state': 'error', 'reason': f'{type(e).__name__}: {str(e)[:120]}'}
+
+
+def price_freshness(df, served_stale=False, cached_at=None, now=None):
+    """Day 135 (plan STALE_PRICE_AND_LEVERAGED_PLAN_DAY135.md): facts for the Analyze page's "are these prices current?" line.
+    `df` is the frame the page is built from (lowercase columns, today's forming bar already dropped). Reuses expected_last_session and
+    level_freshness(tolerant=True) (3+ sessions behind = WARN: a holiday explains 0-2, and there is no holiday calendar), so there is no
+    third threshold. `served_stale` = the orchestrator marked the frame as a saved copy because every source failed.
+    maybePartial: the saved copy was written before the close of its own last bar's day, so that bar may be a partial one.
+    Never raises; returns the same keys with None where unknown."""
+    out = {'newestDate': None, 'expectedDate': None, 'sessionsBehind': None, 'behindLevel': 'PASS',
+           'servedFromStaleCache': bool(served_stale), 'maybePartial': False}
+    try:
+        if df is None or len(df) == 0 or 'close' not in df.columns:
+            return out
+        last = df['close'].last_valid_index()
+        if last is None:
+            return out
+        last = pd.Timestamp(last)
+        if last.tzinfo is not None:
+            last = last.tz_localize(None)
+        last = last.normalize()
+        exp = expected_last_session(now)
+        behind = int(max(0, np.busday_count(last.date(), exp.date())))
+        out.update(newestDate=str(last.date()), expectedDate=str(exp.date()), sessionsBehind=behind,
+                   behindLevel=level_freshness(behind, tolerant=True))
+        if served_stale and cached_at:
+            written = pd.Timestamp(cached_at)
+            if written.tzinfo is None:
+                written = written.tz_localize(MARKET_TZ)
+            closed = pd.Timestamp(last.date()).tz_localize(MARKET_TZ).replace(hour=MARKET_CLOSE_HOUR, minute=MARKET_CLOSE_MIN)
+            out['maybePartial'] = bool(written < closed)
+    except Exception as e:   # never take the endpoint down; say what failed
+        logger.warning('data_quality.price_freshness failed: %s', e)
+    return out
 
 
 # ---------------------------------------------------------------------------------------------- levels
@@ -277,6 +311,64 @@ def _lead_segment(note):
             if marker in seg:
                 return seg
     return segs[0] if segs else note
+
+
+LEVERAGED_MAP = os.path.join(REFERENCE_DIR, 'leveraged_underlyings.json')
+
+
+def leveraged_reference(sym, path=LEVERAGED_MAP):
+    """{'reference', 'multiple', 'basis', 'note'} for a leveraged fund, or None when the fund is not listed. Never raises (a bad file is logged)."""
+    try:
+        entry = json.load(open(path)).get((sym or '').upper())
+        return dict(entry) if isinstance(entry, dict) else None
+    except Exception as e:
+        logger.warning('leveraged_underlyings read failed: %s', e)
+        return None
+
+
+TRACKING_MIN_DAYS = 20   # fewest common daily moves for a correlation and beta to mean anything (a data-sufficiency floor, not a quality threshold)
+
+
+def tracking_facts(fund_close, ref_close, multiple=None, jump_dates=()):
+    """Day 135 (plan STALE_PRICE_AND_LEVERAGED_PLAN_DAY135.md): FACTS about how a leveraged fund's daily move compares with its underlying's.
+    Two close series (DatetimeIndex). Dates are joined FIRST, then returns are taken on the joined dates, so a day missing in one series cannot
+    misalign the moves. No tolerance and no verdict: it reports the correlation, the fitted beta (shown for comparison with the DECLARED
+    `multiple`, never used instead of it), the 3 days with the biggest gap to `multiple x underlying move`, and for each date in `jump_dates` the
+    fund's move beside `multiple x underlying move`. Never raises; returns {'state': 'error', 'reason': ...} when it cannot compute."""
+    try:
+        if fund_close is None or ref_close is None or len(fund_close) == 0 or len(ref_close) == 0:
+            return {'state': 'error', 'reason': 'a price series is empty'}
+        def norm(s):
+            s = pd.Series(s).astype(float).copy()
+            idx = pd.to_datetime(s.index)
+            if getattr(idx, 'tz', None) is not None:
+                idx = idx.tz_localize(None)
+            s.index = idx.normalize()
+            return s[~s.index.duplicated(keep='last')].sort_index()
+        both = pd.concat([norm(fund_close), norm(ref_close)], axis=1, join='inner', keys=['f', 'r']).dropna()
+        both = both[(both['f'] > 0) & (both['r'] > 0)]
+        ret = both.pct_change(fill_method=None).dropna()
+        if len(ret) < TRACKING_MIN_DAYS:
+            return {'state': 'error', 'reason': f'only {len(ret)} common daily moves'}
+        if float(ret['r'].std()) == 0.0 or float(ret['f'].std()) == 0.0:
+            return {'state': 'error', 'reason': 'one series does not move'}
+        out = {'state': 'ok', 'n': int(len(ret)), 'corr': round(float(ret['f'].corr(ret['r'])), 3),
+               'beta': round(float(np.polyfit(ret['r'], ret['f'], 1)[0]), 2), 'multiple': multiple, 'worst': [], 'jumps': []}
+        if multiple is not None:
+            gap = (ret['f'] - multiple * ret['r'])
+            for d in gap.abs().sort_values(ascending=False).index[:3]:
+                out['worst'].append({'date': str(d.date()), 'fund_pct': round(float(ret['f'][d]) * 100, 1),
+                                     'expected_pct': round(float(multiple * ret['r'][d]) * 100, 1), 'gap_pct': round(float(gap[d]) * 100, 1)})
+        for jd in jump_dates:
+            d = pd.Timestamp(jd).normalize()
+            if d in ret.index:
+                out['jumps'].append({'date': str(d.date()), 'fund_pct': round(float(ret['f'][d]) * 100, 1),
+                                     'ref_pct': round(float(ret['r'][d]) * 100, 1),
+                                     'expected_pct': None if multiple is None else round(float(multiple * ret['r'][d]) * 100, 1)})
+        return out
+    except Exception as e:   # never take the audit down; say what failed
+        logger.warning('data_quality.tracking_facts failed: %s', e)
+        return {'state': 'error', 'reason': f'{type(e).__name__}: {str(e)[:100]}'}
 
 
 def update_audit_reference(section, generated, report, tickers, path=AUDIT_LATEST):

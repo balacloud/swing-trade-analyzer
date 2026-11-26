@@ -428,9 +428,23 @@ class CardAudit(Audit):
             return
         c = self.c
         if len(c) <= 200:   # by design: the year-ago price needs more than 200 bars
-            ok_na = bool(re.search(r'RS vs S&P 500: N/A Stock 52W Return: N/A S&P 52W Return: N/A', self.text))
-            self.addc('RS1', f'a history of {len(c)} bars (<= 200) cannot give a 52-week RS: the card says N/A, never a number', 'N/A' if ok_na else 'a number', 'N/A', 'PASS' if ok_na else 'WRONG',
-                      'by design (needs more than 200 bars); the card does not say why' if ok_na else '')
+            # Day 135: the card now adds a reason line between the first row and the two return rows ("Needs more than 200 days of price history (N loaded),
+            # so there is no 52-week comparison yet."). The old pattern needed the three N/A fields side by side, did not match, and the row reported "a number"
+            # for DRAL and AVGC with no number on the card. A number is reported only when digits are actually captured.
+            m_na = re.search(r'RS vs S&P 500: N/A (?:Needs more than 200 days of price history \((\d+) loaded\), so there is no 52-week comparison yet\. )?Stock 52W Return: N/A S&P 52W Return: N/A', self.text)
+            m_num = re.search(r'RS vs S&P 500: (-?\d[\d.]*)', self.text)
+            claim = f'a history of {len(c)} bars (<= 200) cannot give a 52-week RS: the card says N/A, never a number'
+            if m_na:
+                self.work = self.work.replace(m_na.group(0), ' § ', 1)
+                loaded = m_na.group(1)
+                if loaded is not None and int(loaded) != len(c):
+                    self.addc('RS1', claim, f'N/A, and the reason line says {loaded} bars loaded', f'N/A, {len(c)} bars loaded', 'WRONG', 'the reason line quotes a different bar count than the price history')
+                else:
+                    self.addc('RS1', claim, 'N/A', 'N/A', 'PASS', 'by design (needs more than 200 bars); the card says why' if loaded is not None else 'by design (needs more than 200 bars)')
+            elif m_num:
+                self.addc('RS1', claim, f'a number ({m_num.group(1)})', 'N/A', 'WRONG')
+            else:
+                self.addc('RS1', claim, 'the RS rows were not found in the expected form', 'N/A', 'UNVERIFIED', 'could not read the card text; not a pass')
             return
         sc = [b['close'] for b in (self.spy.get('priceHistory') or [])]
         if len(sc) < 201:
