@@ -44,6 +44,7 @@ import { calculatePositionSize, loadSettings, saveSettings, getDefaultSettings, 
 import { runCategoricalAssessment } from './utils/categoricalAssessment';
 import { formatMoney } from './utils/formatMoney';
 import { describePriceFreshness } from './utils/priceFreshness';
+import { describeDataNotes } from './utils/dataNotes'; // Day 135: thin-data and leveraged-comparison lines under the price
 import { describePriceAsOf } from './utils/priceAsOf'; // Day 124: header price date label
 import { signedPct } from './utils/liveQuote'; // Day 126: live price line
 import useLiveQuote from './hooks/useLiveQuote'; // Day 126: display-only live price
@@ -1019,8 +1020,12 @@ function App() {
                         {/* Day 135: say so when the prices are a saved copy (every source failed) or far behind; facts only, nothing otherwise */}
                         {(() => {
                           const fresh = describePriceFreshness(rawAnalysisData?.stock?.priceFreshness, rawAnalysisData?.stock?.ticker);
-                          return fresh ? <p data-testid="price-freshness" className="text-xs text-amber-400 mt-1">{fresh}</p> : null;
+                          return fresh ? <p data-testid="price-freshness" className="w-full text-xs text-amber-400 mt-1">{fresh}</p> : null;
                         })()}
+                        {/* Day 135: thin-data note (the Data Sources tab's own integrity wording) and the leveraged fund's measured comparison; facts only, nothing otherwise */}
+                        {describeDataNotes(rawAnalysisData?.stock?.dataNotes).map(n => (
+                          <p key={n.id} data-testid={`data-note-${n.id}`} className={`w-full text-xs mt-1 ${n.id === 'integrity' ? 'text-amber-400' : 'text-gray-400'}`}>{n.text}</p>
+                        ))}
                         {/* Day 49: v4.10 Earnings Warning Badge */}
                         {earningsData?.hasUpcoming && (
                           <span
@@ -2395,7 +2400,7 @@ function App() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>v4.72 - Multi-Source Data Intelligence</p>
+          <p>v4.73 - Multi-Source Data Intelligence</p>
         </div>
       </div>
     </div>

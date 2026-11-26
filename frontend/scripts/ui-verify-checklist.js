@@ -157,6 +157,8 @@ async function extractDom(page) {
         sizeBtn: !!q('size-this-plan'),
         staleNote: text(q('key-levels-stale-note')),
       },
+      noteIntegrity: text(q('data-note-integrity')),   // Day 135 (A17): thin-data note under the header price
+      noteTracking: text(q('data-note-tracking')),     // Day 135 (A17): leveraged fund's measured comparison
       freshText: text(q('price-freshness')),   // Day 135 (A16): the saved-prices line under the header price
       planBuy: text(q('plan-buy-value')),
       levelRows: { support: text(q('key-level-support')), resistance: text(q('key-level-resistance')) },

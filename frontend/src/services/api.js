@@ -56,7 +56,9 @@ export async function fetchStockData(ticker) {
       oldestDate: data.oldestDate,
       newestDate: data.newestDate,
       // Day 135: this object is rebuilt field by field (Golden Rule 30). Without this line the saved-prices facts never reach the page.
-      priceFreshness: data.priceFreshness ?? null
+      priceFreshness: data.priceFreshness ?? null,
+      // Day 135: {integrity, tracking} header notes (Golden Rule 30: listed here or they never reach the page)
+      dataNotes: data.dataNotes ?? null
     };
     
   } catch (error) {

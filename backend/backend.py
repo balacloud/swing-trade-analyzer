@@ -83,7 +83,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 # /api/sectors/pullback-screen endpoint (SRPS discretionary screener).
 # Day 105: bumped to 2.46 for the new /api/sectors/sub-industry-pullback-screen
 # endpoint + the shared _srps_true_rs()/_srps_evaluate_candidate() refactor.
-BACKEND_VERSION = '2.60'
+BACKEND_VERSION = '2.61'
 
 # Day 116: market-hours test for "is /api/sr's last bar still forming?" Mirrors
 # paper_trading/live_signals.py's _prepare_ohlcv() guard (Day 99, Golden Rule 33 —
@@ -973,23 +973,8 @@ def get_data_provenance(ticker):
     # All read from the cache WITHOUT side effects and without provider calls (free quotas).
     quality = {'state': 'not_cached'}
     if SQLITE_CACHE_AVAILABLE:
-        try:
-            _df, _meta = cache_manager.read_ohlcv_entry(ticker)
-            if _df is not None:
-                _facts = data_quality.check_history(_df, ticker=ticker)
-                _q = data_quality.quality_level(_facts, tolerant=True, source=_meta['source'], blocked=tradier_blocked(ticker))
-                quality = {
-                    'state': 'ok' if _facts.get('state') == 'ok' else 'error',
-                    'reason': _facts.get('reason'),
-                    'level': _q['level'], 'checks': _q['checks'], 'facts': _facts,
-                    # What was checked: the cache keeps ONE row per ticker whatever the period (a 1y caller overwrites a 2y
-                    # frame), and Analyze uses only the last 260 bars, so say exactly what this is.
-                    'period': _meta['period'], 'rows': _meta['rows'], 'source': _meta['source'],
-                    'cached_at': _meta['cached_at'], 'expired': _meta['expired'],
-                }
-        except Exception as e:
-            print(f"⚠️ provenance quality failed for {ticker}: {e}")
-            quality = {'state': 'error', 'reason': f'{type(e).__name__}: {str(e)[:120]}'}
+        # Day 135: ONE builder for this block, shared with the Analyze header note (/api/stock dataNotes), so the page and the tab cannot differ.
+        quality = data_quality.cached_quality(ticker)
 
     fund_has_data = None
     if SQLITE_CACHE_AVAILABLE:
@@ -1237,7 +1222,8 @@ def get_stock_data(ticker):
             'oldestDate': price_history[0]['date'] if price_history else None,
             'newestDate': price_history[-1]['date'] if price_history else None,
             'formingBarDropped': bool(forming_dropped),  # Day 126: today's unfinished bar was left out
-            'priceFreshness': _price_freshness            # Day 135: newestDate, expectedDate, sessionsBehind, behindLevel, servedFromStaleCache, maybePartial
+            'priceFreshness': _price_freshness,           # Day 135: newestDate, expectedDate, sessionsBehind, behindLevel, servedFromStaleCache, maybePartial
+            'dataNotes': data_quality.data_notes(ticker)  # Day 135: {integrity, tracking}; same quality block as the Data Sources tab, facts only
         }
         
         return jsonify(response)

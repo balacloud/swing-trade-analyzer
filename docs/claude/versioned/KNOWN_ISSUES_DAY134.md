@@ -81,3 +81,6 @@ VFV.TO served the saved copy on Nov 24 at 6:02 pm (Yahoo "Rate limit exceeded" d
 
 ### Info (Day 135): leveraged-fund audit state
 After the Tradier fix and C11, no leveraged fund FAILs C5. Remaining: SOXL.NE C4 FAIL (Yahoo close-only, 100% flat zero-volume, known); NVDL and QPUX big jumps are real (NVDL +61.7% = 2 x NVDA +31.5%; QPUX +48% on 2026-05-21 matches IBKR). SPCL and QPUX have no matching underlying in the 117-ticker universe. GDXU.TO declared multiple unknown (fitted beta 1.9 vs GDX, corr 0.98). Map entries marked `measured` were identified by correlation, not by prospectus.
+
+### Info (Day 135, later): thin Canadian ETFs now say so in the header
+XDRV.TO (82% flat zero-volume bars), FINN.NE (28 malformed bars), SOXL.NE (close-only, no volume) and RBOT.TO, CARS.TO, COPP.TO, SGRD.TO (WARN) show the Data Sources integrity wording under the price. Data unchanged: Yahoo's close differs from IBKR by up to 2.15% (XDRV.TO) and 2.64% (CARS.TO) on settled days and no third source can say which is right; the fix needs the second Canada source (ROADMAP #30). FINN.NE's high/low are not repaired (closes match IBKR).

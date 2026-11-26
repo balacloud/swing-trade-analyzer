@@ -17,9 +17,10 @@
 // Day 126: A11 added with the Data Sources tab v2 (8 -> 9 checks).
 // Day 126: A12 added with the entry-timing ruler (9 -> 10 checks); A13 with the live price line (10 -> 11).
 // Day 127: A14 added (11 -> 12 checks) after /api/sr answered with NaN (invalid JSON) for 15 tickers and the runner only warned.
+// Day 135: A17 added (14 -> 15 checks): the thin-data and leveraged-comparison lines; plan DATA_NOTES_PLAN_DAY135.md.
 // Day 135: A16 added (13 -> 14 checks): the saved-prices line under the header price; plan STALE_PRICE_AND_LEVERAGED_PLAN_DAY135.md.
 // Day 133: A15 added (12 -> 13 checks) with the Trade Setup live-price note (plan behind the live price); plan PLAN_VOID_BELOW_SUPPORT_PLAN_DAY133.md.
-const CHECK_IDS = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A9', 'A10', 'A11', 'A12', 'A13', 'A14', 'A15', 'A16'];
+const CHECK_IDS = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A9', 'A10', 'A11', 'A12', 'A13', 'A14', 'A15', 'A16', 'A17'];
 const NAMES = {
   A1: 'Card order (backdrop first)',
   A2: 'Removed elements absent',
@@ -35,6 +36,7 @@ const NAMES = {
   A14: 'Price answers are valid JSON with a real price',
   A15: 'Trade Setup says when the live price is below its support zone',
   A16: 'Saved or far-behind prices are said so under the header price',
+  A17: 'Thin-data and leveraged-comparison notes match /api/stock',
 };
 const ORDER = ['card-market-backdrop', 'card-stock-header', 'card-technical-read', 'card-mr-read', 'card-trade-setup', 'card-fundamentals', 'card-breakout'];
 // A6 measures each card's BODY: the text below its title row and subtitle, which carry
@@ -508,11 +510,38 @@ function checkA16(dom, api) {
   return result('A16', problems.length === 0, `${stale ? 'saved-prices' : 'far-behind'} line with the newest bar date`, problems.join('; ') || `line: ${text.slice(0, 100)}`);
 }
 
+// A17 (Day 135): the header says "Price data: ..." only when /api/stock's dataNotes.integrity is WARN/FAIL (quoting the API's own note), and the leveraged comparison
+// only when dataNotes.tracking exists (naming the reference, the correlation and the day count). Any other state: no such line. The expectation is derived here from the
+// raw API fields (not from dataNotes.js), so a bug in either place shows as a mismatch.
+function checkA17(dom, api) {
+  if (!ok(api.stock)) return result('A17', false, 'stock captured', '/api/stock response not captured');
+  const dn = api.stock.body.dataNotes || {};
+  const iText = norm(dom.noteIntegrity), tText = norm(dom.noteTracking);
+  const i = dn.integrity, t = dn.tracking;
+  const wantI = !!(i && (i.level === 'WARN' || i.level === 'FAIL') && i.note);
+  const wantT = !!(t && t.reference && Number.isFinite(t.corr) && Number.isFinite(t.n));
+  const problems = [];
+  if (wantI) {
+    if (!iText) problems.push('integrity note missing on the page');
+    else if (!iText.includes(norm(i.note))) problems.push('integrity line does not quote the API note');
+  } else if (iText) problems.push(`unexpected integrity line: ${iText.slice(0, 80)}`);
+  if (wantT) {
+    if (!tText) problems.push('comparison line missing on the page');
+    else {
+      if (!tText.includes(t.reference)) problems.push('comparison line does not name the reference');
+      if (!tText.includes(t.corr.toFixed(3))) problems.push(`comparison line lacks correlation ${t.corr.toFixed(3)}`);
+      if (!tText.includes(`${t.n} trading days`)) problems.push(`comparison line lacks ${t.n} trading days`);
+    }
+  } else if (tText) problems.push(`unexpected comparison line: ${tText.slice(0, 80)}`);
+  const what = [wantI ? 'integrity' : null, wantT ? 'comparison' : null].filter(Boolean).join(' + ') || 'no notes';
+  return result('A17', problems.length === 0, `notes shown exactly when /api/stock has them (${what})`, problems.join('; ') || `shown: ${what}`);
+}
+
 function runChecks(dom, api, helpers) {
   const d = dom || {};
   const a = api || {};
   if (d.error) return CHECK_IDS.map(id => result(id, false, 'analysis loads', `error banner: ${norm(d.error).slice(0, 120)}`));
-  const fns = { A1: checkA1, A2: checkA2, A3: checkA3, A4: checkA4, A5: checkA5, A6: checkA6, A9: checkA9, A10: checkA10, A11: checkA11, A12: checkA12, A13: checkA13, A14: checkA14, A15: checkA15, A16: checkA16 };
+  const fns = { A1: checkA1, A2: checkA2, A3: checkA3, A4: checkA4, A5: checkA5, A6: checkA6, A9: checkA9, A10: checkA10, A11: checkA11, A12: checkA12, A13: checkA13, A14: checkA14, A15: checkA15, A16: checkA16, A17: checkA17 };
   return CHECK_IDS.map(id => {
     try { return fns[id](d, a, helpers || {}); }
     catch (err) { return result(id, false, 'check runs', `check threw: ${err.message}`); }

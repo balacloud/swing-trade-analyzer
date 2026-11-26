@@ -110,6 +110,16 @@
     "report": "docs/test/DataSources_20261119/REPORT_vs_IBKR.md",
     "level": "PASS",
     "line": ""
+   },
+   "tracking": {
+    "reference": "DRAM",
+    "multiple": 2,
+    "basis": "measured",
+    "twin": false,
+    "corr": 0.997,
+    "beta": 1.93,
+    "n": 106,
+    "date": "2026-11-24"
    }
   },
   "SPCL": {
@@ -138,6 +148,16 @@
     "report": "docs/test/DataSources_20261119/REPORT_vs_IBKR.md",
     "level": "PASS",
     "line": ""
+   },
+   "tracking": {
+    "reference": "BOTZ",
+    "multiple": 2,
+    "basis": "measured",
+    "twin": false,
+    "corr": 0.998,
+    "beta": 1.98,
+    "n": 503,
+    "date": "2026-11-24"
    }
   },
   "RY.TO": {
@@ -264,6 +284,16 @@
     "report": "docs/test/DataSources_20261119/REPORT_vs_IBKR.md",
     "level": "PASS",
     "line": ""
+   },
+   "tracking": {
+    "reference": "GDX",
+    "multiple": null,
+    "basis": "measured",
+    "twin": false,
+    "corr": 0.98,
+    "beta": 1.9,
+    "n": 490,
+    "date": "2026-11-24"
    }
   },
   "SOXL.NE": {
@@ -278,6 +308,16 @@
     "report": "docs/test/DataSources_20261119/REPORT_vs_IBKR.md",
     "level": "FAIL",
     "line": "yfinance C7: source volume is zero"
+   },
+   "tracking": {
+    "reference": "SOXL",
+    "multiple": 1,
+    "basis": "measured",
+    "twin": true,
+    "corr": 0.999,
+    "beta": 1.01,
+    "n": 312,
+    "date": "2026-11-24"
    }
   },
   "AMD.TO": {
@@ -670,6 +710,16 @@
     "report": "docs/test/DataSources_20261125/REPORT.md",
     "level": "WARN",
     "line": "C5: alpaca: 2025-04-09 +55%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR)"
+   },
+   "tracking": {
+    "reference": "SOXX",
+    "multiple": 3,
+    "basis": "measured",
+    "twin": false,
+    "corr": 0.999,
+    "beta": 2.96,
+    "n": 503,
+    "date": "2026-11-24"
    }
   },
   "URAA": {
@@ -684,6 +734,16 @@
     "report": "docs/test/DataSources_20261125/REPORT.md",
     "level": "WARN",
     "line": "C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
+   },
+   "tracking": {
+    "reference": "URA",
+    "multiple": 2,
+    "basis": "measured",
+    "twin": false,
+    "corr": 0.991,
+    "beta": 1.9,
+    "n": 503,
+    "date": "2026-11-24"
    }
   },
   "COPZ": {
@@ -698,6 +758,16 @@
     "report": "docs/test/DataSources_20261125/REPORT.md",
     "level": "WARN",
     "line": "C2: alpaca: last bar 2026-11-23, expected 2026-11-24 (1 session behind)"
+   },
+   "tracking": {
+    "reference": "COPX",
+    "multiple": 2,
+    "basis": "measured",
+    "twin": false,
+    "corr": 0.996,
+    "beta": 2.0,
+    "n": 193,
+    "date": "2026-11-24"
    }
   },
   "NVDL": {
@@ -712,6 +782,16 @@
     "report": "docs/test/DataSources_20261125/REPORT.md",
     "level": "WARN",
     "line": "C5: alpaca: 2026-11-23 +62%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR)"
+   },
+   "tracking": {
+    "reference": "NVDA",
+    "multiple": 2,
+    "basis": "stock",
+    "twin": false,
+    "corr": 1.0,
+    "beta": 1.98,
+    "n": 503,
+    "date": "2026-11-24"
    }
   },
   "AAPU": {
@@ -726,6 +806,16 @@
     "report": "docs/test/DataSources_20261125/REPORT.md",
     "level": "WARN",
     "line": "C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
+   },
+   "tracking": {
+    "reference": "AAPL",
+    "multiple": 2,
+    "basis": "stock",
+    "twin": false,
+    "corr": 0.999,
+    "beta": 1.98,
+    "n": 503,
+    "date": "2026-11-24"
    }
   },
   "MSFU": {
@@ -740,6 +830,16 @@
     "report": "docs/test/DataSources_20261125/REPORT.md",
     "level": "WARN",
     "line": "C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
+   },
+   "tracking": {
+    "reference": "MSFT",
+    "multiple": 2,
+    "basis": "stock",
+    "twin": false,
+    "corr": 0.999,
+    "beta": 1.98,
+    "n": 503,
+    "date": "2026-11-24"
    }
   },
   "METU": {
@@ -754,6 +854,16 @@
     "report": "docs/test/DataSources_20261125/REPORT.md",
     "level": "WARN",
     "line": "C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
+   },
+   "tracking": {
+    "reference": "META",
+    "multiple": 2,
+    "basis": "stock",
+    "twin": false,
+    "corr": 1.0,
+    "beta": 2.0,
+    "n": 503,
+    "date": "2026-11-24"
    }
   },
   "GGLL": {
@@ -768,6 +878,16 @@
     "report": "docs/test/DataSources_20261125/REPORT.md",
     "level": "WARN",
     "line": "C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
+   },
+   "tracking": {
+    "reference": "GOOGL",
+    "multiple": 2,
+    "basis": "stock",
+    "twin": false,
+    "corr": 1.0,
+    "beta": 2.0,
+    "n": 503,
+    "date": "2026-11-24"
    }
   },
   "NFXL": {
@@ -782,6 +902,16 @@
     "report": "docs/test/DataSources_20261125/REPORT.md",
     "level": "WARN",
     "line": "C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
+   },
+   "tracking": {
+    "reference": "NFLX",
+    "multiple": 2,
+    "basis": "stock",
+    "twin": false,
+    "corr": 0.999,
+    "beta": 1.99,
+    "n": 503,
+    "date": "2026-11-24"
    }
   },
   "AMZU": {
@@ -796,6 +926,16 @@
     "report": "docs/test/DataSources_20261125/REPORT.md",
     "level": "WARN",
     "line": "C6: yfinance: 501 bars from 2024-11-25; starts 5 days after alpaca (2024-11-20, 504 bars); starts 5 days after twelvedata (2024-11-20, 504 bars)"
+   },
+   "tracking": {
+    "reference": "AMZN",
+    "multiple": 2,
+    "basis": "stock",
+    "twin": false,
+    "corr": 0.999,
+    "beta": 1.99,
+    "n": 503,
+    "date": "2026-11-24"
    }
   },
   "TSLL": {
@@ -810,6 +950,16 @@
     "report": "docs/test/DataSources_20261125/REPORT.md",
     "level": "WARN",
     "line": "C5: alpaca: 2025-04-09 +45%: also in twelvedata,yfinance,tradier (real move, or unadjusted everywhere: needs IBKR)"
+   },
+   "tracking": {
+    "reference": "TSLA",
+    "multiple": 2,
+    "basis": "stock",
+    "twin": false,
+    "corr": 1.0,
+    "beta": 1.99,
+    "n": 503,
+    "date": "2026-11-24"
    }
   },
   "BRKU": {
@@ -824,6 +974,16 @@
     "report": "docs/test/DataSources_20261125/REPORT.md",
     "level": "WARN",
     "line": "C4: twelvedata: flat zero-volume 1%; bad OHLC rows 0; zero-volume in last 5: 5"
+   },
+   "tracking": {
+    "reference": "BRK-B",
+    "multiple": 2,
+    "basis": "stock",
+    "twin": false,
+    "corr": 0.995,
+    "beta": 1.95,
+    "n": 489,
+    "date": "2026-11-24"
    }
   },
   "ELIL": {
@@ -838,6 +998,16 @@
     "report": "docs/test/DataSources_20261125/REPORT.md",
     "level": "PASS",
     "line": ""
+   },
+   "tracking": {
+    "reference": "LLY",
+    "multiple": 2,
+    "basis": "measured",
+    "twin": false,
+    "corr": 0.998,
+    "beta": 1.98,
+    "n": 419,
+    "date": "2026-11-24"
    }
   },
   "COTG": {
@@ -852,6 +1022,16 @@
     "report": "docs/test/DataSources_20261125/REPORT.md",
     "level": "PASS",
     "line": ""
+   },
+   "tracking": {
+    "reference": "COST",
+    "multiple": 2,
+    "basis": "measured",
+    "twin": false,
+    "corr": 0.987,
+    "beta": 2.0,
+    "n": 298,
+    "date": "2026-11-24"
    }
   },
   "AVGC": {
@@ -866,6 +1046,16 @@
     "report": "docs/test/DataSources_20261125/REPORT.md",
     "level": "WARN",
     "line": "C6: alpaca: 104 bars from 2026-06-30"
+   },
+   "tracking": {
+    "reference": "AVGO",
+    "multiple": 2,
+    "basis": "measured",
+    "twin": false,
+    "corr": 0.997,
+    "beta": 1.99,
+    "n": 103,
+    "date": "2026-11-24"
    }
   },
   "SGRD.TO": {

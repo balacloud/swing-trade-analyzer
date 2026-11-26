@@ -14,7 +14,7 @@
 | Field | Value |
 |-------|-------|
 | Current Day | 134 |
-| Version | v4.72 (Backend v2.60, Frontend v4.68) |
+| Version | v4.73 (Backend v2.61, Frontend v4.69) |
 | Latest Status | PROJECT_STATUS_DAY134_SHORT.md |
 | Latest Issues | KNOWN_ISSUES_DAY134.md |
 | Latest API | API_CONTRACTS_DAY135.md |
@@ -24,9 +24,10 @@
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in history/CLAUDE_CONTEXT_LOG.md)
 
-### Day 135 Summary (v4.72, Backend v2.60)
+### Day 135 Summary (v4.73, Backend v2.61)
 - **Data audit refreshed** (117 tickers, after the Nov 24 close; a pre-market run counts today as an expected session, so freshness needs `--now`). **`.env` now wins** over a stale launch environment (`backend/env_loader.py`, 6 callers, `/api/health` `env_overridden`); the stop hook ignores the generated `data_audit_latest.json`.
 - **VFV.TO showed saved prices** (Yahoo rate limit; Canada has one source): the header now says so (`priceFreshness`, A16). Second Canada source = ROADMAP #30.
+- **Header data notes (later):** thin-data line (7 of 117 tickers, the tab's own wording) and the leveraged comparison line (19 funds), no prices changed; the tab and the page now share one quality builder.
 - **Leveraged funds:** C11 compares each with its underlying; Tradier-only errors no longer fail blocked funds; DRAL/AVGC RS1 audit row fixed; QPUX +48% verified with IBKR; SOXL.NE tracks SOXL (corr 0.999 after the split table).
 
 ### Day 134 Summary (v4.71, Trade Setup void-plan banner)

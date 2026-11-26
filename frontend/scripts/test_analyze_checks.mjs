@@ -85,6 +85,8 @@ const DOM = {
     ladder: [{ key: 'ema21', price: 528.10, gap: -1.5 }, { key: 'sma50', price: 510.00, gap: 2.0 }, { key: 'sma200', price: 450.00, gap: 15.6 }],
     nowRow: { price: 520.10, name: 'Now', index: 1 }, ladderOrder: [528.10, 520.10, 510.00, 450.00] },
   freshText: '',
+  noteIntegrity: '',
+  noteTracking: '',
   live: { priceText: 'Now $520.10', changeText: ' (\u22120.74%)', statusText: ' \u00b7 Live \u00b7 last trade 2:51pm ET', closeText: 'Last close $523.88 \u00b7 Nov 13', tickCount: 0, timingNote: 'Last close $523.88 \u00b7 Nov 13' },
   ds: { present: true, error: false, symbol: 'AAPL', exchange: 'NasdaqGS', currency: 'USD', cls: 'Stock', dataFrom: 'Twelve Data', verdict: 'PASS',
     qualityRows: [], allPass: true,
@@ -360,6 +362,26 @@ mustFail('A14', '/api/sr was not captured', null, a => { a.sr = { status: null, 
 mustPass('A14', 'a failed (non-200) answer is left to the error-banner checks', null, a => { a.sr = { status: 500, body: { error: 'x' } }; });
 mustPass('A14', 'both answers are valid with real prices');
 
+
+// ---------- A17 thin-data and leveraged-comparison notes (Day 135) ----------
+const A17_NOTE = '82% of bars flat with zero volume; 0 malformed bars; zero volume on 3 of the last 5 days';
+const A17_INTEG = (a) => { a.stock.body.dataNotes = { integrity: { level: 'FAIL', note: A17_NOTE, bars: 502, since: '2024-11-25' }, tracking: null }; };
+const A17_TRACK = (a) => { a.stock.body.dataNotes = { integrity: null, tracking: { reference: 'NVDA', multiple: 2, basis: 'stock', twin: false, corr: 1.0, beta: 1.98, n: 503, date: '2026-11-24' } }; };
+const A17_TEXT_I = `Price data: ${A17_NOTE} (of 502 saved bars since Nov 25, 2024).`;
+const A17_TEXT_T = 'Compared with NVDA (x2 stated): correlation 1.000, beta 1.98 over 503 trading days (audit, Nov 24).';
+mustPass('A17', 'no notes in the API, none on the page', null, null);
+mustPass('A17', 'a PASS-level integrity entry shows nothing', null, (a) => { a.stock.body.dataNotes = { integrity: { level: 'PASS', note: 'x' }, tracking: null }; });
+mustPass('A17', 'integrity FAIL: the line quotes the API note', d => { d.noteIntegrity = A17_TEXT_I; }, A17_INTEG);
+mustPass('A17', 'tracking: the line names the reference, correlation and days', d => { d.noteTracking = A17_TEXT_T; }, A17_TRACK);
+mustFail('A17', 'integrity FAIL in the API but no line on the page', null, A17_INTEG);
+mustFail('A17', 'integrity line that does not quote the API note', d => { d.noteIntegrity = 'Price data: 12% of bars flat.'; }, A17_INTEG);
+mustFail('A17', 'an integrity line when the API has none', d => { d.noteIntegrity = A17_TEXT_I; }, null);
+mustFail('A17', 'tracking in the API but no line on the page', null, A17_TRACK);
+mustFail('A17', 'comparison line with the wrong reference', d => { d.noteTracking = A17_TEXT_T.replace('NVDA', 'AAPL'); }, A17_TRACK);
+mustFail('A17', 'comparison line with the wrong correlation', d => { d.noteTracking = A17_TEXT_T.replace('1.000', '0.900'); }, A17_TRACK);
+mustFail('A17', 'comparison line with the wrong day count', d => { d.noteTracking = A17_TEXT_T.replace('503', '300'); }, A17_TRACK);
+mustFail('A17', 'a comparison line when the API has none', d => { d.noteTracking = A17_TEXT_T; }, null);
+mustFail('A17', '/api/stock not captured', null, (a) => { a.stock = { status: null, body: null }; });
 
 // ---------- A16 saved or far-behind prices are said so (Day 135) ----------
 const A16_STALE = (a) => { a.stock.body.priceFreshness = { newestDate: '2026-11-24', expectedDate: '2026-11-25', sessionsBehind: 1, behindLevel: 'PASS', servedFromStaleCache: true, maybePartial: false }; };

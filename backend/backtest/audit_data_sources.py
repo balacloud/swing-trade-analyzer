@@ -329,7 +329,9 @@ def tracking_check(sym, h, all_frames, jump_dates=()):
     if f['jumps']:
         parts.append('on big-move days: ' + ', '.join(f"{j['date']} fund {j['fund_pct']:+.1f}% vs " + (f"{j['expected_pct']:+.1f}%" if j['expected_pct'] is not None else f"{ref['reference']} {j['ref_pct']:+.1f}%") for j in f['jumps']))
     parts.append('facts only, not graded')
-    return {'C11': ('NA', ' | '.join(parts))}
+    return {'C11': ('NA', ' | '.join(parts)),
+            '_tracking': {'reference': ref['reference'], 'multiple': mult, 'basis': ref.get('basis'), 'twin': bool(ref.get('twin')),
+                          'corr': f['corr'], 'beta': f['beta'], 'n': f['n']}}
 
 
 def grade(sym, frames, tab, all_frames=None):
@@ -451,16 +453,18 @@ def main():
         tab = tab_claim(sym, saved_tabs)
         g = grade(sym, cache.get(sym, {}), tab, all_frames=cache)
         ps = g.pop('per_source', {})
+        tr = g.pop('_tracking', None)
         rows.append({'class': cls, 'symbol': sym, 'why': why, 'used': g.pop('used'), 'tab': tab, 'per_source': ps,
                      'sources': {s: (len(f) if isinstance(f, pd.DataFrame) else f) for s, f in cache.get(sym, {}).items()},
-                     'checks': {k: {'level': v[0], 'note': v[1]} for k, v in g.items()}})
+                     'checks': {k: {'level': v[0], 'note': v[1]} for k, v in g.items()}, 'tracking': tr})
     stamp_dir = os.path.join(REPO, 'docs', 'test', f'DataSources_{STAMP}')
     os.makedirs(stamp_dir, exist_ok=True)
     json.dump({'generated': TODAY.isoformat(timespec='minutes'), 'rows': rows}, open(os.path.join(BACKEND, 'validation_results', f'data_audit_{STAMP}{suffix}.json'), 'w'), indent=1, default=str)
     write_report(rows, stamp_dir, suffix)
     if args.update_reference:
         dq.update_audit_reference('truth_free', TODAY.isoformat(timespec='minutes'), f"docs/test/DataSources_{STAMP}/{'REPORT.md' if args.offline else f'REPORT{suffix}.md'}",   # a replay is the same result as the saved run
-                                  {r['symbol']: [(k, v['level'], v['note']) for k, v in r['checks'].items()] for r in rows})
+                                  {r['symbol']: [(k, v['level'], v['note']) for k, v in r['checks'].items()] for r in rows},
+                                  tracking={r['symbol']: r['tracking'] for r in rows if r.get('tracking')})   # Day 135: this run's C11 facts; symbols without them lose any stored entry
         print('Updated backend/reference/data_audit_latest.json (truth_free)')
     print('Wrote', os.path.join(stamp_dir, f'REPORT{suffix}.md'))
 

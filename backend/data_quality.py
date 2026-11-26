@@ -371,8 +371,67 @@ def tracking_facts(fund_close, ref_close, multiple=None, jump_dates=()):
         return {'state': 'error', 'reason': f'{type(e).__name__}: {str(e)[:100]}'}
 
 
-def update_audit_reference(section, generated, report, tickers, path=AUDIT_LATEST):
-    """tickers: {SYMBOL: [(check_id, level, note), ...]}. Merges into `section` ('truth_free' or 'vs_ibkr')."""
+def cached_quality(ticker):
+    """Day 135 (plan DATA_NOTES_PLAN_DAY135.md): the Data Sources tab's quality block for one ticker, built from the RAW cached frame with no side effects
+    and no provider calls. The ONE place it is built: /api/provenance (the tab) and /api/stock (the header note) both call it, so the page and the tab
+    cannot quote different numbers (Golden Rule 63). The served frame is NOT used: it has empty-close rows dropped and is split-adjusted, and the cache
+    keeps one frame per ticker. Returns {'state': 'not_cached'}, {'state': 'error', 'reason'} or the full block. Never raises."""
+    try:
+        import cache_manager
+        from providers.fallback_policy import tradier_blocked
+        df, meta = cache_manager.read_ohlcv_entry(ticker)
+        if df is None:
+            return {'state': 'not_cached'}
+        facts = check_history(df, ticker=ticker)
+        q = quality_level(facts, tolerant=True, source=meta['source'], blocked=tradier_blocked(ticker))
+        return {
+            'state': 'ok' if facts.get('state') == 'ok' else 'error',
+            'reason': facts.get('reason'),
+            'level': q['level'], 'checks': q['checks'], 'facts': facts,
+            # What was checked: the cache keeps ONE row per ticker whatever the period (a 1y caller overwrites a 2y
+            # frame), and Analyze uses only the last 260 bars, so say exactly what this is.
+            'period': meta['period'], 'rows': meta['rows'], 'source': meta['source'],
+            'cached_at': meta['cached_at'], 'expired': meta['expired'],
+        }
+    except Exception as e:
+        logger.warning('cached_quality failed for %s: %s', ticker, e)
+        return {'state': 'error', 'reason': f'{type(e).__name__}: {str(e)[:120]}'}
+
+
+def read_tracking(symbol, path=AUDIT_LATEST, map_path=None):
+    """The audit's stored C11 facts for a leveraged fund, or None. None also when the fund is no longer in the map or its reference changed
+    (a stored entry must not outlive the map). Never raises."""
+    try:
+        t = json.load(open(path))['tickers'].get((symbol or '').upper(), {}).get('tracking')
+        if not t:
+            return None
+        ref = leveraged_reference(symbol, map_path) if map_path else leveraged_reference(symbol)
+        if not ref or ref.get('reference') != t.get('reference'):
+            return None
+        return t
+    except Exception as e:
+        logger.warning('read_tracking failed for %s: %s', symbol, e)
+        return None
+
+
+def data_notes(ticker):
+    """Day 135: what the Analyze header may say beyond the price: {'integrity': {...} | None, 'tracking': {...} | None}. Facts only.
+    integrity: the tab's own integrity check (same wording, same numbers) when it is WARN or FAIL, plus how many saved bars it covers."""
+    out = {'integrity': None, 'tracking': read_tracking(ticker)}
+    q = cached_quality(ticker)
+    if q.get('state') == 'ok':
+        c = (q.get('checks') or {}).get('integrity') or {}
+        if c.get('level') in ('WARN', 'FAIL'):
+            f = q.get('facts') or {}
+            out['integrity'] = {'level': c['level'], 'note': c.get('note'), 'bars': f.get('bars'), 'since': f.get('first_date')}
+    return out
+
+
+def update_audit_reference(section, generated, report, tickers, path=AUDIT_LATEST, tracking=None):
+    """tickers: {SYMBOL: [(check_id, level, note), ...]}. Merges into `section` ('truth_free' or 'vs_ibkr').
+    tracking (Day 135, plan DATA_NOTES_PLAN_DAY135.md): None = leave every stored 'tracking' entry alone (the IBKR audit calls this without it);
+    a dict {SYMBOL: facts} = THIS run's leveraged-fund facts: written for the symbols in it, and DELETED for any symbol of `tickers` that is not in it
+    (reference missing, error, fund dropped from the map), so a stale entry cannot outlive its check. An entry has no 'level' key, so read_audit_summary skips it."""
     try:
         data = json.load(open(path))
     except Exception:
@@ -385,6 +444,11 @@ def update_audit_reference(section, generated, report, tickers, path=AUDIT_LATES
         line = _short(f'{top[0]}: {_lead_segment(top[2])}', 150) if top else ''
         data['tickers'].setdefault(sym, {})[section] = {
             'date': generated[:10], 'report': report, 'level': level, 'line': line}
+        if tracking is not None:
+            if sym in tracking:
+                data['tickers'][sym]['tracking'] = {**tracking[sym], 'date': generated[:10]}
+            else:
+                data['tickers'][sym].pop('tracking', None)
     data['updated'] = generated
     os.makedirs(os.path.dirname(path), exist_ok=True)
     tmp = path + '.tmp'

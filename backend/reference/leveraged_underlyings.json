@@ -17,7 +17,7 @@
  "UBOT":  {"reference": "BOTZ",  "multiple": 2, "basis": "measured", "note": "closest ETF here, not necessarily its own index"},
  "URAA":  {"reference": "URA",   "multiple": 2, "basis": "measured", "note": "closest ETF here, not necessarily its own index"},
  "SOXL":  {"reference": "SOXX",  "multiple": 3, "basis": "measured", "note": "SOXL follows the ICE semiconductor index. SOXX is the closest proxy in the universe (corr 0.999); SMH is not (0.984)"},
- "SOXL.NE": {"reference": "SOXL", "multiple": 1, "basis": "measured", "note": "BetaPro 3x semiconductors in CAD vs Direxion SOXL (also 3x): about 1x each other"},
+ "SOXL.NE": {"reference": "SOXL", "multiple": 1, "basis": "measured", "twin": true, "note": "BetaPro 3x semiconductors in CAD vs Direxion SOXL (also 3x): about 1x each other"},
  "GDXU.TO": {"reference": "GDX", "multiple": null, "basis": "measured", "note": "declared multiple unknown; CAD listing with different close times, so facts only (corr and beta)"},
  "QPUX":  {"reference": null, "multiple": 2, "basis": "none", "note": "no matching price in the universe (best is QTUM, corr 0.70)"},
  "SPCL":  {"reference": null, "multiple": null, "basis": "none", "note": "no matching price in the universe"}
