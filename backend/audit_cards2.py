@@ -128,7 +128,7 @@ class CardAudit2(CardAudit):
                 self.addc(f'MB-{sym}-drop', f'{r["label"]} biggest drop line parsed', r.get('drop') or 'missing', 'pct on date (since)', 'WRONG')
             else:
                 dd = fa['drop']
-                ok = near(float(md.group(1)), dd['pct'], 0.011) and md.group(2) == dlabel(dd['date'])
+                ok = near(float(md.group(1)), dd['pct'], 0.0501) and md.group(2) == dlabel(dd['date'])   # Day 136: the card shows ONE decimal, so half a step (0.05) is rounding, not error; 0.011 only passed when the 2nd decimal was 0 or 1 (-3.49 -> -3.5) and failed -3.64 -> -3.6
                 self.addc(f'MB-{sym}-drop', f'{r["label"]}: biggest 1-day close-to-close drop in the last 10 completed sessions, and its date ({src_note})', f'{md.group(1)}% on {md.group(2)}', f'{dd["pct"]}% on {dlabel(dd["date"])}',
                           'PASS' if ok else ('UNVERIFIED' if not f_app and near(float(md.group(1)), dd['pct'], 0.3) else 'WRONG'))
                 # the "since" / "in data back to" claim over the reference history (start anchored to the payload's searchedFrom)

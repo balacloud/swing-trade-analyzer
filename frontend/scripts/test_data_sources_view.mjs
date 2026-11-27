@@ -1,5 +1,5 @@
 // Data Sources tab helpers (Day 126). Run: cd frontend && node scripts/test_data_sources_view.mjs
-import { describeIdentity, describeQuality, describeFundamentals, describeChains, providerLabel, shortTime, provenanceFor } from '../src/utils/dataSourcesView.js';
+import { describeIdentity, describeQuality, describeFundamentals, describeChains, providerLabel, shortTime, provenanceFor, describeAttempt, etTime } from '../src/utils/dataSourcesView.js';
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) { pass++; console.log(`ok ${m}`); } else { fail++; console.log(`FAIL ${m}`); } };
@@ -12,7 +12,7 @@ const checks = (o = {}) => ({
 });
 const prov = (o = {}) => ({
   ticker: 'AAPL',
-  ohlcv: { source: 'twelvedata', status: 'cached', this_session: 'cache', rows: 504 },
+  ohlcv: { source: 'twelvedata', status: 'cached', attempt: { state: 'ok', last_ok_ts: 1795780046, last_ok_provider: 'alpaca', last_fail_ts: null }, rows: 504 },
   fundamentals: { source: 'finnhub', age_days: 0.3, has_data: true },
   quality: { state: 'ok', level: 'PASS', checks: checks(), facts: { bars: 504, last_date: '2026-11-13', sessions_behind: 0 }, period: '2y', cached_at: '2026-11-14T08:00:00-05:00', expired: false },
   audit: null, ...o,
@@ -24,18 +24,38 @@ let i = describeIdentity(stock(), prov());
 ok(i.symbol === 'AAPL' && i.exchange === 'NasdaqGS' && i.currency === 'USD' && i.cls === 'Stock', 'identity: symbol, exchange, currency, class');
 ok(i.basis === 'inferred: quote type EQUITY', 'identity: the class is labelled inferred');
 ok(i.dataFrom === 'Twelve Data' && i.cache.label === 'cached', 'identity: data from the cache row source, cached');
-ok(i.session === 'served from cache this session', 'identity: last_sources "cache" -> served from cache (not named as a provider)');
-i = describeIdentity(stock(), prov({ ohlcv: { source: 'yfinance', status: 'just_fetched', this_session: 'yfinance' } }));
-ok(i.cache.label === 'just fetched' && i.session === 'fetched live from Yahoo (yfinance) this session', 'identity: just fetched, live provider named');
-i = describeIdentity(stock(), prov({ ohlcv: { source: 'yfinance', status: 'live', this_session: 'stale_cache' } }));
-ok(i.cache.label.includes('not cached') && i.session.includes('expired cache'), 'identity: backend key "live" reads as not cached; stale_cache explained');
+ok(i.attempt.text.startsWith('Prices: last provider check answered by Alpaca at ') && i.attempt.tone === 'good', 'identity: the attempt line names the provider that really answered');
+i = describeIdentity(stock(), prov({ ohlcv: { source: 'yfinance', status: 'just_fetched', attempt: { state: 'ok', last_ok_ts: 1795780046, last_ok_provider: 'yfinance' } } }));
+ok(i.cache.label === 'cached' && /Yahoo \(yfinance\)/.test(i.attempt.text), 'identity: "just fetched" is no longer claimed (it was a guess from cache age); the attempt line says who answered');
+i = describeIdentity(stock(), prov({ ohlcv: { source: 'yfinance', status: 'live', attempt: { state: 'failed', last_fail_ts: 1795780046, detail: 'alpaca:RateLimitError', served_stale: true, last_ok_ts: null } } }));
+ok(i.cache.label.includes('not cached') && i.attempt.tone === 'warn' && i.attempt.text.includes('failed') && i.attempt.text.includes('alpaca:RateLimitError') && i.attempt.text.includes('Saved data was shown instead') && i.attempt.text.includes('No success recorded'), 'identity: backend key "live" reads as not cached; failed attempt with reason, saved data, no success');
 i = describeIdentity(stock(), prov({ quality: { state: 'ok', expired: true, checks: checks(), facts: {} } }));
 ok(i.cache.label === 'expired, will refetch on next analysis' && i.cache.tone === 'warn', 'identity: expired frame says so');
-i = describeIdentity(stock(), prov({ ohlcv: { source: 'unknown', status: 'live', this_session: null } }));
-ok(i.dataFrom === null && i.session === null, 'identity: unknown source and no session entry -> null, never invented');
+i = describeIdentity(stock(), prov({ ohlcv: { source: 'unknown', status: 'live' } }));
+ok(i.dataFrom === null && i.attempt === null, 'identity: unknown source and an old backend (no attempt block) -> null, never invented');
 i = describeIdentity({ ticker: 'X' }, null);
 ok(i.exchange === null && i.currency === null && i.cls === null && i.basis === null && i.cache === null, 'identity: missing fields stay null (component shows "unknown")');
 ok(describeIdentity(null, null) === null && describeIdentity(undefined, { error: 'x' }) === null, 'identity: nothing known -> null');
+
+// ---------- attempt line (Day 136)
+const T = 1795780046;   // a fixed epoch second
+const NOW = T * 1000 + 60000;
+ok(describeAttempt({ state: 'never' }, 'Prices', NOW).text === 'Prices: no provider check recorded by this app yet.', 'attempt: never = no record yet (not "ok", not "failed")');
+ok(describeAttempt({ state: 'never', error: 'OperationalError' }, 'Prices', NOW).text.includes('could not be read (OperationalError)') && describeAttempt({ state: 'never', error: 'X' }, 'Prices', NOW).tone === 'warn', 'attempt: an unreadable record is NOT "never checked"');
+ok(describeAttempt({ state: 'weird' }) === null && describeAttempt({ state: 'weird', last_fail_ts: 5 }) === null, 'attempt: an unknown state is not treated as failed');
+ok(describeAttempt(null) === null && describeAttempt({}) === null && describeAttempt('x') === null, 'attempt: missing or malformed block -> null');
+let a = describeAttempt({ state: 'ok', last_ok_ts: T, last_ok_provider: 'twelvedata' }, 'Prices', NOW);
+ok(/^Prices: last provider check answered by Twelve Data at \d{1,2}:\d{2} (AM|PM) ET\.$/.test(a.text), `attempt: ok, same day shows the time only (got "${a.text}")`);
+a = describeAttempt({ state: 'ok', last_ok_ts: T, last_ok_provider: 'twelvedata' }, 'Prices', NOW + 3 * 86400000);
+ok(/at [A-Z][a-z]{2} \d{1,2}, \d{1,2}:\d{2} (AM|PM) ET/.test(a.text), `attempt: another day shows the date too (got "${a.text}")`);
+a = describeAttempt({ state: 'ok', last_ok_ts: T, last_ok_provider: 'yfinance', last_ok_detail: 'partial: finnhub:ProviderError' }, 'Fundamentals', NOW);
+ok(a.text.includes('(partial: finnhub:ProviderError)'), 'attempt: a partial answer says which provider raised');
+a = describeAttempt({ state: 'failed', last_fail_ts: T, detail: 'twelvedata:RateLimitError; yfinance:ProviderError', served_stale: false, last_ok_ts: T - 3600, last_ok_provider: 'alpaca' }, 'Prices', NOW);
+ok(a.text.includes('failed at ') && a.text.includes('Last success: ') && a.text.includes('by Alpaca') && !a.text.includes('Saved data'), 'attempt: failed after an earlier success names both');
+ok(etTime(NaN) === null && etTime(null) === null && etTime(undefined) === null && etTime('5') === null, 'etTime: bad input -> null');
+ok(describeFundamentals(stock(), prov({ fundamentals: { source: 'finnhub', age_days: 0.3, has_data: true, attempt: { state: 'failed', last_fail_ts: T, detail: 'finnhub:ProviderError', last_ok_ts: null } } })).text.includes('Fundamentals: last provider check failed'), 'fundamentals line: a failed latest check is added to the line');
+ok(!describeFundamentals(stock(), prov()).text.includes('provider check'), 'fundamentals line: a good or missing attempt adds nothing');
+ok(describeChains({ chains: { ohlcv: ['alpaca'], intraday: [], fundamentals: [], quote: [], stock_info: [], earnings: [] }, providers: { alpaca: { health: 'ok', configured: false } } }, null).price[0].configured === false, 'chains: the configured flag reaches the row (false = no key)');
 
 // ---------- quality
 let q = describeQuality(prov());

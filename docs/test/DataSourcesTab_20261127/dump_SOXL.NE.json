@@ -1,0 +1,3925 @@
+{
+ "ticker": "SOXL.NE",
+ "runAt": "2026-11-27T11:53:05.887Z",
+ "payloads": {
+  "health": {
+   "status": 200,
+   "body": {
+    "cache": {
+     "cache_size_kb": 50572,
+     "fundamentals_count": 123,
+     "market_count": 127,
+     "ohlcv_count": 161
+    },
+    "data_provider_available": true,
+    "defeatbeta_available": true,
+    "env_overridden": [],
+    "providers": {
+     "active_sources": {
+      "earnings": "none",
+      "fundamentals": "cache",
+      "info": "yfinance",
+      "intraday": "yfinance",
+      "ohlcv": "cache",
+      "quote": "cache"
+     },
+     "chains": {
+      "earnings": [
+       "yfinance"
+      ],
+      "fundamentals": [
+       "finnhub",
+       "alphavantage",
+       "yfinance"
+      ],
+      "intraday": [
+       "twelvedata",
+       "yfinance"
+      ],
+      "ohlcv": [
+       "alpaca",
+       "twelvedata",
+       "yfinance",
+       "tradier"
+      ],
+      "quote": [
+       "yfinance",
+       "finnhub",
+       "tradier"
+      ],
+      "stock_info": [
+       "yfinance"
+      ]
+     },
+     "circuit_breakers": {
+      "alpaca": {
+       "failure_count": 0,
+       "failure_threshold": 3,
+       "recovery_timeout_sec": 300,
+       "state": "closed",
+       "success_count": 0
+      },
+      "alphavantage": {
+       "failure_count": 0,
+       "failure_threshold": 3,
+       "recovery_timeout_sec": 300,
+       "state": "open",
+       "success_count": 0
+      },
+      "finnhub": {
+       "failure_count": 3,
+       "failure_threshold": 3,
+       "recovery_timeout_sec": 300,
+       "state": "half_open",
+       "success_count": 1
+      },
+      "fmp": {
+       "failure_count": 0,
+       "failure_threshold": 3,
+       "recovery_timeout_sec": 300,
+       "state": "closed",
+       "success_count": 0
+      },
+      "tradier": {
+       "failure_count": 0,
+       "failure_threshold": 3,
+       "recovery_timeout_sec": 300,
+       "state": "closed",
+       "success_count": 0
+      },
+      "twelvedata": {
+       "failure_count": 0,
+       "failure_threshold": 3,
+       "recovery_timeout_sec": 300,
+       "state": "closed",
+       "success_count": 0
+      },
+      "yfinance": {
+       "failure_count": 0,
+       "failure_threshold": 3,
+       "recovery_timeout_sec": 300,
+       "state": "closed",
+       "success_count": 0
+      },
+      "yfinance_live": {
+       "failure_count": 0,
+       "failure_threshold": 3,
+       "recovery_timeout_sec": 300,
+       "state": "closed",
+       "success_count": 0
+      }
+     },
+     "disabled": [
+      "stooq"
+     ],
+     "last_sources": {
+      "AAPL_earnings": "info",
+      "AAPL_fundamentals": "cache",
+      "AAPL_info": "yfinance",
+      "AAPL_intraday": "twelvedata",
+      "AAPL_ohlcv": "cache",
+      "AMD.TO_earnings": "none",
+      "AMD.TO_fundamentals": "cache",
+      "AMD.TO_info": "yfinance",
+      "AMD.TO_intraday": "yfinance",
+      "AMD.TO_ohlcv": "cache",
+      "BOTZ_ohlcv": "cache",
+      "COPX_ohlcv": "cache",
+      "DRAL_earnings": "none",
+      "DRAL_fundamentals": "cache",
+      "DRAL_info": "yfinance",
+      "DRAL_intraday": "twelvedata",
+      "DRAL_ohlcv": "cache",
+      "DRAM_ohlcv": "cache",
+      "DRIV_ohlcv": "cache",
+      "DUK_earnings": "info",
+      "DUK_fundamentals": "cache",
+      "DUK_info": "yfinance",
+      "DUK_intraday": "twelvedata",
+      "DUK_ohlcv": "cache",
+      "F_earnings": "info",
+      "F_fundamentals": "cache",
+      "F_info": "yfinance",
+      "F_intraday": "twelvedata",
+      "F_ohlcv": "cache",
+      "GDX_ohlcv": "cache",
+      "GRID_ohlcv": "cache",
+      "IGV_ohlcv": "alpaca",
+      "ITA_ohlcv": "alpaca",
+      "KWEB_ohlcv": "alpaca",
+      "NVDA_earnings": "info",
+      "NVDA_fundamentals": "cache",
+      "NVDA_info": "yfinance",
+      "NVDA_intraday": "twelvedata",
+      "NVDA_ohlcv": "cache",
+      "PHO_ohlcv": "alpaca",
+      "QQQ_ohlcv": "cache",
+      "RIVN_earnings": "info",
+      "RIVN_fundamentals": "cache",
+      "RIVN_info": "yfinance",
+      "RIVN_intraday": "twelvedata",
+      "RIVN_ohlcv": "cache",
+      "SMH_earnings": "none",
+      "SMH_fundamentals": "cache",
+      "SMH_info": "yfinance",
+      "SMH_intraday": "twelvedata",
+      "SMH_ohlcv": "cache",
+      "SOXL.NE_earnings": "none",
+      "SOXL.NE_fundamentals": "cache",
+      "SOXL.NE_info": "yfinance",
+      "SOXL.NE_intraday": "yfinance",
+      "SOXL.NE_ohlcv": "cache",
+      "SPY_ohlcv": "cache",
+      "UFO_ohlcv": "cache",
+      "URA_ohlcv": "cache",
+      "VFV.TO_earnings": "none",
+      "VFV.TO_fundamentals": "cache",
+      "VFV.TO_info": "yfinance",
+      "VFV.TO_intraday": "yfinance",
+      "VFV.TO_ohlcv": "cache",
+      "WGMI_ohlcv": "alpaca",
+      "XBI_ohlcv": "alpaca",
+      "XLC_ohlcv": "alpaca",
+      "XLE_ohlcv": "alpaca",
+      "XLF_ohlcv": "alpaca",
+      "XLK_ohlcv": "cache",
+      "XLY_ohlcv": "alpaca",
+      "^VIX_quote": "cache"
+     },
+     "providers": {
+      "alpaca": {
+       "configured": true,
+       "daily_remaining": -1,
+       "health": "ok",
+       "role": "primary",
+       "type": "OHLCV (US daily)"
+      },
+      "alphavantage": {
+       "configured": true,
+       "daily_remaining": 21,
+       "health": "open",
+       "role": "growth",
+       "type": "Fundamentals (growth metrics)"
+      },
+      "finnhub": {
+       "configured": true,
+       "daily_remaining": -1,
+       "health": "degraded",
+       "role": "primary",
+       "type": "Fundamentals (core fields)"
+      },
+      "fmp": {
+       "configured": true,
+       "daily_remaining": -1,
+       "health": "ok",
+       "role": "legacy",
+       "type": "Fundamentals (deprecated v3)"
+      },
+      "stooq": {
+       "configured": true,
+       "daily_remaining": -1,
+       "health": "disabled",
+       "role": "disabled",
+       "type": "OHLCV (last resort)"
+      },
+      "tradier": {
+       "configured": true,
+       "daily_remaining": -1,
+       "health": "ok",
+       "role": "fallback",
+       "type": "OHLCV + Quote (last resort)"
+      },
+      "twelvedata": {
+       "configured": true,
+       "daily_remaining": 725,
+       "health": "ok",
+       "role": "fallback (OHLCV), primary (intraday)",
+       "type": "OHLCV + Intraday"
+      },
+      "yfinance": {
+       "configured": true,
+       "daily_remaining": -1,
+       "health": "ok",
+       "role": "fallback",
+       "type": "All data types (fallback)"
+      }
+     },
+     "rate_limiters": {
+      "alpaca": {
+       "daily_limit": "unlimited",
+       "daily_remaining": "unlimited",
+       "daily_used": 170,
+       "max_per_minute": 150,
+       "tokens_available": 150
+      },
+      "alphavantage": {
+       "daily_limit": 25,
+       "daily_remaining": 21,
+       "daily_used": 4,
+       "max_per_minute": 5,
+       "tokens_available": 5
+      },
+      "finnhub": {
+       "daily_limit": "unlimited",
+       "daily_remaining": "unlimited",
+       "daily_used": 2,
+       "max_per_minute": 60,
+       "tokens_available": 60
+      },
+      "tradier": {
+       "daily_limit": "unlimited",
+       "daily_remaining": "unlimited",
+       "daily_used": 190,
+       "max_per_minute": 100,
+       "tokens_available": 100
+      },
+      "twelvedata": {
+       "daily_limit": 800,
+       "daily_remaining": 725,
+       "daily_used": 75,
+       "max_per_minute": 8,
+       "tokens_available": 8
+      },
+      "yfinance": {
+       "daily_limit": "unlimited",
+       "daily_remaining": "unlimited",
+       "daily_used": 287,
+       "max_per_minute": 30,
+       "tokens_available": 26
+      },
+      "yfinance_live": {
+       "daily_limit": "unlimited",
+       "daily_remaining": "unlimited",
+       "daily_used": 43,
+       "max_per_minute": 30,
+       "tokens_available": 30
+      }
+     }
+    },
+    "sqlite_cache_available": true,
+    "sr_engine_available": true,
+    "status": "healthy",
+    "timestamp": "2026-11-27T06:53:03.972415",
+    "tradingview_available": true,
+    "validation_available": true,
+    "version": "2.61"
+   }
+  },
+  "stock": {
+   "status": 200,
+   "body": {
+    "avgVolume": 426456,
+    "avgVolume10d": 1167095,
+    "classBasis": "ETF with 'BETAPRO', '3X', 'DAILY' in the name",
+    "currency": "CAD",
+    "currentPrice": 8.8,
+    "dataNotes": {
+     "integrity": {
+      "bars": 320,
+      "level": "FAIL",
+      "note": "100% of bars flat with zero volume; 0 malformed bars; zero volume on 4 of the last 5 days",
+      "since": "2025-08-18"
+     },
+     "tracking": {
+      "basis": "measured",
+      "beta": 1.01,
+      "corr": 0.999,
+      "date": "2026-11-24",
+      "multiple": 1,
+      "n": 312,
+      "reference": "SOXL",
+      "twin": true
+     }
+    },
+    "dataPoints": 260,
+    "exchange": "Cboe CA",
+    "fiftyTwoWeekHigh": 74.21369934082031,
+    "fiftyTwoWeekLow": 7.789299964904785,
+    "formingBarDropped": false,
+    "industry": "Unknown",
+    "instrumentClass": "Leveraged ETF",
+    "name": "BETAPRO 3X SEMICONDUCTOR DAILY ",
+    "newestDate": "2026-11-26",
+    "oldestDate": "2025-11-13",
+    "price13wAgo": 27.6,
+    "price52wAgo": 9.31,
+    "priceFreshness": {
+     "behindLevel": "PASS",
+     "expectedDate": "2026-11-27",
+     "maybePartial": false,
+     "newestDate": "2026-11-26",
+     "servedFromStaleCache": false,
+     "sessionsBehind": 1
+    },
+    "priceHistory": [
+     {
+      "close": 10.11,
+      "date": "2025-11-13",
+      "high": 10.11,
+      "low": 10.11,
+      "open": 10.11,
+      "volume": 0
+     },
+     {
+      "close": 10,
+      "date": "2025-11-14",
+      "high": 10,
+      "low": 10,
+      "open": 10,
+      "volume": 0
+     },
+     {
+      "close": 9.48,
+      "date": "2025-11-17",
+      "high": 9.48,
+      "low": 9.48,
+      "open": 9.48,
+      "volume": 0
+     },
+     {
+      "close": 8.82,
+      "date": "2025-11-18",
+      "high": 8.82,
+      "low": 8.82,
+      "open": 8.82,
+      "volume": 0
+     },
+     {
+      "close": 9.26,
+      "date": "2025-11-19",
+      "high": 9.26,
+      "low": 9.26,
+      "open": 9.26,
+      "volume": 0
+     },
+     {
+      "close": 7.92,
+      "date": "2025-11-20",
+      "high": 7.92,
+      "low": 7.92,
+      "open": 7.92,
+      "volume": 0
+     },
+     {
+      "close": 8.15,
+      "date": "2025-11-21",
+      "high": 8.15,
+      "low": 8.15,
+      "open": 8.15,
+      "volume": 0
+     },
+     {
+      "close": 9.22,
+      "date": "2025-11-24",
+      "high": 9.22,
+      "low": 9.22,
+      "open": 9.22,
+      "volume": 0
+     },
+     {
+      "close": 9.31,
+      "date": "2025-11-25",
+      "high": 9.31,
+      "low": 9.31,
+      "open": 9.31,
+      "volume": 0
+     },
+     {
+      "close": 10.07,
+      "date": "2025-11-26",
+      "high": 10.07,
+      "low": 10.07,
+      "open": 10.07,
+      "volume": 0
+     },
+     {
+      "close": 10.07,
+      "date": "2025-11-27",
+      "high": 10.07,
+      "low": 10.07,
+      "open": 10.07,
+      "volume": 0
+     },
+     {
+      "close": 10.6,
+      "date": "2025-11-28",
+      "high": 10.6,
+      "low": 10.6,
+      "open": 10.6,
+      "volume": 0
+     },
+     {
+      "close": 10.62,
+      "date": "2025-12-01",
+      "high": 10.62,
+      "low": 10.62,
+      "open": 10.62,
+      "volume": 0
+     },
+     {
+      "close": 11.25,
+      "date": "2025-12-02",
+      "high": 11.25,
+      "low": 11.25,
+      "open": 11.25,
+      "volume": 0
+     },
+     {
+      "close": 11.97,
+      "date": "2025-12-03",
+      "high": 11.97,
+      "low": 11.97,
+      "open": 11.97,
+      "volume": 0
+     },
+     {
+      "close": 11.61,
+      "date": "2025-12-04",
+      "high": 11.61,
+      "low": 11.61,
+      "open": 11.61,
+      "volume": 0
+     },
+     {
+      "close": 11.94,
+      "date": "2025-12-05",
+      "high": 11.94,
+      "low": 11.94,
+      "open": 11.94,
+      "volume": 0
+     },
+     {
+      "close": 12.33,
+      "date": "2025-12-08",
+      "high": 12.33,
+      "low": 12.33,
+      "open": 12.33,
+      "volume": 0
+     },
+     {
+      "close": 12.25,
+      "date": "2025-12-09",
+      "high": 12.25,
+      "low": 12.25,
+      "open": 12.25,
+      "volume": 0
+     },
+     {
+      "close": 12.73,
+      "date": "2025-12-10",
+      "high": 12.73,
+      "low": 12.73,
+      "open": 12.73,
+      "volume": 0
+     },
+     {
+      "close": 12.51,
+      "date": "2025-12-11",
+      "high": 12.51,
+      "low": 12.51,
+      "open": 12.51,
+      "volume": 0
+     },
+     {
+      "close": 10.7,
+      "date": "2025-12-12",
+      "high": 10.7,
+      "low": 10.7,
+      "open": 10.7,
+      "volume": 0
+     },
+     {
+      "close": 10.54,
+      "date": "2025-12-15",
+      "high": 10.54,
+      "low": 10.54,
+      "open": 10.54,
+      "volume": 0
+     },
+     {
+      "close": 10.38,
+      "date": "2025-12-16",
+      "high": 10.38,
+      "low": 10.38,
+      "open": 10.38,
+      "volume": 0
+     },
+     {
+      "close": 9.22,
+      "date": "2025-12-17",
+      "high": 9.22,
+      "low": 9.22,
+      "open": 9.22,
+      "volume": 0
+     },
+     {
+      "close": 9.88,
+      "date": "2025-12-18",
+      "high": 9.88,
+      "low": 9.88,
+      "open": 9.88,
+      "volume": 0
+     },
+     {
+      "close": 11.08,
+      "date": "2025-12-22",
+      "high": 11.08,
+      "low": 11.08,
+      "open": 11.08,
+      "volume": 0
+     },
+     {
+      "close": 11.2,
+      "date": "2025-12-23",
+      "high": 11.2,
+      "low": 11.2,
+      "open": 11.2,
+      "volume": 0
+     },
+     {
+      "close": 11.3,
+      "date": "2025-12-24",
+      "high": 11.3,
+      "low": 11.3,
+      "open": 11.3,
+      "volume": 0
+     },
+     {
+      "close": 11.21,
+      "date": "2025-12-29",
+      "high": 11.21,
+      "low": 11.21,
+      "open": 11.21,
+      "volume": 0
+     },
+     {
+      "close": 11.16,
+      "date": "2025-12-30",
+      "high": 11.16,
+      "low": 11.16,
+      "open": 11.16,
+      "volume": 0
+     },
+     {
+      "close": 10.73,
+      "date": "2025-12-31",
+      "high": 10.73,
+      "low": 10.73,
+      "open": 10.73,
+      "volume": 0
+     },
+     {
+      "close": 12.06,
+      "date": "2026-01-02",
+      "high": 12.06,
+      "low": 12.06,
+      "open": 12.06,
+      "volume": 0
+     },
+     {
+      "close": 12.56,
+      "date": "2026-01-05",
+      "high": 12.56,
+      "low": 12.56,
+      "open": 12.56,
+      "volume": 0
+     },
+     {
+      "close": 13.78,
+      "date": "2026-01-06",
+      "high": 13.78,
+      "low": 13.78,
+      "open": 13.78,
+      "volume": 0
+     },
+     {
+      "close": 13.33,
+      "date": "2026-01-07",
+      "high": 13.33,
+      "low": 13.33,
+      "open": 13.33,
+      "volume": 0
+     },
+     {
+      "close": 12.67,
+      "date": "2026-01-08",
+      "high": 12.67,
+      "low": 12.67,
+      "open": 12.67,
+      "volume": 0
+     },
+     {
+      "close": 13.76,
+      "date": "2026-01-09",
+      "high": 13.76,
+      "low": 13.76,
+      "open": 13.76,
+      "volume": 0
+     },
+     {
+      "close": 13.95,
+      "date": "2026-01-12",
+      "high": 13.95,
+      "low": 13.95,
+      "open": 13.95,
+      "volume": 0
+     },
+     {
+      "close": 14.31,
+      "date": "2026-01-13",
+      "high": 14.31,
+      "low": 14.31,
+      "open": 14.31,
+      "volume": 0
+     },
+     {
+      "close": 14.13,
+      "date": "2026-01-14",
+      "high": 14.13,
+      "low": 14.13,
+      "open": 14.13,
+      "volume": 0
+     },
+     {
+      "close": 14.8,
+      "date": "2026-01-15",
+      "high": 14.8,
+      "low": 14.8,
+      "open": 14.8,
+      "volume": 0
+     },
+     {
+      "close": 15.47,
+      "date": "2026-01-16",
+      "high": 15.47,
+      "low": 15.47,
+      "open": 15.47,
+      "volume": 0
+     },
+     {
+      "close": 15.47,
+      "date": "2026-01-19",
+      "high": 15.47,
+      "low": 15.47,
+      "open": 15.47,
+      "volume": 0
+     },
+     {
+      "close": 14.77,
+      "date": "2026-01-20",
+      "high": 14.77,
+      "low": 14.77,
+      "open": 14.77,
+      "volume": 0
+     },
+     {
+      "close": 16.18,
+      "date": "2026-01-21",
+      "high": 16.18,
+      "low": 16.18,
+      "open": 16.18,
+      "volume": 0
+     },
+     {
+      "close": 16.25,
+      "date": "2026-01-22",
+      "high": 16.25,
+      "low": 16.25,
+      "open": 16.25,
+      "volume": 0
+     },
+     {
+      "close": 15.68,
+      "date": "2026-01-23",
+      "high": 15.68,
+      "low": 15.68,
+      "open": 15.68,
+      "volume": 0
+     },
+     {
+      "close": 15.44,
+      "date": "2026-01-26",
+      "high": 15.44,
+      "low": 15.44,
+      "open": 15.44,
+      "volume": 0
+     },
+     {
+      "close": 16.51,
+      "date": "2026-01-27",
+      "high": 16.51,
+      "low": 16.51,
+      "open": 16.51,
+      "volume": 0
+     },
+     {
+      "close": 17.82,
+      "date": "2026-01-28",
+      "high": 17.82,
+      "low": 17.82,
+      "open": 17.82,
+      "volume": 0
+     },
+     {
+      "close": 17.91,
+      "date": "2026-01-29",
+      "high": 17.91,
+      "low": 17.91,
+      "open": 17.91,
+      "volume": 0
+     },
+     {
+      "close": 15.66,
+      "date": "2026-01-30",
+      "high": 15.66,
+      "low": 15.66,
+      "open": 15.66,
+      "volume": 0
+     },
+     {
+      "close": 16.52,
+      "date": "2026-02-02",
+      "high": 16.52,
+      "low": 16.52,
+      "open": 16.52,
+      "volume": 0
+     },
+     {
+      "close": 15.53,
+      "date": "2026-02-03",
+      "high": 15.53,
+      "low": 15.53,
+      "open": 15.53,
+      "volume": 0
+     },
+     {
+      "close": 13.46,
+      "date": "2026-02-04",
+      "high": 13.46,
+      "low": 13.46,
+      "open": 13.46,
+      "volume": 0
+     },
+     {
+      "close": 13.51,
+      "date": "2026-02-05",
+      "high": 13.51,
+      "low": 13.51,
+      "open": 13.51,
+      "volume": 0
+     },
+     {
+      "close": 15.65,
+      "date": "2026-02-06",
+      "high": 15.65,
+      "low": 15.65,
+      "open": 15.65,
+      "volume": 0
+     },
+     {
+      "close": 16.21,
+      "date": "2026-02-09",
+      "high": 16.21,
+      "low": 16.21,
+      "open": 16.21,
+      "volume": 0
+     },
+     {
+      "close": 16.02,
+      "date": "2026-02-10",
+      "high": 16.02,
+      "low": 16.02,
+      "open": 16.02,
+      "volume": 0
+     },
+     {
+      "close": 17.21,
+      "date": "2026-02-11",
+      "high": 17.21,
+      "low": 17.21,
+      "open": 17.21,
+      "volume": 0
+     },
+     {
+      "close": 15.96,
+      "date": "2026-02-12",
+      "high": 15.96,
+      "low": 15.96,
+      "open": 15.96,
+      "volume": 0
+     },
+     {
+      "close": 16.36,
+      "date": "2026-02-13",
+      "high": 16.36,
+      "low": 16.36,
+      "open": 16.36,
+      "volume": 0
+     },
+     {
+      "close": 16.27,
+      "date": "2026-02-17",
+      "high": 16.27,
+      "low": 16.27,
+      "open": 16.27,
+      "volume": 0
+     },
+     {
+      "close": 16.79,
+      "date": "2026-02-18",
+      "high": 16.79,
+      "low": 16.79,
+      "open": 16.79,
+      "volume": 0
+     },
+     {
+      "close": 16.49,
+      "date": "2026-02-19",
+      "high": 16.49,
+      "low": 16.49,
+      "open": 16.49,
+      "volume": 0
+     },
+     {
+      "close": 16.97,
+      "date": "2026-02-20",
+      "high": 16.97,
+      "low": 16.97,
+      "open": 16.97,
+      "volume": 0
+     },
+     {
+      "close": 16.59,
+      "date": "2026-02-23",
+      "high": 16.59,
+      "low": 16.59,
+      "open": 16.59,
+      "volume": 0
+     },
+     {
+      "close": 17.31,
+      "date": "2026-02-24",
+      "high": 17.31,
+      "low": 17.31,
+      "open": 17.31,
+      "volume": 0
+     },
+     {
+      "close": 18.16,
+      "date": "2026-02-25",
+      "high": 18.16,
+      "low": 18.16,
+      "open": 18.16,
+      "volume": 0
+     },
+     {
+      "close": 16.49,
+      "date": "2026-02-26",
+      "high": 16.49,
+      "low": 16.49,
+      "open": 16.49,
+      "volume": 0
+     },
+     {
+      "close": 15.85,
+      "date": "2026-02-27",
+      "high": 15.85,
+      "low": 15.85,
+      "open": 15.85,
+      "volume": 0
+     },
+     {
+      "close": 15.81,
+      "date": "2026-03-02",
+      "high": 15.81,
+      "low": 15.81,
+      "open": 15.81,
+      "volume": 0
+     },
+     {
+      "close": 13.47,
+      "date": "2026-03-03",
+      "high": 13.47,
+      "low": 13.47,
+      "open": 13.47,
+      "volume": 0
+     },
+     {
+      "close": 14.28,
+      "date": "2026-03-04",
+      "high": 14.28,
+      "low": 14.28,
+      "open": 14.28,
+      "volume": 0
+     },
+     {
+      "close": 13.8,
+      "date": "2026-03-05",
+      "high": 13.8,
+      "low": 13.8,
+      "open": 13.8,
+      "volume": 0
+     },
+     {
+      "close": 12.05,
+      "date": "2026-03-06",
+      "high": 12.05,
+      "low": 12.05,
+      "open": 12.05,
+      "volume": 0
+     },
+     {
+      "close": 13.48,
+      "date": "2026-03-09",
+      "high": 13.48,
+      "low": 13.48,
+      "open": 13.48,
+      "volume": 0
+     },
+     {
+      "close": 13.76,
+      "date": "2026-03-10",
+      "high": 13.76,
+      "low": 13.76,
+      "open": 13.76,
+      "volume": 0
+     },
+     {
+      "close": 14.16,
+      "date": "2026-03-11",
+      "high": 14.16,
+      "low": 14.16,
+      "open": 14.16,
+      "volume": 0
+     },
+     {
+      "close": 12.67,
+      "date": "2026-03-12",
+      "high": 12.67,
+      "low": 12.67,
+      "open": 12.67,
+      "volume": 0
+     },
+     {
+      "close": 12.78,
+      "date": "2026-03-13",
+      "high": 12.78,
+      "low": 12.78,
+      "open": 12.78,
+      "volume": 0
+     },
+     {
+      "close": 13.53,
+      "date": "2026-03-16",
+      "high": 13.53,
+      "low": 13.53,
+      "open": 13.53,
+      "volume": 0
+     },
+     {
+      "close": 13.83,
+      "date": "2026-03-17",
+      "high": 13.83,
+      "low": 13.83,
+      "open": 13.83,
+      "volume": 0
+     },
+     {
+      "close": 13.59,
+      "date": "2026-03-18",
+      "high": 13.59,
+      "low": 13.59,
+      "open": 13.59,
+      "volume": 0
+     },
+     {
+      "close": 13.81,
+      "date": "2026-03-19",
+      "high": 13.81,
+      "low": 13.81,
+      "open": 13.81,
+      "volume": 0
+     },
+     {
+      "close": 12.86,
+      "date": "2026-03-20",
+      "high": 12.86,
+      "low": 12.86,
+      "open": 12.86,
+      "volume": 0
+     },
+     {
+      "close": 13.33,
+      "date": "2026-03-23",
+      "high": 13.33,
+      "low": 13.33,
+      "open": 13.33,
+      "volume": 0
+     },
+     {
+      "close": 13.85,
+      "date": "2026-03-24",
+      "high": 13.85,
+      "low": 13.85,
+      "open": 13.85,
+      "volume": 0
+     },
+     {
+      "close": 14.36,
+      "date": "2026-03-25",
+      "high": 14.36,
+      "low": 14.36,
+      "open": 14.36,
+      "volume": 0
+     },
+     {
+      "close": 12.3,
+      "date": "2026-03-26",
+      "high": 12.3,
+      "low": 12.3,
+      "open": 12.3,
+      "volume": 0
+     },
+     {
+      "close": 11.68,
+      "date": "2026-03-27",
+      "high": 11.68,
+      "low": 11.68,
+      "open": 11.68,
+      "volume": 0
+     },
+     {
+      "close": 10.19,
+      "date": "2026-03-30",
+      "high": 10.19,
+      "low": 10.19,
+      "open": 10.19,
+      "volume": 0
+     },
+     {
+      "close": 12.04,
+      "date": "2026-03-31",
+      "high": 12.04,
+      "low": 12.04,
+      "open": 12.04,
+      "volume": 0
+     },
+     {
+      "close": 13.12,
+      "date": "2026-04-01",
+      "high": 13.12,
+      "low": 13.12,
+      "open": 13.12,
+      "volume": 0
+     },
+     {
+      "close": 13.23,
+      "date": "2026-04-02",
+      "high": 13.23,
+      "low": 13.23,
+      "open": 13.23,
+      "volume": 0
+     },
+     {
+      "close": 13.75,
+      "date": "2026-04-06",
+      "high": 13.75,
+      "low": 13.75,
+      "open": 13.75,
+      "volume": 0
+     },
+     {
+      "close": 14.18,
+      "date": "2026-04-07",
+      "high": 14.18,
+      "low": 14.18,
+      "open": 14.18,
+      "volume": 0
+     },
+     {
+      "close": 16.93,
+      "date": "2026-04-08",
+      "high": 16.93,
+      "low": 16.93,
+      "open": 16.93,
+      "volume": 0
+     },
+     {
+      "close": 18.05,
+      "date": "2026-04-09",
+      "high": 18.05,
+      "low": 18.05,
+      "open": 18.05,
+      "volume": 0
+     },
+     {
+      "close": 19.17,
+      "date": "2026-04-10",
+      "high": 19.17,
+      "low": 19.17,
+      "open": 19.17,
+      "volume": 0
+     },
+     {
+      "close": 20.16,
+      "date": "2026-04-13",
+      "high": 20.16,
+      "low": 20.16,
+      "open": 20.16,
+      "volume": 0
+     },
+     {
+      "close": 21.37,
+      "date": "2026-04-14",
+      "high": 21.37,
+      "low": 21.37,
+      "open": 21.37,
+      "volume": 0
+     },
+     {
+      "close": 21.46,
+      "date": "2026-04-15",
+      "high": 21.46,
+      "low": 21.46,
+      "open": 21.46,
+      "volume": 0
+     },
+     {
+      "close": 22.1,
+      "date": "2026-04-16",
+      "high": 22.1,
+      "low": 22.1,
+      "open": 22.1,
+      "volume": 0
+     },
+     {
+      "close": 23.67,
+      "date": "2026-04-17",
+      "high": 23.67,
+      "low": 23.67,
+      "open": 23.67,
+      "volume": 0
+     },
+     {
+      "close": 23.97,
+      "date": "2026-04-20",
+      "high": 23.97,
+      "low": 23.97,
+      "open": 23.97,
+      "volume": 0
+     },
+     {
+      "close": 24.51,
+      "date": "2026-04-21",
+      "high": 24.51,
+      "low": 24.51,
+      "open": 24.51,
+      "volume": 0
+     },
+     {
+      "close": 26.43,
+      "date": "2026-04-22",
+      "high": 26.43,
+      "low": 26.43,
+      "open": 26.43,
+      "volume": 0
+     },
+     {
+      "close": 28.12,
+      "date": "2026-04-23",
+      "high": 28.12,
+      "low": 28.12,
+      "open": 28.12,
+      "volume": 0
+     },
+     {
+      "close": 32.02,
+      "date": "2026-04-24",
+      "high": 32.02,
+      "low": 32.02,
+      "open": 32.02,
+      "volume": 0
+     },
+     {
+      "close": 30.71,
+      "date": "2026-04-27",
+      "high": 30.71,
+      "low": 30.71,
+      "open": 30.71,
+      "volume": 0
+     },
+     {
+      "close": 27.31,
+      "date": "2026-04-28",
+      "high": 27.31,
+      "low": 27.31,
+      "open": 27.31,
+      "volume": 0
+     },
+     {
+      "close": 29.4,
+      "date": "2026-04-29",
+      "high": 29.4,
+      "low": 29.4,
+      "open": 29.4,
+      "volume": 0
+     },
+     {
+      "close": 31.62,
+      "date": "2026-04-30",
+      "high": 31.62,
+      "low": 31.62,
+      "open": 31.62,
+      "volume": 0
+     },
+     {
+      "close": 32.47,
+      "date": "2026-05-01",
+      "high": 32.47,
+      "low": 32.47,
+      "open": 32.47,
+      "volume": 0
+     },
+     {
+      "close": 31.68,
+      "date": "2026-05-04",
+      "high": 31.68,
+      "low": 31.68,
+      "open": 31.68,
+      "volume": 0
+     },
+     {
+      "close": 35.93,
+      "date": "2026-05-05",
+      "high": 35.93,
+      "low": 35.93,
+      "open": 35.93,
+      "volume": 0
+     },
+     {
+      "close": 41.31,
+      "date": "2026-05-06",
+      "high": 41.31,
+      "low": 41.31,
+      "open": 41.31,
+      "volume": 0
+     },
+     {
+      "close": 37.74,
+      "date": "2026-05-07",
+      "high": 37.74,
+      "low": 37.74,
+      "open": 37.74,
+      "volume": 0
+     },
+     {
+      "close": 44.13,
+      "date": "2026-05-08",
+      "high": 44.13,
+      "low": 44.13,
+      "open": 44.13,
+      "volume": 0
+     },
+     {
+      "close": 47.28,
+      "date": "2026-05-11",
+      "high": 47.28,
+      "low": 47.28,
+      "open": 47.28,
+      "volume": 0
+     },
+     {
+      "close": 42.79,
+      "date": "2026-05-12",
+      "high": 42.79,
+      "low": 42.79,
+      "open": 42.79,
+      "volume": 0
+     },
+     {
+      "close": 45.83,
+      "date": "2026-05-13",
+      "high": 45.83,
+      "low": 45.83,
+      "open": 45.83,
+      "volume": 0
+     },
+     {
+      "close": 46.27,
+      "date": "2026-05-14",
+      "high": 46.27,
+      "low": 46.27,
+      "open": 46.27,
+      "volume": 0
+     },
+     {
+      "close": 40.55,
+      "date": "2026-05-15",
+      "high": 40.55,
+      "low": 40.55,
+      "open": 40.55,
+      "volume": 0
+     },
+     {
+      "close": 37.71,
+      "date": "2026-05-19",
+      "high": 37.71,
+      "low": 37.71,
+      "open": 37.71,
+      "volume": 0
+     },
+     {
+      "close": 43.06,
+      "date": "2026-05-20",
+      "high": 43.06,
+      "low": 43.06,
+      "open": 43.06,
+      "volume": 0
+     },
+     {
+      "close": 44.14,
+      "date": "2026-05-21",
+      "high": 44.14,
+      "low": 44.14,
+      "open": 44.14,
+      "volume": 0
+     },
+     {
+      "close": 47.28,
+      "date": "2026-05-22",
+      "high": 47.28,
+      "low": 47.28,
+      "open": 47.28,
+      "volume": 0
+     },
+     {
+      "close": 47.24,
+      "date": "2026-05-25",
+      "high": 47.24,
+      "low": 47.24,
+      "open": 47.24,
+      "volume": 0
+     },
+     {
+      "close": 55.89,
+      "date": "2026-05-26",
+      "high": 55.89,
+      "low": 55.89,
+      "open": 55.89,
+      "volume": 0
+     },
+     {
+      "close": 54.06,
+      "date": "2026-05-27",
+      "high": 54.06,
+      "low": 54.06,
+      "open": 54.06,
+      "volume": 0
+     },
+     {
+      "close": 55.61,
+      "date": "2026-05-28",
+      "high": 55.61,
+      "low": 55.61,
+      "open": 55.61,
+      "volume": 0
+     },
+     {
+      "close": 55.44,
+      "date": "2026-05-29",
+      "high": 55.44,
+      "low": 55.44,
+      "open": 55.44,
+      "volume": 0
+     },
+     {
+      "close": 56.25,
+      "date": "2026-06-01",
+      "high": 56.25,
+      "low": 56.25,
+      "open": 56.25,
+      "volume": 0
+     },
+     {
+      "close": 65.99,
+      "date": "2026-06-02",
+      "high": 65.99,
+      "low": 65.99,
+      "open": 65.99,
+      "volume": 0
+     },
+     {
+      "close": 69.46,
+      "date": "2026-06-03",
+      "high": 69.46,
+      "low": 69.46,
+      "open": 69.46,
+      "volume": 0
+     },
+     {
+      "close": 65.05,
+      "date": "2026-06-04",
+      "high": 65.05,
+      "low": 65.05,
+      "open": 65.05,
+      "volume": 0
+     },
+     {
+      "close": 44.52,
+      "date": "2026-06-05",
+      "high": 44.52,
+      "low": 44.52,
+      "open": 44.52,
+      "volume": 0
+     },
+     {
+      "close": 52.34,
+      "date": "2026-06-08",
+      "high": 52.34,
+      "low": 52.34,
+      "open": 52.34,
+      "volume": 0
+     },
+     {
+      "close": 49.76,
+      "date": "2026-06-09",
+      "high": 49.76,
+      "low": 49.76,
+      "open": 49.76,
+      "volume": 0
+     },
+     {
+      "close": 44.26,
+      "date": "2026-06-10",
+      "high": 44.26,
+      "low": 44.26,
+      "open": 44.26,
+      "volume": 0
+     },
+     {
+      "close": 55.39,
+      "date": "2026-06-11",
+      "high": 55.39,
+      "low": 55.39,
+      "open": 55.39,
+      "volume": 0
+     },
+     {
+      "close": 57.97,
+      "date": "2026-06-12",
+      "high": 57.97,
+      "low": 57.97,
+      "open": 57.97,
+      "volume": 0
+     },
+     {
+      "close": 67.41,
+      "date": "2026-06-15",
+      "high": 67.41,
+      "low": 67.41,
+      "open": 67.41,
+      "volume": 0
+     },
+     {
+      "close": 55.4,
+      "date": "2026-06-16",
+      "high": 55.4,
+      "low": 55.4,
+      "open": 55.4,
+      "volume": 0
+     },
+     {
+      "close": 57.78,
+      "date": "2026-06-17",
+      "high": 57.78,
+      "low": 57.78,
+      "open": 57.78,
+      "volume": 0
+     },
+     {
+      "close": 69.26,
+      "date": "2026-06-18",
+      "high": 69.26,
+      "low": 69.26,
+      "open": 69.26,
+      "volume": 0
+     },
+     {
+      "close": 69.15,
+      "date": "2026-06-19",
+      "high": 69.15,
+      "low": 69.15,
+      "open": 69.15,
+      "volume": 0
+     },
+     {
+      "close": 74.21,
+      "date": "2026-06-22",
+      "high": 74.21,
+      "low": 74.21,
+      "open": 74.21,
+      "volume": 0
+     },
+     {
+      "close": 56.57,
+      "date": "2026-06-23",
+      "high": 56.57,
+      "low": 56.57,
+      "open": 56.57,
+      "volume": 0
+     },
+     {
+      "close": 56.01,
+      "date": "2026-06-24",
+      "high": 56.01,
+      "low": 56.01,
+      "open": 56.01,
+      "volume": 0
+     },
+     {
+      "close": 62.59,
+      "date": "2026-06-25",
+      "high": 62.59,
+      "low": 62.59,
+      "open": 62.59,
+      "volume": 0
+     },
+     {
+      "close": 51.94,
+      "date": "2026-06-26",
+      "high": 51.94,
+      "low": 51.94,
+      "open": 51.94,
+      "volume": 0
+     },
+     {
+      "close": 58.37,
+      "date": "2026-06-29",
+      "high": 58.37,
+      "low": 58.37,
+      "open": 58.37,
+      "volume": 0
+     },
+     {
+      "close": 65.83,
+      "date": "2026-06-30",
+      "high": 65.83,
+      "low": 65.83,
+      "open": 65.83,
+      "volume": 0
+     },
+     {
+      "close": 44.26,
+      "date": "2026-07-02",
+      "high": 44.26,
+      "low": 44.26,
+      "open": 44.26,
+      "volume": 0
+     },
+     {
+      "close": 44.19,
+      "date": "2026-07-03",
+      "high": 44.19,
+      "low": 44.19,
+      "open": 44.19,
+      "volume": 0
+     },
+     {
+      "close": 47.75,
+      "date": "2026-07-06",
+      "high": 47.75,
+      "low": 47.75,
+      "open": 47.75,
+      "volume": 0
+     },
+     {
+      "close": 40.39,
+      "date": "2026-07-07",
+      "high": 40.39,
+      "low": 40.39,
+      "open": 40.39,
+      "volume": 0
+     },
+     {
+      "close": 42.64,
+      "date": "2026-07-08",
+      "high": 42.64,
+      "low": 42.64,
+      "open": 42.64,
+      "volume": 0
+     },
+     {
+      "close": 47.1,
+      "date": "2026-07-09",
+      "high": 47.1,
+      "low": 47.1,
+      "open": 47.1,
+      "volume": 0
+     },
+     {
+      "close": 46.95,
+      "date": "2026-07-10",
+      "high": 46.95,
+      "low": 46.95,
+      "open": 46.95,
+      "volume": 0
+     },
+     {
+      "close": 40.21,
+      "date": "2026-07-13",
+      "high": 40.21,
+      "low": 40.21,
+      "open": 40.21,
+      "volume": 0
+     },
+     {
+      "close": 43.29,
+      "date": "2026-07-14",
+      "high": 43.29,
+      "low": 43.29,
+      "open": 43.29,
+      "volume": 0
+     },
+     {
+      "close": 40.38,
+      "date": "2026-07-15",
+      "high": 40.38,
+      "low": 40.38,
+      "open": 40.38,
+      "volume": 0
+     },
+     {
+      "close": 34.96,
+      "date": "2026-07-16",
+      "high": 34.96,
+      "low": 34.96,
+      "open": 34.96,
+      "volume": 0
+     },
+     {
+      "close": 33.2,
+      "date": "2026-07-17",
+      "high": 33.2,
+      "low": 33.2,
+      "open": 33.2,
+      "volume": 0
+     },
+     {
+      "close": 33.63,
+      "date": "2026-07-20",
+      "high": 33.63,
+      "low": 33.63,
+      "open": 33.63,
+      "volume": 0
+     },
+     {
+      "close": 39.13,
+      "date": "2026-07-21",
+      "high": 39.13,
+      "low": 39.13,
+      "open": 39.13,
+      "volume": 0
+     },
+     {
+      "close": 39.71,
+      "date": "2026-07-22",
+      "high": 39.71,
+      "low": 39.71,
+      "open": 39.71,
+      "volume": 0
+     },
+     {
+      "close": 38.77,
+      "date": "2026-07-23",
+      "high": 38.77,
+      "low": 38.77,
+      "open": 38.77,
+      "volume": 0
+     },
+     {
+      "close": 33.61,
+      "date": "2026-07-24",
+      "high": 33.61,
+      "low": 33.61,
+      "open": 33.61,
+      "volume": 0
+     },
+     {
+      "close": 31.52,
+      "date": "2026-07-27",
+      "high": 31.52,
+      "low": 31.52,
+      "open": 31.52,
+      "volume": 0
+     },
+     {
+      "close": 26.97,
+      "date": "2026-07-28",
+      "high": 26.97,
+      "low": 26.97,
+      "open": 26.97,
+      "volume": 0
+     },
+     {
+      "close": 22.62,
+      "date": "2026-07-29",
+      "high": 22.62,
+      "low": 22.62,
+      "open": 22.62,
+      "volume": 0
+     },
+     {
+      "close": 28.36,
+      "date": "2026-07-30",
+      "high": 28.36,
+      "low": 28.36,
+      "open": 28.36,
+      "volume": 0
+     },
+     {
+      "close": 28.37,
+      "date": "2026-07-31",
+      "high": 28.37,
+      "low": 28.37,
+      "open": 28.37,
+      "volume": 0
+     },
+     {
+      "close": 34.73,
+      "date": "2026-08-04",
+      "high": 34.73,
+      "low": 34.73,
+      "open": 34.73,
+      "volume": 0
+     },
+     {
+      "close": 32.51,
+      "date": "2026-08-05",
+      "high": 32.51,
+      "low": 32.51,
+      "open": 32.51,
+      "volume": 0
+     },
+     {
+      "close": 32.83,
+      "date": "2026-08-06",
+      "high": 32.83,
+      "low": 32.83,
+      "open": 32.83,
+      "volume": 0
+     },
+     {
+      "close": 34.76,
+      "date": "2026-08-07",
+      "high": 34.76,
+      "low": 34.76,
+      "open": 34.76,
+      "volume": 0
+     },
+     {
+      "close": 32.08,
+      "date": "2026-08-10",
+      "high": 32.08,
+      "low": 32.08,
+      "open": 32.08,
+      "volume": 0
+     },
+     {
+      "close": 32.94,
+      "date": "2026-08-11",
+      "high": 32.94,
+      "low": 32.94,
+      "open": 32.94,
+      "volume": 0
+     },
+     {
+      "close": 35.22,
+      "date": "2026-08-12",
+      "high": 35.22,
+      "low": 35.22,
+      "open": 35.22,
+      "volume": 0
+     },
+     {
+      "close": 36.01,
+      "date": "2026-08-13",
+      "high": 36.01,
+      "low": 36.01,
+      "open": 36.01,
+      "volume": 0
+     },
+     {
+      "close": 35.9,
+      "date": "2026-08-14",
+      "high": 35.9,
+      "low": 35.9,
+      "open": 35.9,
+      "volume": 0
+     },
+     {
+      "close": 37.58,
+      "date": "2026-08-17",
+      "high": 37.58,
+      "low": 37.58,
+      "open": 37.58,
+      "volume": 0
+     },
+     {
+      "close": 31.96,
+      "date": "2026-08-18",
+      "high": 31.96,
+      "low": 31.96,
+      "open": 31.96,
+      "volume": 0
+     },
+     {
+      "close": 29.85,
+      "date": "2026-08-19",
+      "high": 29.85,
+      "low": 29.85,
+      "open": 29.85,
+      "volume": 0
+     },
+     {
+      "close": 30.29,
+      "date": "2026-08-20",
+      "high": 30.29,
+      "low": 30.29,
+      "open": 30.29,
+      "volume": 0
+     },
+     {
+      "close": 29.86,
+      "date": "2026-08-21",
+      "high": 29.86,
+      "low": 29.86,
+      "open": 29.86,
+      "volume": 0
+     },
+     {
+      "close": 27.44,
+      "date": "2026-08-24",
+      "high": 27.44,
+      "low": 27.44,
+      "open": 27.44,
+      "volume": 0
+     },
+     {
+      "close": 28.71,
+      "date": "2026-08-25",
+      "high": 28.71,
+      "low": 28.71,
+      "open": 28.71,
+      "volume": 0
+     },
+     {
+      "close": 28.92,
+      "date": "2026-08-26",
+      "high": 28.92,
+      "low": 28.92,
+      "open": 28.92,
+      "volume": 0
+     },
+     {
+      "close": 30.59,
+      "date": "2026-08-27",
+      "high": 30.59,
+      "low": 30.59,
+      "open": 30.59,
+      "volume": 0
+     },
+     {
+      "close": 27.6,
+      "date": "2026-08-28",
+      "high": 27.6,
+      "low": 27.6,
+      "open": 27.6,
+      "volume": 0
+     },
+     {
+      "close": 27.98,
+      "date": "2026-08-31",
+      "high": 27.98,
+      "low": 27.98,
+      "open": 27.98,
+      "volume": 0
+     },
+     {
+      "close": 26.2,
+      "date": "2026-09-01",
+      "high": 26.2,
+      "low": 26.2,
+      "open": 26.2,
+      "volume": 0
+     },
+     {
+      "close": 26.37,
+      "date": "2026-09-02",
+      "high": 26.37,
+      "low": 26.37,
+      "open": 26.37,
+      "volume": 0
+     },
+     {
+      "close": 26.48,
+      "date": "2026-09-03",
+      "high": 26.48,
+      "low": 26.48,
+      "open": 26.48,
+      "volume": 0
+     },
+     {
+      "close": 29.23,
+      "date": "2026-09-04",
+      "high": 29.23,
+      "low": 29.23,
+      "open": 29.23,
+      "volume": 0
+     },
+     {
+      "close": 30.65,
+      "date": "2026-09-08",
+      "high": 30.65,
+      "low": 30.65,
+      "open": 30.65,
+      "volume": 0
+     },
+     {
+      "close": 31.27,
+      "date": "2026-09-09",
+      "high": 31.27,
+      "low": 31.27,
+      "open": 31.27,
+      "volume": 0
+     },
+     {
+      "close": 28.68,
+      "date": "2026-09-10",
+      "high": 28.68,
+      "low": 28.68,
+      "open": 28.68,
+      "volume": 0
+     },
+     {
+      "close": 30.25,
+      "date": "2026-09-11",
+      "high": 30.25,
+      "low": 30.25,
+      "open": 30.25,
+      "volume": 0
+     },
+     {
+      "close": 25.11,
+      "date": "2026-09-14",
+      "high": 25.11,
+      "low": 25.11,
+      "open": 25.11,
+      "volume": 0
+     },
+     {
+      "close": 25.36,
+      "date": "2026-09-15",
+      "high": 25.36,
+      "low": 25.36,
+      "open": 25.36,
+      "volume": 0
+     },
+     {
+      "close": 25.84,
+      "date": "2026-09-16",
+      "high": 25.84,
+      "low": 25.84,
+      "open": 25.84,
+      "volume": 0
+     },
+     {
+      "close": 28.46,
+      "date": "2026-09-17",
+      "high": 28.46,
+      "low": 28.46,
+      "open": 28.46,
+      "volume": 0
+     },
+     {
+      "close": 30.73,
+      "date": "2026-09-18",
+      "high": 30.73,
+      "low": 30.73,
+      "open": 30.73,
+      "volume": 0
+     },
+     {
+      "close": 35.27,
+      "date": "2026-09-21",
+      "high": 35.27,
+      "low": 35.27,
+      "open": 35.27,
+      "volume": 0
+     },
+     {
+      "close": 37.8,
+      "date": "2026-09-22",
+      "high": 37.8,
+      "low": 37.8,
+      "open": 37.8,
+      "volume": 0
+     },
+     {
+      "close": 36.38,
+      "date": "2026-09-23",
+      "high": 36.38,
+      "low": 36.38,
+      "open": 36.38,
+      "volume": 0
+     },
+     {
+      "close": 36.43,
+      "date": "2026-09-24",
+      "high": 36.43,
+      "low": 36.43,
+      "open": 36.43,
+      "volume": 0
+     },
+     {
+      "close": 37.66,
+      "date": "2026-09-25",
+      "high": 37.66,
+      "low": 37.66,
+      "open": 37.66,
+      "volume": 0
+     },
+     {
+      "close": 35.29,
+      "date": "2026-09-28",
+      "high": 35.29,
+      "low": 35.29,
+      "open": 35.29,
+      "volume": 0
+     },
+     {
+      "close": 36.52,
+      "date": "2026-09-29",
+      "high": 36.52,
+      "low": 36.52,
+      "open": 36.52,
+      "volume": 0
+     },
+     {
+      "close": 36.75,
+      "date": "2026-09-30",
+      "high": 36.75,
+      "low": 36.75,
+      "open": 36.75,
+      "volume": 0
+     },
+     {
+      "close": 38.22,
+      "date": "2026-10-01",
+      "high": 38.22,
+      "low": 38.22,
+      "open": 38.22,
+      "volume": 0
+     },
+     {
+      "close": 40.68,
+      "date": "2026-10-02",
+      "high": 40.68,
+      "low": 40.68,
+      "open": 40.68,
+      "volume": 0
+     },
+     {
+      "close": 40.79,
+      "date": "2026-10-05",
+      "high": 40.79,
+      "low": 40.79,
+      "open": 40.79,
+      "volume": 0
+     },
+     {
+      "close": 40.76,
+      "date": "2026-10-06",
+      "high": 40.76,
+      "low": 40.76,
+      "open": 40.76,
+      "volume": 0
+     },
+     {
+      "close": 39.36,
+      "date": "2026-10-07",
+      "high": 39.36,
+      "low": 39.36,
+      "open": 39.36,
+      "volume": 0
+     },
+     {
+      "close": 35.39,
+      "date": "2026-10-08",
+      "high": 35.39,
+      "low": 35.39,
+      "open": 35.39,
+      "volume": 0
+     },
+     {
+      "close": 34.6,
+      "date": "2026-10-09",
+      "high": 34.6,
+      "low": 34.6,
+      "open": 34.6,
+      "volume": 0
+     },
+     {
+      "close": 31.72,
+      "date": "2026-10-13",
+      "high": 31.72,
+      "low": 31.72,
+      "open": 31.72,
+      "volume": 0
+     },
+     {
+      "close": 27.41,
+      "date": "2026-10-14",
+      "high": 27.41,
+      "low": 27.41,
+      "open": 27.41,
+      "volume": 0
+     },
+     {
+      "close": 26.66,
+      "date": "2026-10-15",
+      "high": 26.66,
+      "low": 26.66,
+      "open": 26.66,
+      "volume": 0
+     },
+     {
+      "close": 23.32,
+      "date": "2026-10-16",
+      "high": 23.32,
+      "low": 23.32,
+      "open": 23.32,
+      "volume": 0
+     },
+     {
+      "close": 24.52,
+      "date": "2026-10-19",
+      "high": 24.52,
+      "low": 24.52,
+      "open": 24.52,
+      "volume": 0
+     },
+     {
+      "close": 24.23,
+      "date": "2026-10-20",
+      "high": 24.23,
+      "low": 24.23,
+      "open": 24.23,
+      "volume": 0
+     },
+     {
+      "close": 25.72,
+      "date": "2026-10-21",
+      "high": 25.72,
+      "low": 25.72,
+      "open": 25.72,
+      "volume": 0
+     },
+     {
+      "close": 20.48,
+      "date": "2026-10-22",
+      "high": 20.48,
+      "low": 20.48,
+      "open": 20.48,
+      "volume": 0
+     },
+     {
+      "close": 20.78,
+      "date": "2026-10-23",
+      "high": 20.78,
+      "low": 20.78,
+      "open": 20.78,
+      "volume": 0
+     },
+     {
+      "close": 22.55,
+      "date": "2026-10-26",
+      "high": 22.55,
+      "low": 22.55,
+      "open": 22.55,
+      "volume": 0
+     },
+     {
+      "close": 25.19,
+      "date": "2026-10-27",
+      "high": 25.19,
+      "low": 25.19,
+      "open": 25.19,
+      "volume": 0
+     },
+     {
+      "close": 26.78,
+      "date": "2026-10-28",
+      "high": 26.78,
+      "low": 26.78,
+      "open": 26.78,
+      "volume": 0
+     },
+     {
+      "close": 25.53,
+      "date": "2026-10-29",
+      "high": 25.53,
+      "low": 25.53,
+      "open": 25.53,
+      "volume": 0
+     },
+     {
+      "close": 19.19,
+      "date": "2026-10-30",
+      "high": 19.19,
+      "low": 19.19,
+      "open": 19.19,
+      "volume": 0
+     },
+     {
+      "close": 17,
+      "date": "2026-11-02",
+      "high": 17,
+      "low": 17,
+      "open": 17,
+      "volume": 0
+     },
+     {
+      "close": 18.27,
+      "date": "2026-11-03",
+      "high": 18.27,
+      "low": 18.27,
+      "open": 18.27,
+      "volume": 0
+     },
+     {
+      "close": 16.55,
+      "date": "2026-11-04",
+      "high": 16.55,
+      "low": 16.55,
+      "open": 16.55,
+      "volume": 0
+     },
+     {
+      "close": 10.48,
+      "date": "2026-11-05",
+      "high": 10.48,
+      "low": 10.48,
+      "open": 10.48,
+      "volume": 0
+     },
+     {
+      "close": 11.58,
+      "date": "2026-11-06",
+      "high": 11.58,
+      "low": 11.58,
+      "open": 11.58,
+      "volume": 0
+     },
+     {
+      "close": 14.18,
+      "date": "2026-11-09",
+      "high": 14.18,
+      "low": 14.18,
+      "open": 14.18,
+      "volume": 0
+     },
+     {
+      "close": 14.12,
+      "date": "2026-11-10",
+      "high": 14.12,
+      "low": 14.12,
+      "open": 14.12,
+      "volume": 0
+     },
+     {
+      "close": 16.68,
+      "date": "2026-11-11",
+      "high": 16.68,
+      "low": 16.68,
+      "open": 16.68,
+      "volume": 0
+     },
+     {
+      "close": 16.54,
+      "date": "2026-11-12",
+      "high": 16.54,
+      "low": 16.54,
+      "open": 16.54,
+      "volume": 0
+     },
+     {
+      "close": 14.69,
+      "date": "2026-11-13",
+      "high": 14.69,
+      "low": 14.69,
+      "open": 14.69,
+      "volume": 0
+     },
+     {
+      "close": 12.3,
+      "date": "2026-11-16",
+      "high": 12.3,
+      "low": 12.3,
+      "open": 12.3,
+      "volume": 0
+     },
+     {
+      "close": 12.35,
+      "date": "2026-11-17",
+      "high": 12.35,
+      "low": 12.35,
+      "open": 12.35,
+      "volume": 0
+     },
+     {
+      "close": 12.45,
+      "date": "2026-11-18",
+      "high": 12.45,
+      "low": 12.45,
+      "open": 12.45,
+      "volume": 0
+     },
+     {
+      "close": 11.42,
+      "date": "2026-11-19",
+      "high": 11.42,
+      "low": 11.42,
+      "open": 11.42,
+      "volume": 0
+     },
+     {
+      "close": 7.79,
+      "date": "2026-11-20",
+      "high": 7.79,
+      "low": 7.79,
+      "open": 7.79,
+      "volume": 0
+     },
+     {
+      "close": 10.97,
+      "date": "2026-11-23",
+      "high": 10.97,
+      "low": 10.97,
+      "open": 10.97,
+      "volume": 0
+     },
+     {
+      "close": 8.26,
+      "date": "2026-11-24",
+      "high": 8.26,
+      "low": 8.26,
+      "open": 8.26,
+      "volume": 0
+     },
+     {
+      "close": 8.14,
+      "date": "2026-11-25",
+      "high": 8.14,
+      "low": 8.14,
+      "open": 8.14,
+      "volume": 0
+     },
+     {
+      "close": 8.8,
+      "date": "2026-11-26",
+      "high": 9.38,
+      "low": 8.36,
+      "open": 8.5,
+      "volume": 688008
+     }
+    ],
+    "quoteType": "ETF",
+    "sector": "Unknown",
+    "ticker": "SOXL.NE"
+   }
+  },
+  "coverage": {
+   "status": 200,
+   "body": {
+    "markets": [
+     "US",
+     "Toronto",
+     "Cboe Canada"
+    ],
+    "providers": {
+     "alpaca": {
+      "Cboe Canada": "no",
+      "Toronto": "no",
+      "US": "works",
+      "note": "First US daily-price source since Day 129 (free plan, 200 calls a minute, adjusted bars). Measured 2026-11-21: closes within 0.04% of Twelve Data and Yahoo over the whole 2y history on AAPL, JNJ, NEE, NVDL, QPUX; no split error on NVDL or QPUX; volume x0.85-1.01 of Twelve Data. Bars with zero volume are not emitted, so thin funds can miss sessions."
+     },
+     "alphavantage": {
+      "Cboe Canada": "not tested",
+      "Toronto": "works",
+      "US": "not tested",
+      "note": "Fundamentals growth in the chain. Toronto prices work as .TRT. 25 calls a day, 1 a second."
+     },
+     "eodhd": {
+      "Cboe Canada": "works",
+      "Toronto": "works",
+      "US": "not tested",
+      "note": "Not in the chain. Free key: 20 calls a day, 1 year of history. SOXL.NEO is still close-only."
+     },
+     "finnhub": {
+      "Cboe Canada": "not tested",
+      "Toronto": "not tested",
+      "US": "not tested",
+      "note": "Fundamentals core fields. Not tested for prices or Canada."
+     },
+     "fmp": {
+      "Cboe Canada": "paid only",
+      "Toronto": "paid only",
+      "US": "not tested",
+      "note": "Canadian symbols return HTTP 402 on the free key."
+     },
+     "stooq": {
+      "Cboe Canada": "disabled",
+      "Toronto": "disabled",
+      "US": "disabled",
+      "note": "Removed from the chain Day 82 (bot-blocked)."
+     },
+     "tradier": {
+      "Cboe Canada": "no",
+      "Toronto": "no",
+      "US": "works",
+      "note": "Fast and clean for US names, but a 1:3 reverse split is applied wrongly (QPUX before 2026-03-20 is 3x too high). Not dividend-adjusted. Needs BRK/B for Berkshire."
+     },
+     "twelvedata": {
+      "Cboe Canada": "no",
+      "Toronto": "no",
+      "US": "works",
+      "note": "Free plan has no Canadian symbols (Grow plan needed). Rate limited: 8 a minute, about 800 a day."
+     },
+     "yfinance": {
+      "Cboe Canada": "partial",
+      "Toronto": "works",
+      "US": "works",
+      "note": "Only source for Canada. Toronto (.TO) is accurate, including the CDRs. Cboe Canada (.NE): SOXL.NE is close-only with an unadjusted 3:1 split; other .NE names are thin: use .TO."
+     }
+    },
+    "report": "docs/test/DataSources_20261114/REPORT_vs_IBKR.md",
+    "tested": "2026-11-14"
+   }
+  },
+  "provenance": {
+   "status": 200,
+   "body": {
+    "audit": {
+     "age_days": 3,
+     "date": "2026-11-24",
+     "level": "FAIL",
+     "line": "C4: yfinance: flat zero-volume 100%; bad OHLC rows 0; zero-volume in last 5: 5",
+     "report": "docs/test/DataSources_20261125/REPORT.md",
+     "section": "truth_free"
+    },
+    "fundamentals": {
+     "age_days": 3.5,
+     "attempt": {
+      "detail": null,
+      "error": null,
+      "last_fail_ts": null,
+      "last_ok_detail": null,
+      "last_ok_provider": null,
+      "last_ok_ts": null,
+      "period": null,
+      "served_stale": false,
+      "state": "never"
+     },
+     "cached": true,
+     "cached_at": "2026-11-23T18:01:39.029778-05:00",
+     "expires_at": "2026-11-30T18:01:39.029716-05:00",
+     "expires_in": "3 days, 11:08:35.213737",
+     "has_data": false,
+     "source": "yfinance",
+     "status": "cached"
+    },
+    "indicators": [
+     {
+      "computed_in": [
+       "js:frontend/src/utils/technicalIndicators.js:calculateSMA"
+      ],
+      "formula": "Average of the last 50 (or 200) closes. Completed days only: today's unfinished bar is left out (Day 126).",
+      "kind": "local_bars",
+      "name": "SMA 50 / 200",
+      "source": "this stock's daily closes"
+     },
+     {
+      "computed_in": [
+       "js:frontend/src/utils/technicalIndicators.js:calculateEMA"
+      ],
+      "formula": "Starts at the first close, then EMA = close x k + previous EMA x (1 - k), k = 2/(period+1), run over every completed bar. Today's unfinished bar is left out (Day 126).",
+      "kind": "local_bars",
+      "name": "EMA 8 / 21",
+      "source": "this stock's daily closes"
+     },
+     {
+      "computed_in": [
+       "js:frontend/src/utils/technicalIndicators.js:calculateRSI"
+      ],
+      "formula": "Wilder: first average = simple mean of 14 moves, then (previous x 13 + today) / 14. Decides the verdict's Strong / Decent band. Completed days only (Day 126). A flat price history gives 100.",
+      "kind": "local_bars",
+      "name": "RSI 14",
+      "source": "this stock's daily closes"
+     },
+     {
+      "computed_in": [
+       "py:simple_sr:wilder_atr"
+      ],
+      "formula": "Wilder: first average = mean of the first 14 true ranges (the first bar counts as high minus low), then (previous x 13 + today) / 14, over the whole history. Sets the Trade Setup stop (2 x ATR). Uses finished days only; today's unfinished bar is left out.",
+      "kind": "local_bars",
+      "name": "ATR 14",
+      "source": "this stock's daily high, low, close"
+     },
+     {
+      "computed_in": [
+       "py:backend:calculate_adx"
+      ],
+      "formula": "Wilder smoothing (pandas ewm, alpha 1/14) of +DM, -DM and true range; ADX is the smoothed DX. Completed days only (Day 126).",
+      "kind": "local_bars",
+      "name": "ADX 14",
+      "source": "this stock's daily high, low, close"
+     },
+     {
+      "computed_in": [
+       "py:backend:get_support_resistance",
+       "js:frontend/src/utils/scoringEngine.js:getIndicators"
+      ],
+      "formula": "Average of the last 50 daily volumes; RVOL = the day's volume / that average. The Technical Read uses the last COMPLETED session while today is still forming; the raw API value for today's unfinished bar reads low mid-session.",
+      "kind": "local_bars",
+      "name": "Avg volume 50 / RVOL",
+      "source": "this stock's daily volume"
+     },
+     {
+      "computed_in": [
+       "js:frontend/src/utils/rsCalculator.js:calculateRelativeStrength"
+      ],
+      "formula": "(stock today / stock 251 bars ago) / (SPY today / SPY 251 bars ago): a ratio of growth factors. With 201-251 bars it uses the oldest bar, so its \"52 weeks\" is shorter; under 201 bars there is no RS.",
+      "kind": "local_bars_spy",
+      "name": "RS 52W",
+      "source": "this stock's and SPY's closes"
+     },
+     {
+      "computed_in": [
+       "py:backend:get_value_analysis"
+      ],
+      "formula": "Not calculated from prices. Taken from the provider; Yahoo computes P/E / (EPS growth x 100) when it is missing. The Value tab switches to PEGY (growth + dividend yield) locally when the yield is over 1.5%.",
+      "kind": "provider_plus_local",
+      "name": "PEG",
+      "source": "a data provider (Finnhub, then Alpha Vantage, then Yahoo)"
+     }
+    ],
+    "indicators_error": null,
+    "ohlcv": {
+     "age_hours": 12.9,
+     "attempt": {
+      "detail": null,
+      "error": null,
+      "last_fail_ts": null,
+      "last_ok_detail": null,
+      "last_ok_provider": null,
+      "last_ok_ts": null,
+      "period": null,
+      "served_stale": false,
+      "state": "never"
+     },
+     "cached": true,
+     "cached_at": "2026-11-26T18:01:32.761556-05:00",
+     "expires_at": "2026-11-27T16:30:00-05:00",
+     "expires_in": "9:36:56.184573",
+     "rows": 320,
+     "source": "yfinance",
+     "status": "cached",
+     "this_session": "cache"
+    },
+    "quality": {
+     "cached_at": "2026-11-26T18:01:32.761556-05:00",
+     "checks": {
+      "freshness": {
+       "level": "PASS",
+       "note": "last bar 2026-11-26, 1 session behind (a market holiday can explain 1-2)"
+      },
+      "history": {
+       "level": "PASS",
+       "note": "320 bars from 2025-08-18"
+      },
+      "integrity": {
+       "level": "FAIL",
+       "note": "100% of bars flat with zero volume; 0 malformed bars; zero volume on 4 of the last 5 days"
+      },
+      "jumps": {
+       "level": "WARN",
+       "note": "2026-11-23 +41%: a real move, or an unadjusted split. Compare with a second source."
+      }
+     },
+     "expired": false,
+     "facts": {
+      "bad_rows": 0,
+      "bars": 320,
+      "expected_last_date": "2026-11-27",
+      "first_date": "2025-08-18",
+      "flat_zero_volume_pct": 99.7,
+      "forming_bar_dropped": false,
+      "jumps": [
+       {
+        "covered": true,
+        "date": "2026-05-25",
+        "in_last_260": true,
+        "pct": -66.7,
+        "split_k": 3
+       },
+       {
+        "covered": false,
+        "date": "2026-11-23",
+        "in_last_260": true,
+        "pct": 40.9,
+        "split_k": null
+       }
+      ],
+      "last_date": "2026-11-26",
+      "nan_closes": 0,
+      "newest_close_missing": false,
+      "sessions_behind": 1,
+      "split_table_errors": [],
+      "splits": [
+       {
+        "bar_date": "2026-05-25",
+        "note": null,
+        "source_url": "https://www.newswire.ca/news-releases/global-x-etfs-announces-share-consolidations-and-splits-817349984.html",
+        "status": "unadjusted",
+        "text": "3-for-1 on 2026-05-25"
+       }
+      ],
+      "state": "ok",
+      "zero_volume_last5": 4
+     },
+     "level": "FAIL",
+     "period": "2y",
+     "reason": null,
+     "rows": 320,
+     "source": "yfinance",
+     "state": "ok"
+    },
+    "ticker": "SOXL.NE",
+    "timestamp": "2026-11-27T06:53:03.827420"
+   }
+  },
+  "cache": {
+   "status": 200,
+   "body": {
+    "database_size_kb": 50572,
+    "fundamentals": {
+     "count": 123,
+     "entries": [
+      {
+       "cached_at": "2026-11-23T09:29:40.661250-05:00",
+       "expired": false,
+       "expires_in": "3 days, 2:36:36.691365",
+       "source": "finnhub",
+       "ticker": "AAPL"
+      },
+      {
+       "cached_at": "2026-11-23T18:06:42.158236-05:00",
+       "expired": false,
+       "expires_in": "3 days, 11:13:38.188340",
+       "source": "yfinance",
+       "ticker": "AAPU"
+      },
+      {
+       "cached_at": "2026-11-23T18:04:32.630591-05:00",
+       "expired": false,
+       "expires_in": "3 days, 11:11:28.660708",
+       "source": "yfinance",
+       "ticker": "ABBV"
+      },
+      {
+       "cached_at": "2026-11-23T18:00:58.311090-05:00",
+       "expired": false,
+       "expires_in": "3 days, 11:07:54.341220",
+       "source": "finnhub",
+       "ticker": "AIPO"
+      },
+      {
+       "cached_at": "2026-11-23T18:03:52.304499-05:00",
+       "expired": false,
+       "expires_in": "3 days, 11:10:48.334618",
+       "source": "yfinance",
+       "ticker": "ALAB"
+      },
+      {
+       "cached_at": "2026-11-23T18:04:58.122375-05:00",
+       "expired": false,
+       "expires_in": "3 days, 11:11:54.152478",
+       "source": "yfinance",
+       "ticker": "AMD"
+      },
+      {
+       "cached_at": "2026-11-23T18:05:53.411346-05:00",
+       "expired": false,
+       "expires_in": "3 days, 11:12:49.441437",
+       "source": "yfinance",
+       "ticker": "AMD.TO"
+      },
+      {
+       "cached_at": "2026-11-23T18:03:54.701948-05:00",
+       "expired": false,
+       "expires_in": "3 days, 11:10:50.732062",
+       "source": "yfinance",
+       "ticker": "AMZN"
+      },
+      {
+       "cached_at": "2026-11-23T18:07:19.278645-05:00",
+       "expired": false,
+       "expires_in": "3 days, 11:14:15.308748",
+       "source": "yfinance",
+       "ticker": "AMZU"
+      },
+      {
+       "cached_at": "2026-11-23T18:03:38.239603-05:00",
+       "expired": false,
+       "expires_in": "3 days, 11:10:34.269709",
+       "source": "yfinance",
+       "ticker": "ANET.TO"
+      },
+      {
+       "cached_at": "2026-11-23T18:03:29.862461-05:00",
+       "expired": false,
+       "expires_in": "3 days, 11:10:25.892569",
+       "source": "yfinance",
+       "ticker": "ASML.TO"
+      },
+      {
+       "cached_at": "2026-11-23T18:02:01.114820-05:00",
+       "expired": false,
+       "expires_in": "3 days, 11:08:57.144921",
+       "source": "yfinance",
+       "ticker": "ASTL.TO"
+      },
+      {
+       "cached_at": "2026-11-23T18:01:42.528676-05:00",
+       "expired": false,
+       "expires_in": "3 days, 11:08:38.558765",
+       "source": "yfinance",
+       "ticker": "ATD.TO"
+      },
+      {
+       "cached_at": "2026-11-23T18:07:59.212878-05:00",
+       "expired": false,
+       "expires_in": "3 days, 11:14:55.242973",
+       "source": "yfinance",
+       "ticker": "AVGC"
+      },
+      {
+       "cached_at": "2026-11-23T09:30:24.318154-05:00",
+       "expired": false,
+       "expires_in": "3 days, 2:37:20.348225",
+       "source": "finnhub",
+       "ticker": "AVGO"
+      },
+      {
+       "cached_at": "2026-11-24T18:05:44.535331-05:00",
+       "expired": false,
+       "expires_in": "4 days, 11:12:40.565406",
+       "source": "yfinance",
+       "ticker": "AVGO.TO"
+      },
+      {
+       "cached_at": "2026-11-23T18:02:08.308481-05:00",
+       "expired": false,
+       "expires_in": "3 days, 11:09:04.338543",
+       "source": "yfinance",
+       "ticker": "BDT.TO"
+      },
+      {
+       "cached_at": "2026-11-23T18:07:19.348912-05:00",
+       "expired": false,
+       "expires_in": "3 days, 11:14:15.378985",
+       "source": "yfinance",
+       "ticker": "BOTZ"
+      },
+      {
+       "cached_at": "2026-11-23T18:00:58.449490-05:00",
+       "expired": false,
+       "expires_in": "3 days, 11:07:54.479560",
+       "source": "finnhub",
+       "ticker": "BRK-B"
+      },
+      {
+       "cached_at": "2026-11-23T18:07:35.279055-05:00",
+       "expired": false,
+       "expires_in": "3 days, 11:14:31.309086",
+       "source": "yfinance",
+       "ticker": "BRKU"
+      }
+     ],
+     "hit_rate_24h": 97.6
+    },
+    "market": {
+     "count": 127,
+     "entries": [
+      {
+       "cached_at": "2026-11-26T18:00:20.809521-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "CYCLES"
+      },
+      {
+       "cached_at": "2026-11-26T18:00:47.149824-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "ECON_INDICATORS"
+      },
+      {
+       "cached_at": "2026-11-27T06:52:47.143754-05:00",
+       "expired": false,
+       "expires_in": "0:00:28.171883",
+       "symbol": "LIVEQUOTE_AAPL"
+      },
+      {
+       "cached_at": "2026-11-26T18:06:35.279288-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_AAPU"
+      },
+      {
+       "cached_at": "2026-11-26T18:04:26.729241-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_ABBV"
+      },
+      {
+       "cached_at": "2026-11-26T18:00:55.500865-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_AIPO"
+      },
+      {
+       "cached_at": "2026-11-26T18:03:38.591714-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_ALAB"
+      },
+      {
+       "cached_at": "2026-11-26T18:04:47.744749-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_AMD"
+      },
+      {
+       "cached_at": "2026-11-27T06:51:33.786372-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_AMD.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:03:45.512393-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_AMZN"
+      },
+      {
+       "cached_at": "2026-11-26T18:07:13.897003-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_AMZU"
+      },
+      {
+       "cached_at": "2026-11-26T18:03:24.149419-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_ANET.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:03:16.505578-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_ASML.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:01:55.292950-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_ASTL.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:01:36.181290-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_ATD.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:07:52.910061-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_AVGC"
+      },
+      {
+       "cached_at": "2026-11-26T18:03:55.897484-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_AVGO"
+      },
+      {
+       "cached_at": "2026-11-26T18:05:30.272857-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_AVGO.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:02:02.327139-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_BDT.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:06:59.142221-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_BOTZ"
+      },
+      {
+       "cached_at": "2026-11-26T18:00:54.953379-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_BRK-B"
+      },
+      {
+       "cached_at": "2026-11-26T18:07:29.304136-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_BRKU"
+      },
+      {
+       "cached_at": "2026-11-26T18:04:40.810505-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_CAMT"
+      },
+      {
+       "cached_at": "2026-11-26T18:06:28.786327-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_CARS.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:00:47.487313-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_CAT"
+      },
+      {
+       "cached_at": "2026-11-26T18:03:08.875576-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_CCO.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:03:31.729753-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_CEG"
+      },
+      {
+       "cached_at": "2026-11-26T18:02:16.120565-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_CGY.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:01:43.067345-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_CNQ.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:01:29.257471-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_CNR.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:05:08.486124-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_COP"
+      },
+      {
+       "cached_at": "2026-11-26T18:06:36.002173-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_COPP.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:01:03.151957-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_COPX"
+      },
+      {
+       "cached_at": "2026-11-26T18:03:03.041027-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_COPZ"
+      },
+      {
+       "cached_at": "2026-11-26T18:04:40.759313-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_COST"
+      },
+      {
+       "cached_at": "2026-11-26T18:07:45.079901-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_COTG"
+      },
+      {
+       "cached_at": "2026-11-26T18:01:50.126053-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_CSU.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:05:01.449239-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_CVX"
+      },
+      {
+       "cached_at": "2026-11-27T06:51:40.728150-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_DRAL"
+      },
+      {
+       "cached_at": "2026-11-26T18:07:21.728255-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_DRAM"
+      },
+      {
+       "cached_at": "2026-11-26T18:07:06.994666-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_DRIV"
+      },
+      {
+       "cached_at": "2026-11-27T06:51:27.506657-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_DUK"
+      },
+      {
+       "cached_at": "2026-11-26T18:07:37.368748-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_ELIL"
+      },
+      {
+       "cached_at": "2026-11-26T18:06:18.625596-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_EQIX"
+      },
+      {
+       "cached_at": "2026-11-26T18:02:54.958125-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_ETN"
+      },
+      {
+       "cached_at": "2026-11-27T06:50:46.656044-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_F"
+      },
+      {
+       "cached_at": "2026-11-26T18:05:01.445724-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_FCX"
+      },
+      {
+       "cached_at": "2026-11-26T18:02:27.136012-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_FINN.NE"
+      },
+      {
+       "cached_at": "2026-11-26T18:07:14.539906-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_GDX"
+      },
+      {
+       "cached_at": "2026-11-26T18:03:10.151207-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_GDXU.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:05:29.085073-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_GE"
+      },
+      {
+       "cached_at": "2026-11-26T18:02:41.095903-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_GEV"
+      },
+      {
+       "cached_at": "2026-11-26T18:05:23.053551-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_GEV.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:06:58.346367-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_GGLL"
+      },
+      {
+       "cached_at": "2026-11-26T18:04:20.499990-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_GIB-A.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:01:01.696356-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_GOOGL"
+      },
+      {
+       "cached_at": "2026-11-26T18:07:52.976079-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_GRID"
+      },
+      {
+       "cached_at": "2026-11-26T18:04:05.765484-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_HD"
+      },
+      {
+       "cached_at": "2026-11-26T18:05:44.312530-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_HURA.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:01:57.065164-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_HXQ.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:01:15.244285-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_JNJ"
+      },
+      {
+       "cached_at": "2026-11-26T18:01:08.469165-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_JPM"
+      },
+      {
+       "cached_at": "2026-11-26T18:04:05.961689-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_KEYS"
+      },
+      {
+       "cached_at": "2026-11-26T06:45:32.363186-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_KSS"
+      },
+      {
+       "cached_at": "2026-11-26T18:05:15.327021-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_LIN"
+      },
+      {
+       "cached_at": "2026-11-26T18:04:19.675104-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_LLY"
+      },
+      {
+       "cached_at": "2026-11-26T18:01:41.404480-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_MDA.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:03:31.473022-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_META"
+      },
+      {
+       "cached_at": "2026-11-26T18:06:50.706395-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_METU"
+      },
+      {
+       "cached_at": "2026-11-26T18:04:27.336212-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_MRVL"
+      },
+      {
+       "cached_at": "2026-11-26T18:03:23.895753-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_MSFT"
+      },
+      {
+       "cached_at": "2026-11-26T18:06:43.051160-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_MSFU"
+      },
+      {
+       "cached_at": "2026-11-26T18:06:00.019501-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_MTRX.TO"
+      },
+      {
+       "cached_at": "2026-11-25T11:06:17.026639-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_MU"
+      },
+      {
+       "cached_at": "2026-11-26T18:04:13.513775-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_MU.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:05:43.762784-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_NEE"
+      },
+      {
+       "cached_at": "2026-11-26T18:05:22.302064-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_NEM"
+      },
+      {
+       "cached_at": "2026-11-27T05:46:15.668341-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_NFLX"
+      },
+      {
+       "cached_at": "2026-11-26T18:07:07.396343-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_NFXL"
+      },
+      {
+       "cached_at": "2026-11-26T18:01:48.435721-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_NTR.TO"
+      },
+      {
+       "cached_at": "2026-11-27T06:50:31.687628-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_NVDA"
+      },
+      {
+       "cached_at": "2026-11-27T05:45:50.134150-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_NVDL"
+      },
+      {
+       "cached_at": "2026-11-26T18:04:34.178079-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_ONTO"
+      },
+      {
+       "cached_at": "2026-11-26T18:06:07.212893-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_ORBX.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:04:54.573958-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_ORCL"
+      },
+      {
+       "cached_at": "2026-11-26T18:04:47.760116-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_PG"
+      },
+      {
+       "cached_at": "2026-11-26T18:06:11.878430-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_PLD"
+      },
+      {
+       "cached_at": "2026-11-27T05:47:45.983001-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_PLTR"
+      },
+      {
+       "cached_at": "2026-11-26T18:02:09.270881-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_PNG.V"
+      },
+      {
+       "cached_at": "2026-11-26T18:05:08.478625-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_QCOM"
+      },
+      {
+       "cached_at": "2026-11-26T18:02:24.159120-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_QPUX"
+      },
+      {
+       "cached_at": "2026-11-26T18:06:51.524624-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_QTUM"
+      },
+      {
+       "cached_at": "2026-11-26T18:06:14.454523-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_RBOT.TO"
+      },
+      {
+       "cached_at": "2026-11-27T06:50:39.259556-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_RIVN"
+      },
+      {
+       "cached_at": "2026-11-26T18:05:36.736552-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_RTX"
+      },
+      {
+       "cached_at": "2026-11-26T18:01:22.225345-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_RY.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:07:37.366830-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_SETM"
+      },
+      {
+       "cached_at": "2026-11-26T18:01:18.711778-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_SGRD.TO"
+      },
+      {
+       "cached_at": "2026-11-27T06:51:21.562377-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_SMH"
+      },
+      {
+       "cached_at": "2026-11-26T18:05:15.890688-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_SNDK.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:05:50.598006-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_SO"
+      },
+      {
+       "cached_at": "2026-11-26T18:01:26.488803-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_SOXL"
+      },
+      {
+       "cached_at": "2026-11-27T06:53:01.949157-05:00",
+       "expired": false,
+       "expires_in": "0:00:42.977013",
+       "symbol": "LIVEQUOTE_SOXL.NE"
+      },
+      {
+       "cached_at": "2026-11-26T18:01:10.927462-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_SOXX"
+      },
+      {
+       "cached_at": "2026-11-26T18:02:40.013423-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_SPCL"
+      },
+      {
+       "cached_at": "2026-11-26T18:03:55.893322-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_TSLA"
+      },
+      {
+       "cached_at": "2026-11-26T18:07:21.736276-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_TSLL"
+      },
+      {
+       "cached_at": "2026-11-26T18:02:47.987291-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_TSM"
+      },
+      {
+       "cached_at": "2026-11-26T18:02:55.303865-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_UBOT"
+      },
+      {
+       "cached_at": "2026-11-26T18:06:43.913898-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_UFO"
+      },
+      {
+       "cached_at": "2026-11-26T18:00:46.448498-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_URA"
+      },
+      {
+       "cached_at": "2026-11-26T18:02:47.686013-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_URAA"
+      },
+      {
+       "cached_at": "2026-11-26T18:04:12.782781-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_V"
+      },
+      {
+       "cached_at": "2026-11-27T06:52:54.764873-05:00",
+       "expired": false,
+       "expires_in": "0:00:35.792698",
+       "symbol": "LIVEQUOTE_VFV.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:03:02.028141-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_VRT"
+      },
+      {
+       "cached_at": "2026-11-26T18:02:34.163008-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_WDC.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:06:05.013794-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_WELL"
+      },
+      {
+       "cached_at": "2026-11-26T18:04:33.907608-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_WMT"
+      },
+      {
+       "cached_at": "2026-11-26T18:02:19.844713-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_XCHP.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:06:21.645978-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_XDRV.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:02:12.611209-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_XEQT.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:07:28.934909-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_XETM.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:05:52.992590-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_XGD.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:04:54.663198-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "symbol": "LIVEQUOTE_XOM"
+      },
+      {
+       "cached_at": "2026-11-27T06:48:05.226964-05:00",
+       "expired": false,
+       "expires_in": "0:55:01.254733",
+       "symbol": "QUOTE_^VIX"
+      },
+      {
+       "cached_at": "2026-11-26T18:00:47.155202-05:00",
+       "expired": false,
+       "expires_in": "9:36:56.027826",
+       "symbol": "SECTOR_ROTATION"
+      },
+      {
+       "cached_at": "2026-11-27T06:47:48.128275-05:00",
+       "expired": false,
+       "expires_in": "9:36:56.027822",
+       "symbol": "SUB_INDUSTRY_ROTATION"
+      }
+     ]
+    },
+    "ohlcv": {
+     "count": 161,
+     "entries": [
+      {
+       "cached_at": "2026-11-26T18:03:15.923745-05:00",
+       "expired": false,
+       "expires_in": "9:36:56.032482",
+       "rows": 504,
+       "source": "alpaca",
+       "ticker": "AAPL"
+      },
+      {
+       "cached_at": "2026-11-26T18:06:33.120227-05:00",
+       "expired": false,
+       "expires_in": "9:36:56.032466",
+       "rows": 504,
+       "source": "alpaca",
+       "ticker": "AAPU"
+      },
+      {
+       "cached_at": "2026-11-26T18:04:25.576529-05:00",
+       "expired": false,
+       "expires_in": "9:36:56.032459",
+       "rows": 504,
+       "source": "alpaca",
+       "ticker": "ABBV"
+      },
+      {
+       "cached_at": "2026-11-24T14:23:43.591601-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "rows": 504,
+       "source": "alpaca",
+       "ticker": "ADBE"
+      },
+      {
+       "cached_at": "2026-11-26T06:42:46.060152-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "rows": 504,
+       "source": "alpaca",
+       "ticker": "ADSK"
+      },
+      {
+       "cached_at": "2026-11-26T18:00:53.412136-05:00",
+       "expired": false,
+       "expires_in": "9:36:56.032433",
+       "rows": 338,
+       "source": "alpaca",
+       "ticker": "AIPO"
+      },
+      {
+       "cached_at": "2026-11-26T06:42:48.199800-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "rows": 504,
+       "source": "alpaca",
+       "ticker": "AJG"
+      },
+      {
+       "cached_at": "2026-11-26T18:03:37.248542-05:00",
+       "expired": false,
+       "expires_in": "9:36:56.032425",
+       "rows": 504,
+       "source": "alpaca",
+       "ticker": "ALAB"
+      },
+      {
+       "cached_at": "2026-11-26T18:04:46.473970-05:00",
+       "expired": false,
+       "expires_in": "9:36:56.032421",
+       "rows": 504,
+       "source": "alpaca",
+       "ticker": "AMD"
+      },
+      {
+       "cached_at": "2026-11-26T18:05:36.168719-05:00",
+       "expired": false,
+       "expires_in": "9:36:56.032416",
+       "rows": 503,
+       "source": "yfinance",
+       "ticker": "AMD.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:03:44.360482-05:00",
+       "expired": false,
+       "expires_in": "9:36:56.032412",
+       "rows": 504,
+       "source": "alpaca",
+       "ticker": "AMZN"
+      },
+      {
+       "cached_at": "2026-11-26T18:07:12.083766-05:00",
+       "expired": false,
+       "expires_in": "9:36:56.032408",
+       "rows": 504,
+       "source": "alpaca",
+       "ticker": "AMZU"
+      },
+      {
+       "cached_at": "2026-11-26T18:03:22.332704-05:00",
+       "expired": false,
+       "expires_in": "9:36:56.032404",
+       "rows": 234,
+       "source": "yfinance",
+       "ticker": "ANET.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:03:14.635318-05:00",
+       "expired": false,
+       "expires_in": "9:36:56.032400",
+       "rows": 285,
+       "source": "yfinance",
+       "ticker": "ASML.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:01:54.475993-05:00",
+       "expired": false,
+       "expires_in": "9:36:56.032396",
+       "rows": 503,
+       "source": "yfinance",
+       "ticker": "ASTL.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:01:35.061573-05:00",
+       "expired": false,
+       "expires_in": "9:36:56.032392",
+       "rows": 503,
+       "source": "yfinance",
+       "ticker": "ATD.TO"
+      },
+      {
+       "cached_at": "2026-11-26T18:07:50.822395-05:00",
+       "expired": false,
+       "expires_in": "9:36:56.032388",
+       "rows": 105,
+       "source": "alpaca",
+       "ticker": "AVGC"
+      },
+      {
+       "cached_at": "2026-11-26T18:03:54.712150-05:00",
+       "expired": false,
+       "expires_in": "9:36:56.032383",
+       "rows": 504,
+       "source": "alpaca",
+       "ticker": "AVGO"
+      },
+      {
+       "cached_at": "2026-11-24T18:05:43.911829-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "rows": 232,
+       "source": "yfinance",
+       "ticker": "AVGO.TO"
+      },
+      {
+       "cached_at": "2026-11-26T06:42:42.258287-05:00",
+       "expired": true,
+       "expires_in": "EXPIRED",
+       "rows": 504,
+       "source": "alpaca",
+       "ticker": "AXTA"
+      }
+     ],
+     "hit_rate_24h": 96.6
+    },
+    "status": "healthy",
+    "storage": "sqlite"
+   }
+  }
+ },
+ "tab": {
+  "fullText": "Data SourcesIs this ticker's data right, and where does it come from?SOXL.NECboe CACADLeveraged ETFinferred: ETF with 'BETAPRO', '3X', 'DAILY' in the nameData from Yahoo (yfinance)cachedserved from cache this sessionData qualityFAILChecked 320 bars (period 2y) · cached Nov 26, 6:01 PM · last bar 2026-11-26, 1 session behindSplit-adjusted by STA: 3-for-1 on 2026-05-25. The data provider left the older prices unadjusted.❌Bar integrity: 100% of bars flat with zero volume; 0 malformed bars; zero volume on 4 of the last 5 days⚠️One-day moves over 40%: 2026-11-23 +41%: a real move, or an unadjusted split. Compare with a second source.2 other checks passed.Last audit (2026-11-24): C4: yfinance: flat zero-volume 100%; bad OHLC rows 0; zero-volume in last 5: 5No fundamentals for a fund.Where the data comes fromEach source is tried in order. Markets covered are as tested on 2026-11-14 (docs/test/DataSources_20261114/REPORT_vs_IBKR.md).PricesAlpacaprimaryokUS: worksToronto: noCboe Canada: noFirst US daily-price source since Day 129 (free plan, 200 calls a minute, adjusted bars). Measured 2026-11-21: closes within 0.04% of Twelve Data and Yahoo over the whole 2y history on AAPL, JNJ, NEE, NVDL, QPUX; no split error on NVDL or QPUX; volume x0.85-1.01 of Twelve Data. Bars with zero volume are not emitted, so thin funds can miss sessions.Twelve Datafallback (OHLCV), primary (intraday)ok725 calls left todayUS: worksToronto: noCboe Canada: noFree plan has no Canadian symbols (Grow plan needed). Rate limited: 8 a minute, about 800 a day.Yahoo (yfinance)fallbackokUS: worksToronto: worksCboe Canada: partialOnly source for Canada. Toronto (.TO) is accurate, including the CDRs. Cboe Canada (.NE): SOXL.NE is close-only with an unadjusted 3:1 split; other .NE names are thin: use .TO.TradierfallbackokUS: worksToronto: noCboe Canada: noFast and clean for US names, but a 1:3 reverse split is applied wrongly (QPUX before 2026-03-20 is 3x too high). Not dividend-adjusted. Needs BRK/B for Berkshire.FundamentalsFinnhubprimarydegradedFundamentals core fields. Not tested for prices or Canada.Alpha Vantagegrowthcircuit open21 calls left todayFundamentals growth in the chain. Toronto prices work as .TRT. 25 calls a day, 1 a second.Yahoo (yfinance)fallbackokDisabled: Stooq (not in any chain).Market scanning: TradingView Screener, available.Intraday, quote, stock info and earnings chainsIntraday: Twelve Data → Yahoo (yfinance)Quote: Yahoo (yfinance) → Finnhub → TradierStock info: Yahoo (yfinance)Earnings: Yahoo (yfinance)Cache numbers and how indicators are calculated161OHLCV entries123Fundamentals entries50572 KBDatabase size96.6%Hit rate (24h)Prices are cached until the next market close (4pm ET + 30 min). Fundamentals for 7 days.IndicatorFromHowSMA 50 / 200this stock's daily closesAverage of the last 50 (or 200) closes. Completed days only: today's unfinished bar is left out (Day 126).EMA 8 / 21this stock's daily closesStarts at the first close, then EMA = close x k + previous EMA x (1 - k), k = 2/(period+1), run over every completed bar. Today's unfinished bar is left out (Day 126).RSI 14this stock's daily closesWilder: first average = simple mean of 14 moves, then (previous x 13 + today) / 14. Decides the verdict's Strong / Decent band. Completed days only (Day 126). A flat price history gives 100.ATR 14this stock's daily high, low, closeWilder: first average = mean of the first 14 true ranges (the first bar counts as high minus low), then (previous x 13 + today) / 14, over the whole history. Sets the Trade Setup stop (2 x ATR). Uses finished days only; today's unfinished bar is left out.ADX 14this stock's daily high, low, closeWilder smoothing (pandas ewm, alpha 1/14) of +DM, -DM and true range; ADX is the smoothed DX. Completed days only (Day 126).Avg volume 50 / RVOLthis stock's daily volumeAverage of the last 50 daily volumes; RVOL = the day's volume / that average. The Technical Read uses the last COMPLETED session while today is still forming; the raw API value for today's unfinished bar reads low mid-session.RS 52Wthis stock's and SPY's closes(stock today / stock 251 bars ago) / (SPY today / SPY 251 bars ago): a ratio of growth factors. With 201-251 bars it uses the oldest bar, so its \"52 weeks\" is shorter; under 201 bars there is no RS.PEGa data provider (Finnhub, then Alpha Vantage, then Yahoo)Not calculated from prices. Taken from the provider; Yahoo computes P/E / (EPS growth x 100) when it is missing. The Value tab switches to PEGY (growth + dividend yield) locally when the yield is over 1.5%.",
+  "symbol": "SOXL.NE",
+  "exchange": "Cboe CA",
+  "currency": "CAD",
+  "cls": "Leveraged ETF",
+  "basis": "inferred: ETF with 'BETAPRO', '3X', 'DAILY' in the name",
+  "dataFrom": "Yahoo (yfinance)",
+  "cacheState": "cached",
+  "identityText": "SOXL.NECboe CACADLeveraged ETFinferred: ETF with 'BETAPRO', '3X', 'DAILY' in the nameData from Yahoo (yfinance)cachedserved from cache this session",
+  "qualityVerdict": "FAIL",
+  "qualityHeader": "Checked 320 bars (period 2y) · cached Nov 26, 6:01 PM · last bar 2026-11-26, 1 session behind",
+  "allPass": null,
+  "qualityRows": [
+   {
+    "level": "FAIL",
+    "text": "❌Bar integrity: 100% of bars flat with zero volume; 0 malformed bars; zero volume on 4 of the last 5 days"
+   },
+   {
+    "level": "WARN",
+    "text": "⚠️One-day moves over 40%: 2026-11-23 +41%: a real move, or an unadjusted split. Compare with a second source."
+   }
+  ],
+  "splitNotes": [
+   "Split-adjusted by STA: 3-for-1 on 2026-05-25. The data provider left the older prices unadjusted."
+  ],
+  "audit": "Last audit (2026-11-24): C4: yfinance: flat zero-volume 100%; bad OHLC rows 0; zero-volume in last 5: 5",
+  "fundamentals": "No fundamentals for a fund.",
+  "error": null,
+  "qualityBoxText": "Data qualityFAILChecked 320 bars (period 2y) · cached Nov 26, 6:01 PM · last bar 2026-11-26, 1 session behindSplit-adjusted by STA: 3-for-1 on 2026-05-25. The data provider left the older prices unadjusted.❌Bar integrity: 100% of bars flat with zero volume; 0 malformed bars; zero volume on 4 of the last 5 days⚠️One-day moves over 40%: 2026-11-23 +41%: a real move, or an unadjusted split. Compare with a second source.2 other checks passed.Last audit (2026-11-24): C4: yfinance: flat zero-volume 100%; bad OHLC rows 0; zero-volume in last 5: 5No fundamentals for a fund.",
+  "coverageLine": "Each source is tried in order. Markets covered are as tested on 2026-11-14 (docs/test/DataSources_20261114/REPORT_vs_IBKR.md).",
+  "chainRows": [
+   {
+    "group": "price",
+    "provider": "alpaca",
+    "text": "AlpacaprimaryokUS: worksToronto: noCboe Canada: noFirst US daily-price source since Day 129 (free plan, 200 calls a minute, adjusted bars). Measured 2026-11-21: closes within 0.04% of Twelve Data and Yahoo over the whole 2y history on AAPL, JNJ, NEE, NVDL, QPUX; no split error on NVDL or QPUX; volume x0.85-1.01 of Twelve Data. Bars with zero volume are not emitted, so thin funds can miss sessions."
+   },
+   {
+    "group": "price",
+    "provider": "twelvedata",
+    "text": "Twelve Datafallback (OHLCV), primary (intraday)ok725 calls left todayUS: worksToronto: noCboe Canada: noFree plan has no Canadian symbols (Grow plan needed). Rate limited: 8 a minute, about 800 a day."
+   },
+   {
+    "group": "price",
+    "provider": "yfinance",
+    "text": "Yahoo (yfinance)fallbackokUS: worksToronto: worksCboe Canada: partialOnly source for Canada. Toronto (.TO) is accurate, including the CDRs. Cboe Canada (.NE): SOXL.NE is close-only with an unadjusted 3:1 split; other .NE names are thin: use .TO."
+   },
+   {
+    "group": "price",
+    "provider": "tradier",
+    "text": "TradierfallbackokUS: worksToronto: noCboe Canada: noFast and clean for US names, but a 1:3 reverse split is applied wrongly (QPUX before 2026-03-20 is 3x too high). Not dividend-adjusted. Needs BRK/B for Berkshire."
+   },
+   {
+    "group": "fundamentals",
+    "provider": "finnhub",
+    "text": "FinnhubprimarydegradedFundamentals core fields. Not tested for prices or Canada."
+   },
+   {
+    "group": "fundamentals",
+    "provider": "alphavantage",
+    "text": "Alpha Vantagegrowthcircuit open21 calls left todayFundamentals growth in the chain. Toronto prices work as .TRT. 25 calls a day, 1 a second."
+   },
+   {
+    "group": "fundamentals",
+    "provider": "yfinance",
+    "text": "Yahoo (yfinance)fallbackok"
+   }
+  ],
+  "disabledLine": "Disabled: Stooq (not in any chain).",
+  "tvLine": "Market scanning: TradingView Screener, available.",
+  "otherChains": [
+   "Intraday: Twelve Data → Yahoo (yfinance)",
+   "Quote: Yahoo (yfinance) → Finnhub → Tradier",
+   "Stock info: Yahoo (yfinance)",
+   "Earnings: Yahoo (yfinance)"
+  ],
+  "cacheGrid": [
+   "161OHLCV entries",
+   "123Fundamentals entries",
+   "50572 KBDatabase size",
+   "96.6%Hit rate (24h)"
+  ],
+  "staticCacheLine": "Prices are cached until the next market close (4pm ET + 30 min). Fundamentals for 7 days.",
+  "indicatorRows": [
+   [
+    "SMA 50 / 200",
+    "this stock's daily closes",
+    "Average of the last 50 (or 200) closes. Completed days only: today's unfinished bar is left out (Day 126)."
+   ],
+   [
+    "EMA 8 / 21",
+    "this stock's daily closes",
+    "Starts at the first close, then EMA = close x k + previous EMA x (1 - k), k = 2/(period+1), run over every completed bar. Today's unfinished bar is left out (Day 126)."
+   ],
+   [
+    "RSI 14",
+    "this stock's daily closes",
+    "Wilder: first average = simple mean of 14 moves, then (previous x 13 + today) / 14. Decides the verdict's Strong / Decent band. Completed days only (Day 126). A flat price history gives 100."
+   ],
+   [
+    "ATR 14",
+    "this stock's daily high, low, close",
+    "Wilder: first average = mean of the first 14 true ranges (the first bar counts as high minus low), then (previous x 13 + today) / 14, over the whole history. Sets the Trade Setup stop (2 x ATR). Uses finished days only; today's unfinished bar is left out."
+   ],
+   [
+    "ADX 14",
+    "this stock's daily high, low, close",
+    "Wilder smoothing (pandas ewm, alpha 1/14) of +DM, -DM and true range; ADX is the smoothed DX. Completed days only (Day 126)."
+   ],
+   [
+    "Avg volume 50 / RVOL",
+    "this stock's daily volume",
+    "Average of the last 50 daily volumes; RVOL = the day's volume / that average. The Technical Read uses the last COMPLETED session while today is still forming; the raw API value for today's unfinished bar reads low mid-session."
+   ],
+   [
+    "RS 52W",
+    "this stock's and SPY's closes",
+    "(stock today / stock 251 bars ago) / (SPY today / SPY 251 bars ago): a ratio of growth factors. With 201-251 bars it uses the oldest bar, so its \"52 weeks\" is shorter; under 201 bars there is no RS."
+   ],
+   [
+    "PEG",
+    "a data provider (Finnhub, then Alpha Vantage, then Yahoo)",
+    "Not calculated from prices. Taken from the provider; Yahoo computes P/E / (EPS growth x 100) when it is missing. The Value tab switches to PEGY (growth + dividend yield) locally when the yield is over 1.5%."
+   ]
+  ]
+ }
+}

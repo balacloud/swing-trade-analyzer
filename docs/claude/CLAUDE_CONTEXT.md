@@ -3,7 +3,7 @@
 > **Purpose:** ONE file to reference in every session - handles all scenarios
 > **Location:** Git `/docs/claude/` (root of claude docs)
 > **Usage:** Add this file to Claude context. That's it.
-> **Last Updated:** Day 135 — 2026-11-26
+> **Last Updated:** Day 136 — 2026-11-27
 
 ---
 
@@ -13,16 +13,21 @@
 
 | Field | Value |
 |-------|-------|
-| Current Day | 135 |
-| Version | v4.73 (Backend v2.61, Frontend v4.69) |
-| Latest Status | PROJECT_STATUS_DAY135_SHORT.md |
-| Latest Issues | KNOWN_ISSUES_DAY135.md |
-| Latest API | API_CONTRACTS_DAY135.md |
-| Focus | **Next: Data Sources tab statement audit + rare states (provider down, breaker open, empty/stale cache), then Scan/Sectors/Context data audit and the direct provider calls, then the second Canada source plan (ROADMAP #30).** Day 135: `.env` wins over a stale launch environment, saved-prices line, leveraged-fund audit (C11) and header data notes (v4.73). Thin-ETF close differences are NOT pursued (user). Open for the user: rotate the old FRED key in git history, Alpaca terms, Twelve Data key. |
+| Current Day | 136 |
+| Version | v4.74 (Backend v2.62, Frontend v4.70) |
+| Latest Status | PROJECT_STATUS_DAY136_SHORT.md |
+| Latest Issues | KNOWN_ISSUES_DAY136.md |
+| Latest API | API_CONTRACTS_DAY136.md |
+| Focus | **Next: Scan/Sectors/Context data audit and the direct provider calls that bypass the chain, then the second Canada source plan (ROADMAP #30).** Day 136: the Data Sources tab is finished (attempt record, statement audit 0 WRONG, rare-state page test). Open for the user: rotate the old FRED key in git history, Alpaca terms, Twelve Data key. |
 
 ---
 
 ## RECENT DAY SUMMARIES (Last 3 days only — older in history/CLAUDE_CONTEXT_LOG.md)
+
+### Day 136 Summary (v4.74, Backend v2.62)
+- **Data Sources tab finished** (ROADMAP #20 + #16 merged): new attempt log (`providers/attempt_log.py`, `fetch_attempts` in `provider_state.db`) so the tab says "no provider check recorded / answered by X at T / failed at T, saved data shown"; `/api/provenance` has `ohlcv.attempt` and `fundamentals.attempt`; "no key" label; cache-lifetime sentence names the exceptions.
+- **Statement audit** `backend/audit_data_sources_tab.py`: 96 PASS, 0 WRONG, 0 MISLEADING, 27 UNVERIFIED (reasons listed). **Rare-state page test** `test_data_sources_rare_states.js`: 25 checks; page check A18; page checker 64/64.
+- Found and fixed: three older tests would have polluted the live state file (redirected, guard test); a legacy direct-Yahoo path; unknown attempt state; Market Backdrop audit tolerance (8 false WRONGs); phone overflow of the report path. Plan `DATA_SOURCES_PROVENANCE_PLAN_DAY136.md` (Opus: GO WITH CHANGES).
 
 ### Day 135 Summary (v4.73, Backend v2.61)
 - **Data audit refreshed** (117 tickers, after the Nov 24 close, offline replay with `--now`); the stop hook now ignores the generated `data_audit_latest.json`. **`.env` now wins** over a stale launch environment (`backend/env_loader.py`, `/api/health` `env_overridden`).
@@ -34,12 +39,6 @@
 - **Alpaca was not serving the app** (401, stale env in the parent process); a full restart fixed it. 97 of 138 cached frames are Alpaca now; only RIVN and RSP needed their US cache frames cleared.
 - **Trade Setup void rule:** live price strictly below the support zone's low (or the plan stop when there is no zone) gives a plain-facts banner, muted numbers, a last-trade tick and "Sizing is off"; the plan numbers stay at the last close. Plan + Opus review `PLAN_VOID_BELOW_SUPPORT_PLAN_DAY133.md`; three passes, audit 124 PASS / 0 WRONG, page checker 52/52 (A15).
 - Priorities: refresh `data_audit_latest.json`, Alpaca startup warning (#29), thin tickers, Data Sources tab statement audit.
-
-### Day 133 Summary (docs only, v4.70 unchanged)
-- **Layered the project docs** into L1 (read every session, about 77 KB, was 391 KB), L2 (`stable/rules/<cluster>.md`, full Golden Rule text) and L3 (`docs/claude/history/`). Plan with Opus review: `design/LAYERED_CONTEXT_PLAN_DAY133.md`. Nothing deleted; checked line by line. Commit `73358520`.
-- Cold-start probe passed 5 of 5; two weak spots found and fixed. `/sta-start` and `/sta-end` updated; `/sta-end` Step 6c runs `.claude/check_context_layers.py`.
-- STA priorities unchanged: Alpaca in-session bar (market day), DRAL RS1 row, refresh `data_audit_latest.json`.
-
 
 ## HOW THE DOCS ARE LAYERED (Day 133)
 
@@ -98,13 +97,11 @@ Single source: `.claude/commands/sta-end.md`. Claude runs every step and never a
 
 No freeze, no live gates. STA is an on-demand analysis tool (paper trading discontinued Day 113). Pick by what the user wants. Source of truth: the latest `PROJECT_STATUS_DAY[N]_SHORT.md` "Next Session Priorities" and `ROADMAP.md` "OPEN PRIORITIES".
 
-1. Data Sources tab statement audit + Playwright rare states (ROADMAP #20), **merged with per-ticker provenance (#16, "never checked" vs "just failed"; user decision Day 135)**.
-2. Scan, Sectors, Context data audit; ~17 direct provider calls; 117-ticker page audit (#20).
-3. Second Canada source plan + Sectors batch Yahoo spacing (ROADMAP #30).
-4. (Per-ticker provenance, ROADMAP #16, is now part of item 1.)
-5. Alpaca in-session bar check on a market day (#27); Twelve Data re-measure, `rsi_4h` (#22), Tradier stall retry (#23).
-6. Playbook research (#21), page-layout review (#26).
-7. Waiting on the user: rotate the old FRED key in git history, Alpaca terms, Twelve Data key.
+1. Scan, Sectors, Context data audit; ~17 direct provider calls; 117-ticker page audit (#20). (Data Sources tab audit + per-ticker provenance done Day 136.)
+2. Second Canada source plan + Sectors batch Yahoo spacing (ROADMAP #30).
+3. Alpaca in-session bar check on a market day (#27); Twelve Data re-measure, `rsi_4h` (#22), Tradier stall retry (#23).
+4. Playbook research (#21), page-layout review (#26; includes the 390 px tab-strip overflow).
+5. Waiting on the user: rotate the old FRED key in git history, Alpaca terms, Twelve Data key.
 
 ## FILE STRUCTURE REFERENCE
 

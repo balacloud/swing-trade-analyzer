@@ -5,11 +5,11 @@
 import { createRequire } from 'module';
 import { describeMarketBackdrop, fmtPct, fmtDate } from '../src/utils/marketBackdrop.js';
 import { formatZoneRange } from '../src/utils/keyLevels.js';
-import { providerLabel } from '../src/utils/dataSourcesView.js';
+import { providerLabel, describeAttempt } from '../src/utils/dataSourcesView.js';
 
 const require = createRequire(import.meta.url);
 const { runChecks, CHECK_IDS } = require('./lib/analyzeChecks.js');
-const helpers = { describeMarketBackdrop, fmtPct, fmtDate, formatZoneRange, providerLabel };
+const helpers = { describeMarketBackdrop, fmtPct, fmtDate, formatZoneRange, providerLabel, describeAttempt };
 
 let failures = 0;
 let passes = 0;
@@ -34,7 +34,7 @@ const API = {
   qqq: { status: 200, body: { ticker: 'QQQ', trend: trendQqq } },
   vix: { status: 200, body: { current: 18.24, regime: 'normal' } },
   stock: { status: 200, body: { ticker: 'AAPL', currentPrice: 523.88, quoteType: 'EQUITY', exchange: 'NasdaqGS', currency: 'USD', instrumentClass: 'Stock' } },
-  provenance: { status: 200, body: { ticker: 'AAPL', ohlcv: { source: 'twelvedata', status: 'cached' },
+  provenance: { status: 200, body: { ticker: 'AAPL', ohlcv: { source: 'twelvedata', status: 'cached', attempt: { state: 'ok', last_ok_ts: 1795780046, last_ok_provider: 'twelvedata' } },
     indicators: [{ name: 'SMA 50 / 200' }, { name: 'RSI 14' }], indicators_error: null,
     quality: { state: 'ok', level: 'PASS', checks: { freshness: { level: 'PASS' }, integrity: { level: 'PASS' }, history: { level: 'PASS' }, jumps: { level: 'PASS' } } } } },
   health: { status: 200, body: { providers: { chains: { ohlcv: ['twelvedata', 'yfinance', 'tradier'] } } } },
@@ -88,7 +88,7 @@ const DOM = {
   noteIntegrity: '',
   noteTracking: '',
   live: { priceText: 'Now $520.10', changeText: ' (\u22120.74%)', statusText: ' \u00b7 Live \u00b7 last trade 2:51pm ET', closeText: 'Last close $523.88 \u00b7 Nov 13', tickCount: 0, timingNote: 'Last close $523.88 \u00b7 Nov 13' },
-  ds: { present: true, error: false, symbol: 'AAPL', exchange: 'NasdaqGS', currency: 'USD', cls: 'Stock', dataFrom: 'Twelve Data', verdict: 'PASS',
+  ds: { present: true, error: false, symbol: 'AAPL', exchange: 'NasdaqGS', currency: 'USD', cls: 'Stock', dataFrom: 'Twelve Data', attempt: 'Prices: last provider check answered by Twelve Data at 6:54 AM ET.', verdict: 'PASS',
     qualityRows: [], allPass: true,
     indicatorRows: [['SMA 50 / 200', 'this stock\'s daily closes', 'Average of the last 50 closes'], ['RSI 14', 'this stock\'s daily closes', 'Wilder']], indicatorsUnavailable: false, splitNotes: [],
     chainRows: [{ group: 'price', provider: 'twelvedata' }, { group: 'price', provider: 'yfinance' }, { group: 'price', provider: 'tradier' },
@@ -362,6 +362,16 @@ mustFail('A14', '/api/sr was not captured', null, a => { a.sr = { status: null, 
 mustPass('A14', 'a failed (non-200) answer is left to the error-banner checks', null, a => { a.sr = { status: 500, body: { error: 'x' } }; });
 mustPass('A14', 'both answers are valid with real prices');
 
+
+// ---------- A18 Data Sources provider-check line (Day 136) ----------
+mustPass('A18', 'the line equals the attempt block (time masked)', null);
+mustFail('A18', 'the tab says a different provider answered', d => { d.ds.attempt = 'Prices: last provider check answered by Yahoo (yfinance) at 6:54 AM ET.'; });
+mustFail('A18', 'the tab shows no line although the backend sent one', d => { d.ds.attempt = null; });
+mustFail('A18', 'backend says failed, tab says answered', null, a => { a.provenance.body.ohlcv.attempt = { state: 'failed', last_fail_ts: 1795780046, detail: 'twelvedata:RateLimitError', last_ok_ts: null }; });
+mustPass('A18', 'backend failed and the tab says so', d => { d.ds.attempt = 'Prices: last provider check failed at 6:54 AM ET (twelvedata:RateLimitError). No success recorded.'; }, a => { a.provenance.body.ohlcv.attempt = { state: 'failed', last_fail_ts: 1795780046, detail: 'twelvedata:RateLimitError', last_ok_ts: null }; });
+mustFail('A18', 'backend never-checked but the tab says answered', null, a => { a.provenance.body.ohlcv.attempt = { state: 'never' }; });
+mustPass('A18', 'old backend without attempt and no line shown', d => { d.ds.attempt = null; }, a => { delete a.provenance.body.ohlcv.attempt; });
+mustFail('A18', 'old backend without attempt but a line is shown', null, a => { delete a.provenance.body.ohlcv.attempt; });
 
 // ---------- A17 thin-data and leveraged-comparison notes (Day 135) ----------
 const A17_NOTE = '82% of bars flat with zero volume; 0 malformed bars; zero volume on 3 of the last 5 days';

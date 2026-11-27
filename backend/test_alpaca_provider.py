@@ -193,6 +193,9 @@ def chain(al_fail=False, td_fail=False):
     dp._ohlcv_locks = {}; dp._ohlcv_locks_guard = threading.Lock(); dp._last_source = {}; dp._deliver = lambda t, df: df
     dp.al, dp.td, dp.yf, dp.tr = Fake('alpaca', al_fail, True), Fake('twelvedata', td_fail, True), Fake('yfinance'), Fake('tradier')
     dp._ohlcv_chain = [dp.al, dp.td, dp.yf, dp.tr]; return dp
+# Day 136: the orchestrator now writes an attempt record; keep it in a throwaway DB (never the live provider_state.db)
+from providers import attempt_log as _al
+_al.DB_PATH = os.path.join(tempfile.mkdtemp(prefix='attempt_test_'), 'state.db'); _al._initialized = False
 tmpdb = tempfile.mkdtemp(); cm.DB_PATH = Path(tmpdb) / 'cache.db'
 for _n2 in ('init_database', 'init_db', 'initialize_database', 'init_cache'):
     if hasattr(cm, _n2): getattr(cm, _n2)(); break

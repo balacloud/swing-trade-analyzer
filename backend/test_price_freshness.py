@@ -61,6 +61,10 @@ SAT = pd.Timestamp('2026-11-28 12:00', tz=MARKET_TZ)
 ok(dq.price_freshness(frame(['2026-11-27']), now=SAT)['sessionsBehind'] == 0, 'Saturday: Friday bar is current')
 
 # orchestrator: the stale marker rides on the frame, set inside the locked fetch
+# Day 136: the orchestrator now writes an attempt record; keep it in a throwaway DB (never the live provider_state.db)
+import tempfile as _tf
+from providers import attempt_log as _al
+_al.DB_PATH = os.path.join(_tf.mkdtemp(prefix='attempt_test_'), 'state.db'); _al._initialized = False
 import providers.orchestrator as orch
 class FakeCache:
     def get_cached_ohlcv(self, t, p=None): return None

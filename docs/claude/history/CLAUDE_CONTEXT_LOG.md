@@ -227,3 +227,11 @@ pick deliberately based on what the user actually wants next, not backlog order.
 - Most of the session went on a non-STA task (kept out of the repo on purpose).
 - Corrected my own overclaim (a "match" that used an estimated input); added a row to `ENGINEER.md`.
 - STA priorities unchanged: Alpaca in-session bar (needs market hours), DRAL RS1 row, refresh `data_audit_latest.json`. Waiting on the user: Alpaca terms, Twelve Data key rotation, US cache clear.
+
+
+## Day 133
+
+Summary as it stood in CLAUDE_CONTEXT.md: (docs only, v4.70 unchanged)
+- **Layered the project docs** into L1 (read every session, about 77 KB, was 391 KB), L2 (`stable/rules/<cluster>.md`, full Golden Rule text) and L3 (`docs/claude/history/`). Plan with Opus review: `design/LAYERED_CONTEXT_PLAN_DAY133.md`. Nothing deleted; checked line by line. Commit `73358520`.
+- Cold-start probe passed 5 of 5; two weak spots found and fixed. `/sta-start` and `/sta-end` updated; `/sta-end` Step 6c runs `.claude/check_context_layers.py`.
+- STA priorities unchanged: Alpaca in-session bar (market day), DRAL RS1 row, refresh `data_audit_latest.json`.

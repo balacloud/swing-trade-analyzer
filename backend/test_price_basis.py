@@ -58,6 +58,10 @@ _, meta5 = cm.read_ohlcv_entry('TST5')
 ok(datetime.fromisoformat(meta5['expires_at']) >= exp, 'other sources keep the normal expiry')
 
 # ---- per-ticker lock: concurrent cold-cache callers cause ONE provider fetch
+# Day 136: the orchestrator now writes an attempt record; keep it in a throwaway DB (never the live provider_state.db)
+import tempfile as _tf
+from providers import attempt_log as _al
+_al.DB_PATH = os.path.join(_tf.mkdtemp(prefix='attempt_test_'), 'state.db'); _al._initialized = False
 from providers import orchestrator as orch
 calls = []
 class FakeResult:

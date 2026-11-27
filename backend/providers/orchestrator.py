@@ -65,6 +65,7 @@ from .stooq_provider import StooqProvider
 from .tradier_provider import TradierProvider
 from .alpaca_provider import AlpacaProvider
 from .fallback_policy import tradier_blocked
+from . import attempt_log   # Day 136: per-ticker 'last real provider check' record for the Data Sources tab
 
 # Import existing cache_manager (add parent to path if needed)
 _backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -164,7 +165,14 @@ class DataProvider:
         with self._ohlcv_locks_guard:
             lock = self._ohlcv_locks.setdefault(ticker, threading.Lock())
         with lock:
-            return self._get_ohlcv_locked(ticker, period)
+            try:
+                return self._get_ohlcv_locked(ticker, period)
+            except ProviderError:
+                raise   # the chain outcome is recorded inside; the repeat-memo raise made no provider call and records nothing
+            except Exception as e:
+                # Day 136: not a provider error (a cache write, a None frame): still a failed fetch, never silent. Class name only.
+                attempt_log.record_fail(ticker, 'ohlcv', attempt_log.describe_error('internal', e), period)
+                raise
 
     def _get_ohlcv_locked(self, ticker: str, period: str) -> pd.DataFrame:
         # 1. Check fresh cache — Day 82 fix: pass `period` through so a
@@ -183,6 +191,7 @@ class DataProvider:
             if memo and time.monotonic() - memo[0] < CHAIN_FAILURE_MEMO_SECONDS:
                 raise ProviderError('all', f"All OHLCV providers failed (repeat within {CHAIN_FAILURE_MEMO_SECONDS}s, not retried): {memo[1]}", ticker)
         errors = []
+        error_names = []   # Day 136: provider:ExceptionClass only, for the attempt log (never the message text)
         for provider in self._ohlcv_chain:
             if blocked and getattr(provider, 'name', '') == 'tradier':
                 print(f"⛔ OHLCV {ticker}: Tradier skipped (leveraged fund, Tradier has split errors on it)")
@@ -199,11 +208,13 @@ class DataProvider:
                     cache_manager.set_cached_ohlcv(ticker, df, period, source=result.source)
 
                 self._last_source[f'{ticker}_ohlcv'] = result.source
+                attempt_log.record_ok(ticker, 'ohlcv', result.source, period)
                 print(f"✅ OHLCV for {ticker}: {result.source} ({result.rows} bars)")
                 return self._deliver(ticker, df)
 
             except ProviderError as e:
                 errors.append(f"{e.provider}: {str(e)}")
+                error_names.append(attempt_log.describe_error(e.provider, e))
                 print(f"⚠️ OHLCV {e.provider} failed for {ticker}: {e}")
                 continue
 
@@ -212,6 +223,7 @@ class DataProvider:
             stale = self._get_stale_ohlcv(ticker, period)
             if stale is not None:
                 self._last_source[f'{ticker}_ohlcv'] = 'stale_cache'
+                attempt_log.record_fail(ticker, 'ohlcv', '; '.join(error_names), period, served_stale=True)
                 print(f"📦 OHLCV for {ticker}: serving STALE cache (all providers failed)")
                 out = self._deliver(ticker, stale)
                 # Day 135: the marker travels WITH the frame (set inside the per-ticker lock), so a route does not have to read the
@@ -222,6 +234,7 @@ class DataProvider:
 
         # 4. All failed
         error_summary = '; '.join(errors)
+        attempt_log.record_fail(ticker, 'ohlcv', '; '.join(error_names), period)
         if blocked:
             _chain_failures[ticker] = (time.monotonic(), error_summary)
         raise ProviderError('all', f"All OHLCV providers failed: {error_summary}", ticker)
@@ -283,6 +296,7 @@ class DataProvider:
         merged_data = {field: None for field in FUNDAMENTALS_SCHEMA}
         field_sources = {}
         primary_source = None
+        fund_error_names = []   # Day 136: provider:ExceptionClass only (attempt log)
 
         # Try Finnhub first (best coverage except growth)
         try:
@@ -294,6 +308,7 @@ class DataProvider:
             primary_source = 'finnhub'
             print(f"📊 Fundamentals {ticker}: Finnhub provided {len(field_sources)} fields")
         except ProviderError as e:
+            fund_error_names.append(attempt_log.describe_error(e.provider, e))
             print(f"⚠️ Finnhub fundamentals failed for {ticker}: {e}")
 
         # Check for gaps - specifically epsGrowth and revenueGrowth
@@ -313,6 +328,7 @@ class DataProvider:
                     primary_source = 'alphavantage'
                 print(f"📊 Fundamentals {ticker}: AlphaVantage filled {filled} growth fields")
             except ProviderError as e:
+                fund_error_names.append(attempt_log.describe_error(e.provider, e))
                 print(f"⚠️ AlphaVantage fundamentals failed for {ticker}: {e}")
 
         # Fill remaining gaps from yfinance
@@ -329,16 +345,20 @@ class DataProvider:
                 filled = sum(1 for f, s in field_sources.items() if s == 'yfinance')
                 print(f"📊 Fundamentals {ticker}: yfinance filled {filled} remaining fields")
             except ProviderError as e:
+                fund_error_names.append(attempt_log.describe_error(e.provider, e))
                 print(f"⚠️ yfinance fundamentals failed for {ticker}: {e}")
 
         # Check if we got anything useful
         if all(v is None for v in merged_data.values()):
+            # Day 136: nothing usable from any provider = a failed fetch (also when no provider raised: all answered empty).
             # Try stale cache
             if CACHE_AVAILABLE:
                 stale = self._get_stale_fundamentals(ticker)
                 if stale:
                     self._last_source[f'{ticker}_fundamentals'] = 'stale_cache'
+                    attempt_log.record_fail(ticker, 'fundamentals', '; '.join(fund_error_names) or 'all_providers_empty', None, served_stale=True)
                     return stale
+            attempt_log.record_fail(ticker, 'fundamentals', '; '.join(fund_error_names) or 'all_providers_empty', None)
             return None
 
         # Add metadata for backend.py compatibility
@@ -350,6 +370,9 @@ class DataProvider:
             cache_manager.set_cached_fundamentals(ticker, merged_data, source=primary_source or 'multi')
 
         self._last_source[f'{ticker}_fundamentals'] = primary_source or 'multi'
+        # Day 136: ok = some provider gave data. A provider that raised on the way is kept as a 'partial' note (names only).
+        attempt_log.record_ok(ticker, 'fundamentals', primary_source or 'multi', None,
+                              detail=('partial: ' + '; '.join(fund_error_names)) if fund_error_names else '')
         return merged_data
 
     # =========================================================================

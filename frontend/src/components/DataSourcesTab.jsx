@@ -50,7 +50,7 @@ function Identity({ id }) {
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-400">
         <span>Data from <b className="text-gray-200" data-testid="ds-datafrom">{id.dataFrom || 'unknown'}</b></span>
         {id.cache && <span className={TONE[id.cache.tone]} data-testid="ds-cachestate">{id.cache.label}</span>}
-        {id.session && <span className="text-xs text-gray-500">{id.session}</span>}
+        {id.attempt && <span className={`text-xs ${TONE[id.attempt.tone]}`} data-testid="ds-attempt">{id.attempt.text}</span>}
       </div>
     </Box>
   );
@@ -116,7 +116,8 @@ function Quality({ view, fundamentals, onRetry, hasTicker }) {
 }
 
 function ChainRow({ r, group }) {
-  const [dot, label] = HEALTH[r.health] || HEALTH.unknown;
+  // Day 136: a closed breaker on a provider with no key is "no key", not a green "ok" (it can never answer)
+  const [dot, label] = (r.health === 'ok' && r.configured === false) ? ['bg-gray-500', 'no key'] : (HEALTH[r.health] || HEALTH.unknown);
   return (
     <div data-testid="ds-chain-row" data-provider={r.name} data-group={group} className="py-2 border-b border-gray-700/40 last:border-0">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
@@ -141,7 +142,7 @@ function Chain({ chains, tradingviewAvailable }) {
   return (
     <Box testid="ds-chain">
       <h4 className="text-md font-semibold text-cyan-400 mb-1">Where the data comes from</h4>
-      <p className="text-xs text-gray-500 mb-3" data-testid="ds-coverage">
+      <p className="text-xs text-gray-500 mb-3 break-words" data-testid="ds-coverage">{/* Day 136: the report path is one long word; it pushed the phone page sideways */}
         Each source is tried in order. Markets covered are as tested{cov.tested ? ` on ${cov.tested}` : ''}{cov.report ? ` (${cov.report})` : ''}.
         {cov.error && <span className="text-yellow-400"> {cov.error === 'Coverage table not loaded.' ? 'Loading the coverage table…' : `Coverage table unavailable: ${cov.error}`}</span>}
       </p>
@@ -179,7 +180,7 @@ function Details({ cacheStatus, provenance }) {
             ))}
           </div>
         ) : <p className="text-gray-500 mb-4">{cacheStatus?.error ? `Cache status unavailable: ${cacheStatus.error}` : 'Loading cache status…'}</p>}
-        <p className="text-xs text-gray-500 mb-3">Prices are cached until the next market close (4pm ET + 30 min). Fundamentals for 7 days.</p>
+        <p className="text-xs text-gray-500 mb-3">Prices are cached until the next market close (4pm ET + 30 min); an unfinished bar or a short source (Tradier) expires sooner. Fundamentals for 7 days.</p>
         {indicators ? (
           <table className="w-full text-xs" data-testid="ds-indicators">
             <thead><tr className="text-left text-gray-400 border-b border-gray-700"><th className="py-1 px-2">Indicator</th><th className="py-1 px-2">From</th><th className="py-1 px-2">How</th></tr></thead>

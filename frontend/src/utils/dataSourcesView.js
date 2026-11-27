@@ -33,6 +33,40 @@ export function shortTime(iso) {
   return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 }
 
+/** Day 136: epoch seconds (UTC) -> "6:54 AM ET" today, "Nov 26, 6:54 AM ET" on another day. Never guesses: bad input -> null. */
+export function etTime(epochSeconds, nowMs = Date.now()) {
+  if (typeof epochSeconds !== 'number' || !Number.isFinite(epochSeconds)) return null;
+  const d = new Date(epochSeconds * 1000);
+  const day = (x) => x.toLocaleDateString('en-US', { timeZone: 'America/New_York' });
+  const time = d.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' });
+  const date = day(d) === day(new Date(nowMs)) ? '' : `${d.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' })}, `;
+  return `${date}${time} ET`;
+}
+
+/**
+ * Day 136 (Data Sources provenance): the last REAL provider check for one data type, from /api/provenance `attempt`
+ * (the backend attempt log: cross-process, survives restarts; a cache hit is not a check). Replaces the old "this session"
+ * sentence (same fact, one place). Returns { text, tone } or null when the backend did not send it (old backend).
+ * Facts only: when, which provider, what failed. No verdict words.
+ */
+export function describeAttempt(attempt, what = 'Prices', nowMs = Date.now()) {
+  if (!isObj(attempt) || typeof attempt.state !== 'string') return null;
+  if (attempt.error) return { text: `${what}: the provider-check record could not be read (${attempt.error}).`, tone: 'warn' };
+  const ok = etTime(attempt.last_ok_ts, nowMs);
+  const fail = etTime(attempt.last_fail_ts, nowMs);
+  if (attempt.state === 'never') return { text: `${what}: no provider check recorded by this app yet.`, tone: 'muted' };
+  if (attempt.state !== 'ok' && attempt.state !== 'failed') return null;   // an unknown state is not "failed": say nothing rather than guess
+  if (attempt.state === 'ok') {
+    const by = attempt.last_ok_provider ? ` by ${providerLabel(attempt.last_ok_provider)}` : '';
+    const partial = attempt.last_ok_detail ? ` (${attempt.last_ok_detail})` : '';
+    return { text: `${what}: last provider check answered${by}${ok ? ` at ${ok}` : ''}${partial}.`, tone: 'good' };
+  }
+  const why = attempt.detail ? ` (${attempt.detail})` : '';
+  const stale = attempt.served_stale ? ' Saved data was shown instead.' : '';
+  const last = ok ? ` Last success: ${ok}${attempt.last_ok_provider ? ` by ${providerLabel(attempt.last_ok_provider)}` : ''}.` : ' No success recorded.';
+  return { text: `${what}: last provider check failed${fail ? ` at ${fail}` : ''}${why}.${stale}${last}`, tone: 'warn' };
+}
+
 /**
  * Guard against stale pairing (review pass 2): switching tickers with the tab open leaves the PREVIOUS ticker's provenance
  * in state until the new fetch lands. Return it only when it is for this ticker (or is an error), else null, which the tab
@@ -56,15 +90,12 @@ export function describeIdentity(stock, provenance) {
   let cache = null;
   if (ohlcv) {
     if (q?.expired === true) cache = { label: 'expired, will refetch on next analysis', tone: 'warn' };
-    else if (ohlcv.status === 'just_fetched') cache = { label: 'just fetched', tone: 'good' };
-    else if (ohlcv.status === 'cached') cache = { label: 'cached', tone: 'good' };
+    // Day 136: 'just fetched' was a guess from cache age (< 5 min), not a recorded fetch. Both say "cached"; the attempt line below
+    // says when a provider really answered.
+    else if (ohlcv.status === 'just_fetched' || ohlcv.status === 'cached') cache = { label: 'cached', tone: 'good' };
     else cache = { label: 'not cached, will fetch on next analysis', tone: 'muted' };   // backend key 'live'
   }
-  const s = ohlcv?.this_session;
-  const session = s === 'cache' ? 'served from cache this session'
-    : s === 'stale_cache' ? 'served from an expired cache (every provider failed)'
-    : s ? `fetched live from ${providerLabel(s)} this session`
-    : null;
+  const attempt = ohlcv ? describeAttempt(ohlcv.attempt, 'Prices') : null;
 
   return {
     symbol: stock?.ticker || prov?.ticker || null,
@@ -74,7 +105,7 @@ export function describeIdentity(stock, provenance) {
     basis: stock?.classBasis ? `inferred: ${stock.classBasis}` : null,
     dataFrom: src ? providerLabel(src) : null,
     cache,
-    session,
+    attempt,
   };
 }
 
@@ -115,6 +146,11 @@ export function describeQuality(provenance, { loading = false } = {}) {
   return { state: 'ok', level: q.level, header, rows, passedCount: passed, total: Object.keys(checks).length, audit, splits };
 }
 
+const failedNote = (attempt) => {
+  const a = describeAttempt(attempt, 'Fundamentals');
+  return a && attempt.state === 'failed' ? ` ${a.text}` : '';
+};
+
 /** Fundamentals line: a fund has none; an all-null stub is not data. */
 export function describeFundamentals(stock, provenance) {
   if (stock?.quoteType === 'ETF') return { text: 'No fundamentals for a fund.', tone: 'muted' };
@@ -123,7 +159,7 @@ export function describeFundamentals(stock, provenance) {
   if (fu.has_data === false) return { text: 'No fundamentals on file (the cached record is empty).', tone: 'muted' };
   if (fu.has_data === true) {
     const age = typeof fu.age_days === 'number' ? `, ${fu.age_days < 1 ? 'today' : `${Math.round(fu.age_days)} day${Math.round(fu.age_days) === 1 ? '' : 's'} old`}` : '';
-    return { text: `Fundamentals from ${providerLabel(fu.source)}${age}.`, tone: 'good' };
+    return { text: `Fundamentals from ${providerLabel(fu.source)}${age}.${failedNote(fu.attempt)}`, tone: 'good' };
   }
   return { text: 'Fundamentals not loaded yet.', tone: 'muted' };
 }
@@ -143,6 +179,7 @@ export function describeChains(health, coverage) {
       label: providerLabel(name),
       role: p.role || null,
       health: p.health || 'unknown',
+      configured: p.configured,   // Day 136: false = no API key, so a closed breaker ("ok") is not "it works" 
       callsLeft: left,
       markets: c ? (coverage.markets || []).map((m) => ({ market: m, status: c[m] || 'not tested' })) : [],
       note: c?.note || null,

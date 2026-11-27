@@ -21,7 +21,7 @@ run() {   # run NAME CMD... : fails on a non-zero exit code or any output line t
 
 echo "== backend tests"
 cd "$PROJECT/backend"
-for t in test_env_loader test_price_freshness test_price_basis test_forming_bar_routes test_sr_volume_unavailable test_live_quote test_tradier_errors test_alpaca_provider test_tradier_fallback_rule test_empty_price_row test_audit_statements test_audit_cards test_audit_cards2 test_rrg test_sector_rotation test_sub_industry_rotation; do
+for t in test_env_loader test_price_freshness test_attempt_log test_provenance_route test_price_basis test_forming_bar_routes test_sr_volume_unavailable test_live_quote test_tradier_errors test_alpaca_provider test_tradier_fallback_rule test_empty_price_row test_audit_statements test_audit_cards test_audit_cards2 test_rrg test_sector_rotation test_sub_industry_rotation; do
   [ -f "$t.py" ] && run "$t" "$PY" "$t.py"
 done
 run test_review_gate bash "$PROJECT/.claude/hooks/test_three_pass_check.sh"
@@ -51,6 +51,13 @@ if [ "$QUICK" = "0" ]; then
     cd "$PROJECT/backend"
     for m in audit_statements audit_cards audit_cards2; do "$PY" $m.py "$OUT" > "$LOG/$m.log" 2>&1; done
     "$PY" audit_summary.py "$OUT" || FAILED+=("smoke-audit-WRONG-rows")
+    echo "== Data Sources tab (rare states + statement audit)"
+    cd "$PROJECT/frontend"
+    "$NODE" scripts/test_data_sources_rare_states.js > "$LOG/ds_rare_states.log" 2>&1 && ! grep -q "^FAIL" "$LOG/ds_rare_states.log" && echo "  ok    ds_rare_states ($(grep -E 'passed' "$LOG/ds_rare_states.log" | tail -1))" || { echo "  FAIL  ds_rare_states (log: $LOG/ds_rare_states.log)"; FAILED+=("ds_rare_states"); }
+    DSOUT="$PROJECT/docs/test/DataSourcesTab_$(date +%Y%m%d_%H%M)"
+    "$NODE" scripts/dump_data_sources_tab.js "$DSOUT" AAPL VFV.TO SOXL.NE > "$LOG/ds_dump.log" 2>&1
+    cd "$PROJECT/backend"
+    "$PY" audit_data_sources_tab.py "$DSOUT" > "$LOG/ds_audit.log" 2>&1 && echo "  ok    ds_statement_audit ($(grep Verdicts "$LOG/ds_audit.log"))" || { echo "  FAIL  ds_statement_audit (log: $LOG/ds_audit.log)"; FAILED+=("ds_statement_audit"); }
   fi
 fi
 

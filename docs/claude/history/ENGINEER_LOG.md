@@ -65,3 +65,16 @@ last_updated: Day 133 (2026-11-24)
 - **Day 135:** env-override build. Misses caught: the plan listed 4 `load_dotenv` sites, there were 6 (the reviewer grepped); a test set fake keys before import and the override would have swapped in real ones; a module moved into a shared helper broke scripts run from a sub-folder (found in pass 1 by importing it from its own folder); Flask's reloader child hid the override from `/api/health` (found only by a real restart). Habit: after centralising a loader, import it from every entry folder, and test through the real two-process launch, not just unit tests.
 - **Day 135 (stale price + leveraged):** misses caught by the Opus review or by real data: the new field would never have reached the page (`api.js` rebuilds the object); a `>= 2 sessions behind` rule would have warned on every ticker after a holiday (reuse the tab's rule); the plan's C10 name was already taken; my first SOXL.NE comparison used a raw frame and a misaligned join, and the audit had to compare the copy the app uses (split table first); two of ten mutation checks proved nothing until redone (one never applied, one had no test for its branch). Habit: run the new check on real data before believing a number, and confirm every mutation actually changed the file.
 - **Day 135 (data notes):** the plan computed the note on the served frame, but the tab reads the raw cache (served frame has empty-close rows dropped): caught by the Opus review, fixed with ONE shared builder plus a test that compares page and tab text on real tickers. Also caught: a mutation string that never matched (reported as caught for one run); a test that crashed instead of failing (None subscript); a desktop layout where the new line sat beside the price. Habit: after centralising a builder, test both callers against each other on real data; read the screenshot at both widths.
+
+
+## Day 136
+
+| Miss | Habit that catches it |
+|---|---|
+| Three older tests ran the real orchestrator and would have written "last fetch failed" for NVDL and VFV.TO into the user's live state file once the attempt log existed | When a new module writes to a shared live file, grep every test that reaches it and redirect it; add a guard test that scans for the missing redirect |
+| A legacy direct-yfinance path in `/api/stock` succeeded after the chain failed, leaving "failed" beside fresh prices (pass 1) | List every exit that can deliver data, not just the main one, and record at each |
+| An unknown attempt state (new backend value, old frontend) rendered as "failed" (pass 2) | A status switch needs a default that says nothing, not the worst case |
+| The audit script read the health payload one level wrong and reported false WRONGs; the Market Backdrop tolerance only passed by luck | Check the checker against a known-true row before trusting its WRONG count |
+| Puppeteer headless "new" hangs here, so two new checks timed out in the full run | Default new browser scripts to headless 'shell'; re-run a hung check alone before calling it failed |
+
+- **Day 136 (Data Sources provenance):** plan, Opus review, three passes. What worked: the rare-state page test with planted payloads plus one real forced failure against throwaway databases; mutation checks (remove "no key" from the JSX and the rare-state test failed; disable the hook and the log tests failed).

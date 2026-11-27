@@ -1076,3 +1076,10 @@ Priority closed this session, row text word for word (the number stays cited in 
 | 29 | **DONE Day 135 (v4.71, Backend v2.59): a stale launch environment can no longer silently beat `.env`.** New `backend/env_loader.py` (`load_env`) replaces all 6 `load_dotenv` calls; a non-empty `.env` value wins, the log and `/api/health` (`env_overridden`) name the replaced KEY NAMES only; `STA_ENV_OVERRIDE=0` keeps the old behaviour with a warning. Plan + Opus review: `docs/claude/design/ENV_OVERRIDE_PLAN_DAY135.md`. | done |
 
 *Closed by:* `backend/env_loader.py` (`.env` wins over a stale launch environment, key names logged and in `/api/health` `env_overridden`), plan `docs/claude/design/ENV_OVERRIDE_PLAN_DAY135.md`.
+
+
+## Day 136
+
+No priority row closed whole. Partly closed (row text stays in ROADMAP): the per-ticker provenance part of #16 (the HIGH item) and the Data Sources tab part of #20.
+
+*Closed by:* `backend/providers/attempt_log.py`, `/api/provenance` `attempt` blocks, `utils/dataSourcesView.js` `describeAttempt`, `backend/audit_data_sources_tab.py`, `frontend/scripts/test_data_sources_rare_states.js`; plan `docs/claude/design/DATA_SOURCES_PROVENANCE_PLAN_DAY136.md`.

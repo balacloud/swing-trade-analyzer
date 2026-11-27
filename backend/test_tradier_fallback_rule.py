@@ -11,6 +11,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backtest'))
 import cache_manager as cm
 import data_quality as dq
+# Day 136: the orchestrator now writes an attempt record; keep it in a throwaway DB (never the live provider_state.db)
+import tempfile as _tf
+from providers import attempt_log as _al
+_al.DB_PATH = os.path.join(_tf.mkdtemp(prefix='attempt_test_'), 'state.db'); _al._initialized = False
 from providers import orchestrator as orch
 from providers.exceptions import ProviderError
 from providers.fallback_policy import NO_TRADIER, tradier_blocked

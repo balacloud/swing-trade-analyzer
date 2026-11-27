@@ -83,7 +83,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 # /api/sectors/pullback-screen endpoint (SRPS discretionary screener).
 # Day 105: bumped to 2.46 for the new /api/sectors/sub-industry-pullback-screen
 # endpoint + the shared _srps_true_rs()/_srps_evaluate_candidate() refactor.
-BACKEND_VERSION = '2.61'
+BACKEND_VERSION = '2.62'
 
 # Day 116: market-hours test for "is /api/sr's last bar still forming?" Mirrors
 # paper_trading/live_signals.py's _prepare_ohlcv() guard (Day 99, Golden Rule 33 —
@@ -992,6 +992,11 @@ def get_data_provenance(ticker):
     except Exception:
         pass
 
+    def _attempt(data_type):
+        # attempt_log.read never raises; an unreadable log comes back as state 'never' WITH `error` set (not the same as never fetched).
+        from providers import attempt_log
+        return attempt_log.read(ticker, data_type)
+
     # Build provenance response. FROZEN keys (the audit script and the tab read them): ohlcv.source / rows / status.
     provenance = {
         'ticker': ticker,
@@ -1006,6 +1011,8 @@ def get_data_provenance(ticker):
             'age_hours': ohlcv_age_h,
             'status': _cache_status(age_hours=ohlcv_age_h, cache_entry=ohlcv_cache),
             'this_session': this_session,
+            # Day 136: last REAL provider check (cross-process, survives restarts): never / ok / failed. Cache hits are not checks.
+            'attempt': _attempt('ohlcv'),
         },
         'fundamentals': {
             'source': fund_cache.get('source', 'unknown') if fund_cache else 'unknown',
@@ -1016,6 +1023,7 @@ def get_data_provenance(ticker):
             'age_days': fund_age_d,
             'status': _cache_status(age_days=fund_age_d, cache_entry=fund_cache),
             'has_data': fund_has_data,
+            'attempt': _attempt('fundamentals'),
         },
         'quality': quality,
         'audit': data_quality.read_audit_summary(ticker),
@@ -1096,6 +1104,13 @@ def get_stock_data(ticker):
                     return jsonify({'error': f'No data found for {ticker}'}), 404
                 hist.columns = [c.lower() for c in hist.columns]
                 set_cached_ohlcv(ticker, hist)      # the cache stays RAW (Day 126)
+                # Day 136 (pass 1): this direct Yahoo call is a real provider answer outside the chain; without this line the tab would say
+                # "last check failed" (the chain) next to fresh Yahoo prices in the cache.
+                try:
+                    from providers import attempt_log as _attempt_log
+                    _attempt_log.record_ok(ticker, 'ohlcv', 'yfinance', '2y', detail='direct call after the chain failed')
+                except Exception as _e:  # noqa: BLE001  (never break an analysis for a log line)
+                    print(f"⚠️ attempt_log legacy record failed for {ticker}: {type(_e).__name__}")
         if _legacy_path:
             hist = split_adjust.fix_frame(hist, ticker)  # Day 126: the emergency path gets the same split fix, after caching the raw frame
 

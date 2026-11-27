@@ -393,3 +393,28 @@ XDRV.TO (82% flat zero-volume bars), FINN.NE (28 malformed bars), SOXL.NE (close
 
 
 *Resolved Day 135 note for the "data_audit_latest.json is stale" item above:* refreshed by the 117-ticker audit after the Nov 24 close (offline replay with `--now 2026-11-24T17:00`), then again with the leveraged-fund tracking facts.
+
+
+## Day 136
+
+Moved out of `KNOWN_ISSUES_DAY135.md` at the Day 136 close (resolved), plus new Low/Info items. Text word for word.
+
+### FIXED Day 136 (was High, Day 108): Per-ticker provenance can't distinguish "never checked" from "just failed" (carried from Day 108)
+**Original fix note:** Not actioned — needs a new failure-tracking mechanism, its own session. Oldest open
+item from the Day 108 full-system audit.
+**Fixed:** new attempt log (`backend/providers/attempt_log.py`, table `fetch_attempts` in `provider_state.db`) records the last real provider answer or failure per (ticker, prices|fundamentals); `/api/provenance` carries `ohlcv.attempt` and `fundamentals.attempt`; the Data Sources tab shows "no provider check recorded by this app yet / answered by X at T / failed at T (detail), saved data shown". Plan `DATA_SOURCES_PROVENANCE_PLAN_DAY136.md`. Not covered: quote, intraday and other direct provider calls (the tab does not show them).
+
+### Info (Day 136): tickers cached before the log existed say "no provider check recorded by this app yet"
+AAPL and SOXL.NE showed it on the first run. True, not a bug: the log started Day 136 and a cache hit records nothing. Entries appear as real fetches happen.
+
+### Info (Day 136): Data Sources tab statement audit leaves 27 rows UNVERIFIED, each with its reason
+Exchange and currency versus the broker, whether the hand-kept coverage chips are current, hit rate, what "ok" means for a provider never called, and that the attempt line proves a check record only. Report: `docs/test/DataSourcesTab_final/REPORT_DATASOURCES_TAB.md`.
+
+### FIXED Day 136 (Low): Market Backdrop audit tolerance (`audit_cards2.py` MB-SPY-drop)
+The tolerance 0.011 only passed by luck (card shows one decimal); 8 tickers showed a false WRONG (-3.6 shown vs -3.64). Now 0.0501.
+
+### FIXED Day 136 (Low): phone-width overflow from the long coverage report path on the Data Sources tab
+Wrapped with `break-words`. Pre-existing and NOT fixed: the app's own tab strip is wider than a 390 px screen (ROADMAP #26).
+
+### FIXED Day 136 (Low): three older backend tests could have marked NVDL and VFV.TO "last fetch failed" in the live provider_state.db
+They now redirect `attempt_log.DB_PATH` to a throwaway file; a guard test in `test_attempt_log.py` fails any test that uses the orchestrator without the redirect.

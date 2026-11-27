@@ -187,7 +187,7 @@ async function readDataSources(page) {
     return {
       present: !!q('data-sources-tab'),
       error: !!q('ds-error'),
-      symbol: t(q('ds-symbol')), exchange: t(q('ds-exchange')), currency: t(q('ds-currency')), cls: t(q('ds-class')), dataFrom: t(q('ds-datafrom')),
+      symbol: t(q('ds-symbol')), exchange: t(q('ds-exchange')), currency: t(q('ds-currency')), cls: t(q('ds-class')), dataFrom: t(q('ds-datafrom')), attempt: t(q('ds-attempt')),
       verdict: v ? v.dataset.level : null,
       qualityRows: [...document.querySelectorAll('[data-testid="ds-quality-row"]')].map(r => ({ level: r.dataset.level, text: r.textContent.trim() })),
       allPass: !!q('ds-quality-allpass'),
@@ -319,7 +319,7 @@ async function main() {
   const mb = await import(path.resolve(__dirname, '../src/utils/marketBackdrop.js'));
   const kl = await import(path.resolve(__dirname, '../src/utils/keyLevels.js'));
   const dsv = await import(path.resolve(__dirname, '../src/utils/dataSourcesView.js'));
-  const helpers = { describeMarketBackdrop: mb.describeMarketBackdrop, fmtPct: mb.fmtPct, fmtDate: mb.fmtDate, formatZoneRange: kl.formatZoneRange, providerLabel: dsv.providerLabel };
+  const helpers = { describeMarketBackdrop: mb.describeMarketBackdrop, fmtPct: mb.fmtPct, fmtDate: mb.fmtDate, formatZoneRange: kl.formatZoneRange, providerLabel: dsv.providerLabel, describeAttempt: dsv.describeAttempt };
 
   let outputDir = path.resolve(__dirname, '../../docs/test', `UI_Verify_${stamp()}`);
   for (let n = 2; fs.existsSync(outputDir); n++) outputDir = outputDir.replace(/(_\d+)?$/, `_${n}`);
